@@ -1,0 +1,19 @@
+shell:
+  program: /bin/zsh
+  args:
+    - -l
+    - -c
+    - "tmux attach || tmux"
+  selection:
+    # When set to `true`, selected text will be copied to both the primary and
+    # the selection clipboard. Otherwise, it will only be copied to the selection
+    # clipboard.
+    save_to_clipboard: true
+key_bindings:
+  # remove the line below!
+  - { key: W, mods: Command, action: Quit }
+font:
+ size: 12.0
+ normal:
+  family: Roboto Mono
+  style: Regular
