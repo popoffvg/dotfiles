@@ -105,7 +105,6 @@ func {}({}{}) ({}) {{
     ))
 table.insert(snippets, my_s)
 
-
 local query_s = s(
     "query",
     fmt(
@@ -408,5 +407,12 @@ if <err_same> != nil {
   )
 
 table.insert(autosnippets, efi)
+table.insert(autosnippets, s("===", t(":=")))
+
+local ctx = s(
+    "ctx",
+    t("ctx context.Context")
+)
+table.insert(snippets, ctx)
 
 return snippets, autosnippets

@@ -20,7 +20,9 @@ require'nvim-treesitter.configs'.setup {
         "markdown",
         "markdown_inline",
         "proto",
-        "sql"
+        "sql",
+        "graphql",
+        "php",
 	},
     incremental_selection = {
     enable = true,

@@ -7,7 +7,6 @@ local keymap = vim.api.nvim_set_keymap
 require'nvim-tree'.setup{
     disable_netrw = true,
     open_on_setup_file = false,
-    open_on_setup = false,
     ignore_buffer_on_setup = true,
     respect_buf_cwd = false,
     diagnostics = {

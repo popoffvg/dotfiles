@@ -40,6 +40,7 @@ local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protoc
 local lspconfig = require("lspconfig")
 local configs = require("lspconfig.configs")
 
+local goflags = os.getenv("GOFLAGS")
 require'lspconfig'.gopls.setup{
     cmd = { "gopls" },
 	on_attach = on_attach,
@@ -52,6 +53,7 @@ require'lspconfig'.gopls.setup{
 				shadow = true,
 			},
 			staticcheck = true,
+            buildFlags = {goflags},
 		},
 	},
 	init_options = {
@@ -106,13 +108,26 @@ require('lspconfig')['lua_ls'].setup = {
 			return require("lsp-status.util").in_range(cursor_pos, value_range)
 		end
 	end,
-	settings = {
-		Lua = {
-			diagnostics = {
-				globals = { "vim" },
-			},
-		},
-	},
+  settings = {
+    Lua = {
+      runtime = {
+        -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
+        version = 'LuaJIT',
+      },
+      diagnostics = {
+        -- Get the language server to recognize the `vim` global
+        globals = {'vim'},
+      },
+      workspace = {
+        -- Make the server aware of Neovim runtime files
+        library = vim.api.nvim_get_runtime_file("", true),
+      },
+      -- Do not send telemetry data containing a randomized but unique identifier
+      telemetry = {
+        enable = false,
+      },
+    },
+  },
 }
 
 require('lspconfig')['yamlls'].setup {
@@ -129,3 +144,12 @@ require('lspconfig')['yamlls'].setup {
 
 vim.api.nvim_set_var("go_def_mode", "gopls")
 vim.api.nvim_set_var("go_info_mode", "gopls")
+
+
+require'lspconfig'.phpactor.setup{
+    on_attach = on_attach,
+    init_options = {
+        ["language_server_phpstan.enabled"] = false,
+        ["language_server_psalm.enabled"] = false,
+    }
+}

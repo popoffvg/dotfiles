@@ -39,8 +39,10 @@ nnoremap <A-j> :m .+1<CR>==
 nnoremap <A-k> :m .-2<CR>==
 inoremap <A-j> <Esc>:m .+1<CR>==gi
 inoremap <A-k> <Esc>:m .-2<CR>==gi
+inoremap <A-h> <C-H>
 vnoremap <A-j> :m '>+1<CR>gv=gv
 vnoremap <A-k> :m '<-2<CR>gv=gv
+
 
 " Windows navigation
 nnoremap <C-J> <C-W><C-J>
@@ -55,6 +57,10 @@ noremap <Leader>p "*p
 noremap <Leader>Y "+y
 noremap <Leader>P "+p
 
+" Terminal map
+tnoremap <Esc> <C-\><C-n>
+tnoremap jj <C-\><C-n>
+
 call plug#begin(expand('~/./plugged'))
     " Language
     Plug 'neovim/nvim-lspconfig'
@@ -65,6 +71,8 @@ call plug#begin(expand('~/./plugged'))
 	Plug 'hrsh7th/cmp-buffer'
 	Plug 'hrsh7th/cmp-path'
 	Plug 'hrsh7th/cmp-cmdline'
+    Plug 'hrsh7th/cmp-nvim-lsp-document-symbol'
+    Plug 'hrsh7th/cmp-buffer'
 	Plug 'hrsh7th/nvim-cmp'
 	Plug 'j-hui/fidget.nvim'
 	Plug 'L3MON4D3/LuaSnip'
@@ -73,6 +81,7 @@ call plug#begin(expand('~/./plugged'))
 	Plug 'ray-x/lsp_signature.nvim'
     Plug 'L3MON4D3/LuaSnip', {'tag': 'v1.1.*'}
     Plug 'rafamadriz/friendly-snippets'
+    Plug 'jparise/vim-graphql'
 
     " Base
     Plug 'akinsho/toggleterm.nvim'
@@ -116,6 +125,7 @@ call plug#begin(expand('~/./plugged'))
         let &rtp=&rtp
         UpdateRemotePlugins
     endfunction
+    Plug 'preservim/vim-colors-pencil'
 
     Plug 'gelguy/wilder.nvim', { 'do': function('UpdateRemotePlugins') }
     " Plug 'vim-airline/vim-airline'
@@ -123,12 +133,14 @@ call plug#begin(expand('~/./plugged'))
     Plug 'projekt0n/github-nvim-theme'
     Plug 'SmiteshP/nvim-gps'
     " Plug 'glepnir/dashboard-nvim'
+    Plug 'lukas-reineke/indent-blankline.nvim'
 
 	" Git
 	Plug 'ThePrimeagen/git-worktree.nvim'
 	Plug 'TimUntersberger/neogit'
 	Plug 'lewis6991/gitsigns.nvim'
     Plug 'https://github.com/tpope/vim-fugitive.git'
+    Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
 
 	" Edit
 	Plug 'tpope/vim-surround'
@@ -139,7 +151,6 @@ call plug#begin(expand('~/./plugged'))
     " Plug 'jiangmiao/auto-pairs'
 	Plug 'numToStr/Comment.nvim'
     Plug '907th/vim-auto-save'
-    Plug 'AndrewRadev/splitjoin.vim'
     Plug 'mg979/vim-visual-multi', {'branch': 'master'}
     Plug 'google/vim-maktaba'
     Plug 'google/vim-codefmt'
@@ -147,6 +158,8 @@ call plug#begin(expand('~/./plugged'))
     " `:help :Glaive` for usage.
     Plug 'google/vim-glaive'
     Plug 'AckslD/nvim-trevJ.lua'
+    Plug 'kamykn/spelunker.vim'
+    " Plug 'inkarkat/vim-ingo-library' | Plug 'inkarkat/vim-SpellCheck'
     " LSP
     " Plug 'Shougo/deoplete.nvim'
     " Plug 'deoplete-plugins/deoplete-go', { 'do': 'make'}
@@ -157,6 +170,7 @@ call plug#begin(expand('~/./plugged'))
     Plug 'leoluz/nvim-dap-go'
     Plug 'rcarriga/nvim-dap-ui'
     Plug 'fgheng/winbar.nvim'
+    Plug 'ThePrimeagen/refactoring.nvim'
 
     " Go
     Plug 'meain/vim-jsontogo'   
@@ -250,6 +264,10 @@ set number
 
 let no_buffers_menu=1
 
+set laststatus=3 " global status line
+
+set spelllang=en_us
+set nospell
 
 " set wildmode=longest,list,full
 " Better command line completion 
@@ -264,7 +282,12 @@ set guioptions=egmrti
 if has('gui_running')
   set guifont=Roboto\ Mono\ 10
 endif
-colorscheme github_*
+" colorscheme github_*
+" colorscheme catppuccin-frappe " catppuccin-latte, catppuccin-frappe, catppuccin-macchiato, catppuccin-mocha catppuccin
+colorscheme pencil
+let g:pencil_higher_contrast_ui = 1
+let g:pencil_neutral_code_bg = 1
+set guicursor=r-i-ci:hor5
 
 " for quick-scope
 let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']

@@ -32,6 +32,7 @@ require('telescope').setup{
 require('telescope').load_extension("fzf")
 require('telescope').load_extension("git_worktree")
 require("telescope").load_extension("live_grep_args")
+require("telescope").load_extension("live_grep_args")
 
 -- require('telescope.builtin').find_files( { cwd = vim.fn.expand('%:p:h') })
 -- require('telescope.builtin').live_grep( { cwd = vim.fn.expand('%:p:h') })
@@ -45,3 +46,4 @@ keymap("n", "<leader>fh", ":Telescope help_tags<CR>", opts)
 keymap("n", "<leader>ft", ":Telescope treesitter<CR>", opts)
 keymap("n", "<leader>fc", ":Telescope commands<CR>", opts)
 keymap("n", "<leader>fr", ":Telescope resume<CR>", opts)
+keymap("n","<leader>cs", [[:lua require("telescope.builtin").spell_suggest(require("telescope.themes").get_cursor({}))<CR>]],opts)

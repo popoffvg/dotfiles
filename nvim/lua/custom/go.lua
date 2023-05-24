@@ -1,12 +1,24 @@
 local opts = { noremap = true, silent = true }
 local keymap = vim.api.nvim_set_keymap
+local wk = require("which-key")
 
 require('dap-go').setup()
 require("dapui").setup()
 require'telescope'.load_extension'goimpl'
 require('trevj').setup()
+require('refactoring').setup({
+    prompt_func_return_type = {
+        go = true,
+    },
+    prompt_func_param_type = {
+        go = true,
+    },
+})
+wk.register({
+	["<leader>cr"]= {"<cmd>lua require('telescope').extensions.refactoring.refactors()<CR>",name = "refactoring", noremap = true, silent = true, mode = "v"},
+})
+require("telescope").load_extension("refactoring")
 
-local wk = require("which-key")
 wk.register({
     ["<leader>ci"] = {"<cmd>lua require'telescope'.extensions.goimpl.goimpl{}<CR>]", "implement interface", noremap = true, silent = true},
     ["<F5>"] = {"<Cmd>lua require'dap'.continue()<CR>", "debug.continue", silent=true, noremap = true}

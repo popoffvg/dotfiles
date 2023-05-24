@@ -15,11 +15,20 @@ local function treelocation()
 end
 
 require('lualine').setup({
+    options = {
+         component_separators = '|',
+        section_separators = { left = '', right = '' },
+      },
     tabline = {},
     sections = {
+     lualine_a = {
+         -- { 'mode', separator = { left = '' }, right_padding = 2 }
+         { 'mode', right_padding = 2 },
+ },
       lualine_b = {'branch', 'diff', 'diagnostics'},
-      lualine_c = {'filename', treelocation},
-      lualine_x = {'tabs'},
+      lualine_c = {'filename'},
+      -- lualine_x = {'tabs',separator = { right = '' }, left_padding = 2 },
+      lualine_x = {'tabs' ,left_padding = 2 },
     },
 })
 
