@@ -1,4 +1,5 @@
 set relativenumber
+
 set rnu
 set clipboard=unnamedplus
 
@@ -28,27 +29,37 @@ endif
 " Common keybindings
 inoremap jj <Esc>l
 map <c-w> <Cmd>:Bdelete<CR>
-map <C-W>:bd
+map <c-W>:bd
 imap <a-o> <Esc>o
 imap <a-a> <Esc>a
 imap <a-O> <Esc>O
 imap <a-A> <Esc>A
+nnoremap <c-a> ggVGG
+
 nnoremap <esc> :noh<return><esc>
 nnoremap <esc>^[ <esc>^[
+nnoremap <A-h> ^
+nnoremap <A-l> $
 nnoremap <A-j> :m .+1<CR>==
 nnoremap <A-k> :m .-2<CR>==
+nnoremap <c><left><left> ^
+nnoremap <c><Right><Right> $
+
 inoremap <A-j> <Esc>:m .+1<CR>==gi
 inoremap <A-k> <Esc>:m .-2<CR>==gi
-inoremap <A-h> <C-H>
+inoremap <A-=> :=
+
 vnoremap <A-j> :m '>+1<CR>gv=gv
 vnoremap <A-k> :m '<-2<CR>gv=gv
-
+vnoremap <A-h> ^
+vnoremap <A-l> $
 
 " Windows navigation
 nnoremap <C-J> <C-W><C-J>
 nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
 nnoremap <C-H> <C-W><C-H>
+nnoremap <C-z> :ZenMode<CR>
 
 
 " Copy to system clipboard
@@ -60,6 +71,12 @@ noremap <Leader>P "+p
 " Terminal map
 tnoremap <Esc> <C-\><C-n>
 tnoremap jj <C-\><C-n>
+tnoremap <C-J> <C-\><C-n><C-W><C-J>
+tnoremap <C-K> <C-\><C-n><C-W><C-K>
+tnoremap <C-L> <C-\><C-n><C-W><C-L>
+tnoremap <C-H> <C-\><C-n><C-W><C-H>
+tnoremap <C-z> <C-\><C-n>:ZenMode<CR><C-\><C-n>
+autocmd BufWinEnter,WinEnter term://* startinsert
 
 call plug#begin(expand('~/./plugged'))
     " Language
@@ -108,8 +125,12 @@ call plug#begin(expand('~/./plugged'))
     Plug 'nvim-treesitter/nvim-treesitter-textobjects'
     Plug 'folke/which-key.nvim'
     Plug 'nvim-treesitter/playground'
-
+    Plug 'knubie/vim-kitty-navigator', {'do': 'cp ./*.py ~/.config/kitty/'}
     " Plug 'gnikdroy/projections.nvim'
+    Plug 'folke/flash.nvim'
+    Plug 'SmiteshP/nvim-navic'
+    Plug 'MunifTanjim/nui.nvim'
+    Plug 'SmiteshP/nvim-navbuddy'
 
     " View
     Plug 'nvim-lualine/lualine.nvim'
@@ -171,6 +192,7 @@ call plug#begin(expand('~/./plugged'))
     Plug 'rcarriga/nvim-dap-ui'
     Plug 'fgheng/winbar.nvim'
     Plug 'ThePrimeagen/refactoring.nvim'
+    Plug 'gbprod/yanky.nvim'
 
     " Go
     Plug 'meain/vim-jsontogo'   
@@ -186,6 +208,22 @@ call plug#begin(expand('~/./plugged'))
     Plug 'folke/todo-comments.nvim', {'branch': 'neovim-pre-0.8.0'}
 
 call plug#end()
+
+lua << EOF
+    require("yanky").setup({
+      -- your configuration comes here
+      -- or leave it empty to use the default settings
+      -- refer
+      highlight = {
+          on_put = false,
+          on_yank = false,
+    }})
+    vim.keymap.set({"n","x"}, "p", "<Plug>(YankyPutAfter)")
+    vim.keymap.set({"n","x"}, "P", "<Plug>(YankyPutBefore)")
+    vim.keymap.set({"n","x"}, "gp", "<Plug>(YankyGPutAfter)")
+    vim.keymap.set({"n","x"}, "gP", "<Plug>(YankyGPutBefore)")
+EOF
+
 lua << EOF
     require "custom.autosave"
     require "custom.autopairs"
@@ -209,6 +247,8 @@ lua << EOF
     require "custom.zen"
     require "custom.which-key"
     require "custom.wilder"
+    require "custom.treesitter_go"
+    require "custom.blankline"
 EOF
 "
 "*****************************************************************************
@@ -274,7 +314,7 @@ set nospell
 " set wildmenu=off
 
 " mouse support
-set mouse=nv
+set mouse=vn
 
 set mousemodel=popup
 set t_Co=256
@@ -283,16 +323,16 @@ if has('gui_running')
   set guifont=Roboto\ Mono\ 10
 endif
 " colorscheme github_*
-" colorscheme catppuccin-frappe " catppuccin-latte, catppuccin-frappe, catppuccin-macchiato, catppuccin-mocha catppuccin
-colorscheme pencil
+colorscheme catppuccin-mocha " catppuccin-latte, catppuccin-frappe, catppuccin-macchiato, catppuccin-mocha catppuccin
+" colorscheme pencil
 let g:pencil_higher_contrast_ui = 1
 let g:pencil_neutral_code_bg = 1
 set guicursor=r-i-ci:hor5
 
 " for quick-scope
 let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
-highlight QuickScopePrimary guifg='#afff5f' gui=underline ctermfg=155 cterm=underline
-highlight QuickScopeSecondary guifg='#5fffff' gui=underline ctermfg=81 cterm=underline
+highlight QuickScopePrimary guifg='#fc2642' gui=underline ctermfg=155 cterm=underline
+highlight QuickScopeSecondary guifg='#26fcf5' gui=underline ctermfg=81 cterm=underline
 
 " special characters
 syntax match keyword "\<lambda\>" conceal cchar=λ
@@ -301,6 +341,12 @@ syntax match keyword "->" conceal cchar=→
 syntax match keyword "<-" conceal cchar=←
 set conceallevel=1
 
+" kitty nav 
+" let g:kitty_navigator_no_mappings = 1
+" nnoremap <silent> <a-h> :KittyNavigateLeft<cr>
+" nnoremap <silent> <a-j> :KittyNavigateDown<cr>
+" nnoremap <silent> <a-k> :KittyNavigateUp<cr>
+" nnoremap <silent> <a-l> :KittyNavigateRight<cr>
 
 " highlight the visual selection after pressing enter.
 xnoremap <silent> <cr> "*y:silent! let searchTerm = '\V'.substitute(escape(@*, '\/'), "\n", '\\n', "g") <bar> let @/ = searchTerm <bar> echo '/'.@/ <bar> call histadd("search", searchTerm) <bar> set hls<cr>

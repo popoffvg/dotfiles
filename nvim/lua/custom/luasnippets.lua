@@ -48,10 +48,18 @@ end, { silent = true })
 
 vim.keymap.set({ "i", "s" }, "<c-u>", '<cmd>lua require("luasnip.extras.select_choice")()<cr><C-c><C-c>')
 vim.keymap.set({ "i", "s" }, "<a-l>", function()
-    ls.jump(1)
+	if ls.in_snippet() then
+        ls.jump(1)
+	else
+        return '<a-l>'
+	end
 end)
 vim.keymap.set({ "i", "s" }, "<a-h>", function()
-    ls.jump(-1)
+	if ls.in_snippet() then
+        ls.jump(-1)
+	else
+        return '<a-h>'
+	end
 end) --}}}
 
 vim.keymap.set({ "i", "s" }, "<a-j>", function()

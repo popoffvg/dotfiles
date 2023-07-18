@@ -6,12 +6,15 @@ local t = ls.t
 local d = ls.dynamic_node
 local c = ls.choice_node
 local f = ls.function_node
+local r = ls.restore_node
 local sn = ls.snippet_node
 
 local fmt = require("luasnip.extras.fmt").fmt
 local fmta = require("luasnip.extras.fmt").fmta
 local rep = require("luasnip.extras").rep
 
+-- --
+local tsgo = require("../custom/treesitter_go")
 -- --
 
 local snippets = {}
@@ -105,63 +108,6 @@ func {}({}{}) ({}) {{
     ))
 table.insert(snippets, my_s)
 
-local query_s = s(
-    "query",
-    fmt(
-    [[
-type (
-    {} struct {{
-    params map[string]interface{{}}
-    Result *[]string
-  }}
-  )
-
-
-func {}({}) *{} {{
-  query := &{}{{
-    params: map[string]interface{{}}{{
-        {}
-    }},
-    Result: result,
-  }}
-
-  return query
-}}
-
-func (a *{}) Query() interface{{}} {{
-  return {}
-  
-}}
-
-// nolint
-func (*{}) String() string {{
-  return "UpdateForecastInfo"
-}}
-
-// Params возвращает список параметров запроса
-func (a *{}) Params() interface{{}} {{
-  return a.params
-}}
-
-func (a *{}) Destination() interface{{}} {{
-  return &a.Result
-}}
-]],{
-       i(1),
-       rep(1),-- TODO: (popoffvg) Upper case firs letter
-       i(2),
-       rep(1), 
-       rep(1), 
-       i(3),
-       rep(1),
-       i(0),
-       rep(1),
-       rep(1),
-       rep(1),
-    }
-    ))
-table.insert(snippets, query_s)
-
 local anonym_struct = s("struct", fmta([[
     struct {
         <> <>
@@ -226,7 +172,7 @@ local arr = s("arr", c(1,
                     fmta([[0, <>]], {i(1, "len")}),
                 })
         }),
-        fmta([[var <> ()<>]], {
+        fmta([[var <> []<>]], {
             i(1, "arr"),
             i(2, "type")
         }),
@@ -249,8 +195,6 @@ var (
     i(1),
 }))
 table.insert(snippets, var)
-
-
 
 local ts_locals = require "nvim-treesitter.locals"
 local ts_utils = require "nvim-treesitter.ts_utils"
@@ -409,10 +353,75 @@ if <err_same> != nil {
 table.insert(autosnippets, efi)
 table.insert(autosnippets, s("===", t(":=")))
 
+local function short_name(args)
+    for i, v in next, args[1] do
+        return tsgo.short_name(v)
+    end
+end
+
+local method = s("meth", fmta(
+    [[
+    func(<>) <f>(<args>) (<args2>){
+        <finish>
+    }
+    ]],{
+        d(1, function(args)
+            local receivers = tsgo.receivers_list()
+
+            local row,_ = unpack(vim.api.nvim_win_get_cursor(0))
+            local receiver = nil
+            for r,meta in pairs(receivers) do
+                if meta ~= nil and meta.row <= row then
+                    receiver = r
+                end
+            end
+
+            if receiver == nil then
+                return sn(
+                    nil,
+                    {
+                        f(short_name, 1),
+                        t(" *"),
+                        i(1, "receiver")
+                    }
+                )
+            end
+
+            return sn(
+                nil,
+                i(1, receiver)
+            )
+        end,{}),
+        f = i(2, "function"),
+        args = i(3, "args"),
+        args2 = i(4, "error"),
+        finish = i(0, "return nil")
+    }
+))
+table.insert(snippets, method)
+--
+-- local gots=require("../custom/treesitter_go.lua")
+-- local callback = local go_ret_vals = function(args)
+--     gots.recievers_list
+-- end
+-- table.insert(s("test", fmta([[<>]], d(1, callback))))
+
 local ctx = s(
     "ctx",
     t("ctx context.Context")
 )
+
 table.insert(snippets, ctx)
+local test = s("test", 
+        fmta("<> <>", {
+        d(1, function(args)
+            return sn(nil, fmta("<> <>", {f(short_name,2), i(2, "test")}))
+        end, {}),
+        i(2, "other")
+    }
+))
+table.insert(snippets, test)
+
 
 return snippets, autosnippets
+

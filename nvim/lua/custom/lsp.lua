@@ -5,6 +5,7 @@ vim.api.nvim_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', op
 vim.api.nvim_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
 vim.api.nvim_set_keymap('n', '<space>q', '<cmd>lua vim.diagnostic.setloclist()<CR>', opts)
 
+local navbuddy = require("nvim-navbuddy")
 local on_attach = function(client, bufnr)
 	local function buf_set_keymap(...)
 		vim.api.nvim_buf_set_keymap(bufnr, ...)
@@ -31,6 +32,7 @@ local on_attach = function(client, bufnr)
 	-- 		augroup END
 	-- 	]])
 	-- end
+    navbuddy.attach(client, bufnr)
 end
 
   -- Setup lspconfig.
@@ -73,9 +75,9 @@ if not configs.golangcilsp then
 		},
 	}
 end
-lspconfig.golangcilsp.setup({
-	filetypes = { "go" },
-})
+-- lspconfig.golangcilsp.setup({
+-- 	filetypes = { "go" },
+-- })
 
 require('lspconfig')['pyright'].setup {
 	capabilities = capabilities,
@@ -140,6 +142,13 @@ require('lspconfig')['yamlls'].setup {
       }
     }
   }
+}
+
+require'lspconfig'.tsserver.setup {
+    on_attach = on_attach,
+    filetypes = { "typescript", "typescriptreact", "typescript.tsx" },
+    cmd = {"typescript-language-server","--stdio"},
+    -- capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities),
 }
 
 vim.api.nvim_set_var("go_def_mode", "gopls")
