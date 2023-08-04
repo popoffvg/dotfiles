@@ -56,9 +56,11 @@ require'nvim-treesitter.configs'.setup {
           set_jumps = true, 
              goto_next = {
         ["]]"] = "@conditional.outer",
+        ["]f"] = "@function.outer",
       },
       goto_previous = {
         ["[["] = "@conditional.outer",
+        ["[f"] = "@function.outer",
       }
         },
     },

@@ -58,9 +58,10 @@ vim.keymap.set({ "i", "s" }, "<a-h>", function()
 	if ls.in_snippet() then
         ls.jump(-1)
 	else
+        print("here")
         return '<a-h>'
 	end
-end) --}}}
+end)
 
 vim.keymap.set({ "i", "s" }, "<a-j>", function()
 	if ls.choice_active() then

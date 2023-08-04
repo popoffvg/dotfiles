@@ -1,55 +1,90 @@
 local opts = { noremap = true, silent = true }
 local keymap = vim.api.nvim_set_keymap
 local wk = require("which-key")
+require("go").setup({
+	icons = {
+		code_action_icon = "",
+	},
+	lsp_inlay_hints = {
+		enable = false,
+		parameter_hints_prefix = "#",
+	},
+	lsp_on_client_start = function(client, bufnr)
+		require("config.keymap").go_on_attach(client, bufnr)
+		require("lsp_signature").on_attach()
+		vim.lsp.codelens.refresh()
+	end,
+})
+require("go.inlay").toggle_inlay_hints()
 
-require('dap-go').setup({
-  dap_configurations = {
-    {
-      type = "go",
-      name = "Attach remote",
-      mode = "remote",
-      request = "attach",
-    }
-  },
-    -- delve configurations
-  delve = {
-    -- the path to the executable dlv which will be used for debugging.
-    -- by default, this is the "dlv" executable on your PATH.
-    path = "dlv",
-    -- time to wait for delve to initialize the debug session.
-    -- default to 20 seconds
-    initialize_timeout_sec = 20,
-    -- a string that defines the port to start delve debugger.
-    -- default to string "${port}" which instructs nvim-dap
-    -- to start the process in a random available port
-    port = "2345",
-    -- additional args to pass to dlv
-    args = {}
-  }
- })
+local format_sync_grp = vim.api.nvim_create_augroup("GoImport", {})
+vim.api.nvim_create_autocmd("BufWritePre", {
+	pattern = "*.go",
+	callback = function()
+		require("go.format").goimport()
+		require("go.format").gofmt()
+	end,
+	group = format_sync_grp,
+})
+require("dap-go").setup({
+	dap_configurations = {
+		{
+			type = "go",
+			name = "Attach remote",
+			mode = "remote",
+			request = "attach",
+		},
+	},
+	-- delve configurations
+	delve = {
+		-- the path to the executable dlv which will be used for debugging.
+		-- by default, this is the "dlv" executable on your PATH.
+		path = "dlv",
+		-- time to wait for delve to initialize the debug session.
+		-- default to 20 seconds
+		initialize_timeout_sec = 20,
+		-- a string that defines the port to start delve debugger.
+		-- default to string "${port}" which instructs nvim-dap
+		-- to start the process in a random available port
+		port = "2345",
+		-- additional args to pass to dlv
+		args = {},
+	},
+})
 
 require("dapui").setup()
-require'telescope'.load_extension'goimpl'
-require('trevj').setup()
-require('refactoring').setup({
-    prompt_func_return_type = {
-        go = true,
-    },
-    prompt_func_param_type = {
-        go = true,
-    },
+require("telescope").load_extension("goimpl")
+require("trevj").setup()
+require("refactoring").setup({
+	prompt_func_return_type = {
+		go = true,
+	},
+	prompt_func_param_type = {
+		go = true,
+	},
 })
 wk.register({
-	["<leader>cr"]= {"<cmd>lua require('telescope').extensions.refactoring.refactors()<CR>",name = "refactoring", noremap = true, silent = true, mode = "v"},
+	["<leader>cr"] = {
+		"<cmd>lua require('telescope').extensions.refactoring.refactors()<CR>",
+		name = "refactoring",
+		noremap = true,
+		silent = true,
+		mode = "v",
+	},
 })
 require("telescope").load_extension("refactoring")
 
 wk.register({
-    ["<leader>ci"] = {"<cmd>lua require'telescope'.extensions.goimpl.goimpl{}<CR>]", "implement interface", noremap = true, silent = true},
-    ["<F5>"] = {"<Cmd>lua require'dap'.continue()<CR>", "debug.continue", silent=true, noremap = true}
+	["<leader>ci"] = {
+		"<cmd>lua require'telescope'.extensions.goimpl.goimpl{}<CR>]",
+		"implement interface",
+		noremap = true,
+		silent = true,
+	},
+	["<F5>"] = { "<Cmd>lua require'dap'.continue()<CR>", "debug.continue", silent = true, noremap = true },
 })
 
-vim.cmd [[
+vim.cmd([[
     syntax match keyword "\<lambda\>" conceal cchar=λ
     set conceallevel=1
     let g:go_doc_keywordprg_enabled = 0
@@ -67,7 +102,23 @@ vim.cmd [[
     nnoremap <silent> <Leader>dr <Cmd>lua require("dapui").debug_test()<CR>
 
     nnoremap <silent> <Leader>j <Cmd>lua require('trevj').format_at_cursor()<CR>
-]]
+]])
 
 -- vim.api.nvim_set_keymap('n', '<leader>im', [[<cmd>lua require'telescope'.extensions.goimpl.goimpl{}<CR>]], {noremap=true, silent=true})
-    -- nnoremap <silent> <Leader>dr <Cmd>lua require'dap'.repl.open()<CR>
+-- nnoremap <silent> <Leader>dr <Cmd>lua require'dap'.repl.open()<CR>
+--,
+-- TODO:: (vitaliipopov) not working now
+local gen_hook = MiniSplitjoin.gen_hook
+local curly = { brackets = { "%b{}", "%b()" } }
+
+-- Add trailing comma when splitting inside curly brackets
+local add_comma_curly = gen_hook.add_trailing_separator(curly)
+
+-- Delete trailing comma when joining inside curly brackets
+local del_comma_curly = gen_hook.del_trailing_separator(curly)
+
+-- Create buffer-local config
+vim.b.minisplitjoin_config = {
+	split = { hooks_post = { add_comma_curly } },
+	join = { hooks_post = { del_comma_curly } },
+}

@@ -7,10 +7,29 @@ local actions = require('telescope.actions')
 require('telescope').setup{
   defaults = {
 	initial_mode = "insert",
-	file_ignore_patterns = {"node%_modules", "vendor", "%.git"},
+	file_ignore_patterns = {"node%_modules", "%.git"},
     -- sorting_strategy = "descending",
     -- file_sorter = require("telescope.sorters").get_fuzzy_file,
+    -- preview = false,
+    layout_config = {
+        center = {
+            preview_cutoff = 120,
+            width = function(_, cols, _)
+                if cols > 200 then
+                  return 170
+                else
+                  return math.floor(cols * 0.87)
+                end
+            end,
+
+            height = function(_, _, max_lines)
+                return math.min(max_lines, 80)
+            end,
+        },
+    },
+    theme = "dropdown", -- use dropdown theme
   },
+
    extensions = {
     live_grep_args = {
       auto_quoting = true, -- enable/disable auto-quoting
@@ -21,12 +40,20 @@ require('telescope').setup{
           ["<a-f>"] = lga_actions.quote_prompt({ postfix = " --iglob " }),
         },
       },
-      -- ... also accepts theme settings, for example:
-      -- theme = "dropdown", -- use dropdown theme
-      -- theme = { }, -- use own theme spec
-      -- layout_config = { mirror=true }, -- mirror preview pane
-    }
+      theme = "dropdown",
+      preview = true,
+    },
+
   },
+  pickers = {
+        lsp_references = {
+            theme = "dropdown",
+            show_line = false,
+        },
+        find_files = {
+            preview = false,
+        },
+    },
 }
 
 require('telescope').load_extension("fzf")
@@ -35,13 +62,10 @@ require("telescope").load_extension("live_grep_args")
 require("telescope").load_extension("live_grep_args")
 require("telescope").load_extension("yank_history")
 
--- require('telescope.builtin').find_files( { cwd = vim.fn.expand('%:p:h') })
--- require('telescope.builtin').live_grep( { cwd = vim.fn.expand('%:p:h') })
-
-keymap("n", "<leader>ff", ":Telescope find_files hidden=true<CR>", opts)
+keymap("n", "<leader>ff", ":Telescope find_files hidden=true preview=false<CR>", opts)
 keymap("n", "<leader>of", ":Telescope oldfiles<CR>", opts)
 -- keymap("n", "<leader>fg", ":Telescope live_grep<CR>", opts)
-keymap("n", "<leader>fg", ":lua require('telescope').extensions.live_grep_args.live_grep_args()<CR>", opts)
+keymap("n", "<leader>fg", ":lua require('telescope').extensions.live_grep_args.live_grep_args(require('telescope.themes').get_dropdown({}))<CR>", opts)
 keymap("n", "<leader>fb", ":Telescope buffers<CR>", opts)
 keymap("n", "<leader>fh", ":Telescope help_tags<CR>", opts)
 keymap("n", "<leader>ft", ":Telescope treesitter<CR>", opts)

@@ -7,7 +7,11 @@ saga.setup({
      },
      outline = {
         win_position = "left",
-    }
+    },
+    code_action_prompt = {enable = false},
+    lightbulb = {
+        sign = false,
+    },
 })
 
 -- saga.init_lsp_saga()
@@ -16,7 +20,7 @@ saga.setup({
 -- if there is no implement it will hide
 -- when you use action in finder like open vsplit then you can
 -- use <C-t> to jump back
-keymap("n", "<Leader>h", "<cmd>Lspsaga lsp_finder<CR>", { silent = true })
+keymap("n", "<Leader>h", "<cmd>Lspsaga finder<CR>", { silent = true })
 
 -- Code action
 keymap({"n","v"}, "<leader>ca", "<cmd>Lspsaga code_action<CR>", { silent = true })
@@ -28,7 +32,7 @@ keymap("n", "gr", "<cmd>Lspsaga rename<CR>", { silent = true })
 -- you can edit the definition file in this flaotwindow
 -- also support open/vsplit/etc operation check definition_action_keys
 -- support tagstack C-t jump back
-keymap("n", "gD", "<cmd>Lspsaga peek_definition<CR>", { silent = true })
+-- keymap("n", "gD", "<cmd>Lspsaga peek_definition<CR>", { silent = true })
 
 -- Show line diagnostics
 keymap("n", "<leader>cd", "<cmd>Lspsaga show_line_diagnostics<CR>", { silent = true })

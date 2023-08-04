@@ -12,47 +12,53 @@ else
   let curl_exists=expand('curl')
 endif
 
-if !filereadable(vimplug_exists)
-  if !executable(curl_exists
-    echoerr "You have to install curl or first install vim-plug yourself!"
-    execute "q!"
-  endif
-  echo "Installing Vim-Plug..."
-  echo ""
-  silent exec "!"curl_exists" -fLo " . shellescape(vimplug_exists) . " --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
-  filetype off
-  let g:not_finish_vimplug = "yes"
-
-  autocmd VimEnter * PlugInstall
-endif
+" if !filereadable(vimplug_exists)
+"   if !executable(curl_exists
+"     echoerr "You have to install curl or first install vim-plug yourself!"
+"     execute "q!"
+"   endif
+"   echo "Installing Vim-Plug..."
+"   echo ""
+"   silent exec "!"curl_exists" -fLo " . shellescape(vimplug_exists) . " --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+"   filetype off
+"   let g:not_finish_vimplug = "yes"
+"
+"   autocmd VimEnter * PlugInstall
+" endif
 
 " Common keybindings
 inoremap jj <Esc>l
-map <c-w> <Cmd>:Bdelete<CR>
-map <c-W>:bd
+map <Leader>x <Cmd>:Bdelete<CR>
+map <Leader>X <Cmd>:bd<CR>
 imap <a-o> <Esc>o
 imap <a-a> <Esc>a
-imap <a-O> <Esc>O
 imap <a-A> <Esc>A
-nnoremap <c-a> ggVGG
+imap <a-O> <Esc>O
+nnoremap <a-a> ggVGG
+
+nnoremap <a-i> <C-i>
+nnoremap <a-o> <C-o>
 
 nnoremap <esc> :noh<return><esc>
 nnoremap <esc>^[ <esc>^[
-nnoremap <A-h> ^
-nnoremap <A-l> $
-nnoremap <A-j> :m .+1<CR>==
-nnoremap <A-k> :m .-2<CR>==
+
+nnoremap <CHAR-0x0b>h <a-h>
+nnoremap <a-h> ^
+nnoremap <a-l> $
+nnoremap <a-j> :m .+1<CR>==
+nnoremap <a-k> :m .-2<CR>==
 nnoremap <c><left><left> ^
 nnoremap <c><Right><Right> $
 
-inoremap <A-j> <Esc>:m .+1<CR>==gi
-inoremap <A-k> <Esc>:m .-2<CR>==gi
-inoremap <A-=> :=
+imap <a-h> <c-h>
+imap <a-j> <Esc>:m .+1<CR>==gi
+imap <a-k> <Esc>:m .-2<CR>==gi
+imap <a-=> :=
 
-vnoremap <A-j> :m '>+1<CR>gv=gv
-vnoremap <A-k> :m '<-2<CR>gv=gv
-vnoremap <A-h> ^
-vnoremap <A-l> $
+vnoremap <a-j> :m '>+1<CR>gv=gv
+vnoremap <a-k> :m '<-2<CR>gv=gv
+vnoremap <a-h> ^
+vnoremap <a-l> $
 
 " Windows navigation
 nnoremap <C-J> <C-W><C-J>
@@ -121,7 +127,6 @@ call plug#begin(expand('~/./plugged'))
     Plug 'nvim-telescope/telescope-fzf-native.nvim', {'do': 'make'}
     Plug 'nvim-telescope/telescope-live-grep-args.nvim'
     Plug 'karb94/neoscroll.nvim'
-    Plug 'christoomey/vim-tmux-navigator'
     Plug 'nvim-treesitter/nvim-treesitter-textobjects'
     Plug 'folke/which-key.nvim'
     Plug 'nvim-treesitter/playground'
@@ -130,7 +135,6 @@ call plug#begin(expand('~/./plugged'))
     Plug 'folke/flash.nvim'
     Plug 'SmiteshP/nvim-navic'
     Plug 'MunifTanjim/nui.nvim'
-    Plug 'SmiteshP/nvim-navbuddy'
 
     " View
     Plug 'nvim-lualine/lualine.nvim'
@@ -141,12 +145,12 @@ call plug#begin(expand('~/./plugged'))
     Plug 'nvim-treesitter/nvim-treesitter'
     Plug 'nvim-treesitter/nvim-treesitter-context'
     Plug 'famiu/bufdelete.nvim'
+
     function! UpdateRemotePlugins(...)
         " Needed to refresh runtime files
         let &rtp=&rtp
         UpdateRemotePlugins
     endfunction
-    Plug 'preservim/vim-colors-pencil'
 
     Plug 'gelguy/wilder.nvim', { 'do': function('UpdateRemotePlugins') }
     " Plug 'vim-airline/vim-airline'
@@ -155,6 +159,8 @@ call plug#begin(expand('~/./plugged'))
     Plug 'SmiteshP/nvim-gps'
     " Plug 'glepnir/dashboard-nvim'
     Plug 'lukas-reineke/indent-blankline.nvim'
+    Plug 'rktjmp/lush.nvim'
+    Plug 'mcchrish/zenbones.nvim'
 
 	" Git
 	Plug 'ThePrimeagen/git-worktree.nvim'
@@ -164,11 +170,16 @@ call plug#begin(expand('~/./plugged'))
     Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
 
 	" Edit
-	Plug 'tpope/vim-surround'
-	Plug 'windwp/nvim-autopairs'
     Plug 'arsham/arshlib.nvim'
     Plug 'arsham/yanker.nvim'
     Plug 'mhartington/formatter.nvim'
+    Plug 'echasnovski/mini.pairs'
+    Plug 'echasnovski/mini.splitjoin'
+    Plug 'echasnovski/mini.move'
+    Plug 'echasnovski/mini.trailspace'
+    Plug 'echasnovski/mini.surround'
+    Plug 'tpope/vim-abolish'
+
     " Plug 'jiangmiao/auto-pairs'
 	Plug 'numToStr/Comment.nvim'
     Plug '907th/vim-auto-save'
@@ -186,29 +197,29 @@ call plug#begin(expand('~/./plugged'))
     " Plug 'deoplete-plugins/deoplete-go', { 'do': 'make'}
     Plug 'glepnir/lspsaga.nvim', { 'branch': 'main' }
     Plug 'nvim-treesitter/nvim-treesitter'
-    " Plug 'neoclide/coc.nvim', {'branch': 'release'}
     Plug 'mfussenegger/nvim-dap'
     Plug 'leoluz/nvim-dap-go'
     Plug 'rcarriga/nvim-dap-ui'
     Plug 'fgheng/winbar.nvim'
     Plug 'ThePrimeagen/refactoring.nvim'
     Plug 'gbprod/yanky.nvim'
+    Plug 'mfussenegger/nvim-lint'
 
     " Go
     Plug 'meain/vim-jsontogo'   
     Plug 'popoffvg/goimpl.nvim'
-    " Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-    " Plug 'ray-x/go.nvim'
-    " Plug 'ray-x/guihua.lua' 
+    Plug 'ray-x/go.nvim'
+    Plug 'ray-x/guihua.lua' 
 
-    " Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 
     " Others
     Plug 'vim-test/vim-test'
     Plug 'folke/todo-comments.nvim', {'branch': 'neovim-pre-0.8.0'}
-
 call plug#end()
 
+let g:VM_maps = {}
+let g:VM_maps['Find Under']                  = '<Leader>m'
+let g:VM_maps['Find Subword Under']          = '<Leared>m'
 lua << EOF
     require("yanky").setup({
       -- your configuration comes here
@@ -226,7 +237,13 @@ EOF
 
 lua << EOF
     require "custom.autosave"
-    require "custom.autopairs"
+    -- require "custom.autopairs"
+    require('mini.pairs').setup()
+    require('mini.splitjoin').setup()
+    require('mini.move').setup()
+    require('mini.trailspace').setup()
+    require('mini.surround').setup()
+
     require "custom.lsp"
     require "custom.treesitter"
     require "custom.bufferline"
@@ -239,7 +256,6 @@ lua << EOF
     require "custom.saga"
     require "custom.comments"
     require "custom.lualine"
-    require "custom.go"
     require "custom.luasnippets"
     require "custom.legendary"
     require "custom.startup"
@@ -249,13 +265,31 @@ lua << EOF
     require "custom.wilder"
     require "custom.treesitter_go"
     require "custom.blankline"
+
+    -- require "custom.theme"
+    function change_new_val()
+        local current_line = vim.api.nvim_get_current_line()
+        local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+
+        if current_line:find(":=") then
+          new_line = string.gsub(current_line, ":=", '=', 1)
+        elseif current_line:find("=") then
+          new_line = string.gsub(current_line, "=", ':=', 1)
+        else
+          new_line = current_line..":="
+        end
+        print(current_line)
+
+        vim.api.nvim_buf_set_lines(0, row-1, row, true, {new_line})
+    end
+    vim.keymap.set("n", "<A-=>", change_new_val, {noremap=true})
 EOF
 "
 "*****************************************************************************
 "" Basic Setup
 "*****************************************************************************"
 " general
-set noswapfile 	   
+set noswapfile
 
 " editing
 " How many columns of whitespace a \t is worth
@@ -323,7 +357,12 @@ if has('gui_running')
   set guifont=Roboto\ Mono\ 10
 endif
 " colorscheme github_*
-colorscheme catppuccin-mocha " catppuccin-latte, catppuccin-frappe, catppuccin-macchiato, catppuccin-mocha catppuccin
+" colorscheme catppuccin-mocha " catppuccin-latte, catppuccin-frappe, catppuccin-macchiato, catppuccin-mocha catppuccin
+set termguicolors
+" autocmd ColorScheme zenbones lua require "custom.theme"
+" autocmd ColorScheme neobones lua require "custom.theme"
+colorscheme neobones
+
 " colorscheme pencil
 let g:pencil_higher_contrast_ui = 1
 let g:pencil_neutral_code_bg = 1
@@ -341,6 +380,7 @@ syntax match keyword "->" conceal cchar=→
 syntax match keyword "<-" conceal cchar=←
 set conceallevel=1
 
+set ttimeout ttimeoutlen=50
 " kitty nav 
 " let g:kitty_navigator_no_mappings = 1
 " nnoremap <silent> <a-h> :KittyNavigateLeft<cr>

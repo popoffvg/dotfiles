@@ -16,12 +16,12 @@ local function get_receivers(bufnr, lang, query_string)
   local parser = vim.treesitter.get_parser(bufnr,lang)
   local syntax_tree = parser:parse()[1]
   local root = syntax_tree:root()
-  local query = vim.treesitter.parse_query(lang, query_string)
+  local query = vim.treesitter.query.parse(lang, query_string)
   local hash = {}
 
   for _, captures, metadata in query:iter_matches(root, bufnr) do
     local row, col, _ = captures[1]:start()
-    local receiver = vim.treesitter.query.get_node_text(captures[1], bufnr)
+    local receiver = vim.treesitter.get_node_text(captures[1], bufnr)
     if not receivers_list[receiver] then
         receivers_list[receiver] = {row = row, column = column}
     end
