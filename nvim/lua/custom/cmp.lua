@@ -1,4 +1,4 @@
-local cmp = require'cmp'
+local cmp = require("cmp")
 
 require("cmp_nvim_lsp")
 require("cmp_buffer")
@@ -9,10 +9,10 @@ require("cmp_emoji")
 require("cmp_luasnip")
 
 cmp.setup({
-    preselect = cmp.PreselectMode.None,
+	preselect = cmp.PreselectMode.None,
 	snippet = {
 		expand = function(args)
-			require('luasnip').lsp_expand(args.body)
+			require("luasnip").lsp_expand(args.body)
 		end,
 	},
 	mapping = {
@@ -29,15 +29,16 @@ cmp.setup({
 		-- Accept currently selected item. If none selected, `select` first item.
 		-- Set `select` to `false` to only confirm explicitly selected items.
 		["<CR>"] = cmp.mapping.confirm({ select = true }),
-		['<Tab>'] = cmp.mapping(function(fallback)
+		["<Tab>"] = cmp.mapping(function(fallback)
+			print(vim.inspect(cmp.visible()))
 			if cmp.visible() then
-			  cmp.select_next_item()
+				cmp.select_next_item()
 			else
-			  fallback()
+				fallback()
 			end
-		end, { 
-			'i', 
-			's', 
+		end, {
+			"i",
+			"s",
 		}),
 		["<S-Tab>"] = cmp.mapping(function(fallback)
 			if cmp.visible() then
@@ -52,13 +53,14 @@ cmp.setup({
 	},
 	window = {
 		completion = cmp.config.window.bordered(),
-      documentation = cmp.config.window.bordered(),
-   },
+		documentation = cmp.config.window.bordered(),
+	},
 	experimental = {
 		native_menu = false,
-		ghost_text = false,
+		ghost_text = true,
 	},
-    sources = {
+	sources = {
+		{ name = "nvim_lsp_signature_help" },
 		{ name = "cmp_tabnine" },
 		{ name = "nvim_lsp" },
 		{ name = "nvim_lua" },
@@ -67,25 +69,14 @@ cmp.setup({
 		{ name = "path" },
 		{ name = "calc" },
 		{ name = "emoji" },
+		{
+			name = "diag-codes",
+			-- default completion available only in comment context
+			-- use false if you want to get in other context
+			option = { in_comment = true },
+		},
+		{ name = "nvim_lsp_signature_help" },
 	},
 })
 
--- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
--- cmp.setup.cmdline('/', {
--- 	sources = {
--- 		{ name = 'buffer' }
--- 	}
--- })
-
--- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
--- cmp.setup.cmdline(':', {
--- 	sources = cmp.config.sources({
--- 		{ name = 'path' }
--- 		}, {
--- 		{ name = 'cmdline' }
--- 	})
--- })
---
---
-
-require "lsp_signature".setup({})
+require("lsp_signature").setup({})

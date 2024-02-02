@@ -7,6 +7,7 @@ require("go").setup({
 	},
 	lsp_inlay_hints = {
 		enable = false,
+		other_hints_prefix = "=> ",
 		parameter_hints_prefix = "#",
 	},
 	lsp_on_client_start = function(client, bufnr)
@@ -15,7 +16,7 @@ require("go").setup({
 		vim.lsp.codelens.refresh()
 	end,
 })
-require("go.inlay").toggle_inlay_hints()
+-- require("go.inlay").toggle_inlay_hints()
 
 local format_sync_grp = vim.api.nvim_create_augroup("GoImport", {})
 vim.api.nvim_create_autocmd("BufWritePre", {

@@ -39,10 +39,9 @@ nnoremap <a-a> ggVGG
 nnoremap <a-i> <C-i>
 nnoremap <a-o> <C-o>
 
-nnoremap <esc> :noh<return><esc>
+nnoremap <silent> <ESC> :nohlsearch<CR>
 nnoremap <esc>^[ <esc>^[
 
-nnoremap <CHAR-0x0b>h <a-h>
 nnoremap <a-h> ^
 nnoremap <a-l> $
 nnoremap <a-j> :m .+1<CR>==
@@ -94,9 +93,14 @@ call plug#begin(expand('~/./plugged'))
 	Plug 'hrsh7th/cmp-buffer'
 	Plug 'hrsh7th/cmp-path'
 	Plug 'hrsh7th/cmp-cmdline'
+	Plug 'dmitmel/cmp-cmdline-history'
+    Plug 'hrsh7th/cmp-nvim-lsp-signature-help'
+    Plug 'JMarkin/cmp-diag-codes'
+
     Plug 'hrsh7th/cmp-nvim-lsp-document-symbol'
     Plug 'hrsh7th/cmp-buffer'
 	Plug 'hrsh7th/nvim-cmp'
+
 	Plug 'j-hui/fidget.nvim'
 	Plug 'L3MON4D3/LuaSnip'
 	Plug 'saadparwaiz1/cmp_luasnip'
@@ -108,7 +112,7 @@ call plug#begin(expand('~/./plugged'))
 
     " Base
     Plug 'akinsho/toggleterm.nvim'
-    Plug 'antoinemadec/FixCursorHold.nvim'
+    " Plug 'antoinemadec/FixCursorHold.nvim'
     Plug 'sindrets/diffview.nvim'
     Plug 'APZelos/blamer.nvim'
     Plug 'kkharji/sqlite.lua'
@@ -119,8 +123,8 @@ call plug#begin(expand('~/./plugged'))
     Plug 'kyazdani42/nvim-tree.lua'
     Plug 'nvim-lua/plenary.nvim'
     Plug 'akinsho/bufferline.nvim', { 'tag': 'v3.*' }
-    Plug 'MattesGroeger/vim-bookmarks'
-    Plug 'unblevable/quick-scope' 
+    " Plug 'MattesGroeger/vim-bookmarks'
+    Plug 'jinh0/eyeliner.nvim'
     Plug 'stevearc/dressing.nvim'
 
     Plug 'nvim-telescope/telescope.nvim'
@@ -146,19 +150,23 @@ call plug#begin(expand('~/./plugged'))
     Plug 'nvim-treesitter/nvim-treesitter-context'
     Plug 'famiu/bufdelete.nvim'
 
+    " CMD cusomization
+    Plug 'folke/noice.nvim'
+    Plug 'rcarriga/nvim-notify'
+    Plug 'MunifTanjim/nui.nvim'
+
     function! UpdateRemotePlugins(...)
         " Needed to refresh runtime files
         let &rtp=&rtp
         UpdateRemotePlugins
     endfunction
 
-    Plug 'gelguy/wilder.nvim', { 'do': function('UpdateRemotePlugins') }
+    " cmd autocomplete
     " Plug 'vim-airline/vim-airline'
     Plug 'majutsushi/tagbar'
     Plug 'projekt0n/github-nvim-theme'
     Plug 'SmiteshP/nvim-gps'
     " Plug 'glepnir/dashboard-nvim'
-    Plug 'lukas-reineke/indent-blankline.nvim'
     Plug 'rktjmp/lush.nvim'
     Plug 'mcchrish/zenbones.nvim'
 
@@ -171,7 +179,7 @@ call plug#begin(expand('~/./plugged'))
 
 	" Edit
     Plug 'arsham/arshlib.nvim'
-    Plug 'arsham/yanker.nvim'
+    Plug 'gbprod/yanky.nvim'
     Plug 'mhartington/formatter.nvim'
     Plug 'echasnovski/mini.pairs'
     Plug 'echasnovski/mini.splitjoin'
@@ -195,7 +203,8 @@ call plug#begin(expand('~/./plugged'))
     " LSP
     " Plug 'Shougo/deoplete.nvim'
     " Plug 'deoplete-plugins/deoplete-go', { 'do': 'make'}
-    Plug 'glepnir/lspsaga.nvim', { 'branch': 'main' }
+    " Plug 'glepnir/lspsaga.nvim', { 'branch': 'main' }
+    " Plug 'SmiteshP/nvim-navic'
     Plug 'nvim-treesitter/nvim-treesitter'
     Plug 'mfussenegger/nvim-dap'
     Plug 'leoluz/nvim-dap-go'
@@ -206,15 +215,17 @@ call plug#begin(expand('~/./plugged'))
     Plug 'mfussenegger/nvim-lint'
 
     " Go
-    Plug 'meain/vim-jsontogo'   
+    Plug 'meain/vim-jsontogo'
     Plug 'popoffvg/goimpl.nvim'
     Plug 'ray-x/go.nvim'
-    Plug 'ray-x/guihua.lua' 
+    Plug 'ray-x/guihua.lua'
 
 
     " Others
     Plug 'vim-test/vim-test'
     Plug 'folke/todo-comments.nvim', {'branch': 'neovim-pre-0.8.0'}
+    Plug 'Mofiqul/vscode.nvim'
+    Plug 'pwntester/octo.nvim'
 call plug#end()
 
 let g:VM_maps = {}
@@ -253,7 +264,7 @@ lua << EOF
     require "custom.telescope"
     require "custom.terminal"
     require "custom.tree"
-    require "custom.saga"
+    -- require "custom.saga"
     require "custom.comments"
     require "custom.lualine"
     require "custom.luasnippets"
@@ -262,9 +273,10 @@ lua << EOF
     require "custom.fmt"
     require "custom.zen"
     require "custom.which-key"
-    require "custom.wilder"
+    -- require "custom.wilder"
     require "custom.treesitter_go"
-    require "custom.blankline"
+    -- require "custom.blankline"
+    require "octo".setup()
 
     -- require "custom.theme"
     function change_new_val()
@@ -278,11 +290,109 @@ lua << EOF
         else
           new_line = current_line..":="
         end
-        print(current_line)
 
         vim.api.nvim_buf_set_lines(0, row-1, row, true, {new_line})
     end
     vim.keymap.set("n", "<A-=>", change_new_val, {noremap=true})
+
+    require("noice").setup({
+      routes = {
+        {
+            view = "split",
+            filter = { event = "msg_show", min_height = 20 },
+        },
+        {
+            filter = { event = "msg_show", kind = "confirm" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "lua_error" },
+            opts = { skip = true },
+        },
+      },
+      lsp = {
+        -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+        override = {
+          ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+          ["vim.lsp.util.stylize_markdown"] = true,
+          ["cmp.entry.get_documentation"] = true,
+        },
+         hover = { enabled = false },
+         signature = { enabled = false },
+      },
+      -- you can enable a preset for easier configuration
+      presets = {
+        bottom_search = false, -- use a classic bottom cmdline for search
+        command_palette = true, -- position the cmdline and popupmenu together
+        long_message_to_split = true, -- long messages will be sent to a split
+        inc_rename = false, -- enables an input dialog for inc-rename.nvim
+        lsp_doc_border = false, -- add a border to hover docs and signature help
+      },
+   })
+    local cmp = require("cmp")
+    local anyWord = [[\k\+]]
+    cmp.setup.cmdline('/',  {
+     mapping = cmp.mapping.preset.cmdline(),
+      sources = {
+        { name = 'buffer' }
+      }
+    })
+    for _, cmd_type in ipairs({':', '/', '?', '@'}) do
+      cmp.setup.cmdline(cmd_type, {
+            mapping = cmp.mapping.preset.cmdline(),
+            sources = cmp.config.sources(
+            {
+                { name = "path" },
+                { name = "cmdline", option = { ignore_cmds = { "!" } } },
+                {
+                    name = "buffer",
+                    keyword_length = 4,
+                    option = { keyword_pattern = anyWord },
+                },
+                { name = 'cmdline_history' },
+            }),
+
+      })
+    end
+
+    -- require("flash").setup({
+    --     modes = {
+    --         char = {
+    --             -- autohide = true,
+    --               jump_labels = true,
+    --                -- multi_line = false,
+    --             }
+    --         }
+    -- })
+        vim.keymap.set({"n","x", "o"}, "m", function() require("flash").jump() end)
+        vim.keymap.set({"n"}, "M", function() require("flash").treesitter_search() end)
+
+    require'eyeliner'.setup ( {
+      highlight_on_key = true, -- this must be set to true for dimming to work!
+      dim = true,
+    } )
+    local c = require('vscode.colors').get_colors()
+    require('vscode').setup({
+            transparent = true,
+            disable_nvimtree_bg = true,
+    group_overrides = {
+        -- this supports the same val table as vim.api.nvim_set_hl
+        -- use colors from this colorscheme by requiring vscode.colors!
+        Comment = { fg=c.vscGray, bg=c.None, bold=false },
+    }
+    })
+
+    vim.keymap.set({"n","x"}, "p", "<Plug>(YankyPutAfter)")
+vim.keymap.set({"n","x"}, "P", "<Plug>(YankyPutBefore)")
+vim.keymap.set({"n","x"}, "gp", "<Plug>(YankyGPutAfter)")
+vim.keymap.set({"n","x"}, "gP", "<Plug>(YankyGPutBefore)")
+
+vim.keymap.set("n", "<c-p>", "<Plug>(YankyPreviousEntry)")
+vim.keymap.set("n", "<c-n>", "<Plug>(YankyNextEntry)")
 EOF
 "
 "*****************************************************************************
@@ -323,7 +433,6 @@ set hlsearch
 set incsearch
 set ignorecase
 set smartcase
-nnoremap <esc> :noh<return><esc>
 
 "*****************************************************************************
 "" Visual Settings
@@ -354,14 +463,16 @@ set mousemodel=popup
 set t_Co=256
 set guioptions=egmrti
 if has('gui_running')
-  set guifont=Roboto\ Mono\ 10
+  " set guifont=Roboto\ Mono\ 10
+  set guifont=Fira\ Mono 12
 endif
 " colorscheme github_*
 " colorscheme catppuccin-mocha " catppuccin-latte, catppuccin-frappe, catppuccin-macchiato, catppuccin-mocha catppuccin
 set termguicolors
 " autocmd ColorScheme zenbones lua require "custom.theme"
 " autocmd ColorScheme neobones lua require "custom.theme"
-colorscheme neobones
+" colorscheme neobones
+colorscheme vscode
 
 " colorscheme pencil
 let g:pencil_higher_contrast_ui = 1
@@ -370,15 +481,10 @@ set guicursor=r-i-ci:hor5
 
 " for quick-scope
 let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
-highlight QuickScopePrimary guifg='#fc2642' gui=underline ctermfg=155 cterm=underline
-highlight QuickScopeSecondary guifg='#26fcf5' gui=underline ctermfg=81 cterm=underline
+highlight EyelinerPrimary guifg='#fc2642' gui=underline ctermfg=155 cterm=underline
+highlight EyelinerSecondary guifg='#26fcf5' gui=underline ctermfg=81 cterm=underline
 
 " special characters
-syntax match keyword "\<lambda\>" conceal cchar=λ
-" syntax match keyword "!=" conceal cchar=≠ 
-syntax match keyword "->" conceal cchar=→ 
-syntax match keyword "<-" conceal cchar=←
-set conceallevel=1
 
 set ttimeout ttimeoutlen=50
 " kitty nav 

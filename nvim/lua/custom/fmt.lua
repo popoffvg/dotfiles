@@ -1,4 +1,4 @@
-vim.cmd[[
+vim.cmd([[
 augroup autoformat_settings
   " autocmd FileType bzl AutoFormatBuffer buildifier
   " autocmd FileType c,cpp,proto,javascript,arduino AutoFormatBuffer clang-format
@@ -13,8 +13,7 @@ augroup autoformat_settings
   " autocmd FileType vue AutoFormatBuffer prettier
   " autocmd FileType swift AutoFormatBuffer swift-format
 augroup END
-]]
-
+]])
 
 -- Examples: https://github.com/mhartington/formatter.nvim/blob/master/CONFIG.md
 -- Prettier function for formatter
@@ -102,12 +101,12 @@ require("formatter").setup({
 
 			-- You can also define your own configuration
 			function()
-				-- Supports conditional formatting
+				-- supports conditional formatting
 				if util.get_current_buffer_file_name() == "special.lua" then
 					return nil
 				end
 
-				-- Full specification of configurations is down below and in Vim help
+				-- full specification of configurations is down below and in vim help
 				-- files
 				return {
 					exe = "stylua",
@@ -126,7 +125,7 @@ require("formatter").setup({
 		c = { clangd },
 		rust = { rustfmt },
 		python = { black, isort },
-		go = { gofmt, gogci, golines,gofumpt },
+		go = { gofmt, gogci, golines, gofumpt },
 		perl = {
 			-- perltidy
 			function()

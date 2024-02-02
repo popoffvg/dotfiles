@@ -13,7 +13,7 @@ key_bindings:
   # remove the line below!
   - { key: W, mods: Command, action: Quit }
 font:
- size: 12.0
+ size: 14.0
  normal:
-  family: Roboto Mono
+  family: FiraCode Nerd Font
   style: Regular

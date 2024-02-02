@@ -19,15 +19,15 @@ ls.config.setup({
 
 	-- Updates as you type
 	updateevents = "TextChanged,TextChangedI",
-    enable_autosnippets = true,
-    ext_opts = {
-        [types.choiceNode] = {
-            active = {
-                hl_group = "GruvboxBlue",
-            },
-        },
-    },
-    ext_base_prio = 200,
+	enable_autosnippets = true,
+	ext_opts = {
+		[types.choiceNode] = {
+			active = {
+				hl_group = "GruvboxBlue",
+			},
+		},
+	},
+	ext_base_prio = 200,
 	ext_prio_increase = 2,
 })
 
@@ -49,17 +49,16 @@ end, { silent = true })
 vim.keymap.set({ "i", "s" }, "<c-u>", '<cmd>lua require("luasnip.extras.select_choice")()<cr><C-c><C-c>')
 vim.keymap.set({ "i", "s" }, "<a-l>", function()
 	if ls.in_snippet() then
-        ls.jump(1)
+		ls.jump(1)
 	else
-        return '<a-l>'
+		return "<a-l>"
 	end
 end)
 vim.keymap.set({ "i", "s" }, "<a-h>", function()
 	if ls.in_snippet() then
-        ls.jump(-1)
+		ls.jump(-1)
 	else
-        print("here")
-        return '<a-h>'
+		return "<a-h>"
 	end
 end)
 
@@ -67,14 +66,14 @@ vim.keymap.set({ "i", "s" }, "<a-j>", function()
 	if ls.choice_active() then
 		ls.change_choice(1)
 	else
-        return '<a-j>'
+		return "<a-j>"
 	end
 end)
 vim.keymap.set({ "i", "s" }, "<a-k>", function()
 	if ls.choice_active() then
 		ls.change_choice(-1)
-    else
-        return '<a-k>'
+	else
+		return "<a-k>"
 	end
 end) --}}}
 
@@ -113,23 +112,26 @@ ls.add_snippets("all", {
 })
 
 leave_snippet = function()
-  local active_node = ls.session.current_nodes[vim.api.nvim_get_current_buf()]
-  if ((vim.v.event.old_mode == "s" and vim.v.event.new_mode == "n") or
-      vim.v.event.old_mode == "i") and active_node and not ls.session.jump_active then
-    while active_node do
-      if active_node.virt_text_id then
-        vim.api.nvim_buf_del_extmark(0, ls.session.ns_id, active_node.virt_text_id)
-        -- break -- If you know there will only ever be a single instance of virtual text
-      end
-      active_node = active_node.parent
-    end
-    ls.unlink_current()
-  end
+	local active_node = ls.session.current_nodes[vim.api.nvim_get_current_buf()]
+	if
+		((vim.v.event.old_mode == "s" and vim.v.event.new_mode == "n") or vim.v.event.old_mode == "i")
+		and active_node
+		and not ls.session.jump_active
+	then
+		while active_node do
+			if active_node.virt_text_id then
+				vim.api.nvim_buf_del_extmark(0, ls.session.ns_id, active_node.virt_text_id)
+				-- break -- If you know there will only ever be a single instance of virtual text
+			end
+			active_node = active_node.parent
+		end
+		ls.unlink_current()
+	end
 end
 
-local snippet_augroup = vim.api.nvim_create_augroup("snippets", {clear = true})
-vim.api.nvim_create_autocmd({"ModeChanged"}, {
-  pattern = {"*"},
-  command = "lua leave_snippet()",
-  group = snippet_augroup
+local snippet_augroup = vim.api.nvim_create_augroup("snippets", { clear = true })
+vim.api.nvim_create_autocmd({ "ModeChanged" }, {
+	pattern = { "*" },
+	command = "lua leave_snippet()",
+	group = snippet_augroup,
 })

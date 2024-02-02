@@ -50,39 +50,15 @@ local function cs(trigger, nodes, keymap) --> cs stands for create snippet
 	end
 end
 
-local function lp(package_name) -- Load Package Function
-	package.loaded[package_name] = nil
-	return require(package_name)
-end
-
--- Utility Functions --
-local function var_name(input)
-	if input == "error" then
-		return "err"
-	end
-
-	return input:sub(1, 1)
-end
-
--- Start Refactoring --
-
 local err = s(
 	"ierr",
-	fmt(
-		[[
-if err != nil {{
-    return {}
-}}
-        ]],
-		{
-			c(1, {
-				t("err"),
-				fmt([[fmt.Errorf("{}: %w", err)]], {
-					i(1, "msg"),
-				}),
-			}),
-		}
-	)
+	f(function(_, _)
+		local vfn = vim.fn
+		local byte_offset = vfn.wordcount().cursor_bytes
+		local cmd = string.format("iferr -pos %d", byte_offset)
+		local data = vfn.systemlist(cmd, vfn.bufnr("%"))
+		return data
+	end, {})
 )
 table.insert(autosnippets, err)
 
@@ -161,7 +137,7 @@ type(
 table.insert(snippets, go_type)
 
 local forr = s(
-	"forr",
+	{ trig = "forr", desc = "range 2" },
 	fmta(
 		[[
 for <>, <> := range <> {
@@ -179,7 +155,7 @@ for <>, <> := range <> {
 table.insert(snippets, forr)
 
 local forc = s(
-	"forr",
+	{ trig = "forr", desc = "range" },
 	fmta(
 		[[
 for <> := range <> {
@@ -194,6 +170,22 @@ for <> := range <> {
 	)
 )
 table.insert(snippets, forc)
+
+local fori = s(
+	{ trig = "fori", desc = "for i" },
+	fmta(
+		[[
+for i:= 0;i << <>;i++ {
+    <>
+}
+]],
+		{
+			i(1, "N"),
+			i(0),
+		}
+	)
+)
+table.insert(snippets, fori)
 
 local arr = s(
 	"arr",
@@ -440,24 +432,23 @@ local method = s(
 	)
 )
 table.insert(snippets, method)
---
--- local gots=require("../custom/treesitter_go.lua")
--- local callback = local go_ret_vals = function(args)
---     gots.recievers_list
--- end
--- table.insert(s("test", fmta([[<>]], d(1, callback))))
 
 local ctx = s("ctx", t("ctx context.Context"))
-
 table.insert(snippets, ctx)
+
 local test = s(
 	"test",
-	fmta("<> <>", {
-		d(1, function(args)
-			return sn(nil, fmta("<> <>", { f(short_name, 2), i(2, "test") }))
-		end, {}),
-		i(2, "other"),
-	})
+	fmta(
+		[[
+func Test<>(t *testing.T){
+    <>
+}
+]],
+		{
+			i(1, "Name"),
+			i(0),
+		}
+	)
 )
 table.insert(snippets, test)
 
@@ -473,12 +464,72 @@ local component = s(
         }
     ]],
 		{
-            i(1, "Component"),
-            rep(1),
-            rep(1),
+			i(1, "Component"),
+			rep(1),
+			rep(1),
 		}
 	)
 )
 table.insert(snippets, component)
+
+local defer = s(
+	"defer[func]",
+	fmta(
+		[[
+    defer func() {
+        <>
+    }()
+ ]],
+		{ i(0) }
+	)
+)
+table.insert(snippets, defer)
+
+local goroutine = s(
+	{ trig = "go[func]", desc = "goroutine", regExp = true },
+	fmta(
+		[[
+    go func() {
+        <>
+    }()
+ ]],
+		{ i(0) }
+	)
+)
+table.insert(snippets, goroutine)
+local gof = s(
+	{ trig = "func[call]", name = "go", desc = "go" },
+	fmta(
+		[[
+    func() {
+        <>
+    }()
+ ]],
+		{ i(0) }
+	),
+	{
+		condition = function(line_to_cursor, matched_trigger, captures)
+			local result = line_to_cursor:match("go%s") or line_to_cursor:match("defer%s")
+			return result
+		end,
+	}
+)
+table.insert(snippets, gof)
+
+local fmterr = s({ trig = "errfmt", desc = "fmt.Errorf" }, fmta([[fmt.Errorf("<>: %w", err)]], { i(0, "msg") }))
+table.insert(autosnippets, fmterr)
+table.insert(snippets, fmterr)
+
+local ifs = s(
+	{ trig = "if ", desc = "if statement" },
+	fmta(
+		[[
+if <> {
+    <>
+}]],
+		{ i(1, "statement"), i(0) }
+	)
+)
+table.insert(autosnippets, ifs)
 
 return snippets, autosnippets

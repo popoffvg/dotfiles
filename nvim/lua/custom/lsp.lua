@@ -5,23 +5,32 @@ vim.api.nvim_set_keymap("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>", op
 vim.api.nvim_set_keymap("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>", opts)
 vim.api.nvim_set_keymap("n", "<space>q", "<cmd>lua vim.diagnostic.setloclist()<CR>", opts)
 
+vim.api.nvim_set_keymap("n", "gd", "<cmd>Telescope lsp_definitions<CR>", opts)
+-- vim.api.nvim_set_keymap("n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
+vim.api.nvim_set_keymap("n", "gi", "<cmd>Telescope lsp_implementations<CR>", opts)
+vim.api.nvim_set_keymap("n", "<C-s>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", opts)
+-- vim.api.nvim_set_keymap("n", "gD", "<cmd>Telescope lsp_type_definitions<CR>", opts)
+vim.api.nvim_set_keymap("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
+vim.api.nvim_set_keymap("n", "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
+vim.api.nvim_set_keymap("n", "gr", "<cmd>Telescope lsp_references<CR>", opts)
+
+-- local navic = require("nvim-navic")
 local on_attach = function(client, bufnr)
+	local navic = require("nvim-navic")
+
+	client.resolved_capabilities.hover = false
+	if client.server_capabilities.documentSymbolProvider then
+		navic.attach(client, bufnr)
+	end
+
 	local function buf_set_keymap(...)
-		vim.api.nvim_buf_set_keymap(bufnr, ...)
+		vim.api.nvim_set_keymap(bufnr, ...)
 	end
 	-- Enable completion triggered by <c-x><c-o>
 	vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
 	-- Mappings.
 	-- buf_set_keymap("n", "<Leader>D", "<cmd>lua vim.lsp.buf.declaration()<CR>", opts)
-	buf_set_keymap("n", "gd", "<cmd>Telescope lsp_definitions<CR>", opts)
-	-- buf_set_keymap("n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
-	buf_set_keymap("n", "gi", "<cmd>Telescope lsp_implementations<CR>", opts)
-	buf_set_keymap("n", "<C-s>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", opts)
-	-- buf_set_keymap("n", "gD", "<cmd>Telescope lsp_type_definitions<CR>", opts)
-	buf_set_keymap("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
-	buf_set_keymap("n", "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
-	buf_set_keymap("n", "gr", "<cmd>Telescope lsp_references<CR>", opts)
 
 	-- buf_set_keymap("n", "gr", [[<cmd>lua require("telescope.builtin").lsp_references(require('telescope.themes').get_dropdown({}))<CR>]], opts)
 	-- if client.resolved_capabilities.document_formatting then
@@ -37,18 +46,20 @@ end
 -- Setup lspconfig.
 local capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
--- GOPLS {{{
-local lspconfig = require("lspconfig")
-local configs = require("lspconfig.configs")
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { focusable = false })
 
 local goflags = os.getenv("GOFLAGS")
-
 require("lspconfig").gopls.setup({
 	cmd = { "gopls" },
 	on_attach = on_attach,
 	capabilities = capabilities,
 	settings = {
 		gopls = {
+			["ui.inlayhint.hints"] = {
+				compositeLiteralFields = true,
+				constantValues = true,
+				parameterNames = true,
+			},
 			experimentalPostfixCompletions = true,
 			analyses = {
 				unusedparams = true,
@@ -56,7 +67,7 @@ require("lspconfig").gopls.setup({
 			},
 			codelenses = {
 				generate = true, -- show the `go generate` lens.
-				gc_details = true, --  // Show a code lens toggling the display of gc's choices.
+				-- gc_details = true, --  // Show a code lens toggling the display of gc's choices.
 				test = true,
 				tidy = true,
 			},
@@ -65,7 +76,7 @@ require("lspconfig").gopls.setup({
 			staticcheck = true,
 			matcher = "fuzzy",
 			diagnosticsDelay = "500ms",
-			experimentalWatchedFileDelay = "100ms",
+			-- experimentalWatchedFileDelay = "100ms",
 			symbolMatcher = "fuzzy",
 			buildFlags = { goflags },
 		},
@@ -183,3 +194,10 @@ require("lspconfig").phpactor.setup({
 		["language_server_psalm.enabled"] = false,
 	},
 })
+
+vim.keymap.set("n", "[c", function()
+	require("treesitter-context").go_to_context(vim.v.count1)
+end, { silent = true })
+vim.cmd([[
+    hi TreesitterContextBottom gui=underline guisp=Grey
+]])
