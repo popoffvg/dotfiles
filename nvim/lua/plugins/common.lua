@@ -75,12 +75,11 @@ return {
 			{ "P", "<Plug>(YankyPutBefore)", mode = { "n", "x" } },
 			{ "gp", "<Plug>(YankyGPutAfter)", mode = { "n", "x" } },
 			{ "gP", "<Plug>(YankyGPutBefore)", mode = { "n", "x" } },
-			{ "<c-p>", "<Plug>(YankyPreviousEntry)", mode = { "n", "x", "i" } },
-			{ "<c-n>", "<Plug>(YankyNextEntry)", mode = { "n", "x", "i" } },
-			{ "<m-p>", "<cmd>Telescope yank_history<CR>", noremap = true, mode = { "n", "i", "x" } },
+			{ "[p", "<Plug>(YankyPreviousEntry)", noremap = true, mode = { "n" } },
+			{ "]p", "<Plug>(YankyNextEntry)", noremap = true, mode = { "n" } },
+			{ "fp", "<cmd>Telescope yank_history<CR>", noremap = true, mode = { "n" } },
 		},
 	},
-	-- extended s, S
 	{ "tpope/vim-abolish" },
 	{
 		"numToStr/Comment.nvim",
@@ -222,7 +221,7 @@ return {
 		config = true,
 		keys = {
 			{
-				"<leader>T",
+				"<leader><leader>t",
 				function()
 					require("FTerm").toggle()
 				end,
@@ -231,4 +230,5 @@ return {
 			},
 		},
 	},
+	{ "famiu/bufdelete.nvim" },
 }

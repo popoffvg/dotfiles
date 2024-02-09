@@ -87,6 +87,15 @@ return {
 		config = function()
 			require("telescope").load_extension("goimpl")
 		end,
+		keys = {
+			{
+				"<leader>ci",
+				"<cmd>lua require'telescope'.extensions.goimpl.goimpl{}<CR>]",
+				"implement interface",
+				noremap = true,
+				silent = true,
+			},
+		},
 	},
 	{
 		"ThePrimeagen/refactoring.nvim",

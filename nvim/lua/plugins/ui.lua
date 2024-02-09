@@ -223,30 +223,4 @@ return {
 			})
 		end,
 	},
-	{
-		"echasnovski/mini.nvim",
-		version = false,
-		config = function()
-			local files = require("mini.files")
-			files.setup({
-				mappings = {
-					go_in = "L",
-					go_in_plus = "l",
-				},
-			})
-			vim.api.nvim_create_autocmd("User", {
-				pattern = "MiniFilesBufferCreate",
-				callback = function(args)
-					local buf_id = args.data.buf_id
-					vim.keymap.set("n", "q", function()
-						files.synchronize()
-						files.close()
-					end, { buffer = buf_id })
-				end,
-			})
-		end,
-		keys = {
-			{ "<leader>G", ":lua MiniFiles.open(vim.api.nvim_buf_get_name(0))<CR>", mode = { "n" } },
-		},
-	},
 }

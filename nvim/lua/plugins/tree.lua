@@ -73,7 +73,7 @@ return {
 	end,
 	keys = {
 		{
-			"<leader>G",
+			"<leader>t",
 			function()
 				local tree = require("nvim-tree.api").tree
 				tree.toggle({ find_file = true })

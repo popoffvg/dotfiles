@@ -1,15 +1,24 @@
 local opts = { noremap = true, silent = true }
+
 return {
 	"nvim-telescope/telescope.nvim",
-	dependecies = {
+	dependencies = {
+		"nvim-treesitter/nvim-treesitter",
+		"nvim-telescope/telescope-live-grep-args.nvim",
+		{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
 		"junegunn/fzf.vim",
 		"ThePrimeagen/git-worktree.nvim",
-		"nvim-telescope/telescope-live-grep-args.nvim",
 		"gbprod/yanky.nvim",
 		"nvim-lua/plenary.nvim",
+		"nvim-telescope/telescope-frecency.nvim",
+		"nvim-lua/plenary.nvim",
+		-- config = function()
+		-- 	require("telescope").load_extension("frecency")
+		-- end,
+		"fdschmidt93/telescope-egrepify.nvim",
 	},
 	config = function()
-		local lga_actions = require("telescope-live-grep-args.actions")
+		local Path = require("plenary.path")
 		require("telescope").setup({
 			defaults = {
 				initial_mode = "insert",
@@ -31,18 +40,34 @@ return {
 					},
 				},
 				theme = "dropdown", -- use dropdown theme
+				preview = true,
+				-- path_display = { "smart", shorten = { len = 3 } },
+				wrap_results = true,
 			},
 
 			extensions = {
-				live_grep_args = {
-					auto_quoting = true, -- enable/disable auto-quoting
-					-- define mappings, e.g.
-					mappings = { -- extend mappings
-						i = {
-							["<a-k>"] = lga_actions.quote_prompt(),
-							["<a-f>"] = lga_actions.quote_prompt({ postfix = " --iglob " }),
-						},
-					},
+				frecency = {
+					workspace_scan_cmd = { "fd", "-Htf" },
+					theme = "dropdown",
+					default_workspace = "CWD",
+					preview = false,
+					show_filter_column = false,
+					db_validate_threshold = 1,
+					path_display = function(opts, path)
+						-- local tail = vim.fs.basename(path)
+						-- local parent = vim.fs.dirname(path)
+						-- if parent == "." then
+						-- 	return tail
+						-- end
+						local fu = require("telescope.utils")
+						local tail = fu.path_tail(path)
+						local dir = vim.fs.dirname(path)
+						local parent = Path:new(dir):make_relative(opts.cwd)
+						return string.format("%s\t\t%s", tail, parent)
+					end,
+				},
+				egrepify = {
+					wrap_results = false,
 					theme = "dropdown",
 					preview = true,
 				},
@@ -51,7 +76,13 @@ return {
 				lsp_references = {
 					theme = "dropdown",
 					show_line = false,
+					preview = true,
 				},
+				lsp_implementations = {
+					theme = "dropdown",
+					show_line = false,
+				},
+
 				find_files = {
 					theme = "dropdown",
 					preview = false,
@@ -59,10 +90,22 @@ return {
 			},
 		})
 
+		vim.api.nvim_create_autocmd("FileType", {
+			pattern = "TelescopeResults",
+			callback = function(ctx)
+				vim.api.nvim_buf_call(ctx.buf, function()
+					vim.fn.matchadd("TelescopeParent", "\t\t.*$")
+					vim.api.nvim_set_hl(0, "TelescopeParent", { link = "Comment" })
+				end)
+			end,
+		})
+
 		require("telescope").load_extension("fzf")
 		require("telescope").load_extension("git_worktree")
 		require("telescope").load_extension("live_grep_args")
 		require("telescope").load_extension("yank_history")
+		require("telescope").load_extension("frecency")
+		require("telescope").load_extension("egrepify")
 		require("yanky.telescope.mapping").put("p")
 		require("yanky.telescope.mapping").put("P")
 		require("yanky.telescope.mapping").put("gp")
@@ -71,13 +114,15 @@ return {
 		-- require("yanky.telescope.mapping").set_register(regname) -- fill register {regname} with selected value
 	end,
 	keys = {
-		{ "<leader>ff", ":Telescope find_files hidden=true preview=false<CR>", opts },
-		{ "<leader>of", ":Telescope oldfiles<CR>", opts },
-		{
-			"<leader>fg",
-			":lua require('telescope').extensions.live_grep_args.live_grep_args(require('telescope.themes').get_dropdown({}))<CR>",
-			opts,
-		},
+		-- { "<leader>ff", ":Telescope find_files hidden=true preview=false<CR>", opts },
+		{ "<leader>ff", "<Cmd>Telescope frecency<CR>", opts },
+		-- { "<leader>of", ":Telescope oldfiles<CR>", opts },
+		-- {
+		-- 	"<leader>fg",
+		-- 	":lua require('telescope').extensions.live_grep_args.live_grep_args(require('telescope.themes').get_dropdown({}))<CR>",
+		-- 	opts,
+		-- },
+		{ "<leader>fg", ":Telescope egrepify<CR>", opts },
 		{ "<leader>fb", ":Telescope buffers<CR>", opts },
 		{ "<leader>fh", ":Telescope help_tags<CR>", opts },
 		{ "<leader>ft", ":Telescope treesitter<CR>", opts },
@@ -89,5 +134,8 @@ return {
 			opts,
 		},
 		{ "<leader>fy", ":Telescope yank_history<CR>", opts },
+		{ "gr", "<cmd>Telescope lsp_references<CR>", opts },
+		{ "gd", "<cmd>Telescope lsp_definitions<CR>", opts },
+		{ "gi", "<cmd>Telescope lsp_implementations<CR>", opts },
 	},
 }

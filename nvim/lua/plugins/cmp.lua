@@ -98,7 +98,10 @@ return {
 				end,
 			},
 			mapping = {
-				["<CR>"] = cmp.mapping.confirm({ select = true }),
+				["<cr>"] = cmp.mapping.confirm({
+					select = true,
+					behavior = cmp.ConfirmBehavior.replace,
+				}),
 				["<Tab>"] = cmp.mapping(function(fallback)
 					print(vim.inspect(cmp.visible()))
 					if cmp.visible() then
@@ -111,6 +114,27 @@ return {
 					"s",
 				}),
 				["<S-Tab>"] = cmp.mapping(function(fallback)
+					if cmp.visible() then
+						cmp.select_prev_item()
+					else
+						fallback()
+					end
+				end, {
+					"i",
+					"s",
+				}),
+				["<C-n>"] = cmp.mapping(function(fallback)
+					print(vim.inspect(cmp.visible()))
+					if cmp.visible() then
+						cmp.select_next_item()
+					else
+						fallback()
+					end
+				end, {
+					"i",
+					"s",
+				}),
+				["C-p"] = cmp.mapping(function(fallback)
 					if cmp.visible() then
 						cmp.select_prev_item()
 					else
@@ -134,10 +158,14 @@ return {
 				fields = { "abbr", "menu", "kind" },
 				format = format,
 			},
+			completion = {
+				completeopt = "menu,menuone,noinsert",
+			},
 		})
 
 		for _, cmd_type in ipairs({ ":", "/", "?", "@" }) do
 			cmp.setup.cmdline(cmd_type, {
+				completion = { completeopt = "menu,menuone,noselect" },
 				mapping = cmp.mapping.preset.cmdline(),
 				sources = cmp.config.sources({
 					{ name = "path" },
