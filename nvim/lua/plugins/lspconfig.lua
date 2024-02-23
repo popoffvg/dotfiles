@@ -1,6 +1,5 @@
 local servers = {
 	"lua_ls",
-	"sqlls",
 	"bashls",
 	"gopls",
 	"yamlls",
@@ -13,6 +12,9 @@ local servers = {
 local handlers = {
 	["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" }),
 	["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" }),
+	["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
+		virtual_text = false,
+	}),
 }
 
 local on_attach = function()
@@ -62,6 +64,7 @@ return {
 	{
 		"neovim/nvim-lspconfig",
 		dependencies = {
+			"nanotee/sqls.nvim",
 			"williamboman/mason.nvim",
 			"SmiteshP/nvim-navic",
 			"williamboman/mason-lspconfig.nvim",
@@ -101,8 +104,45 @@ return {
 			require("mason-lspconfig").setup({
 				ensure_installed = servers,
 			})
+			-- doesn't work through mason
+			require("lspconfig").sqls.setup({
+				on_attach = function(client, bufnr)
+					require("sqls").on_attach(client, bufnr)
+				end,
+				settings = {
+					sqls = {
+						connections = {
+							{
+								driver = "mysql",
+								dataSourceName = "root:dJgadn4PxPMSWJYJM5k5@(localhost:3306)/payment_provider",
+							},
+						},
+					},
+				},
+			})
 
 			goimports()
+			local signs = {
+				Error = "",
+				Warn = "",
+				Info = "",
+				Hint = "💡",
+			}
+			for type, icon in pairs(signs) do
+				local hl = "DiagnosticSign" .. type
+				vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
+			end
+
+			-- vim.api.nvim_create_autocmd("CursorHold", {
+			-- 	pattern = { "*" },
+			-- 	callback = function()
+			-- 		if not require("cmp").visible() then
+			-- 			vim.api.nvim_command("set eventignore=CursorHold")
+			-- 			vim.lsp.buf.hover()
+			-- 			vim.api.nvim_command('autocmd CursorMoved <buffer> ++once set eventignore=""')
+			-- 		end
+			-- 	end,
+			-- })
 		end,
 		keys = {
 			{
@@ -111,10 +151,20 @@ return {
 					vim.diagnostic.open_float()
 				end,
 			},
+			{
+				"gt",
+				function()
+					vim.lsp.buf.type_definition({
+						on_list = function()
+							vim.cmd("Telescope lsp_type_definitions")
+						end,
+					})
+				end,
+			},
 			{ "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>" },
 			{ "]d", "<cmd>lua vim.diagnostic.goto_next()<CR> " },
 			{ "<Leader>fe", "<cmd>lua vim.diagnostic.setloclist()<CR>" },
-			{ "<C-s>", "<cmd>lua vim.lsp.buf.signature_help()<CR>" },
+			{ "<C-s>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", mode = { "n", "i" } },
 			{
 				"<leader>rn",
 				function()
@@ -167,5 +217,15 @@ return {
 				desc = "document diagonstics",
 			},
 		},
+	},
+	{
+		"popoffvg/lsp_lines.nvim",
+		config = function()
+			vim.diagnostic.config({
+				virtual_text = false,
+				virtual_lines = { only_current_line = true },
+			})
+			require("lsp_lines").setup()
+		end,
 	},
 }

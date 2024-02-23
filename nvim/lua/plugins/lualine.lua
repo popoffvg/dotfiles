@@ -15,15 +15,15 @@ return {
 				componlnt_separators = "|",
 				section_separators = { left = "", right = "" },
 				globalstatus = true,
-				theme = "vscode",
+				theme = "catppuccin",
 			},
 			tabline = {
 				lualine_a = {
-					{
-						"filename",
-						path = 1,
-						-- mode = 2, -- index + name
-					},
+					-- {
+					-- 	"filename",
+					-- 	path = 1,
+					-- 	-- mode = 2, -- index + name
+					-- },
 				},
 				lualine_b = {
 					{
@@ -48,6 +48,9 @@ return {
 						-- color = { bg = c.TabLine, fg = c.Normal, gui = "none" },
 					},
 				},
+				lualine_y = {
+					"diagnostics",
+				},
 				-- lualine_a = {
 				-- 	{
 				-- 		"buffers",
@@ -64,7 +67,13 @@ return {
 					},
 				},
 				lualine_b = { "branch" },
-				lualine_c = {},
+				lualine_c = {
+					{
+						"filename",
+						path = 1,
+						-- mode = 2, -- index + name
+					},
+				},
 				lualine_x = {},
 				lualine_y = { "filetype" },
 				lualine_z = { "location" },

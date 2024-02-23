@@ -8,30 +8,48 @@ function HandleWinEnter()
 end
 
 return {
-	"Mofiqul/vscode.nvim",
-	-- init = function()
+	{
+		"rasulomaroff/reactive.nvim",
+		event = "VeryLazy",
+		config = function()
+			require("reactive").setup({
+				load = { "catppuccin-mocha-cursor", "catppuccin-mocha-cursorline" },
+				builtin = {
+					cursorline = true,
+					cursor = true,
+					modemsg = true,
+				},
+			})
+		end,
+	},
+	{
+		"catppuccin/nvim",
+		name = "catppuccin",
+		priority = 1000,
+		config = function()
+			require("catppuccin").setup({
+				integrations = {
+					cmp = true,
+					gitsigns = true,
+					nvimtree = true,
+					treesitter = true,
+					notify = true,
+					lsp_trouble = true,
+					mini = {
+						enabled = true,
+						indentscope_color = "",
+					},
+				},
+			})
+			vim.cmd([[ colorscheme catppuccin]])
 
-	-- end,
-	config = function()
-		local c = require("vscode.colors").get_colors()
-
-		require("vscode").setup({
-			transparent = true,
-			disable_nvimtree_bg = true,
-			group_overrides = {
-				-- this supports the same val table as vim.api.nvim_set_hl
-				-- use colors from this colorscheme by requiring vscode.colors!
-				Comment = { fg = c.vscGray, bg = c.None, bold = false },
-			},
-		})
-		vim.cmd([[ colorscheme vscode]])
-
-		local autocmd = vim.api.nvim_create_autocmd
-		local group = vim.api.nvim_create_augroup("window_managment", {})
-		autocmd("WinEnter", {
-			pattern = "*",
-			group = group,
-			callback = HandleWinEnter,
-		})
-	end,
+			local autocmd = vim.api.nvim_create_autocmd
+			local group = vim.api.nvim_create_augroup("window_managment", {})
+			autocmd("WinEnter", {
+				pattern = "*",
+				group = group,
+				callback = HandleWinEnter,
+			})
+		end,
+	},
 }

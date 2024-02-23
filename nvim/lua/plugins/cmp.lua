@@ -124,7 +124,6 @@ return {
 					"s",
 				}),
 				["<C-n>"] = cmp.mapping(function(fallback)
-					print(vim.inspect(cmp.visible()))
 					if cmp.visible() then
 						cmp.select_next_item()
 					else

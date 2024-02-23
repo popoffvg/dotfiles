@@ -1,9 +1,14 @@
 vim.cmd([[
+        set updatetime=30000
         set relativenumber
         set rnu
         set clipboard=unnamedplus
+        set shell=fish
 
         let mapleader=' '
+        "for wezterm compatibility
+        map <C-Left> <C-n>
+        map <C-Right> <C-p>
 
         " Common keybindings
         inoremap jj <Esc>l
@@ -33,7 +38,6 @@ vim.cmd([[
         nnoremap <C-K> <C-W><C-K>
         nnoremap <C-L> <C-W><C-L>
         nnoremap <C-H> <C-W><C-H>
-        nnoremap <leader>z :ZenMode<CR>
 
 
         " Copy to system clipboard
@@ -50,6 +54,10 @@ vim.cmd([[
         tnoremap <C-L> <C-\><C-n><C-W><C-L>
         tnoremap <C-H> <C-\><C-n><C-W><C-H>
         autocmd BufWinEnter,WinEnter term://* startinsert
+
+        " https://riptutorial.com/vim/example/16802/search-within-a-function-block#google_vignette
+        " for search into function
+        vnoremap g/ <ESC>/\%V
 
     " general
     set noswapfile
@@ -91,7 +99,7 @@ vim.cmd([[
     syntax on
     filetype off
     filetype plugin indent on
-    set runtimepath+=$GOROOT/misc/vim
+    " set runtimepath+=$GOROOT/misc/vim
     set ruler
     set number
 
@@ -121,11 +129,6 @@ vim.cmd([[
     set guicursor=r-i-ci:hor5
 
 
-    " special characters
-    syntax match keyword "\<lambda\>" conceal cchar=λ
-    " syntax match keyword "!=" conceal cchar=≠ 
-    syntax match keyword "->" conceal cchar=→ 
-    syntax match keyword "<-" conceal cchar=←
     set conceallevel=1
 
     set ttimeout ttimeoutlen=50
@@ -138,3 +141,21 @@ vim.cmd([[
     hi vertsplit guifg=fg guibg=bg
     " hi vertsplit guifg=fg guibg=bg
 ]])
+
+vim.api.nvim_create_autocmd("BufEnter, BufNewFile", {
+	pattern = "*.hurl",
+	callback = function()
+		local buf = vim.api.nvim_get_current_buf()
+		vim.api.nvim_buf_set_option(buf, "filetype", "hurl")
+	end,
+})
+vim.keymap.set("n", "[x", function()
+	vim.diagnostic.goto_prev({
+		severity = vim.diagnostic.severity.ERROR,
+	})
+end)
+vim.keymap.set("n", "]x", function()
+	vim.diagnostic.goto_next({
+		severity = vim.diagnostic.severity.ERROR,
+	})
+end)

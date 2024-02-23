@@ -14,7 +14,7 @@ local fmta = require("luasnip.extras.fmt").fmta
 local rep = require("luasnip.extras").rep
 
 -- --
-local tsgo = require("../custom/treesitter_go")
+local tsgo = require("../utils/treesitter_go")
 -- --
 
 local snippets = {}
@@ -100,7 +100,7 @@ func {}({}{}) ({}) {{
 table.insert(snippets, my_s)
 
 local anonym_struct = s(
-	"struct",
+	"struct[anonym]",
 	fmta(
 		[[
     struct {
@@ -120,7 +120,7 @@ local anonym_struct = s(
 table.insert(snippets, anonym_struct)
 
 local struct = s(
-	"struct",
+	"struct[new]",
 	fmta(
 		[[
 <> struct {
@@ -184,7 +184,7 @@ for <> := range <> {
 table.insert(snippets, forc)
 
 local fori = s(
-	{ trig = "fori", desc = "for i" },
+	{ trig = "for[i]", desc = "for i" },
 	fmta(
 		[[
 for i:= 0;i << <>;i++ {
@@ -262,7 +262,6 @@ var (
 )
 table.insert(snippets, var)
 
-table.insert(autosnippets, efi)
 table.insert(autosnippets, s("===", t(":=")))
 
 local function short_name(args)
@@ -314,7 +313,7 @@ local ctx = s("ctx", t("ctx context.Context"))
 table.insert(snippets, ctx)
 
 local test = s(
-	"test",
+	"test[new]",
 	fmta(
 		[[
 func Test<>(t *testing.T){
@@ -336,12 +335,13 @@ local component = s(
         type <> struct{
         }
 
-        func New() *<>{
+        func New<>() *<>{
             return &<>{}
         }
     ]],
 		{
 			i(1, "Component"),
+			rep(1),
 			rep(1),
 			rep(1),
 		}
@@ -378,14 +378,14 @@ local gof = s(
 	{ trig = "func[anonym]", name = "go", desc = "go" },
 	fmta(
 		[[
-    func() {
-        <>
-    }()
+        func() {
+            <>
+        }()
  ]],
 		{ i(0) }
 	),
 	{
-		condition = function(line_to_cursor, matched_trigger, captures)
+		show_condition = function(line_to_cursor)
 			local result = line_to_cursor:match("go%s") or line_to_cursor:match("defer%s")
 			return result
 		end,
@@ -395,7 +395,6 @@ table.insert(snippets, gof)
 
 local fmterr = s({ trig = "errfmt", desc = "fmt.Errorf" }, fmta([[fmt.Errorf("<>: %w", err)]], { i(0, "msg") }))
 table.insert(autosnippets, fmterr)
-table.insert(snippets, fmterr)
 
 local ifs = s(
 	{ trig = "if ", desc = "if statement" },
@@ -403,9 +402,15 @@ local ifs = s(
 		[[
 if <> {
     <>
-}]],
+}
+        ]],
 		{ i(1, "statement"), i(0) }
-	)
+	),
+	{
+		condition = function(line_to_cursor, matched_trigger, captures)
+			return line_to_cursor:match("^%s*if")
+		end,
+	}
 )
 table.insert(autosnippets, ifs)
 

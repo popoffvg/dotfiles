@@ -18,6 +18,7 @@ local ensure_installed = {
 	"sql",
 	"graphql",
 	"php",
+	"hurl",
 }
 
 local opts = {

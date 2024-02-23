@@ -79,10 +79,9 @@ return {
 						["vim.lsp.util.convert_input_to_markdown_lines"] = true,
 						["vim.lsp.util.stylize_markdown"] = true,
 						["cmp.entry.get_documentation"] = true,
-						["config.lsp.signature.enabled"] = false,
 					},
 					hover = { enabled = false },
-					signature = { enabled = true },
+					signature = { enabled = false },
 				},
 				-- you can enable a preset for easier configuration
 				presets = {
@@ -136,9 +135,17 @@ return {
 			integrations = {
 				tmux = true, -- hide tmux status bar in (minimalist, ataraxis)
 				lualine = true, -- hide nvim-lualine (ataraxis)
-				twilight = true,
+				twilight = false,
 			},
 			modes = {
+				ataraxis = {
+					padding = { -- padding windows
+						left = 35,
+						right = 35,
+						top = 0,
+						bottom = 0,
+					},
+				},
 				narrow = {
 					--- change the style of the fold lines. Set it to:
 					--- `informative`: to get nice pre-baked folds
@@ -169,58 +176,42 @@ return {
 		config = true,
 		event = "VeryLazy",
 	},
+	-- {
+	-- 	"b0o/incline.nvim",
+	-- 	config = function()
+	-- 		require("incline").setup({
+	-- 			debounce_threshold = { falling = 500, rising = 250 },
+	-- 			render = function(props)
+	-- 				if vim.fn.winnr("$") <= 1 then -- more than one split open?
+	-- 					return {}
+	-- 				end
+	-- 				local bufname = vim.api.nvim_buf_get_name(props.buf)
+	-- 				local filename = vim.fn.fnamemodify(bufname, ":t")
+	-- 				-- local diagnostics = get_diagnostic_label(props)
+	-- 				local modified = vim.api.nvim_buf_get_option(props.buf, "modified") and "bold,italic" or "None"
+	-- 				local filetype_icon, color = require("nvim-web-devicons").get_icon_color(filename)
+	--
+	-- 				return {
+	-- 					{ filetype_icon, guifg = color },
+	-- 					{ " " },
+	-- 					{ filename, gui = modified },
+	-- 				}
+	-- 			end,
+	-- 		})
+	-- 	end,
+	-- },
 	{
-		-- buffer float title
-		"b0o/incline.nvim",
-		config = function()
-			local function get_diagnostic_label(props)
-				local icons = {
-					Error = "",
-					Warn = "",
-					Info = "",
-					Hint = "",
-				}
-
-				local label = {}
-				for severity, icon in pairs(icons) do
-					local n =
-						#vim.diagnostic.get(props.buf, { severity = vim.diagnostic.severity[string.upper(severity)] })
-					if n > 0 then
-						local fg = "#"
-							.. string.format(
-								"%06x",
-								vim.api.nvim_get_hl_by_name("DiagnosticSign" .. severity, true)["foreground"]
-							)
-						table.insert(label, { icon .. " " .. n .. " ", guifg = fg })
-					end
-				end
-				return label
-			end
-
-			require("incline").setup({
-				debounce_threshold = { falling = 500, rising = 250 },
-				render = function(props)
-					local bufname = vim.api.nvim_buf_get_name(props.buf)
-					local filename = vim.fn.fnamemodify(bufname, ":t")
-					local diagnostics = get_diagnostic_label(props)
-					local modified = vim.api.nvim_buf_get_option(props.buf, "modified") and "bold,italic" or "None"
-					local filetype_icon, color = require("nvim-web-devicons").get_icon_color(filename)
-
-					local buffer = {
-						{ filetype_icon, guifg = color },
-						{ " " },
-						{ filename, gui = modified },
-					}
-
-					if #diagnostics > 0 then
-						table.insert(diagnostics, { "| ", guifg = "grey" })
-					end
-					for _, buffer_ in ipairs(buffer) do
-						table.insert(diagnostics, buffer_)
-					end
-					return diagnostics
-				end,
-			})
-		end,
+		"neovim/nvim-lspconfig",
+		dependencies = {
+			{
+				"SmiteshP/nvim-navbuddy",
+				dependencies = {
+					"SmiteshP/nvim-navic",
+					"MunifTanjim/nui.nvim",
+				},
+				opts = { lsp = { auto_attach = true } },
+			},
+		},
+		-- your lsp config or other stuff
 	},
 }

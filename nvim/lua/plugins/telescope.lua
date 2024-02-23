@@ -12,13 +12,18 @@ return {
 		"nvim-lua/plenary.nvim",
 		"nvim-telescope/telescope-frecency.nvim",
 		"nvim-lua/plenary.nvim",
-		-- config = function()
-		-- 	require("telescope").load_extension("frecency")
-		-- end,
 		"fdschmidt93/telescope-egrepify.nvim",
 	},
 	config = function()
 		local Path = require("plenary.path")
+		local path_display = function(opts, path)
+			local fu = require("telescope.utils")
+			local tail = fu.path_tail(path)
+			local dir = vim.fs.dirname(path)
+			local parent = Path:new(dir):make_relative(opts.cwd)
+			return string.format("%s\t\t%s", tail, parent)
+		end
+		local actions = require("telescope.actions")
 		require("telescope").setup({
 			defaults = {
 				initial_mode = "insert",
@@ -39,32 +44,20 @@ return {
 						end,
 					},
 				},
-				theme = "dropdown", -- use dropdown theme
+				theme = "dropdown",
 				preview = true,
-				-- path_display = { "smart", shorten = { len = 3 } },
 				wrap_results = true,
 			},
 
 			extensions = {
 				frecency = {
-					workspace_scan_cmd = { "fd", "-Htf" },
+					workspace_scan_cmd = { "fd", "-tf" },
 					theme = "dropdown",
 					default_workspace = "CWD",
 					preview = false,
 					show_filter_column = false,
 					db_validate_threshold = 1,
-					path_display = function(opts, path)
-						-- local tail = vim.fs.basename(path)
-						-- local parent = vim.fs.dirname(path)
-						-- if parent == "." then
-						-- 	return tail
-						-- end
-						local fu = require("telescope.utils")
-						local tail = fu.path_tail(path)
-						local dir = vim.fs.dirname(path)
-						local parent = Path:new(dir):make_relative(opts.cwd)
-						return string.format("%s\t\t%s", tail, parent)
-					end,
+					path_display = path_display,
 				},
 				egrepify = {
 					wrap_results = false,
@@ -77,15 +70,22 @@ return {
 					theme = "dropdown",
 					show_line = false,
 					preview = true,
+					path_display = path_display,
 				},
 				lsp_implementations = {
 					theme = "dropdown",
 					show_line = false,
+					path_display = path_display,
 				},
 
 				find_files = {
 					theme = "dropdown",
 					preview = false,
+				},
+				live_grep = {
+					mappings = {
+						i = { ["<c-f>"] = actions.to_fuzzy_refine },
+					},
 				},
 			},
 		})
@@ -106,6 +106,7 @@ return {
 		require("telescope").load_extension("yank_history")
 		require("telescope").load_extension("frecency")
 		require("telescope").load_extension("egrepify")
+
 		require("yanky.telescope.mapping").put("p")
 		require("yanky.telescope.mapping").put("P")
 		require("yanky.telescope.mapping").put("gp")

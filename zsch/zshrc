@@ -14,7 +14,7 @@ fi
 (( ${+commands[direnv]} )) && emulate zsh -c "$(direnv hook zsh)"
 
 plugins=(
-    fzf-tab	
+    fzf-tab
     git
     colorize
     zsh-autosuggestions
@@ -22,10 +22,11 @@ plugins=(
     cp
     mvn
     docker-compose
-    docker 
+    docker
     fzf
     kubectl
     zsh-vi-mode
+    tmux
 )
 
 ZVM_VI_ESCAPE_BINDKEY=jj
