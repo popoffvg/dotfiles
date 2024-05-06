@@ -24,7 +24,7 @@ local ensure_installed = {
 local opts = {
 	query_linter = {
 		enable = true,
-		use_virtual_text = true,
+		use_virtual_text = false,
 		lint_events = { "BufWrite", "CursorHold" },
 	},
 	ensure_installed = ensure_installed,

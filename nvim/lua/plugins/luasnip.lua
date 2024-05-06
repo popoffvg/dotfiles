@@ -5,7 +5,7 @@ return {
 		"rafamadriz/friendly-snippets",
 	},
 	build = {
-		"!go install github.com/koron/iferr",
+		":!go install github.com/koron/iferr",
 	},
 	event = { "BufReadPre", "BufNewFile" },
 	config = function()

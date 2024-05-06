@@ -6,12 +6,23 @@ local servers = {
 	"tsserver",
 	"phpactor",
 	"pyright",
+	-- ltex for markdown
+	-- cspell
 }
 
+local signs = {
+	Error = "",
+	Warn = "",
+	Info = "",
+	Hint = "💡",
+}
 -- LSP settings (for overriding per client)
 local handlers = {
 	["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" }),
-	["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" }),
+	-- ["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
+	-- 	floating_window = false,
+	-- 	border = "rounded",
+	-- }),
 	["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
 		virtual_text = false,
 	}),
@@ -19,6 +30,11 @@ local handlers = {
 
 local on_attach = function()
 	return function(client, bufnr)
+		vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
+
+		if client.name == "null-ls" then
+			return
+		end
 		if client.name == "gopls" and not client.server_capabilities.semanticTokensProvider then
 			local semantic = client.config.capabilities.textDocument.semanticTokens
 			client.server_capabilities.semanticTokensProvider = {
@@ -26,16 +42,13 @@ local on_attach = function()
 				legend = { tokenModifiers = semantic.tokenModifiers, tokenTypes = semantic.tokenTypes },
 				range = true,
 			}
+			client.server_capabilities.publishDiagnostics = false
 		end
-
-		-- client.resolved_capabilities.hover = false
 		require("nvim-navic").attach(client, bufnr)
-
-		vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 	end
 end
 
-local goimports = function()
+local setup_goimports = function()
 	vim.api.nvim_create_autocmd("BufWritePre", {
 		pattern = "*.go",
 		callback = function()
@@ -64,7 +77,12 @@ return {
 	{
 		"neovim/nvim-lspconfig",
 		dependencies = {
+			{
+				"nvimtools/none-ls.nvim",
+				config = function() end,
+			},
 			"nanotee/sqls.nvim",
+			"davidmh/cspell.nvim",
 			"williamboman/mason.nvim",
 			"SmiteshP/nvim-navic",
 			"williamboman/mason-lspconfig.nvim",
@@ -77,13 +95,43 @@ return {
 			},
 			-- Interaction between cmp and lspconfig
 			"hrsh7th/cmp-nvim-lsp",
+			{
+				-- show usages
+				"Wansmer/symbol-usage.nvim",
+				event = "BufReadPre", -- need run before LspAttach if you use nvim 0.9. On 0.10 use 'LspAttach'
+				config = function()
+					local function text_format(symbol)
+						local fragments = {}
+
+						if symbol.references then
+							local usage = symbol.references <= 1 and "usage" or "usages"
+							local num = symbol.references == 0 and "no" or symbol.references
+							table.insert(fragments, ("%s %s"):format(num, usage))
+						end
+
+						if symbol.definition then
+							table.insert(fragments, symbol.definition .. " defs")
+						end
+
+						if symbol.implementation then
+							table.insert(fragments, symbol.implementation .. " impls")
+						end
+
+						return table.concat(fragments, ", ")
+					end
+
+					require("symbol-usage").setup({
+						text_format = text_format,
+					})
+				end,
+			},
 		},
 		event = { "BufReadPre", "BufNewFile" },
 		config = function()
 			local cmp = require("cmp_nvim_lsp")
 			local capabilities = cmp.default_capabilities(vim.lsp.protocol.make_client_capabilities())
-
-			vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { focusable = false })
+			vim.lsp.handlers["textDocument/hover"] =
+				vim.lsp.with(vim.lsp.handlers.hover, { focusable = false, float = true })
 
 			require("mason-lspconfig").setup_handlers({
 				function(server_name)
@@ -107,6 +155,8 @@ return {
 			-- doesn't work through mason
 			require("lspconfig").sqls.setup({
 				on_attach = function(client, bufnr)
+					client.server_capabilities.documentFormattingProvider = false
+					client.server_capabilities.documentRangeFormattingProvider = false
 					require("sqls").on_attach(client, bufnr)
 				end,
 				settings = {
@@ -121,17 +171,30 @@ return {
 				},
 			})
 
-			goimports()
-			local signs = {
-				Error = "",
-				Warn = "",
-				Info = "",
-				Hint = "💡",
-			}
+			setup_goimports()
+
 			for type, icon in pairs(signs) do
 				local hl = "DiagnosticSign" .. type
 				vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
 			end
+
+			local cspell = require("cspell")
+			local null_ls = require("null-ls")
+
+			null_ls.setup({
+				on_attach = on_attach(),
+				filetypes = "go",
+				sources = {
+					cspell.diagnostics.with({
+						filetypes = { "go" },
+						diagnostics_postprocess = function(diagnostic)
+							diagnostic.severity = vim.diagnostic.severity["WARN"]
+						end,
+					}),
+					cspell.code_actions,
+					null_ls.builtins.completion.spell,
+				},
+			})
 
 			-- vim.api.nvim_create_autocmd("CursorHold", {
 			-- 	pattern = { "*" },
@@ -143,6 +206,7 @@ return {
 			-- 		end
 			-- 	end,
 			-- })
+			--
 		end,
 		keys = {
 			{
@@ -176,6 +240,7 @@ return {
 				function()
 					vim.lsp.buf.code_action()
 				end,
+				mode = { "n", "v" },
 			},
 		},
 	},
@@ -226,6 +291,19 @@ return {
 				virtual_lines = { only_current_line = true },
 			})
 			require("lsp_lines").setup()
+		end,
+	},
+	{
+		"ray-x/lsp_signature.nvim",
+		event = "VeryLazy",
+		opts = {
+			floating_window = false,
+			hint_inline = function()
+				return false
+			end,
+		},
+		config = function(_, opts)
+			require("lsp_signature").setup(opts)
 		end,
 	},
 }

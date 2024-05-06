@@ -12,8 +12,9 @@ vim.cmd([[
 
         " Common keybindings
         inoremap jj <Esc>l
-        map <Leader>q <Cmd>:Bdelete<CR>
-        map <Leader>Q <Cmd>:bd<CR>
+        map <leader><leader>q <Cmd>:Bdelete!<CR>
+        map <leader><leader>q <Cmd>:bd!<CR>
+
         imap <m-o> <Esc>o
         imap <m-a> <Esc>a
         imap <m-A> <Esc>A
@@ -53,12 +54,16 @@ vim.cmd([[
         tnoremap <C-K> <C-\><C-n><C-W><C-K>
         tnoremap <C-L> <C-\><C-n><C-W><C-L>
         tnoremap <C-H> <C-\><C-n><C-W><C-H>
+        tnoremap <leader><leader>q <Esc><Cmd>:Bdelete!<CR>
+        tnoremap <leader><leader>q <Esc><Cmd>:bd!<CR>
         autocmd BufWinEnter,WinEnter term://* startinsert
 
         " https://riptutorial.com/vim/example/16802/search-within-a-function-block#google_vignette
         " for search into function
         vnoremap g/ <ESC>/\%V
+        nnoremap ? <vaf><ESC>/\%V
 
+        nnoremap <leader>R @q
     " general
     set noswapfile
 
@@ -117,6 +122,7 @@ vim.cmd([[
     " mouse support
     set mouse=vn
 
+
     set mousemodel=popup
     set t_Co=256
     set guioptions=egmrti
@@ -129,8 +135,8 @@ vim.cmd([[
     set guicursor=r-i-ci:hor5
 
 
-    set conceallevel=1
 
+    set conceallevel=1
     set ttimeout ttimeoutlen=50
 
     " highlight the visual selection after pressing enter.
@@ -138,11 +144,20 @@ vim.cmd([[
 
 
     "split | vsplit highlight
-    hi vertsplit guifg=fg guibg=bg
     " hi vertsplit guifg=fg guibg=bg
+    " hi vertsplit guifg=fg guibg=bg
+
 ]])
 
-vim.api.nvim_create_autocmd("BufEnter, BufNewFile", {
+vim.api.nvim_create_autocmd({ "FileType" }, {
+	pattern = "NvimTree",
+	callback = function()
+		vim.schedule(function()
+			vim.keymap.set("n", "q<CR>", ":bd!")
+		end)
+	end,
+})
+vim.api.nvim_create_autocmd({ "BufEnter", "BufNewFile" }, {
 	pattern = "*.hurl",
 	callback = function()
 		local buf = vim.api.nvim_get_current_buf()

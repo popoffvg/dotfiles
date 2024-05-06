@@ -35,9 +35,9 @@ return {
 		config = function()
 			vim.cmd([[
                 " turn off tmux linebar in vim
-                autocmd VimEnter * nested silent !tmux set status off
-                autocmd VimLeave * silent !tmux set status on
-                autocmd FocusGained * silent !tmux set status off
+                " autocmd VimEnter * nested silent !tmux set status off
+                " autocmd VimLeave * silent !tmux set status on
+                " autocmd FocusGained * silent !tmux set status off
             ]])
 		end,
 		keys = {

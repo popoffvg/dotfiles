@@ -3,6 +3,8 @@ function HandleWinEnter()
 	vim.cmd([[
         hi ActiveWindow guibg=#17252c
         hi InactiveWindow guibg=#0D1B22
+        hi WinSeparator guifg=VertSplit
+
         setlocal winhighlight=Normal:ActiveWindow,NormalNC:InactiveWindow
     ]])
 end
@@ -41,15 +43,18 @@ return {
 					},
 				},
 			})
-			vim.cmd([[ colorscheme catppuccin]])
+			vim.cmd([[ 
+                colorscheme catppuccin
+                hi WinSeparator guifg=VertSplit
+            ]])
 
-			local autocmd = vim.api.nvim_create_autocmd
-			local group = vim.api.nvim_create_augroup("window_managment", {})
-			autocmd("WinEnter", {
-				pattern = "*",
-				group = group,
-				callback = HandleWinEnter,
-			})
+			-- local autocmd = vim.api.nvim_create_autocmd
+			-- local group = vim.api.nvim_create_augroup("window_managment", {})
+			-- autocmd("WinEnter", {
+			-- 	pattern = "*",
+			-- 	group = group,
+			-- 	callback = HandleWinEnter,
+			-- })
 		end,
 	},
 }

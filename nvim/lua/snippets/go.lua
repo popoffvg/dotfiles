@@ -414,4 +414,7 @@ if <> {
 )
 table.insert(autosnippets, ifs)
 
+local tag = s({ trig = "tag", name = "struct tag" }, fmta('`<>:"<>"`', { i(1, "json"), i(0, "value") }))
+table.insert(autosnippets, tag)
+
 return snippets, autosnippets
