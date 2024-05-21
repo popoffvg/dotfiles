@@ -6,6 +6,7 @@ local servers = {
 	"tsserver",
 	"phpactor",
 	"pyright",
+	"golangci_lint_ls",
 	-- ltex for markdown
 	-- cspell
 }
@@ -93,6 +94,14 @@ return {
 					library = { plugins = { "nvim-dap-ui" }, types = true },
 				},
 			},
+			-- {
+			-- 	"MysticalDevil/inlay-hints.nvim",
+			-- 	event = "LspAttach",
+			-- 	dependencies = { "neovim/nvim-lspconfig" },
+			-- 	config = function()
+			-- 		require("inlay-hints").setup()
+			-- 	end,
+			-- },
 			-- Interaction between cmp and lspconfig
 			"hrsh7th/cmp-nvim-lsp",
 			{
@@ -195,6 +204,32 @@ return {
 					null_ls.builtins.completion.spell,
 				},
 			})
+			local lspconfig = require("lspconfig")
+			local configs = require("lspconfig/configs")
+
+			if not configs.golangcilsp then
+				configs.golangcilsp = {
+					default_config = {
+						cmd = { "golangci-lint-langserver" },
+						root_dir = lspconfig.util.root_pattern(".git", "go.mod"),
+						init_options = {
+							command = {
+								"golangci-lint",
+								"run",
+								"--enable-all",
+								"--disable",
+								"lll",
+								"--out-format",
+								"json",
+								"--issues-exit-code=1",
+							},
+						},
+					},
+				}
+			end
+			lspconfig.golangci_lint_ls.setup({
+				filetypes = { "go", "gomod" },
+			})
 
 			-- vim.api.nvim_create_autocmd("CursorHold", {
 			-- 	pattern = { "*" },
@@ -244,20 +279,20 @@ return {
 			},
 		},
 	},
-	{
-		"mfussenegger/nvim-lint",
-		config = function()
-			require("lint").linters_by_ft = {
-				markdown = { "vale" },
-				go = { "golangcilint" },
-			}
-			vim.api.nvim_create_autocmd({ "BufWinEnter", "BufWritePost" }, {
-				callback = function()
-					require("lint").try_lint()
-				end,
-			})
-		end,
-	},
+	-- {
+	-- 	"mfussenegger/nvim-lint",
+	-- 	config = function()
+	-- 		require("lint").linters_by_ft = {
+	-- 			markdown = { "vale" },
+	-- 			go = { "golangcilint" },
+	-- 		}
+	-- 		vim.api.nvim_create_autocmd({ "BufWinEnter", "BufWritePost" }, {
+	-- 			callback = function()
+	-- 				require("lint").try_lint()
+	-- 			end,
+	-- 		})
+	-- 	end,
+	-- },
 	{
 		"folke/trouble.nvim",
 		dependencies = { "nvim-tree/nvim-web-devicons" },
@@ -298,6 +333,7 @@ return {
 		event = "VeryLazy",
 		opts = {
 			floating_window = false,
+			hint_enable = false,
 			hint_inline = function()
 				return false
 			end,

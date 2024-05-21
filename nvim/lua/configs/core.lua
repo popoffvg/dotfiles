@@ -31,8 +31,8 @@ vim.cmd([[
         imap <m-h> <backspace>
         imap <m-=> :=
 
-        vnoremap <m-h> ^
-        vnoremap <m-l> $
+        vnoremap <c-h> ^
+        vnoremap <c-l> $
 
         " Windows navigation
         nnoremap <C-J> <C-W><C-J>
@@ -64,8 +64,11 @@ vim.cmd([[
         nnoremap ? <vaf><ESC>/\%V
 
         nnoremap <leader>R @q
+
+        imap <c-o> <CR>
     " general
     set noswapfile
+    set wrapscan
 
     " editing
     " How many columns of whitespace a \t is worth

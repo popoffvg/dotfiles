@@ -7,14 +7,6 @@ return {
 		},
 	},
 	{
-		"sindrets/diffview.nvim",
-		event = "VeryLazy",
-	},
-	{
-		"APZelos/blamer.nvim",
-		event = "VeryLazy",
-	},
-	{
 		"kkharji/sqlite.lua",
 	},
 	{ "folke/neoconf.nvim", cmd = "Neoconf" },

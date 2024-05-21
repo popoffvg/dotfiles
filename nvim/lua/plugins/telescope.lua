@@ -1,5 +1,12 @@
 local opts = { noremap = true, silent = true }
 
+local relative_with = function(_, cols, _)
+	if cols > 200 then
+		return 170
+	else
+		return math.floor(cols * 0.87)
+	end
+end
 return {
 	{
 		"nvim-telescope/telescope.nvim",
@@ -16,6 +23,10 @@ return {
 			"nvim-lua/plenary.nvim",
 			"fdschmidt93/telescope-egrepify.nvim",
 			"Marskey/telescope-sg",
+			{
+				"nvim-telescope/telescope-file-browser.nvim",
+				dependencies = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" },
+			},
 		},
 		config = function()
 			local Path = require("plenary.path")
@@ -27,6 +38,7 @@ return {
 				return string.format("%s\t\t%s", tail, parent)
 			end
 			local actions = require("telescope.actions")
+			local fb_actions = require("telescope._extensions.file_browser.actions")
 			require("telescope").setup({
 				defaults = {
 					initial_mode = "insert",
@@ -34,13 +46,7 @@ return {
 					layout_config = {
 						center = {
 							preview_cutoff = 120,
-							width = function(_, cols, _)
-								if cols > 200 then
-									return 170
-								else
-									return math.floor(cols * 0.87)
-								end
-							end,
+							width = relative_with,
 
 							height = function(_, _, max_lines)
 								return math.min(max_lines, 80)
@@ -64,7 +70,9 @@ return {
 						show_filter_column = false,
 						db_validate_threshold = 1,
 						path_display = path_display,
-						hide_current_buffer = true,
+						hide_current_buffer = false,
+						hidden = true,
+						db_safe_mode = false,
 					},
 					egrepify = {
 						wrap_results = false,
@@ -80,6 +88,23 @@ return {
 						}, -- must have --json=stream
 						grep_open_files = false, -- search in opened files
 						lang = nil, -- string value, specify language for ast-grep `nil` for default
+					},
+					file_browser = {
+						hidden = true,
+						mappings = {
+							["i"] = {
+								-- ["<C-k>"] = fb_actions.open,
+								["<C-H>"] = fb_actions.toggle_hidden,
+								["<C-k>"] = fb_actions.goto_parent_dir,
+								["<C-j>"] = actions.select_default,
+							},
+							["n"] = {
+								-- ["<C-k>"] = fb_actions.open,
+								["<C-H>"] = fb_actions.toggle_hidden,
+								["<C-k>"] = fb_actions.goto_parent_dir,
+								["<C-j>"] = actions.select_default,
+							},
+						},
 					},
 				},
 				pickers = {
@@ -97,11 +122,21 @@ return {
 					find_files = {
 						theme = "dropdown",
 						preview = false,
+						hidden = true,
 					},
 					live_grep = {
 						mappings = {
 							i = { ["<c-f>"] = actions.to_fuzzy_refine },
 						},
+					},
+					lsp_document_symbols = {
+						theme = "dropdown",
+						preview = true,
+						symbol_width = relative_with,
+					},
+					lsp_outgoing_calls = {
+						theme = "dropdown",
+						preview = true,
 					},
 				},
 			})
@@ -143,7 +178,8 @@ return {
 			{ "<leader>fg", ":Telescope egrepify<CR>", opts },
 			{ "<leader>fb", ":Telescope buffers<CR>", opts },
 			{ "<leader>fh", ":Telescope help_tags<CR>", opts },
-			{ "<leader>ft", ":Telescope treesitter<CR>", opts },
+			{ "<leader>ft", ":Telescope lsp_document_symbols<CR>", opts },
+			{ "<leader>fo", ":Telescope lsp_outgoing_calls<CR>", opts },
 			{ "<leader>fc", ":Telescope commands<CR>", opts },
 			{ "<leader>fr", ":Telescope resume<CR>", opts },
 			{ "<leader>fa", ":Telescope ast_grep<CR>", opts },
@@ -155,7 +191,15 @@ return {
 			{ "<leader>fy", ":Telescope yank_history<CR>", opts },
 			{ "gr", "<cmd>Telescope lsp_references<CR>", opts },
 			{ "gd", "<cmd>Telescope lsp_definitions<CR>", opts },
-			{ "gi", "<cmd>Telescope lsp_implementations<CR>", opts },
+			{
+				"gi",
+				"<cmd>Telescope lsp_implementations<CR>",
+				opts,
+			},
+
+			-- ctrl + t - show hidden  file
+			-- { "<space>t", ":Telescope file_browser path=%:p:h<CR>", opts },
+			-- { "<space>t", ":Telescope file_browser path=%:p:h<CR>", opts },
 		},
 	},
 	{

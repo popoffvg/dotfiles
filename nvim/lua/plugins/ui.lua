@@ -120,6 +120,14 @@ return {
 					inc_rename = false, -- enables an input dialog for inc-rename.nvim
 					lsp_doc_border = true, -- add a border to hover docs and signature help
 				},
+				messages = {
+					enabled = true, -- enables the Noice messages UI
+					view = "mini", -- default view for messages
+					view_error = "notify", -- view for errors
+					view_warn = "notify", -- view for warnings
+					view_history = "messages", -- view for :messages
+					view_search = "virtualtext", -- view for search count messages. Set to `false` to disable
+				},
 				-- it works
 				-- views = {
 				-- 	hover = {
@@ -244,16 +252,6 @@ return {
 	-- },
 	{
 		"neovim/nvim-lspconfig",
-		dependencies = {
-			{
-				"SmiteshP/nvim-navbuddy",
-				dependencies = {
-					"SmiteshP/nvim-navic",
-					"MunifTanjim/nui.nvim",
-				},
-				opts = { lsp = { auto_attach = true } },
-			},
-		},
 		-- your lsp config or other stuff
 	},
 	{
@@ -267,6 +265,25 @@ return {
 		config = function()
 			require("alpha").setup(require("alpha.themes.dashboard").config)
 		end,
+	},
+	{
+		"cameron-wags/rainbow_csv.nvim",
+		config = true,
+		ft = {
+			"csv",
+			"tsv",
+			"csv_semicolon",
+			"csv_whitespace",
+			"csv_pipe",
+			"rfc_csv",
+			"rfc_semicolon",
+		},
+		cmd = {
+			"RainbowDelim",
+			"RainbowDelimSimple",
+			"RainbowDelimQuoted",
+			"RainbowMultiDelim",
+		},
 	},
 	-- {
 	--

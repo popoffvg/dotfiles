@@ -153,6 +153,15 @@ return {
 						"mode",
 						path = 1,
 					},
+					{
+						function()
+							local reg = vim.fn.reg_recording()
+							if reg == "" then
+								return ""
+							end -- not recording
+							return "R" .. reg
+						end,
+					},
 				},
 				lualine_b = { "branch" },
 				lualine_c = {

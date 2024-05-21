@@ -19,7 +19,7 @@ return {
 				},
 				lsp_codelens = true,
 				lsp_inlay_hints = {
-					enable = false,
+					enable = true,
 					other_hints_prefix = "=> ",
 					parameter_hints_prefix = "#",
 				},
@@ -47,6 +47,7 @@ return {
 			"jay-babu/mason-nvim-dap.nvim",
 			"mfussenegger/nvim-dap",
 			"rcarriga/nvim-dap-ui",
+			"nvim-neotest/nvim-nio",
 		},
 		config = function()
 			require("mason-nvim-dap").setup({
@@ -163,6 +164,7 @@ return {
 	},
 	{
 		"ThePrimeagen/refactoring.nvim",
+		-- event = "BufferReadPre",
 		config = function()
 			require("refactoring").setup({
 				prompt_func_return_type = {
@@ -181,6 +183,7 @@ return {
 				end,
 				silent = true,
 				desc = "refactoring list",
+				mode = { "n" },
 			},
 		},
 	},
