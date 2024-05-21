@@ -19,7 +19,7 @@ return {
 				},
 				lsp_codelens = true,
 				lsp_inlay_hints = {
-					enable = false,
+					enable = true,
 					other_hints_prefix = "=> ",
 					parameter_hints_prefix = "#",
 				},

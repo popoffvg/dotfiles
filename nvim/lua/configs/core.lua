@@ -64,6 +64,8 @@ vim.cmd([[
         nnoremap ? <vaf><ESC>/\%V
 
         nnoremap <leader>R @q
+
+        imap <c-o> <CR>
     " general
     set noswapfile
 

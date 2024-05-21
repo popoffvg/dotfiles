@@ -89,31 +89,31 @@ return {
 			s(
 				"todo",
 				f(function()
-					return comment("TODO:")
+					return comment("TODO")
 				end)
 			),
 			s(
 				"note",
 				f(function()
-					return comment("NOTE:")
+					return comment("NOTE")
 				end)
 			),
 			s(
 				"fix",
 				f(function()
-					return comment("FIX:")
+					return comment("FIX")
 				end)
 			),
 			s(
 				"warn",
 				f(function()
-					return comment("WARNING:")
+					return comment("WARNING")
 				end)
 			),
 			s(
 				"hack",
 				f(function()
-					return comment("HACK:")
+					return comment("HACK")
 				end)
 			),
 		})
