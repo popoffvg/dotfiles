@@ -60,7 +60,10 @@ local setup_goimports = function()
 			-- argument after params if you find that you have to write the file
 			-- twice for changes to be saved.
 			-- E.g., vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, 3000)
-			local result = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params)
+			local err, result = pcall(vim.lsp.buf_request_sync(0, "textDocument/codeAction", params))
+			if not err then
+				return
+			end
 			for cid, res in pairs(result or {}) do
 				for _, r in pairs(res.result or {}) do
 					if r.edit then
@@ -150,6 +153,13 @@ return {
 						return
 					end
 
+					-- FIXME: workaround for https://github.com/neovim/neovim/issues/28058
+					settings.workspace = {
+						didChangeWatchedFiles = {
+							dynamicRegistration = false,
+							relativePatternSupport = false,
+						},
+					}
 					require("lspconfig")[server_name].setup({
 						capabilities = capabilities,
 						on_attach = on_attach(),
@@ -328,18 +338,18 @@ return {
 			require("lsp_lines").setup()
 		end,
 	},
-	{
-		"ray-x/lsp_signature.nvim",
-		event = "VeryLazy",
-		opts = {
-			floating_window = false,
-			hint_enable = false,
-			hint_inline = function()
-				return false
-			end,
-		},
-		config = function(_, opts)
-			require("lsp_signature").setup(opts)
-		end,
-	},
+	-- {
+	-- 	"ray-x/lsp_signature.nvim",
+	-- 	event = "VeryLazy",
+	-- 	opts = {
+	-- 		floating_window = false,
+	-- 		hint_enable = false,
+	-- 		hint_inline = function()
+	-- 			return false
+	-- 		end,
+	-- 	},
+	-- 	config = function(_, opts)
+	-- 		-- require("lsp_signature").setup(opts)
+	-- 	end,
+	-- },
 }

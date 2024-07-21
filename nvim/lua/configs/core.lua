@@ -12,8 +12,8 @@ vim.cmd([[
 
         " Common keybindings
         inoremap jj <Esc>l
-        map <leader><leader>q <Cmd>:Bdelete!<CR>
-        map <leader><leader>q <Cmd>:bd!<CR>
+        map <leader>ee <Esc><Cmd>:Bdelete!<CR>
+        map <leader>ew <Esc><Cmd>:bd!<CR>
 
         imap <m-o> <Esc>o
         imap <m-a> <Esc>a
@@ -54,8 +54,8 @@ vim.cmd([[
         tnoremap <C-K> <C-\><C-n><C-W><C-K>
         tnoremap <C-L> <C-\><C-n><C-W><C-L>
         tnoremap <C-H> <C-\><C-n><C-W><C-H>
-        tnoremap <leader><leader>q <Esc><Cmd>:Bdelete!<CR>
-        tnoremap <leader><leader>q <Esc><Cmd>:bd!<CR>
+        tnoremap <leader>ee <Esc><Cmd>:Bdelete!<CR>
+        tnoremap <leader>ew <Esc><Cmd>:bd!<CR>
         autocmd BufWinEnter,WinEnter term://* startinsert
 
         " https://riptutorial.com/vim/example/16802/search-within-a-function-block#google_vignette
@@ -125,7 +125,6 @@ vim.cmd([[
     " mouse support
     set mouse=vn
 
-
     set mousemodel=popup
     set t_Co=256
     set guioptions=egmrti
@@ -136,8 +135,6 @@ vim.cmd([[
     let g:pencil_higher_contrast_ui = 1
     let g:pencil_neutral_code_bg = 1
     set guicursor=r-i-ci:hor5
-
-
 
     set conceallevel=1
     set ttimeout ttimeoutlen=50

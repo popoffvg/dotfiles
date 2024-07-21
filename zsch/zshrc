@@ -1,109 +1,147 @@
+export PATH=$PATH:/opt/homebrew/bin
+
 if [ -z "$TMUX" ]
 then
     tmux attach -t TMUX || tmux new -s TMUX > /dev/null
 fi
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-export GPG_TTY=$TTY
-(( ${+commands[direnv]} )) && emulate zsh -c "$(direnv export zsh)"
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-(( ${+commands[direnv]} )) && emulate zsh -c "$(direnv hook zsh)"
+eval "$(zoxide init zsh)"
+eval "$(oh-my-posh init zsh)"
+eval "$(oh-my-posh init zsh --config $(brew --prefix oh-my-posh)/themes/catppuccin.omp.json)"
+eval "$(direnv hook $SHELL)"
+eval "$(zoxide init zsh)"
+eval "$(atuin init zsh)"
+eval $(thefuck --alias)
+
+alias zshconfig="mate ~/.zshrc"
+alias ..="z .."
+alias ...="z ../.."
+alias ....="z ../../.."
+alias .....="z ../../../.."
+alias ls='exa'
+alias vi=nvim
+alias c=clear
+alias k=kubectl
+alias go="grc go"
+alias gita="git add . && git commit --amend -C HEAD && git push -f"
+alias ff="fuck"
+alias fy="fuck -y"
+
+ZVM_VI_ESCAPE_BINDKEY=jj
+
+export ZPLUG_HOME=$(brew --prefix)/opt/zplug
+source $ZPLUG_HOME/init.zsh
+
+zplug "IngoMeyer441/zsh-easy-motion"
+
+source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+export ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=/opt/homebrew/share/zsh-syntax-highlighting/highlighters
 
 plugins=(
     fzf-tab
     git
     colorize
     zsh-autosuggestions
-    zsh-syntax-highlighting
     cp
+    zsh-syntax-highlighting
     mvn
-    docker-compose
     docker
+    docker-compose
     fzf
     kubectl
-    zsh-vi-mode
+    golang
     tmux
 )
 
-ZVM_VI_ESCAPE_BINDKEY=jj
-
-zstyle ':completion:*:*:make:*' tag-order 'targets'
-autoload -U compinit && compinit
-
-eval "$(direnv hook zsh)"
-# User configuration
-
-# export MANPATH="/usr/local/man:$MANPATH"
-# export PATH="${go env GOPATH}/bin:$PATH"
+config="/Users/popoffvg/Documents/git/dotfiles/zsch/zshrc"
+if [ -f "$config" ]; then
+    source $config
+else
+    print "404 load config: $config not found."
+fi
 
 
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
+# completion
+[ ! -f ~/.oh-my-zsh/fzf-tab/fzf-tab.plugin.zsh ] || source ~/.oh-my-zsh/fzf-tab/fzf-tab.plugin.zsh
 
-# Preferred editor for local and remote sessions
- if [[ -n $SSH_CONNECTION ]]; then
-   export EDITOR='vim'
- else
-   export EDITOR='vim'
- fi
+# only for git
+zstyle ':completion:*:*:git:*' fzf-search-display true
+# or for everything
+zstyle ':completion:*' fzf-search-display true
 
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
+zstyle :compinstall filename "${ZDOTDIR:-$HOME}/.zshrc"
 
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+autoload -Uz compinit
+compinit
 
-setopt HIST_IGNORE_SPACE
+# direnv
 
-alias c=clear
-alias k=kubectl
-alias go="grc go"
 
-cd() {
-    if [ "$1" = "git" ]; then
-        shift        # eat the 'git'
-        cd ~/Documents/git > /dev/null
-    else 
-        builtin cd "$@"
+export GOPATH=~/go
+export PATH=$PATH:$GOPATH/bin
+export PATH=$PATH:~/.local/bin
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# The next line updates PATH for Yandex Cloud CLI.
+if [ -f '/Users/popoffvg/yandex-cloud/path.bash.inc' ]; then source '/Users/popoffvg/yandex-cloud/path.bash.inc'; fi
+
+# The next line enables shell command completion for yc.
+if [ -f '/Users/popoffvg/yandex-cloud/completion.zsh.inc' ]; then source '/Users/popoffvg/yandex-cloud/completion.zsh.inc'; fi
+
+[[ -s "/Users/popoffvg/.gvm/scripts/gvm" ]] && source "/Users/popoffvg/.gvm/scripts/gvm"
+eval "$(~/.local/bin/mise activate zsh)"
+
+export MISE_SHELL=zsh
+export __MISE_ORIG_PATH="$PATH"
+
+mise() {
+  local command
+  command="${1:-}"
+  if [ "$#" = 0 ]; then
+    command /opt/homebrew/bin/mise
+    return
+  fi
+  shift
+
+  case "$command" in
+  deactivate|s|shell)
+    # if argv doesn't contains -h,--help
+    if [[ ! " $@ " =~ " --help " ]] && [[ ! " $@ " =~ " -h " ]]; then
+      eval "$(command /opt/homebrew/bin/mise "$command" "$@")"
+      return $?
     fi
+    ;;
+  esac
+  command /opt/homebrew/bin/mise "$command" "$@"
 }
 
-# alias sops="/opt/mozilla/sops-v3.7.2.linux.amd64"
- alias nv=nvim
-# alias nvim="/var/bin/nvim.appimage"
+_mise_hook() {
+  eval "$(/opt/homebrew/bin/mise hook-env -s zsh)";
+}
+typeset -ag precmd_functions;
+if [[ -z "${precmd_functions[(r)_mise_hook]+1}" ]]; then
+  precmd_functions=( _mise_hook ${precmd_functions[@]} )
+fi
+typeset -ag chpwd_functions;
+if [[ -z "${chpwd_functions[(r)_mise_hook]+1}" ]]; then
+  chpwd_functions=( _mise_hook ${chpwd_functions[@]} )
+fi
 
-alias gita="git add . && git commit --amend -C HEAD && git push -f"
+if [ -z "${_mise_cmd_not_found:-}" ]; then
+    _mise_cmd_not_found=1
+    [ -n "$(declare -f command_not_found_handler)" ] && eval "${$(declare -f command_not_found_handler)/command_not_found_handler/_command_not_found_handler}"
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-export PATH=$(go env GOPATH)/bin:$PATH
-
-# correct terminal input
-eval $(thefuck --alias)
-# eval $(thefuck --alias --enable-experimental-instant-mode)
-alias ff="fuck"
-alias fy="fuck -y"
-
-# Generated for envman. Do not edit.
-[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
-
-autoload -U +X bashcompinit && bashcompinit
-complete -o nospace -C /home/popoffvg/go/bin/bit bit
-
-bindkey -v
-bindkey '^R' history-incremental-search-backward
-
-# [[ -s "/home/popoffvg/.gvm/scripts/gvm" ]] && source "/home/popoffvg/.gvm/scripts/gvm"
-#
+    function command_not_found_handler() {
+        if /opt/homebrew/bin/mise hook-not-found -s zsh -- "$1"; then
+          _mise_hook
+          "$@"
+        elif [ -n "$(declare -f _command_not_found_handler)" ]; then
+            _command_not_found_handler "$@"
+        else
+            echo "zsh: command not found: $1" >&2
+            return 127
+        fi
+    }
+fi
 

@@ -138,6 +138,9 @@ return {
 						theme = "dropdown",
 						preview = true,
 					},
+					current_buffer_fuzzy_find = {
+						preview = true,
+					},
 				},
 			})
 
@@ -180,6 +183,7 @@ return {
 			{ "<leader>fh", ":Telescope help_tags<CR>", opts },
 			{ "<leader>ft", ":Telescope lsp_document_symbols<CR>", opts },
 			{ "<leader>fo", ":Telescope lsp_outgoing_calls<CR>", opts },
+			{ "<leader>fw", ":Telescope current_buffer_fuzzy_find fuzzy=false case_mode=ignore_case<CR>", opts },
 			{ "<leader>fc", ":Telescope commands<CR>", opts },
 			{ "<leader>fr", ":Telescope resume<CR>", opts },
 			{ "<leader>fa", ":Telescope ast_grep<CR>", opts },

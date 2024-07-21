@@ -17,9 +17,9 @@ return {
 				icons = {
 					code_action_icon = "💡",
 				},
-				lsp_codelens = true,
+				lsp_codelens = false,
 				lsp_inlay_hints = {
-					enable = true,
+					enable = false,
 					other_hints_prefix = "=> ",
 					parameter_hints_prefix = "#",
 				},

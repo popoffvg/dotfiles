@@ -91,20 +91,18 @@ return {
 	},
 	config = function()
 		local navic = require("nvim-navic")
-		local c = require("vscode.colors").get_colors()
-
 		require("lualine").setup({
 			options = {
 				componlnt_separators = "|",
-				section_separators = { left = "", right = "" },
+				section_separators = "",
 				globalstatus = true,
-				theme = "catppuccin",
+				theme = "cyberdream",
 			},
 			tabline = {
 				lualine_a = {
 					{
 						function()
-							return vim.fn.fnamemodify(vim.fn.expand("%:h:t"), ":p:~:.")
+							return vim.fn.fnamemoify(vim.fn.expand("%:h:t"), ":p:~:.")
 						end,
 					},
 					{
@@ -113,9 +111,9 @@ return {
 						-- 	-- mode = 2, -- index + name
 					},
 				},
-				lualine_b = {
-					"diagnostics",
-				},
+				-- lualine_b = {
+				-- 	"diagnostics",
+				-- },
 				lualine_y = {
 					{
 						function()
@@ -163,16 +161,24 @@ return {
 						end,
 					},
 				},
-				lualine_b = { "branch" },
-				lualine_c = {
+				lualine_b = {
+					{ "branch" },
 					{
 						"filename",
 						path = 1,
 						-- mode = 2, -- index + name
 					},
+					{ "diagnostics" },
+				},
+				lualine_c = {
+					-- {
+					-- 	"filename",
+					-- 	path = 1,
+					-- 	-- mode = 2, -- index + name
+					-- },
 				},
 				lualine_x = { "searchcount" },
-				lualine_y = { get_attached_clients, "filetype" },
+				-- lualine_y = { get_attached_clients, "filetype" },
 				lualine_z = { "location" },
 			},
 		})

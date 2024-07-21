@@ -31,6 +31,12 @@ local routes = {
 		},
 		opts = { skip = true },
 	},
+	{
+		filter = {
+			event = "notify.error",
+		},
+		opts = { skip = true },
+	},
 }
 
 table.insert(routes, require("plugins.languages.go").Routes)
