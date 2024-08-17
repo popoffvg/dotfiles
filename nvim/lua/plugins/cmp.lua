@@ -51,7 +51,6 @@ local formatV2 = function(entry, vim_item)
 		return cmputils.Lua(entry, vim_item)
 	elseif vim.bo.filetype == "go" then
 		local item = cmputils.Go(entry, vim_item)
-		print(vim.inspect(item))
 		return item
 	else
 		return cmputils.Common(entry, vim_item)
@@ -114,7 +113,7 @@ local kind_comparator_settings = {
 		Constructor = 1,
 		Interface = 1,
 		Snippet = 0,
-		Text = 1,
+		Text = 0,
 		TypeParameter = 1,
 		Unit = 1,
 		Value = 1,
@@ -147,22 +146,27 @@ return {
 			},
 			"chrisgrieser/cmp_yanky",
 			"ray-x/cmp-treesitter",
+			{
+				"tzachar/cmp-tabnine",
+				build = "./install.sh",
+				dependencies = "hrsh7th/nvim-cmp",
+			},
 		},
 		config = function()
+			require("cmp_luasnip")
 			require("cmp_nvim_lsp")
 			require("cmp_buffer")
-			require("cmp_nvim_lsp")
-			require("cmp_nvim_lua")
-			require("cmp_calc")
+			-- require("cmp_calc")
 			-- require("cmp_emoji")
-			require("cmp_luasnip")
+			require("cmp_nvim_lua")
 
 			local sources = {
+				-- { name = "cmp_tabnine", priority = 300 },
+				{ name = "luasnip", priority = 200 },
 				{ name = "nvim_lsp_signature_help", priority = 11 },
-				{ name = "luasnip", priority = 10 },
 				{ name = "nvim_lsp", priority = 10 },
-				{ name = "cmp_tabnine", priority = 10 },
 				{ name = "nvim_lua", priority = 10 },
+				{ name = "otter", priority = 10 },
 				{
 					name = "diag-codes",
 					priority = 7,
@@ -170,11 +174,10 @@ return {
 					-- use false if you want to get in other context
 					option = { in_comment = true },
 				},
-				{ name = "otter", priority = 4 },
 				-- { name = "fuzzy_buffer" },
-				{ name = "buffer", priority = 2 },
+				{ name = "treesitter", priority = 2 },
+				{ name = "buffer", priority = 1 },
 				{ name = "path", priority = 1 },
-				{ name = "treesitter", priority = 1 },
 				-- { name = "cmp_yanky" },
 				-- { name = "calc" },
 				-- { name = "emoji" },
@@ -197,26 +200,16 @@ return {
 						cmp.open_docs()
 					end
 				end),
-				["<Tab>"] = cmp.mapping(function(fallback)
+				["<Tab>"] = cmp.config.disable,
+				["<S-Tab>"] = cmp.config.disable,
+				["<ESC>"] = function(fallsback)
 					if cmp.visible() then
-						cmp.select_next_item()
+						cmp.close()
+						fallsback()
 					else
-						fallback()
+						fallsback()
 					end
-				end, {
-					"i",
-					"s",
-				}),
-				["<S-Tab>"] = cmp.mapping(function(fallback)
-					if cmp.visible() then
-						cmp.select_prev_item()
-					else
-						fallback()
-					end
-				end, {
-					"i",
-					"s",
-				}),
+				end,
 				["<C-n>"] = function(fallback)
 					if cmp.visible() then
 						cmp.select_next_item()
@@ -233,8 +226,13 @@ return {
 				end,
 			})
 			cmp.setup({
+				appearance = {
+					menu = {
+						direction = "auto", -- auto or above or below
+					},
+				},
 				view = {
-					-- entries = "custom",
+					entries = "custom", -- custom, native
 					docs = {
 						auto_open = false,
 					},
@@ -252,7 +250,7 @@ return {
 				},
 				experimental = {
 					ghost_text = false,
-					native_menu = false,
+					-- native_menu = true,
 				},
 				sources = sources,
 				formatting = {
@@ -264,8 +262,8 @@ return {
 				},
 				sorting = {
 					comparators = {
-						cmp.config.compare.score,
 						lspkind_comparator(kind_comparator_settings),
+						cmp.config.compare.score,
 						label_comparator,
 						cmp.config.compare.sort_text,
 						-- cmp.config.compare.order,

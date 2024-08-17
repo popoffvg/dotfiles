@@ -17,10 +17,10 @@ local function run_curr_python_file()
 	vim.api.nvim_feedkeys(py_cmd, "t", false)
 end
 
-vim.keymap.set({ "n" }, "<leader><leader>r", "RunCurrent", {
-	desc = "Run .py file via Neovim built-in terminal",
-	callback = run_curr_python_file,
-})
+-- vim.keymap.set({ "n" }, "<leader><leader>r", "RunCurrent", {
+-- 	desc = "Run .py file via Neovim built-in terminal",
+-- 	callback = run_curr_python_file,
+-- })
 
 vim.api.nvim_create_user_command("RunCurrent", function()
 	run_curr_python_file()

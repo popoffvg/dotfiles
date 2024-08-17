@@ -213,7 +213,7 @@ return {
 		config = true,
 		keys = {
 			{
-				"<leader><leader>t",
+				"<leader>ft",
 				function()
 					require("FTerm").toggle()
 				end,
@@ -223,4 +223,41 @@ return {
 		},
 	},
 	{ "famiu/bufdelete.nvim" },
+	{
+		"tversteeg/registers.nvim",
+		cmd = "Registers",
+		config = true,
+		keys = {
+			{ '"', mode = { "n", "v" } },
+			{ "<C-R>", mode = "i" },
+		},
+		name = "registers",
+	},
+	{
+		"windwp/nvim-autopairs",
+		event = "InsertEnter",
+		config = true,
+		-- use opts = {} for passing setup options
+		-- this is equalent to setup({}) function
+	},
+	{
+		"Wansmer/sibling-swap.nvim",
+		requires = { "nvim-treesitter" },
+		event = "BufReadPre",
+		config = function()
+			require("sibling-swap").setup({})
+			vim.api.nvim_set_keymap(
+				"n",
+				"<S-l>",
+				"<cmd>lua require('sibling-swap').swap_with_right()<CR>",
+				{ noremap = true, silent = true }
+			)
+			vim.api.nvim_set_keymap(
+				"n",
+				"<S-h>",
+				"<cmd>lua require('sibling-swap').swap_with_left()<CR>",
+				{ noremap = true, silent = true }
+			)
+		end,
+	},
 }

@@ -27,6 +27,7 @@ return {
 				"nvim-telescope/telescope-file-browser.nvim",
 				dependencies = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" },
 			},
+			"neovim/nvim-lspconfig",
 		},
 		config = function()
 			local Path = require("plenary.path")
@@ -53,18 +54,18 @@ return {
 							end,
 						},
 					},
-					theme = "dropdown",
+					theme = "ivy",
 					preview = false,
 					wrap_results = true,
 				},
 
 				extensions = {
 					["ui-select"] = {
-						require("telescope.themes").get_dropdown({}),
+						require("telescope.themes").get_ivy({}),
 					},
 					frecency = {
 						workspace_scan_cmd = { "fd", "-Htf" },
-						theme = "dropdown",
+						theme = "ivy",
 						default_workspace = "CWD",
 						preview = false,
 						show_filter_column = false,
@@ -73,15 +74,25 @@ return {
 						hide_current_buffer = false,
 						hidden = true,
 						db_safe_mode = false,
+						mappings = {
+							i = {
+								["<C-v>"] = "select_vertical",
+							},
+						},
 					},
 					egrepify = {
 						wrap_results = false,
-						theme = "dropdown",
+						theme = "ivy",
 						preview = true,
+						mappings = {
+							i = {
+								["<C-v>"] = "select_vertical",
+							},
+						},
 					},
 					ast_grep = {
 						preview = true,
-						theme = "dropdown",
+						theme = "ivy",
 						command = {
 							"sg",
 							"--json=stream",
@@ -109,20 +120,25 @@ return {
 				},
 				pickers = {
 					lsp_references = {
-						theme = "dropdown",
-						show_line = false,
+						theme = "ivy",
 						preview = true,
+						show_line = false,
 						path_display = path_display,
 					},
 					lsp_implementations = {
-						theme = "dropdown",
+						theme = "ivy",
 						show_line = false,
 						path_display = path_display,
 					},
 					find_files = {
-						theme = "dropdown",
+						theme = "ivy",
 						preview = false,
 						hidden = true,
+						mappings = {
+							i = {
+								["<C-v>"] = "select_vertical",
+							},
+						},
 					},
 					live_grep = {
 						mappings = {
@@ -130,15 +146,16 @@ return {
 						},
 					},
 					lsp_document_symbols = {
-						theme = "dropdown",
+						theme = "ivy",
 						preview = true,
 						symbol_width = relative_with,
 					},
 					lsp_outgoing_calls = {
-						theme = "dropdown",
+						theme = "ivy",
 						preview = true,
 					},
 					current_buffer_fuzzy_find = {
+						theme = "ivy",
 						preview = true,
 					},
 				},
@@ -161,29 +178,33 @@ return {
 			require("telescope").load_extension("frecency")
 			require("telescope").load_extension("egrepify")
 			require("telescope").load_extension("ui-select")
+			require("telescope").load_extension("notify")
 
 			require("yanky.telescope.mapping").put("p")
 			require("yanky.telescope.mapping").put("P")
 			require("yanky.telescope.mapping").put("gp")
 			require("yanky.telescope.mapping").put("gP")
 			require("yanky.telescope.mapping").delete()
+
 			-- require("yanky.telescope.mapping").set_register(regname) -- fill register {regname} with selected value
 		end,
 		keys = {
 			-- { "<leader>ff", ":Telescope find_files hidden=true preview=false<CR>", opts },
-			{ "<leader>ff", "<Cmd>Telescope frecency<CR>", opts },
+			{ "<leader>ff", "<Cmd>Telescope frecency theme=ivy<CR>", opts },
 			-- { "<leader>of", ":Telescope oldfiles<CR>", opts },
 			-- {
 			-- 	"<leader>fg",
 			-- 	":lua require('telescope').extensions.live_grep_args.live_grep_args(require('telescope.themes').get_dropdown({}))<CR>",
 			-- 	opts,
 			-- },
+			-- require("notify").history()
+			{ "<leader>fn", ":Telescope notify<CR>", opts },
 			{ "<leader>fg", ":Telescope egrepify<CR>", opts },
 			{ "<leader>fb", ":Telescope buffers<CR>", opts },
-			{ "<leader>fh", ":Telescope help_tags<CR>", opts },
-			{ "<leader>ft", ":Telescope lsp_document_symbols<CR>", opts },
+			-- { "<leader>fh", ":Telescope help_tags<CR>", opts },
+			-- { "<leader>ft", ":Telescope lsp_document_symbols<CR>", opts },
 			{ "<leader>fo", ":Telescope lsp_outgoing_calls<CR>", opts },
-			{ "<leader>fw", ":Telescope current_buffer_fuzzy_find fuzzy=false case_mode=ignore_case<CR>", opts },
+			{ "<leader>fw", ":Telescope current_buffer_fuzzy_find fuzzy=true case_mode=ignore_case<CR>", opts },
 			{ "<leader>fc", ":Telescope commands<CR>", opts },
 			{ "<leader>fr", ":Telescope resume<CR>", opts },
 			{ "<leader>fa", ":Telescope ast_grep<CR>", opts },
@@ -193,7 +214,9 @@ return {
 				opts,
 			},
 			{ "<leader>fy", ":Telescope yank_history<CR>", opts },
-			{ "gr", "<cmd>Telescope lsp_references<CR>", opts },
+			{ "gr", "<cmd>Telescope lsp_references<CR>", {} },
+			{ "<leader>gr", "<cmd>Telescope lsp_references<CR>", {} },
+			-- { "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts },
 			{ "gd", "<cmd>Telescope lsp_definitions<CR>", opts },
 			{
 				"gi",
@@ -204,24 +227,6 @@ return {
 			-- ctrl + t - show hidden  file
 			-- { "<space>t", ":Telescope file_browser path=%:p:h<CR>", opts },
 			-- { "<space>t", ":Telescope file_browser path=%:p:h<CR>", opts },
-		},
-	},
-	{
-		"LukasPietzschmann/telescope-tabs",
-		config = function()
-			require("telescope").load_extension("telescope-tabs")
-			require("telescope-tabs").setup({
-				-- Your custom config :^)
-			})
-		end,
-		dependencies = { "nvim-telescope/telescope.nvim" },
-		keys = {
-			{
-				"<leader>fw",
-				function()
-					require("telescope-tabs").list_tabs()
-				end,
-			},
 		},
 	},
 }

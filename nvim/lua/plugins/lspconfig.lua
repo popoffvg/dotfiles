@@ -31,6 +31,10 @@ local handlers = {
 
 local on_attach = function()
 	return function(client, bufnr)
+		local function bufoptsWithDesc(desc)
+			return { silent = true, buffer = bufnr, desc = desc }
+		end
+
 		vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
 		if client.name == "null-ls" then
@@ -46,7 +50,25 @@ local on_attach = function()
 			client.server_capabilities.publishDiagnostics = false
 		end
 		require("nvim-navic").attach(client, bufnr)
+		local builtin = require("telescope.builtin")
+		vim.keymap.set("n", "<leader>fs", builtin.lsp_document_symbols, bufoptsWithDesc("Open symbol picker"))
+		vim.keymap.set(
+			"n",
+			"<leader>fS",
+			builtin.lsp_dynamic_workspace_symbols,
+			bufoptsWithDesc("Open symbol picker (workspace)")
+		)
+		vim.keymap.set("n", "fu", builtin.lsp_references, bufoptsWithDesc("Open references picker"))
+		vim.api.nvim_command("autocmd CursorHold <buffer> lua vim.diagnostic.open_float({focusable = false})")
 	end
+end
+local function setup_lsp_diags()
+	vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
+		virtual_text = false,
+		signs = true,
+		update_in_insert = false,
+		underline = true,
+	})
 end
 
 local setup_goimports = function()
@@ -97,46 +119,47 @@ return {
 					library = { plugins = { "nvim-dap-ui" }, types = true },
 				},
 			},
-			-- {
-			-- 	"MysticalDevil/inlay-hints.nvim",
-			-- 	event = "LspAttach",
-			-- 	dependencies = { "neovim/nvim-lspconfig" },
-			-- 	config = function()
-			-- 		require("inlay-hints").setup()
-			-- 	end,
-			-- },
-			-- Interaction between cmp and lspconfig
-			"hrsh7th/cmp-nvim-lsp",
 			{
-				-- show usages
-				"Wansmer/symbol-usage.nvim",
-				event = "BufReadPre", -- need run before LspAttach if you use nvim 0.9. On 0.10 use 'LspAttach'
+				"MysticalDevil/inlay-hints.nvim",
+				event = "LspAttach",
+				dependencies = { "neovim/nvim-lspconfig" },
 				config = function()
-					local function text_format(symbol)
-						local fragments = {}
-
-						if symbol.references then
-							local usage = symbol.references <= 1 and "usage" or "usages"
-							local num = symbol.references == 0 and "no" or symbol.references
-							table.insert(fragments, ("%s %s"):format(num, usage))
-						end
-
-						if symbol.definition then
-							table.insert(fragments, symbol.definition .. " defs")
-						end
-
-						if symbol.implementation then
-							table.insert(fragments, symbol.implementation .. " impls")
-						end
-
-						return table.concat(fragments, ", ")
-					end
-
-					require("symbol-usage").setup({
-						text_format = text_format,
-					})
+					require("inlay-hints").setup()
 				end,
 			},
+			-- Interaction between cmp and lspconfig
+			"hrsh7th/cmp-nvim-lsp",
+
+			-- {
+			-- 	-- show usages
+			-- 	"Wansmer/symbol-usage.nvim",
+			-- 	event = "BufReadPre", -- need run before LspAttach if you use nvim 0.9. On 0.10 use 'LspAttach'
+			-- 	config = function()
+			-- 		local function text_format(symbol)
+			-- 			local fragments = {}
+			--
+			-- 			if symbol.references then
+			-- 				local usage = symbol.references <= 1 and "usage" or "usages"
+			-- 				local num = symbol.references == 0 and "no" or symbol.references
+			-- 				table.insert(fragments, ("%s %s"):format(num, usage))
+			-- 			end
+			--
+			-- 			if symbol.definition then
+			-- 				table.insert(fragments, symbol.definition .. " defs")
+			-- 			end
+			--
+			-- 			if symbol.implementation then
+			-- 				table.insert(fragments, symbol.implementation .. " impls")
+			-- 			end
+			--
+			-- 			return table.concat(fragments, ", ")
+			-- 		end
+			--
+			-- 		require("symbol-usage").setup({
+			-- 			text_format = text_format,
+			-- 		})
+			-- 	end,
+			-- },
 		},
 		event = { "BufReadPre", "BufNewFile" },
 		config = function()
@@ -182,8 +205,14 @@ return {
 					sqls = {
 						connections = {
 							{
+								alias = "dev-platfrom",
 								driver = "mysql",
 								dataSourceName = "root:dJgadn4PxPMSWJYJM5k5@(localhost:3306)/payment_provider",
+							},
+							{
+								alias = "localhost",
+								driver = "mysql",
+								dataSourceName = "root:password@(localhost:28004)/payment_provider",
 							},
 						},
 					},
@@ -191,6 +220,7 @@ return {
 			})
 
 			setup_goimports()
+			setup_lsp_diags()
 
 			for type, icon in pairs(signs) do
 				local hl = "DiagnosticSign" .. type
@@ -273,7 +303,9 @@ return {
 			{ "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>" },
 			{ "]d", "<cmd>lua vim.diagnostic.goto_next()<CR> " },
 			{ "<Leader>fe", "<cmd>lua vim.diagnostic.setloclist()<CR>" },
-			{ "<C-s>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", mode = { "n", "i" } },
+			{ "<m-d>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", mode = { "n", "i" } },
+			-- https://www.reddit.com/r/neovim/comments/11axh2p/how_to_toggle_openclose_floating_lsp_diagnostic/
+			{ "<leader>i", '<cmd>lua vim.diagnostic.open_float(nil, {focus=true, scope="cursor"})<CR>' },
 			{
 				"<leader>rn",
 				function()
@@ -307,6 +339,7 @@ return {
 		"folke/trouble.nvim",
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		opts = {
+			-- auto_open = true,
 			-- your configuration comes here
 			-- or leave it empty to use the default settings
 			-- refer to the configuration section below
@@ -314,30 +347,37 @@ return {
 		keys = {
 			{
 				"<leader>xw",
-				function()
-					require("trouble").toggle("workspace_diagnostics")
-				end,
+				"<cmd>Trouble diagnostics toggle<CR>",
 				desc = "workspace diagonstics",
 			},
 			{
 				"<leader>xd",
-				function()
-					require("trouble").toggle("document_diagnostics")
-				end,
+				"<cmd>Trouble diagnostics toggle filter.buf=0<CR>",
 				desc = "document diagonstics",
 			},
 		},
 	},
+	-- {
+	-- 	"popoffvg/lsp_lines.nvim",
+	-- 	config = function()
+	-- 		vim.diagnostic.config({
+	-- 			virtual_text = false,
+	-- 			virtual_lines = { only_current_line = true },
+	-- 		})
+	-- 		require("lsp_lines").setup()
+	-- 	end,
+	-- },
 	{
-		"popoffvg/lsp_lines.nvim",
+		"smjonas/inc-rename.nvim",
+		event = "BufEnter",
 		config = function()
-			vim.diagnostic.config({
-				virtual_text = false,
-				virtual_lines = { only_current_line = true },
-			})
-			require("lsp_lines").setup()
+			require("inc_rename").setup({})
+			vim.keymap.set("n", "<leader>rn", function()
+				return ":IncRename " .. vim.fn.expand("<cword>")
+			end, { expr = true })
 		end,
 	},
+
 	-- {
 	-- 	"ray-x/lsp_signature.nvim",
 	-- 	event = "VeryLazy",
@@ -352,4 +392,5 @@ return {
 	-- 		-- require("lsp_signature").setup(opts)
 	-- 	end,
 	-- },
+	{ "VidocqH/lsp-lens.nvim", config = true },
 }

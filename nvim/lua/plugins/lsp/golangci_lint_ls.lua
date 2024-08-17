@@ -7,6 +7,7 @@ return {
 				"golangci-lint",
 				"run",
 				"--enable-all",
+				"--allow-parallel-runners",
 				"--disable",
 				"lll",
 				"--out-format",

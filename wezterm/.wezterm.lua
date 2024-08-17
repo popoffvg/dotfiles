@@ -47,5 +47,8 @@ config.keys = {
 	},
 }
 
+config.window_background_capacity = 0.9
+config.macos_window_background_opacity = 10
+
 -- and finally, return the configuration to wezterm
 return config

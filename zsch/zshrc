@@ -27,7 +27,7 @@ alias gita="git add . && git commit --amend -C HEAD && git push -f"
 alias ff="fuck"
 alias fy="fuck -y"
 
-ZVM_VI_ESCAPE_BINDKEY=jj
+ZVM_VI_ESCAPE_BINDKEY=qq
 
 export ZPLUG_HOME=$(brew --prefix)/opt/zplug
 source $ZPLUG_HOME/init.zsh

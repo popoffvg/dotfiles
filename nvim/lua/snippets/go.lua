@@ -50,6 +50,23 @@ local function cs(trigger, nodes, keymap) --> cs stands for create snippet
 	end
 end
 
+table.insert(
+	autosnippets,
+	s(
+		"ie",
+		fmta(
+			[[
+if err != nil {
+     <>
+}
+]],
+			{
+				i(0),
+			}
+		)
+	)
+)
+
 local err = s(
 	"ierr",
 	f(function(_, _)
@@ -60,7 +77,7 @@ local err = s(
 		return data
 	end, {})
 )
-table.insert(autosnippets, err)
+table.insert(snippets, err)
 
 local err = s(
 	"rn",
@@ -412,7 +429,7 @@ if <> {
 		end,
 	}
 )
-table.insert(autosnippets, ifs)
+table.insert(snippets, ifs)
 
 local tag = s({ trig = "tag", name = "struct tag" }, fmta('`<>:"<>"`', { i(1, "json"), i(0, "value") }))
 table.insert(autosnippets, tag)

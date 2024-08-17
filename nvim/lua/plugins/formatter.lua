@@ -4,7 +4,7 @@ return {
 		config = function()
 			require("conform").formatters.gogci = {
 				inherit = false,
-				command = "mygci",
+				command = "gci",
 				args = {
 					"-s",
 					"standard",

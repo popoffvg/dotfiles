@@ -29,15 +29,15 @@ return {
 					vim.lsp.codelens.refresh()
 				end,
 			})
-			-- local format_sync_grp = vim.api.nvim_create_augroup("GoImport", {})
-			-- vim.api.nvim_create_autocmd("BufWritePre", {
-			-- 	pattern = "*.go",
-			-- 	callback = function()
-			-- 		require("go.format").goimport()
-			-- 		require("go.format").gofmt()
-			-- 	end,
-			-- 	group = format_sync_grp,
-			-- })
+			local format_sync_grp = vim.api.nvim_create_augroup("GoImport", {})
+			vim.api.nvim_create_autocmd("BufWritePre", {
+				pattern = "*.go",
+				callback = function()
+					require("go.format").gofmt()
+					require("go.format").goimport()
+				end,
+				group = format_sync_grp,
+			})
 		end,
 	},
 	{
@@ -159,31 +159,6 @@ return {
 				"implement interface",
 				noremap = true,
 				silent = true,
-			},
-		},
-	},
-	{
-		"ThePrimeagen/refactoring.nvim",
-		-- event = "BufferReadPre",
-		config = function()
-			require("refactoring").setup({
-				prompt_func_return_type = {
-					go = true,
-				},
-				prompt_func_param_type = {
-					go = true,
-				},
-			})
-		end,
-		keys = {
-			{
-				"<leader>cr",
-				function()
-					require("telescope").extensions.refactoring.refactors()
-				end,
-				silent = true,
-				desc = "refactoring list",
-				mode = { "n" },
 			},
 		},
 	},

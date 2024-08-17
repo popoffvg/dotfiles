@@ -4,13 +4,13 @@ return {
 	gopls = {
 		semanticTokens = true,
 		hints = {
-			rangeVariableTypes = true,
+			rangeVariableTypes = false,
 			parameterNames = true,
-			constantValues = true,
+			constantValues = false,
 			assignVariableTypes = false,
-			compositeLiteralFields = true,
-			compositeLiteralTypes = true,
-			functionTypeParameters = true,
+			compositeLiteralFields = false,
+			compositeLiteralTypes = false,
+			functionTypeParameters = false,
 		},
 		experimentalPostfixCompletions = true,
 		analyses = {

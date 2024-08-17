@@ -1,3 +1,6 @@
+vim.keymap.set("n", "M", "J") -- mnemonic: [M]erge
+vim.keymap.set("n", "<leader>h", "K") -- mnemonic: [h]over
+
 vim.cmd([[
         set updatetime=30000
         set relativenumber
@@ -11,34 +14,42 @@ vim.cmd([[
         map <C-Right> <C-p>
 
         " Common keybindings
-        inoremap jj <Esc>l
-        map <leader>ee <Esc><Cmd>:Bdelete!<CR>
-        map <leader>ew <Esc><Cmd>:bd!<CR>
 
-        imap <m-o> <Esc>o
-        imap <m-a> <Esc>a
-        imap <m-A> <Esc>A
-        imap <m-O> <Esc>O
-        nnoremap <m-a> ggVGG
+        map <leader>we <Esc><C-w>q<CR>
+        map <leader>ww <Esc><Cmd>:Bdelete!<CR>
+        map <leader>wc <Esc><Cmd>:bd!<CR>
+
+        imap <c-o> <Esc>o
+        imap <c-a> <Esc>a
+        imap <c-A> <Esc>A
+        imap <c-O> <Esc>O
+        imap <c-]> <ESC><ESC>
+        nnoremap <c-a> ggVGG
+
+
 
         nnoremap <silent> <ESC> :nohlsearch<CR>
-        nnoremap <esc>^[ <esc>^[
-        nnoremap <m-h> ^
-        nnoremap <m-l> $
+        " nnoremap <esc>^[ <esc>^[
         nnoremap <c><left><left> ^
         nnoremap <c><Right><Right> $
+
 
         imap <m-h> <backspace>
         imap <m-=> :=
 
-        vnoremap <c-h> ^
-        vnoremap <c-l> $
+        vnoremap <TAB> ^
+        vnoremap 0 $
+        nnoremap <TAB> ^
+        nnoremap 0 $
+
 
         " Windows navigation
         nnoremap <C-J> <C-W><C-J>
         nnoremap <C-K> <C-W><C-K>
         nnoremap <C-L> <C-W><C-L>
         nnoremap <C-H> <C-W><C-H>
+        nnoremap <m-s> :vsplit<CR>
+        nnoremap <m-S> :split<CR>
 
 
         " Copy to system clipboard
@@ -49,7 +60,6 @@ vim.cmd([[
 
         " Terminal map
         tnoremap <Esc> <C-\><C-n>
-        tnoremap jj <C-\><C-n>
         tnoremap <C-J> <C-\><C-n><C-W><C-J>
         tnoremap <C-K> <C-\><C-n><C-W><C-K>
         tnoremap <C-L> <C-\><C-n><C-W><C-L>

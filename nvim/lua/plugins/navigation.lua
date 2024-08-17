@@ -7,7 +7,7 @@ return {
 		config = function()
 			require("eyeliner").setup({
 				highlight_on_key = true, -- this must be set to true for dimming to work!
-				dim = true,
+				-- [[ dim = true,
 			})
 			vim.cmd([[
             let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
@@ -32,19 +32,33 @@ highlight EyelinerSecondary guifg='#26fcf5' gui=underline ctermfg=81 cterm=under
 		},
 		keys = {
 			{
-				"m",
+				"<leader><leader>",
 				function()
 					require("flash").jump()
 				end,
-				mode = { "n", "x", "o" },
+				mode = { "n" },
 			},
 			{
-				"<leader>m",
+				"<m-g>",
 				function()
 					require("flash").treesitter_search()
 				end,
 				mode = { "n" },
 			},
 		},
+	},
+	{
+		"stevearc/aerial.nvim",
+		opts = {},
+		-- Optional dependencies
+		dependencies = {
+			"nvim-treesitter/nvim-treesitter",
+			"nvim-tree/nvim-web-devicons",
+		},
+
+		config = function()
+			require("aerial").setup()
+			vim.keymap.set("n", "<leader>a", "<cmd>AerialToggle!<CR>")
+		end,
 	},
 }

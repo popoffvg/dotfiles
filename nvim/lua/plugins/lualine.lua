@@ -9,7 +9,7 @@ local function get_attached_clients()
 
 	-- add client
 	for _, client in pairs(buf_clients) do
-		if client.name ~= "copilot" and client.name ~= "null-ls" then
+		if client.name ~= "copilot" and client.name ~= "null-ls" and client.name ~= "tabnine" then
 			table.insert(buf_client_names, client.name)
 		end
 	end
@@ -88,13 +88,14 @@ return {
 		"SmiteshP/nvim-navic",
 		"Mofiqul/vscode.nvim",
 		"nvim-tree/nvim-web-devicons",
+		"AndreM222/copilot-lualine",
 	},
 	config = function()
 		local navic = require("nvim-navic")
 		require("lualine").setup({
 			options = {
-				componlnt_separators = "|",
-				section_separators = "",
+				component_separators = { left = "", right = "" },
+				section_separators = { left = "", right = "" },
 				globalstatus = true,
 				theme = "cyberdream",
 			},
@@ -105,16 +106,23 @@ return {
 							return vim.fn.fnamemoify(vim.fn.expand("%:h:t"), ":p:~:.")
 						end,
 					},
-					{
-						"filename",
-						path = 0,
-						-- 	-- mode = 2, -- index + name
-					},
 				},
-				-- lualine_b = {
-				-- 	"diagnostics",
-				-- },
-				lualine_y = {
+				lualine_b = {
+					{ "%=" },
+					-- {
+					-- 	function()
+					-- 		return vim.fn.fnamemoify(vim.fn.expand("%:h:t"), ":p:~:.")
+					-- 	end,
+					-- },
+					-- {
+					-- 	"filename",
+					-- 	path = 0,
+					-- 	-- 	-- mode = 2, -- index + name
+					-- },
+
+					-- { "diagnostics" },
+				},
+				lualine_c = {
 					{
 						function()
 							local size = 4
@@ -137,6 +145,9 @@ return {
 						-- color = { bg = c.TabLine, fg = c.Normal, gui = "none" },
 					},
 				},
+				-- lualine_y = {
+				-- 	"diagnostics",
+				-- },
 				-- lualine_a = {
 				-- 	{
 				-- 		"buffers",
@@ -144,6 +155,10 @@ return {
 				-- 		-- mode = 2, -- index + name
 				-- 	},
 				-- },
+				lualine_z = {
+					{ "tabnine", "encoding", "fileformat", "filetype" },
+					-- { "copilot" },
+				},
 			},
 			sections = {
 				lualine_a = {
@@ -151,6 +166,8 @@ return {
 						"mode",
 						path = 1,
 					},
+				},
+				lualine_b = {
 					{
 						function()
 							local reg = vim.fn.reg_recording()
@@ -161,25 +178,23 @@ return {
 						end,
 					},
 				},
-				lualine_b = {
-					{ "branch" },
+
+				lualine_c = {
+					{ "%=" },
 					{
+
 						"filename",
 						path = 1,
 						-- mode = 2, -- index + name
 					},
 					{ "diagnostics" },
 				},
-				lualine_c = {
-					-- {
-					-- 	"filename",
-					-- 	path = 1,
-					-- 	-- mode = 2, -- index + name
-					-- },
+				lualine_x = {
+					{ "branch" },
 				},
-				lualine_x = { "searchcount" },
-				-- lualine_y = { get_attached_clients, "filetype" },
-				lualine_z = { "location" },
+				lualine_z = {},
+
+				-- lualine_z = { get_attached_clients, "filetype" },
 			},
 		})
 	end,
