@@ -135,7 +135,6 @@ if [ -f '/Users/popoffvg/yandex-cloud/path.bash.inc' ]; then source '/Users/popo
 # The next line enables shell command completion for yc.
 if [ -f '/Users/popoffvg/yandex-cloud/completion.zsh.inc' ]; then source '/Users/popoffvg/yandex-cloud/completion.zsh.inc'; fi
 
-[[ -s "/Users/popoffvg/.gvm/scripts/gvm" ]] && source "/Users/popoffvg/.gvm/scripts/gvm"
 eval "$(~/.local/bin/mise activate zsh)"
 
 alias gfix = " git commit -a --fixup=$TARGET ${@:2} && EDITOR=true git rebase -i --autostash --autosquash $TARGET^; "

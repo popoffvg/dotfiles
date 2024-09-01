@@ -14,13 +14,22 @@
       # $ nix-env -qaP | grep wget
       environment.systemPackages =
         [
-           pkgs.neovim
+           # cli
            pkgs.entr
            pkgs.eza
-           pkgs.fsf
-           pkgs.zioxide
+           pkgs.fzf
+           pkgs.zoxide
+           pkgs.thefuck
+           pkgs.grc
+           pkgs.zinit
+           # dev env
+           pkgs.neovim
            pkgs.mise
            pkgs.tmux
+           pkgs.oh-my-posh
+           pkgs.wezterm
+           pkgs.go
+           pkgs.kubectl
         ];
 
       # Auto upgrade nix package and the daemon service.
