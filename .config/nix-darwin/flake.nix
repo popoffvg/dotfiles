@@ -23,6 +23,7 @@
            pkgs.grc
            pkgs.zinit
            # dev env
+           pkgs.stow
            pkgs.neovim
            pkgs.mise
            pkgs.tmux
