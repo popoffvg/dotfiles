@@ -14,3 +14,11 @@ stow -t ~ .
 ## prerequests
 
 - stow
+
+## nix installation
+
+```
+nix run nix-darwin -- switch --flake .config/nix-darwin
+
+
+```

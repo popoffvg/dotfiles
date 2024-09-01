@@ -1,4 +1,4 @@
-export PATH=$PATH:/opt/homebrew/bin
+export PATH=$PATH:/opt/homebrew/bin:~/.nix-profile/bin:/run/current-system/sw/bin
 
 bindkey '^f' autosuggest-accept
 
@@ -6,6 +6,10 @@ if [ -z "$TMUX" ]
 then
     tmux attach -t TMUX || tmux new -s TMUX > /dev/null
 fi
+
+#launch nix
+source /etc/profile.d/nix.sh
+
 
 ### Added by Zinit's installer
 if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
@@ -84,6 +88,7 @@ alias ff="fuck"
 alias fy="fuck -y"
 alias ls="eza --icons=always"
 alias cd="z"
+alias nixr="nix run nix-darwin -- switch --flake .config/nix-darwin"
 
 bindkey '^e' zsh_gh_copilot_explain
 bindkey '^g' zsh_gh_copilot_suggest

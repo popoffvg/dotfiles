@@ -9,7 +9,7 @@
   # $ nix-env -qaP | grep wget
   environment.systemPackages =
     [
-        pkgs.vim
+        pkgs.neovim
         pkgs.stow
         pkgs.eza
     ];
@@ -29,4 +29,7 @@
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
   system.stateVersion = 4;
+  
+  # https://github.com/LnL7/nix-darwin/issues/231
+  system.checks.verifyNixPath = false;
 }

@@ -13,7 +13,14 @@
       # List packages installed in system profile. To search by name, run:
       # $ nix-env -qaP | grep wget
       environment.systemPackages =
-        [ pkgs.vim
+        [
+           pkgs.neovim
+           pkgs.entr
+           pkgs.eza
+           pkgs.fsf
+           pkgs.zioxide
+           pkgs.mise
+           pkgs.tmux
         ];
 
       # Auto upgrade nix package and the daemon service.
@@ -36,6 +43,9 @@
 
       # The platform the configuration will be used on.
       nixpkgs.hostPlatform = "aarch64-darwin";
+
+      # https://github.com/LnL7/nix-darwin/issues/231
+      system.checks.verifyNixPath = false;
     };
   in
   {
