@@ -13,8 +13,7 @@
       # List packages installed in system profile. To search by name, run:
       # $ nix-env -qaP | grep wget
       environment.systemPackages =
-        [
-            pkgs.nvim
+        [ pkgs.vim
         ];
 
       # Auto upgrade nix package and the daemon service.
@@ -42,11 +41,11 @@
   {
     # Build darwin flake using:
     # $ darwin-rebuild build --flake .#Vitaliis-MacBook-Pro
-    darwinConfigurations."popoffvg" = nix-darwin.lib.darwinSystem {
+    darwinConfigurations."Vitaliis-MacBook-Pro" = nix-darwin.lib.darwinSystem {
       modules = [ configuration ];
     };
 
     # Expose the package set, including overlays, for convenience.
-    darwinPackages = self.darwinConfigurations."popoffvg".pkgs;
+    darwinPackages = self.darwinConfigurations."Vitaliis-MacBook-Pro".pkgs;
   };
 }
