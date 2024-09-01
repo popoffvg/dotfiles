@@ -246,18 +246,24 @@ return {
 		event = "BufReadPre",
 		config = function()
 			require("sibling-swap").setup({})
-			vim.api.nvim_set_keymap(
-				"n",
-				"<S-l>",
+			vim.keymap.set(
+				{ "n", "v" },
+				"<leader>l",
 				"<cmd>lua require('sibling-swap').swap_with_right()<CR>",
 				{ noremap = true, silent = true }
 			)
-			vim.api.nvim_set_keymap(
-				"n",
-				"<S-h>",
+			vim.keymap.set(
+				{ "n", "v" },
+				"<leader>h",
 				"<cmd>lua require('sibling-swap').swap_with_left()<CR>",
 				{ noremap = true, silent = true }
 			)
 		end,
 	},
+	-- 	{
+	-- 		"max397574/better-escape.nvim",
+	-- 		config = function()
+	-- 			require("better_escape").setup()
+	-- 		end,
+	-- 	},
 }

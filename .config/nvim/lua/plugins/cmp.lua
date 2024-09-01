@@ -184,15 +184,20 @@ return {
 			}
 
 			local cmp = require("cmp")
+			local confirm = cmp.mapping(function(fallback)
+				if cmp.visible() then
+					cmp.confirm({
+						select = true,
+						behavior = cmp.ConfirmBehavior.replace,
+					})
+					vim.api.nvim_input("<esc>")
+				else
+					fallback()
+				end
+			end)
 			local keymap = cmp.mapping.preset.insert({
-				["<cr>"] = cmp.mapping.confirm({
-					select = true,
-					behavior = cmp.ConfirmBehavior.replace,
-				}),
-				["<C-f>"] = cmp.mapping.confirm({
-					select = true,
-					behavior = cmp.ConfirmBehavior.replace,
-				}),
+				["<cr>"] = confirm,
+				["<C-f>"] = confirm,
 				["<C-d>"] = cmp.mapping(function(fallback)
 					if cmp.visible_docs() then
 						cmp.close_docs()

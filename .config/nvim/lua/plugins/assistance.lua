@@ -8,10 +8,18 @@ return {
 			{ "nvim-lua/plenary.nvim" }, -- for curl, log wrapper
 			{ "nvim-telescope/telescope.nvim" },
 		},
-		opts = {
-			debug = false, -- Enable debugging
-			-- See Configuration section for rest
-		},
+		config = function()
+			require("CopilotChat").setup({
+				debug = false,
+				mappings = {
+					reset = {
+						normal = "<C-r>",
+						insert = "<C-r>",
+					},
+				},
+			})
+			require("CopilotChat.integrations.cmp").setup()
+		end,
 		keys = {
 			{
 				"<leader>cs",
@@ -57,12 +65,12 @@ return {
 					hide_during_completion = true,
 					debounce = 75,
 					keymap = {
-						accept = "<c-l>",
+						accept = "<c-s>",
 						accept_word = false,
 						accept_line = false,
 						next = "<]]>",
 						prev = "<[[>",
-						dismiss = "<ESC>",
+						-- dismiss = "<ESC>",
 					},
 				},
 				filetypes = {
@@ -83,15 +91,12 @@ return {
 					end,
 				},
 			})
-			-- keymap for tab
-			-- vim.keymap.set("i", "<tab>", function()
-			-- 	if require("copilot.suggestion").is_visible() then
-			-- 		require("copilot.suggestion").accept()
-			-- 		return "<ESC>"
-			-- 	else
-			-- 		return "<tab>"
-			-- 	end
-			-- end, { expr = true })
+			vim.keymap.set("i", "<ESC>", function()
+				if require("copilot.suggestion").is_visible() then
+					require("copilot.suggestion").dismiss()
+				end
+				vim.cmd.stopinsert()
+			end, { expr = true })
 		end,
 	},
 	-- {

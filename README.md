@@ -1,12 +1,16 @@
 # dotfiles
 
-Settings for workspace.
+Settings for workspace. 
 
-## dependencies
+For managing dotfiles, stow is used. The path to the repositories should be the same as in the `~` directory.
 
-- alacritty
-- tmux
-- nvim
-- ripgrep
-- fzf
-- golangci-lint
+## install 
+
+```sh
+stow -t ~ .
+
+```
+
+## prerequests
+
+- stow

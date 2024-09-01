@@ -105,7 +105,7 @@ return {
 		end,
 		keys = {
 			{
-				"<m-d>", -- mnemonic [d]irectory
+				"<leader>d", -- mnemonic [d]irectory
 				function()
 					require("mini.files").open(vim.api.nvim_buf_get_name(0), false)
 				end,
@@ -148,6 +148,9 @@ return {
 			require("neo-tree").setup({
 				enable_git_status = true,
 				enable_diagnostics = true,
+				opts = {
+					auto_restore_session_experimental = true,
+				},
 				window = {
 					mappings = {
 						["<space>"] = { "toggle_node", nowait = true },
@@ -170,8 +173,28 @@ return {
 				},
 			})
 		end,
+
 		keys = {
-			{ "<leader>t", "<cmd>Neotree top  reveal_file=%:p<CR>" },
+			{
+				"<leader>t",
+				function()
+					local filetype = vim.bo.filetype
+
+					if filetype == "alfa" then
+						require("neo-tree.command").execute({
+							action = "focus",
+							position = "top",
+						})
+						return
+					end
+
+					require("neo-tree.command").execute({
+						action = "focus",
+						reveal_file = vim.fn.expand("%:p"),
+						position = "top",
+					})
+				end,
+			},
 		},
 	},
 }

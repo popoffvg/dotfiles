@@ -156,8 +156,8 @@ return {
 				-- 	},
 				-- },
 				lualine_z = {
-					{ "tabnine", "encoding", "fileformat", "filetype" },
-					-- { "copilot" },
+					-- { "tabnine", "encoding", "fileformat", "filetype" },
+					{ "copilot" },
 				},
 			},
 			sections = {

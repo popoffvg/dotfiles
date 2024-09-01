@@ -1,0 +1,192 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "blocks": [
+    {
+      "alignment": "left",
+      "segments": [
+        {
+          "style": "plain",
+          "template": "╭─[<#ffff55>{{ .UserName }}</><#ff5555>@</><#55ff55>{{ .HostName }}</>]─",
+          "type": "session"
+        },
+        {
+          "foreground": "#ff5555",
+          "style": "plain",
+          "template": "<#ffffff>[</>{{ .Path }}<#ffffff>]</>",
+          "type": "path"
+        },
+        {
+          "foreground": "#FF9248",
+          "style": "plain",
+          "template": "<#ffffff>─(</>#<#ffffff>)</>",
+          "type": "root"
+        }
+      ],
+      "type": "prompt"
+    },
+    {
+      "alignment": "right",
+      "segments": [
+        {
+          "foreground": "#3C873A",
+          "properties": {
+            "fetch_package_manager": true,
+            "npm_icon": " <#cc3a3a></> ",
+            "yarn_icon": " <#348cba></>"
+          },
+          "style": "plain",
+          "template": "<#ffffff>(</>{{ if .PackageManagerIcon }}{{ .PackageManagerIcon }} {{ end }}{{ .Full }}<#ffffff>)</>",
+          "type": "node"
+        },
+        {
+          "foreground": "#FFE873",
+          "style": "plain",
+          "template": "<#ffffff>(</>{{ if .Error }}{{ .Error }}{{ else }}{{ if .Venv }}{{ .Venv }} {{ end }}{{ .Full }}{{ end }}<#ffffff>)</>",
+          "type": "python"
+        },
+        {
+          "foreground": "#ec2729",
+          "style": "plain",
+          "template": "<#ffffff>(</>{{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }}<#ffffff>)</>",
+          "type": "java"
+        },
+        {
+          "foreground": "#0d6da8",
+          "style": "plain",
+          "template": "<#ffffff>(</>{{ if .Unsupported }}{{ else }}{{ .Full }}{{ end }}<#ffffff>)</>",
+          "type": "dotnet"
+        },
+        {
+          "foreground": "#06aad5",
+          "style": "plain",
+          "template": "<#ffffff>(</>{{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }}<#ffffff>)</>",
+          "type": "go"
+        },
+        {
+          "foreground": "#925837",
+          "style": "plain",
+          "template": "<#ffffff>(</>{{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }}<#ffffff>)</>",
+          "type": "rust"
+        },
+        {
+          "foreground": "#055b9c",
+          "style": "plain",
+          "template": "<#ffffff>(</>{{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }}<#ffffff>)</>",
+          "type": "dart"
+        },
+        {
+          "foreground": "#ce092f",
+          "style": "plain",
+          "template": "<#ffffff>(</>{{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }}<#ffffff>)</>",
+          "type": "angular"
+        },
+        {
+          "foreground": "#ffffff",
+          "style": "plain",
+          "template": "<#1e293b>(</>{{ if .Error }}{{ .Error }}{{ else }}Nx {{ .Full }}{{ end }}<#1e293b>)</>",
+          "type": "nx"
+        },
+        {
+          "foreground": "#359a25",
+          "style": "plain",
+          "template": "<#ffffff>(</>{{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }}<#ffffff>)</>",
+          "type": "julia"
+        },
+        {
+          "foreground": "#9c1006",
+          "style": "plain",
+          "template": "<#ffffff>(</>{{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }}<#ffffff>)</>",
+          "type": "ruby"
+        },
+        {
+          "foreground": "#5398c2",
+          "style": "plain",
+          "template": "<#ffffff>(</>{{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }}<#ffffff>)</>",
+          "type": "azfunc"
+        },
+        {
+          "foreground": "#faa029",
+          "style": "plain",
+          "template": "<#ffffff>(</>{{.Profile}}{{if .Region}}@{{.Region}}{{end}}<#ffffff>)</>",
+          "type": "aws",
+          "min_width": 90
+        },
+        {
+          "foreground": "#316ce4",
+          "style": "plain",
+          "template": "<#ffffff>(</>{{.Context}}{{if .Namespace}} :: {{.Namespace}}{{end}}<#ffffff>)</>",
+          "type": "kubectl",
+          "min_width": 90
+        },
+        {
+          "foreground": "#ffffff",
+          "foreground_templates": [
+            "{{if eq \"Charging\" .State.String}}#40c4ff{{end}}",
+            "{{if eq \"Discharging\" .State.String}}#FFFB38{{end}}",
+            "{{if eq \"Full\" .State.String}}#33DD2D{{end}}"
+          ],
+          "properties": {
+            "charged_icon": " ",
+            "charging_icon": " ",
+            "discharging_icon": " "
+          },
+          "style": "plain",
+          "template": "<#ffffff>[</>{{ if not .Error }}{{ .Icon }}{{ .Percentage }}{{ end }}{{ .Error }}%<#ffffff>]─</>",
+          "type": "battery"
+        },
+        {
+          "foreground": "#55ffff",
+          "properties": {
+            "time_format": "_2,15:04"
+          },
+          "style": "plain",
+          "template": "<#ffffff>[</> {{ .CurrentDate | date .Format }}<#ffffff>]</>",
+          "type": "time"
+        }
+      ],
+      "type": "prompt"
+    },
+    {
+      "alignment": "left",
+      "newline": true,
+      "segments": [
+        {
+          "style": "plain",
+          "template": "╰─",
+          "type": "text"
+        },
+        {
+          "foreground": "#ecf7fa",
+          "foreground_templates": [
+            "{{ if gt .Code 0 }}#ef5350{{ end }}"
+          ],
+          "properties": {
+            "always_enabled": true
+          },
+          "style": "plain",
+          "template": " ",
+          "type": "status"
+        }
+      ],
+      "type": "prompt"
+    }
+  ],
+  "tooltips": [
+    {
+      "type": "git",
+      "tips": [
+        "git",
+        "g",
+        "c"
+      ],
+      "properties": {
+        "fetch_status": true,
+        "fetch_upstream_icon": true
+      },
+      "style": "plain",
+      "foreground": "#e0f8ff",
+      "template": "{{ .HEAD }}{{ if .Staging.Changed }}● {{ .Staging.String }}{{ end }}{{ if .Working.Changed }} ● {{ .Working.String }}{{ end }}"
+    }
+  ],
+  "version": 2
+}

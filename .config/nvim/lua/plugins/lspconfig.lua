@@ -29,6 +29,21 @@ local handlers = {
 	}),
 }
 
+local api = vim.api
+local lsp = vim.lsp
+
+local make_client_capabilities = lsp.protocol.make_client_capabilities
+function lsp.protocol.make_client_capabilities()
+	local caps = make_client_capabilities()
+	if not (caps.workspace or {}).didChangeWatchedFiles then
+		vim.notify("lsp capability didChangeWatchedFiles is already disabled", vim.log.levels.WARN)
+	else
+		caps.workspace.didChangeWatchedFiles = nil
+	end
+
+	return caps
+end
+
 local on_attach = function()
 	return function(client, bufnr)
 		local function bufoptsWithDesc(desc)
@@ -162,9 +177,9 @@ return {
 			-- },
 		},
 		event = { "BufReadPre", "BufNewFile" },
-		config = function()
+		config = function(_, opts)
 			local cmp = require("cmp_nvim_lsp")
-			local capabilities = cmp.default_capabilities(vim.lsp.protocol.make_client_capabilities())
+			local capabilities = cmp.default_capabilities(make_client_capabilities())
 			vim.lsp.handlers["textDocument/hover"] =
 				vim.lsp.with(vim.lsp.handlers.hover, { focusable = false, float = true })
 
@@ -175,14 +190,6 @@ return {
 						print("not found settings for " .. server_name)
 						return
 					end
-
-					-- FIXME: workaround for https://github.com/neovim/neovim/issues/28058
-					settings.workspace = {
-						didChangeWatchedFiles = {
-							dynamicRegistration = false,
-							relativePatternSupport = false,
-						},
-					}
 					require("lspconfig")[server_name].setup({
 						capabilities = capabilities,
 						on_attach = on_attach(),

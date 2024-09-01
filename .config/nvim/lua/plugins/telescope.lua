@@ -43,19 +43,31 @@ return {
 			require("telescope").setup({
 				defaults = {
 					initial_mode = "insert",
+					layout_strategy = "vertical",
 					file_ignore_patterns = { "node%_modules", "%.git" },
 					layout_config = {
-						center = {
-							preview_cutoff = 120,
-							width = relative_with,
-
-							height = function(_, _, max_lines)
-								return math.min(max_lines, 80)
-							end,
+						horizontal = {
+							-- preview_cutoff = 120,
+							preview_width = 0.6,
 						},
+						vertical = {
+							-- preview_cutoff = 40,
+						},
+						flex = {
+							-- flip_columns = 150,
+						},
+						width = relative_with,
+
+						height = function(_, _, max_lines)
+							return math.min(max_lines, 80)
+						end,
 					},
 					theme = "ivy",
 					preview = false,
+					-- preview = function()
+					-- 	local window_size = vim.api.nvim_win_get_width(0)
+					-- 	return window_size > 100
+					-- end,
 					wrap_results = true,
 				},
 
@@ -127,8 +139,9 @@ return {
 					},
 					lsp_implementations = {
 						theme = "ivy",
-						show_line = false,
+						show_line = true,
 						path_display = path_display,
+						preview = true,
 					},
 					find_files = {
 						theme = "ivy",

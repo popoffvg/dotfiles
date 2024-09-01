@@ -1,5 +1,9 @@
 vim.keymap.set("n", "M", "J") -- mnemonic: [M]erge
 vim.keymap.set("n", "<leader>h", "K") -- mnemonic: [h]over
+-- vim.keymap.set("n", "<c-n>", "<cmd>bnext<CR>", { desc = "[N]ext buffer" })
+-- vim.keymap.set("n", "<c-p>", "<cmd>bprevious<CR>", { desc = "[P]revious buffer" })
+vim.keymap.set("n", "<c-n>", "<c-i>", { desc = "[N]ext buffer" })
+vim.keymap.set("n", "<c-p>", "<c-o>", { desc = "[P]revious buffer" })
 
 vim.cmd([[
         set updatetime=30000
@@ -26,15 +30,13 @@ vim.cmd([[
         imap <c-]> <ESC><ESC>
         nnoremap <c-a> ggVGG
 
-
-
         nnoremap <silent> <ESC> :nohlsearch<CR>
         " nnoremap <esc>^[ <esc>^[
         nnoremap <c><left><left> ^
         nnoremap <c><Right><Right> $
 
 
-        imap <m-h> <backspace>
+        " imap <m-h> <backspace>
         imap <m-=> :=
 
         vnoremap <TAB> ^
@@ -48,8 +50,8 @@ vim.cmd([[
         nnoremap <C-K> <C-W><C-K>
         nnoremap <C-L> <C-W><C-L>
         nnoremap <C-H> <C-W><C-H>
-        nnoremap <m-s> :vsplit<CR>
-        nnoremap <m-S> :split<CR>
+        nnoremap <leader>ws :vsplit<CR>
+        nnoremap <leader>wS :split<CR>
 
 
         " Copy to system clipboard
@@ -75,7 +77,7 @@ vim.cmd([[
 
         nnoremap <leader>R @q
 
-        imap <c-o> <CR>
+        " imap <c-o> <CR>
     " general
     set noswapfile
     set wrapscan
