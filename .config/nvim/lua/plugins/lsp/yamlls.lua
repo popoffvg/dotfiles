@@ -1,7 +1,7 @@
 return {
 	yaml = {
 		schemas = {
-			["https://github.com/OAI/OpenAPI-Specification/blob/main/schemas/v2.0/schema.json"] = "/*",
+			["https://spec.openapis.org/oas/3.0/schema/2021-09-28"] = "/*",
 		},
 	},
 }

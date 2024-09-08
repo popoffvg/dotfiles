@@ -14,7 +14,7 @@ stow -t ~ .
 
 ## prerequests
 
-- stow
+- nix
 
 ## nix installation
 
