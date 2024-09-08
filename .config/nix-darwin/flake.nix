@@ -1,36 +1,52 @@
 {
   description = "popoffvg's NixOS configuration";
-
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nix-darwin.url = "github:LnL7/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+    home-manager.url = "github:nix-community/home-manager";
   };
 
-  outputs = inputs@{ self, nix-darwin, nixpkgs }:
+  outputs = inputs@{ self, nix-darwin, nixpkgs ,home-manager }:
   let
+    username = import ./username.nix;
     configuration = { pkgs, ... }: {
+      environment.variables.EDITOR = "neovim";
       # List packages installed in system profile. To search by name, run:
       # $ nix-env -qaP | grep wget
       environment.systemPackages =
-        [
+       with pkgs; [
            # cli
-           pkgs.entr
-           pkgs.eza
-           pkgs.fzf
-           pkgs.zoxide
-           pkgs.thefuck
-           pkgs.grc
-           pkgs.zinit
+           entr
+           eza
+           fzf
+           zoxide
+           thefuck
+           grc
+           zinit
+           atuin
+           jq
+           fd
+           sd
+           yq
+           ripgrep
+           delta
+
            # dev env
-           pkgs.stow
-           pkgs.neovim
-           pkgs.mise
-           pkgs.tmux
-           pkgs.oh-my-posh
-           pkgs.wezterm
-           pkgs.go
-           pkgs.kubectl
+           direnv
+           nerdfonts
+           tldr
+           stow
+           # neovim
+           mise
+           # tmux # should install manually
+           oh-my-posh
+           wezterm
+           go
+           kubectl
+           zsh-autosuggestions
+           gh
+           nodejs
         ];
 
       # Auto upgrade nix package and the daemon service.
@@ -61,11 +77,13 @@
   {
     # Build darwin flake using:
     # $ darwin-rebuild build --flake .#Vitaliis-MacBook-Pro
-    darwinConfigurations."Vitaliis-MacBook-Pro" = nix-darwin.lib.darwinSystem {
-      modules = [ configuration ];
+    darwinConfigurations."M-M2D0JVVDKX" = nix-darwin.lib.darwinSystem {
+      modules = [
+        configuration
+    ];
     };
 
     # Expose the package set, including overlays, for convenience.
-    darwinPackages = self.darwinConfigurations."Vitaliis-MacBook-Pro".pkgs;
+    darwinPackages = self.darwinConfigurations."M-M2D0JVVDKX".pkgs;
   };
 }

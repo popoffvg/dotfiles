@@ -1,4 +1,4 @@
-vim.keymap.set("n", "M", "J") -- mnemonic: [M]erge
+vim.keymap.set("n", "M", "J")         -- mnemonic: [M]erge
 vim.keymap.set("n", "<leader>h", "K") -- mnemonic: [h]over
 -- vim.keymap.set("n", "<c-n>", "<cmd>bnext<CR>", { desc = "[N]ext buffer" })
 -- vim.keymap.set("n", "<c-p>", "<cmd>bprevious<CR>", { desc = "[P]revious buffer" })
@@ -10,7 +10,7 @@ vim.cmd([[
         set relativenumber
         set rnu
         set clipboard=unnamedplus
-        set shell=fish
+        set shell=zsh
 
         let mapleader=' '
         "for wezterm compatibility
@@ -131,7 +131,7 @@ vim.cmd([[
     set nospell
 
     " set wildmode=longest,list,full
-    " Better command line completion 
+    " Better command line completion
     " set wildmenu=off
 
     " mouse support
@@ -162,27 +162,27 @@ vim.cmd([[
 ]])
 
 vim.api.nvim_create_autocmd({ "FileType" }, {
-	pattern = "NvimTree",
-	callback = function()
-		vim.schedule(function()
-			vim.keymap.set("n", "q<CR>", ":bd!")
-		end)
-	end,
+    pattern = "NvimTree",
+    callback = function()
+        vim.schedule(function()
+            vim.keymap.set("n", "q<CR>", ":bd!")
+        end)
+    end,
 })
 vim.api.nvim_create_autocmd({ "BufEnter", "BufNewFile" }, {
-	pattern = "*.hurl",
-	callback = function()
-		local buf = vim.api.nvim_get_current_buf()
-		vim.api.nvim_buf_set_option(buf, "filetype", "hurl")
-	end,
+    pattern = "*.hurl",
+    callback = function()
+        local buf = vim.api.nvim_get_current_buf()
+        vim.api.nvim_buf_set_option(buf, "filetype", "hurl")
+    end,
 })
 vim.keymap.set("n", "[x", function()
-	vim.diagnostic.goto_prev({
-		severity = vim.diagnostic.severity.ERROR,
-	})
+    vim.diagnostic.goto_prev({
+        severity = vim.diagnostic.severity.ERROR,
+    })
 end)
 vim.keymap.set("n", "]x", function()
-	vim.diagnostic.goto_next({
-		severity = vim.diagnostic.severity.ERROR,
-	})
+    vim.diagnostic.goto_next({
+        severity = vim.diagnostic.severity.ERROR,
+    })
 end)

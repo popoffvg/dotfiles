@@ -1,4 +1,4 @@
-export PATH=$PATH:/opt/homebrew/bin:~/.nix-profile/bin:/run/current-system/sw/bin
+export PATH=$PATH:/opt/homebrew/bin:~/.nix-profile/bin:/run/current-system/sw/bin:$HOME/.local/share/mise/shims
 
 bindkey '^f' autosuggest-accept
 
@@ -8,7 +8,7 @@ then
 fi
 
 #launch nix
-source /etc/profile.d/nix.sh
+# source /etc/profile.d/nix.sh
 
 
 ### Added by Zinit's installer
@@ -37,7 +37,7 @@ zinit light-mode for \
 
 zi light sebastiangraz/c
 zi light MohamedElashri/fd-zsh
-# zi light zsh-users/zsh-autosuggestions
+zi light zsh-users/zsh-autosuggestions
 zi light sroze/docker-compose-zsh-plugin
 zi light hlissner/zsh-autopair
 zi light zsh-users/zsh-syntax-highlighting
@@ -56,7 +56,7 @@ zi snippet OMZP::mvn
 zi snippet OMZP::fzf
 zi snippet OMZP::kubectl
 zi snippet OMZP::golang
-zi snippet OMZP::tmux
+# zi snippet OMZP::tmux
 zi snippet OMZP::zoxide
 zi snippet OMZP::eza
 
@@ -67,8 +67,8 @@ zi snippet OMZP::gitfast
 zi ice as"completion"
 zi snippet OMZP::git-commit
 
-zi ice as"completion"
-zi snippet OMZP::fd/_fd
+# zi ice as"completion"
+# zi snippet OMZP::fd/_fd
 
 eval "$(thefuck --alias)"
 eval "$(zoxide init --no-aliases zsh)"
@@ -88,20 +88,16 @@ alias ff="fuck"
 alias fy="fuck -y"
 alias ls="eza --icons=always"
 alias cd="z"
-alias nixr="nix run nix-darwin -- switch --flake .config/nix-darwin"
+alias nixr="nix run nix-darwin -- switch --flake ~/Documents/git/dotfiles/.config/nix-darwin#M-M2D0JVVDKX"
+alias gfix="git commit -a --fixup=$TARGET ${@:2} && EDITOR=true git rebase -i --autostash --autosquash $TARGET^; "
 
 bindkey '^e' zsh_gh_copilot_explain
 bindkey '^g' zsh_gh_copilot_suggest
 
 ZVM_VI_ESCAPE_BINDKEY=jj
 
-export ZPLUG_HOME=$(brew --prefix)/opt/zplug
-source $ZPLUG_HOME/init.zsh
-
-zplug "IngoMeyer441/zsh-easy-motion"
-
-source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-export ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=/opt/homebrew/share/zsh-syntax-highlighting/highlighters
+# source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+#export ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=/opt/homebrew/share/zsh-syntax-highlighting/highlighters
 
 # config="/Users/popoffvg/Documents/git/dotfiles/zsch/zshrc"
 # if [ -f "$config" ]; then
@@ -135,9 +131,7 @@ if [ -f '/Users/popoffvg/yandex-cloud/path.bash.inc' ]; then source '/Users/popo
 # The next line enables shell command completion for yc.
 if [ -f '/Users/popoffvg/yandex-cloud/completion.zsh.inc' ]; then source '/Users/popoffvg/yandex-cloud/completion.zsh.inc'; fi
 
-eval "$(~/.local/bin/mise activate zsh)"
-
-alias gfix = " git commit -a --fixup=$TARGET ${@:2} && EDITOR=true git rebase -i --autostash --autosquash $TARGET^; "
+eval "$(/run/current-system/sw/bin/mise activate zsh)"
 
 export MISE_SHELL=zsh
 export __MISE_ORIG_PATH="$PATH"
@@ -146,7 +140,7 @@ mise() {
   local command
   command="${1:-}"
   if [ "$#" = 0 ]; then
-    command /opt/homebrew/bin/mise
+    command /run/current-system/sw/bin/mise
     return
   fi
   shift
@@ -155,16 +149,16 @@ mise() {
   deactivate|s|shell)
     # if argv doesn't contains -h,--help
     if [[ ! " $@ " =~ " --help " ]] && [[ ! " $@ " =~ " -h " ]]; then
-      eval "$(command /opt/homebrew/bin/mise "$command" "$@")"
+      eval "$(command /run/current-system/sw/bin/mise "$command" "$@")"
       return $?
     fi
     ;;
   esac
-  command /opt/homebrew/bin/mise "$command" "$@"
+  command /run/current-system/sw/bin/mise "$command" "$@"
 }
 
 _mise_hook() {
-  eval "$(/opt/homebrew/bin/mise hook-env -s zsh)";
+  eval "$(/run/current-system/sw/bin/mise hook-env -s zsh)";
 }
 typeset -ag precmd_functions;
 if [[ -z "${precmd_functions[(r)_mise_hook]+1}" ]]; then
@@ -180,7 +174,7 @@ if [ -z "${_mise_cmd_not_found:-}" ]; then
     [ -n "$(declare -f command_not_found_handler)" ] && eval "${$(declare -f command_not_found_handler)/command_not_found_handler/_command_not_found_handler}"
 
     function command_not_found_handler() {
-        if /opt/homebrew/bin/mise hook-not-found -s zsh -- "$1"; then
+        if /run/current-system/sw/bin/mise hook-not-found -s zsh -- "$1"; then
           _mise_hook
           "$@"
         elif [ -n "$(declare -f _command_not_found_handler)" ]; then
