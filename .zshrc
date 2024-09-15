@@ -88,22 +88,12 @@ alias fy="fuck -y"
 alias ls="eza --icons=always"
 alias cd="z"
 alias gfix="TARGET=\$1; shift; git commit -a --fixup=\$TARGET \"\${@:2}\" && EDITOR=true git rebase -i --autostash --autosquash \$TARGET~1; "
+alias zk="cd '/Users/popoffvg/Library/Mobile Documents/iCloud~md~obsidian/Documents/Z-Core/';vi"
 
 bindkey '^e' zsh_gh_copilot_explain
 bindkey '^g' zsh_gh_copilot_suggest
 
 ZVM_VI_ESCAPE_BINDKEY=jj
-
-# source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-#export ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=/opt/homebrew/share/zsh-syntax-highlighting/highlighters
-
-# config="/Users/popoffvg/Documents/git/dotfiles/zsch/zshrc"
-# if [ -f "$config" ]; then
-#     source $config
-# else
-#     print "404 load config: $config not found."
-# fi
-
 
 # only for git
 zstyle ':completion:*:*:git:*' fzf-search-display true
@@ -131,3 +121,4 @@ if [ -f '/Users/popoffvg/yandex-cloud/completion.zsh.inc' ]; then source '/Users
 
 source .zshrc.mise
 source .zshrc.zoxide
+
