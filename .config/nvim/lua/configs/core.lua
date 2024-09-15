@@ -1,4 +1,4 @@
-vim.keymap.set("n", "M", "J")         -- mnemonic: [M]erge
+vim.keymap.set("n", "M", "J") -- mnemonic: [M]erge
 vim.keymap.set("n", "<leader>h", "K") -- mnemonic: [h]over
 -- vim.keymap.set("n", "<c-n>", "<cmd>bnext<CR>", { desc = "[N]ext buffer" })
 -- vim.keymap.set("n", "<c-p>", "<cmd>bprevious<CR>", { desc = "[P]revious buffer" })
@@ -77,7 +77,8 @@ vim.cmd([[
 
         nnoremap <leader>R @q
 
-        " imap <c-o> <CR>
+        nnoremap <leader>o :!open <cWORD><CR>
+        nnoremap \\ :
     " general
     set noswapfile
     set wrapscan
@@ -162,27 +163,27 @@ vim.cmd([[
 ]])
 
 vim.api.nvim_create_autocmd({ "FileType" }, {
-    pattern = "NvimTree",
-    callback = function()
-        vim.schedule(function()
-            vim.keymap.set("n", "q<CR>", ":bd!")
-        end)
-    end,
+	pattern = "NvimTree",
+	callback = function()
+		vim.schedule(function()
+			vim.keymap.set("n", "q<CR>", ":bd!")
+		end)
+	end,
 })
 vim.api.nvim_create_autocmd({ "BufEnter", "BufNewFile" }, {
-    pattern = "*.hurl",
-    callback = function()
-        local buf = vim.api.nvim_get_current_buf()
-        vim.api.nvim_buf_set_option(buf, "filetype", "hurl")
-    end,
+	pattern = "*.hurl",
+	callback = function()
+		local buf = vim.api.nvim_get_current_buf()
+		vim.api.nvim_buf_set_option(buf, "filetype", "hurl")
+	end,
 })
 vim.keymap.set("n", "[x", function()
-    vim.diagnostic.goto_prev({
-        severity = vim.diagnostic.severity.ERROR,
-    })
+	vim.diagnostic.goto_prev({
+		severity = vim.diagnostic.severity.ERROR,
+	})
 end)
 vim.keymap.set("n", "]x", function()
-    vim.diagnostic.goto_next({
-        severity = vim.diagnostic.severity.ERROR,
-    })
+	vim.diagnostic.goto_next({
+		severity = vim.diagnostic.severity.ERROR,
+	})
 end)

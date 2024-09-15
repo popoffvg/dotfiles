@@ -8,13 +8,28 @@ return {
 			{ "nvim-lua/plenary.nvim" }, -- for curl, log wrapper
 			{ "nvim-telescope/telescope.nvim" },
 		},
+		build = "make tiktoken",
 		config = function()
+			local select = require("CopilotChat.select")
 			require("CopilotChat").setup({
 				debug = false,
 				mappings = {
 					reset = {
 						normal = "<C-r>",
 						insert = "<C-r>",
+					},
+				},
+				prompts = {
+					["Review unstaged"] = {
+						prompt = [[
+Review unstaged. Get comment that i should improve.
+Wrap the whole message in code block with language gitcommit.
+Don"t print code that your are reviewing. print only files names if you write comment.
+
+Carefully check that the method name is passed to the metrics and that no copy-paste errors are made. A copy-paste error occurs when text or a constant repeats words from another place. For those errors add code from changes in git format.
+                            ]],
+						description = "Review from git diff",
+						selection = select.gitdiff,
 					},
 				},
 			})
@@ -140,5 +155,49 @@ return {
 	-- 		-- 	end
 	-- 		-- end, { expr = true })
 	-- 	end,
-	-- },
+	{
+		"yetone/avante.nvim",
+		event = "VeryLazy",
+		lazy = false,
+		version = false, -- set this if you want to always pull the latest change
+		opts = {
+			provider = "copilot",
+			auto_suggestions_provider = "copilot",
+			behaviour = {
+				auto_suggestions = false, -- Experimental stage_hunk
+			},
+			mappings = {
+				suggestion = {
+					accept = "<c-s>",
+					next = "<]]>",
+					prev = "<[[>",
+					dismiss = "ESC",
+				},
+			},
+		},
+		-- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+		build = "make",
+		-- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
+		dependencies = {
+			"stevearc/dressing.nvim",
+			"nvim-lua/plenary.nvim",
+			"MunifTanjim/nui.nvim",
+			--- The below dependencies are optional,
+			"nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
+			"zbirenbaum/copilot.lua", -- for providers='copilot'
+			{
+				-- support for image pasting
+				"HakonHarnes/img-clip.nvim",
+				event = "VeryLazy",
+			},
+			{
+				-- Make sure to set this up properly if you have lazy=true
+				"MeanderingProgrammer/render-markdown.nvim",
+				opts = {
+					file_types = { "markdown", "Avante" },
+				},
+				ft = { "markdown", "Avante" },
+			},
+		},
+	},
 }

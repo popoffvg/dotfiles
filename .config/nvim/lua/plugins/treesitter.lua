@@ -31,10 +31,10 @@ local opts = {
 	incremental_selection = {
 		enable = true,
 		keymaps = {
-			init_selection = "gnn", -- set to `false` to disable one of the mappings
-			node_incremental = "grn",
-			scope_incremental = "grc",
-			node_decremental = "grm",
+			init_selection = "en", -- mnemonic [e]ntry
+			node_incremental = "ea",
+			scope_incremental = "es",
+			node_decremental = "ed",
 		},
 	},
 	textsubjects = {
@@ -104,7 +104,6 @@ local opts = {
 return {
 	{
 		"nvim-treesitter/nvim-treesitter",
-		version = "0.9.2",
 		build = ":TSUpdate",
 		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
