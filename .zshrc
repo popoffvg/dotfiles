@@ -1,4 +1,5 @@
-export PATH=$PATH:/opt/homebrew/bin:~/.nix-profile/bin:/run/current-system/sw/bin:$HOME/.local/share/mise/shims
+export PATH=$PATH:/opt/homebrew/bin:$HOME/.local/share/mise/shims:/sbin:/usr/sbin:$HOME/zk/bi
+export ZK_PATH="'/Users/popoffvg/Library/Mobile Documents/iCloud~md~obsidian/Documents/Z-Core/'"
 
 bindkey '^f' autosuggest-accept
 
@@ -7,8 +8,6 @@ then
     tmux attach -t TMUX || tmux new -s TMUX > /dev/null
 fi
 
-#launch nix
-# source /etc/profile.d/nix.sh
 
 
 ### Added by Zinit's installer
@@ -88,8 +87,7 @@ alias ff="fuck"
 alias fy="fuck -y"
 alias ls="eza --icons=always"
 alias cd="z"
-alias nixr="nix run nix-darwin -- switch --flake ~/Documents/git/dotfiles/.config/nix-darwin#M-M2D0JVVDKX"
-alias gfix="git commit -a --fixup=$TARGET ${@:2} && EDITOR=true git rebase -i --autostash --autosquash $TARGET^; "
+alias gfix="TARGET=\$1; shift; git commit -a --fixup=\$TARGET \"\${@:2}\" && EDITOR=true git rebase -i --autostash --autosquash \$TARGET~1; "
 
 bindkey '^e' zsh_gh_copilot_explain
 bindkey '^g' zsh_gh_copilot_suggest
@@ -131,165 +129,5 @@ if [ -f '/Users/popoffvg/yandex-cloud/path.bash.inc' ]; then source '/Users/popo
 # The next line enables shell command completion for yc.
 if [ -f '/Users/popoffvg/yandex-cloud/completion.zsh.inc' ]; then source '/Users/popoffvg/yandex-cloud/completion.zsh.inc'; fi
 
-eval "$(/run/current-system/sw/bin/mise activate zsh)"
-
-export MISE_SHELL=zsh
-export __MISE_ORIG_PATH="$PATH"
-
-mise() {
-  local command
-  command="${1:-}"
-  if [ "$#" = 0 ]; then
-    command /run/current-system/sw/bin/mise
-    return
-  fi
-  shift
-
-  case "$command" in
-  deactivate|s|shell)
-    # if argv doesn't contains -h,--help
-    if [[ ! " $@ " =~ " --help " ]] && [[ ! " $@ " =~ " -h " ]]; then
-      eval "$(command /run/current-system/sw/bin/mise "$command" "$@")"
-      return $?
-    fi
-    ;;
-  esac
-  command /run/current-system/sw/bin/mise "$command" "$@"
-}
-
-_mise_hook() {
-  eval "$(/run/current-system/sw/bin/mise hook-env -s zsh)";
-}
-typeset -ag precmd_functions;
-if [[ -z "${precmd_functions[(r)_mise_hook]+1}" ]]; then
-  precmd_functions=( _mise_hook ${precmd_functions[@]} )
-fi
-typeset -ag chpwd_functions;
-if [[ -z "${chpwd_functions[(r)_mise_hook]+1}" ]]; then
-  chpwd_functions=( _mise_hook ${chpwd_functions[@]} )
-fi
-
-if [ -z "${_mise_cmd_not_found:-}" ]; then
-    _mise_cmd_not_found=1
-    [ -n "$(declare -f command_not_found_handler)" ] && eval "${$(declare -f command_not_found_handler)/command_not_found_handler/_command_not_found_handler}"
-
-    function command_not_found_handler() {
-        if /run/current-system/sw/bin/mise hook-not-found -s zsh -- "$1"; then
-          _mise_hook
-          "$@"
-        elif [ -n "$(declare -f _command_not_found_handler)" ]; then
-            _command_not_found_handler "$@"
-        else
-            echo "zsh: command not found: $1" >&2
-            return 127
-        fi
-    }
-fi
-
-
-
-
-# =============================================================================
-#
-# Utility functions for zoxide.
-#
-
-# pwd based on the value of _ZO_RESOLVE_SYMLINKS.
-function __zoxide_pwd() {
-    \builtin pwd -L
-}
-
-# cd + custom logic based on the value of _ZO_ECHO.
-function __zoxide_cd() {
-    # shellcheck disable=SC2164
-    \builtin cd -- "$@"
-}
-
-# =============================================================================
-#
-# Hook configuration for zoxide.
-#
-
-# Hook to add new entries to the database.
-function __zoxide_hook() {
-    # shellcheck disable=SC2312
-    \command zoxide add -- "$(__zoxide_pwd)"
-}
-
-# Initialize hook.
-# shellcheck disable=SC2154
-if [[ ${precmd_functions[(Ie)__zoxide_hook]:-} -eq 0 ]] && [[ ${chpwd_functions[(Ie)__zoxide_hook]:-} -eq 0 ]]; then
-    chpwd_functions+=(__zoxide_hook)
-fi
-
-# =============================================================================
-#
-# When using zoxide with --no-cmd, alias these internal functions as desired.
-#
-
-__zoxide_z_prefix='z#'
-
-# Jump to a directory using only keywords.
-function __zoxide_z() {
-    # shellcheck disable=SC2199
-    if [[ "$#" -eq 0 ]]; then
-        __zoxide_cd ~
-    elif [[ "$#" -eq 1 ]] && { [[ -d "$1" ]] || [[ "$1" = '-' ]] || [[ "$1" =~ ^[-+][0-9]$ ]]; }; then
-        __zoxide_cd "$1"
-    elif [[ "$@[-1]" == "${__zoxide_z_prefix}"?* ]]; then
-        # shellcheck disable=SC2124
-        \builtin local result="${@[-1]}"
-        __zoxide_cd "${result:${#__zoxide_z_prefix}}"
-    else
-        \builtin local result
-        # shellcheck disable=SC2312
-        result="$(\command zoxide query --exclude "$(__zoxide_pwd)" -- "$@")" &&
-            __zoxide_cd "${result}"
-    fi
-}
-
-# Jump to a directory using interactive search.
-function __zoxide_zi() {
-    \builtin local result
-    result="$(\command zoxide query --interactive -- "$@")" && __zoxide_cd "${result}"
-}
-
-# Completions.
-if [[ -o zle ]]; then
-    function __zoxide_z_complete() {
-        # Only show completions when the cursor is at the end of the line.
-        # shellcheck disable=SC2154
-        [[ "${#words[@]}" -eq "${CURRENT}" ]] || return 0
-
-        if [[ "${#words[@]}" -eq 2 ]]; then
-            _files -/
-        elif [[ "${words[-1]}" == '' ]] && [[ "${words[-2]}" != "${__zoxide_z_prefix}"?* ]]; then
-            \builtin local result
-            # shellcheck disable=SC2086,SC2312
-            if result="$(\command zoxide query --exclude "$(__zoxide_pwd)" --interactive -- ${words[2,-1]})"; then
-                result="${__zoxide_z_prefix}${result}"
-                # shellcheck disable=SC2296
-                compadd -Q "${(q-)result}"
-            fi
-            \builtin printf '\e[5n'
-        fi
-        return 0
-    }
-
-    \builtin bindkey '\e[0n' 'reset-prompt'
-    [[ "${+functions[compdef]}" -ne 0 ]] && \compdef __zoxide_z_complete __zoxide_z
-fi
-
-# =============================================================================
-#
-# Commands for zoxide. Disable these using --no-cmd.
-#
-
-\builtin alias z=__zoxide_z
-\builtin alias zi=__zoxide_zi
-
-# =============================================================================
-#
-# To initialize zoxide, add this to your configuration (usually ~/.zshrc):
-#
-eval "$(zoxide init zsh)"
+source .zshrc.mise
+source .zshrc.zoxide

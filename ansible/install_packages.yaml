@@ -1,0 +1,51 @@
+# yaml-language-server: $schema= https://raw.githubusercontent.com/ansible/schemas/main/f/ansible.json
+
+- name: Install system packages
+  hosts: all
+  vars:
+    system_packages:
+      - entr
+      - eza
+      - fzf
+      - zoxide
+      - thefuck
+      - grc
+      - zinit
+      - atuin
+      - jq
+      - fd
+      - sd
+      - yq
+      - ripgrep
+      - delta
+      - direnv
+      # - nerdfonts
+      - tldr
+      - stow
+      - mise
+      - oh-my-posh
+      - wezterm
+      - go
+      - kubectl
+      - zsh-autosuggestions
+      - gh
+      - nodejs
+      - commitizen
+
+  tasks:
+    - name: Install system packages
+      ansible.builtin.homebrew:
+        name: "{{ system_packages }}"
+        state: present
+    - name: Install zk
+      ansible.builtin.git:
+         repo: 'https://github.com/sirupsen/zk.git'
+         dest: '~/zk'
+    - name: Install mise
+      block:
+        - name: load mise
+          ansible.builtin.shell:
+             cmd: "curl https://mise.run | sh"
+        - name: init mise
+          ansible.builtin.shell:
+             cmd: ~/.local/bin/mise activate zsh >> ~/.zshrc.mise
