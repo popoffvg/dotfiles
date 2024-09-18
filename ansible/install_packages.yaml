@@ -24,7 +24,6 @@
       - stow
       - mise
       - oh-my-posh
-      - wezterm
       - kubectl
       - zsh-autosuggestions
       - gh
@@ -48,6 +47,10 @@
         - name: init mise
           ansible.builtin.shell:
              cmd: ~/.local/bin/mise activate zsh >> ~/.zshrc.mise
+    - name: Install terminal
+      ansible.builtin.homebrew:
+       name: wezterm
+       state: present
     - name: install go
       ansible.builtin.shell:
              cmd: "mise install go@latest"
