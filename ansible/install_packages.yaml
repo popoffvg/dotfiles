@@ -28,7 +28,6 @@
       - zsh-autosuggestions
       - gh
       - nodejs
-      - jandedobbeleer/oh-my-posh/oh-my-posh
       
   tasks:
     - name: Install system packages
@@ -51,6 +50,9 @@
       ansible.builtin.homebrew:
        name: wezterm
        state: present
+    - name: install nvim
+      ansible.builtin.shell:
+             cmd: "mise install neovim@0.10.0"
     - name: install go
       ansible.builtin.shell:
              cmd: "mise install go@latest"
