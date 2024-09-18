@@ -29,8 +29,8 @@
       - zsh-autosuggestions
       - gh
       - nodejs
-      - withgraphite/tap/graphite
-
+      - jandedobbeleer/oh-my-posh/oh-my-posh
+      
   tasks:
     - name: Install system packages
       ansible.builtin.homebrew:
