@@ -81,8 +81,9 @@ alias ....="z ../../.."
 alias .....="z ../../../.."
 alias vi=nvim
 alias k=kubectl
-alias go="grc go"
+# alias go="grc go"
 alias gita="git add . && git commit --amend -C HEAD && git push -f"
+alias g="git"
 alias ff="fuck"
 alias fy="fuck -y"
 alias ls="eza --icons=always"
@@ -121,4 +122,5 @@ if [ -f '/Users/popoffvg/yandex-cloud/completion.zsh.inc' ]; then source '/Users
 
 source .zshrc.mise
 source .zshrc.zoxide
+source .zshrc.graphite
 

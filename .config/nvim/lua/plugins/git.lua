@@ -3,7 +3,7 @@ return {
 		"ThePrimeagen/git-worktree.nvim",
 		"TimUntersberger/neogit",
 		"lewis6991/gitsigns.nvim",
-		"https://github.com/tpope/vim-fugitive.git",
+		-- "https://github.com/tpope/vim-fugitive.git",
 		{
 			"pwntester/octo.nvim",
 			event = "VeryLazy",
@@ -20,10 +20,10 @@ return {
 			require("gitlinker").setup()
 		end,
 	},
-	{
-		"APZelos/blamer.nvim",
-		event = "VeryLazy",
-	},
+	-- {
+	-- 	"APZelos/blamer.nvim",
+	-- 	event = "VeryLazy",
+	-- },
 	-- {
 	-- 	"sindrets/diffview.nvim",
 	-- 	event = "VeryLazy",
@@ -45,16 +45,35 @@ return {
 			-- })
 		end,
 	},
+	-- {
+	-- 	"NeogitOrg/neogit",
+	-- 	dependencies = {
+	-- 		"nvim-lua/plenary.nvim", -- required
+	-- 		"sindrets/diffview.nvim", -- optional - Diff integration
+	--
+	-- 		-- Only one of these is needed, not both.
+	-- 		"nvim-telescope/telescope.nvim", -- optional
+	-- 		"ibhagwan/fzf-lua", -- optional
+	-- 	},
+	-- 	config = true,
+	-- },
 	{
-		"NeogitOrg/neogit",
-		dependencies = {
-			"nvim-lua/plenary.nvim", -- required
-			"sindrets/diffview.nvim", -- optional - Diff integration
+		"aaronhallaert/advanced-git-search.nvim",
+		cmd = { "AdvancedGitSearch" },
+		config = function()
+			require("telescope").setup({
+				extensions = {
+					advanced_git_search = {
+						-- Insert Config here
+					},
+				},
+			})
 
-			-- Only one of these is needed, not both.
-			"nvim-telescope/telescope.nvim", -- optional
-			"ibhagwan/fzf-lua", -- optional
+			require("telescope").load_extension("advanced_git_search")
+		end,
+		dependencies = {
+			-- Insert Dependencies here
 		},
-		config = true,
 	},
+	{ "sindrets/diffview.nvim" },
 }

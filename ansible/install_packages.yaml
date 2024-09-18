@@ -25,12 +25,11 @@
       - mise
       - oh-my-posh
       - wezterm
-      - go
       - kubectl
       - zsh-autosuggestions
       - gh
       - nodejs
-      - commitizen
+      - withgraphite/tap/graphite
 
   tasks:
     - name: Install system packages
@@ -49,3 +48,6 @@
         - name: init mise
           ansible.builtin.shell:
              cmd: ~/.local/bin/mise activate zsh >> ~/.zshrc.mise
+    - name: install go
+      ansible.builtin.shell:
+             cmd: "mise install go@latest"

@@ -215,8 +215,8 @@ return {
 			-- require("yanky.telescope.mapping").set_register(regname) -- fill register {regname} with selected value
 		end,
 		keys = {
-			-- { "<leader>ff", ":Telescope find_files hidden=true preview=false<CR>", opts },
-			{ "<leader>ff", "<Cmd>Telescope frecency theme=ivy<CR>", opts },
+			{ "<leader>ff", ":Telescope find_files hidden=true preview=false<CR>", opts },
+			-- { "<leader>ff", "<Cmd>Telescope frecency theme=ivy<CR>", opts },
 			-- { "<leader>of", ":Telescope oldfiles<CR>", opts },
 			-- {
 			-- 	"<leader>fg",
