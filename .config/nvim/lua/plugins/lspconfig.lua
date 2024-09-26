@@ -7,6 +7,7 @@ local servers = {
 	"phpactor",
 	"pyright",
 	"golangci_lint_ls",
+	"bufls",
 	-- ltex for markdown
 	-- cspell
 }

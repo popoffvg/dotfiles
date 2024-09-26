@@ -120,7 +120,7 @@ if [ -f '/Users/popoffvg/yandex-cloud/path.bash.inc' ]; then source '/Users/popo
 # The next line enables shell command completion for yc.
 if [ -f '/Users/popoffvg/yandex-cloud/completion.zsh.inc' ]; then source '/Users/popoffvg/yandex-cloud/completion.zsh.inc'; fi
 
-source .zshrc.mise
-source .zshrc.zoxide
-source .zshrc.graphite
+source ~/.zshrc.mise
+source ~/.zshrc.zoxide
+source ~/.zshrc.git
 

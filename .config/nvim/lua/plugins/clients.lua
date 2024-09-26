@@ -1,0 +1,5 @@
+return {
+	{
+		"hudclark/grpc-nvim",
+	},
+}

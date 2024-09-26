@@ -28,6 +28,7 @@
       - zsh-autosuggestions
       - gh
       - nodejs
+      - pamburus/tap/hl
       
   tasks:
     - name: Install system packages
