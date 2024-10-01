@@ -23,10 +23,10 @@ vim.cmd([[
         map <leader>ww <Esc><Cmd>:Bdelete!<CR>
         map <leader>wc <Esc><Cmd>:bd!<CR>
 
-        imap <c-o> <Esc>o
+        imap <c-i> <Esc>o
+        " imap <c-O> <Esc>O
         imap <c-a> <Esc>a
         imap <c-A> <Esc>A
-        imap <c-O> <Esc>O
         imap <c-]> <ESC><ESC>
         nnoremap <c-a> ggVGG
 
@@ -37,7 +37,7 @@ vim.cmd([[
 
 
         " imap <m-h> <backspace>
-        imap <m-=> :=
+        imap <c-=> :=
 
         vnoremap <TAB> ^
         vnoremap 0 $

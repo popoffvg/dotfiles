@@ -1,4 +1,4 @@
-local servers = {
+local mason_servers = {
 	"lua_ls",
 	"bashls",
 	"gopls",
@@ -8,6 +8,7 @@ local servers = {
 	"pyright",
 	"golangci_lint_ls",
 	"bufls",
+	-- "volar",
 	-- ltex for markdown
 	-- cspell
 }
@@ -37,10 +38,9 @@ local make_client_capabilities = lsp.protocol.make_client_capabilities
 function lsp.protocol.make_client_capabilities()
 	local caps = make_client_capabilities()
 	if not (caps.workspace or {}).didChangeWatchedFiles then
-		vim.notify("lsp capability didChangeWatchedFiles is already disabled", vim.log.levels.WARN)
-	else
-		caps.workspace.didChangeWatchedFiles = nil
+		return caps
 	end
+	caps.workspace.didChangeWatchedFiles = nil
 
 	return caps
 end
@@ -200,7 +200,7 @@ return {
 				end,
 			})
 			require("mason-lspconfig").setup({
-				ensure_installed = servers,
+				ensure_installed = mason_servers,
 			})
 			-- doesn't work through mason
 			require("lspconfig").sqls.setup({
@@ -225,6 +225,20 @@ return {
 						},
 					},
 				},
+			})
+			-- volar setup
+			require("lspconfig").volar.setup({
+				capabilities = capabilities,
+				on_attach = on_attach(),
+				filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
+				settings = {
+					init_options = {
+						vue = {
+							hybridMode = false,
+						},
+					},
+				},
+				handlers = handlers,
 			})
 
 			setup_goimports()
@@ -292,12 +306,12 @@ return {
 			--
 		end,
 		keys = {
-			{
-				"E",
-				function()
-					vim.diagnostic.open_float()
-				end,
-			},
+			-- {
+			-- 	"<leader>x",
+			-- 	function()
+			-- 		vim.diagnostic.open_float()
+			-- 	end,
+			-- },
 			{
 				"gt",
 				function()
@@ -308,12 +322,12 @@ return {
 					})
 				end,
 			},
-			{ "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>" },
-			{ "]d", "<cmd>lua vim.diagnostic.goto_next()<CR> " },
-			{ "<Leader>fe", "<cmd>lua vim.diagnostic.setloclist()<CR>" },
-			{ "<m-d>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", mode = { "n", "i" } },
+			{ "[x", "<cmd>lua vim.diagnostic.goto_prev()<CR>" },
+			{ "]x", "<cmd>lua vim.diagnostic.goto_next()<CR> " },
+			{ "<Leader>fx", "<cmd>lua vim.diagnostic.setloclist()<CR>" },
+			{ "<c-k>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", mode = { "n", "i" } },
 			-- https://www.reddit.com/r/neovim/comments/11axh2p/how_to_toggle_openclose_floating_lsp_diagnostic/
-			{ "<leader>i", '<cmd>lua vim.diagnostic.open_float(nil, {focus=true, scope="cursor"})<CR>' },
+			{ "<leader>x", '<cmd>lua vim.diagnostic.open_float(nil, {focus=true, scope="cursor"})<CR>' },
 			{
 				"<leader>rn",
 				function()

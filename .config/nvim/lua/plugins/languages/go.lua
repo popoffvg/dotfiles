@@ -107,31 +107,31 @@ return {
 		end,
 		keys = {
 			{
-				"<m-5>",
+				"<c-5>",
 				function()
 					require("dap").continue()
 				end,
 			},
 			{
-				"<m-9>",
+				"<c-9>",
 				function()
 					require("dap").toggle_breakpoint()
 				end,
 			},
 			{
-				"<m-6>", -- F10
+				"<c-6>", -- F10
 				function()
 					require("dap").step_over()
 				end,
 			},
 			{
-				"<m-7>", -- F11
+				"<c-7>", -- F11
 				function()
 					require("dap").step_into()
 				end,
 			},
 			{
-				"<m-8>", -- F12
+				"<c-8>", -- F12
 				function()
 					require("dap").step_out()
 				end,

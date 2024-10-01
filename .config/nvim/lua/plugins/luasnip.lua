@@ -47,7 +47,7 @@ return {
 			return string.format("%s %s: (%s) ", entry, notation, os.getenv("USER"))
 		end
 
-		vim.keymap.set({ "i", "s" }, "<m-p>", function()
+		vim.keymap.set({ "i", "s" }, "<c-p>", function()
 			if ls.expand_or_jumpable() then
 				ls.expand()
 			end

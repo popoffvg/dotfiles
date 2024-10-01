@@ -93,6 +93,17 @@ return {
 						},
 					},
 					egrepify = {
+						vimgrep_arguments = {
+							"rg",
+							"--color=never",
+							"--no-heading",
+							"--with-filename",
+							"--line-number",
+							"--column",
+							"--smart-case",
+							"--hidden",
+							"--trim", -- add this value
+						},
 						wrap_results = false,
 						theme = "ivy",
 						preview = true,

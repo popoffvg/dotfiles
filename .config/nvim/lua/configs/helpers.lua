@@ -13,5 +13,5 @@ local function change_new_val()
 
 	vim.api.nvim_buf_set_lines(0, row - 1, row, true, { new_line })
 end
-vim.keymap.set("n", "<m-=>", change_new_val, { noremap = true })
+vim.keymap.set("n", "<c-=>", change_new_val, { noremap = true })
 vim.keymap.set("n", "<leader>=", change_new_val, { noremap = true })

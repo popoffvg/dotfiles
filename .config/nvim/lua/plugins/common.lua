@@ -58,7 +58,7 @@ return {
 			{ "gP", "<Plug>(YankyGPutBefore)", mode = { "n", "x" } },
 			{ "[p", "<Plug>(YankyPreviousEntry)", noremap = true, mode = { "n" } },
 			{ "]p", "<Plug>(YankyNextEntry)", noremap = true, mode = { "n" } },
-			{ "fp", "<cmd>Telescope yank_history<CR>", noremap = true, mode = { "n" } },
+			{ "<leader>fy", "<cmd>Telescope yank_history<CR>", noremap = true, mode = { "n" } },
 		},
 	},
 	{ "tpope/vim-abolish" },

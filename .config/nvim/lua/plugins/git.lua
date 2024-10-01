@@ -40,10 +40,28 @@ return {
 					["repo.or.cz"] = require("gitlinker.hosts").get_repoorcz_type_url,
 					["git.kernel.org"] = require("gitlinker.hosts").get_cgit_type_url,
 					["git.savannah.gnu.org"] = require("gitlinker.hosts").get_cgit_type_url,
+					["code.emcdtech.com"] = require("gitlinker.hosts").get_gitlab_type_url,
 				},
 				-- default mapping to call url generation with action_callback
 				mappings = "<leader>gy",
 			})
+		end,
+	},
+	{
+		"harrisoncramer/gitlab.nvim",
+		dependencies = {
+			"MunifTanjim/nui.nvim",
+			"nvim-lua/plenary.nvim",
+			"sindrets/diffview.nvim",
+			"stevearc/dressing.nvim", -- Recommended but not required. Better UI for pickers.
+			"nvim-tree/nvim-web-devicons", -- Recommended but not required. Icons in discussion tree.
+		},
+		enabled = true,
+		build = function()
+			require("gitlab.server").build(true)
+		end, -- Builds the Go binary
+		config = function()
+			require("gitlab").setup()
 		end,
 	},
 	-- {
