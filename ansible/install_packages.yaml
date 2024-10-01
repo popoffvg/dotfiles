@@ -29,6 +29,8 @@
       - gh
       - nodejs
       - pamburus/tap/hl
+      - viu # image viewer
+      - broot
       
   tasks:
     - name: Install system packages

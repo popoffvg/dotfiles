@@ -123,4 +123,6 @@ if [ -f '/Users/popoffvg/yandex-cloud/completion.zsh.inc' ]; then source '/Users
 source ~/.zshrc.mise
 source ~/.zshrc.zoxide
 source ~/.zshrc.git
+source ~/.zshrc.broot
 
+source /Users/popoffvg/.config/broot/launcher/bash/br
