@@ -12,23 +12,77 @@ return {
 	{ "folke/neoconf.nvim", cmd = "Neoconf" },
 	{ "folke/neodev.nvim" },
 	{ "nvim-lua/plenary.nvim" },
-	-- { "akinsho/bufferline.nvim" },
-	-- { "MattesGroeger/vim-bookmarks" },
+	-- {
+	-- 	"https://git.sr.ht/~swaits/zellij-nav.nvim",
+	-- 	lazy = true,
+	-- 	event = "VeryLazy",
+	-- 	keys = {
+	-- 		{
+	-- 			"<c-h>",
+	-- 			"<cmd>ZellijNavigateLeft<cr>",
+	-- 			{ silent = true, desc = "navigate left" },
+	-- 		},
+	-- 		{
+	-- 			"<c-j>",
+	-- 			"<cmd>ZellijNavigateDown<cr>",
+	-- 			{ silent = true, desc = "navigate down" },
+	-- 		},
+	-- 		{
+	-- 			"<c-k>",
+	-- 			"<cmd>ZellijNavigateUp<cr>",
+	-- 			{ silent = true, desc = "navigate up" },
+	-- 		},
+	-- 		{
+	-- 			"<c-l>",
+	-- 			"<cmd>ZellijNavigateRight<cr>",
+	-- 			{ silent = true, desc = "navigate right" },
+	-- 		},
+	-- 	},
+	-- 	opts = {},
 	{
-		"alexghergh/nvim-tmux-navigation",
-		opts = {
-			disable_when_zoomed = true,
-			keybindings = {
-				left = "<C-h>",
-				down = "<C-j>",
-				up = "<C-k>",
-				right = "<C-l>",
-				last_active = "<C-\\>",
-				next = "<C-Space>",
+		"letieu/wezterm-move.nvim",
+		keys = { -- Lazy loading, don't need call setup() function
+			{
+				"<C-h>",
+				function()
+					require("wezterm-move").move("h")
+				end,
+			},
+			{
+				"<C-j>",
+				function()
+					require("wezterm-move").move("j")
+				end,
+			},
+			{
+				"<C-k>",
+				function()
+					require("wezterm-move").move("k")
+				end,
+			},
+			{
+				"<C-l>",
+				function()
+					require("wezterm-move").move("l")
+				end,
 			},
 		},
-		lazy = false,
 	},
+	-- {
+	-- 	"alexghergh/nvim-tmux-navigation",
+	-- 	opts = {
+	-- 		disable_when_zoomed = true,
+	-- 		keybindings = {
+	-- 			left = "<C-h>",
+	-- 			down = "<C-j>",
+	-- 			up = "<C-k>",
+	-- 			right = "<C-l>",
+	-- 			last_active = "<C-\\>",
+	-- 			next = "<C-Space>",
+	-- 		},
+	-- 	},
+	-- 	lazy = false,
+	-- },
 	{
 		"karb94/neoscroll.nvim",
 		lazy = false,

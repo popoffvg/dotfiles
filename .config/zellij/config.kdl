@@ -1,3 +1,39 @@
+layout {
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
+                format_left   "{mode} #[fg=#89B4FA,bold]{session}"
+                format_center "{tabs}"
+                format_right  "{command_git_branch} {datetime}"
+                format_space  ""
+
+                border_enabled  "false"
+                border_char     "─"
+                border_format   "#[fg=#6C7086]{char}"
+                border_position "top"
+
+                hide_frame_for_single_pane "true"
+
+                mode_normal  "#[bg=blue] "
+                mode_tmux    "#[bg=#ffc387] "
+
+                tab_normal   "#[fg=#6C7086] {name} "
+                tab_active   "#[fg=#9399B2,bold,italic] {name} "
+
+                command_git_branch_command     "git rev-parse --abbrev-ref HEAD"
+                command_git_branch_format      "#[fg=blue] {stdout} "
+                command_git_branch_interval    "10"
+                command_git_branch_rendermode  "static"
+
+                datetime        "#[fg=#6C7086,bold] {format} "
+                datetime_format "%A, %d %b %Y %H:%M"
+                datetime_timezone "Europe/Berlin"
+            }
+        }
+    }
+}
+
 keybinds clear-defaults=true {
     normal {}
     locked {
@@ -59,10 +95,10 @@ keybinds clear-defaults=true {
         bind "End"      { ScrollToBottom ; SwitchToMode "Normal" ; }
         bind "PageDown" { PageScrollDown ; }
         bind "PageUp"   { PageScrollUp ; }
-        bind "s"        { SwitchToMode "EnterSearch" ; SearchInput 0 ; }
+        bind "/"       { SwitchToMode "EnterSearch" ; SearchInput 0 ; }
     }
     search {
-        bind "Alt s" { SwitchToMode "Normal" ; }
+        bind "Alt f" { SwitchToMode "Normal" ; }
         bind "n"     { Search "down" ; }
         bind "p"     { Search "up" ; }
         bind "c"     { SearchToggleOption "CaseSensitivity" ; }
@@ -82,9 +118,9 @@ keybinds clear-defaults=true {
         bind "Esc" { UndoRenamePane; SwitchToMode "Pane"; }
     }
     session {
-        bind "Alt o" { SwitchToMode "Normal" ; }
+        bind "Alt s" { SwitchToMode "Normal" ; }
         bind "d"     { Detach ; }
-        bind "w"     {
+        bind "s"     {
             LaunchOrFocusPlugin "session-manager" {
                 floating true
                 move_to_focused_tab true
@@ -93,29 +129,39 @@ keybinds clear-defaults=true {
         }
     }
     shared_except "locked" {
-        bind "Alt g"             { SwitchToMode "Locked" ; }
-        bind "Alt q"             { Quit ; }
-        bind "Alt h" "Alt Left"  { MoveFocusOrTab "Left" ; }
-        bind "Alt l" "Alt Right" { MoveFocusOrTab "Right" ; }
-        bind "Alt j" "Alt Down"  { MoveFocus "Down" ; }
-        bind "Alt k" "Alt Up"    { MoveFocus "Up" ; }
+        bind "Ctrl g"             { SwitchToMode "Locked" ; }
+        bind "Ctrl q"             { Quit ; }
+        bind "Ctrl h"             { MoveFocusOrTab "Left" ; }
+        bind "Ctrl l"             { MoveFocusOrTab "Right" ; }
+        bind "Ctrl j"             { MoveFocus "Down" ; }
+        bind "Ctrl k"             { MoveFocus "Up" ; }
         bind "Alt ["             { PreviousSwapLayout ; }
         bind "Alt ]"             { NextSwapLayout ; }
+        bind "Alt y" {
+            LaunchOrFocusPlugin "file:~/.config/zellij/plugins/zellij_forgot.wasm" {
+                "LOAD_ZELLIJ_BINDINGS" "true"
+                floating true
+            }
+        }
     }
+    
     shared_except "normal" "locked" {
         bind "Enter" "Esc" { SwitchToMode "Normal" ; }
     }
     shared_except "pane" "locked" {
         bind "Alt p" { SwitchToMode "Pane" ; }
     }
+    shared_except "pane" "locked" {
+        bind "Alt f" { SwitchToMode "Search" ; }
+    }
     shared_except "resize" "locked" {
-        bind "Alt r" { SwitchToMode "Resize" ; }
+        bind "Alt w" { SwitchToMode "Resize" ; }
     }
     shared_except "scroll" "locked" {
-        bind "Alt s" { SwitchToMode "Scroll" ; }
+        bind "Alt r" { SwitchToMode "Scroll" ; }
     }
     shared_except "session" "locked" {
-        bind "Alt o" { SwitchToMode "Session" ; }
+        bind "Alt s" { SwitchToMode "Session" ; }
     }
     shared_except "tab" "locked" {
         bind "Alt t" { SwitchToMode "Tab" ; }
@@ -126,8 +172,7 @@ keybinds clear-defaults=true {
 }
 
 plugins {
-    compact-bar location="zellij:compact-bar"
-    strider location="zellij:strider"
+    compact-bar location="zellij:strider"
     compact-bar location="zellij:compact-bar"
     session-manager location="zellij:session-manager"
     welcome-screen location="zellij:session-manager" {
@@ -136,6 +181,7 @@ plugins {
     filepicker location="zellij:strider" {
         cwd "/"
     }
+    sessionpicker location="file:~/.config/zellij/plugins/zellij-choose-tree.wasm"
 }
 
 simplified_ui true
@@ -201,65 +247,8 @@ simplified_ui true
 // For more examples, see: https://github.com/zellij-org/zellij/tree/main/example/themes
 // Once these themes are defined, one of them should to be selected in the "theme" section of this file
 //
-themes {
-  catppuccin-latte {
-    bg "#acb0be" // Surface2
-    fg "#acb0be" // Surface2
-    red "#d20f39"
-    green "#40a02b"
-    blue "#1e66f5"
-    yellow "#df8e1d"
-    magenta "#ea76cb" // Pink
-    orange "#fe640b" // Peach
-    cyan "#04a5e5" // Sky
-    black "#dce0e8" // Crust
-    white "#4c4f69" // Text
-  }
 
-  catppuccin-frappe {
-    bg "#626880" // Surface2
-    fg "#c6d0f5"
-    red "#e78284"
-    green "#a6d189"
-    blue "#8caaee"
-    yellow "#e5c890"
-    magenta "#f4b8e4" // Pink
-    orange "#ef9f76" // Peach
-    cyan "#99d1db" // Sky
-    black "#292c3c" // Mantle
-    white "#c6d0f5"
-  }
-
-  catppuccin-macchiato {
-    bg "#5b6078" // Surface2
-    fg "#cad3f5"
-    red "#ed8796"
-    green "#a6da95"
-    blue "#8aadf4"
-    yellow "#eed49f"
-    magenta "#f5bde6" // Pink
-    orange "#f5a97f" // Peach
-    cyan "#91d7e3" // Sky
-    black "#1e2030" // Mantle
-    white "#cad3f5"
-  }
-
-  catppuccin-mocha {
-    bg "#585b70" // Surface2
-    fg "#cdd6f4"
-    red "#f38ba8"
-    green "#a6e3a1"
-    blue "#89b4fa"
-    yellow "#f9e2af"
-    magenta "#f5c2e7" // Pink
-    orange "#fab387" // Peach
-    cyan "#89dceb" // Sky
-    black "#181825" // Mantle
-    white "#cdd6f4"
-  }
-}
-
- theme "catppuccin-mocha"
+theme "catppuccin-macchiato"
 
 default_layout "compact"
 
@@ -332,3 +321,4 @@ default_layout "compact"
 // disable_session_metadata true
 
 copy_on_select true
+styled_underlines false

@@ -3,10 +3,10 @@ export ZK_PATH="'/Users/popoffvg/Library/Mobile Documents/iCloud~md~obsidian/Doc
 
 bindkey '^f' autosuggest-accept
 
-if [ -z "$TMUX" ]
-then
-    tmux attach -t TMUX || tmux new -s TMUX > /dev/null
-fi
+# if [ -z "$TMUX" ]
+# then
+#     tmux attach -t TMUX || tmux new -s TMUX > /dev/null
+# fi
 
 
 

@@ -59,3 +59,14 @@
     - name: install go
       ansible.builtin.shell:
              cmd: "mise install go@latest"
+    - name: install zellij
+      block:
+        - name: install session pickier
+          ansible.builtin.shell:
+             cmd: "wget https://github.com/laperlej/zellij-choose-tree/releases/latest/download/zellij-choose-tree.wasm -O ~/.config/zellij/plugins/zellij-choose-tree.wasm"
+        - name: install forgot plugin
+          ansible.builtin.shell:
+             cmd: "wget https://github.com/karimould/zellij-forgot/releases/download/0.4.0/zellij_forgot.wasm -O ~/.config/zellij/plugins/zellij_forgot.wasm"
+        - name: install status bar
+          ansible.builtin.shell:
+             cmd: "wget https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm -O ~/.config/zellij/plugins/zjstatus.wasm"
