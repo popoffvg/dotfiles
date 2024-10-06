@@ -1,0 +1,29 @@
+function gouse(){
+    GO_TOOLS_ROOT=/Users/popoffvg/sdk
+	GO_VERSION=$1
+    GO_LAST_VERSION=1.23
+
+	if [[ $GO_VERSION == *"$GO_LAST_VERSION"* ]]; then
+        export GOROOT=/usr/local/go
+        echo "use $GO_LAST_VERSION"
+        return
+	fi
+
+    export GOROOT=$GO_TOOLS_ROOT/go$GO_VERSION/bin
+
+    if [[ -d "$GOROOT" ]]; then
+        return
+    fi
+ 
+   for d in $GO_TOOLS_ROOT/*; do
+       if [[ "$d" == *"$GO_VERSION"* ]]; then
+           export GOROOT=$d
+           export PATH=$GOROOT/bin:$PATH
+           echo "use ${GOROOT##*/}"
+           return
+       fi
+   done
+
+}
+
+

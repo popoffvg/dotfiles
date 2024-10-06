@@ -103,12 +103,14 @@ local opts = {
 
 return {
 	{
+		"nvim-treesitter/nvim-treesitter-textobjects",
+	},
+	{ "JoosepAlviste/nvim-ts-context-commentstring" },
+	{
 		"nvim-treesitter/nvim-treesitter",
 		build = ":TSUpdate",
 		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
-			"nvim-treesitter/nvim-treesitter-textobjects",
-			"JoosepAlviste/nvim-ts-context-commentstring",
 			-- {
 			-- -- show current function signature
 			-- 	"nvim-treesitter/nvim-treesitter-context",
@@ -124,6 +126,7 @@ return {
 		},
 
 		config = function()
+			vim.treesitter.stop()
 			require("nvim-treesitter.configs").setup(opts)
 
 			-- MDX
@@ -135,4 +138,5 @@ return {
 			vim.treesitter.language.register("markdown", "mdx")
 		end,
 	},
+	{ "nvim-treesitter/playground" },
 }

@@ -3,6 +3,7 @@ export ZK_PATH="'/Users/popoffvg/Library/Mobile Documents/iCloud~md~obsidian/Doc
 
 bindkey '^f' autosuggest-accept
 
+ulimit -n 10420
 # if [ -z "$TMUX" ]
 # then
 #     tmux attach -t TMUX || tmux new -s TMUX > /dev/null
@@ -108,9 +109,9 @@ compinit
 
 # direnv
 
-export GOPATH=~/go
 export PATH=$PATH:$GOPATH/bin
-export PATH=$PATH:~/.local/bin
+export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:~/local/bin
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
@@ -120,9 +121,10 @@ if [ -f '/Users/popoffvg/yandex-cloud/path.bash.inc' ]; then source '/Users/popo
 # The next line enables shell command completion for yc.
 if [ -f '/Users/popoffvg/yandex-cloud/completion.zsh.inc' ]; then source '/Users/popoffvg/yandex-cloud/completion.zsh.inc'; fi
 
-source ~/.zshrc.mise
-source ~/.zshrc.zoxide
-source ~/.zshrc.git
-source ~/.zshrc.broot
+source ~/.zshrc_mise
+source ~/.zshrc_zoxide
+source ~/.zshrc_git
+source ~/.zshrc_broot
+source ~/.zshrc_go
 
 source /Users/popoffvg/.config/broot/launcher/bash/br

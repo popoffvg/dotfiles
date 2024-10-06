@@ -6,7 +6,7 @@ return {
 		hints = {
 			rangeVariableTypes = false,
 			parameterNames = true,
-			constantValues = false,
+			constantValues = true,
 			assignVariableTypes = false,
 			compositeLiteralFields = false,
 			compositeLiteralTypes = false,
@@ -19,10 +19,10 @@ return {
 		},
 		gofumpt = true,
 		codelenses = {
-			generate = true, -- show the `go generate` lens.
-			-- gc_details = true, --  // Show a code lens toggling the display of gc's choices.
-			test = true,
-			tidy = true,
+			generate = false, -- show the `go generate` lens.
+			-- gc_details = false, --  // Show a code lens toggling the display of gc's choices.
+			test = false,
+			tidy = false,
 		},
 
 		usePlaceholders = false,

@@ -25,46 +25,6 @@ return {
 		end,
 	},
 	{
-		"scottmckendry/cyberdream.nvim",
-		lazy = false,
-		priority = 1000,
-		config = function()
-			require("cyberdream").setup({
-				hide_fillchars = true,
-				transparent = true,
-				extensions = {
-					alpha = true,
-					cmp = true,
-					dashboard = true,
-					fzflua = true,
-					gitpad = true,
-					gitsigns = true,
-					grapple = true,
-					grugfar = true,
-					heirline = true,
-					hop = true,
-					indentblankline = true,
-					kubectl = true,
-					lazy = true,
-					leap = true,
-					markdown = true,
-					markview = true,
-					mini = true,
-					noice = true,
-					notify = true,
-					rainbow_delimiters = true,
-					telescope = true,
-					trouble = true,
-					whichkey = true,
-				},
-			})
-			-- vim.cmd([[
-			--              colorscheme cyberdream
-			--              hi WinSeparator guifg=VertSplit
-			--          ]])
-		end,
-	},
-	{
 		"catppuccin/nvim",
 		name = "catppuccin",
 		priority = 1000,

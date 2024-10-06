@@ -32,12 +32,16 @@ return {
 					markdown = { { "prettier" } },
 					vue = { { "prettier" } },
 					yaml = { { "prettier" } },
+					sql = {},
 				},
 				format_on_save = {
 					timeout_ms = 500,
-					lsp_fallback = true,
+					lsp_fllback = true,
 				},
 			})
+			-- require("conform").formatters.sql_formatter = {
+			-- 	prepend_args = { "-c", vim.fn.expand("~/.config/sql_formatter.json") },
+			-- }
 		end,
 	},
 }

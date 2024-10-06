@@ -152,32 +152,32 @@ return {
 	-- 		{ "<leader>fs", '<cmd>lua require("spectre").toggle()<CR>' },
 	-- },
 	-- },
-	{
-		-- for code action highligt
-		"kosayoda/nvim-lightbulb",
-		event = { "BufReadPre", "BufNewFile" },
-		config = function()
-			require("nvim-lightbulb").setup({
-				autocmd = { enabled = true },
-			})
-		end,
-	},
+	-- {
+	-- 	-- for code action highligt
+	-- 	"kosayoda/nvim-lightbulb",
+	-- 	event = { "BufReadPre", "BufNewFile" },
+	-- 	config = function()
+	-- 		require("nvim-lightbulb").setup({
+	-- 			autocmd = { enabled = true },
+	-- 		})
+	-- 	end,
+	-- },
 	{ "stevearc/dressing.nvim", event = { "BufReadPre", "BufNewFile" } },
-	{
-		"numToStr/FTerm.nvim",
-		config = true,
-		keys = {
-			{
-				"<leader>ft",
-				function()
-					require("FTerm").toggle()
-				end,
-				desc = "Toggle terminal",
-				mode = { "n", "t" },
-			},
-		},
-	},
-	{ "famiu/bufdelete.nvim" },
+	-- {
+	-- 	"numToStr/FTerm.nvim",
+	-- 	config = true,
+	-- 	keys = {
+	-- 		{
+	-- 			"<leader>ft",
+	-- 			function()
+	-- 				require("FTerm").toggle()
+	-- 			end,
+	-- 			desc = "Toggle terminal",
+	-- 			mode = { "n", "t" },
+	-- 		},
+	-- 	},
+	-- },
+	-- { "famiu/bufdelete.nvim" },
 	-- {
 	-- 	"tversteeg/registers.nvim",
 	-- 	cmd = "Registers",

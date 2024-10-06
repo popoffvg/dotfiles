@@ -22,10 +22,10 @@ local signs = {
 -- LSP settings (for overriding per client)
 local handlers = {
 	["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" }),
-	-- ["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
-	-- 	floating_window = false,
-	-- 	border = "rounded",
-	-- }),
+	["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
+		floating_window = false,
+		border = "rounded",
+	}),
 	["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
 		virtual_text = false,
 	}),
@@ -123,7 +123,7 @@ return {
 				"nvimtools/none-ls.nvim",
 				config = function() end,
 			},
-			"nanotee/sqls.nvim",
+			-- "nanotee/sqls.nvim",
 			"davidmh/cspell.nvim",
 			"williamboman/mason.nvim",
 			"SmiteshP/nvim-navic",
@@ -203,29 +203,29 @@ return {
 				ensure_installed = mason_servers,
 			})
 			-- doesn't work through mason
-			require("lspconfig").sqls.setup({
-				on_attach = function(client, bufnr)
-					client.server_capabilities.documentFormattingProvider = false
-					client.server_capabilities.documentRangeFormattingProvider = false
-					require("sqls").on_attach(client, bufnr)
-				end,
-				settings = {
-					sqls = {
-						connections = {
-							{
-								alias = "dev-platfrom",
-								driver = "mysql",
-								dataSourceName = "root:dJgadn4PxPMSWJYJM5k5@(localhost:3306)/payment_provider",
-							},
-							{
-								alias = "localhost",
-								driver = "mysql",
-								dataSourceName = "root:password@(localhost:28004)/payment_provider",
-							},
-						},
-					},
-				},
-			})
+			-- require("lspconfig").sqls.setup({
+			-- 	on_attach = function(client, bufnr)
+			-- 		client.server_capabilities.documentFormattingProvider = false
+			-- 		client.server_capabilities.documentRangeFormattingProvider = false
+			-- 		require("sqls").on_attach(client, bufnr)
+			-- 	end,
+			-- 	settings = {
+			-- 		sqls = {
+			-- 			connections = {
+			-- 				{
+			-- 					alias = "dev-platfrom",
+			-- 					driver = "mysql",
+			-- 					dataSourceName = "root:dJgadn4PxPMSWJYJM5k5@(localhost:3306)/payment_provider",
+			-- 				},
+			-- 				{
+			-- 					alias = "localhost",
+			-- 					driver = "mysql",
+			-- 					dataSourceName = "root:password@(localhost:28004)/payment_provider",
+			-- 				},
+			-- 			},
+			-- 		},
+			-- 	},
+			-- })
 			-- volar setup
 			require("lspconfig").volar.setup({
 				capabilities = capabilities,
@@ -268,6 +268,12 @@ return {
 			})
 			local lspconfig = require("lspconfig")
 			local configs = require("lspconfig/configs")
+
+			lspconfig.gopls.setup({
+				on_attach = on_attach(),
+				capabilities = capabilities,
+				settings = require("plugins.lsp.gopls"),
+			})
 
 			if not configs.golangcilsp then
 				configs.golangcilsp = {
