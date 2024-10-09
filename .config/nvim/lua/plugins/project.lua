@@ -37,6 +37,17 @@ return {
 		init = function()
 			-- enable saving the state of plugins in the session
 			vim.opt.sessionoptions:append("globals") -- save global variables that start with an uppercase letter and contain at least one lowercase letter.
+			vim.api.nvim_create_autocmd({ "DirChanged" }, {
+				pattern = "global",
+				-- group = augroup,
+				callback = function(event)
+					vim.fn.system("wezterm set-working-directory " .. vim.fn.getcwd())
+					if not require("avante.selection") == nil and require("avante.selection").did_setup or false then
+						require("avante.selection").delete_autocmds()
+						require("avante.selection").setup_autocmds()
+					end
+				end,
+			})
 		end,
 		dependencies = {
 			{ "nvim-lua/plenary.nvim" },

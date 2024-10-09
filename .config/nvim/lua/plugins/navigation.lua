@@ -58,7 +58,7 @@ highlight EyelinerSecondary guifg='#26fcf5' gui=underline ctermfg=81 cterm=under
 
 		config = function()
 			require("aerial").setup()
-			vim.keymap.set("n", "<leader>a", "<cmd>AerialToggle!<CR>")
+			vim.keymap.set("n", "<leader>ao", "<cmd>AerialToggle!<CR>")
 		end,
 	},
 }

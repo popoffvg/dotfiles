@@ -1,9 +1,6 @@
-vim.keymap.set("n", "M", "J") -- mnemonic: [M]erge
-vim.keymap.set("n", "<leader>h", "K") -- mnemonic: [h]over
--- vim.keymap.set("n", "<c-n>", "<cmd>bnext<CR>", { desc = "[N]ext buffer" })
--- vim.keymap.set("n", "<c-p>", "<cmd>bprevious<CR>", { desc = "[P]revious buffer" })
-vim.keymap.set("n", "<c-n>", "<c-i>", { desc = "[N]ext buffer" })
-vim.keymap.set("n", "<c-p>", "<c-o>", { desc = "[P]revious buffer" })
+local isRussianOn = false
+
+vim.opt.laststatus = 3
 
 vim.cmd([[
         set updatetime=30000
@@ -11,7 +8,6 @@ vim.cmd([[
         set rnu
         set clipboard=unnamedplus
         set shell=zsh
-
         let mapleader=' '
         "for wezterm compatibility
         map <C-Left> <C-n>
@@ -159,7 +155,6 @@ vim.cmd([[
     "split | vsplit highlight
     " hi vertsplit guifg=fg guibg=bg
     " hi vertsplit guifg=fg guibg=bg
-
 ]])
 
 vim.api.nvim_create_autocmd({ "FileType" }, {
@@ -187,3 +182,19 @@ vim.keymap.set("n", "]x", function()
 		severity = vim.diagnostic.severity.ERROR,
 	})
 end)
+
+vim.keymap.set("n", "M", "J") -- mnemonic: [M]erge
+vim.keymap.set("n", "<leader>h", "K") -- mnemonic: [h]over
+-- vim.keymap.set("n", "<c-n>", "<cmd>bnext<CR>", { desc = "[N]ext buffer" })
+-- vim.keymap.set("n", "<c-p>", "<cmd>bprevious<CR>", { desc = "[P]revious buffer" })
+vim.keymap.set("n", "<c-n>", "<c-i>", { desc = "[N]ext buffer" })
+vim.keymap.set("n", "<c-p>", "<c-o>", { desc = "[P]revious buffer" })
+vim.keymap.set("n", "<leader>rr", function()
+	if isRussianOn then
+		vim.cmd([[set keymap=]])
+	else
+		vim.cmd([[set keymap=russian-jcukenmac]])
+	end
+	isRussianOn = not isRussianOn
+	require("notify")("Russian " .. (isRussianOn and "on" or "off"))
+end, { desc = "[R]ussian", noremap = true })

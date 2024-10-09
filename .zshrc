@@ -3,7 +3,7 @@ export ZK_PATH="'/Users/popoffvg/Library/Mobile Documents/iCloud~md~obsidian/Doc
 
 bindkey '^f' autosuggest-accept
 
-ulimit -n 10420
+ulimit -n unlimited
 # if [ -z "$TMUX" ]
 # then
 #     tmux attach -t TMUX || tmux new -s TMUX > /dev/null
@@ -109,8 +109,8 @@ compinit
 
 # direnv
 
-export PATH=$PATH:$GOPATH/bin
 export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:"$(go env GOPATH)/bin"
 export PATH=$PATH:~/local/bin
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -126,5 +126,15 @@ source ~/.zshrc_zoxide
 source ~/.zshrc_git
 source ~/.zshrc_broot
 source ~/.zshrc_go
+source ~/.zshrc_sq
 
 source /Users/popoffvg/.config/broot/launcher/bash/br
+
+
+if [[ -n "$VIM_TERMINAL" ]]; then
+		    autoload -Uz add-zsh-hook
+		    add-zsh-hook -Uz chpwd _vim_sync_PWD
+		    function _vim_sync_PWD() {
+			printf '\033]7;file://%s\033\\' "$PWD"
+		    }
+fi

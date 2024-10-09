@@ -245,6 +245,7 @@ return {
 			{ "<leader>fc", ":Telescope commands<CR>", opts },
 			{ "<leader>fr", ":Telescope resume<CR>", opts },
 			{ "<leader>fa", ":Telescope ast_grep<CR>", opts },
+			{ "<leader>fm", ":Telescope marks<CR>", opts },
 			{
 				"<leader>cs",
 				[[:lua require("telescope.builtin").spell_suggest(require("telescope.themes").get_cursor({}))<CR>]],
