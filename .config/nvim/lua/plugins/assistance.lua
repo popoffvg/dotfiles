@@ -165,7 +165,7 @@ Carefully check that the method name is passed to the metrics and that no copy-p
 			-- auto_suggestions_provider = "copilot",
 			behaviour = {
 				auto_suggestions = false, -- Experimental stage_hunk
-				auto_set_keymaps = false,
+				auto_set_keymaps = true,
 			},
 			mappings = {
 				suggestion = {

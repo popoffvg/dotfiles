@@ -1,7 +1,7 @@
 local mason_servers = {
 	"lua_ls",
 	"bashls",
-	"gopls",
+	-- "gopls",
 	"yamlls",
 	"tsserver",
 	"phpactor",
@@ -35,15 +35,15 @@ local api = vim.api
 local lsp = vim.lsp
 
 local make_client_capabilities = lsp.protocol.make_client_capabilities
-function lsp.protocol.make_client_capabilities()
-	local caps = make_client_capabilities()
-	if not (caps.workspace or {}).didChangeWatchedFiles then
-		return caps
-	end
-	caps.workspace.didChangeWatchedFiles = nil
-
-	return caps
-end
+-- function lsp.protocol.make_client_capabilities()
+-- 	local caps = make_client_capabilities()
+-- 	if not (caps.workspace or {}).didChangeWatchedFiles then
+-- 		return caps
+-- 	end
+-- 	caps.workspace.didChangeWatchedFiles = nil
+--
+-- 	return caps
+-- end
 
 local on_attach = function()
 	return function(client, bufnr)
