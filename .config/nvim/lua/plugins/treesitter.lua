@@ -31,10 +31,10 @@ local opts = {
 	incremental_selection = {
 		enable = false,
 		keymaps = {
-			init_selection = "en", -- mnemonic [e]ntry
-			node_incremental = "ea",
-			scope_incremental = "es",
-			node_decremental = "ed",
+			init_selection = "<leader>en", -- mnemonic [e]ntry
+			node_incremental = "<leader>ea",
+			scope_incremental = "<leader>es",
+			node_decremental = "<leader>ed",
 		},
 	},
 	textsubjects = {

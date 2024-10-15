@@ -172,9 +172,9 @@ config.keys = {
 	},
 	{ key = "t", mods = "CMD|SHIFT", action = act.SpawnTab("DefaultDomain") },
 	{
-		key = "v",
+		key = "c",
 		mods = "CMD|SHIFT",
-		action = act.CopyMode({ SetSelectionMode = "Cell" }),
+		action = act.ActivateCopyMode,
 	},
 	{
 		key = "f",

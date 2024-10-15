@@ -83,6 +83,7 @@ alias ...="z ../.."
 alias ....="z ../../.."
 alias .....="z ../../../.."
 alias vi=nvim
+alias neovim=nvim
 alias k=kubectl
 # alias go="grc go"
 alias gita="git add . && git commit --amend -C HEAD && git push -f"
