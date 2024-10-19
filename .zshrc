@@ -127,6 +127,7 @@ source ~/.zshrc_git
 source ~/.zshrc_broot
 source ~/.zshrc_go
 source ~/.zshrc_sq
+source ~/.zshrc_git_town
 
 source /Users/popoffvg/.config/broot/launcher/bash/br
 

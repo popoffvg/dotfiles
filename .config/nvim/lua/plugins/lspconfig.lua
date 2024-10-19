@@ -67,10 +67,10 @@ local on_attach = function()
 		end
 		require("nvim-navic").attach(client, bufnr)
 		local builtin = require("telescope.builtin")
-		vim.keymap.set("n", "<leader>fs", builtin.lsp_document_symbols, bufoptsWithDesc("Open symbol picker"))
+		vim.keymap.set("n", "<leader>f/", builtin.lsp_document_symbols, bufoptsWithDesc("Open symbol picker"))
 		vim.keymap.set(
 			"n",
-			"<leader>fS",
+			"<leader>f?",
 			builtin.lsp_dynamic_workspace_symbols,
 			bufoptsWithDesc("Open symbol picker (workspace)")
 		)

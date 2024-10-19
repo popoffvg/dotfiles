@@ -34,7 +34,8 @@
       - go
       - sq
       - neovim
-      
+      - git-town
+
   tasks:
     - name: Install system packages
       ansible.builtin.homebrew:
