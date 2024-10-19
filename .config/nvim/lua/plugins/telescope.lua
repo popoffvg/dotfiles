@@ -242,10 +242,12 @@ return {
 			-- { "<leader>ft", ":Telescope lsp_document_symbols<CR>", opts },
 			{ "<leader>fo", ":Telescope lsp_outgoing_calls<CR>", opts },
 			{ "<leader>fw", ":Telescope current_buffer_fuzzy_find fuzzy=true case_mode=ignore_case<CR>", opts },
-			{ "<leader>fc", ":Telescope commands<CR>", opts },
+			{ "<leader>fc", ":Legendary<CR>", opts },
 			{ "<leader>fr", ":Telescope resume<CR>", opts },
 			{ "<leader>fa", ":Telescope ast_grep<CR>", opts },
 			{ "<leader>fm", ":Telescope marks<CR>", opts },
+			{ "<leader>fl", ":Telescope loclist<CR>", opts },
+			{ "<leader>fs", ":Telescope quickfixhistory<CR>", opts },
 			{
 				"<leader>cs",
 				[[:lua require("telescope.builtin").spell_suggest(require("telescope.themes").get_cursor({}))<CR>]],

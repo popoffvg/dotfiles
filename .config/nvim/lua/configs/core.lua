@@ -183,7 +183,7 @@ vim.keymap.set("n", "]x", function()
 	})
 end)
 
-vim.keymap.set("n", "M", "J") -- mnemonic: [M]erge
+vim.keymap.set("x", "<leader>j", "J") -- mnemonic: [J]oin
 vim.keymap.set("n", "<leader>h", "K") -- mnemonic: [h]over
 -- vim.keymap.set("n", "<c-n>", "<cmd>bnext<CR>", { desc = "[N]ext buffer" })
 -- vim.keymap.set("n", "<c-p>", "<cmd>bprevious<CR>", { desc = "[P]revious buffer" })
