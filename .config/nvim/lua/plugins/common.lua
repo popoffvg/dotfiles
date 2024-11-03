@@ -246,15 +246,6 @@ return {
 		-- sqlite is only needed if you want to use frecency sorting
 		-- dependencies = { 'kkharji/sqlite.lua' }
 	},
-<<<<<<< Updated upstream
-||||||| Stash base
-	{
-		"kevinhwang91/nvim-bqf",
-		dependencies = {
-			"junegunn/fzf",
-		},
-	},
-=======
 	{
 		"kevinhwang91/nvim-bqf",
 		dependencies = {
@@ -287,5 +278,4 @@ return {
 			{ "<leader>p", "<cmd>PasteImage<cr>", desc = "Paste image from system clipboard" },
 		},
 	},
->>>>>>> Stashed changes
 }

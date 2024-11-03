@@ -85,7 +85,19 @@ return {
 	{
 		"rcarriga/nvim-notify",
 		event = "VeryLazy",
-		config = function() end,
+		config = function()
+			require("notify").setup({
+				stages = "fade",
+				timeout = 3000,
+				background_colour = "#000000",
+				top_down = false,
+				render = "wrapped-compact",
+				max_width = function()
+					local cols = vim.o.columns
+					return math.floor(cols * 0.3)
+				end,
+			})
+		end,
 	},
 	-- {
 	-- 	-- messagaes and cmd new UI
