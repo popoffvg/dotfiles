@@ -246,4 +246,46 @@ return {
 		-- sqlite is only needed if you want to use frecency sorting
 		-- dependencies = { 'kkharji/sqlite.lua' }
 	},
+<<<<<<< Updated upstream
+||||||| Stash base
+	{
+		"kevinhwang91/nvim-bqf",
+		dependencies = {
+			"junegunn/fzf",
+		},
+	},
+=======
+	{
+		"kevinhwang91/nvim-bqf",
+		dependencies = {
+			"junegunn/fzf",
+		},
+	},
+	{
+		"vhyrro/luarocks.nvim",
+		priority = 1001, -- this plugin needs to run before anything else
+		opts = {
+			rocks = { "magick" },
+		},
+	},
+	{
+		"3rd/image.nvim",
+		dependencies = { "luarocks.nvim" },
+		config = function()
+			-- ...
+		end,
+	},
+	{
+		"HakonHarnes/img-clip.nvim",
+		event = "VeryLazy",
+		opts = {
+			-- add options here
+			-- or leave it empty to use the default settings
+		},
+		keys = {
+			-- suggested keymap
+			{ "<leader>p", "<cmd>PasteImage<cr>", desc = "Paste image from system clipboard" },
+		},
+	},
+>>>>>>> Stashed changes
 }

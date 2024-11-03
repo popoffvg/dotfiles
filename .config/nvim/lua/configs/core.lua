@@ -75,6 +75,13 @@ vim.cmd([[
 
         nnoremap <leader>o :!open <cWORD><CR>
         nnoremap \\ :
+
+        " remove line breaking
+        " augroup Terminal
+        "     autocmd!
+        "     autocmd TerminalOpen * execute "set termwinsize=0x" . (winwidth("%")-6)
+        "     autocmd VimResized * execute "set termwinsize=0x" . (winwidth("%")-6)
+        " augroup END
     " general
     set noswapfile
     set wrapscan
