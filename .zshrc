@@ -76,6 +76,8 @@ eval "$(oh-my-posh init zsh --config ~/.config/.oh-my-posh.json)"
 eval "$(direnv hook $SHELL)"
 eval "$(atuin init zsh)"
 
+unalias find
+
 alias ..="z .."
 alias ...="z ../.."
 alias ....="z ../../.."
@@ -91,6 +93,7 @@ alias ls="eza --icons=always"
 alias cd="z"
 alias gfix="TARGET=\$1; shift; git commit -a --fixup=\$TARGET \"\${@:2}\" && EDITOR=true git rebase -i --autostash --autosquash \$TARGET~1; "
 alias zk="cd '/Users/popoffvg/Library/Mobile Documents/iCloud~md~obsidian/Documents/Z-Core/';vi"
+alias cdf='cd $( find . -name .git -type d -prune | xargs dirname {} | fzf )'
 
 bindkey '^e' zsh_gh_copilot_explain
 bindkey '^g' zsh_gh_copilot_suggest

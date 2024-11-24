@@ -265,7 +265,9 @@ tabline.setup({
 			{ "cwd", padding = { left = 0, right = 1 } },
 			{ "zoomed", padding = 0 },
 		},
-		tab_inactive = { "index", { { "parent", padding = 0 } } },
+		tab_inactive = {
+			{ "cwd", padding = { left = 0, right = 1 } },
+		},
 		tabline_y = { "datetime", "battery" },
 	},
 	extensions = {},
