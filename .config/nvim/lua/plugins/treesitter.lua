@@ -29,7 +29,7 @@ local opts = {
 	},
 	ensure_installed = ensure_installed,
 	incremental_selection = {
-		enable = true,
+		enable = false,
 		keymaps = {
 			init_selection = "en", -- mnemonic [e]ntry
 			node_incremental = "ea",

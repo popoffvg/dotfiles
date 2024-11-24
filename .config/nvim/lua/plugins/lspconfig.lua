@@ -328,10 +328,8 @@ return {
 					})
 				end,
 			},
-			{ "[x", "<cmd>lua vim.diagnostic.goto_prev()<CR>" },
-			{ "]x", "<cmd>lua vim.diagnostic.goto_next()<CR> " },
 			{ "<Leader>fx", "<cmd>lua vim.diagnostic.setloclist()<CR>" },
-			{ "<c-k>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", mode = { "n", "i" } },
+			{ "c-d", "<cmd>lua vim.lsp.buf.signature_help()<CR>", mode = { "i" } },
 			-- https://www.reddit.com/r/neovim/comments/11axh2p/how_to_toggle_openclose_floating_lsp_diagnostic/
 			{ "<leader>x", '<cmd>lua vim.diagnostic.open_float(nil, {focus=true, scope="cursor"})<CR>' },
 			{

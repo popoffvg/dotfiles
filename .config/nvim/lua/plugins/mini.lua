@@ -41,6 +41,11 @@ return {
 		end,
 	},
 	{
+		"echasnovski/mini.operators",
+		event = { "BufReadPre", "BufNewFile" },
+		opts = {},
+	},
+	{
 		"echasnovski/mini.trailspace",
 		event = { "BufReadPre", "BufNewFile" },
 		init = function()

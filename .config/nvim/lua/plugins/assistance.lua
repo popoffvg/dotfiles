@@ -96,6 +96,7 @@ Carefully check that the method name is passed to the metrics and that no copy-p
 					yaml = true,
 					json = true,
 					lua = true,
+					md = true,
 					-- ["*"] = false, -- disable for all other filetypes and ignore default `filetypes`
 					sh = function()
 						if string.match(vim.fs.basename(vim.api.nvim_buf_get_name(0)), "^%.env.*") then
@@ -179,7 +180,7 @@ Carefully check that the method name is passed to the metrics and that no copy-p
 				normal = "<CR>",
 				insert = "<C-s>",
 			},
-			hints = { enabled = true },
+			hints = { enabled = false },
 		},
 		-- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
 		build = "make",

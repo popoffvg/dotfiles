@@ -110,61 +110,123 @@ return {
 	-- 		"kyazdani42/nvim-web-devicons",
 	-- 	},
 	-- 	config = function()
-	-- 		-- require("noice").setup({
-	-- 		--
-	-- 		-- 	routes = routes,
-	-- 		-- 	lsp = {
-	-- 		-- 		-- override markdown rendering so that **cmp** and other plugins use **Treesitter**
-	-- 		-- 		override = {
-	-- 		-- 			["vim.lsp.util.convert_input_to_markdown_lines"] = true,
-	-- 		-- 			["vim.lsp.util.stylize_markdown"] = true,
-	-- 		-- 			-- ["cmp.entry.get_documentation"] = true,
-	-- 		-- 		},
-	-- 		-- 		hover = { enabled = true },
-	-- 		-- 		signature = {
-	-- 		-- 			enabled = false,
-	-- 		-- 		},
-	-- 		-- 		documentation = {
-	-- 		-- 			view = "hover",
-	-- 		-- 			---@type NoiceViewOptions
-	-- 		-- 			opts = {
-	-- 		-- 				lang = "markdown",
-	-- 		-- 				replace = true,
-	-- 		-- 				render = "plain",
-	-- 		-- 				format = { "{message}" },
-	-- 		-- 				win_options = { concealcursor = "n", conceallevel = 3 },
-	-- 		-- 			},
-	-- 		-- 		},
-	-- 		-- 	},
-	-- 		-- 	-- you can enable a preset for easier configuration
-	-- 		-- 	presets = {
-	-- 		-- 		bottom_search = false, -- use a classic bottom cmdline for search
-	-- 		-- 		command_palette = true, -- position the cmdline and popupmenu together
-	-- 		-- 		long_message_to_split = true, -- long messages will be sent to a split
-	-- 		-- 		inc_rename = true, -- enables an input dialog for inc-rename.nvim
-	-- 		-- 		lsp_doc_border = true, -- add a border to hover docs and signature help
-	-- 		-- 	},
-	-- 		-- 	messages = {
-	-- 		-- 		enabled = true, -- enables the Noice messages UI
-	-- 		-- 		view = "mini", -- default view for messages
-	-- 		-- 		view_error = "notify", -- view for errors
-	-- 		-- 		view_warn = "notify", -- view for warnings
-	-- 		-- 		view_history = "messages", -- view for :messages
-	-- 		-- 		view_search = "virtualtext", -- view for search count messages. Set to `false` to disable
-	-- 		-- 	},
-	-- 		-- 	-- it works
-	-- 		-- 	-- views = {
-	-- 		-- 	-- 	hover = {
-	-- 		-- 	-- 		size = {
-	-- 		-- 	-- 			max_width = 1,
-	-- 		-- 	-- 		},
-	-- 		-- 	-- 		border = {
-	-- 		-- 	-- 			style = "rounded",
-	-- 		-- 	-- 		},
-	-- 		-- 	-- 		position = { row = 2, col = 2 },
-	-- 		-- 	-- 	},
-	-- 		-- 	-- },
-	-- 		-- })
+	-- 		require("noice").setup({
+	-- 			lsp = {
+	-- 				progress = {
+	-- 					enabled = true,
+	-- 				},
+	-- 				-- override = {
+	-- 				-- 	-- override the default lsp markdown formatter with Noice
+	-- 				-- 	["vim.lsp.util.convert_input_to_markdown_lines"] = false,
+	-- 				-- 	-- override the lsp markdown formatter with Noice
+	-- 				-- 	["vim.lsp.util.stylize_markdown"] = false,
+	-- 				-- 	-- override cmp documentation with Noice (needs the other options to work)
+	-- 				-- 	["cmp.entry.get_documentation"] = false,
+	-- 				-- },
+	-- 				hover = {
+	-- 					enabled = false,
+	-- 				},
+	-- 				signature = {
+	-- 					enabled = false,
+	-- 				},
+	-- 				message = {
+	-- 					-- Messages shown by lsp servers
+	-- 					enabled = true,
+	-- 					view = "notify",
+	-- 					opts = {},
+	-- 				},
+	-- 				-- defaults for hover and signature help
+	-- 				documentation = {
+	-- 					view = "hover",
+	-- 					---@type NoiceViewOptions
+	-- 					opts = {
+	-- 						lang = "markdown",
+	-- 						replace = true,
+	-- 						render = "plain",
+	-- 						format = { "{message}" },
+	-- 						win_options = { concealcursor = "n", conceallevel = 3 },
+	-- 					},
+	-- 				},
+	-- 			},
+	-- 			routes = routes,
+	-- 			presets = {
+	-- 				bottom_search = false, -- use a classic bottom cmdline for search
+	-- 				command_palette = true, -- position the cmdline and popupmenu together
+	-- 				long_message_to_split = false, -- long messages will be sent to a split
+	-- 				inc_rename = false, -- enables an input dialog for inc-rename.nvim
+	-- 				lsp_doc_border = false, -- add a border to hover docs and signature help
+	-- 			},
+	-- 			messages = {
+	-- 				enabled = false, -- enables the Noice messages UI
+	-- 				view = "mini", -- default view for messages
+	-- 				view_error = "notify", -- view for errors
+	-- 				view_warn = "notify", -- view for warnings
+	-- 				view_history = "messages", -- view for :messages
+	-- 				view_search = "virtualtext", -- view for search count messages. Set to `false` to disable
+	-- 			},
+	-- 			view = {
+	-- 				views = {
+	-- 					cmdline_popup = {
+	-- 						backend = "popup",
+	-- 						relative = "editor",
+	-- 						position = {
+	-- 							row = "60%", -- 40% from top of the screen. This will position it almost at the center.
+	-- 							col = "40%",
+	-- 						},
+	-- 						size = {
+	-- 							width = 120,
+	-- 							height = "auto",
+	-- 						},
+	-- 						win_options = {
+	-- 							winhighlight = {
+	-- 								Normal = "NoiceCmdlinePopup",
+	-- 								FloatTitle = "NoiceCmdlinePopupTitle",
+	-- 								FloatBorder = "NoiceCmdlinePopupBorder",
+	-- 								IncSearch = "",
+	-- 								CurSearch = "",
+	-- 								Search = "",
+	-- 							},
+	-- 							winbar = "",
+	-- 							foldenable = false,
+	-- 							cursorline = false,
+	-- 						},
+	-- 					},
+	-- 					popupmenu = {
+	-- 						relative = "editor",
+	-- 						position = {
+	-- 							row = "50%", -- Popup will show up below the cmdline automatically
+	-- 							col = "40%",
+	-- 						},
+	-- 						size = {
+	-- 							width = 120,
+	-- 							height = "auto",
+	-- 						},
+	-- 						border = {
+	-- 							style = "rounded",
+	-- 							padding = { 0, 1 },
+	-- 						},
+	-- 						win_options = {
+	-- 							winhighlight = { Normal = "Normal", FloatBorder = "DiagnosticInfo" },
+	-- 						},
+	-- 					},
+	-- 					cmdline = {
+	-- 						view = "cmdline_popup", -- cmdline_popup, cmdline
+	-- 					},
+	-- 				},
+	-- 			},
+	-- 			-- it works
+	-- 			-- views = {
+	-- 			-- 	hover = {
+	-- 			-- 		size = {
+	-- 			-- 			max_width = 1,
+	-- 			-- 		},
+	-- 			-- 		border = {
+	-- 			-- 			style = "rounded",
+	-- 			-- 		},
+	-- 			-- 		position = { row = 2, col = 2 },
+	-- 			-- 	},
+	-- 			-- },
+	-- 		})
 	-- 	end,
 	-- },
 	{
@@ -318,7 +380,20 @@ return {
 	{
 		"crusj/bookmarks.nvim",
 		keys = {
-			{ "<tab><tab>", mode = { "n" } },
+			{
+				"<leader>fB",
+				function()
+					require("bookmarks").toggle_bookmarks()
+				end,
+				mode = { "n" },
+			},
+			{
+				"<leader>b",
+				function()
+					require("bookmarks").add_bookmarks(false)
+				end,
+				mode = { "n" },
+			},
 		},
 		branch = "main",
 		dependencies = { "nvim-web-devicons" },
@@ -420,4 +495,24 @@ return {
 	-- 		})
 	-- 	end,
 	-- },
+	{
+		"rachartier/tiny-inline-diagnostic.nvim",
+		event = "LspAttach", -- Or `LspAttach`
+		priority = 1000, -- needs to be loaded in first
+		config = function()
+			vim.diagnostic.config({ virtual_text = false })
+			require("tiny-inline-diagnostic").setup()
+		end,
+	},
+	{
+		"OXY2DEV/helpview.nvim",
+		lazy = false, -- Recommended
+
+		-- In case you still want to lazy load
+		-- ft = "help",
+
+		dependencies = {
+			"nvim-treesitter/nvim-treesitter",
+		},
+	},
 }

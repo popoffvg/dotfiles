@@ -32,7 +32,7 @@ highlight EyelinerSecondary guifg='#26fcf5' gui=underline ctermfg=81 cterm=under
 		},
 		keys = {
 			{
-				"<leader><leader>",
+				"<leader><tab>",
 				function()
 					require("flash").jump()
 				end,

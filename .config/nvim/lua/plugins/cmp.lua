@@ -301,6 +301,25 @@ return {
 					},
 				})
 			end
+			cmp.setup.cmdline("!", {
+				view = {
+					entries = "custom",
+				},
+				completion = { completeopt = "menu,menuone,noselect" },
+				mapping = cmp.mapping.preset.cmdline({
+					["<C-f>"] = cmp.mapping.confirm({
+						select = true,
+						behavior = cmp.ConfirmBehavior.replace,
+					}),
+				}),
+				sources = cmp.config.sources({
+					{ name = "path" },
+					{ name = "cmdline_history" },
+				}),
+				formatting = {
+					formt = format,
+				},
+			})
 			for _, cmd_type in ipairs({ "/", "?" }) do
 				cmp.setup.cmdline(cmd_type, {
 					view = {
@@ -329,6 +348,23 @@ return {
 			end
 
 			require("lsp_signature").setup({})
+			local cmp_augroup = vim.api.nvim_create_augroup("add emoji for md", { clear = true })
+			vim.api.nvim_create_autocmd("BufEnter", {
+				group = cmp_augroup,
+				pattern = "*.md",
+				callback = function()
+					local ft_sources = sources
+					table.insert(ft_sources, { name = "emoji", priority = 1 })
+					require("cmp").config.sources(ft_sources)
+				end,
+			})
+			vim.api.nvim_create_autocmd("BufLeave", {
+				group = cmp_augroup,
+				pattern = "*.md",
+				callback = function()
+					require("cmp").config.sources(sources)
+				end,
+			})
 		end,
 	},
 	{

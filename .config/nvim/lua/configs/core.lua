@@ -32,8 +32,7 @@ vim.cmd([[
         nnoremap <c><Right><Right> $
 
 
-        " imap <m-h> <backspace>
-        imap <c-=> :=
+        imap 0= :=
 
         vnoremap <TAB> ^
         vnoremap 0 $
@@ -57,6 +56,8 @@ vim.cmd([[
         " noremap <Leader>P "+p
 
         " Terminal map
+        tnoremap <C-o> <C-\><C-o>
+        tnoremap <C-i> <C-\><C-i>
         tnoremap <Esc> <C-\><C-n>
         tnoremap <C-J> <C-\><C-n><C-W><C-J>
         tnoremap <C-K> <C-\><C-n><C-W><C-K>
@@ -182,26 +183,42 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufNewFile" }, {
 vim.keymap.set("n", "[x", function()
 	vim.diagnostic.goto_prev({
 		severity = vim.diagnostic.severity.ERROR,
+		float = false,
 	})
 end)
 vim.keymap.set("n", "]x", function()
 	vim.diagnostic.goto_next({
 		severity = vim.diagnostic.severity.ERROR,
+		float = false,
 	})
 end)
 
-vim.keymap.set("n", "M", "J") -- mnemonic: [M]erge
-vim.keymap.set("n", "<leader>h", "K") -- mnemonic: [h]over
--- vim.keymap.set("n", "<c-n>", "<cmd>bnext<CR>", { desc = "[N]ext buffer" })
--- vim.keymap.set("n", "<c-p>", "<cmd>bprevious<CR>", { desc = "[P]revious buffer" })
-vim.keymap.set("n", "<c-n>", "<c-i>", { desc = "[N]ext buffer" })
-vim.keymap.set("n", "<c-p>", "<c-o>", { desc = "[P]revious buffer" })
-vim.keymap.set("n", "<leader>rr", function()
+local function russianToggle()
 	if isRussianOn then
 		vim.cmd([[set keymap=]])
+		isRussianOn = false
 	else
-		vim.cmd([[set keymap=russian-jcukenmac]])
+		vim.cmd([[set keymap=russian-jcuken]])
+		isRussianOn = true
 	end
-	isRussianOn = not isRussianOn
-	require("notify")("Russian " .. (isRussianOn and "on" or "off"))
-end, { desc = "[R]ussian", noremap = true })
+end
+
+vim.keymap.set("n", "M", "J") -- mnemonic: [M]erge
+vim.keymap.set("n", "<leader>h", "K") -- mnemonic: [h]over
+vim.keymap.set("n", "<c-n>", "<c-i>", { desc = "[N]ext buffer" })
+vim.keymap.set("n", "<c-p>", "<c-o>", { desc = "[P]revious buffer" })
+vim.keymap.set("n", "<leader>rr", russianToggle, { desc = "[R]ussian", noremap = true })
+vim.keymap.set("i", "<c-r>", russianToggle, { desc = "[R]ussian", noremap = true })
+
+vim.api.nvim_create_autocmd({ "BufEnter", "BufNewFile" }, {
+	pattern = "term:*",
+	callback = function()
+		vim.cmd([[set hidden = true]])
+	end,
+})
+vim.api.nvim_create_autocmd({ "BufEnter", "BufNewFile" }, {
+	pattern = "term:*",
+	callback = function()
+		vim.cmd([[set hidden]])
+	end,
+})
