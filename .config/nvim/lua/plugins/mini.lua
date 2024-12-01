@@ -43,7 +43,46 @@ return {
 	{
 		"echasnovski/mini.operators",
 		event = { "BufReadPre", "BufNewFile" },
-		opts = {},
+		opts = {
+			evaluate = {
+				prefix = "c=",
+
+				-- Function which does the evaluation
+				func = nil,
+			},
+
+			-- Exchange text regions
+			exchange = {
+				prefix = "cx",
+
+				-- Whether to reindent new text to match previous indent
+				reindent_linewise = true,
+			},
+
+			-- Multiply (duplicate) text
+			multiply = {
+				prefix = "cm",
+
+				-- Function which can modify text before multiplying
+				func = nil,
+			},
+
+			-- Replace text with register
+			replace = {
+				prefix = "cr",
+
+				-- Whether to reindent new text to match previous indent
+				reindent_linewise = true,
+			},
+
+			-- Sort text
+			sort = {
+				prefix = "cs",
+
+				-- Function which does the sort
+				func = nil,
+			},
+		},
 	},
 	{
 		"echasnovski/mini.trailspace",

@@ -25,11 +25,11 @@ config.color_schemes = {
 }
 config.color_scheme = "OLEDppuccin"
 config.font = wezterm.font("FiraCode Nerd Font")
-
 config.font_size = 14.0
 -- config.enable_tab_bar = false
 config.audible_bell = "Disabled"
--- config.window_decorations = "NONE"
+config.window_decorations = "TITLE | RESIZE"
+config.window_decorations = "NONE"
 local wezterm = require("wezterm")
 
 local function is_vim(pane)
@@ -266,6 +266,7 @@ tabline.setup({
 			{ "zoomed", padding = 0 },
 		},
 		tab_inactive = {
+			{ "index" },
 			{ "cwd", padding = { left = 0, right = 1 } },
 		},
 		tabline_y = { "datetime", "battery" },
