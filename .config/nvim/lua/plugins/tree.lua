@@ -2,23 +2,23 @@ local HEIGHT_RATIO = 0.8
 local WIDTH_RATIO = 0.5
 
 return {
-	{
-		"echasnovski/mini.files",
-		version = "*",
-		config = function()
-			require("mini.files").setup({
-				permanent_delete = false,
-			})
-		end,
-		keys = {
-			{
-				"<leader>d", -- mnemonic [d]irectory
-				function()
-					require("mini.files").open(vim.api.nvim_buf_get_name(0), false)
-				end,
-			},
-		},
-	},
+	-- {
+	-- 	"echasnovski/mini.files",
+	-- 	version = "*",
+	-- 	config = function()
+	-- 		require("mini.files").setup({
+	-- 			permanent_delete = false,
+	-- 		})
+	-- 	end,
+	-- 	keys = {
+	-- 		{
+	-- 			"<leader>d", -- mnemonic [d]irectory
+	-- 			function()
+	-- 				require("mini.files").open(vim.api.nvim_buf_get_name(0), false)
+	-- 			end,
+	-- 		},
+	-- 	},
+	-- },
 
 	{
 		"nvim-neo-tree/neo-tree.nvim",
@@ -29,6 +29,17 @@ return {
 			"MunifTanjim/nui.nvim",
 			-- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
 		},
+		opts = function(_, opts)
+			local function on_move(data)
+				require("snacks").rename.on_rename_file(data.source, data.destination)
+			end
+			local events = require("neo-tree.events")
+			opts.event_handlers = opts.event_handlers or {}
+			vim.list_extend(opts.event_handlers, {
+				{ event = events.FILE_MOVED, handler = on_move },
+				{ event = events.FILE_RENAMED, handler = on_move },
+			})
+		end,
 		config = function()
 			require("neo-tree").setup({
 				enable_git_status = true,

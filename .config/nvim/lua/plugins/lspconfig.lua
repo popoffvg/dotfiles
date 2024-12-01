@@ -74,7 +74,7 @@ local on_attach = function()
 			builtin.lsp_dynamic_workspace_symbols,
 			bufoptsWithDesc("Open symbol picker (workspace)")
 		)
-		vim.keymap.set("n", "fu", builtin.lsp_references, bufoptsWithDesc("Open references picker"))
+		vim.keymap.set("n", "<leader>fu", builtin.lsp_references, bufoptsWithDesc("Open references picker"))
 		vim.api.nvim_command("autocmd CursorHold <buffer> lua vim.diagnostic.open_float({focusable = false})")
 	end
 end
@@ -329,9 +329,9 @@ return {
 				end,
 			},
 			{ "<Leader>fx", "<cmd>lua vim.diagnostic.setloclist()<CR>" },
-			{ "c-d", "<cmd>lua vim.lsp.buf.signature_help()<CR>", mode = { "i" } },
+			{ "<c-d>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", mode = { "i" } },
 			-- https://www.reddit.com/r/neovim/comments/11axh2p/how_to_toggle_openclose_floating_lsp_diagnostic/
-			{ "<leader>x", '<cmd>lua vim.diagnostic.open_float(nil, {focus=true, scope="cursor"})<CR>' },
+			{ "<leader>'", '<cmd>lua vim.diagnostic.open_float(nil, {focus=true, scope="cursor"})<CR>' },
 			{
 				"<leader>rn",
 				function()

@@ -346,6 +346,7 @@ return {
 			require("symbols-outline").setup()
 		end,
 	},
+	-- start screen
 	{
 		"goolord/alpha-nvim",
 		config = function()
@@ -495,15 +496,15 @@ return {
 	-- 		})
 	-- 	end,
 	-- },
-	{
-		"rachartier/tiny-inline-diagnostic.nvim",
-		event = "LspAttach", -- Or `LspAttach`
-		priority = 1000, -- needs to be loaded in first
-		config = function()
-			vim.diagnostic.config({ virtual_text = false })
-			require("tiny-inline-diagnostic").setup()
-		end,
-	},
+	-- {
+	-- 	"rachartier/tiny-inline-diagnostic.nvim",
+	-- 	event = "LspAttach", -- Or `LspAttach`
+	-- 	priority = 1000, -- needs to be loaded in first
+	-- 	config = function()
+	-- 		vim.diagnostic.config({ virtual_text = false })
+	-- 		require("tiny-inline-diagnostic").setup()
+	-- 	end,
+	-- },
 	{
 		"OXY2DEV/helpview.nvim",
 		lazy = false, -- Recommended

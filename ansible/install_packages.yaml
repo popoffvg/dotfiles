@@ -34,7 +34,7 @@
       - go
       - sq
       - neovim
-      
+ 
   tasks:
     - name: Install system packages
       ansible.builtin.homebrew:
@@ -44,6 +44,9 @@
       ansible.builtin.git:
          repo: 'https://github.com/sirupsen/zk.git'
          dest: '~/zk'
+    - name: Install sketchybar
+      ansible.builtin.shell:
+         cmd: 'brew tap FelixKratz/formulae && brew install sketchybar'
     - name: Install mise
       block:
         - name: load mise

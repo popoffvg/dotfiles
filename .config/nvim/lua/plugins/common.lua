@@ -1,12 +1,5 @@
 return {
 	{
-		-- allow few terminals around one vim session
-		"akinsho/toggleterm.nvim",
-		keys = {
-			{ "ttm", ":ToggleTerm<Cr>" },
-		},
-	},
-	{
 		"kkharji/sqlite.lua",
 	},
 	{ "folke/neoconf.nvim", cmd = "Neoconf" },
@@ -203,15 +196,15 @@ return {
 			require("sibling-swap").setup({})
 			vim.keymap.set(
 				{ "v", "n" },
-				"sl",
+				"el",
 				"<cmd>lua require('sibling-swap').swap_with_right()<CR>",
-				{ noremap = true, silent = true, desc = "[s]wap with right" }
+				{ noremap = true, silent = true, desc = "[e]dit: swap with right" }
 			)
 			vim.keymap.set(
 				{ "v", "n" },
-				"sh",
+				"eh",
 				"<cmd>lua require('sibling-swap').swap_with_left()<CR>",
-				{ noremap = true, silent = true, desc = "[s]wap with left" }
+				{ noremap = true, silent = true, desc = "[e]dit swap with left" }
 			)
 		end,
 	},
@@ -247,6 +240,7 @@ return {
 		-- dependencies = { 'kkharji/sqlite.lua' }
 	},
 	{
+		-- better quickfix
 		"kevinhwang91/nvim-bqf",
 		dependencies = {
 			"junegunn/fzf",
@@ -276,6 +270,31 @@ return {
 		keys = {
 			-- suggested keymap
 			{ "<leader>p", "<cmd>PasteImage<cr>", desc = "Paste image from system clipboard" },
+		},
+	},
+	{
+		"folke/snacks.nvim",
+		opts = {
+			bigfile = { enabled = true },
+			notifier = { enabled = true },
+			statuscolumn = { enabled = true },
+			words = { enabled = true },
+		},
+		keys = {
+			{
+				"<leader>fh",
+				function()
+					require("snacks").git.blame_line()
+				end,
+				desc = "Show git line [H]istory",
+			},
+			{
+				"<leader>dn",
+				function()
+					require("snacks").notifier.hide()
+				end,
+				desc = "Dismiss All Notifications",
+			},
 		},
 	},
 }

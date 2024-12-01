@@ -72,6 +72,7 @@ return {
 				},
 
 				extensions = {
+					fzf = {},
 					["ui-select"] = {
 						require("telescope.themes").get_ivy({}),
 					},
@@ -246,15 +247,14 @@ return {
 			{ "<leader>fr", ":Telescope resume<CR>", opts },
 			{ "<leader>fa", ":Telescope ast_grep<CR>", opts },
 			{ "<leader>fm", ":Telescope marks<CR>", opts },
-			{
-				"<leader>cs",
-				[[:lua require("telescope.builtin").spell_suggest(require("telescope.themes").get_cursor({}))<CR>]],
-				opts,
-			},
+			-- {
+			-- 	"<leader>cs",
+			-- 	[[:lua require("telescope.builtin").spell_suggest(require("telescope.themes").get_cursor({}))<CR>]],
+			-- 	opts,
+			-- },
+			{ "<leader>fj", ":Telescope jumplist<CR>", opts },
 			{ "<leader>fy", ":Telescope yank_history<CR>", opts },
 			{ "gr", "<cmd>Telescope lsp_references<CR>", {} },
-			{ "<leader>gr", "<cmd>Telescope lsp_references<CR>", {} },
-			-- { "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts },
 			{ "gd", "<cmd>Telescope lsp_definitions<CR>", opts },
 			{
 				"gi",

@@ -208,8 +208,11 @@ vim.keymap.set("n", "<leader>h", "K") -- mnemonic: [h]over
 vim.keymap.set("n", "<c-n>", "<c-i>", { desc = "[N]ext buffer" })
 vim.keymap.set("n", "<c-p>", "<c-o>", { desc = "[P]revious buffer" })
 vim.keymap.set("n", "<leader>rr", russianToggle, { desc = "[R]ussian", noremap = true })
-vim.keymap.set("i", "<c-r>", russianToggle, { desc = "[R]ussian", noremap = true })
-
+vim.keymap.set("i", "<c-r>", function()
+	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<esc>", true, false, true), "x", true)
+	russianToggle()
+	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("i", true, false, true), "x!", true)
+end, { desc = "[R]ussian", noremap = true })
 vim.api.nvim_create_autocmd({ "BufEnter", "BufNewFile" }, {
 	pattern = "term:*",
 	callback = function()

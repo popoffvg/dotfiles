@@ -1,7 +1,11 @@
 -- Pull in the wezterm API
 local wezterm = require("wezterm")
 local act = wezterm.action
-
+local mux = wezterm.mux
+wezterm.on("gui-startup", function()
+	local tab, pane, window = mux.spawn_window({})
+	window:gui_window():maximize()
+end)
 -- This table will hold the configuration.
 local config = {}
 
@@ -25,13 +29,18 @@ config.color_schemes = {
 }
 config.color_scheme = "OLEDppuccin"
 config.font = wezterm.font("FiraCode Nerd Font")
-
 config.font_size = 14.0
 -- config.enable_tab_bar = false
 config.audible_bell = "Disabled"
 -- config.window_decorations = "NONE"
 local wezterm = require("wezterm")
-
+config.window_padding = {
+	left = 0,
+	right = 0,
+	top = 0,
+	bottom = 0,
+}
+-- config.native_macos_fullscreen_mode = true
 local function is_vim(pane)
 	local process_info = pane:get_foreground_process_info()
 	local process_name = process_info and process_info.name
@@ -167,6 +176,11 @@ config.keys = {
 		mods = "CMD|SHIFT",
 		action = act.CopyMode({ SetSelectionMode = "Cell" }),
 	},
+	{
+		key = "f",
+		mods = "CMD|SHIFT",
+		action = wezterm.action.ToggleFullScreen,
+	},
 	split_nav("move", "h"),
 	split_nav("move", "j"),
 	split_nav("move", "k"),
@@ -266,6 +280,7 @@ tabline.setup({
 			{ "zoomed", padding = 0 },
 		},
 		tab_inactive = {
+			{ "index" },
 			{ "cwd", padding = { left = 0, right = 1 } },
 		},
 		tabline_y = { "datetime", "battery" },
