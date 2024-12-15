@@ -77,7 +77,7 @@ return {
 			replace = {
 				prefix = "cp",
 
-				-- Whether to reindent new text to match previous indent
+				-- whether to reindent new text to match previous indent
 				reindent_linewise = true,
 			},
 

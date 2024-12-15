@@ -196,15 +196,15 @@ return {
 			require("sibling-swap").setup({})
 			vim.keymap.set(
 				{ "v", "n" },
-				"el",
+				"cl",
 				"<cmd>lua require('sibling-swap').swap_with_right()<CR>",
-				{ noremap = true, silent = true, desc = "[e]dit: swap with right" }
+				{ noremap = true, silent = true, desc = "a[c]tion: swap with right" }
 			)
 			vim.keymap.set(
 				{ "v", "n" },
-				"eh",
+				"ch",
 				"<cmd>lua require('sibling-swap').swap_with_left()<CR>",
-				{ noremap = true, silent = true, desc = "[e]dit swap with left" }
+				{ noremap = true, silent = true, desc = "a[c]tion: swap with left" }
 			)
 		end,
 	},
