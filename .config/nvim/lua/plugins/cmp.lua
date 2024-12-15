@@ -164,7 +164,16 @@ return {
 				-- { name = "cmp_tabnine", priority = 300 },
 				{ name = "luasnip", priority = 200 },
 				{ name = "nvim_lsp_signature_help", priority = 11 },
-				{ name = "nvim_lsp", priority = 10 },
+
+				{
+                    name = "nvim_lsp",
+                    priority = 10,
+                    entry_filter = function(entry, ctx)
+                        local kind =require'cmp.types'.lsp.CompletionItemKind[entry:get_kind()]
+                        if kind == "Text" then return false end
+                        return true
+                    end
+                },
 				{ name = "nvim_lua", priority = 10 },
 				{ name = "otter", priority = 10 },
 				{
@@ -229,6 +238,18 @@ return {
 						fallback()
 					end
 				end,
+                ["<C-m>"] = cmp.mapping.complete({
+                    config = {
+                      sources = {
+                        {
+                          name = 'nvim_lsp',
+                          entry_filter = function(entry)
+                            return require('cmp.types').lsp.CompletionItemKind[entry:get_kind()] == 'Module'
+                          end
+                        }
+                      }
+                    }
+                  }),
 			})
 			cmp.setup({
 				appearance = {

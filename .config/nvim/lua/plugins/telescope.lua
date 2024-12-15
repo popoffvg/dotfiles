@@ -69,6 +69,11 @@ return {
 					-- 	return window_size > 100
 					-- end,
 					wrap_results = true,
+                    mappings = {
+                        i = {
+                            ["<C-h>"] = "which_key",
+                        },
+                    },
 				},
 
 				extensions = {
