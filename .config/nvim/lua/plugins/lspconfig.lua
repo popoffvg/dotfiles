@@ -5,6 +5,7 @@ local mason_servers = {
 	"yamlls",
 	"tsserver",
 	"phpactor",
+	"pylsp",
 	"pyright",
 	"golangci_lint_ls",
 	"bufls",
@@ -144,7 +145,7 @@ return {
 				end,
 			},
 			-- Interaction between cmp and lspconfig
-			"hrsh7th/cmp-nvim-lsp",
+			-- "hrsh7th/cmp-nvim-lsp",
 
 			-- {
 			-- 	-- show usages
@@ -179,8 +180,8 @@ return {
 		},
 		event = { "BufReadPre", "BufNewFile" },
 		config = function(_, opts)
-			local cmp = require("cmp_nvim_lsp")
-			local capabilities = cmp.default_capabilities(make_client_capabilities())
+			-- local cmp = require("cmp_nvim_lsp")
+			-- local capabilities = cmp.default_capabilities(make_client_capabilities())
 			vim.lsp.handlers["textDocument/hover"] =
 				vim.lsp.with(vim.lsp.handlers.hover, { focusable = false, float = true })
 

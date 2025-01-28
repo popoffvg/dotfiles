@@ -33,7 +33,7 @@ Carefully check that the method name is passed to the metrics and that no copy-p
 					},
 				},
 			})
-			require("CopilotChat.integrations.cmp").setup()
+			-- require("CopilotChat.integrations.cmp").setup()
 		end,
 		keys = {
 			{

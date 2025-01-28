@@ -33,13 +33,13 @@ return {
 		init = function()
 			require("mini.move").setup({
 				mappings = {
-					left = "<S-h>",
-					right = "<S-l>",
+					left = "<S-Tab>",
+					right = "<Tab>",
 					down = "<S-j>",
 					up = "<S-k>",
 
-					line_left = "<S-h>",
-					line_right = "<S-l>",
+					line_left = "<S-Tab>",
+					line_right = "<Tab>",
 					line_down = "<S-j>",
 					line_up = "<S-k>",
 				},
@@ -51,7 +51,7 @@ return {
 		event = { "BufReadPre", "BufNewFile" },
 		opts = {
 			evaluate = {
-				prefix = "c=",
+				prefix = "<leader>c=",
 
 				-- Function which does the evaluation
 				func = nil,
@@ -59,7 +59,7 @@ return {
 
 			-- Exchange text regions
 			exchange = {
-				prefix = "cx",
+				prefix = "<leader>cx",
 
 				-- Whether to reindent new text to match previous indent
 				reindent_linewise = true,
@@ -67,7 +67,7 @@ return {
 
 			-- Multiply (duplicate) text
 			multiply = {
-				prefix = "cm",
+				prefix = "<leader>cm",
 
 				-- Function which can modify text before multiplying
 				func = nil,
@@ -75,7 +75,7 @@ return {
 
 			-- Replace text with register
 			replace = {
-				prefix = "cp",
+				prefix = "<leader>cp",
 
 				-- whether to reindent new text to match previous indent
 				reindent_linewise = true,
@@ -83,7 +83,7 @@ return {
 
 			-- Sort text
 			sort = {
-				prefix = "cs",
+				prefix = "<leader>cs",
 
 				-- Function which does the sort
 				func = nil,

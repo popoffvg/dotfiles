@@ -44,7 +44,7 @@ return {
 				defaults = {
 					initial_mode = "insert",
 					layout_strategy = "vertical",
-					file_ignore_patterns = { "node%_modules", "%.git" },
+					file_ignore_patterns = { "node%_modules", "%.git", "%.venv", "venv" },
 					layout_config = {
 						horizontal = {
 							-- preview_cutoff = 120,
@@ -69,11 +69,11 @@ return {
 					-- 	return window_size > 100
 					-- end,
 					wrap_results = true,
-                    mappings = {
-                        i = {
-                            ["<C-h>"] = "which_key",
-                        },
-                    },
+					mappings = {
+						i = {
+							["<C-h>"] = "which_key",
+						},
+					},
 				},
 
 				extensions = {
@@ -179,7 +179,7 @@ return {
 							"--smart-case",
 							"--hidden",
 							"--glob",
-							"!{.git/*,.svelte-kit/*,target/*,node_modules/*}",
+							"!{.git/*,.svelte-kit/*,target/*,node_modules/*, .venv/*, venv/*, *.canvas}",
 							"--path-separator",
 							"/",
 						},
@@ -252,13 +252,14 @@ return {
 			{ "<leader>fr", ":Telescope resume<CR>", opts },
 			{ "<leader>fa", ":Telescope ast_grep<CR>", opts },
 			{ "<leader>fm", ":Telescope marks<CR>", opts },
+			{ "<leader>fG", ":Telescope git_status<CR>", opts },
 			-- {
 			-- 	"<leader>cs",
 			-- 	[[:lua require("telescope.builtin").spell_suggest(require("telescope.themes").get_cursor({}))<CR>]],
 			-- 	opts,
 			-- },
 			{ "<leader>fj", ":Telescope jumplist<CR>", opts },
-			{ "<leader>fy", ":Telescope yank_history<CR>", opts },
+			{ "<leader>fp", ":Telescope yank_history<CR>", opts },
 			{ "gr", "<cmd>Telescope lsp_references<CR>", {} },
 			{ "gd", "<cmd>Telescope lsp_definitions<CR>", opts },
 			{

@@ -108,7 +108,7 @@ return {
 			{ "<leader>fy", "<cmd>Telescope yank_history<CR>", noremap = true, mode = { "n" } },
 		},
 	},
-	{ "tpope/vim-abolish" },
+	-- { "tpope/vim-abolish" },
 	{
 		"numToStr/Comment.nvim",
 		dependencies = {
@@ -196,22 +196,27 @@ return {
 			require("sibling-swap").setup({})
 			vim.keymap.set(
 				{ "v", "n" },
-				"cl",
+				"<leader>cl",
 				"<cmd>lua require('sibling-swap').swap_with_right()<CR>",
 				{ noremap = true, silent = true, desc = "a[c]tion: swap with right" }
 			)
 			vim.keymap.set(
 				{ "v", "n" },
-				"ch",
+				"<leader>ch",
 				"<cmd>lua require('sibling-swap').swap_with_left()<CR>",
 				{ noremap = true, silent = true, desc = "a[c]tion: swap with left" }
 			)
 		end,
 	},
+	-- lazy.nvim
 	{
 		"chrisgrieser/nvim-various-textobjs",
-		lazy = true,
-		opt = {},
+		lazy = false,
+		opts = {
+			keymaps = {
+				useDefaults = true,
+			},
+		},
 	},
 	-- 	{
 	-- 		"max397574/better-escape.nvim",
@@ -245,20 +250,6 @@ return {
 		dependencies = {
 			"junegunn/fzf",
 		},
-	},
-	{
-		"vhyrro/luarocks.nvim",
-		priority = 1001, -- this plugin needs to run before anything else
-		opts = {
-			rocks = { "magick" },
-		},
-	},
-	{
-		"3rd/image.nvim",
-		dependencies = { "luarocks.nvim" },
-		config = function()
-			-- ...
-		end,
 	},
 	{
 		"HakonHarnes/img-clip.nvim",

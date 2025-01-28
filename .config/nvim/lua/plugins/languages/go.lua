@@ -48,6 +48,22 @@ return {
 			"mfussenegger/nvim-dap",
 			"rcarriga/nvim-dap-ui",
 			"nvim-neotest/nvim-nio",
+			{
+				{
+					"mfussenegger/nvim-dap",
+					dependencies = {
+						{ "igorlfs/nvim-dap-view", opts = {} },
+					},
+					keys = {
+						{
+							"<leader>cd",
+							function()
+								require("dap-view").toggle()
+							end,
+						},
+					},
+				},
+			},
 		},
 		config = function()
 			require("mason-nvim-dap").setup({
