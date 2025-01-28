@@ -117,6 +117,8 @@ export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/Users/popoffvg/.cargo/bin
 export PATH=$PATH:"$(go env GOPATH)/bin"
 export PATH=$PATH:~/local/bin
+export PATH=$PATH:/Users/vitaliipopov/.cargo/bin
+
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
