@@ -165,6 +165,7 @@ return {
 		dependecies = {
 			"nvim-telescope/telescope.nvim",
 		},
+		event = { "LspAttach" },
 		config = function()
 			require("telescope").load_extension("goimpl")
 		end,

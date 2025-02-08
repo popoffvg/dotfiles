@@ -30,10 +30,11 @@
       - nodejs
       - pamburus/tap/hl
       - viu # image viewer
-      - broot
+      - broot # file manager
       - go
       - sq
       - neovim
+      - dua-cli
  
   tasks:
     - name: Install system packages

@@ -40,6 +40,7 @@ config.window_padding = {
 	top = 0,
 	bottom = 0,
 }
+config.window_decorations = "NONE"
 -- config.native_macos_fullscreen_mode = true
 local function is_vim(pane)
 	local process_info = pane:get_foreground_process_info()

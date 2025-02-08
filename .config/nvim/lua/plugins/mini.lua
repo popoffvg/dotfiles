@@ -91,6 +91,21 @@ return {
 		},
 	},
 	{
+		"echasnovski/mini.bracketed",
+		event = { "BufReadPre", "BufNewFile" },
+		init = function()
+			require("mini.bracketed").setup()
+		end,
+	},
+	{
+		"echasnovski/mini.pairs",
+		event = { "BufReadPre", "BufNewFile" },
+		init = function()
+			require("mini.pairs").setup()
+		end,
+	},
+
+	{
 		"echasnovski/mini.trailspace",
 		event = { "BufReadPre", "BufNewFile" },
 		init = function()

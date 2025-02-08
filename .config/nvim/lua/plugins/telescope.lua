@@ -28,6 +28,16 @@ return {
 				dependencies = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" },
 			},
 			"neovim/nvim-lspconfig",
+			{
+				"radyz/telescope-gitsigns",
+				dependencies = {
+					"lewis6991/gitsigns.nvim",
+					"nvim-telescope/telescope.nvim",
+				},
+				keys = {
+					{ "<leader>fl", ":Telescope git_signs<CR>", opts },
+				},
+			},
 		},
 		config = function()
 			local Path = require("plenary.path")
@@ -227,6 +237,7 @@ return {
 			require("yanky.telescope.mapping").put("P")
 			require("yanky.telescope.mapping").put("gp")
 			require("yanky.telescope.mapping").put("gP")
+			require("telescope").load_extension("git_signs")
 			-- require("yanky.telescope.mapping").delete()
 
 			-- require("yanky.telescope.mapping").set_register(regname) -- fill register {regname} with selected value

@@ -5,33 +5,6 @@ return {
 	{ "folke/neoconf.nvim", cmd = "Neoconf" },
 	{ "folke/neodev.nvim" },
 	{ "nvim-lua/plenary.nvim" },
-	-- {
-	-- 	"https://git.sr.ht/~swaits/zellij-nav.nvim",
-	-- 	lazy = true,
-	-- 	event = "VeryLazy",
-	-- 	keys = {
-	-- 		{
-	-- 			"<c-h>",
-	-- 			"<cmd>ZellijNavigateLeft<cr>",
-	-- 			{ silent = true, desc = "navigate left" },
-	-- 		},
-	-- 		{
-	-- 			"<c-j>",
-	-- 			"<cmd>ZellijNavigateDown<cr>",
-	-- 			{ silent = true, desc = "navigate down" },
-	-- 		},
-	-- 		{
-	-- 			"<c-k>",
-	-- 			"<cmd>ZellijNavigateUp<cr>",
-	-- 			{ silent = true, desc = "navigate up" },
-	-- 		},
-	-- 		{
-	-- 			"<c-l>",
-	-- 			"<cmd>ZellijNavigateRight<cr>",
-	-- 			{ silent = true, desc = "navigate right" },
-	-- 		},
-	-- 	},
-	-- 	opts = {},
 	{
 		"letieu/wezterm-move.nvim",
 		keys = { -- Lazy loading, don't need call setup() function
@@ -61,21 +34,6 @@ return {
 			},
 		},
 	},
-	-- {
-	-- 	"alexghergh/nvim-tmux-navigation",
-	-- 	opts = {
-	-- 		disable_when_zoomed = true,
-	-- 		keybindings = {
-	-- 			left = "<C-h>",
-	-- 			down = "<C-j>",
-	-- 			up = "<C-k>",
-	-- 			right = "<C-l>",
-	-- 			last_active = "<C-\\>",
-	-- 			next = "<C-Space>",
-	-- 		},
-	-- 	},
-	-- 	lazy = false,
-	-- },
 	{
 		"karb94/neoscroll.nvim",
 		lazy = false,
@@ -157,37 +115,12 @@ return {
 	-- },
 	{ "stevearc/dressing.nvim", event = { "BufReadPre", "BufNewFile" } },
 	-- {
-	-- 	"numToStr/FTerm.nvim",
+	-- 	"windwp/nvim-autopairs",
+	-- 	event = "InsertEnter",
 	-- 	config = true,
-	-- 	keys = {
-	-- 		{
-	-- 			"<leader>ft",
-	-- 			function()
-	-- 				require("FTerm").toggle()
-	-- 			end,
-	-- 			desc = "Toggle terminal",
-	-- 			mode = { "n", "t" },
-	-- 		},
-	-- 	},
+	-- 	-- use opts = {} for passing setup options
+	-- 	-- this is equalent to setup({}) function
 	-- },
-	-- { "famiu/bufdelete.nvim" },
-	-- {
-	-- 	"tversteeg/registers.nvim",
-	-- 	cmd = "Registers",
-	-- 	config = true,
-	-- 	keys = {
-	-- 		{ '"', mode = { "n", "v" } },
-	-- 		{ "<C-R>", mode = "i" },
-	-- 	},
-	-- 	name = "registers",
-	-- },
-	{
-		"windwp/nvim-autopairs",
-		event = "InsertEnter",
-		config = true,
-		-- use opts = {} for passing setup options
-		-- this is equalent to setup({}) function
-	},
 	{
 		"Wansmer/sibling-swap.nvim",
 		requires = { "nvim-treesitter" },

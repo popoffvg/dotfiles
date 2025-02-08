@@ -332,7 +332,7 @@ return {
 			{ "<Leader>fx", "<cmd>lua vim.diagnostic.setloclist()<CR>" },
 			{ "<C-d>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", mode = { "i" } },
 			-- https://www.reddit.com/r/neovim/comments/11axh2p/how_to_toggle_openclose_floating_lsp_diagnostic/
-			{ "<leader>'", '<cmd>lua vim.diagnostic.open_float(nil, {focus=true, scope="cursor"})<CR>' },
+			{ "<c-'>", '<cmd>lua vim.diagnostic.open_float(nil, {focus=true, scope="cursor"})<CR>' },
 			{
 				"<leader>rn",
 				function()
