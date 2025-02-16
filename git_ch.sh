@@ -20,27 +20,27 @@ git_show() {
         && [[ $hash != "" ]] \
         && sh -c "git show --color $hash | less -R"
         )' \
-      --bind='alt-c:execute(
+      --bind='ctrl-c:execute(
         hash=$(echo {} | grep -o "[a-f0-9]\{7\}" | sed -n "1p") \
         && [[ $hash != "" ]] \
         &&  git checkout $hash
         )+abort' \
-      --bind='alt-r:execute(
+      --bind='ctrl-r:execute(
         hash=$(echo {} | grep -o "[a-f0-9]\{7\}" | sed -n "1p") \
         && [[ $hash != "" ]] \
         && git reset $hash
         )+abort' \
-      --bind='alt-i:execute(
+      --bind='ctrl-i:execute(
         hash=$(echo {} | grep -o "[a-f0-9]\{7\}" | sed -n "1p") \
         && [[ $hash != "" ]] \
         && git rebase --interactive $hash
         )+abort' \
-      --bind='alt-p:execute(
+      --bind='ctrl-p:execute(
         hash=$(echo {} | grep -o "[a-f0-9]\{7\}" | sed -n "1p") \
         && [[ $hash != "" ]] \
         && git cherry-pick $hash
         )+abort' \
-      --bind='alt-f:execute(
+      --bind='ctrl-f:execute(
         hash=$(echo {} | grep -o "[a-f0-9]\{7\}" | sed -n "1p") \
         && [[ $hash != "" ]] \
         && git commit -a --fixup=$hash --no-verify \
@@ -49,10 +49,10 @@ git_show() {
       --header-first \
       --header '
       > ENTER to display the diff
-      > ALT-C to checkout the commit | ALT-R to reset to the commit
-      > ALT-I to rebase interactively
-      > ALT-P to cherry pick
-      > ALT-F to fixup
+      > ctrl-C to checkout the commit | ALT-R to reset to the commit
+      > ctrl-I to rebase interactively
+      > ctrl-P to cherry pick
+      > ctrl-F to fixup
       '
     }
 

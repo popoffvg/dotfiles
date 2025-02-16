@@ -32,26 +32,8 @@ local handlers = {
 	}),
 }
 
-local api = vim.api
-local lsp = vim.lsp
-
-local make_client_capabilities = lsp.protocol.make_client_capabilities
--- function lsp.protocol.make_client_capabilities()
--- 	local caps = make_client_capabilities()
--- 	if not (caps.workspace or {}).didChangeWatchedFiles then
--- 		return caps
--- 	end
--- 	caps.workspace.didChangeWatchedFiles = nil
---
--- 	return caps
--- end
-
 local on_attach = function()
 	return function(client, bufnr)
-		local function bufoptsWithDesc(desc)
-			return { silent = true, buffer = bufnr, desc = desc }
-		end
-
 		vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
 		if client.name == "null-ls" then
@@ -67,15 +49,6 @@ local on_attach = function()
 			client.server_capabilities.publishDiagnostics = false
 		end
 		require("nvim-navic").attach(client, bufnr)
-		local builtin = require("telescope.builtin")
-		vim.keymap.set("n", "<leader>fs", builtin.lsp_document_symbols, bufoptsWithDesc("Open symbol picker"))
-		vim.keymap.set(
-			"n",
-			"<leader>fS",
-			builtin.lsp_dynamic_workspace_symbols,
-			bufoptsWithDesc("Open symbol picker (workspace)")
-		)
-		vim.keymap.set("n", "<leader>fu", builtin.lsp_references, bufoptsWithDesc("Open references picker"))
 		vim.api.nvim_command("autocmd CursorHold <buffer> lua vim.diagnostic.open_float({focusable = false})")
 	end
 end

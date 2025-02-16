@@ -21,8 +21,8 @@ vim.cmd([[
 
         imap <c-i> <Esc>o
         " imap <c-O> <Esc>O
-        imap <c-a> <Esc>a
-        imap <c-A> <Esc>A
+        imap <c-l> <Esc>a
+        imap <c-h> <Esc>A
         imap <c-]> <ESC><ESC>
         nnoremap <c-a> ggVGG
 
@@ -34,9 +34,9 @@ vim.cmd([[
 
         imap 0= :=
 
-        vnoremap <TAB> ^
+        vnoremap 1 ^
         vnoremap 0 $
-        nnoremap <TAB> ^
+        nnoremap 1 ^
         nnoremap 0 $
 
 

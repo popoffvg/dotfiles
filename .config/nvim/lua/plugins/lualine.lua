@@ -92,36 +92,17 @@ return {
 	},
 	config = function()
 		local navic = require("nvim-navic")
+		local theme = require("lualine.themes.auto")
 		require("lualine").setup({
 			options = {
 				component_separators = { left = "", right = "" },
 				section_separators = { left = "", right = "" },
 				globalstatus = true,
-				theme = "cyberdream",
+				theme = "catppuccin-macchiato",
 			},
 			tabline = {
-				lualine_a = {
-					{
-						function()
-							return vim.fn.fnamemoify(vim.fn.expand("%:h:t"), ":p:~:.")
-						end,
-					},
-				},
-				lualine_b = {
-					{ "%=" },
-					-- {
-					-- 	function()
-					-- 		return vim.fn.fnamemoify(vim.fn.expand("%:h:t"), ":p:~:.")
-					-- 	end,
-					-- },
-					-- {
-					-- 	"filename",
-					-- 	path = 0,
-					-- 	-- 	-- mode = 2, -- index + name
-					-- },
-
-					-- { "diagnostics" },
-				},
+				lualine_a = {},
+				lualine_b = {},
 				lualine_c = {
 					{
 						function()
@@ -142,21 +123,12 @@ return {
 						end,
 						-- https://github.com/nvim-lualine/lualine.nvim/wiki/Writing-a-theme
 						-- for lualine_z theme will be as lualine_a with mode changing
-						-- color = { bg = c.TabLine, fg = c.Normal, gui = "none" },
+						color = { bg = "none", fg = "none", gui = "none" },
 					},
 				},
-				-- lualine_y = {
-				-- 	"diagnostics",
-				-- },
-				-- lualine_a = {
-				-- 	{
-				-- 		"buffers",
-				-- 		hide_filename_extension = true,
-				-- 		-- mode = 2, -- index + name
-				-- 	},
-				-- },
+				lualine_x = {},
+				lualine_y = {},
 				lualine_z = {
-					-- { "tabnine", "encoding", "fileformat", "filetype" },
 					{ "copilot" },
 				},
 			},

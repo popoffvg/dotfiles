@@ -92,9 +92,14 @@ return {
 	},
 	{
 		"echasnovski/mini.bracketed",
-		event = { "BufReadPre", "BufNewFile" },
 		init = function()
-			require("mini.bracketed").setup()
+			require("mini.bracketed").setup({
+				diagnostic = {
+					options = {
+						severity = vim.diagnostic.severity.ERROR,
+					},
+				},
+			})
 		end,
 	},
 	{
@@ -105,13 +110,13 @@ return {
 		end,
 	},
 
-	{
-		"echasnovski/mini.trailspace",
-		event = { "BufReadPre", "BufNewFile" },
-		init = function()
-			require("mini.trailspace").setup()
-		end,
-	},
+	-- {
+	-- 	"echasnovski/mini.trailspace",
+	-- 	event = "BufWritePre",
+	-- 	init = function()
+	-- 		require("mini.trailspace").setup()
+	-- 	end,
+	-- },
 	{
 		"echasnovski/mini.surround",
 		event = { "BufReadPre", "BufNewFile" },

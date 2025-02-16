@@ -1,5 +1,7 @@
 local opts = { noremap = true, silent = true }
 
+local builtin = require("telescope.builtin")
+
 local relative_with = function(_, cols, _)
 	if cols > 200 then
 		return 170
@@ -226,11 +228,9 @@ return {
 			})
 
 			require("telescope").load_extension("fzf")
-			-- require("telescope").load_extension("live_grep_args")
 			require("telescope").load_extension("yank_history")
 			require("telescope").load_extension("frecency")
 			require("telescope").load_extension("egrepify")
-			-- require("telescope").load_extension("ui-select")
 			require("telescope").load_extension("notify")
 
 			require("yanky.telescope.mapping").put("p")
@@ -238,37 +238,20 @@ return {
 			require("yanky.telescope.mapping").put("gp")
 			require("yanky.telescope.mapping").put("gP")
 			require("telescope").load_extension("git_signs")
-			-- require("yanky.telescope.mapping").delete()
-
-			-- require("yanky.telescope.mapping").set_register(regname) -- fill register {regname} with selected value
 		end,
 		keys = {
 			{ "<leader>ff", ":Telescope find_files hidden=true preview=false<CR>", opts },
-			-- { "<leader>ff", "<Cmd>Telescope frecency theme=ivy<CR>", opts },
-			-- { "<leader>of", ":Telescope oldfiles<CR>", opts },
-			-- {
-			-- 	"<leader>fg",
-			-- 	":lua require('telescope').extensions.live_grep_args.live_grep_args(require('telescope.themes').get_dropdown({}))<CR>",
-			-- 	opts,
-			-- },
-			-- require("notify").history()
 			{ "<leader>fn", ":Telescope notify<CR>", opts },
 			{ "<leader>fg", ":Telescope egrepify<CR>", opts },
 			{ "<leader>fb", ":Telescope buffers<CR>", opts },
-			-- { "<leader>fh", ":Telescope help_tags<CR>", opts },
-			-- { "<leader>ft", ":Telescope lsp_document_symbols<CR>", opts },
 			{ "<leader>fo", ":Telescope lsp_outgoing_calls<CR>", opts },
 			{ "<leader>fw", ":Telescope current_buffer_fuzzy_find fuzzy=true case_mode=ignore_case<CR>", opts },
-			{ "<leader>fc", ":Telescope commands<CR>", opts },
+			-- use "legendary" instead
+			-- { "<leader>fc", ":Telescope commands<CR>", opts },
 			{ "<leader>fr", ":Telescope resume<CR>", opts },
 			{ "<leader>fa", ":Telescope ast_grep<CR>", opts },
 			{ "<leader>fm", ":Telescope marks<CR>", opts },
 			{ "<leader>fG", ":Telescope git_status<CR>", opts },
-			-- {
-			-- 	"<leader>cs",
-			-- 	[[:lua require("telescope.builtin").spell_suggest(require("telescope.themes").get_cursor({}))<CR>]],
-			-- 	opts,
-			-- },
 			{ "<leader>fj", ":Telescope jumplist<CR>", opts },
 			{ "<leader>fp", ":Telescope yank_history<CR>", opts },
 			{ "gr", "<cmd>Telescope lsp_references<CR>", {} },
@@ -278,10 +261,13 @@ return {
 				"<cmd>Telescope lsp_implementations<CR>",
 				opts,
 			},
-
-			-- ctrl + t - show hidden  file
-			-- { "<space>t", ":Telescope file_browser path=%:p:h<CR>", opts },
-			-- { "<space>t", ":Telescope file_browser path=%:p:h<CR>", opts },
+			{ "<leader>ft", builtin.lsp_document_symbols, mode = { "n" }, desc = "Open symbol picker" },
+			{
+				"<leader>fT",
+				builtin.lsp_dynamic_workspace_symbols,
+				desc = "Open symbol picker (workspace)",
+			},
+			{ "<leader>fu", builtin.lsp_references, desc = "Open references picker", mode = { "n" } },
 		},
 	},
 }

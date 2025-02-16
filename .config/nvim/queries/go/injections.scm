@@ -7,7 +7,7 @@
   (selector_expression
     field: (field_identifier) @_field)
   (argument_list
-    (interpreted_string_literal) @sql))
+    (raw_string_literal) @sql))
   (#any-of? @_field "Exec" "GetContext" "ExecContext" "SelectContext" "In"
 				            "RebindNamed" "Rebind" "Query" "QueryRow" "QueryRowxContext" "NamedExec" "MustExec" "Get" "Queryx")
   (#offset! @sql 0 1 0 -1))
@@ -17,13 +17,13 @@
   (selector_expression
     field: (field_identifier) @_field (#any-of? @_field "Exec" "GetContext" "ExecContext" "SelectContext" "In" "RebindNamed" "Rebind" "Query" "QueryRow" "QueryRowxContext" "NamedExec" "MustExec" "Get" "Queryx"))
   (argument_list
-    (interpreted_string_literal) @injection.content))
+    (raw_string_literal) @injection.content))
   (#offset! @injection.content 0 1 0 -1)
   (#set! injection.language "sql"))
 
 ; neovim nightly 0.10
 ([
-  (interpreted_string_literal)
+  ; (interpreted_string_literal)
   (raw_string_literal)
    (identifier)
   ] @injection.content
@@ -33,7 +33,7 @@
 
 ; a general query injection
 ([
-   (interpreted_string_literal)
+   ; (interpreted_string_literal)
    (raw_string_literal)
    (identifier)
  ] @sql
@@ -44,7 +44,7 @@
 ; fallback keyword and comment based injection
 
 ([
-  (interpreted_string_literal)
+  ; (interpreted_string_literal)
   (raw_string_literal)
    (identifier)
  ] @sql
@@ -56,7 +56,7 @@
 
 ; nvim 0.10
 ([
-  (interpreted_string_literal)
+  ; (interpreted_string_literal)
   (raw_string_literal)
    (identifier)
  ] @injection.content
