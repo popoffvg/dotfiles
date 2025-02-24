@@ -121,295 +121,295 @@ local kind_comparator_settings = {
 }
 
 return {
-	{
-		"hrsh7th/nvim-cmp",
-		event = { "InsertEnter", "CmdlineEnter" },
-		dependencies = {
-			"ray-x/lsp_signature.nvim",
-			"L3MON4D3/LuaSnip",
-			"JMarkin/cmp-diag-codes",
-			"hrsh7th/cmp-nvim-lsp",
-			"hrsh7th/cmp-nvim-lua",
-			"hrsh7th/cmp-calc",
-			"hrsh7th/cmp-emoji",
-			"hrsh7th/cmp-buffer",
-			"hrsh7th/cmp-path",
-			"hrsh7th/cmp-cmdline",
-			"dmitmel/cmp-cmdline-history",
-			"saadparwaiz1/cmp_luasnip",
-			"hrsh7th/cmp-nvim-lsp-signature-help",
-			"hrsh7th/cmp-nvim-lsp-document-symbol",
-			{
-				"tzachar/fuzzy.nvim",
-				"tzachar/cmp-fuzzy-buffer",
-				dependencies = { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
-			},
-			"chrisgrieser/cmp_yanky",
-			"ray-x/cmp-treesitter",
-			-- {
-			-- 	"tzachar/cmp-tabnine",
-			-- 	build = "./install.sh",
-			-- 	dependencies = "hrsh7th/nvim-cmp",
-			-- },
-		},
-		config = function()
-			require("cmp_luasnip")
-			require("cmp_nvim_lsp")
-			require("cmp_buffer")
-			-- require("cmp_calc")
-			-- require("cmp_emoji")
-			require("cmp_nvim_lua")
-
-			local sources = {
-				-- { name = "cmp_tabnine", priority = 300 },
-				{ name = "luasnip", priority = 200 },
-				{ name = "nvim_lsp_signature_help", priority = 11 },
-
-				{
-                    name = "nvim_lsp",
-                    priority = 10,
-                    entry_filter = function(entry, ctx)
-                        local kind =require'cmp.types'.lsp.CompletionItemKind[entry:get_kind()]
-                        if kind == "Text" then return false end
-                        return true
-                    end
-                },
-				{ name = "nvim_lua", priority = 10 },
-				{ name = "otter", priority = 10 },
-				{
-					name = "diag-codes",
-					priority = 7,
-					-- default completion available only in comment context
-					-- use false if you want to get in other context
-					option = { in_comment = true },
-				},
-				-- { name = "fuzzy_buffer" },
-				{ name = "treesitter", priority = 2 },
-				{ name = "buffer", priority = 1 },
-				{ name = "path", priority = 1 },
-				-- { name = "cmp_yanky" },
-				-- { name = "calc" },
-				-- { name = "emoji" },
-			}
-
-			local cmp = require("cmp")
-			local confirm = cmp.mapping(function(fallback)
-				if cmp.visible() then
-					cmp.confirm({
-						select = true,
-						behavior = cmp.ConfirmBehavior.replace,
-					})
-					-- vim.api.nvim_input("<esc>")
-				else
-					fallback()
-				end
-			end)
-			local keymap = cmp.mapping.preset.insert({
-				["<cr>"] = confirm,
-				["<C-f>"] = confirm,
-				["<C-d>"] = cmp.mapping(function(fallback)
-					if cmp.visible_docs() then
-						cmp.close_docs()
-					else
-						cmp.open_docs()
-					end
-				end),
-				["<Tab>"] = cmp.config.disable,
-				["<S-Tab>"] = cmp.config.disable,
-				["<ESC>"] = function(fallsback)
-					if cmp.visible() then
-						cmp.close()
-						fallsback()
-					else
-						fallsback()
-					end
-				end,
-				["<C-n>"] = function(fallback)
-					if cmp.visible() then
-						cmp.select_next_item()
-					else
-						fallback()
-					end
-				end,
-				["C-p"] = function(fallback)
-					if cmp.visible() then
-						cmp.select_prev_item()
-					else
-						fallback()
-					end
-				end,
-                ["<C-m>"] = cmp.mapping.complete({
-                    config = {
-                      sources = {
-                        {
-                          name = 'nvim_lsp',
-                          entry_filter = function(entry)
-                            return require('cmp.types').lsp.CompletionItemKind[entry:get_kind()] == 'Module'
-                          end
-                        }
-                      }
-                    }
-                  }),
-			})
-			cmp.setup({
-				appearance = {
-					menu = {
-						direction = "auto", -- auto or above or below
-					},
-				},
-				view = {
-					entries = "custom", -- custom, native
-					docs = {
-						auto_open = false,
-					},
-				},
-				preselect = cmp.PreselectMode.None,
-				snippet = {
-					expand = function(args)
-						require("luasnip").lsp_expand(args.body)
-					end,
-				},
-				mapping = keymap,
-				window = {
-					completion = cmp.config.window.bordered(),
-					documentation = cmp.config.window.bordered(),
-				},
-				experimental = {
-					ghost_text = false,
-					-- native_menu = true,
-				},
-				sources = sources,
-				formatting = {
-					fields = { "kind", "abbr", "menu" },
-					format = formatV2,
-				},
-				completion = {
-					completeopt = "menu,menuone,noinsert",
-				},
-				sorting = {
-					comparators = {
-						lspkind_comparator(kind_comparator_settings),
-						cmp.config.compare.score,
-						label_comparator,
-						cmp.config.compare.sort_text,
-						-- cmp.config.compare.order,
-						cmp.config.compare.recently_used,
-						cmp.config.compare.length,
-						-- require("cmp_fuzzy_buffer.compare"),
-						-- cmp.config.compare.offset,
-					},
-				},
-			})
-			for _, cmd_type in ipairs({ ":", "@" }) do
-				cmp.setup.cmdline(cmd_type, {
-					view = {
-						entries = "custom",
-					},
-					completion = { completeopt = "menu,menuone,noselect" },
-					mapping = cmp.mapping.preset.cmdline({
-						["<C-f>"] = cmp.mapping.confirm({
-							select = true,
-							behavior = cmp.ConfirmBehavior.replace,
-						}),
-					}),
-					sources = cmp.config.sources({
-						{ name = "path" },
-						{ name = "cmdline", option = { ignore_cmds = { "!" } } },
-						{ name = "cmdline_history" },
-					}),
-					formatting = {
-						formt = format,
-					},
-				})
-			end
-			cmp.setup.cmdline("!", {
-				view = {
-					entries = "custom",
-				},
-				completion = { completeopt = "menu,menuone,noselect" },
-				mapping = cmp.mapping.preset.cmdline({
-					["<C-f>"] = cmp.mapping.confirm({
-						select = true,
-						behavior = cmp.ConfirmBehavior.replace,
-					}),
-				}),
-				sources = cmp.config.sources({
-					{ name = "path" },
-					{ name = "cmdline_history" },
-				}),
-				formatting = {
-					formt = format,
-				},
-			})
-			for _, cmd_type in ipairs({ "/", "?" }) do
-				cmp.setup.cmdline(cmd_type, {
-					view = {
-						entries = "custom",
-					},
-					completion = { completeopt = "menu,menuone,noselect" },
-					mapping = cmp.mapping.preset.cmdline({
-						["<C-f>"] = cmp.mapping.confirm({
-							select = true,
-							behavior = cmp.ConfirmBehavior.replace,
-						}),
-					}),
-					sources = cmp.config.sources({
-						{
-							name = "fuzzy_buffer",
-							keyword_length = 4,
-							option = { keyword_pattern = anyWord },
-						},
-						{ name = "path" },
-					}),
-					formatting = {
-						formt = format,
-					},
-				})
-				::continue::
-			end
-
-			require("lsp_signature").setup({})
-			local cmp_augroup = vim.api.nvim_create_augroup("add emoji for md", { clear = true })
-			vim.api.nvim_create_autocmd("BufEnter", {
-				group = cmp_augroup,
-				pattern = "*.md",
-				callback = function()
-					local ft_sources = sources
-					table.insert(ft_sources, { name = "emoji", priority = 1 })
-					require("cmp").config.sources(ft_sources)
-				end,
-			})
-			vim.api.nvim_create_autocmd("BufLeave", {
-				group = cmp_augroup,
-				pattern = "*.md",
-				callback = function()
-					require("cmp").config.sources(sources)
-				end,
-			})
-		end,
-	},
-	{
-		-- sql suggestions
-		"jmbuhr/otter.nvim",
-		dependencies = {
-			"hrsh7th/nvim-cmp", -- optional, for completion
-			"neovim/nvim-lspconfig",
-			"nvim-treesitter/nvim-treesitter",
-		},
-		config = function()
-			-- table of embedded languages to look for.
-			-- required (no default)
-			local languages = { "sql" }
-
-			-- enable completion/diagnostics
-			-- defaults are true
-			local completion = true
-			local diagnostics = true
-			-- treesitter query to look for embedded languages
-			-- uses injections if nil or not set
-			local tsquery = nil
-
-			require("otter").activate(languages, completion, diagnostics, tsquery)
-		end,
-	},
+	-- {
+	-- 	"hrsh7th/nvim-cmp",
+	-- 	event = { "InsertEnter", "CmdlineEnter" },
+	-- 	dependencies = {
+	-- 		"ray-x/lsp_signature.nvim",
+	-- 		"L3MON4D3/LuaSnip",
+	-- 		"JMarkin/cmp-diag-codes",
+	-- 		"hrsh7th/cmp-nvim-lsp",
+	-- 		"hrsh7th/cmp-nvim-lua",
+	-- 		"hrsh7th/cmp-calc",
+	-- 		"hrsh7th/cmp-emoji",
+	-- 		"hrsh7th/cmp-buffer",
+	-- 		"hrsh7th/cmp-path",
+	-- 		"hrsh7th/cmp-cmdline",
+	-- 		"dmitmel/cmp-cmdline-history",
+	-- 		"saadparwaiz1/cmp_luasnip",
+	-- 		"hrsh7th/cmp-nvim-lsp-signature-help",
+	-- 		"hrsh7th/cmp-nvim-lsp-document-symbol",
+	-- 		{
+	-- 			"tzachar/fuzzy.nvim",
+	-- 			"tzachar/cmp-fuzzy-buffer",
+	-- 			dependencies = { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
+	-- 		},
+	-- 		"chrisgrieser/cmp_yanky",
+	-- 		"ray-x/cmp-treesitter",
+	-- 		-- {
+	-- 		-- 	"tzachar/cmp-tabnine",
+	-- 		-- 	build = "./install.sh",
+	-- 		-- 	dependencies = "hrsh7th/nvim-cmp",
+	-- 		-- },
+	-- 	},
+	-- 	config = function()
+	-- 		require("cmp_luasnip")
+	-- 		require("cmp_nvim_lsp")
+	-- 		require("cmp_buffer")
+	-- 		-- require("cmp_calc")
+	-- 		-- require("cmp_emoji")
+	-- 		require("cmp_nvim_lua")
+	--
+	-- 		local sources = {
+	-- 			-- { name = "cmp_tabnine", priority = 300 },
+	-- 			{ name = "luasnip", priority = 200 },
+	-- 			{ name = "nvim_lsp_signature_help", priority = 11 },
+	--
+	-- 			{
+	--                    name = "nvim_lsp",
+	--                    priority = 10,
+	--                    entry_filter = function(entry, ctx)
+	--                        local kind =require'cmp.types'.lsp.CompletionItemKind[entry:get_kind()]
+	--                        if kind == "Text" then return false end
+	--                        return true
+	--                    end
+	--                },
+	-- 			{ name = "nvim_lua", priority = 10 },
+	-- 			{ name = "otter", priority = 10 },
+	-- 			{
+	-- 				name = "diag-codes",
+	-- 				priority = 7,
+	-- 				-- default completion available only in comment context
+	-- 				-- use false if you want to get in other context
+	-- 				option = { in_comment = true },
+	-- 			},
+	-- 			-- { name = "fuzzy_buffer" },
+	-- 			{ name = "treesitter", priority = 2 },
+	-- 			{ name = "buffer", priority = 1 },
+	-- 			{ name = "path", priority = 1 },
+	-- 			-- { name = "cmp_yanky" },
+	-- 			-- { name = "calc" },
+	-- 			-- { name = "emoji" },
+	-- 		}
+	--
+	-- 		local cmp = require("cmp")
+	-- 		local confirm = cmp.mapping(function(fallback)
+	-- 			if cmp.visible() then
+	-- 				cmp.confirm({
+	-- 					select = true,
+	-- 					behavior = cmp.ConfirmBehavior.replace,
+	-- 				})
+	-- 				-- vim.api.nvim_input("<esc>")
+	-- 			else
+	-- 				fallback()
+	-- 			end
+	-- 		end)
+	-- 		local keymap = cmp.mapping.preset.insert({
+	-- 			["<cr>"] = confirm,
+	-- 			["<C-f>"] = confirm,
+	-- 			["<C-d>"] = cmp.mapping(function(fallback)
+	-- 				if cmp.visible_docs() then
+	-- 					cmp.close_docs()
+	-- 				else
+	-- 					cmp.open_docs()
+	-- 				end
+	-- 			end),
+	-- 			["<Tab>"] = cmp.config.disable,
+	-- 			["<S-Tab>"] = cmp.config.disable,
+	-- 			["<ESC>"] = function(fallsback)
+	-- 				if cmp.visible() then
+	-- 					cmp.close()
+	-- 					fallsback()
+	-- 				else
+	-- 					fallsback()
+	-- 				end
+	-- 			end,
+	-- 			["<C-n>"] = function(fallback)
+	-- 				if cmp.visible() then
+	-- 					cmp.select_next_item()
+	-- 				else
+	-- 					fallback()
+	-- 				end
+	-- 			end,
+	-- 			["C-p"] = function(fallback)
+	-- 				if cmp.visible() then
+	-- 					cmp.select_prev_item()
+	-- 				else
+	-- 					fallback()
+	-- 				end
+	-- 			end,
+	--                ["<C-m>"] = cmp.mapping.complete({
+	--                    config = {
+	--                      sources = {
+	--                        {
+	--                          name = 'nvim_lsp',
+	--                          entry_filter = function(entry)
+	--                            return require('cmp.types').lsp.CompletionItemKind[entry:get_kind()] == 'Module'
+	--                          end
+	--                        }
+	--                      }
+	--                    }
+	--                  }),
+	-- 		})
+	-- 		cmp.setup({
+	-- 			appearance = {
+	-- 				menu = {
+	-- 					direction = "auto", -- auto or above or below
+	-- 				},
+	-- 			},
+	-- 			view = {
+	-- 				entries = "custom", -- custom, native
+	-- 				docs = {
+	-- 					auto_open = false,
+	-- 				},
+	-- 			},
+	-- 			preselect = cmp.PreselectMode.None,
+	-- 			snippet = {
+	-- 				expand = function(args)
+	-- 					require("luasnip").lsp_expand(args.body)
+	-- 				end,
+	-- 			},
+	-- 			mapping = keymap,
+	-- 			window = {
+	-- 				completion = cmp.config.window.bordered(),
+	-- 				documentation = cmp.config.window.bordered(),
+	-- 			},
+	-- 			experimental = {
+	-- 				ghost_text = false,
+	-- 				-- native_menu = true,
+	-- 			},
+	-- 			sources = sources,
+	-- 			formatting = {
+	-- 				fields = { "kind", "abbr", "menu" },
+	-- 				format = formatV2,
+	-- 			},
+	-- 			completion = {
+	-- 				completeopt = "menu,menuone,noinsert",
+	-- 			},
+	-- 			sorting = {
+	-- 				comparators = {
+	-- 					lspkind_comparator(kind_comparator_settings),
+	-- 					cmp.config.compare.score,
+	-- 					label_comparator,
+	-- 					cmp.config.compare.sort_text,
+	-- 					-- cmp.config.compare.order,
+	-- 					cmp.config.compare.recently_used,
+	-- 					cmp.config.compare.length,
+	-- 					-- require("cmp_fuzzy_buffer.compare"),
+	-- 					-- cmp.config.compare.offset,
+	-- 				},
+	-- 			},
+	-- 		})
+	-- 		for _, cmd_type in ipairs({ ":", "@" }) do
+	-- 			cmp.setup.cmdline(cmd_type, {
+	-- 				view = {
+	-- 					entries = "custom",
+	-- 				},
+	-- 				completion = { completeopt = "menu,menuone,noselect" },
+	-- 				mapping = cmp.mapping.preset.cmdline({
+	-- 					["<C-f>"] = cmp.mapping.confirm({
+	-- 						select = true,
+	-- 						behavior = cmp.ConfirmBehavior.replace,
+	-- 					}),
+	-- 				}),
+	-- 				sources = cmp.config.sources({
+	-- 					{ name = "path" },
+	-- 					{ name = "cmdline", option = { ignore_cmds = { "!" } } },
+	-- 					{ name = "cmdline_history" },
+	-- 				}),
+	-- 				formatting = {
+	-- 					formt = format,
+	-- 				},
+	-- 			})
+	-- 		end
+	-- 		cmp.setup.cmdline("!", {
+	-- 			view = {
+	-- 				entries = "custom",
+	-- 			},
+	-- 			completion = { completeopt = "menu,menuone,noselect" },
+	-- 			mapping = cmp.mapping.preset.cmdline({
+	-- 				["<C-f>"] = cmp.mapping.confirm({
+	-- 					select = true,
+	-- 					behavior = cmp.ConfirmBehavior.replace,
+	-- 				}),
+	-- 			}),
+	-- 			sources = cmp.config.sources({
+	-- 				{ name = "path" },
+	-- 				{ name = "cmdline_history" },
+	-- 			}),
+	-- 			formatting = {
+	-- 				formt = format,
+	-- 			},
+	-- 		})
+	-- 		for _, cmd_type in ipairs({ "/", "?" }) do
+	-- 			cmp.setup.cmdline(cmd_type, {
+	-- 				view = {
+	-- 					entries = "custom",
+	-- 				},
+	-- 				completion = { completeopt = "menu,menuone,noselect" },
+	-- 				mapping = cmp.mapping.preset.cmdline({
+	-- 					["<C-f>"] = cmp.mapping.confirm({
+	-- 						select = true,
+	-- 						behavior = cmp.ConfirmBehavior.replace,
+	-- 					}),
+	-- 				}),
+	-- 				sources = cmp.config.sources({
+	-- 					{
+	-- 						name = "fuzzy_buffer",
+	-- 						keyword_length = 4,
+	-- 						option = { keyword_pattern = anyWord },
+	-- 					},
+	-- 					{ name = "path" },
+	-- 				}),
+	-- 				formatting = {
+	-- 					formt = format,
+	-- 				},
+	-- 			})
+	-- 			::continue::
+	-- 		end
+	--
+	-- 		require("lsp_signature").setup({})
+	-- 		local cmp_augroup = vim.api.nvim_create_augroup("add emoji for md", { clear = true })
+	-- 		vim.api.nvim_create_autocmd("BufEnter", {
+	-- 			group = cmp_augroup,
+	-- 			pattern = "*.md",
+	-- 			callback = function()
+	-- 				local ft_sources = sources
+	-- 				table.insert(ft_sources, { name = "emoji", priority = 1 })
+	-- 				require("cmp").config.sources(ft_sources)
+	-- 			end,
+	-- 		})
+	-- 		vim.api.nvim_create_autocmd("BufLeave", {
+	-- 			group = cmp_augroup,
+	-- 			pattern = "*.md",
+	-- 			callback = function()
+	-- 				require("cmp").config.sources(sources)
+	-- 			end,
+	-- 		})
+	-- 	end,
+	-- },
+	-- {
+	-- 	-- sql suggestions
+	-- 	"jmbuhr/otter.nvim",
+	-- 	dependencies = {
+	-- 		"hrsh7th/nvim-cmp", -- optional, for completion
+	-- 		"neovim/nvim-lspconfig",
+	-- 		"nvim-treesitter/nvim-treesitter",
+	-- 	},
+	-- 	config = function()
+	-- 		-- table of embedded languages to look for.
+	-- 		-- required (no default)
+	-- 		local languages = { "sql" }
+	--
+	-- 		-- enable completion/diagnostics
+	-- 		-- defaults are true
+	-- 		local completion = true
+	-- 		local diagnostics = true
+	-- 		-- treesitter query to look for embedded languages
+	-- 		-- uses injections if nil or not set
+	-- 		local tsquery = nil
+	--
+	-- 		require("otter").activate(languages, completion, diagnostics, tsquery)
+	-- 	end,
+	-- },
 }
