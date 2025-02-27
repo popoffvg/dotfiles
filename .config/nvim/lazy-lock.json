@@ -28,6 +28,7 @@
   "go.nvim": { "branch": "master", "commit": "2f75ece028975ea2925e0cac0583754168d70fc4" },
   "goimpl.nvim": { "branch": "main", "commit": "53891ce5605eb55c6bc419db8e286401686b67dd" },
   "grpc-nvim": { "branch": "main", "commit": "cd235398a9922ae412f59ebeabb0b13957be0d39" },
+  "grug-far.nvim": { "branch": "main", "commit": "309ecac6e6240d37c0be3c567d9f7cc95f63d255" },
   "guihua.lua": { "branch": "master", "commit": "d783191eaa75215beae0c80319fcce5e6b3beeda" },
   "helpview.nvim": { "branch": "main", "commit": "857aec1dab331252910da158ab6cbfbc65239c71" },
   "hurl.nvim": { "branch": "main", "commit": "fccd096f555864d3de1f103622c7020224ba6246" },
