@@ -86,6 +86,7 @@ Carefully check that the method name is passed to the metrics and that no copy-p
 	},
 	{
 		"olimorris/codecompanion.nvim",
+        lazy = false,
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			"nvim-treesitter/nvim-treesitter",
@@ -93,6 +94,7 @@ Carefully check that the method name is passed to the metrics and that no copy-p
 		},
 		init = function()
 			require("configs.fidget-spinner"):init()
+            require'codecompanion'.setup()
 		end,
 		keys = {
 			{ "<leader>aa", "<cmd>CodeCompanionActions<CR>", mode = { "n" }, desc = "Code Companion Action" },

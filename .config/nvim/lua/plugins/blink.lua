@@ -37,7 +37,7 @@ return {
 				["<C-d>"] = { "show", "show_documentation", "hide_documentation" },
 				["<CR>"] = {
 					"select_and_accept",
-					"fallback",
+                    "fallback",
 				},
 			},
 
