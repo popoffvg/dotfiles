@@ -34,10 +34,10 @@ vim.cmd([[
 
         imap 0= :=
 
-        vnoremap 1 ^
+        vnoremap ! ^
         vnoremap 0 $
-        nnoremap 1 ^
-        nnoremap 0 $
+        nnoremap ! ^
+        nnoremap ) $
 
 
         " Windows navigation
@@ -70,12 +70,13 @@ vim.cmd([[
         " https://riptutorial.com/vim/example/16802/search-within-a-function-block#google_vignette
         " for search into function
         vnoremap g/ <ESC>/\%V
-        nnoremap ? <vaf><ESC>/\%V
-
-        nnoremap <leader>R @q
+        nnoremap ? /\%V
 
         nnoremap <leader>o :!open <cWORD><CR>
         nnoremap \\ :
+
+        nnoremap ]0 %
+        nnoremap [0 %
 
         " remove line breaking
         " augroup Terminal
