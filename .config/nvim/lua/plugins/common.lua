@@ -243,4 +243,15 @@ return {
 			})
 		end,
 	},
+    {
+        "AgusDOLARD/backout.nvim",
+        opts = {
+            chars = "(){}[]<>"
+        },
+        keys = {
+            {"<m-h>", "<cmd>lua require('backout').back()<CR>", mode = { "n", "c"}, desc = "Prev bracket"},
+            {"<m-l>", "<cmd>lua require('backout').out()<CR>", mode = { "n", "c"}, desc = "Next bracket"},
+        },
+    }
+
 }
