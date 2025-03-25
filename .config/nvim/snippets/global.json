@@ -1,0 +1,26 @@
+{
+  "todo": {
+    "prefix": "todo",
+    "body": "TODO: $1"
+  },
+  "fixme": {
+    "prefix": "fixme",
+    "body": "FIXME: $1"
+  },
+  "note": {
+    "prefix": "note",
+    "body": "NOTE: $1"
+  },
+  "warn": {
+    "prefix": "warn",
+    "body": "WARN: $1"
+  },
+  "info": {
+    "prefix": "info",
+    "body": "INFO: $1"
+  },
+  "hack": {
+    "prefix": "hack",
+    "body": "HACK: $1"
+  }
+}

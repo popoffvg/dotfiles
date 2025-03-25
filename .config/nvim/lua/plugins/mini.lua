@@ -116,13 +116,6 @@ return {
 		end,
 	},
 
-	-- {
-	-- 	"echasnovski/mini.trailspace",
-	-- 	event = "BufWritePre",
-	-- 	init = function()
-	-- 		require("mini.trailspace").setup()
-	-- 	end,
-	-- },
 	{
 		"echasnovski/mini.surround",
 		event = { "BufReadPre", "BufNewFile" },

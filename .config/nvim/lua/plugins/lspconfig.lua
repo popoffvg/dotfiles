@@ -3,12 +3,13 @@ local mason_servers = {
 	"bashls",
 	-- "gopls",
 	"yamlls",
-	"tsserver",
+	-- "tsserver",
 	"phpactor",
 	"pylsp",
 	"pyright",
 	"golangci_lint_ls",
 	"bufls",
+	"harper_ls",
 	-- "volar",
 	-- ltex for markdown
 	-- cspell
@@ -36,7 +37,7 @@ local on_attach = function()
 	return function(client, bufnr)
 		vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
-		if client.name == "null-ls" then
+		if client.name == "null-ls" or client.name == "harper_ls" then
 			return
 		end
 		if client.name == "gopls" and not client.server_capabilities.semanticTokensProvider then
@@ -155,6 +156,7 @@ return {
 		config = function(_, opts)
 			-- local cmp = require("cmp_nvim_lsp")
 			-- local capabilities = cmp.default_capabilities(make_client_capabilities())
+			local capabilities = vim.lsp.protocol.make_client_capabilities()
 			vim.lsp.handlers["textDocument/hover"] =
 				vim.lsp.with(vim.lsp.handlers.hover, { focusable = false, float = true })
 
@@ -166,7 +168,6 @@ return {
 						return
 					end
 					require("lspconfig")[server_name].setup({
-						capabilities = capabilities,
 						on_attach = on_attach(),
 						settings = settings,
 						handlers = handlers,
@@ -201,19 +202,11 @@ return {
 			-- 	},
 			-- })
 			-- volar setup
-			require("lspconfig").volar.setup({
-				capabilities = capabilities,
-				on_attach = on_attach(),
-				filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
-				settings = {
-					init_options = {
-						vue = {
-							hybridMode = false,
-						},
-					},
-				},
-				handlers = handlers,
-			})
+
+			local tsserver = require("plugins.lsp.tsserver")
+			tsserver.setup(capabilities, handlers, on_attach)
+			local volar = require("plugins.lsp.volar")
+			volar.setup(capabilities, handlers, on_attach)
 
 			setup_goimports()
 			setup_lsp_diags()
@@ -245,7 +238,7 @@ return {
 
 			lspconfig.gopls.setup({
 				on_attach = on_attach(),
-				capabilities = capabilities,
+				-- capabilities = capabilities,
 				settings = require("plugins.lsp.gopls"),
 			})
 

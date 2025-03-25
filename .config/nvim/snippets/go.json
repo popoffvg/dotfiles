@@ -1,0 +1,33 @@
+{
+  "error": {
+    "prefix": "ie",
+    "body": "if err != nil {\n\t$1\n}"
+  },
+  "return": {
+    "prefix": "rn",
+    "body": "return ${1:nil, err}"
+  },
+  "component": {
+    "prefix": "comp",
+    "body": [
+      "type ${1:Component} struct {\n\t$2\n}",
+      "func New$1() *$1 {\n\treturn &$1{}\n}"
+    ]
+  },
+  "test": {
+    "prefix": "test",
+    "body": [
+      "func Test${1:FunctionName}(t *testing.T) {",
+      "\t$2",
+      "}"
+    ]
+  },
+  "for": {
+    "prefix": "forr",
+    "body": [
+      "for ${1:i}, ${2:v} := range ${3:iterable} {",
+      "\t$4",
+      "}"
+    ]
+  }
+}

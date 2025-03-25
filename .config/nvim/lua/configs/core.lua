@@ -89,11 +89,6 @@ vim.cmd([[
     set noswapfile
     set wrapscan
 
-    " editing
-    " How many columns of whitespace a \t is worth
-    set tabstop=4
-    set shiftwidth=4 " Use spaces when tabbing
-    set expandtab
 
     "" Encoding
     set encoding=utf-8

@@ -29,7 +29,7 @@ highlight EyelinerSecondary guifg='#26fcf5' gui=underline ctermfg=81 cterm=under
 					enabled = false,
 				},
 			},
-        },
+		},
 		keys = {
 			{
 				"<m-m>",

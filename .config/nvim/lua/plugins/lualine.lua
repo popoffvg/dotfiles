@@ -102,7 +102,7 @@ return {
 			},
 			tabline = {
 				lualine_a = {},
-				lualine_b = {},
+				lualine_b = { { "%=", color = { bg = "none", fg = "none", gui = "none" } } },
 				lualine_c = {
 					{
 						function()
