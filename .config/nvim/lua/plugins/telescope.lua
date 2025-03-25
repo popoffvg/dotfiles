@@ -252,7 +252,7 @@ return {
 			{ "<leader>fa", ":Telescope ast_grep<CR>", opts },
 			{ "<leader>fm", ":Telescope marks<CR>", opts },
 			{ "<leader>fG", ":Telescope git_status<CR>", opts },
-			{ "<leader>fj", ":Telescope jumplist<CR>", opts },
+			{ "<leader>fj", ":Telescope jumplist preview=true<CR>", opts },
 			{ "<leader>fp", ":Telescope yank_history<CR>", opts },
 			{ "gr", "<cmd>Telescope lsp_references<CR>", {} },
 			{ "gd", "<cmd>Telescope lsp_definitions<CR>", opts },

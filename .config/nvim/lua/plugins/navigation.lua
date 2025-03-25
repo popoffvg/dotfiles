@@ -32,19 +32,19 @@ highlight EyelinerSecondary guifg='#26fcf5' gui=underline ctermfg=81 cterm=under
         },
 		keys = {
 			{
-				"gw",
+				"<m-m>",
 				function()
 					require("flash").jump()
 				end,
 				mode = { "n" },
 			},
-			-- {
-			-- 	"gn",
-			-- 	function()
-			-- 		require("flash").treesitter_search()
-			-- 	end,
-			-- 	mode = { "n" },
-			-- },
+			{
+				"<m-n>",
+				function()
+					require("flash").treesitter_search()
+				end,
+				mode = { "n" },
+			},
 		},
 	},
 	{

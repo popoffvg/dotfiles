@@ -9,6 +9,7 @@ vim.cmd([[
         set clipboard=unnamedplus
         set shell=zsh
         let mapleader=' '
+        let maplocalleader = ','
         "for wezterm compatibility
         map <C-Left> <C-n>
         map <C-Right> <C-p>
@@ -69,8 +70,8 @@ vim.cmd([[
 
         " https://riptutorial.com/vim/example/16802/search-within-a-function-block#google_vignette
         " for search into function
-        vnoremap g/ <ESC>/\%V
         nnoremap ? /\%V
+        vnoremap ? <ESC>/\%V
 
         nnoremap <leader>o :!open <cWORD><CR>
         nnoremap \\ :
