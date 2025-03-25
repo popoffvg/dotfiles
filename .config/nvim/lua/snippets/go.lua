@@ -6,8 +6,8 @@ local t = ls.t
 local d = ls.dynamic_node
 local c = ls.choice_node
 local f = ls.function_node
-local r = ls.restore_node
 local sn = ls.snippet_node
+local postfix = require("luasnip.extras.postfix").postfix
 
 local fmt = require("luasnip.extras.fmt").fmt
 local fmta = require("luasnip.extras.fmt").fmta
@@ -379,18 +379,6 @@ local defer = s(
 )
 table.insert(snippets, defer)
 
-local goroutine = s(
-	{ trig = "go[func]", desc = "goroutine", regExp = true },
-	fmta(
-		[[
-    go func() {
-        <>
-    }()
- ]],
-		{ i(0) }
-	)
-)
-table.insert(snippets, goroutine)
 local gof = s(
 	{ trig = "func[anonym]", name = "go", desc = "go" },
 	fmta(
@@ -433,5 +421,16 @@ table.insert(snippets, ifs)
 
 local tag = s({ trig = "tag", name = "struct tag" }, fmta('`<>:"<>"`', { i(1, "json"), i(0, "value") }))
 table.insert(autosnippets, tag)
+
+local postfix_if = postfix(".if", {
+	d(1, function(_, parent)
+		return sn(nil, {
+			t("if " .. parent.env.POSTFIX_MATCH .. " {"),
+			i(1, ""),
+			t("}"),
+		})
+	end, {}),
+})
+table.insert(snippets, postfix_if)
 
 return snippets, autosnippets
