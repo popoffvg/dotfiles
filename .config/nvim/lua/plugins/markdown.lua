@@ -9,4 +9,7 @@ return {
 			require("render-markdown").setup({})
 		end,
 	},
+	{
+		"dhruvasagar/vim-table-mode",
+	},
 }
