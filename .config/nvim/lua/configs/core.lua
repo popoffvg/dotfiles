@@ -209,7 +209,10 @@ vim.keymap.set("i", "<c-r>", function()
 	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<esc>", true, false, true), "x", true)
 	russianToggle()
 	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("i", true, false, true), "x!", true)
-end, { desc = "[R]ussian", noremap = true })
+end, {
+	desc = "[R]ussian",
+	noremap = true,
+})
 vim.api.nvim_create_autocmd({ "BufEnter", "BufNewFile" }, {
 	pattern = "term:*",
 	callback = function()

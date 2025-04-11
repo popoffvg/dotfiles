@@ -1,4 +1,4 @@
-export PATH=$PATH:/opt/homebrew/bin:$HOME/.local/share/mise/shims:/sbin:/usr/sbin:$HOME/zk/bi
+export PATH=/opt/homebrew/bin:$HOME/.local/share/mise/shims:/sbin:/usr/sbin:$HOME/zk/bi:$PATH
 export ZK_PATH="'/Users/popoffvg/Library/Mobile Documents/iCloud~md~obsidian/Documents/Z-Core/'"
 
 bindkey '^f' autosuggest-accept
@@ -90,7 +90,7 @@ alias gita="git add . && git commit --amend -C HEAD && git push -f"
 alias g="git"
 alias ff="fuck"
 alias fy="fuck -y"
-alias ls="eza --icons=always"
+alias ls="eza"
 alias cd="z"
 alias gfix="TARGET=\$1; shift; git commit -a --fixup=\$TARGET \"\${@:2}\" && EDITOR=true git rebase -i --autostash --autosquash \$TARGET~1; "
 alias zk="cd '/Users/popoffvg/Library/Mobile Documents/iCloud~md~obsidian/Documents/Z-Core/';vi"

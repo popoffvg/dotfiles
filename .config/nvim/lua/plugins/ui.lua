@@ -306,12 +306,12 @@ return {
 			},
 		},
 	},
-	{
-		-- closed buffer after x minutes
-		"chrisgrieser/nvim-early-retirement",
-		config = true,
-		event = "VeryLazy",
-	},
+	-- {
+	-- 	-- closed buffer after x minutes
+	-- 	"chrisgrieser/nvim-early-retirement",
+	-- 	config = true,
+	-- 	event = "VeryLazy",
+	-- },
 	-- {
 	-- 	"b0o/incline.nvim",
 	-- 	config = function()
