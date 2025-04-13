@@ -328,28 +328,28 @@ return {
 	-- 		})
 	-- 	end,
 	-- },
-	{
-		"folke/trouble.nvim",
-		dependencies = { "nvim-tree/nvim-web-devicons" },
-		opts = {
-			-- auto_open = true,
-			-- your configuration comes here
-			-- or leave it empty to use the default settings
-			-- refer to the configuration section below
-		},
-		keys = {
-			{
-				"<leader>xw",
-				"<cmd>Trouble diagnostics toggle<CR>",
-				desc = "workspace diagonstics",
-			},
-			{
-				"<leader>xd",
-				"<cmd>Trouble diagnostics toggle filter.buf=0<CR>",
-				desc = "document diagonstics",
-			},
-		},
-	},
+	-- {
+	-- 	"folke/trouble.nvim",
+	-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
+	-- 	opts = {
+	-- 		-- auto_open = true,
+	-- 		-- your configuration comes here
+	-- 		-- or leave it empty to use the default settings
+	-- 		-- refer to the configuration section below
+	-- 	},
+	-- 	keys = {
+	-- 		{
+	-- 			"<leader>xw",
+	-- 			"<cmd>Trouble diagnostics toggle<CR>",
+	-- 			desc = "workspace diagonstics",
+	-- 		},
+	-- 		{
+	-- 			"<leader>xd",
+	-- 			"<cmd>Trouble diagnostics toggle filter.buf=0<CR>",
+	-- 			desc = "document diagonstics",
+	-- 		},
+	-- 	},
+	-- },
 	-- {
 	-- 	"popoffvg/lsp_lines.nvim",
 	-- 	config = function()

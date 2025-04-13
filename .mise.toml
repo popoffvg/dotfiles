@@ -1,3 +1,5 @@
+[env]
+    GIT_SSH_COMMAND = "ssh -i ~/.ssh/id_ed25519"
 [tools]
     neovim = "latest"
-go = "1.23.7"
+    go = "1.23.7"

@@ -10,7 +10,6 @@ ulimit -n unlimited
 # fi
 
 
-
 ### Added by Zinit's installer
 if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
     print -P "%F{33} %F{220}Installing %F{33}ZDHARMA-CONTINUUM%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
@@ -74,7 +73,9 @@ eval "$(thefuck --alias)"
 eval "$(zoxide init --no-aliases zsh)"
 eval "$(oh-my-posh init zsh --config ~/.config/.oh-my-posh.json)"
 eval "$(direnv hook $SHELL)"
-eval "$(atuin init zsh)"
+# eval "$(atuin init zsh)"
+eval "$(atuin init --disable-up-arrow  zsh)"
+bindkey '^f' atuin-search
 
 unalias find
 

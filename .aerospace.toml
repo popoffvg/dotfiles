@@ -231,3 +231,8 @@ run = "move-node-to-workspace 1"
 if.app-id = 'com.tdesktop.Telegram'
 run = "move-node-to-workspace T"
 
+[[on-window-detected]]
+if.app-id="com.mitchellh.ghostty"
+run= [
+  "layout tiling",
+]

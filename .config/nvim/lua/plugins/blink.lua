@@ -36,8 +36,18 @@ return {
 				},
 				["<C-d>"] = { "show", "show_documentation", "hide_documentation" },
 				["<CR>"] = {
-					"select_and_accept",
-                    "fallback",
+					function(cmp)
+						vim.schedule(function()
+							local ls = require("luasnip")
+							if ls.expandable() then
+								ls.expand()
+							else
+								cmp.select_and_accept()
+							end
+						end)
+					end,
+					"accept_and_enter",
+					"fallback",
 				},
 			},
 
@@ -90,6 +100,17 @@ return {
 						"accept_and_enter",
 						"fallback",
 					},
+					["<c-f>"] = {
+						function(cmp)
+							return cmp.accept({
+								callback = function()
+									vim.api.nvim_feedkeys("\n", "n", true)
+								end,
+							})
+						end,
+						"accept_and_enter",
+						"fallback",
+					},
 					["<Tab>"] = {
 						function(cmp)
 							if cmp.is_visible() then
@@ -101,6 +122,45 @@ return {
 							end
 						end,
 						"snippet_forward",
+						"fallback",
+					},
+					["<S-Tab>"] = {
+						function(cmp)
+							if cmp.is_visible() then
+								cmp.select_prev()
+							elseif cmp.snippet_active() then
+								return cmp.accept()
+							else
+								return cmp.select_and_accept()
+							end
+						end,
+						"snippet_forward",
+						"fallback",
+					},
+					["<c-p>"] = {
+						function(cmp)
+							if cmp.is_visible() then
+								cmp.select_prev()
+							elseif cmp.snippet_active() then
+								return cmp.accept()
+							else
+								return cmp.select_and_accept()
+							end
+						end,
+						"snippet_forward",
+						"fallback",
+					},
+					["<c-n>"] = {
+						function(cmp)
+							if cmp.is_visible() then
+								cmp.select_next()
+							elseif cmp.snippet_active() then
+								return cmp.accept()
+							else
+								return cmp.select_and_accept()
+							end
+						end,
+						"snippet_backward",
 						"fallback",
 					},
 				},

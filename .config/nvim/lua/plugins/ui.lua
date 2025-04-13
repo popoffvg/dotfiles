@@ -382,14 +382,14 @@ return {
 		"crusj/bookmarks.nvim",
 		keys = {
 			{
-				"<leader>fB",
+				"<leader>b",
 				function()
 					require("bookmarks").toggle_bookmarks()
 				end,
 				mode = { "n" },
 			},
 			{
-				"<leader>b",
+				"<c-b>",
 				function()
 					require("bookmarks").add_bookmarks(false)
 				end,

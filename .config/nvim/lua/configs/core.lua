@@ -35,10 +35,10 @@ vim.cmd([[
 
         imap 0= :=
 
-        vnoremap ! ^
-        vnoremap 0 $
-        nnoremap ! ^
-        nnoremap ) $
+        vnoremap gh ^
+        vnoremap gl $
+        nnoremap gh ^
+        nnoremap gl $
 
 
         " Windows navigation
