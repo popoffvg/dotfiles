@@ -3,4 +3,5 @@ local keymap = vim.api.nvim_set_keymap
 
 keymap("n", "<leader>s", ":w!<CR>", opts)
 keymap("n", "<leader>S", ":wall!<CR>", opts)
-keymap("n", "D", ":lua vim.lsp.buf.hover()<CR>", opts)
+
+keymap("n", "<c-'>", ":lua vim.lsp.buf.hover()<CR>", opts)

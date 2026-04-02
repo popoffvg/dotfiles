@@ -22,5 +22,9 @@
   "hack": {
     "prefix": "hack",
     "body": "HACK: $1"
+  },
+  "debug": {
+    "prefix": "test",
+    "body": "TEST: $1"
   }
 }

@@ -41,31 +41,6 @@ return {
 			require("neoscroll").setup()
 		end,
 	},
-	{
-		"gbprod/yanky.nvim",
-		dependencies = {
-			"kkharji/sqlite.lua",
-		},
-		event = { "BufReadPre", "BufNewFile" },
-		config = function()
-			require("yanky").setup({
-				highlight = {
-					on_put = false,
-					on_yank = true,
-					timer = 500,
-				},
-			})
-		end,
-		keys = {
-			{ "p", "<Plug>(YankyPutAfter)", mode = { "n", "x" } },
-			{ "P", "<Plug>(YankyPutBefore)", mode = { "n", "x" } },
-			{ "gp", "<Plug>(YankyGPutAfter)", mode = { "n", "x" } },
-			{ "gP", "<Plug>(YankyGPutBefore)", mode = { "n", "x" } },
-			{ "[p", "<Plug>(YankyPreviousEntry)", noremap = true, mode = { "n" } },
-			{ "]p", "<Plug>(YankyNextEntry)", noremap = true, mode = { "n" } },
-			{ "<leader>fy", "<cmd>Telescope yank_history<CR>", noremap = true, mode = { "n" } },
-		},
-	},
 	-- { "tpope/vim-abolish" },
 	{
 		"numToStr/Comment.nvim",
@@ -200,6 +175,8 @@ return {
 	},
 	{
 		"folke/snacks.nvim",
+		priority = 1000,
+		dependencies = { "saghen/blink.cmp" },
 		lazy = false,
 		opts = {
 			bigfile = { enabled = true },
@@ -207,11 +184,25 @@ return {
 			statuscolumn = { enabled = true },
 			words = { enabled = true },
 			scratch = { enabled = true },
+			picker = {
+				enabled = true,
+				sources = {
+					files = { hidden = true },
+					grep = {
+						hidden = true,
+						layout = { preset = "vertical" },
+					},
+					lsp_references = {
+						layout = { preset = "vertical" },
+					},
+				},
+			},
+			util = { enabled = true },
 			dashboard = { enabled = true },
 		},
 		keys = {
 			{
-				"<leader>fh",
+				"<leader>gh",
 				function()
 					require("snacks").git.blame_line()
 				end,
@@ -224,13 +215,273 @@ return {
 				end,
 				desc = "Dismiss All Notifications",
 			},
-			-- {
-			-- 	"<leader>.",
-			-- 	function()
-			-- 		Snacks.scratch()
-			-- 	end,
-			-- 	desc = "Toggle Scratch Buffer",
-			-- },
+			{
+				"gr",
+				function()
+					Snacks.picker.lsp_references()
+				end,
+				nowait = true,
+				desc = "References",
+			},
+			{
+				"<leader>/",
+				function()
+					Snacks.picker.grep()
+				end,
+				desc = "Grep",
+			},
+			{
+				"<leader>ff",
+				function()
+					Snacks.picker.smart()
+				end,
+				desc = "Smart Find Files",
+			},
+			-- Top Pickers & Explorer
+			{
+				"<leader>,",
+				function()
+					Snacks.picker.buffers()
+				end,
+				desc = "Buffers",
+			},
+			{
+				"<leader>fg",
+				function()
+					Snacks.picker.grep()
+				end,
+				desc = "Grep",
+			},
+			{
+				"<leader>:",
+				function()
+					Snacks.picker.command_history()
+				end,
+				desc = "Command History",
+			},
+			{
+				"<leader>n",
+				function()
+					Snacks.picker.notifications()
+				end,
+				desc = "Notification History",
+			},
+			{
+				"<leader>e",
+				function()
+					Snacks.explorer()
+				end,
+				desc = "File Explorer",
+			},
+			-- find
+			{
+				"<leader>fb",
+				function()
+					Snacks.picker.buffers()
+				end,
+				desc = "Buffers",
+			},
+			{
+				"<leader>gf",
+				function()
+					Snacks.picker.git_files()
+				end,
+				desc = "Find Git Files",
+			},
+			{
+				"<leader>fp",
+				function()
+					Snacks.picker.projects()
+				end,
+				desc = "Projects",
+			},
+			{
+				"<leader>fr",
+				function()
+					Snacks.picker.resume()
+				end,
+				desc = "Recent",
+			},
+			-- git
+			{
+				"<leader>gl",
+				function()
+					Snacks.picker.git_log()
+				end,
+				desc = "Git Log",
+			},
+			{
+				"<leader>gL",
+				function()
+					Snacks.picker.git_log_line()
+				end,
+				desc = "Git Log Line",
+			},
+			{
+				"<leader>gs",
+				function()
+					Snacks.picker.git_status()
+				end,
+				desc = "Git Status",
+			},
+			{
+				"<leader>gS",
+				function()
+					Snacks.picker.git_stash()
+				end,
+				desc = "Git Stash",
+			},
+			{
+				"<leader>gd",
+				function()
+					Snacks.picker.git_diff()
+				end,
+				desc = "Git Diff (Hunks)",
+			},
+			-- Grep
+			-- search
+			{
+				'<leader>f"',
+				function()
+					Snacks.picker.registers()
+				end,
+				desc = "Registers",
+			},
+			{
+				"<leader>f/",
+				function()
+					Snacks.picker.search_history()
+				end,
+				desc = "Search History",
+			},
+			{
+				"<leader>fC",
+				function()
+					Snacks.picker.command_history()
+				end,
+				desc = "Command History",
+			},
+			{
+				"<leader>fc",
+				function()
+					Snacks.picker.commands()
+				end,
+				desc = "Commands",
+			},
+			{
+				"<leader>fdw",
+				function()
+					Snacks.picker.diagnostics()
+				end,
+				desc = "Diagnostics",
+			},
+			{
+				"<leader>fdd",
+				function()
+					Snacks.picker.diagnostics_buffer()
+				end,
+				desc = "Buffer Diagnostics",
+			},
+			{
+				"<leader>fh",
+				function()
+					Snacks.picker.help()
+				end,
+				desc = "Help Pages",
+			},
+			{
+				"<leader>fH",
+				function()
+					Snacks.picker.highlights()
+				end,
+				desc = "Highlights",
+			},
+			{
+				"<leader>fj",
+				function()
+					Snacks.picker.jumps()
+				end,
+				desc = "Jumps",
+			},
+			{
+				"<leader>fl",
+				function()
+					Snacks.picker.loclist()
+				end,
+				desc = "Location List",
+			},
+			{
+				"<leader>fm",
+				function()
+					Snacks.picker.marks()
+				end,
+				desc = "Marks",
+			},
+			{
+				"<leader>fq",
+				function()
+					Snacks.picker.qflist()
+				end,
+				desc = "Quickfix List",
+			},
+			{
+				"<leader>fu",
+				function()
+					Snacks.picker.undo()
+				end,
+				desc = "Undo History",
+			},
+			-- LSP
+			{
+				"gd",
+				function()
+					Snacks.picker.lsp_definitions()
+				end,
+				desc = "Goto Definition",
+			},
+			{
+				"gD",
+				function()
+					Snacks.picker.lsp_declarations()
+				end,
+				desc = "Goto Declaration",
+			},
+			{
+				"gr",
+				function()
+					Snacks.picker.lsp_references()
+				end,
+				nowait = true,
+				desc = "References",
+			},
+			{
+				"gi",
+				function()
+					Snacks.picker.lsp_implementations()
+				end,
+				desc = "Goto Implementation",
+			},
+			{
+				"gt",
+				function()
+					Snacks.picker.lsp_type_definitions()
+				end,
+				desc = "Goto T[y]pe Definition",
+			},
+			{
+				"<leader>ft",
+				function()
+					Snacks.picker.lsp_symbols()
+				end,
+				desc = "LSP Symbols",
+			},
+			{
+				"<leader>fT",
+				function()
+					Snacks.picker.lsp_workspace_symbols()
+				end,
+				desc = "LSP Workspace Symbols",
+			},
 		},
 	},
 	{
@@ -249,8 +500,32 @@ return {
 			chars = "(){}[]<>",
 		},
 		keys = {
-			{ "((", "<cmd>lua require('backout').back()<CR>", mode = { "n", "c" }, desc = "Prev bracket" },
-			{ "))", "<cmd>lua require('backout').out()<CR>", mode = { "n", "c" }, desc = "Next bracket" },
+			{ "g[", "<cmd>lua require('backout').back()<CR>", mode = { "n", "c" }, desc = "Prev bracket" },
+			{ "g]", "<cmd>lua require('backout').out()<CR>", mode = { "n", "c" }, desc = "Next bracket" },
 		},
 	},
+	{
+		"gbprod/yanky.nvim",
+		dependencies = { "folke/snacks.nvim" },
+		event = { "BufReadPre", "BufNewFile" },
+		config = function()
+			require("yanky").setup({
+				highlight = {
+					on_put = false,
+					on_yank = true,
+					timer = 500,
+				},
+			})
+		end,
+		keys = {
+			{ "p", "<Plug>(YankyPutAfter)", mode = { "n", "x" } },
+			{ "P", "<Plug>(YankyPutBefore)", mode = { "n", "x" } },
+			{ "gp", "<Plug>(YankyGPutAfter)", mode = { "n", "x" } },
+			{ "gP", "<Plug>(YankyGPutBefore)", mode = { "n", "x" } },
+			{ "[p", "<Plug>(YankyPreviousEntry)", noremap = true, mode = { "n" } },
+			{ "]p", "<Plug>(YankyNextEntry)", noremap = true, mode = { "n" } },
+			{ "<leader>fy", "<cmd>Telescope yank_history<CR>", noremap = true, mode = { "n" } },
+		},
+	},
+	{ "craigemery/vim-autotag" },
 }

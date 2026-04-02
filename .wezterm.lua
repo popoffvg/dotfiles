@@ -2,6 +2,7 @@
 local wezterm = require("wezterm")
 local act = wezterm.action
 local mux = wezterm.mux
+
 wezterm.on("gui-startup", function()
 	local tab, pane, window = mux.spawn_window({})
 	window:gui_window():maximize()
@@ -18,15 +19,10 @@ end
 -- This is where you actually apply your config choices
 
 -- For example, changing the color scheme:
-local custom = wezterm.color.get_builtin_schemes()["catppuccin-macchiato"]
--- custom.tab_bar.background = "#040404"
 -- custom.tab_bar.inactive_tab.bg_color = "#0f0f0f"
 -- custom.tab_bar.new_tab.bg_color = "#080808"
 config.enable_kitty_graphics = true
-config.color_schemes = {
-	["OLEDppuccin"] = custom,
-}
-config.color_scheme = "OLEDppuccin"
+config.color_scheme = "Monokai (base16)"
 config.font = wezterm.font("FiraCode Nerd Font")
 config.font_size = 14.0
 -- config.enable_tab_bar = false
@@ -39,7 +35,7 @@ config.window_padding = {
 	top = 0,
 	bottom = 0,
 }
-config.window_decorations = "NONE"
+-- config.window_decorations = "NONE"
 -- config.native_macos_fullscreen_mode = true
 local function is_vim(pane)
 	local process_info = pane:get_foreground_process_info()
@@ -82,6 +78,7 @@ local function split_nav(resize_or_move, key)
 end
 
 -- wezterm config
+local leader = "OPT|CTRL"
 
 config.keys = {
 	{
@@ -110,25 +107,25 @@ config.keys = {
 	},
 	{
 		key = "r",
-		mods = "CMD|SHIFT",
+		mods = leader,
 		action = wezterm.action.ReloadConfiguration,
 	},
 	{
-		key = "x",
-		mods = "CMD|SHIFT",
+		key = "w",
+		mods = "CMD",
 		action = wezterm.action.CloseCurrentPane({ confirm = true }),
 	},
 	{
 		key = "-",
-		mods = "CMD|SHIFT",
+		mods = "CMD",
 		action = wezterm.action.SplitVertical({
 			-- command = { args = { "sh" } },
 			domain = "CurrentPaneDomain",
 		}),
 	},
 	{
-		key = "|",
-		mods = "CMD|SHIFT",
+		key = "d",
+		mods = "CMD",
 		action = wezterm.action.SplitPane({
 			direction = "Right",
 			-- command = act.DetachDomain("CurrentPaneDomain"),
@@ -139,17 +136,17 @@ config.keys = {
 	{
 
 		key = "p",
-		mods = "CMD|SHIFT",
+		mods = leader,
 		action = wezterm.action.QuickSelect,
 	},
 	{
 		key = "l",
-		mods = "CMD|SHIFT",
+		mods = leader,
 		action = wezterm.action.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES" }),
 	},
 	{
-		key = "s",
-		mods = "CMD|SHIFT",
+		key = "e",
+		mods = leader,
 		action = act.PromptInputLine({
 			action = wezterm.action_callback(function(window, pane, line)
 				if line == "" then
@@ -162,23 +159,23 @@ config.keys = {
 	},
 	{
 		key = "8",
-		mods = "CMD|SHIFT",
+		mods = leader,
 		action = act.PaneSelect,
 	},
 	{
 		key = "Z",
-		mods = "CMD|SHIFT",
+		mods = leader,
 		action = wezterm.action.TogglePaneZoomState,
 	},
 	{ key = "t", mods = "CMD|SHIFT", action = act.SpawnTab("DefaultDomain") },
 	{
 		key = "c",
-		mods = "CMD|SHIFT",
+		mods = leader,
 		action = act.ActivateCopyMode,
 	},
 	{
 		key = "f",
-		mods = "CMD|SHIFT",
+		mods = leader,
 		action = wezterm.action.ToggleFullScreen,
 	},
 	split_nav("move", "h"),

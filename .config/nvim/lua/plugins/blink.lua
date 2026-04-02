@@ -25,6 +25,10 @@ return {
 				["<C-f>"] = {
 					function(cmp)
 						vim.schedule(function()
+							if not cmp.is_visible() then
+								vim.api.nvim_feedkeys("\n", "n", true)
+							end
+
 							local ls = require("luasnip")
 							if ls.expandable() then
 								ls.expand()
@@ -38,6 +42,10 @@ return {
 				["<CR>"] = {
 					function(cmp)
 						vim.schedule(function()
+							if not cmp.is_visible() then
+								vim.api.nvim_feedkeys("\n", "n", true)
+							end
+
 							local ls = require("luasnip")
 							if ls.expandable() then
 								ls.expand()
@@ -46,8 +54,6 @@ return {
 							end
 						end)
 					end,
-					"accept_and_enter",
-					"fallback",
 				},
 			},
 
@@ -65,7 +71,7 @@ return {
 					enabled = false, -- only for ai assistant
 				},
 				list = {
-					selection = { auto_insert = true },
+					selection = { auto_insert = false },
 				},
 				accept = {
 					-- experimental auto-brackets support
@@ -89,115 +95,44 @@ return {
 			cmdline = {
 				enabled = true,
 				keymap = {
-					["<CR>"] = {
-						function(cmp)
-							return cmp.accept({
-								callback = function()
-									vim.api.nvim_feedkeys("\n", "n", true)
-								end,
-							})
-						end,
-						"accept_and_enter",
-						"fallback",
-					},
 					["<c-f>"] = {
-						function(cmp)
-							return cmp.accept({
-								callback = function()
-									vim.api.nvim_feedkeys("\n", "n", true)
-								end,
-							})
-						end,
-						"accept_and_enter",
-						"fallback",
+						"show",
+						"accept",
 					},
 					["<Tab>"] = {
-						function(cmp)
-							if cmp.is_visible() then
-								cmp.select_next()
-							elseif cmp.snippet_active() then
-								return cmp.accept()
-							else
-								return cmp.select_and_accept()
-							end
-						end,
-						"snippet_forward",
-						"fallback",
-					},
-					["<S-Tab>"] = {
-						function(cmp)
-							if cmp.is_visible() then
-								cmp.select_prev()
-							elseif cmp.snippet_active() then
-								return cmp.accept()
-							else
-								return cmp.select_and_accept()
-							end
-						end,
-						"snippet_forward",
-						"fallback",
+						"show",
+						"accept",
 					},
 					["<c-p>"] = {
-						function(cmp)
-							if cmp.is_visible() then
-								cmp.select_prev()
-							elseif cmp.snippet_active() then
-								return cmp.accept()
-							else
-								return cmp.select_and_accept()
-							end
-						end,
-						"snippet_forward",
-						"fallback",
+						"show_and_insert",
+						"select_prev",
 					},
 					["<c-n>"] = {
-						function(cmp)
-							if cmp.is_visible() then
-								cmp.select_next()
-							elseif cmp.snippet_active() then
-								return cmp.accept()
-							else
-								return cmp.select_and_accept()
-							end
-						end,
-						"snippet_backward",
-						"fallback",
+						"show_and_insert",
+						"select_next",
 					},
 				},
-				sources = function()
-					local type = vim.fn.getcmdtype()
-					-- Search forward and backward
-					if type == "/" or type == "?" then
-						return { "buffer" }
-					end
-					-- Commands
-					if type == ":" or type == "@" then
-						return { "cmdline", "path" }
-					end
-					return {}
-				end,
 				completion = {
-					trigger = {
-						show_on_blocked_trigger_characters = {},
-						show_on_x_blocked_trigger_characters = nil,
-					},
 					menu = {
-						auto_show = true,
-						draw = {
-							-- columns = { { "label", "label_description", gap = 1 } },
-							columns = function(ctx)
-								if ctx.mode == "cmdline" then
-									return { { "kind_icon", gap = 1 }, { "label", gap = 1 } }
-								else
-									return {
-										{ "kind_icon", "label", "label_description", gap = 1 },
-										{ "kind", "source_name", gap = 1 },
-									}
-								end
-							end,
-						},
+						auto_show = function(ctx)
+							return vim.fn.getcmdtype() == ":"
+							-- enable for inputs as well, with:
+							-- or vim.fn.getcmdtype() == '@'
+						end,
 					},
 				},
+				-- sources = function()
+				-- 	local type = vim.fn.getcmdtype()
+				-- 	-- Search forward and backward
+				-- 	if type == "/" or type == "?" then
+				-- 		return { "buffer" }
+				-- 	end
+				-- 	-- Commands
+				-- 	if type == ":" or type == "@" then
+				-- 		return { "cmdline", "path" }
+				-- 	end
+				-- 	return {}
+				-- end,
 			},
 		},
 		opts_extend = {

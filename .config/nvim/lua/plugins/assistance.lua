@@ -1,14 +1,22 @@
 return {
+	-- 	"TabbyML/vim-tabby",
+	-- 	lazy = false,
+	-- 	dependencies = {
+	-- 		"neovim/nvim-lspconfig",
+	-- 	},
+	-- 	init = function()
+	-- 		vim.g.tabby_agent_start_command = { "npx", "tabby-agent", "--stdio" }
+	-- 		vim.g.tabby_inline_completion_trigger = "auto"
+	-- 	end,
+	-- },
 	{
-		"TabbyML/vim-tabby",
-		lazy = false,
-		dependencies = {
-			"neovim/nvim-lspconfig",
+		"kiddos/gemini.nvim",
+		opts = {
+			hints = {
+				hints_delay = 200,
+				insert_result_key = "<c-a>",
+			},
 		},
-		init = function()
-			vim.g.tabby_agent_start_command = { "npx", "tabby-agent", "--stdio" }
-			vim.g.tabby_inline_completion_trigger = "auto"
-		end,
 	},
 	-- 	{
 	-- 		"CopilotC-Nvim/CopilotChat.nvim",
@@ -95,21 +103,48 @@ return {
 	-- 			end, { expr = true })
 	-- 		end,
 	-- 	},
-	-- 	{
-	-- 		"olimorris/codecompanion.nvim",
-	--         lazy = false,
-	-- 		dependencies = {
-	-- 			"nvim-lua/plenary.nvim",
-	-- 			"nvim-treesitter/nvim-treesitter",
-	-- 			"j-hui/fidget.nvim",
-	-- 		},
-	-- 		init = function()
-	-- 			require("configs.fidget-spinner"):init()
-	--             require'codecompanion'.setup()
-	-- 		end,
-	-- 		keys = {
-	-- 			{ "<leader>aa", "<cmd>CodeCompanionActions<CR>", mode = { "n" }, desc = "Code Companion Action" },
-	-- 			{ "<leader>aa", "<cmd>'<,'>CodeCompanion<CR>", mode = { "v" }, desc = "Inline Code Companion" },
-	-- 		},
-	-- 	},
+	{
+		"olimorris/codecompanion.nvim",
+		lazy = false,
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"nvim-treesitter/nvim-treesitter",
+			"j-hui/fidget.nvim",
+		},
+		init = function()
+			require("configs.fidget-spinner"):init()
+			require("codecompanion").setup()
+		end,
+		opts = {
+			strategies = {
+				chat = {
+					adapter = "gemini",
+				},
+				inline = {
+					adapter = "gemini",
+				},
+			},
+			gemini = function()
+				return require("codecompanion.adapters").extend("gemini", {
+					schema = {
+						model = {
+							default = "gemini-2.0-flash-lite",
+						},
+					},
+					env = {
+						api_key = os.getenv("GEMINI_API_KEY"),
+					},
+				})
+			end,
+			display = {
+				diff = {
+					provider = "mini_diff",
+				},
+			},
+		},
+		keys = {
+			{ "<leader>ai", "<cmd>CodeCompanionActions<CR>", mode = { "n" }, desc = "Code Companion Action" },
+			{ "<leader>ai", "<cmd>'<,'>CodeCompanion<CR>", mode = { "v" }, desc = "Inline Code Companion" },
+		},
+	},
 }

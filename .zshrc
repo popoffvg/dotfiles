@@ -41,41 +41,13 @@ zi light sroze/docker-compose-zsh-plugin
 zi light hlissner/zsh-autopair
 zi light zsh-users/zsh-syntax-highlighting
 zi light Aloxaf/fzf-tab
-zi light plutowang/zsh-ollama-command
-zi light unixorn/git-extra-commands
-zi light loiccoyle/zsh-github-copilot
-zi light Aloxaf/fzf-tab
-# zi light remino/omz-plugin-git-aliases
-
-zi snippet OMZP::git-extras
-zi snippet OMZP::git
-zi snippet OMZP::colorize
-zi snippet OMZP::cp
-zi snippet OMZP::mvn
-zi snippet OMZP::fzf
-zi snippet OMZP::kubectl
-zi snippet OMZP::golang
-# zi snippet OMZP::tmux
-zi snippet OMZP::zoxide
-zi snippet OMZP::eza
-
-
-zi ice as"completion"
-zi snippet OMZP::gitfast
-
-zi ice as"completion"
-zi snippet OMZP::git-commit
-
-# zi ice as"completion"
-# zi snippet OMZP::fd/_fd
-
-eval "$(thefuck --alias)"
+# zi light plutowang/zsh-thefuck --alias)"
 eval "$(zoxide init --no-aliases zsh)"
 eval "$(oh-my-posh init zsh --config ~/.config/.oh-my-posh.json)"
 eval "$(direnv hook $SHELL)"
 # eval "$(atuin init zsh)"
 eval "$(atuin init --disable-up-arrow  zsh)"
-bindkey '^f' atuin-search
+bindkey '^p' atuin-search
 
 unalias find
 
@@ -89,8 +61,8 @@ alias k=kubectl
 # alias go="grc go"
 alias gita="git add . && git commit --amend -C HEAD && git push -f"
 alias g="git"
-alias ff="fuck"
-alias fy="fuck -y"
+# alias ff="fuck"
+# alias fy="fuck -y"
 alias ls="eza"
 alias cd="z"
 alias gfix="TARGET=\$1; shift; git commit -a --fixup=\$TARGET \"\${@:2}\" && EDITOR=true git rebase -i --autostash --autosquash \$TARGET~1; "
@@ -135,7 +107,6 @@ source ~/.zshrc_git
 source ~/.zshrc_broot
 source ~/.zshrc_go
 source ~/.zshrc_sq
-
 source /Users/popoffvg/.config/broot/launcher/bash/br
 
 

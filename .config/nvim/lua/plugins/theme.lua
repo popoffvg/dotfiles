@@ -25,36 +25,48 @@ return {
 		end,
 	},
 	{
-		"catppuccin/nvim",
-		name = "catppuccin",
+		"AlexvZyl/nordic.nvim",
+		lazy = false,
 		priority = 1000,
 		config = function()
-			require("catppuccin").setup({
-				integrations = {
-					cmp = true,
-					gitsigns = true,
-					nvimtree = true,
-					treesitter = true,
-					notify = true,
-					lsp_trouble = true,
-					mini = {
-						enabled = true,
-						indentscope_color = "",
-					},
-				},
-			})
+			require("nordic").load()
 			vim.cmd([[
-	                colorscheme catppuccin
+	                colorscheme nordic
 	                hi WinSeparator guifg=VertSplit
 	            ]])
-
-			-- local autocmd = vim.api.nvim_create_autocmd
-			-- local group = vim.api.nvim_create_augroup("window_managment", {})
-			-- autocmd("WinEnter", {
-			-- 	pattern = "*",
-			-- 	group = group,
-			-- 	callback = HandleWinEnter,
-			-- })
 		end,
 	},
+	-- {
+	-- 	"catppuccin/nvim",
+	-- 	name = "catppuccin",
+	-- 	priority = 1000,
+	-- 	config = function()
+	-- 		require("catppuccin").setup({
+	-- 			integrations = {
+	-- 				cmp = true,
+	-- 				gitsigns = true,
+	-- 				nvimtree = true,
+	-- 				treesitter = true,
+	-- 				notify = true,
+	-- 				lsp_trouble = true,
+	-- 				mini = {
+	-- 					enabled = true,
+	-- 					indentscope_color = "",
+	-- 				},
+	-- 			},
+	-- 		})
+	-- 		vim.cmd([[
+	--                 colorscheme nord
+	--                 hi WinSeparator guifg=VertSplit
+	--             ]])
+	--
+	-- 		-- local autocmd = vim.api.nvim_create_autocmd
+	-- 		-- local group = vim.api.nvim_create_augroup("window_managment", {})
+	-- 		-- autocmd("WinEnter", {
+	-- 		-- 	pattern = "*",
+	-- 		-- 	group = group,
+	-- 		-- 	callback = HandleWinEnter,
+	-- 		-- })
+	-- 	end,
+	-- },
 }

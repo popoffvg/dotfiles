@@ -20,12 +20,12 @@ return {
 		branch = "v0.6", --recommended as each new version will have breaking changes
 		opts = {},
 	},
-	{
-		"echasnovski/mini.diff",
-		init = function()
-			require("mini.diff").setup()
-		end,
-	},
+	-- {
+	-- 	"echasnovski/mini.diff",
+	-- 	init = function()
+	-- 		require("mini.diff").setup()
+	-- 	end,
+	-- },
 	{
 		"echasnovski/mini.splitjoin",
 		event = { "BufReadPre", "BufNewFile" },
@@ -124,12 +124,12 @@ return {
 		end,
 	},
 	{
-		{
-			"echasnovski/mini.ai",
-			event = { "BufReadPre", "BufNewFile" },
-			init = function()
-				require("mini.ai").setup()
-			end,
-		},
+		-- {
+		-- 	"echasnovski/mini.ai",
+		-- 	event = { "BufReadPre", "BufNewFile" },
+		-- 	init = function()
+		-- 		require("mini.ai").setup()
+		-- 	end,
+		-- },
 	},
 }

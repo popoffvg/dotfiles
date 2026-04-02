@@ -25,11 +25,8 @@ local signs = {
 local handlers = {
 	["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" }),
 	["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
-		floating_window = false,
+		floating_window = true,
 		border = "rounded",
-	}),
-	["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
-		virtual_text = false,
 	}),
 }
 
@@ -52,14 +49,6 @@ local on_attach = function()
 		require("nvim-navic").attach(client, bufnr)
 		vim.api.nvim_command("autocmd CursorHold <buffer> lua vim.diagnostic.open_float({focusable = false})")
 	end
-end
-local function setup_lsp_diags()
-	vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
-		virtual_text = false,
-		signs = true,
-		update_in_insert = false,
-		underline = true,
-	})
 end
 
 local setup_goimports = function()
@@ -156,7 +145,9 @@ return {
 		config = function(_, opts)
 			-- local cmp = require("cmp_nvim_lsp")
 			-- local capabilities = cmp.default_capabilities(make_client_capabilities())
+
 			local capabilities = vim.lsp.protocol.make_client_capabilities()
+			-- print capabilities
 			vim.lsp.handlers["textDocument/hover"] =
 				vim.lsp.with(vim.lsp.handlers.hover, { focusable = false, float = true })
 
@@ -209,7 +200,6 @@ return {
 			volar.setup(capabilities, handlers, on_attach)
 
 			setup_goimports()
-			setup_lsp_diags()
 
 			for type, icon in pairs(signs) do
 				local hl = "DiagnosticSign" .. type
@@ -217,22 +207,22 @@ return {
 			end
 
 			local cspell = require("cspell")
-			local null_ls = require("null-ls")
+			-- local null_ls = require("null-ls")
 
-			null_ls.setup({
-				on_attach = on_attach(),
-				filetypes = "go",
-				sources = {
-					cspell.diagnostics.with({
-						filetypes = { "go" },
-						diagnostics_postprocess = function(diagnostic)
-							diagnostic.severity = vim.diagnostic.severity["WARN"]
-						end,
-					}),
-					cspell.code_actions,
-					null_ls.builtins.completion.spell,
-				},
-			})
+			-- null_ls.setup({
+			-- 	on_attach = on_attach(),
+			-- 	filetypes = "go",
+			-- 	sources = {
+			-- 		cspell.diagnostics.with({
+			-- 			filetypes = { "go" },
+			-- 			diagnostics_postprocess = function(diagnostic)
+			-- 				diagnostic.severity = vim.diagnostic.severity["WARN"]
+			-- 			end,
+			-- 		}),
+			-- 		cspell.code_actions,
+			-- 		null_ls.builtins.completion.spell,
+			-- 	},
+			-- })
 			local lspconfig = require("lspconfig")
 			local configs = require("lspconfig/configs")
 
@@ -277,6 +267,9 @@ return {
 			-- 	end,
 			-- })
 			--
+			vim.diagnostic.config({
+				virtual_text = false,
+			})
 		end,
 		keys = {
 			-- {
@@ -285,20 +278,20 @@ return {
 			-- 		vim.diagnostic.open_float()
 			-- 	end,
 			-- },
-			{
-				"gt",
-				function()
-					vim.lsp.buf.type_definition({
-						on_list = function()
-							vim.cmd("Telescope lsp_type_definitions")
-						end,
-					})
-				end,
-			},
-			{ "<Leader>fx", "<cmd>lua vim.diagnostic.setloclist()<CR>" },
-			{ "<C-d>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", mode = { "i" } },
+			-- {
+			-- 	"gt",
+			-- 	function()
+			-- 		vim.lsp.buf.type_definition({
+			-- 			on_list = function()
+			-- 				vim.cmd("Telescope lsp_type_definitions")
+			-- 			end,
+			-- 		})
+			-- 	end,
+			-- },
+			{ "<Leader>dx", "<cmd>lua vim.diagnostic.setloclist()<CR>" },
+			{ "<c-'>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", mode = { "i" } },
 			-- https://www.reddit.com/r/neovim/comments/11axh2p/how_to_toggle_openclose_floating_lsp_diagnostic/
-			{ "<c-'>", '<cmd>lua vim.diagnostic.open_float(nil, {focus=true, scope="cursor"})<CR>' },
+			-- { "<c-'>", '<cmd>lua vim.diagnostic.open_float(nil, {focus=true, scope="cursor"})<CR>' },
 			{
 				"<leader>rn",
 				function()
@@ -314,52 +307,6 @@ return {
 			},
 		},
 	},
-	-- {
-	-- 	"mfussenegger/nvim-lint",
-	-- 	config = function()
-	-- 		require("lint").linters_by_ft = {
-	-- 			markdown = { "vale" },
-	-- 			go = { "golangcilint" },
-	-- 		}
-	-- 		vim.api.nvim_create_autocmd({ "BufWinEnter", "BufWritePost" }, {
-	-- 			callback = function()
-	-- 				require("lint").try_lint()
-	-- 			end,
-	-- 		})
-	-- 	end,
-	-- },
-	-- {
-	-- 	"folke/trouble.nvim",
-	-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
-	-- 	opts = {
-	-- 		-- auto_open = true,
-	-- 		-- your configuration comes here
-	-- 		-- or leave it empty to use the default settings
-	-- 		-- refer to the configuration section below
-	-- 	},
-	-- 	keys = {
-	-- 		{
-	-- 			"<leader>xw",
-	-- 			"<cmd>Trouble diagnostics toggle<CR>",
-	-- 			desc = "workspace diagonstics",
-	-- 		},
-	-- 		{
-	-- 			"<leader>xd",
-	-- 			"<cmd>Trouble diagnostics toggle filter.buf=0<CR>",
-	-- 			desc = "document diagonstics",
-	-- 		},
-	-- 	},
-	-- },
-	-- {
-	-- 	"popoffvg/lsp_lines.nvim",
-	-- 	config = function()
-	-- 		vim.diagnostic.config({
-	-- 			virtual_text = false,
-	-- 			virtual_lines = { only_current_line = true },
-	-- 		})
-	-- 		require("lsp_lines").setup()
-	-- 	end,
-	-- },
 	{
 		"smjonas/inc-rename.nvim",
 		event = "BufEnter",
@@ -371,19 +318,5 @@ return {
 		end,
 	},
 
-	-- {
-	-- 	"ray-x/lsp_signature.nvim",
-	-- 	event = "VeryLazy",
-	-- 	opts = {
-	-- 		floating_window = false,
-	-- 		hint_enable = false,
-	-- 		hint_inline = function()
-	-- 			return false
-	-- 		end,
-	-- 	},
-	-- 	config = function(_, opts)
-	-- 		-- require("lsp_signature").setup(opts)
-	-- 	end,
-	-- },
 	{ "VidocqH/lsp-lens.nvim", config = true },
 }

@@ -98,7 +98,7 @@ return {
 				component_separators = { left = "", right = "" },
 				section_separators = { left = "", right = "" },
 				globalstatus = true,
-				theme = "catppuccin-macchiato",
+				theme = "nordic",
 			},
 			tabline = {
 				lualine_a = {},

@@ -13,6 +13,7 @@ return {
 	{
 		"nvim-telescope/telescope.nvim",
 		dependencies = {
+			"folke/snacks.nvim",
 			"nvim-telescope/telescope-ui-select.nvim",
 			"nvim-treesitter/nvim-treesitter",
 			"nvim-telescope/telescope-live-grep-args.nvim",
@@ -276,7 +277,7 @@ return {
 			"nvim-tree/nvim-web-devicons",
 			{
 				"MeanderingProgrammer/render-markdown.nvim",
-				dependencies = { "nvim-treesitter/nvim-treesitter", "echasnovski/mini.nvim" }, -- if you use the mini.nvim suite
+				dependencies = { "nvim-treesitter/nvim-treesitter" },
 				---@module 'render-markdown'
 				---@type render.md.UserConfig
 				opts = {},
@@ -290,28 +291,29 @@ return {
 				rg_glob = true,
 			},
 			winopts = {
-				fullscreen = true,
+				fullscreen = false,
 				preview = {
 					layout = "vertical",
+					delay = 40,
 				},
 			},
 		},
 		keys = {
-			{ "gr", "<cmd>FzfLua lsp_references<CR>", {} },
-			{ "<leader>ft", "<cmd>FzfLua lsp_document_symbols<CR>", mode = { "n" }, desc = "Open symbol picker" },
-			{ "<leader>fT", "<cmd>FzfLua lsp_workspace_symbols<CR>", mode = { "n" }, desc = "Open symbol picker" },
-			{ "gd", "<cmd>FzfLua lsp_definitions<CR>", opts },
-			{ "<leader>fj", ":FzfLua jumps<CR>", opts },
-			{ "<leader>ff", ":FzfLua files <CR>", opts },
-			{ "<leader>fb", ":FzfLua buffers<CR>", opts },
-			{ "<leader>fw", ":FzfLua blines<CR>", opts },
-			{ "<leader>fo", ":FzfLua lsp_outgoing_calls<CR>", opts },
-			{ "<leader>fg", "<cmd>FzfLua live_grep_glob<CR>", opts },
-			{
-				"gi",
-				"<cmd>FzfLua lsp_implementations<CR>",
-				opts,
-			},
+			-- { "gr", "<cmd>FzfLua lsp_references<CR>", {} },
+			-- { "<leader>ft", "<cmd>FzfLua lsp_document_symbols<CR>", mode = { "n" }, desc = "Open symbol picker" },
+			-- { "<leader>fT", "<cmd>FzfLua lsp_workspace_symbols<CR>", mode = { "n" }, desc = "Open symbol picker" },
+			-- { "gd", "<cmd>FzfLua lsp_definitions<CR>", opts },
+			-- { "<leader>fj", ":FzfLua jumps<CR>", opts },
+			-- { "<leader>ff", ":FzfLua files <CR>", opts },
+			-- { "<leader>fb", ":FzfLua buffers<CR>", opts },
+			-- { "<leader>fw", ":FzfLua blines<CR>", opts },
+			-- { "<leader>fo", ":FzfLua lsp_outgoing_calls<CR>", opts },
+			-- { "<leader>fg", "<cmd>FzfLua live_grep_glob<CR>", opts },
+			-- {
+			-- 	"gi",
+			-- 	"<cmd>FzfLua lsp_implementations<CR>",
+			-- 	opts,
+			-- },
 			{
 				"<leader>fdd",
 				":lua require'fzf-lua'.diagnostics_document({ fzf_cli_args = '--with-nth 2..' })<CR>",

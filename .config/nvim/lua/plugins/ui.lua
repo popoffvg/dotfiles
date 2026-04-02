@@ -41,6 +41,8 @@ local routes = {
 
 table.insert(routes, require("plugins.languages.go").Routes)
 
+local enableNoNeckPain = vim.o.columns > 100
+
 return {
 
 	-- CMD custimization
@@ -99,136 +101,35 @@ return {
 			})
 		end,
 	},
-	-- {
-	-- 	-- messagaes and cmd new UI
-	-- 	"folke/noice.nvim",
-	-- 	event = "VeryLazy",
-	-- 	dependecies = {
-	-- 		"SmiteshP/nvim-navic",
-	--
-	-- 		"MunifTanjim/nui.nvim",
-	-- 		"kyazdani42/nvim-web-devicons",
-	-- 	},
-	-- 	config = function()
-	-- 		require("noice").setup({
-	-- 			lsp = {
-	-- 				progress = {
-	-- 					enabled = true,
-	-- 				},
-	-- 				-- override = {
-	-- 				-- 	-- override the default lsp markdown formatter with Noice
-	-- 				-- 	["vim.lsp.util.convert_input_to_markdown_lines"] = false,
-	-- 				-- 	-- override the lsp markdown formatter with Noice
-	-- 				-- 	["vim.lsp.util.stylize_markdown"] = false,
-	-- 				-- 	-- override cmp documentation with Noice (needs the other options to work)
-	-- 				-- 	["cmp.entry.get_documentation"] = false,
-	-- 				-- },
-	-- 				hover = {
-	-- 					enabled = false,
-	-- 				},
-	-- 				signature = {
-	-- 					enabled = false,
-	-- 				},
-	-- 				message = {
-	-- 					-- Messages shown by lsp servers
-	-- 					enabled = true,
-	-- 					view = "notify",
-	-- 					opts = {},
-	-- 				},
-	-- 				-- defaults for hover and signature help
-	-- 				documentation = {
-	-- 					view = "hover",
-	-- 					---@type NoiceViewOptions
-	-- 					opts = {
-	-- 						lang = "markdown",
-	-- 						replace = true,
-	-- 						render = "plain",
-	-- 						format = { "{message}" },
-	-- 						win_options = { concealcursor = "n", conceallevel = 3 },
-	-- 					},
-	-- 				},
-	-- 			},
-	-- 			routes = routes,
-	-- 			presets = {
-	-- 				bottom_search = false, -- use a classic bottom cmdline for search
-	-- 				command_palette = true, -- position the cmdline and popupmenu together
-	-- 				long_message_to_split = false, -- long messages will be sent to a split
-	-- 				inc_rename = false, -- enables an input dialog for inc-rename.nvim
-	-- 				lsp_doc_border = false, -- add a border to hover docs and signature help
-	-- 			},
-	-- 			messages = {
-	-- 				enabled = false, -- enables the Noice messages UI
-	-- 				view = "mini", -- default view for messages
-	-- 				view_error = "notify", -- view for errors
-	-- 				view_warn = "notify", -- view for warnings
-	-- 				view_history = "messages", -- view for :messages
-	-- 				view_search = "virtualtext", -- view for search count messages. Set to `false` to disable
-	-- 			},
-	-- 			view = {
-	-- 				views = {
-	-- 					cmdline_popup = {
-	-- 						backend = "popup",
-	-- 						relative = "editor",
-	-- 						position = {
-	-- 							row = "60%", -- 40% from top of the screen. This will position it almost at the center.
-	-- 							col = "40%",
-	-- 						},
-	-- 						size = {
-	-- 							width = 120,
-	-- 							height = "auto",
-	-- 						},
-	-- 						win_options = {
-	-- 							winhighlight = {
-	-- 								Normal = "NoiceCmdlinePopup",
-	-- 								FloatTitle = "NoiceCmdlinePopupTitle",
-	-- 								FloatBorder = "NoiceCmdlinePopupBorder",
-	-- 								IncSearch = "",
-	-- 								CurSearch = "",
-	-- 								Search = "",
-	-- 							},
-	-- 							winbar = "",
-	-- 							foldenable = false,
-	-- 							cursorline = false,
-	-- 						},
-	-- 					},
-	-- 					popupmenu = {
-	-- 						relative = "editor",
-	-- 						position = {
-	-- 							row = "50%", -- Popup will show up below the cmdline automatically
-	-- 							col = "40%",
-	-- 						},
-	-- 						size = {
-	-- 							width = 120,
-	-- 							height = "auto",
-	-- 						},
-	-- 						border = {
-	-- 							style = "rounded",
-	-- 							padding = { 0, 1 },
-	-- 						},
-	-- 						win_options = {
-	-- 							winhighlight = { Normal = "Normal", FloatBorder = "DiagnosticInfo" },
-	-- 						},
-	-- 					},
-	-- 					cmdline = {
-	-- 						view = "cmdline_popup", -- cmdline_popup, cmdline
-	-- 					},
-	-- 				},
-	-- 			},
-	-- 			-- it works
-	-- 			-- views = {
-	-- 			-- 	hover = {
-	-- 			-- 		size = {
-	-- 			-- 			max_width = 1,
-	-- 			-- 		},
-	-- 			-- 		border = {
-	-- 			-- 			style = "rounded",
-	-- 			-- 		},
-	-- 			-- 		position = { row = 2, col = 2 },
-	-- 			-- 	},
-	-- 			-- },
-	-- 		})
-	-- 	end,
-	-- },
+	{
+		-- messagaes and cmd new UI
+		"folke/noice.nvim",
+		event = "VeryLazy",
+		dependecies = {
+			"MunifTanjim/nui.nvim",
+			"kyazdani42/nvim-web-devicons",
+		},
+		config = function()
+			require("noice").setup({
+				views = {
+					cmdline_popup = {
+						position = { row = 35 },
+					},
+				},
+				presets = {
+					bottom_search = false, -- use a classic bottom cmdline for search
+					command_palette = true, -- position the cmdline and popupmenu together
+					long_message_to_split = true, -- long messages will be sent to a split
+					inc_rename = true, -- enables an input dialog for inc-rename.nvim
+					lsp_doc_border = true, -- add a border to hover docs and signature help
+				},
+				cmdline = {
+					enabled = true,
+					view = "cmdline_popup",
+				},
+			})
+		end,
+	},
 	{
 		-- for nvim builin ui elements
 		"stevearc/dressing.nvim",
@@ -372,35 +273,36 @@ return {
 			"RainbowMultiDelim",
 		},
 	},
-	{ "shortcuts/no-neck-pain.nvim", confuig = true },
+	{
+		"shortcuts/no-neck-pain.nvim",
+		opts = {
+			scratchPad = { enabled = true },
+			autocmds = {
+				enableOnVimEnter = vim.o.columns > 100,
+			},
+			colors = {
+				blend = 1,
+			},
+		},
+	},
 	{
 		"chentoast/marks.nvim",
 		event = "VeryLazy",
-		opts = {},
 	},
 	{
-		"crusj/bookmarks.nvim",
-		keys = {
-			{
-				"<leader>b",
-				function()
-					require("bookmarks").toggle_bookmarks()
-				end,
-				mode = { "n" },
-			},
-			{
-				"<c-b>",
-				function()
-					require("bookmarks").add_bookmarks(false)
-				end,
-				mode = { "n" },
-			},
+		"LintaoAmons/bookmarks.nvim",
+		-- pin the plugin at specific version for stability
+		-- backup your bookmark sqlite db when there are breaking changes
+		-- tag = "v2.3.0",
+		event = "VeryLazy",
+		dependencies = {
+			{ "kkharji/sqlite.lua" },
+			{ "nvim-telescope/telescope.nvim" },
+			{ "stevearc/dressing.nvim" }, -- optional: better UI
 		},
-		branch = "main",
-		dependencies = { "nvim-web-devicons" },
 		config = function()
-			require("bookmarks").setup()
-			require("telescope").load_extension("bookmarks")
+			local opts = {} -- check the "./lua/bookmarks/default-config.lua" file for all the options
+			require("bookmarks").setup(opts) -- you must call setup to init sqlite db
 		end,
 	},
 	-- {
@@ -494,15 +396,6 @@ return {
 	-- 				return { "treesitter", "indent" }
 	-- 			end,
 	-- 		})
-	-- 	end,
-	-- },
-	-- {
-	-- 	"rachartier/tiny-inline-diagnostic.nvim",
-	-- 	event = "LspAttach", -- Or `LspAttach`
-	-- 	priority = 1000, -- needs to be loaded in first
-	-- 	config = function()
-	-- 		vim.diagnostic.config({ virtual_text = false })
-	-- 		require("tiny-inline-diagnostic").setup()
 	-- 	end,
 	-- },
 	{

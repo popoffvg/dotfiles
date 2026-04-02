@@ -87,6 +87,12 @@ return {
 					return comment("HACK")
 				end)
 			),
+			s(
+				"test",
+				f(function()
+					return comment("TEST")
+				end)
+			),
 		})
 		leave_snippet = function()
 			local active_node = ls.session.current_nodes[vim.api.nvim_get_current_buf()]

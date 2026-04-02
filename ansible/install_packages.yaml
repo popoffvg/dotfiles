@@ -35,6 +35,8 @@
       - sq
       - neovim
       - dua-cli
+      - vimmotion
+      - hiddenbar
  
   tasks:
     - name: Install system packages
@@ -58,5 +60,5 @@
              cmd: ~/.local/bin/mise activate zsh >> ~/.zshrc.mise
     - name: Install terminal
       ansible.builtin.homebrew:
-       name: wezterm
+       name: ghostty
        state: present

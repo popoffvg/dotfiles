@@ -42,6 +42,7 @@ return {
 	},
 	{
 		"leoluz/nvim-dap-go",
+
 		dependencies = {
 			"williamboman/mason.nvim",
 			"jay-babu/mason-nvim-dap.nvim",
@@ -65,6 +66,7 @@ return {
 				},
 			},
 		},
+		event = "VeryLazy",
 		config = function()
 			require("mason-nvim-dap").setup({
 				ensure_installed = { "delve" },
@@ -76,6 +78,17 @@ return {
 						name = "Attach remote",
 						mode = "remote",
 						request = "attach",
+					},
+					{
+						type = "go",
+						name = "Debug test case",
+						request = "launch",
+						mode = "test",
+						program = "./${relativeFileDirname}",
+						args = function()
+							local case = vim.fn.input({ prompt = "Enter test case name: " })
+							return { "-test.run", case }
+						end,
 					},
 				},
 				-- delve configurations

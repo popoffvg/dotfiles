@@ -2,6 +2,19 @@ local isRussianOn = false
 
 vim.opt.laststatus = 3
 
+vim.diagnostic.config({
+	virtual_lines = {
+		current_line = true,
+	},
+	virtual_text = false,
+	update_in_insert = false,
+})
+
+if vim.fn.getenv("TERM_PROGRAM") == "ghostty" then
+	vim.opt.title = true
+	vim.opt.titlestring = "%{fnamemodify(getcwd(), ':t')}"
+end
+
 vim.cmd([[
         set updatetime=30000
         set relativenumber
@@ -16,29 +29,29 @@ vim.cmd([[
 
         " Common keybindings
 
-        map <leader>we <Esc><C-w>q<CR>
+        map <leader>we <Esc><C-w>q
         map <leader>ww <Esc><Cmd>:Bdelete!<CR>
         map <leader>wc <Esc><Cmd>:bd!<CR>
 
         imap <c-i> <Esc>o
         " imap <c-O> <Esc>O
-        imap <c-l> <Esc>a
-        imap <c-h> <Esc>A
+        inoremap <c-l> <c-o>a
+        inoremap <c-h> <c-o>i
         imap <c-]> <ESC><ESC>
+		inoremap <tab> \t
         nnoremap <c-a> ggVGG
 
-        nnoremap <silent> <ESC> :nohlsearch<CR>
-        " nnoremap <esc>^[ <esc>^[
-        nnoremap <c><left><left> ^
-        nnoremap <c><Right><Right> $
+        nnoremap <silent> <ESC> :nohlsearch<CR><ESC>
+        nnoremap H ^
+        nnoremap L $
+        nnoremap <C--> <C-p>
+        nnoremap <C-_> <C-n>
 
 
         imap 0= :=
 
         vnoremap gh ^
         vnoremap gl $
-        nnoremap gh ^
-        nnoremap gl $
 
 
         " Windows navigation
@@ -65,7 +78,7 @@ vim.cmd([[
         tnoremap <C-L> <C-\><C-n><C-W><C-L>
         tnoremap <C-H> <C-\><C-n><C-W><C-H>
         tnoremap <leader>ee <Esc><Cmd>:Bdelete!<CR>
-        tnoremap <leader>ew <Esc><Cmd>:bd!<CR>
+        tnoremap <leader>we <Esc><Cmd>:bd!<CR>
         autocmd BufWinEnter,WinEnter term://* startinsert
 
         " https://riptutorial.com/vim/example/16802/search-within-a-function-block#google_vignette
@@ -76,10 +89,7 @@ vim.cmd([[
         nnoremap <leader>o :!open <cWORD><CR>
         nnoremap \\ :
 
-        nnoremap ]0 %
-        nnoremap [0 %
-
-        " remove line breaking
+       " remove line breaking
         " augroup Terminal
         "     autocmd!
         "     autocmd TerminalOpen * execute "set termwinsize=0x" . (winwidth("%")-6)
@@ -117,7 +127,8 @@ vim.cmd([[
     "*****************************************************************************
     "" Visual Settings
     "*****************************************************************************
-    set nocompatible
+
+ set nocompatible
     syntax on
     filetype off
     filetype plugin indent on
@@ -141,7 +152,6 @@ vim.cmd([[
 
     set mousemodel=popup
     set t_Co=256
-    set guioptions=egmrti
     if has('gui_running')
       set guifont=Fira\ Mono 12
     endif
@@ -160,6 +170,8 @@ vim.cmd([[
     "split | vsplit highlight
     " hi vertsplit guifg=fg guibg=bg
     " hi vertsplit guifg=fg guibg=bg
+
+    set tags=./.tags;$HOME
 ]])
 
 vim.api.nvim_create_autocmd({ "FileType" }, {
