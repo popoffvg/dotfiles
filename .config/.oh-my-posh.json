@@ -177,16 +177,6 @@
         },
         {
           "properties": {
-            "cache_duration": "none"
-          },
-          "template": "<#ffffff>(</>{{.Context}}{{if .Namespace}} :: {{.Namespace}}{{end}}<#ffffff>)</>",
-          "foreground": "#316ce4",
-          "type": "kubectl",
-          "style": "plain",
-          "min_width": 90
-        },
-        {
-          "properties": {
             "cache_duration": "none",
             "charged_icon": "\uf240 ",
             "charging_icon": "\uf1e6 ",

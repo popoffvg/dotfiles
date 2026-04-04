@@ -2,5 +2,13 @@ keybind = unconsumed:ctrl+k=goto_split:top
 keybind = unconsumed:ctrl+j=goto_split:bottom
 keybind = unconsumed:ctrl+h=goto_split:left
 keybind = unconsumed:ctrl+l=goto_split:right
+keybind = global:cmd+grave_accent=toggle_quick_terminal
 
-theme = nord-wave
+theme = Monokai Pro
+macos-titlebar-style = tabs
+
+cursor-color = #ffffff
+cursor-style = bar
+cursor-style-blink = true
+cursor-invert-fg-bg = true
+

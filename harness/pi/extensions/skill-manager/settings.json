@@ -1,0 +1,7 @@
+{
+  "autoImprove": {
+    "enabled": true,
+    "correctionThreshold": 0.5,
+    "minUses": 3
+  }
+}

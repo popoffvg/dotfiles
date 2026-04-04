@@ -1,0 +1,40 @@
+{
+  "lastChangelogVersion": "0.62.0",
+  "quietStartup": true,
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-opus-4-6",
+  "extensions": [
+    "~/Documents/git/dotfiles/harness/pi/extensions/memory-keeper/extensions/index.ts",
+    "~/.pi/agent/extensions/async-session-queue.ts",
+    "~/.pi/agent/extensions/code-links.ts",
+    "~/Documents/git/dotfiles/harness/pi/extensions/compact-startup.ts",
+    "~/Documents/git/dotfiles/harness/pi/extensions/plugin-workflow-events.ts",
+    "~/Documents/git/dotfiles/harness/pi/extensions/plugin-workflow.ts",
+    "~/Documents/git/dotfiles/harness/pi/extensions/readmd-command.ts",
+    "~/Documents/git/dotfiles/harness/pi/extensions/rtk.ts",
+    "~/Documents/git/dotfiles/harness/pi/extensions/atom/index.ts",
+    "~/Documents/git/dotfiles/harness/pi/extensions/prompt-rewriter/index.ts",
+    "~/Documents/git/dotfiles/harness/pi/extensions/repo-context/index.ts",
+    "~/Documents/git/dotfiles/harness/pi/extensions/skill-manager/index.ts",
+    "~/Documents/git/dotfiles/harness/pi/extensions/smart-commit/index.ts",
+    "~/Documents/git/dotfiles/harness/pi/extensions/work/index.ts",
+    "!~/Documents/git/dotfiles/harness/pi/extensions/grepai.ts"
+  ],
+  "skills": [
+    "~/.pi/agent/skills"
+  ],
+  "packages": [
+    "npm:pi-mcp-adapter",
+    "npm:pi-markdown-preview",
+    "npm:@aliou/pi-guardrails",
+    "npm:@benvargas/pi-firecrawl",
+    "npm:@aaronmaturen/pi-context7",
+    "npm:pi-subagents",
+    "npm:pi-notify",
+    "npm:pi-fzf"
+  ],
+  "defaultThinkingLevel": "medium",
+  "pi-tilth": {
+    "enabled": false
+  }
+}

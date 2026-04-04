@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#MISE description="Search and list repositories in the workspace"
+#USAGE arg "<query>" help="Search query (substring match against directory names)" default=""
+
+WORKSPACE_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+query="${usage_query:-$1}"
+
+# Find all git repos in workspace (max 2 levels deep)
+find "$WORKSPACE_ROOT" -maxdepth 2 -name ".git" -type d 2>/dev/null \
+  | sed 's|/\.git$||' \
+  | while read -r repo_path; do
+      name="$(basename "$repo_path")"
+      rel="${repo_path#"$WORKSPACE_ROOT"/}"
+      if [ -z "$query" ] || echo "$name" | grep -iq "$query"; then
+        printf "%s\t%s\n" "$rel" "$repo_path"
+      fi
+    done \
+  | sort

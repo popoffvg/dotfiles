@@ -1,0 +1,10 @@
+{
+  "work-manager": {
+    "skillsDir": "~/.claude/plugins/work-manager/skills",
+    "symlinkBack": true
+  },
+  "memory-keeper": {
+    "skillsDir": "~/.pi/agent/packages/memory-keeper/skills",
+    "symlinkBack": false
+  }
+}

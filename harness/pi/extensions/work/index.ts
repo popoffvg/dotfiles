@@ -605,7 +605,6 @@ export default function (pi: ExtensionAPI) {
   let taskContext: TaskContext | null = null;
   let reportedOnStart = false;
   let toolsWereExpanded: boolean | null = null; // saved state before implement
-  let todoEntryId: string | null = null; // branch anchor entry ID used when compacting after todo completes
   let todoDidWork = false; // tracks whether agent made real changes in current todo turn
 
   // --- Token stats tracking ---
@@ -714,24 +713,31 @@ export default function (pi: ExtensionAPI) {
     }
   }
 
-  /** Create a visible sibling branch for todo context in /tree and return its anchor entry ID. */
-  function branchForTodoContext(ctx: any, reason: string): string | null {
+  /** Create a visible todo branch in /tree and return its entry ID. */
+  function branchForTodoContext(
+    ctx: any,
+    summary: string,
+    options?: { fromId?: string | null; label?: string },
+  ): string | null {
     try {
       const sm = ctx.sessionManager as any;
       const leafEntry = ctx.sessionManager.getLeafEntry?.();
-      const branchPoint = leafEntry?.parentId ?? null;
+      const branchPoint = options?.fromId ?? leafEntry?.id ?? ctx.sessionManager.getLeafId?.() ?? null;
       if (!branchPoint) {
         return ctx.sessionManager.getLeafId();
       }
 
       if (typeof sm.branchWithSummary === "function") {
-        const summaryEntryId = sm.branchWithSummary(
-          branchPoint,
-          `Todo context branch: ${reason}. Previous context was preserved on a sibling branch.`,
-        );
-        return typeof summaryEntryId === "string"
+        const summaryEntryId = sm.branchWithSummary(branchPoint, summary);
+        const id = typeof summaryEntryId === "string"
           ? summaryEntryId
           : ctx.sessionManager.getLeafId();
+
+        if (id && options?.label && typeof sm.appendLabelChange === "function") {
+          sm.appendLabelChange(id, options.label);
+        }
+
+        return id;
       }
 
       if (typeof sm.branch === "function") {
@@ -745,9 +751,28 @@ export default function (pi: ExtensionAPI) {
     }
   }
 
-  /** Compact context after todo completion and start a fresh branch from todo entry */
+  function findLabeledEntryId(ctx: any, label: string): string | null {
+    try {
+      const sm = ctx.sessionManager as any;
+      if (typeof sm.getEntries !== "function" || typeof sm.getLabel !== "function") {
+        return null;
+      }
+
+      const entries = sm.getEntries() as Array<{ id: string }>;
+      for (let i = entries.length - 1; i >= 0; i -= 1) {
+        const id = entries[i]?.id;
+        if (!id) continue;
+        if (sm.getLabel(id) === label) return id;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Compact context after todo completion and start a fresh branch from todo start */
   function compactTodoDone(ctx: any) {
-    const anchorId = todoEntryId;
+    const anchorId = findLabeledEntryId(ctx, "todo start");
 
     if (anchorId) {
       try {
@@ -773,8 +798,6 @@ export default function (pi: ExtensionAPI) {
       "Todo completed and approved. Discard implementation details, keep work state.",
       null,
     );
-
-    todoEntryId = null;
 
     // Reset skill-manager session stats for the next TODO (keep active skills tracked)
     pi.events.emit(SKILL_EVENTS.RESET_SESSION, { keepActiveSkills: true } satisfies SkillResetSessionPayload);
@@ -1667,8 +1690,8 @@ export default function (pi: ExtensionAPI) {
           existing.trimEnd() + transitionLine + todoLine + "\n",
         );
 
-        // Create a new visible todo branch, then enter todo
-        todoEntryId = branchForTodoContext(ctx, `phase transition ${previousPhase} → todo`);
+        // Create a labeled todo start branch in the tree, then enter todo
+        branchForTodoContext(ctx, "TODO mode ON", { label: "todo start" });
         ctx.ui.notify("Entering todo phase...", "info");
         compactAndInject(
           ctx,
@@ -1689,8 +1712,8 @@ export default function (pi: ExtensionAPI) {
           existing.trimEnd() + `\n- ${ts}: [todo] Context reset via /work:todo\n`,
         );
 
-        todoEntryId = branchForTodoContext(ctx, "todo reset");
-        ctx.ui.notify("Resetting todo context...", "info");
+        branchForTodoContext(ctx, "TODO context reset", { label: "todo start" });
+        ctx.ui.notify("Resetting todo context from current point...", "info");
         compactAndInject(
           ctx,
           "todo-reset",

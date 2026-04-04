@@ -1,5 +1,7 @@
 [env]
-    GIT_SSH_COMMAND = "ssh -i ~/.ssh/id_ed25519"
+GIT_SSH_COMMAND = "ssh -i ~/.ssh/id_ed25519"
+FIRECRAWL_API_KEY = "fc-6369ed54b3374805af4b30196cd98c83"
+
 [tools]
-    neovim = "latest"
-    go = "1.23.7"
+neovim = "latest"
+go = "1.23.7"
