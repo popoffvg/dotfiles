@@ -114,3 +114,21 @@ This understanding phase should be used before:
 - Always validate understanding with gopls diagnostics
 - Focus on public API first, implementation details second
 - Document any assumptions made during understanding process
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did the analysis cover all four dimensions: structure (files/packages), public API (exported types/functions), dependencies, and coding patterns?
+2. Were concrete code references provided (file paths, function signatures) — not vague descriptions?
+3. Did the agent skip this skill for single-file reads or small known changes?
+4. Was the analysis useful for making subsequent code changes (not just a passive summary)?
+
+**Test inputs:**
+- "Understand the auth package in a Go monorepo before refactoring"
+- "Analyze an unfamiliar third-party Go library before integration"
+- "Show me function X" (should skip skill, use Read tool)
+
+**Can change:** analysis workflow, output structure, depth of dependency analysis, pattern categorization
+**Cannot change:** skip-when criteria (single file, familiar code), read-only nature, four-dimension coverage
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

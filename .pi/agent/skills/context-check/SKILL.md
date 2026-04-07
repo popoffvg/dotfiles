@@ -67,3 +67,21 @@ No preamble. Write for someone with zero memory of this session.>
 6. Report: topic + classification + file saved to
 
 If nothing worth saving: return "nothing worth saving".
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did the scan extract at least one concrete, reusable fact (not a vague observation)?
+2. Was every extracted insight saved immediately without asking the user?
+3. Were zero duplicate insights saved (already exists in memory)?
+4. Did the extraction focus on debugging discoveries, architectural decisions, or corrections — not routine actions?
+
+**Test inputs:**
+- "Session where user debugged a tricky Kubernetes pod failure"
+- "Session with only routine file edits, nothing novel"
+- "Session where an architectural decision was made and rationale explained"
+
+**Can change:** extraction criteria, insight categories, save format, scanning depth
+**Cannot change:** save-without-asking behavior, QMD tool usage for persistence
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

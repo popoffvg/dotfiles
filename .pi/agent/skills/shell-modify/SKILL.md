@@ -167,3 +167,21 @@ If no test framework exists and the change is non-trivial, suggest adding a test
 - **Changes**: what was modified and why
 - **Shellcheck**: pass/fail, codes addressed
 - **Cleanup**: resources created and their cleanup mechanisms
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did the agent check for strict mode (set -e/-eu/-o pipefail) before editing and preserve it?
+2. Were all new temp resources matched with cleanup traps?
+3. Did the modified script pass shellcheck with no new errors?
+4. Were zero non-portable constructs introduced (bash-isms in sh scripts)?
+
+**Test inputs:**
+- "Add a temp file and background process to a script with set -euo pipefail"
+- "Modify a CI script that runs in alpine/sh container"
+- "Fix a one-line typo in a simple script" (should skip skill)
+
+**Can change:** pre-edit analysis steps, portability checks, shellcheck integration, best-practices references
+**Cannot change:** strict mode preservation, cleanup trap requirement, skip-when criteria for trivial fixes
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

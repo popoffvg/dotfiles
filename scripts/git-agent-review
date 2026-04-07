@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+# git-agent-review — pick commits, pick files, open in Helix for @agent annotation
+#
+# Usage:
+#   git-agent-review            # pick commits → pick files (loops back after hx closes)
+#   git-agent-review --staged   # staged files only
+#   git-agent-review --all      # working-tree changes (HEAD diff)
+#
+# Keys in file picker:
+#   TAB        mark/unmark file
+#   ENTER      open marked files in hx, return here when hx closes
+#   ctrl-p     diff preview
+#   ctrl-o     full file preview (bat)
+#   ctrl-u/d   scroll preview
+#   ESC / q    quit
+#
+# @agent comment convention:
+#   Go/Rust/TS/JS/C:   // @agent: <instruction>
+#   Python/Shell/YAML:  # @agent: <instruction>
+#   SQL:               -- @agent: <instruction>
+#   HTML/XML:          <!-- @agent: <instruction> -->
+
+set -euo pipefail
+
+# fzf uses $SHELL to run preview commands — force bash so nu syntax errors don't occur
+export SHELL=$(command -v bash)
+
+# ── deps check ────────────────────────────────────────────────────────────────
+for cmd in git fzf hx; do
+    command -v "$cmd" >/dev/null 2>&1 || { echo "git-agent-review: '$cmd' not found" >&2; exit 1; }
+done
+
+PREVIEW_DIFF="delta --line-numbers --syntax-theme=Dracula 2>/dev/null || cat"
+BAT_CMD="bat --color=always --style=numbers,changes 2>/dev/null || cat"
+
+# ── args ──────────────────────────────────────────────────────────────────────
+MODE="commits"
+for arg in "$@"; do
+    case "$arg" in
+        --staged)  MODE="staged"  ;;
+        --all)     MODE="all"     ;;
+        --commits) MODE="commits" ;;
+    esac
+done
+
+# ── must be inside a repo ─────────────────────────────────────────────────────
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    echo "git-agent-review: not inside a git repo" >&2
+    exit 1
+fi
+
+# ── file picker (loops: open hx, return to fzf when hx closes) ───────────────
+# Uses fzf execute binding so fzf stays alive after helix exits.
+# {+} = all TAB-marked files; falls back to current line if none marked.
+file_picker() {
+    local prompt="$1"
+    local header="$2"
+    local preview_default="$3"
+    local preview_diff="$4"
+    local preview_file="$5"
+    shift 5
+    # remaining args: the list source command (via process substitution, piped in)
+
+    fzf \
+        --ansi \
+        --multi \
+        --prompt="$prompt" \
+        --header="ENTER: open in hx (returns here on close)  |  ctrl-p: diff  ctrl-o: file  ESC: quit" \
+        --preview="$preview_default" \
+        --preview-window='right:60%:wrap' \
+        --bind="ctrl-p:change-preview($preview_diff)" \
+        --bind="ctrl-o:change-preview($preview_file)" \
+        --bind="enter:execute(hx {+})+clear-selection" \
+        --bind='ctrl-d:preview-page-down,ctrl-u:preview-page-up' \
+        "$@"
+}
+
+# ── mode: commits ─────────────────────────────────────────────────────────────
+if [[ "$MODE" == "commits" ]]; then
+
+    # Stage 1: pick commits (one-shot, not looped)
+    mapfile -t PICKED < <(
+        git log --color=always \
+            --format="%C(yellow)%h%Creset %C(cyan)%as%Creset %C(bold)%s%Creset %C(dim)(%an)%Creset" \
+            HEAD~50..HEAD 2>/dev/null \
+        | fzf \
+            --ansi \
+            --multi \
+            --prompt="Commits (TAB=multi, ENTER=confirm): " \
+            --header="Select commits to review  |  ESC: quit" \
+            --preview='git show --stat --color=always {1}' \
+            --preview-window='right:55%:wrap' \
+            --bind='ctrl-d:preview-page-down,ctrl-u:preview-page-up' \
+        | awk '{print $1}'
+    )
+
+    [[ ${#PICKED[@]} -eq 0 ]] && { echo "No commits selected." >&2; exit 0; }
+
+    # Collect unique files changed across picked commits
+    declare -A SEEN
+    FILES=()
+    for sha in "${PICKED[@]}"; do
+        while IFS= read -r f; do
+            [[ -z "${SEEN[$f]+x}" ]] && { SEEN[$f]=1; FILES+=("$f"); }
+        done < <(git diff-tree --no-commit-id -r --name-only "$sha" 2>/dev/null)
+    done
+
+    [[ ${#FILES[@]} -eq 0 ]] && { echo "No files found in selected commits." >&2; exit 0; }
+
+    SHAS="${PICKED[*]}"
+
+    # Stage 2: file picker — stays open, loops back after each hx session
+    printf '%s\n' "${FILES[@]}" \
+    | file_picker \
+        "Files > " \
+        "" \
+        "git diff --color=always $SHAS -- {} 2>/dev/null | $PREVIEW_DIFF" \
+        "git diff --color=always $SHAS -- {} 2>/dev/null | $PREVIEW_DIFF" \
+        "$BAT_CMD {}"
+
+# ── mode: staged ──────────────────────────────────────────────────────────────
+elif [[ "$MODE" == "staged" ]]; then
+
+    git diff --cached --name-only \
+    | file_picker \
+        "Staged > " \
+        "" \
+        "git diff --cached --color=always -- {} 2>/dev/null | $PREVIEW_DIFF" \
+        "git diff --cached --color=always -- {} 2>/dev/null | $PREVIEW_DIFF" \
+        "$BAT_CMD {}"
+
+# ── mode: all (working tree) ──────────────────────────────────────────────────
+else
+
+    git diff --name-only HEAD \
+    | file_picker \
+        "Changed > " \
+        "" \
+        "git diff --color=always HEAD -- {} 2>/dev/null | $PREVIEW_DIFF" \
+        "git diff --color=always HEAD -- {} 2>/dev/null | $PREVIEW_DIFF" \
+        "$BAT_CMD {}"
+
+fi

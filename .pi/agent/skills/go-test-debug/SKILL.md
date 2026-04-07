@@ -165,3 +165,21 @@ go test -count=100 -failfast -run TestX ./pkg/... # reproduce flaky
 ## Additional Resources
 
 For detailed diagnosis per failure type, see **`references/categories.md`**
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did the agent read the error message/stack trace BEFORE reading production code?
+2. Was the root cause identified without reading more than 3 source files?
+3. Did the fix resolve the failure on the first re-run (no repeated fix-test cycles)?
+4. Was the diagnosis evidence-driven (citing specific error output, not guessing)?
+
+**Test inputs:**
+- "Debug a nil pointer dereference in a handler test"
+- "Debug a flaky test that fails 1 in 5 runs due to race condition"
+- "Debug a test timeout caused by deadlocked goroutines"
+
+**Can change:** diagnosis workflow steps, file reading order, isolation strategies, evidence gathering
+**Cannot change:** error-first principle (read errors before code), evidence-driven requirement
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

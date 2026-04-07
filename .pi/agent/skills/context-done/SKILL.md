@@ -61,3 +61,21 @@ Report:
 - Task name and summary
 - Which repo folders received insights
 - Confirmation that task is marked done
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Were insights distributed to every repo's insight folder that was touched during the task?
+2. Does each saved insight contain a concrete fact (file path, command, config value) — not a vague summary?
+3. Was the task summary written before distribution (not skipped)?
+4. Did the skill read the insights_root config before attempting any file writes?
+
+**Test inputs:**
+- "Complete a task that touched 3 repos with debugging discoveries in each"
+- "Complete a task with no significant insights worth saving"
+- "Complete a task when insights_root config is missing"
+
+**Can change:** summary format, distribution logic, insight deduplication, task finalization steps
+**Cannot change:** insights_root config requirement, per-repo distribution, task completion semantics
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

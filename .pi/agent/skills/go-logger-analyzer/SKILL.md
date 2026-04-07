@@ -199,3 +199,21 @@ Use **clear sections** with markdown formatting:
 1. Run: `python3 ~/.claude/skills/go-logger-analyzer/analyze_logs.py /tmp/app.log --prefix-tree --tree-field request`
 2. Show detailed field subtree for request with all nested fields and values
 3. Provide insights about request patterns and anomalies
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did the analysis produce quantitative statistics (error counts, logger distribution) — not just prose?
+2. Were error patterns grouped by type (not listed individually)?
+3. Did the agent skip this skill for simple log viewing or known-string grep?
+4. Was the correct log format detected (zap/logrus/zerolog) before parsing?
+
+**Test inputs:**
+- "Analyze 10K-line JSON log from a Go service with mixed zap and zerolog output"
+- "Find error patterns in production logs after a deploy"
+- "Show me the logs" (should skip skill, use Read tool)
+
+**Can change:** analysis steps, statistics format, pattern grouping strategy, field analysis depth
+**Cannot change:** skip-when criteria (simple viewing, small files, known grep), JSON log focus
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

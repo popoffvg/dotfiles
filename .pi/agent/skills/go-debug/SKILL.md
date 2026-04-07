@@ -179,3 +179,21 @@ When tests fail in CI:
 ## References
 
 - Delve docs: https://github.com/go-delve/delve/tree/master/Documentation
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Was Delve used only when the bug was complex enough to warrant it (not for obvious fixes)?
+2. Did the agent set breakpoints at specific locations (not "break main")?
+3. Was the bug root cause found using variable inspection or stepping (not by guessing)?
+4. Did the debugging session produce a concrete fix (not just "found the issue")?
+
+**Test inputs:**
+- "Debug goroutine leak in HTTP server shutdown"
+- "Debug race condition between two concurrent map writers"
+- "Debug unexpected nil return from interface method"
+
+**Can change:** breakpoint strategy, stepping workflow, goroutine inspection steps, when-to-use criteria
+**Cannot change:** Delve as the debugging tool, skip-when criteria for simple bugs
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

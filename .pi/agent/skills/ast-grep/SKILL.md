@@ -321,3 +321,21 @@ Contains detailed documentation for ast-grep rule syntax:
 - `rule_reference.md`: Comprehensive ast-grep rule documentation covering atomic rules, relational rules, composite rules, and metavariables
 
 Load these references when detailed rule syntax information is needed.
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did the rule match the target code pattern correctly (zero false negatives on the test example)?
+2. Were there zero false positives (rule didn't match unintended code)?
+3. Was `stopBy: end` included in all relational rules (has/inside)?
+4. Did the agent test the rule against example code before searching the full codebase?
+
+**Test inputs:**
+- "Find all async functions that use await but don't have try-catch"
+- "Find all Go functions that return error but don't wrap it"
+- "Find all React components that use useState without useEffect cleanup"
+
+**Can change:** rule writing workflow, debugging steps, CLI command examples, common use cases
+**Cannot change:** test-before-search requirement, YAML rule format, ast-grep CLI as the tool
+**Min sessions before eval:** 5
+**Runs per experiment:** 3
