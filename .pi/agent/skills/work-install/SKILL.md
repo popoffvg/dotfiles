@@ -381,3 +381,21 @@ Print a summary:
 ```
 
 Never skip this step. Notes are the primary deliverable, not a side-effect.
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did the installation guide check each component's current state before suggesting actions?
+2. Were zero packages installed without explicit user confirmation?
+3. Did every step include a verification command to confirm success?
+4. Was the user told what each component does before being asked to install it?
+
+**Test inputs:**
+- "Install work manager from scratch on clean system"
+- "Install when some components (QMD, mise) are already present"
+- "Install with missing dependencies (no fzf, no git)"
+
+**Can change:** step ordering, component descriptions, verification commands, greeting text
+**Cannot change:** interactive guided flow (no silent installs), component list, user confirmation required
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

@@ -1,0 +1,17 @@
+theme = "horizon-dark"
+
+[editor]
+shell = ["nu", "-c"]
+
+[editor.soft-wrap]
+enable = true
+
+# ── @agent review workflow ────────────────────────────────────────────────────
+# Space-r  →  pick commits then files, open in this helix session
+# Space-R  →  staged files only
+#
+# helix shell is nushell, so we invoke fish explicitly.
+# The new file opens in the same hx session (helix supports multi-file args).
+[keys.normal.space]
+r = ":sh fish -c 'git-agent-review --commits'"
+R = ":sh fish -c 'git-agent-review --staged'"

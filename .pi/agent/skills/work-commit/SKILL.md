@@ -57,3 +57,21 @@ git commit -m "<prefix>: <unified why covering all N changes>"
 ```
 
 The unified message must cover the full scope — do not just repeat the first TODO's message.
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Does the commit message start with a valid prefix (feat|fix|doc|test|build|refactor)?
+2. Does the message describe WHY the change exists, not WHAT was changed?
+3. Is the message ≤72 chars, imperative mood, no trailing period?
+4. Is the prefix correct for the change type (not using `feat` for a bug fix)?
+
+**Test inputs:**
+- "Commit adding a new API endpoint with tests"
+- "Commit fixing a nil pointer dereference"
+- "Commit refactoring a function into smaller pieces with no behavior change"
+
+**Can change:** prefix list, message examples, formatting rules
+**Cannot change:** imperative mood requirement, why-not-what principle, 72-char limit
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

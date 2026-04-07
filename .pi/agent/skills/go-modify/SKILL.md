@@ -57,6 +57,10 @@ If your change creates resources, verify cleanup exists:
 2. Identify symbols that need modification
 3. Plan the change sequence — which files, which order
 
+## Execution Rule
+
+**Never pause mid-task to ask "shall I proceed?" or similar.** When the intent is clear, complete all phases autonomously. Only ask if a destructive ambiguity is discovered (e.g., two symbols with identical names in different packages).
+
 ## PHASE 3: Implementation
 
 ### Step 3.1: Find All References
@@ -116,3 +120,22 @@ Report:
 - **Diagnostics**: Issues found and resolved
 - **Static analysis**: `go vet` / linter results
 - **Impact**: Affected code paths (from references check)
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did the agent read the full file before making any edit (no blind edits)?
+2. Did `go build ./...` pass after all edits were complete?
+3. Were zero tool failures (failed edit/write calls) during the modification?
+4. Were all references to renamed/moved symbols updated across files (zero dangling references)?
+5. Was gopls used for reference tracking on multi-file changes?
+
+**Test inputs:**
+- "Rename function ProcessOrder to HandleOrder across 3 files"
+- "Add error wrapping to all return statements in handler.go"
+- "Extract method from 50-line function into a new file"
+
+**Can change:** pre-edit checklist, gopls validation steps, error recovery instructions, file constraint analysis
+**Cannot change:** gopls requirement for multi-file changes, read-before-edit rule, build verification step
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

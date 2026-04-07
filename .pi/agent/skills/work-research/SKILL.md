@@ -92,3 +92,21 @@ Research looks complete. When ready, use `/work update move to plan` to begin pl
 - No major unknowns remaining (or unknowns are identified and scoped)
 
 Append to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: <action summary>`
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did the agent present a numbered scope list and wait for user approval before starting?
+2. Does every research file (`_notes/research-*.md`) contain concrete findings (code paths, API signatures, config values) — not vague summaries?
+3. Were zero code changes made during research (read-only phase)?
+4. Did the research cover all topics in the approved scope list?
+
+**Test inputs:**
+- "Research auth middleware implementation in a Go monorepo"
+- "Research 3 competing libraries for PDF generation"
+- "Research why CI pipeline fails on macOS runners"
+
+**Can change:** scope presentation format, research file structure, topic exploration depth, transition criteria
+**Cannot change:** user approval before starting, read-only enforcement, output to _notes/research-*.md
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

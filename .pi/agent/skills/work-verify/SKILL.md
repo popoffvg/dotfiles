@@ -44,3 +44,21 @@ The user must go through plan to refine requirements before another implement cy
 Do NOT suggest transitioning to implement or research from verify.
 
 Append to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: <action summary>`
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did the summary include all four required sections (changes, criteria status, test results, open issues)?
+2. Was every acceptance criterion from the plan explicitly listed with pass/fail status?
+3. Did the agent wait for user feedback before taking any action?
+4. Were user change requests correctly interpreted (not executed as new TODOs)?
+
+**Test inputs:**
+- "Verify implementation where all criteria pass"
+- "Verify implementation where user requests 2 specific changes"
+- "Verify implementation where user rejects and wants replanning"
+
+**Can change:** summary format, criteria presentation, feedback interpretation rules
+**Cannot change:** user controls all decisions, can only transition back to plan, no code changes allowed
+**Min sessions before eval:** 5
+**Runs per experiment:** 3
