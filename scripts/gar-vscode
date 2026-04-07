@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# gar-vscode — open a file in the existing VS Code window
+# Strips the review marker prefix added by git-agent-review ("✓ " or "  ")
+# Usage: gar-vscode "✓ path/to/file" or gar-vscode "path/to/file"
+
+set -euo pipefail
+
+[[ $# -eq 0 ]] && exit 0
+
+file="$1"
+# strip review markers: "✓ " or "  " prefix
+file="${file#✓ }"
+file="${file#  }"
+
+[[ -z "$file" ]] && exit 0
+
+# --reuse-window: open in already-running VS Code instance
+# --goto:         support "file:line" format from delta output
+code --reuse-window --goto "$file"

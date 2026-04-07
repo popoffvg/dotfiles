@@ -69,3 +69,21 @@ After listing all findings:
   ```bash
   grep -rnHiE '\b(TODO|FIXME|HACK|XXX)\b' . --include='*.go' --include='*.ts' --include='*.js' --include='*.py' --include='*.rs' --include='*.rb' --include='*.java' --include='*.c' --include='*.cpp' --include='*.h' 2>/dev/null || true
   ```
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did the scan cover both scopes: git changes and untracked files?
+2. Were only newly introduced markers reported for diffs (not legacy TODOs)?
+3. Was the output presented in the required table format with file, line, marker, text?
+4. Did severity categorization match marker type (FIXME=red, TODO/HACK/XXX=yellow)?
+
+**Test inputs:**
+- "Review staged+unstaged changes before commit"
+- "Scan repo with multiple untracked scratch files"
+- "Run in non-git directory" (fallback recursive scan)
+
+**Can change:** scan command strategy, deduplication, output formatting details, summary wording
+**Cannot change:** two-scope coverage rule, severity mapping, user-approval before resolving markers
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

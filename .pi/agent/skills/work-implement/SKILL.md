@@ -90,11 +90,19 @@ The fixup commits will be squashed into their targets later via `git rebase -i -
 
 ## CRITICAL: plan.md edit rules
 
-**You may ONLY check off TODOs in `_notes/plan.md`.**
-- ✅ Allowed: `- [ ]` → `- [x]` (check off completed TODOs)
-- ❌ Forbidden: adding new TODOs, removing TODOs, rewriting TODO text, editing descriptions, modifying Design Decisions, adding headers, adding blank lines, changing indentation, reformatting any content
-- The file must be byte-for-byte identical except for `[ ]` → `[x]` substitutions
-- If a TODO is unclear or wrong, **do NOT fix the plan** — ask the user for clarification
+**`_notes/plan.md` is editable during implement phase when needed.**
+- ✅ Allowed:
+  - `- [ ]` → `- [x]` (check off completed TODOs)
+  - Clarify TODO wording when implementation reveals ambiguity
+  - Split or reorder TODOs when required for correct execution
+  - Add or update acceptance criteria discovered during implementation
+  - Add brief notes under TODOs to capture implementation constraints
+- ❌ Forbidden:
+  - Deleting completed history without logging why
+  - Silent scope expansion unrelated to user goals
+  - Rewriting the entire plan without preserving intent
+- **Every non-checkbox plan edit must be logged in `_notes/worklog.md`** with reason and timestamp.
+- If the change affects scope or priorities significantly, ask the user before proceeding.
 
 ## Execution rules
 
@@ -148,6 +156,6 @@ After all TODOs are checked off:
 - "Implement plan where one TODO depends on output of previous TODO"
 
 **Can change:** execution steps, edit strategy, thrashing detection threshold, logging format, review flow
-**Cannot change:** plan.md edit rules (only checkboxes), commit-per-TODO contract, work_compact requirement, autonomous execution principle
+**Cannot change:** commit-per-TODO contract, work_compact requirement, autonomous execution principle
 **Min sessions before eval:** 5
 **Runs per experiment:** 3

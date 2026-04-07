@@ -57,8 +57,17 @@ interface AutoImproveSettings {
   minUses: number;
 }
 
+interface AutoResearchSettings {
+  enabled: boolean;
+  /** Max number of skills to process per session shutdown */
+  maxSkillsPerShutdown: number;
+  /** Only auto-run when median quality is <= this value */
+  maxMedianScore: number;
+}
+
 interface Settings {
   autoImprove: AutoImproveSettings;
+  autoResearch: AutoResearchSettings;
 }
 
 const SETTINGS_FILE = join(__dirname, "settings.json");
@@ -69,6 +78,11 @@ const DEFAULT_SETTINGS: Settings = {
     correctionThreshold: 0.5,
     minUses: 3,
   },
+  autoResearch: {
+    enabled: true,
+    maxSkillsPerShutdown: 1,
+    maxMedianScore: 8,
+  },
 };
 
 function loadSettings(): Settings {
@@ -77,6 +91,7 @@ function loadSettings(): Settings {
     const raw = JSON.parse(readFileSync(SETTINGS_FILE, "utf8"));
     return {
       autoImprove: { ...DEFAULT_SETTINGS.autoImprove, ...raw.autoImprove },
+      autoResearch: { ...DEFAULT_SETTINGS.autoResearch, ...raw.autoResearch },
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -397,6 +412,169 @@ function median(arr: number[]): number {
 /** Compute SHA-256 hash of content, return first 12 hex chars. */
 function contentHash(content: string): string {
   return createHash("sha256").update(content).digest("hex").slice(0, 12);
+}
+
+const AUTORESEARCH_FILE = join(PI_AGENT_DIR, "skills-autoresearch.json");
+const AUTORESEARCH_LOCK_FILE = join(PI_AGENT_DIR, "skills-autoresearch.lock.json");
+const AUTORESEARCH_LOCK_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+interface AutoresearchRules {
+  evalChecklist: string[];
+  testInputs: string[];
+  canChange: string;
+  cannotChange: string;
+  minSessionsBeforeEval: number;
+  runsPerExperiment: number;
+}
+
+interface AutoresearchHistoryEntry {
+  skill: string;
+  startedAt: string;
+  completedAt?: string;
+  status: "running" | "completed" | "failed";
+  reason: string;
+  baselineMedian: number;
+  baselineSessions: number;
+  runsPerExperiment: number;
+  minSessionsBeforeEval: number;
+}
+
+interface AutoresearchState {
+  active: Record<string, AutoresearchHistoryEntry>;
+  history: AutoresearchHistoryEntry[];
+}
+
+function loadAutoresearchState(): AutoresearchState {
+  if (!existsSync(AUTORESEARCH_FILE)) return { active: {}, history: [] };
+  try {
+    const parsed = JSON.parse(readFileSync(AUTORESEARCH_FILE, "utf8"));
+    return {
+      active: parsed.active || {},
+      history: Array.isArray(parsed.history) ? parsed.history : [],
+    };
+  } catch {
+    return { active: {}, history: [] };
+  }
+}
+
+function saveAutoresearchState(state: AutoresearchState): void {
+  writeFileSync(AUTORESEARCH_FILE, JSON.stringify(state, null, 2) + "\n", "utf8");
+}
+
+interface AutoresearchLock {
+  date: string;
+  startedAt: string;
+  skill: string;
+}
+
+function readAutoresearchLock(): AutoresearchLock | null {
+  if (!existsSync(AUTORESEARCH_LOCK_FILE)) return null;
+  try {
+    return JSON.parse(readFileSync(AUTORESEARCH_LOCK_FILE, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function hasAutoresearchLockForToday(): boolean {
+  const lock = readAutoresearchLock();
+  if (!lock) return false;
+
+  // Clear lock if day changed
+  if (lock.date !== today()) {
+    try { rmSync(AUTORESEARCH_LOCK_FILE, { force: true }); } catch {}
+    return false;
+  }
+
+  // Clear stale lock after TTL
+  const startedAtMs = Date.parse(lock.startedAt || "");
+  if (!Number.isFinite(startedAtMs) || (Date.now() - startedAtMs) > AUTORESEARCH_LOCK_TTL_MS) {
+    try { rmSync(AUTORESEARCH_LOCK_FILE, { force: true }); } catch {}
+    return false;
+  }
+
+  return true;
+}
+
+function acquireAutoresearchLock(skill: string): boolean {
+  if (hasAutoresearchLockForToday()) return false;
+  const lock: AutoresearchLock = {
+    date: today(),
+    startedAt: new Date().toISOString(),
+    skill,
+  };
+  try {
+    writeFileSync(AUTORESEARCH_LOCK_FILE, JSON.stringify(lock, null, 2) + "\n", "utf8");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function releaseAutoresearchLock(): void {
+  try { rmSync(AUTORESEARCH_LOCK_FILE, { force: true }); } catch {}
+}
+
+function parseAutoresearchRules(skillMd: string): AutoresearchRules | null {
+  const sectionMatch = skillMd.match(/## Autoresearch rules\n([\s\S]*)$/);
+  if (!sectionMatch) return null;
+
+  const section = sectionMatch[1];
+  const lines = section.split("\n");
+
+  const evalChecklist: string[] = [];
+  const testInputs: string[] = [];
+
+  let inEval = false;
+  let inTests = false;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    if (line.startsWith("**Eval checklist:**")) {
+      inEval = true;
+      inTests = false;
+      continue;
+    }
+    if (line.startsWith("**Test inputs:**")) {
+      inEval = false;
+      inTests = true;
+      continue;
+    }
+    if (line.startsWith("**Can change:**") || line.startsWith("**Cannot change:**") || line.startsWith("**Min sessions before eval:**") || line.startsWith("**Runs per experiment:**")) {
+      inEval = false;
+      inTests = false;
+    }
+
+    if (inEval) {
+      const m = line.match(/^\d+\.\s+(.*)$/);
+      if (m && m[1].trim()) evalChecklist.push(m[1].trim());
+      continue;
+    }
+
+    if (inTests) {
+      const m = line.match(/^-\s+(.*)$/);
+      if (m && m[1].trim()) testInputs.push(m[1].trim());
+      continue;
+    }
+  }
+
+  const canChange = (section.match(/\*\*Can change:\*\*\s*(.*)/)?.[1] || "").trim();
+  const cannotChange = (section.match(/\*\*Cannot change:\*\*\s*(.*)/)?.[1] || "").trim();
+  const minSessionsBeforeEval = Number.parseInt(section.match(/\*\*Min sessions before eval:\*\*\s*(\d+)/)?.[1] || "5", 10);
+  const runsPerExperiment = Number.parseInt(section.match(/\*\*Runs per experiment:\*\*\s*(\d+)/)?.[1] || "3", 10);
+
+  if (evalChecklist.length === 0 || testInputs.length === 0) return null;
+
+  return {
+    evalChecklist,
+    testInputs,
+    canChange,
+    cannotChange,
+    minSessionsBeforeEval: Number.isFinite(minSessionsBeforeEval) ? Math.max(1, minSessionsBeforeEval) : 5,
+    runsPerExperiment: Number.isFinite(runsPerExperiment) ? Math.max(1, runsPerExperiment) : 3,
+  };
 }
 
 function incrementUse(skillName: string): void {
@@ -1124,6 +1302,8 @@ Task: Use the skill_eval tool to record actionable directives for the loaded ski
       lowScoreEvalTriggered = true;
       spawnEvaluation("session_shutdown");
     }
+
+    runAutoresearchLoop();
   });
 
   // Detect /skills:* command invocations + count user messages + capture corrections
@@ -1293,6 +1473,165 @@ Task: Use the skill_eval tool to record actionable directives for the loaded ski
           details: err?.message || "unknown-error",
         } satisfies PluginWorkflowEndPayload);
       });
+  }
+
+  function skillMedianAndSessions(skillName: string): { medianScore: number; sessions: number } {
+    const allDaily = loadAllDailyScores();
+    const entries = allDaily.get(skillName) || [];
+    const allScores = entries.flatMap((e) => e.scores);
+    return {
+      medianScore: allScores.length > 0 ? median(allScores) : 0,
+      sessions: allScores.length,
+    };
+  }
+
+  function buildAutoresearchPrompt(skillName: string, rules: AutoresearchRules, baselineMedian: number, baselineSessions: number): string {
+    const skillPath = join(SKILLS_DIR, skillName, "SKILL.md");
+    return `Run a single autoresearch experiment for skill: ${skillName}
+
+Skill file: ${skillPath}
+Baseline median session score: ${baselineMedian.toFixed(1)} (n=${baselineSessions})
+
+Autoresearch rules (authoritative constraints):
+- Eval checklist:
+${rules.evalChecklist.map((q, i) => `  ${i + 1}. ${q}`).join("\n")}
+- Test inputs:
+${rules.testInputs.map((t) => `  - ${t}`).join("\n")}
+- Can change: ${rules.canChange || "not specified"}
+- Cannot change: ${rules.cannotChange || "not specified"}
+- Runs per experiment: ${rules.runsPerExperiment}
+
+Method (strict):
+1) Read the full SKILL.md.
+2) Establish baseline against the eval checklist using the test inputs.
+3) Make exactly ONE targeted mutation to SKILL.md aimed at the weakest failing checklist item.
+4) Re-evaluate with the same checklist + test inputs.
+5) Decision:
+   - If improved: keep the mutation and commit in ${SKILLS_DIR} with message: auto-research ${skillName}: <short reason>
+   - If equal or worse: revert SKILL.md to previous content and do not keep mutation.
+6) Append a concise experiment note to ~/.pi/agent/skills-autoresearch.log with: skill, baseline, new score, keep/discard, rationale.
+
+Rules:
+- Binary criteria only (yes/no per checklist item).
+- Do not perform broad rewrites. One mutation only.
+- Respect "Cannot change" constraints exactly.
+- If no safe useful mutation exists, reply exactly: No autoresearch mutation needed.`;
+  }
+
+  function runAutoresearchAgent(skillName: string, rules: AutoresearchRules): void {
+    if (!acquireAutoresearchLock(skillName)) {
+      wfEvent("auto-research:skip", `lock active for ${today()}`);
+      return;
+    }
+
+    const { medianScore, sessions } = skillMedianAndSessions(skillName);
+    const prompt = buildAutoresearchPrompt(skillName, rules, medianScore, sessions);
+
+    markImproved([skillName], frictionLog.length);
+
+    const state = loadAutoresearchState();
+    state.active[skillName] = {
+      skill: skillName,
+      startedAt: new Date().toISOString(),
+      status: "running",
+      reason: "session_shutdown autoresearch",
+      baselineMedian: medianScore,
+      baselineSessions: sessions,
+      runsPerExperiment: rules.runsPerExperiment,
+      minSessionsBeforeEval: rules.minSessionsBeforeEval,
+    };
+    saveAutoresearchState(state);
+
+    const taskId = wfTaskId("auto-research");
+    pi.events.emit(PLUGIN_WORKFLOW_EVENTS.START, {
+      plugin: "skill-manager",
+      taskId,
+      task: "auto-research",
+      details: `${skillName} (median ${medianScore.toFixed(1)}, n=${sessions})`,
+    } satisfies PluginWorkflowStartPayload);
+
+    pi.exec("pi", ["-p", prompt], { timeout: 180_000 })
+      .then((result) => {
+        const next = loadAutoresearchState();
+        const active = next.active[skillName];
+        if (active) {
+          active.completedAt = new Date().toISOString();
+          active.status = result.code === 0 ? "completed" : "failed";
+          next.history.push(active);
+          delete next.active[skillName];
+          saveAutoresearchState(next);
+        }
+
+        releaseAutoresearchLock();
+
+        pi.events.emit(PLUGIN_WORKFLOW_EVENTS.END, {
+          plugin: "skill-manager",
+          taskId,
+          status: result.code === 0 ? "ok" : "error",
+          details: `exit=${result.code}`,
+        } satisfies PluginWorkflowEndPayload);
+      })
+      .catch((err: any) => {
+        const next = loadAutoresearchState();
+        const active = next.active[skillName];
+        if (active) {
+          active.completedAt = new Date().toISOString();
+          active.status = "failed";
+          active.reason = `error: ${err?.message || "unknown-error"}`;
+          next.history.push(active);
+          delete next.active[skillName];
+          saveAutoresearchState(next);
+        }
+
+        releaseAutoresearchLock();
+
+        pi.events.emit(PLUGIN_WORKFLOW_EVENTS.END, {
+          plugin: "skill-manager",
+          taskId,
+          status: "error",
+          details: err?.message || "unknown-error",
+        } satisfies PluginWorkflowEndPayload);
+      });
+  }
+
+  function runAutoresearchLoop(): void {
+    const settings = loadSettings();
+    if (!settings.autoResearch.enabled) return;
+    if (activeSkills.size === 0) return;
+    if (hasAutoresearchLockForToday()) {
+      const lock = readAutoresearchLock();
+      wfEvent("auto-research:skip", `lock active for ${lock?.skill || "unknown-skill"}`);
+      return;
+    }
+
+    const state = loadAutoresearchState();
+    let launched = 0;
+
+    for (const skillName of activeSkills.keys()) {
+      if (launched >= settings.autoResearch.maxSkillsPerShutdown) break;
+      if (state.active[skillName]) continue;
+      if (isRecentlyImproved(skillName)) continue;
+
+      const skillDir = findSkillDir(skillName);
+      if (!skillDir) continue;
+
+      let skillMd = "";
+      try {
+        skillMd = readFileSync(join(skillDir, "SKILL.md"), "utf8");
+      } catch {
+        continue;
+      }
+
+      const rules = parseAutoresearchRules(skillMd);
+      if (!rules) continue;
+
+      const { medianScore, sessions } = skillMedianAndSessions(skillName);
+      if (sessions < rules.minSessionsBeforeEval) continue;
+      if (medianScore > settings.autoResearch.maxMedianScore) continue;
+
+      runAutoresearchAgent(skillName, rules);
+      launched++;
+    }
   }
 
   // --- Work event listeners: trigger skill improvement with context ---
@@ -1651,6 +1990,40 @@ If no improvements needed, skip.`,
         ctx.ui.notify("Auto-improve disabled.", "info");
         return;
       }
+      if (args?.trim() === "auto-research on") {
+        settings.autoResearch.enabled = true;
+        writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2) + "\n", "utf8");
+        ctx.ui.notify("Auto-research enabled.", "info");
+        return;
+      }
+      if (args?.trim() === "auto-research off") {
+        settings.autoResearch.enabled = false;
+        writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2) + "\n", "utf8");
+        ctx.ui.notify("Auto-research disabled.", "info");
+        return;
+      }
+      if (args?.trim().startsWith("max-per-shutdown ")) {
+        const val = parseInt(args.trim().split(" ")[1], 10);
+        if (!isNaN(val) && val >= 1 && val <= 10) {
+          settings.autoResearch.maxSkillsPerShutdown = val;
+          writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2) + "\n", "utf8");
+          ctx.ui.notify(`Auto-research max-per-shutdown set to ${val}.`, "info");
+          return;
+        }
+        ctx.ui.notify("max-per-shutdown must be an integer between 1 and 10.", "error");
+        return;
+      }
+      if (args?.trim().startsWith("max-median ")) {
+        const val = parseFloat(args.trim().split(" ")[1]);
+        if (!isNaN(val) && val >= 1 && val <= 10) {
+          settings.autoResearch.maxMedianScore = val;
+          writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2) + "\n", "utf8");
+          ctx.ui.notify(`Auto-research max-median set to ${val}.`, "info");
+          return;
+        }
+        ctx.ui.notify("max-median must be a number between 1 and 10.", "error");
+        return;
+      }
       if (args?.trim().startsWith("threshold ")) {
         const val = parseFloat(args.trim().split(" ")[1]);
         if (!isNaN(val) && val > 0 && val <= 2) {
@@ -1677,18 +2050,43 @@ If no improvements needed, skip.`,
       const lines = [
         "Skill Manager Settings",
         "",
-        `  auto-improve: ${settings.autoImprove.enabled ? "ON" : "OFF"}`,
-        `  threshold:    ${settings.autoImprove.correctionThreshold} (correction ratio to trigger)`,
-        `  min-uses:     ${settings.autoImprove.minUses} (minimum uses before triggering)`,
+        `  auto-improve:   ${settings.autoImprove.enabled ? "ON" : "OFF"}`,
+        `  threshold:      ${settings.autoImprove.correctionThreshold} (correction ratio to trigger)`,
+        `  min-uses:       ${settings.autoImprove.minUses} (minimum uses before triggering)`,
+        `  auto-research:  ${settings.autoResearch.enabled ? "ON" : "OFF"}`,
+        `  max-per-shutdown: ${settings.autoResearch.maxSkillsPerShutdown}`,
+        `  max-median:     ${settings.autoResearch.maxMedianScore} (run only if median <= value)`,
         "",
         "Commands:",
         "  /skills:settings auto-improve on|off",
         "  /skills:settings threshold <0-2>",
         "  /skills:settings min-uses <n>",
+        "  /skills:settings auto-research on|off",
+        "  /skills:settings max-per-shutdown <1-10>",
+        "  /skills:settings max-median <1-10>",
       ];
       ctx.ui.notify(lines.join("\n"), "info");
     },
   });
+
+  function lastAutoresearchDate(skill: string): string {
+    const state = loadAutoresearchState();
+    const dates: string[] = [];
+
+    const active = state.active[skill];
+    if (active?.startedAt) dates.push(active.startedAt);
+    if (active?.completedAt) dates.push(active.completedAt);
+
+    for (const entry of state.history) {
+      if (entry.skill !== skill) continue;
+      if (entry.startedAt) dates.push(entry.startedAt);
+      if (entry.completedAt) dates.push(entry.completedAt);
+    }
+
+    if (dates.length === 0) return "—";
+    const latest = dates.sort().slice(-1)[0];
+    return latest.slice(0, 10);
+  }
 
   // /skills:stats - show usage table. Pass skill name for extended view.
   pi.registerCommand("skills:stats", {
@@ -1732,6 +2130,7 @@ If no improvements needed, skip.`,
           `## ${skillName}`,
           "",
           `  Last used:         ${stat.lastUsed}`,
+          `  Last autoresearch: ${lastAutoresearchDate(skillName)}`,
           `  Loads:             ${stat.uses}`,
           `  Sessions:          ${stat.sessions}`,
           "",
@@ -1813,8 +2212,8 @@ If no improvements needed, skip.`,
       lines.push(`  loaded skills: ${activeSkills.size}`);
       lines.push("");
       const allDaily = loadAllDailyScores();
-      lines.push("Skill                    Loads  Sess  TODOs  T/TODO  Fails  Corr  Med10d  Last Used");
-      lines.push("─".repeat(92));
+      lines.push("Skill                    Loads  Sess  TODOs  T/TODO  Fails  Corr  Med10d  Last Used   AR Last");
+      lines.push("─".repeat(105));
 
       for (const [name, stat] of entries) {
         ensureStat(stats, name);
@@ -1833,7 +2232,43 @@ If no improvements needed, skip.`,
         const failCol = String(stat.toolFailures).padStart(5);
         const corrCol = String(stat.manualComments).padStart(5);
         const medCol = medStr.padStart(6);
-        lines.push(`${nameCol} ${loadsCol}  ${sessCol}  ${todosCol}  ${tptCol}  ${failCol}  ${corrCol}  ${medCol}   ${stat.lastUsed}`);
+        const arCol = lastAutoresearchDate(name);
+        lines.push(`${nameCol} ${loadsCol}  ${sessCol}  ${todosCol}  ${tptCol}  ${failCol}  ${corrCol}  ${medCol}   ${stat.lastUsed}   ${arCol}`);
+      }
+
+      ctx.ui.notify(lines.join("\n"), "info");
+    },
+  });
+
+  // /skills:experiments - show autoresearch background state
+  pi.registerCommand("skills:experiments", {
+    description: "Show active and recent autoresearch experiments",
+    handler: async (_args, ctx) => {
+      const state = loadAutoresearchState();
+      const activeEntries = Object.values(state.active);
+      const history = [...state.history].slice(-10).reverse();
+
+      const lines: string[] = [];
+      lines.push("Autoresearch Experiments");
+      lines.push("");
+
+      if (activeEntries.length === 0) {
+        lines.push("Active: none");
+      } else {
+        lines.push(`Active (${activeEntries.length}):`);
+        for (const e of activeEntries) {
+          lines.push(`  - ${e.skill}: baseline ${e.baselineMedian.toFixed(1)} (n=${e.baselineSessions}), started ${e.startedAt}`);
+        }
+      }
+
+      lines.push("");
+      lines.push("Recent history:");
+      if (history.length === 0) {
+        lines.push("  (none)");
+      } else {
+        for (const e of history) {
+          lines.push(`  - ${e.skill}: ${e.status} · baseline ${e.baselineMedian.toFixed(1)} (n=${e.baselineSessions}) · ${e.startedAt}`);
+        }
       }
 
       ctx.ui.notify(lines.join("\n"), "info");

@@ -55,3 +55,21 @@ Template (adapt freely — structure matters less than insight):
 - Consider whether the issue affects other skills, workflows, or projects
 - Do not include secrets, API keys, or personal data
 - Skip reflection only if the incident is truly one-off with no transferable lesson
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Does each reflection include all three fields: what happened, root cause, what would help?
+2. Is the reflection actionable for future sessions (not just venting or narrative)?
+3. Does the entry focus on reusable patterns rather than one-off incidents?
+4. Are reflections saved to the correct daily file path with timestamp?
+
+**Test inputs:**
+- "Tool failed repeatedly due to wrong path assumptions"
+- "Instructions were ambiguous and caused rework"
+- "Unexpectedly good workaround reduced debugging time"
+
+**Can change:** reflection template wording, trigger guidance, phrasing examples, concision rules
+**Cannot change:** daily file storage path, root-cause orientation, no-secrets rule
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

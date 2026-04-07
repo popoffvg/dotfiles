@@ -7,11 +7,6 @@ shell = ["nu", "-c"]
 enable = true
 
 # ── @agent review workflow ────────────────────────────────────────────────────
-# Space-r  →  pick commits then files, open in this helix session
-# Space-R  →  staged files only
-#
-# helix shell is nushell, so we invoke fish explicitly.
-# The new file opens in the same hx session (helix supports multi-file args).
+# Space-r  →  open new zellij tab with fzf picker + helix side by side
 [keys.normal.space]
-r = ":sh git-agent-review --commits"
-R = ":sh git-agent-review --staged"
+r = ":sh zellij action new-tab --layout agent-review"

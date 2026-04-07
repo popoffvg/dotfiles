@@ -288,3 +288,21 @@ For many URLs, use xargs with `-P` for parallel execution:
 ```bash
 cat urls.txt | xargs -P 10 -I {} sh -c 'firecrawl scrape "{}" -o ".firecrawl/$(echo {} | md5).md"'
 ```
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Was firecrawl used instead of built-in web tools (WebFetch/WebSearch) for all web operations?
+2. Did the scrape return clean markdown content (not raw HTML or empty result)?
+3. Was the correct firecrawl method used (search for queries, scrape for known URLs, map for site discovery)?
+4. Did the agent handle scrape failures gracefully (retry or report, not silently skip)?
+
+**Test inputs:**
+- "Read the documentation at https://example.com/docs"
+- "Search the web for Go context best practices 2026"
+- "Find all pages on a site about authentication"
+
+**Can change:** method selection heuristics, retry strategy, output formatting, error handling
+**Cannot change:** firecrawl as the only web tool, CLI syntax, replaces all built-in web tools
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

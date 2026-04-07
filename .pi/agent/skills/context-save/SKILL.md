@@ -91,3 +91,21 @@ Before appending, read the target file and check:
 4. **Existing entry is broader** → skip
 
 One precise entry beats two fuzzy ones.
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Was the insight classified correctly (insight/tool/pattern) and saved to the right file?
+2. Does the saved content contain a concrete fact (not a vague "learned about X")?
+3. Was the insights_root config read before writing?
+4. Was the insight scoped to the correct repo/project folder?
+
+**Test inputs:**
+- "Remember that CouchDB requires CORS headers for LiveSync"
+- "Save this debugging pattern for Kubernetes pod failures"
+- "Note this for later: mise run task-create uses git worktrees"
+
+**Can change:** classification criteria, save format, topic naming, deduplication logic
+**Cannot change:** insights_root config requirement, QMD tool usage, file path conventions
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

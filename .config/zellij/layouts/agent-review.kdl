@@ -1,0 +1,50 @@
+// git-agent-review layout
+// Launch: zellij --layout agent-review
+//      or zellij action new-tab --layout agent-review
+//
+// ┌───────────────────────┬──────────────────────────────┐
+// │   fzf picker (40%)    │      helix editor (60%)      │
+// │                       │                              │
+// │  ctrl-e → open file   │  edit, add @agent comment    │
+// │  enter  → mark ✓      │  :w to save                  │
+// │                       │                              │
+// │  Ctrl-l → focus hx  → │ ← Ctrl-h → back to fzf      │
+// └───────────────────────┴──────────────────────────────┘
+
+layout {
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="file:~/.config/zellij/plugins/zjstatus.wasm" {
+                format_left   "{mode} #[fg=#89B4FA,bold]{session}"
+                format_center "{tabs}"
+                format_right  "{command_git_branch} {datetime}"
+                format_space  ""
+                border_enabled  "false"
+                hide_frame_for_single_pane "true"
+                mode_normal  "#[bg=blue] "
+                tab_normal   "#[fg=#6C7086] {name} "
+                tab_active   "#[fg=#9399B2,bold,italic] {name} "
+                command_git_branch_command  "git rev-parse --abbrev-ref HEAD"
+                command_git_branch_format   "#[fg=blue] {stdout} "
+                command_git_branch_interval "10"
+                command_git_branch_rendermode "static"
+                datetime        "#[fg=#6C7086,bold] {format} "
+                datetime_format "%H:%M"
+                datetime_timezone "Europe/Berlin"
+            }
+        }
+    }
+
+    tab name="review" focus=true {
+        pane split_direction="vertical" {
+            pane size="40%" command="git-agent-review" {
+                name "picker"
+                focus true
+            }
+            pane size="60%" command="hx" {
+                name "editor"
+            }
+        }
+    }
+}

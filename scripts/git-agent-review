@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
-# git-agent-review — pick commits, pick files, open in Helix for @agent annotation
+# git-agent-review — pick commits → pick files → annotate in Helix via zellij
 #
 # Usage:
-#   git-agent-review            # pick commits → pick files (loops back after hx closes)
+#   git-agent-review            # pick commits → file picker
 #   git-agent-review --staged   # staged files only
 #   git-agent-review --all      # working-tree changes (HEAD diff)
 #
 # Keys in file picker:
-#   TAB        mark/unmark file
-#   ENTER      open marked files in hx, return here when hx closes
-#   ctrl-p     diff preview
+#   ctrl-e     open in Helix (right zellij pane), focus moves there
+#              Ctrl-h to return to fzf
+#   enter      mark file as ✓ reviewed (stays in fzf)
+#   ctrl-p     diff preview (delta)
 #   ctrl-o     full file preview (bat)
 #   ctrl-u/d   scroll preview
-#   ESC / q    quit
+#   q / ESC    quit
 #
 # @agent comment convention:
 #   Go/Rust/TS/JS/C:   // @agent: <instruction>
@@ -21,6 +22,24 @@
 #   HTML/XML:          <!-- @agent: <instruction> -->
 
 set -euo pipefail
+
+# ── args (parse early so mode is known before zellij launch) ─────────────────
+MODE="${GAR_MODE:-commits}"   # GAR_MODE env var passed through zellij session
+for arg in "$@"; do
+    case "$arg" in
+        --staged)  MODE="staged"  ;;
+        --all)     MODE="all"     ;;
+        --commits) MODE="commits" ;;
+    esac
+done
+
+# ── auto-launch zellij if not already inside it ───────────────────────────────
+# g review  →  not in zellij  →  exec zellij with layout (2 panes)
+# zellij layout runs this script again inside the left pane where $ZELLIJ is set
+if [[ -z "${ZELLIJ:-}" ]]; then
+    export GAR_MODE="$MODE"
+    exec zellij --layout agent-review
+fi
 
 # fzf uses $SHELL to run preview commands — force bash so nu syntax errors don't occur
 export SHELL=$(command -v bash)
@@ -32,16 +51,7 @@ done
 
 PREVIEW_DIFF="delta --line-numbers --syntax-theme=Dracula 2>/dev/null || cat"
 BAT_CMD="bat --color=always --style=numbers,changes 2>/dev/null || cat"
-
-# ── args ──────────────────────────────────────────────────────────────────────
-MODE="commits"
-for arg in "$@"; do
-    case "$arg" in
-        --staged)  MODE="staged"  ;;
-        --all)     MODE="all"     ;;
-        --commits) MODE="commits" ;;
-    esac
-done
+GAR_HELIX="$(dirname "$(realpath "$0")")/gar-helix"
 
 # ── must be inside a repo ─────────────────────────────────────────────────────
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
@@ -49,36 +59,48 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
     exit 1
 fi
 
-# ── file picker (loops: open hx, return to fzf when hx closes) ───────────────
-# Uses fzf execute binding so fzf stays alive after helix exits.
-# {+} = all TAB-marked files; falls back to current line if none marked.
-file_picker() {
-    local prompt="$1"
-    local header="$2"
-    local preview_default="$3"
-    local preview_diff="$4"
-    local preview_file="$5"
-    shift 5
-    # remaining args: the list source command (via process substitution, piped in)
+# ── temp files (cleaned up on exit) ──────────────────────────────────────────
+LIST_FILE=$(mktemp /tmp/gar-list-XXXXXX)
+REVIEWED=$(mktemp /tmp/gar-reviewed-XXXXXX)
+trap 'rm -f "$LIST_FILE" "$REVIEWED"' EXIT
 
-    fzf \
+# ── build marked list: "✓ file" reviewed, "  file" not yet ───────────────────
+export LIST_FILE REVIEWED
+marked_list() {
+    while IFS= read -r f; do
+        if grep -qxF "$f" "$REVIEWED" 2>/dev/null; then
+            printf '✓ %s\n' "$f"
+        else
+            printf '  %s\n' "$f"
+        fi
+    done < "$LIST_FILE"
+}
+export -f marked_list
+
+# ── file picker ───────────────────────────────────────────────────────────────
+# ctrl-e  → open in helix via gar-helix (zellij write-chars), focus moves there
+# enter   → mark reviewed, reload list, stay in fzf
+run_picker() {
+    local preview_diff="$1"
+    local preview_file="$2"
+
+    marked_list | fzf \
         --ansi \
-        --multi \
-        --prompt="$prompt" \
-        --header="ENTER: open in hx (returns here on close)  |  ctrl-p: diff  ctrl-o: file  ESC: quit" \
-        --preview="$preview_default" \
+        --no-sort \
+        --prompt=" Review > " \
+        --header="ctrl-e: open in hx  |  enter: mark ✓  |  ctrl-p: diff  ctrl-o: file  |  Ctrl-h: back from hx" \
+        --preview="$preview_diff" \
         --preview-window='right:60%:wrap' \
+        --bind="ctrl-e:execute(bash '$GAR_HELIX' {})" \
+        --bind="enter:execute-silent(f={}; f=\"\${f#✓ }\"; f=\"\${f#  }\"; grep -qxF \"\$f\" '$REVIEWED' 2>/dev/null || echo \"\$f\" >> '$REVIEWED')+reload(bash -c 'marked_list')" \
         --bind="ctrl-p:change-preview($preview_diff)" \
         --bind="ctrl-o:change-preview($preview_file)" \
-        --bind="enter:execute(hx {+})+clear-selection" \
-        --bind='ctrl-d:preview-page-down,ctrl-u:preview-page-up' \
-        "$@"
+        --bind='ctrl-d:preview-page-down,ctrl-u:preview-page-up'
 }
 
 # ── mode: commits ─────────────────────────────────────────────────────────────
 if [[ "$MODE" == "commits" ]]; then
 
-    # Stage 1: pick commits (one-shot, not looped)
     mapfile -t PICKED < <(
         git log --color=always \
             --format="%C(yellow)%h%Creset %C(cyan)%as%Creset %C(bold)%s%Creset %C(dim)(%an)%Creset" \
@@ -86,8 +108,8 @@ if [[ "$MODE" == "commits" ]]; then
         | fzf \
             --ansi \
             --multi \
-            --prompt="Commits (TAB=multi, ENTER=confirm): " \
-            --header="Select commits to review  |  ESC: quit" \
+            --prompt="Commits > " \
+            --header="TAB: multi-select  |  ENTER: confirm  |  ESC: quit" \
             --preview='git show --stat --color=always {1}' \
             --preview-window='right:55%:wrap' \
             --bind='ctrl-d:preview-page-down,ctrl-u:preview-page-up' \
@@ -96,48 +118,38 @@ if [[ "$MODE" == "commits" ]]; then
 
     [[ ${#PICKED[@]} -eq 0 ]] && { echo "No commits selected." >&2; exit 0; }
 
-    # Collect unique files changed across picked commits
     declare -A SEEN
-    FILES=()
     for sha in "${PICKED[@]}"; do
         while IFS= read -r f; do
-            [[ -z "${SEEN[$f]+x}" ]] && { SEEN[$f]=1; FILES+=("$f"); }
+            [[ -z "${SEEN[$f]+x}" ]] && { SEEN[$f]=1; echo "$f" >> "$LIST_FILE"; }
         done < <(git diff-tree --no-commit-id -r --name-only "$sha" 2>/dev/null)
     done
 
-    [[ ${#FILES[@]} -eq 0 ]] && { echo "No files found in selected commits." >&2; exit 0; }
+    [[ ! -s "$LIST_FILE" ]] && { echo "No files found in selected commits." >&2; exit 0; }
 
     SHAS="${PICKED[*]}"
-
-    # Stage 2: file picker — stays open, loops back after each hx session
-    printf '%s\n' "${FILES[@]}" \
-    | file_picker \
-        "Files > " \
-        "" \
-        "git diff --color=always $SHAS -- {} 2>/dev/null | $PREVIEW_DIFF" \
-        "git diff --color=always $SHAS -- {} 2>/dev/null | $PREVIEW_DIFF" \
-        "$BAT_CMD {}"
+    run_picker \
+        "bash -c 'f={}; f=\"\${f#✓ }\"; f=\"\${f#  }\"; git diff --color=always $SHAS -- \"\$f\" 2>/dev/null | $PREVIEW_DIFF'" \
+        "bash -c 'f={}; f=\"\${f#✓ }\"; f=\"\${f#  }\"; $BAT_CMD \"\$f\"'"
 
 # ── mode: staged ──────────────────────────────────────────────────────────────
 elif [[ "$MODE" == "staged" ]]; then
 
-    git diff --cached --name-only \
-    | file_picker \
-        "Staged > " \
-        "" \
-        "git diff --cached --color=always -- {} 2>/dev/null | $PREVIEW_DIFF" \
-        "git diff --cached --color=always -- {} 2>/dev/null | $PREVIEW_DIFF" \
-        "$BAT_CMD {}"
+    git diff --cached --name-only > "$LIST_FILE"
+    [[ ! -s "$LIST_FILE" ]] && { echo "No staged files." >&2; exit 0; }
+
+    run_picker \
+        "bash -c 'f={}; f=\"\${f#✓ }\"; f=\"\${f#  }\"; git diff --cached --color=always -- \"\$f\" 2>/dev/null | $PREVIEW_DIFF'" \
+        "bash -c 'f={}; f=\"\${f#✓ }\"; f=\"\${f#  }\"; $BAT_CMD \"\$f\"'"
 
 # ── mode: all (working tree) ──────────────────────────────────────────────────
 else
 
-    git diff --name-only HEAD \
-    | file_picker \
-        "Changed > " \
-        "" \
-        "git diff --color=always HEAD -- {} 2>/dev/null | $PREVIEW_DIFF" \
-        "git diff --color=always HEAD -- {} 2>/dev/null | $PREVIEW_DIFF" \
-        "$BAT_CMD {}"
+    git diff --name-only HEAD > "$LIST_FILE"
+    [[ ! -s "$LIST_FILE" ]] && { echo "No changed files." >&2; exit 0; }
+
+    run_picker \
+        "bash -c 'f={}; f=\"\${f#✓ }\"; f=\"\${f#  }\"; git diff --color=always HEAD -- \"\$f\" 2>/dev/null | $PREVIEW_DIFF'" \
+        "bash -c 'f={}; f=\"\${f#✓ }\"; f=\"\${f#  }\"; $BAT_CMD \"\$f\"'"
 
 fi

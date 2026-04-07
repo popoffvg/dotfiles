@@ -252,3 +252,21 @@ Unknowns found: <list>. Clarifications/research needed before planning can conti
 - `plan → implement`: User runs `/work:implement`. Never transition manually.
 - `plan → research`: If unknowns found, suggest user switch to research.
 - `plan → todo`: User runs `/work:todo` for ad-hoc chat.
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Were zero code changes or file edits made outside `_notes/`?
+2. Does every TODO have acceptance criteria that can be verified independently?
+3. Does the plan include both Acceptance Criteria and TODOs sections?
+4. Were user messages interpreted as plan input (not executed as tasks)?
+
+**Test inputs:**
+- "Plan a multi-service auth system with JWT + refresh tokens"
+- "Add auth endpoint" (should become a TODO, not get executed)
+- "Iterate on plan after verify feedback: tests were too narrow"
+
+**Can change:** plan template, TODO format, criteria examples, design decision format
+**Cannot change:** read-only enforcement (no code changes), plan location (_notes/plan.md), checkbox contract
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

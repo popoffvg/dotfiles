@@ -71,3 +71,21 @@ Examples: `feat/k8s-health-check`, `fix/auth-token-expiry`, `chore/update-deps`
 **PR already exists** → `gh pr list` to check, then `gh pr edit` to update instead of creating a new one.
 
 **Branch is stale** → `git fetch && git status` to check, then rebase: `git rebase origin/main`.
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Was the correct command recommended for the situation (/smart-commit vs /pr vs /fix)?
+2. Did branch naming follow the convention (<type>/<short-description>)?
+3. Were zero git operations performed without the user understanding what would happen?
+4. Was the end-to-end flow followed in order (branch → changes → commit → PR)?
+
+**Test inputs:**
+- "I have staged changes ready to commit"
+- "My branch is ready for review, create a PR"
+- "I need to fixup a typo into a previous commit"
+
+**Can change:** command descriptions, flow documentation, branch naming examples, when-to-use guidance
+**Cannot change:** command names (/smart-commit, /pr, /fix), branch naming convention
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

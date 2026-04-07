@@ -121,6 +121,19 @@ function readCommand(name: string): string {
   return resolvePluginRoot(readFileOr(p, ""));
 }
 
+function readTemplate(name: string): string {
+  const p = path.join(__dirname, "templates", `${name}.md`);
+  return readFileOr(p, "");
+}
+
+function renderTemplate(template: string, vars: Record<string, string>): string {
+  let out = template;
+  for (const [key, value] of Object.entries(vars)) {
+    out = out.replaceAll(`{{${key}}}`, value);
+  }
+  return out;
+}
+
 function makeTimestamp(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -362,45 +375,28 @@ function formatTaskReport(tc: TaskContext): string {
 
 function phaseInstructions(phase: string, approveCommits = true): string {
   if (phase === "verified") {
-    return [
-      `\n## Work Phase: Verified`,
-      "",
-      `You are currently in the **verified** phase.`,
-      "Treat user messages as normal chat requests and execute them directly.",
-      "Do NOT reinterpret requests as planning-only tasks.",
-      "Do NOT apply plan-phase restrictions unless phase is explicitly switched back to `plan`.",
-    ].join("\n");
+    const tpl = readTemplate("phase-verified");
+    if (!tpl) return "";
+    return `\n${tpl.trimEnd()}`;
   }
 
   if (phase === "todo") {
-    return [
-      `\n## Work Phase: Todo`,
-      "",
-      `You are currently in the **todo** phase — ordinary chat mode within active work context.`,
-      "",
-      "Treat user messages as normal chat requests and execute them directly.",
-      "Do NOT reinterpret requests as planning-only tasks.",
-      "Do NOT apply plan-phase restrictions unless phase is explicitly switched back to `plan`.",
-      "",
-      "### Skill paths",
-      "When loading skills (go-modify, shell-modify, etc.), use **absolute paths** from `<available_skills>` in the system prompt. Skills live in `~/.pi/agent/skills/`, NOT in the project directory.",
-      "",
-      "### Todo Phase Rules",
-      "- **NEVER run `git push`** without explicit user request.",
-      "- **Act autonomously by default.** Try to complete the request end-to-end without waiting for additional user interaction.",
-      "",
-      "### Todo Commit Flow (MANDATORY — follow every step)",
-      "After making code changes, you MUST complete ALL steps:",
-      "1. Run tests / static analysis relevant to the change",
-      ...(approveCommits
-        ? ["2. **Ask the user for approval** — show changed files and test results. **Do not commit without explicit user approval.**",
-           "3. **`git add -A && git commit -m \"<message>\"`** — stage and commit in one step.",
-           "4. Log to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: [todo] <summary>`"]
-        : ["2. **`git add -A && git commit -m \"<message>\"`** — stage and commit in one step. Do not stop before committing.",
-           "3. Log to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: [todo] <summary>`"]),
-      "",
-      "**You are NOT done until the commit is made.** Do not present results or ask what's next before committing.",
-    ].join("\n");
+    const tpl = readTemplate("phase-todo");
+    if (!tpl) return "";
+    const todoCommitFlowSteps = approveCommits
+      ? [
+          "2. **Ask the user for approval** — show changed files and test results. **Do not commit without explicit user approval.**",
+          "3. **`git add -A && git commit -m \"<message>\"`** — stage and commit in one step.",
+          "4. Log to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: [todo] <summary>`",
+        ].join("\n")
+      : [
+          "2. **`git add -A && git commit -m \"<message>\"`** — stage and commit in one step. Do not stop before committing.",
+          "3. Log to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: [todo] <summary>`",
+        ].join("\n");
+
+    return `\n${renderTemplate(tpl.trimEnd(), {
+      TODO_COMMIT_FLOW_STEPS: todoCommitFlowSteps,
+    })}`;
   }
 
   const phaseSkillMap: Record<string, string> = {
@@ -534,64 +530,21 @@ function buildImplementContext(notesDir: string, extra?: string): string {
 }
 
 function routerInstructions(approveCommits = true): string {
-  return `
-## Work Manager — Phase Rules
+  const tpl = readTemplate("router-instructions");
+  if (!tpl) return "";
 
-### Plan Phase (CRITICAL)
-**In plan phase, you are a PLANNER, not an executor.**
-- NEVER write code, edit source files, run tests, or make changes outside \`_notes/\`.
-- ALL user messages are plan input — requirements, refinements, priorities.
-- User says "add X" → add it as a TODO, do NOT implement X.
-- The plan is a TODO list (\`- [ ]\` checkboxes) in \`_notes/plan.md\`.
-- You may READ source files. You may ONLY WRITE to \`_notes/plan.md\` and \`_notes/worklog.md\`.
-
-### Implement Phase
-- Execute TODOs from \`_notes/plan.md\` in order.
-- Work directly in the current branch/repository (no worktree).
-- **Each TODO = one git commit.** Before each commit: verify TODO completion, run relevant tests, re-test after fixes.${approveCommits ? " **Ask the user for approval before every commit.** Show changed files and test results. Do not commit without explicit approval." : ""} Stage and commit in one step: \`git add -A && git commit -m "..."\`.
-- **After each TODO: call \`work_compact\`** to free context and re-orient on remaining work.
-- In \`plan.md\`, you may ONLY check off TODOs: \`- [ ]\` → \`- [x]\`. No other edits allowed.
-- Log implementation details as items in \`_notes/worklog.md\`.
-- **FIX/FIXUP messages:** When user sends a message starting with FIX or FIXUP, create a \`git commit --fixup=<target-sha>\` for the relevant prior commit. Do not check off any TODO — resume current work after.
-
-### Todo Phase
-- Todo is ordinary chat mode within active work context.
-- Execute user requests normally (not planning-only behavior).
-- **NEVER run \`git push\`** (including force-push or tag pushes) without explicit user request.
-- **Todo commit flow (MANDATORY):** After code changes: (1) run tests, (2) ${approveCommits ? "**ask the user for approval** — show changed files and test results, (3) " : ""} **\`git add -A && git commit -m "..."\`**, (${approveCommits ? "4" : "3"}) log to worklog. **You are NOT done until the commit is made.**${approveCommits ? " **Do not commit without explicit user approval.**" : ""}
-- **Autonomy rule:** In todo phase, try to complete the request end-to-end without requiring additional user interaction.
-- **Log every action** to \`_notes/worklog.md\`: \`- YYYY-MM-DD HH:MM: [todo] <action summary>\`
-- Return to plan with \`/work:plan\`.
-
-### Phase Transitions
-
-Allowed transitions:
-- research → plan
-- plan → research (if unknowns found)
-- plan → implement (via \`/work:implement\` command ONLY)
-- implement → plan (via \`/work:plan\`)
-- plan/implement → todo (via \`/work:todo\`)
-- todo → plan (via \`/work:plan\`)
-- implement → verify (LLM sets phase to "verify" when all TODOs done)
-- verify → verified (user approves in verify dialog)
-
-**Important rules:**
-- plan → implement: NEVER transition manually. User must use \`/work:implement\`.
-- plan-mode restrictions apply ONLY when current phase is \`plan\`.
-- After all TODOs are done, LLM sets phase to "verify" and the extension shows a UI verify dialog.
-- Do NOT manage the verify phase — the extension owns it.
-
-When transitioning phases:
-1. Update \`.pi/work.settings.json\`: set \`"phase": "<new>"\`
-2. Append to \`_notes/worklog.md\`: \`- YYYY-MM-DD HH:MM: Phase transition: <old> → <new>\`
-
-## Worklog Rule
-
-After completing ANY work action, append to \`_notes/worklog.md\`:
-\`\`\`
-- YYYY-MM-DD HH:MM: <action summary>
-\`\`\`
-`;
+  return renderTemplate(tpl, {
+    IMPLEMENT_APPROVAL_SENTENCE: approveCommits
+      ? " **Ask the user for approval before every commit.** Show changed files and test results. Do not commit without explicit approval."
+      : "",
+    TODO_APPROVAL_SEGMENT: approveCommits
+      ? "**ask the user for approval** — show changed files and test results, (3) "
+      : "",
+    TODO_LOG_STEP_NUMBER: approveCommits ? "4" : "3",
+    TODO_APPROVAL_WARNING: approveCommits
+      ? " **Do not commit without explicit user approval.**"
+      : "",
+  });
 }
 
 // --- Extension Entry ---
@@ -928,7 +881,7 @@ export default function (pi: ExtensionAPI) {
       if (!readOnly) {
         return {
           block: true,
-          reason:
+          reason: readTemplate("guard-plan-bash").trim() ||
             "Plan phase: bash commands that modify files are not allowed. Only reading/inspecting is permitted. Write your plan in _notes/ using edit/write tools.",
         };
       }
@@ -956,7 +909,10 @@ export default function (pi: ExtensionAPI) {
 
     return {
       block: true,
-      reason: `Plan phase: cannot modify files outside _notes/. Tried to ${event.toolName}: ${targetPath}. Add this to the plan instead.`,
+      reason: renderTemplate(
+        readTemplate("guard-plan-file").trim() || "Plan phase: cannot modify files outside _notes/. Tried to {{TOOL}}: {{TARGET}}. Add this to the plan instead.",
+        { TOOL: String(event.toolName), TARGET: String(targetPath) },
+      ),
     };
   });
 
@@ -977,30 +933,8 @@ export default function (pi: ExtensionAPI) {
 
     if (resolved !== planResolved) return;
 
-    // Block write (full overwrite) to plan.md — only edit allowed
-    if (event.toolName === "write") {
-      return {
-        block: true,
-        reason: "Implement phase: cannot overwrite plan.md. Use edit to check off TODOs only: '- [ ]' → '- [x]'.",
-      };
-    }
-
-    // For edit: only allow checking off TODOs
-    const oldText: string = (event.input as any).oldText || "";
-    const newText: string = (event.input as any).newText || "";
-
-    // Check if this is a TODO checkbox toggle
-    const isCheckoff =
-      oldText.includes("- [ ]") &&
-      newText.includes("- [x]") &&
-      oldText.replace(/- \[ \]/g, "- [x]").trim() === newText.trim();
-
-    if (!isCheckoff) {
-      return {
-        block: true,
-        reason: "Implement phase: can only check off TODOs in plan.md ('- [ ]' → '- [x]'). Cannot add, remove, or rewrite plan items. Log issues in _notes/worklog.md instead.",
-      };
-    }
+    // plan.md is editable in implement phase; no additional guard here.
+    return;
   });
 
 

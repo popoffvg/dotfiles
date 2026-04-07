@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# gar-helix — open a file in the helix pane (right) via zellij write-chars.
+# Falls back to plain `hx` if not inside zellij.
+#
+# Usage: gar-helix "✓ path/to/file"  or  gar-helix "  path/to/file"
+#
+# Zellij pane layout:
+#   left  = fzf picker  (this script is called from there)
+#   right = helix       (receives :open <file> via write-chars)
+#
+# After this script: focus is on helix. Ctrl-h returns to fzf.
+
+set -euo pipefail
+
+LOG=/tmp/gar-helix-debug.log
+echo "[$(date +%T)] gar-helix called: args=[$*] ZELLIJ=[${ZELLIJ:-}]" >> "$LOG"
+
+[[ $# -eq 0 ]] && exit 0
+
+# fzf 0.62 single-quotes {} so "$1" is the whole item including marker prefix.
+# Joining with $* also handles older fzf versions where {} is word-split.
+file="$*"
+file="${file#✓ }"
+file="${file#  }"
+echo "[$(date +%T)] file after strip: [$file]" >> "$LOG"
+[[ -z "$file" ]] && exit 0
+
+# resolve to absolute path
+if [[ "$file" != /* ]]; then
+    file="$(pwd)/$file"
+fi
+echo "[$(date +%T)] absolute path: [$file]" >> "$LOG"
+
+if [[ -n "${ZELLIJ:-}" ]]; then
+    echo "[$(date +%T)] inside zellij — sending to helix pane" >> "$LOG"
+
+    # focus the helix pane (right of the fzf pane)
+    zellij action move-focus Right 2>> "$LOG"
+
+    # ESC — ensure helix normal mode
+    zellij action write 27 2>> "$LOG"
+
+    sleep 0.1
+
+    # :open <filepath> + Enter
+    zellij action write-chars ":open $file" 2>> "$LOG"
+    zellij action write 13 2>> "$LOG"
+
+    echo "[$(date +%T)] done" >> "$LOG"
+else
+    echo "[$(date +%T)] not in zellij — opening hx directly" >> "$LOG"
+    hx "$file"
+fi

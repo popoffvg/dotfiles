@@ -131,3 +131,21 @@ I can still help you with this task directly! Would you like me to proceed?
 If this is something you do often, you could create your own skill:
 npx skills init my-xyz-skill
 ```
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did the agent search for existing skills before suggesting the user write one from scratch?
+2. Were search results presented with name, description, and install command?
+3. Did the agent correctly identify when the user's need matches an existing skill vs needs a new one?
+4. Were zero skills installed without user confirmation?
+
+**Test inputs:**
+- "Is there a skill for Docker debugging?"
+- "How do I do database migrations?" (might have a skill)
+- "Find a skill for X" where X has no matching skill
+
+**Can change:** search strategy, result presentation, skill matching heuristics, install instructions
+**Cannot change:** user confirmation before install, npx skills CLI as the tool, search-before-suggest principle
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

@@ -92,3 +92,21 @@ Append each processed session filename to `<insights_root>/.scanned_sessions`.
 - Entries saved (by classification)
 - Brief list: topic + file
 - "No new insights" if nothing found
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Were session logs scanned within the requested time window (not broader/narrower)?
+2. Did the scan find insights that the Stop hook missed (not re-saving existing ones)?
+3. Were extracted insights saved to the correct repo insight folders?
+4. Was the insights_root config read before any file operations?
+
+**Test inputs:**
+- "Scan last hour for missed insights"
+- "Scan last day of sessions"
+- "Scan when no sessions exist in the time window"
+
+**Can change:** log parsing strategy, time window parsing, insight extraction criteria, deduplication
+**Cannot change:** insights_root config requirement, session log location, fallback nature (supplements Stop hook)
+**Min sessions before eval:** 5
+**Runs per experiment:** 3
