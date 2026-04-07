@@ -32,6 +32,14 @@ $env.PATH = ($env.PATH | split row (char esep) | append $"($env.HOME)/local/bin"
 $env.GEMINI_API_KEY = (^security find-generic-password -a $env.USER -s "GEMINI_API_KEY" -w)
 $env.OPENROUTER_KEY = (^security find-generic-password -a $env.USER -s "OPENROUTER_KEY" -w)
 
+# Editor
+$env.EDITOR = "hx"
+$env.VISUAL = "hx"
+
+# Shell
+$env.SHELL = "/opt/homebrew/bin/nu"
+
 # Misc
 $env.FZF_DISABLE_KEYBINDINGS = "1"
+$env.TLDR_AUTO_UPDATE_DISABLED = "1"
 $env.CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD = "1"

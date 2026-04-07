@@ -126,6 +126,8 @@ Unknowns found: <list>. Research needed before planning can continue.
 
 ## Interpreting user input
 
+Not every message requires a plan change. Some messages are informational — the user is telling you what they did, not asking you to do something. Acknowledge and move on.
+
 | User says | You do |
 |-----------|--------|
 | "add X feature" | Add as TODO with sub-items for details |
@@ -134,5 +136,8 @@ Unknowns found: <list>. Research needed before planning can continue.
 | "what about X?" | Discuss, then update plan if agreed |
 | "looks good" | Confirm plan is ready, suggest `/work:implement` |
 | "change the order" | Reorder TODOs |
+| "I left a comment/note in the plan" | Acknowledge. Read `plan.md` to see what changed. Don't rewrite or duplicate their edit. |
+| "just did X" / "I updated Y" | Acknowledge the user's manual edit. Re-read the file if needed to stay in sync. |
+| Status updates, confirmations | Acknowledge briefly. No plan change needed. |
 
-**Every user message refines the plan. Nothing gets executed.**
+**Every user message is plan-related context. Most refine the plan — some are purely informational. Nothing gets executed.**

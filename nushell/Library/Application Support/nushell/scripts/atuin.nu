@@ -108,22 +108,3 @@ $env.config = (
         }
     )
 )
-
-$env.config = (
-    $env.config | upsert keybindings (
-        $env.config.keybindings
-        | append {
-            name: atuin
-            modifier: none
-            keycode: up
-            mode: [emacs, vi_normal, vi_insert]
-            event: {
-                until: [
-                    {send: menuup}
-                    {send: executehostcommand cmd: (_atuin_search_cmd '--shell-up-key-binding') }
-                ]
-            }
-        }
-    )
-)
-
