@@ -9,7 +9,7 @@ import {
   type TodoCompletedPayload,
   type ReturnToPlanPayload,
 } from "../work/events";
-import { SKILL_EVENTS, type SkillLoadPayload, type SkillLoadResult, type SkillFile, type SkillFeedbackPayload, type SkillResetSessionPayload, type SkillGetEvalsPayload } from "./events";
+import { SKILL_EVENTS, type SkillLoadPayload, type SkillLoadResult, type SkillFile, type SkillFeedbackPayload, type SkillResetSessionPayload, type SkillGetEvalsPayload, type SkillSessionScoresPayload, type SkillSessionScoreEntry } from "./events";
 import {
   PLUGIN_WORKFLOW_EVENTS,
   type PluginWorkflowStartPayload,
@@ -32,6 +32,7 @@ import {
 import { join, resolve, basename, dirname } from "node:path";
 import { homedir } from "node:os";
 import { execSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
 const SKILLS_DIR = join(homedir(), ".pi", "agent", "skills");
 const PI_AGENT_DIR = join(homedir(), ".pi", "agent");
@@ -265,6 +266,10 @@ interface SkillStat {
   successes: number;
   /** Times skill received negative feedback */
   failures: number;
+  /** SHA-256 hash of SKILL.md content (first 12 hex chars) */
+  contentHash: string;
+  /** ISO date when contentHash was last updated */
+  contentHashDate: string;
 }
 
 type Stats = Record<string, SkillStat>;
@@ -288,7 +293,7 @@ function today(): string {
 
 function ensureStat(stats: Stats, name: string): SkillStat {
   if (!stats[name]) {
-    stats[name] = { uses: 0, manualComments: 0, lastUsed: "", agentTurns: 0, completedTodos: 0, toolFailures: 0, sessions: 0, successes: 0, failures: 0 };
+    stats[name] = { uses: 0, manualComments: 0, lastUsed: "", agentTurns: 0, completedTodos: 0, toolFailures: 0, sessions: 0, successes: 0, failures: 0, contentHash: "", contentHashDate: "" };
   }
   // Migrate old entries missing new fields
   if (stats[name].agentTurns === undefined) stats[name].agentTurns = 0;
@@ -297,7 +302,101 @@ function ensureStat(stats: Stats, name: string): SkillStat {
   if (stats[name].sessions === undefined) stats[name].sessions = 0;
   if (stats[name].successes === undefined) stats[name].successes = 0;
   if (stats[name].failures === undefined) stats[name].failures = 0;
+  if (stats[name].contentHash === undefined) stats[name].contentHash = "";
+  if (stats[name].contentHashDate === undefined) stats[name].contentHashDate = "";
+  // Remove legacy sessionScores array (moved to daily files)
+  if ((stats[name] as any).sessionScores !== undefined) delete (stats[name] as any).sessionScores;
   return stats[name];
+}
+
+// --- Daily score files: ~/.pi/agent/skills-scores/YYYY-MM-DD.json ---
+// Each file: Record<skillName, { contentHash: string, scores: number[] }>
+
+const SCORES_DIR = join(PI_AGENT_DIR, "skills-scores");
+const SCORES_RETENTION_DAYS = 10;
+
+interface DailySkillEntry {
+  contentHash: string;
+  scores: number[];
+}
+
+type DailyScores = Record<string, DailySkillEntry>;
+
+function ensureScoresDir(): void {
+  if (!existsSync(SCORES_DIR)) mkdirSync(SCORES_DIR, { recursive: true });
+}
+
+function dailyScoresPath(date: string): string {
+  return join(SCORES_DIR, `${date}.json`);
+}
+
+function loadDailyScores(date: string): DailyScores {
+  const p = dailyScoresPath(date);
+  if (!existsSync(p)) return {};
+  try { return JSON.parse(readFileSync(p, "utf8")); } catch { return {}; }
+}
+
+function saveDailyScores(date: string, data: DailyScores): void {
+  ensureScoresDir();
+  writeFileSync(dailyScoresPath(date), JSON.stringify(data, null, 2) + "\n", "utf8");
+}
+
+/** Append a session score for a skill into today's daily file, updating content hash. */
+function recordDailyScore(skillName: string, score: number, contentHash: string): void {
+  const d = today();
+  const data = loadDailyScores(d);
+  if (!data[skillName]) data[skillName] = { contentHash: "", scores: [] };
+  data[skillName].contentHash = contentHash;
+  data[skillName].scores.push(score);
+  saveDailyScores(d, data);
+}
+
+/** Remove daily score files older than SCORES_RETENTION_DAYS. */
+function rotateDailyScores(): void {
+  ensureScoresDir();
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - SCORES_RETENTION_DAYS);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  try {
+    for (const file of readdirSync(SCORES_DIR)) {
+      if (!file.endsWith(".json")) continue;
+      const dateStr = file.replace(".json", "");
+      if (dateStr < cutoffStr) {
+        try { rmSync(join(SCORES_DIR, file)); } catch {}
+      }
+    }
+  } catch {}
+}
+
+/** Load all daily scores within retention window. Returns map: skillName → { date, contentHash, scores }[] */
+function loadAllDailyScores(): Map<string, { date: string; contentHash: string; scores: number[] }[]> {
+  ensureScoresDir();
+  const result = new Map<string, { date: string; contentHash: string; scores: number[] }[]>();
+  try {
+    const files = readdirSync(SCORES_DIR).filter((f) => f.endsWith(".json")).sort();
+    for (const file of files) {
+      const dateStr = file.replace(".json", "");
+      const data = loadDailyScores(dateStr);
+      for (const [skill, entry] of Object.entries(data)) {
+        if (!result.has(skill)) result.set(skill, []);
+        result.get(skill)!.push({ date: dateStr, contentHash: entry.contentHash, scores: entry.scores });
+      }
+    }
+  } catch {}
+  return result;
+}
+
+/** Compute median of a number array. Returns 0 for empty. */
+function median(arr: number[]): number {
+  if (arr.length === 0) return 0;
+  const sorted = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+/** Compute SHA-256 hash of content, return first 12 hex chars. */
+function contentHash(content: string): string {
+  return createHash("sha256").update(content).digest("hex").slice(0, 12);
 }
 
 function incrementUse(skillName: string): void {
@@ -343,6 +442,7 @@ export default function (pi: ExtensionAPI) {
   pi.on("session_start", async (_event, ctx) => {
     ensureAgentsEvalsFile();
     syncPluginSkills(pi);
+    rotateDailyScores();
   });
 
   /** Discover project-level skill directories from cwd + 1 level of subdirectories */
@@ -584,10 +684,32 @@ export default function (pi: ExtensionAPI) {
     }
   }
 
+  /** Content hashes for active skills (computed on first load) */
+  let activeSkillHashes: Map<string, string> = new Map(); // name → hash
+
   function trackSkill(name: string, source: string, ctx?: ExtensionContext): void {
     if (!activeSkills.has(name)) {
       activeSkills.set(name, source);
       incrementUse(name);
+
+      // Compute and store content hash on first activation
+      if (!activeSkillHashes.has(name)) {
+        const skillDir = findSkillDir(name);
+        if (skillDir) {
+          const skillMdPath = join(skillDir, "SKILL.md");
+          try {
+            const content = readFileSync(skillMdPath, "utf8");
+            const hash = contentHash(content);
+            activeSkillHashes.set(name, hash);
+            // Update persistent stat
+            const stats = loadStats();
+            ensureStat(stats, name);
+            stats[name].contentHash = hash;
+            stats[name].contentHashDate = today();
+            saveStats(stats);
+          } catch {}
+        }
+      }
     }
     if (ctx) refreshFooterStatus(ctx);
   }
@@ -607,6 +729,7 @@ export default function (pi: ExtensionAPI) {
   // Reset per session, not per agent turn — skills and friction accumulate across turns
   pi.on("session_start", async (_event, ctx) => {
     activeSkills = new Map();
+    activeSkillHashes = new Map();
     userMessageCount = 0;
     sessionUserMessageCount = 0;
     sessionAssistantTurns = 0;
@@ -662,20 +785,35 @@ export default function (pi: ExtensionAPI) {
   /** Build AGENTS_EVALS system prompt snippet: Common directives only. */
   function buildEvalsPromptSnippet(): string {
     const sections = parseEvalsSection();
-    if (sections.size === 0) return "";
 
-    const common = sections.get("common");
-    if (!common) return "";
+    const parts: string[] = [
+      "",
+      "# Skill Discovery",
+      "",
+      "You have access to skills listed in `<available_skills>`. Before starting any non-trivial task:",
+      "1. Scan the skill descriptions in `<available_skills>` to identify skills relevant to the task.",
+      "2. Load helpful skills by reading their SKILL.md (use the absolute path from `<location>`).",
+      "3. Follow loaded skill instructions throughout the task.",
+      "",
+      "Prefer loading skills over relying on general knowledge — skills encode project-specific patterns, tool usage, and guardrails.",
+    ];
 
-    return [
-      "",
-      "# Skill Evaluation Overrides",
-      "",
-      "The following directives amend loaded skill instructions. Apply them on top of the skill's own SKILL.md.",
-      "",
-      "## Common",
-      common,
-    ].join("\n");
+    if (sections.size > 0) {
+      const common = sections.get("common");
+      if (common) {
+        parts.push(
+          "",
+          "# Skill Evaluation Overrides",
+          "",
+          "The following directives amend loaded skill instructions. Apply them on top of the skill's own SKILL.md.",
+          "",
+          "## Common",
+          common,
+        );
+      }
+    }
+
+    return parts.join("\n");
   }
 
   /** Build skill-specific evaluation snippet appended when a skill is loaded/read. */
@@ -824,6 +962,7 @@ export default function (pi: ExtensionAPI) {
     wfEvent("reset-session", payload?.keepActiveSkills ? "keep-skills" : "full");
     if (!payload?.keepActiveSkills) {
       activeSkills = new Map();
+      activeSkillHashes = new Map();
     }
     userMessageCount = 0;
     sessionUserMessageCount = 0;
@@ -956,9 +1095,26 @@ Task: Use the skill_eval tool to record actionable directives for the loaded ski
     pi.exec("pi", ["-p", prompt], { timeout: 120_000 }).catch(() => {});
   }
 
-  // --- Session shutdown: background auto-eval when session score ≤ 6 (and critical < 3) ---
+  // --- Session shutdown: record daily scores, emit event, auto-eval, rotate ---
   pi.on("session_shutdown", async () => {
     const estimate = currentSessionEstimate();
+    const score = estimate.combined;
+
+    // Record daily scores for all active skills
+    if (activeSkills.size > 0) {
+      const entries: SkillSessionScoreEntry[] = [];
+      for (const name of activeSkills.keys()) {
+        const hash = activeSkillHashes.get(name) || "";
+        recordDailyScore(name, score, hash);
+        entries.push({ skill: name, score, contentHash: hash });
+      }
+
+      // Emit event so other extensions can react
+      pi.events.emit(SKILL_EVENTS.SESSION_SCORES, {
+        date: today(),
+        entries,
+      } satisfies SkillSessionScoresPayload);
+    }
 
     if (!criticalScoreEvalTriggered && estimate.combined < 3) {
       criticalScoreEvalTriggered = true;
@@ -1617,6 +1773,20 @@ If no improvements needed, skip.`,
           lines.push("");
         }
 
+        // Daily session scores
+        const allDaily = loadAllDailyScores();
+        const dailyEntries = allDaily.get(skillName);
+        if (dailyEntries && dailyEntries.length > 0) {
+          lines.push("  Daily scores (last 10d):");
+          for (const day of dailyEntries) {
+            const med = median(day.scores);
+            lines.push(`    ${day.date}  median=${med.toFixed(1)}  n=${day.scores.length}  hash=${day.contentHash || "—"}`);
+          }
+          const allScores = dailyEntries.flatMap((d) => d.scores);
+          lines.push(`    overall median: ${median(allScores).toFixed(1)} (${allScores.length} sessions)`);
+          lines.push("");
+        }
+
         if (issues.length > 0) {
           lines.push("  Health:");
           for (const issue of issues) lines.push(`    ${issue}`);
@@ -1642,13 +1812,18 @@ If no improvements needed, skip.`,
       lines.push(`  quality ${estimate.quality}/10 · efficiency ${estimate.efficiency}/10 · stability ${estimate.stability}/10`);
       lines.push(`  loaded skills: ${activeSkills.size}`);
       lines.push("");
-      lines.push("Skill                    Loads  Sess  TODOs  T/TODO  Fails  Corr  Last Used");
-      lines.push("─".repeat(85));
+      const allDaily = loadAllDailyScores();
+      lines.push("Skill                    Loads  Sess  TODOs  T/TODO  Fails  Corr  Med10d  Last Used");
+      lines.push("─".repeat(92));
 
       for (const [name, stat] of entries) {
         ensureStat(stats, name);
         const turnsPerTodo = stat.completedTodos > 0
           ? (stat.agentTurns / stat.completedTodos).toFixed(1)
+          : "—";
+        const dailyEntries = allDaily.get(name);
+        const medStr = dailyEntries && dailyEntries.length > 0
+          ? median(dailyEntries.flatMap((d) => d.scores)).toFixed(1)
           : "—";
         const nameCol = name.padEnd(24);
         const loadsCol = String(stat.uses).padStart(5);
@@ -1657,7 +1832,8 @@ If no improvements needed, skip.`,
         const tptCol = turnsPerTodo.padStart(6);
         const failCol = String(stat.toolFailures).padStart(5);
         const corrCol = String(stat.manualComments).padStart(5);
-        lines.push(`${nameCol} ${loadsCol}  ${sessCol}  ${todosCol}  ${tptCol}  ${failCol}  ${corrCol}   ${stat.lastUsed}`);
+        const medCol = medStr.padStart(6);
+        lines.push(`${nameCol} ${loadsCol}  ${sessCol}  ${todosCol}  ${tptCol}  ${failCol}  ${corrCol}  ${medCol}   ${stat.lastUsed}`);
       }
 
       ctx.ui.notify(lines.join("\n"), "info");

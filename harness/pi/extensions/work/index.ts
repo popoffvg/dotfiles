@@ -360,7 +360,7 @@ function formatTaskReport(tc: TaskContext): string {
   return lines.join("\n");
 }
 
-function phaseInstructions(phase: string): string {
+function phaseInstructions(phase: string, approveCommits = true): string {
   if (phase === "verified") {
     return [
       `\n## Work Phase: Verified`,
@@ -392,9 +392,12 @@ function phaseInstructions(phase: string): string {
       "### Todo Commit Flow (MANDATORY — follow every step)",
       "After making code changes, you MUST complete ALL steps:",
       "1. Run tests / static analysis relevant to the change",
-      "2. Call `work-reviewer` subagent with the diff (`git diff`). If BLOCKED — fix and re-review.",
-      "3. **`git add -A && git commit -m \"<message>\"`** — stage and commit in one step. Do not stop before committing.",
-      "4. Log to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: [todo] <summary>`",
+      ...(approveCommits
+        ? ["2. **Ask the user for approval** — show changed files and test results. **Do not commit without explicit user approval.**",
+           "3. **`git add -A && git commit -m \"<message>\"`** — stage and commit in one step.",
+           "4. Log to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: [todo] <summary>`"]
+        : ["2. **`git add -A && git commit -m \"<message>\"`** — stage and commit in one step. Do not stop before committing.",
+           "3. Log to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: [todo] <summary>`"]),
       "",
       "**You are NOT done until the commit is made.** Do not present results or ask what's next before committing.",
     ].join("\n");
@@ -481,11 +484,8 @@ function buildImplementContext(notesDir: string, extra?: string): string {
   parts.push(`The _notes/ directory for planning/logging is: \`${notesDir}\``);
   parts.push("");
 
-  parts.push(`**🔍 SUBAGENT REVIEW: After implementing each TODO, call \`subagent\` with agent \`work-reviewer\` to review the diff (\`git diff\`). Do NOT stage changes before review. Fix any BLOCKED issues before proceeding to commit.**`);
-  parts.push("");
-
   if (settings?.approveCommits) {
-    parts.push(`**⚠️ APPROVE COMMITS: \`approveCommits\` is ON. You MUST ask the user for approval before every git commit. Show changed files, test results, and reviewer verdict. Do not commit without explicit approval.**`);
+    parts.push(`**⚠️ APPROVE COMMITS: \`approveCommits\` is ON. You MUST ask the user for approval before every git commit. Show changed files and test results. Do not commit without explicit approval.**`);
     parts.push("");
   }
 
@@ -533,7 +533,7 @@ function buildImplementContext(notesDir: string, extra?: string): string {
   return parts.join("\n");
 }
 
-function routerInstructions(approveCommits = false): string {
+function routerInstructions(approveCommits = true): string {
   return `
 ## Work Manager — Phase Rules
 
@@ -548,7 +548,7 @@ function routerInstructions(approveCommits = false): string {
 ### Implement Phase
 - Execute TODOs from \`_notes/plan.md\` in order.
 - Work directly in the current branch/repository (no worktree).
-- **Each TODO = one git commit.** Before each commit: verify TODO completion, run relevant tests, re-test after fixes, then **launch \`work-reviewer\` subagent** to review the diff (\`git diff\`). Do NOT stage before review. Fix any BLOCKED issues before proceeding.${approveCommits ? " **Ask the user for approval before every commit.** Show changed files, test results, and reviewer verdict. Do not commit without explicit approval." : " Commit only after review passes."} Stage and commit in one step: \`git add -A && git commit -m "..."\`.
+- **Each TODO = one git commit.** Before each commit: verify TODO completion, run relevant tests, re-test after fixes.${approveCommits ? " **Ask the user for approval before every commit.** Show changed files and test results. Do not commit without explicit approval." : ""} Stage and commit in one step: \`git add -A && git commit -m "..."\`.
 - **After each TODO: call \`work_compact\`** to free context and re-orient on remaining work.
 - In \`plan.md\`, you may ONLY check off TODOs: \`- [ ]\` → \`- [x]\`. No other edits allowed.
 - Log implementation details as items in \`_notes/worklog.md\`.
@@ -558,7 +558,7 @@ function routerInstructions(approveCommits = false): string {
 - Todo is ordinary chat mode within active work context.
 - Execute user requests normally (not planning-only behavior).
 - **NEVER run \`git push\`** (including force-push or tag pushes) without explicit user request.
-- **Todo commit flow (MANDATORY):** After code changes: (1) run tests, (2) call \`work-reviewer\` subagent with \`git diff\`, (3) **\`git add -A && git commit -m "..."\`**, (4) log to worklog. **You are NOT done until the commit is made.**
+- **Todo commit flow (MANDATORY):** After code changes: (1) run tests, (2) ${approveCommits ? "**ask the user for approval** — show changed files and test results, (3) " : ""} **\`git add -A && git commit -m "..."\`**, (${approveCommits ? "4" : "3"}) log to worklog. **You are NOT done until the commit is made.**${approveCommits ? " **Do not commit without explicit user approval.**" : ""}
 - **Autonomy rule:** In todo phase, try to complete the request end-to-end without requiring additional user interaction.
 - **Log every action** to \`_notes/worklog.md\`: \`- YYYY-MM-DD HH:MM: [todo] <action summary>\`
 - Return to plan with \`/work:plan\`.
@@ -1051,7 +1051,7 @@ export default function (pi: ExtensionAPI) {
         result.systemPrompt =
           event.systemPrompt +
           routerInstructions(!!settings.approveCommits) +
-          phaseInstructions(settings.phase);
+          phaseInstructions(settings.phase, !!settings.approveCommits);
       }
     }
 
@@ -1537,6 +1537,7 @@ export default function (pi: ExtensionAPI) {
         status: "active",
         branch,
         phaseBeforeTodo: null,
+        approveCommits: true,
       });
 
       currentPhase = "plan";

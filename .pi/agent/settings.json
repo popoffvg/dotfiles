@@ -2,7 +2,7 @@
   "lastChangelogVersion": "0.62.0",
   "quietStartup": true,
   "defaultProvider": "anthropic",
-  "defaultModel": "claude-opus-4-6",
+  "defaultModel": "claude-sonnet-4-6",
   "extensions": [
     "~/Documents/git/dotfiles/harness/pi/extensions/memory-keeper/extensions/index.ts",
     "~/.pi/agent/extensions/async-session-queue.ts",

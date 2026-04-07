@@ -26,28 +26,29 @@ Read `_notes/plan.md` for the TODO list. Read `_notes/research-*.md` for additio
 ## Step 2: Execute TODOs in order
 
 For each unchecked `- [ ]` TODO in `_notes/plan.md`:
-1. **Read full files first.** Before editing any file, read it entirely. Note file-level constraints (strict modes, build tags, linter directives, error handling conventions). Your edits must be consistent with these constraints.
-2. **Plan all edits before touching any file.** Identify every function, type, and section you need to change across all files. Write out the full list mentally. Then make all changes in a single pass per file — do NOT make a partial edit, run tests, then edit again. Piecemeal edits to the same file cause thrashing.
-3. Implement the change described
-4. **Run static analysis** on changed files before testing. Use the appropriate language-specific linter/checker for the file type. Fix all errors before proceeding.
-5. Run relevant tests for that TODO
-6. If tests fail, fix and **re-test** until passing. **If you have edited the same file 3+ times without passing tests, stop.** Describe what is blocking to the user and wait for guidance — do not keep making speculative edits.
-7. Verify the TODO is fully satisfied (code + tests)
-8. If test coverage is narrow/insufficient for the change, note that in `_notes/worklog.md` and tell the user manual verification is required
-9. **Stage changes** with `git add` for the files you changed
-10. **Launch subagent review.** Call the `subagent` tool:
+1. **Load required skills first.** If the TODO has a `skills:` sub-item, read each listed skill's SKILL.md before starting. Use absolute paths from `<available_skills>` in the system prompt. Follow skill instructions throughout the TODO.
+2. **Read full files first.** Before editing any file, read it entirely. Note file-level constraints (strict modes, build tags, linter directives, error handling conventions). Your edits must be consistent with these constraints.
+3. **Plan all edits before touching any file.** Identify every function, type, and section you need to change across all files. Write out the full list mentally. Then make all changes in a single pass per file — do NOT make a partial edit, run tests, then edit again. Piecemeal edits to the same file cause thrashing.
+4. Implement the change described
+5. **Run static analysis** on changed files before testing. Use the appropriate language-specific linter/checker for the file type. Fix all errors before proceeding.
+6. Run relevant tests for that TODO
+7. If tests fail, fix and **re-test** until passing. **If you have edited the same file 3+ times without passing tests, stop.** Describe what is blocking to the user and wait for guidance — do not keep making speculative edits.
+8. Verify the TODO is fully satisfied (code + tests)
+9. If test coverage is narrow/insufficient for the change, note that in `_notes/worklog.md` and tell the user manual verification is required
+10. **Stage changes** with `git add` for the files you changed
+11. **Launch subagent review.** Call the `subagent` tool:
    ```
    agent: "work-reviewer"
    task: "Review the staged changes for this TODO:\n\nTODO: <todo text>\n\nStaged diff:\n```diff\n<output of git diff --cached>\n```\n\nPlan context: <relevant acceptance criteria>"
    ```
    - If the reviewer says **BLOCKED**: fix the issues, re-stage, and re-run the reviewer.
    - If the reviewer says **APPROVED**: proceed to the next step.
-11. If `approveCommits` is enabled in settings: **Ask the user for approval before committing.** Show: TODO text, changed files, test results, and **reviewer verdict**. Wait for explicit "yes"/"ok"/"approve". If rejected — fix and ask again (re-run reviewer after fixes).
-12. **Commit the changes** with a meaningful message referencing the TODO (commit only after steps 1–11 are complete)
-13. Check off the TODO: `- [ ]` → `- [x]`
-14. Log what was done to `_notes/worklog.md`
-15. **Call `work_compact`** with a brief summary of what was completed — this frees context space and re-injects the plan so you stay oriented
-16. Continue to the next TODO
+12. If `approveCommits` is enabled in settings: **Ask the user for approval before committing.** Show: TODO text, changed files, test results, and **reviewer verdict**. Wait for explicit "yes"/"ok"/"approve". If rejected — fix and ask again (re-run reviewer after fixes).
+13. **Commit the changes** with a meaningful message referencing the TODO (commit only after steps 1–12 are complete)
+14. Check off the TODO: `- [ ]` → `- [x]`
+15. Log what was done to `_notes/worklog.md`
+16. **Call `work_compact`** with a brief summary of what was completed — this frees context space and re-injects the plan so you stay oriented
+17. Continue to the next TODO
 
 **IMPORTANT: Call `work_compact` after each TODO.** Long implementation sessions accumulate tool calls, file reads, and test output that consume context. Compaction discards this noise and re-injects the current plan + worklog, keeping you focused on remaining work.
 

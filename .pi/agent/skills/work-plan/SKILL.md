@@ -95,6 +95,14 @@ Write everything to a single file `_notes/plan.md`. The plan is a TODO list.
 - Each TODO references specific files where changes happen
 - No vague TODOs like "improve performance" — be specific
 - **Each TODO = one git commit.** Design TODOs so each one is a self-contained, committable unit of work. Don't make TODOs too large (multiple unrelated changes) or too small (not worth a commit).
+- **Each TODO must list required skills.** Add a `skills:` sub-item listing skills the implementer should load before starting. Include language-specific skills (`go-modify`, `shell-modify`), project rules from AGENTS.md/CLAUDE.md, and any domain skills relevant to the change. Example:
+  ```
+  - [ ] Add refresh endpoint to `core/pl/pkg/auth/handler.go`
+    - skills: go-modify, go-test-debug
+    - endpoint path: POST /auth/refresh
+    ...
+  ```
+  Review `<available_skills>` in the system prompt to find matching skills by description. If no skills are relevant, write `skills: none`.
 
 ## Plan-Readiness Checklist
 

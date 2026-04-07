@@ -12,6 +12,8 @@ export const SKILL_EVENTS = {
   RESET_SESSION: "skill:reset-session",
   /** Request AGENTS_EVALS directives for specific skills. Returns common + per-skill sections. */
   GET_EVALS: "skill:get-evals",
+  /** Emitted at session_shutdown with per-skill session scores. Other extensions can listen to aggregate. */
+  SESSION_SCORES: "skill:session-scores",
 } as const;
 
 export interface SkillFile {
@@ -56,4 +58,20 @@ export interface SkillGetEvalsPayload {
   skills: string[];
   /** Callback: resolve with formatted eval directives string (empty if none) */
   resolve: (evals: string) => void;
+}
+
+export interface SkillSessionScoreEntry {
+  /** Skill name */
+  skill: string;
+  /** Session score 1-10 */
+  score: number;
+  /** SHA-256 content hash (first 12 hex chars) of SKILL.md at session time */
+  contentHash: string;
+}
+
+export interface SkillSessionScoresPayload {
+  /** Date string YYYY-MM-DD */
+  date: string;
+  /** Per-skill scores for this session */
+  entries: SkillSessionScoreEntry[];
 }
