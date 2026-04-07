@@ -149,3 +149,22 @@ Not every message requires a plan change. Some messages are informational — th
 | Status updates, confirmations | Acknowledge briefly. No plan change needed. |
 
 **Every user message is plan-related context. Most refine the plan — some are purely informational. Nothing gets executed.**
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Does every TODO have a `skills:` sub-item listing required skills (or `skills: none`)?
+2. Are there zero TODOs that mix unrelated concerns (each TODO = one git commit)?
+3. Does every TODO that changes behavior specify test strategy (level, file, cases)?
+4. Did the plan require zero additional TODOs discovered during implement phase?
+5. Does the plan have both non-empty Acceptance Criteria and TODOs sections?
+
+**Test inputs:**
+- "Add JWT auth with refresh tokens to existing Go REST API"
+- "Fix 5 flaky tests in integration test suite"
+- "Refactor single 500-line handler into 3 domain services"
+
+**Can change:** plan template, TODO format, sub-item requirements, ordering guidance, readiness checklist, examples
+**Cannot change:** read-only enforcement (no code changes), phase gate logic, plan file location (_notes/plan.md), checkbox contract with implement phase
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

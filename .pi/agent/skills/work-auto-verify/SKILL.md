@@ -65,3 +65,24 @@ Date: YYYY-MM-DD
 4. Stop immediately.
 
 **Do NOT fix anything. Do NOT write code. You are a reviewer, not an implementer.**
+
+## Autoresearch rules
+
+**Goal:** Reviewer correctly identifies all blocking issues and no false positives — every real problem is caught, no correct code is flagged broken, and the implementation either advances to verify or returns to implement with an accurate issue list.
+
+**Metrics:**
+1. False negative rate: "all clear" issued when tests fail (target: 0)
+2. False positive rate: correct code flagged as blocking issue (target: 0)
+3. Acceptance criteria coverage: every criterion in plan individually verified (target: 100%)
+4. Static analysis actually run on all changed files (not just mentioned in output)
+5. Review completed without requesting information already present in diff/worklog
+
+**Test inputs:**
+- "Review diff with 3 TODOs: all tests pass, all criteria met" → expect: phase=verify, no issues
+- "Review diff where one acceptance criterion is not satisfied" → expect: phase=implement, criterion listed in issues
+- "Review diff with a missing resource cleanup (open file handle)" → expect: phase=implement, cleanup gap listed
+
+**Can change:** checklist items, review depth, output format, blocker classification rules
+**Cannot change:** independence from implement phase (no carry-over context), plan as source of truth, test failures are always blockers
+**Min sessions before eval:** 5
+**Runs per experiment:** 3

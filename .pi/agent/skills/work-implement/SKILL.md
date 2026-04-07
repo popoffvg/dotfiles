@@ -132,3 +132,22 @@ After all TODOs are checked off:
 2. Append to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: Implementation complete`
 
 **Do NOT present results or ask the user anything.** The extension will run an automatic review. Just update the files and stop.
+
+## Autoresearch rules
+
+**Eval checklist:**
+1. Did every TODO complete in a single pass without re-reading the plan mid-TODO?
+2. Were there zero files edited 3+ times for the same TODO (no thrashing)?
+3. Did every commit pass tests before being created (no fix-after-commit)?
+4. Was `work_compact` called after each TODO completion?
+5. Did the agent avoid asking the user for guidance on routine decisions?
+
+**Test inputs:**
+- "Implement 3-TODO plan: add endpoint, write tests, update docs"
+- "Implement plan with a TODO that has failing tests on first run"
+- "Implement plan where one TODO depends on output of previous TODO"
+
+**Can change:** execution steps, edit strategy, thrashing detection threshold, logging format, review flow
+**Cannot change:** plan.md edit rules (only checkboxes), commit-per-TODO contract, work_compact requirement, autonomous execution principle
+**Min sessions before eval:** 5
+**Runs per experiment:** 3
