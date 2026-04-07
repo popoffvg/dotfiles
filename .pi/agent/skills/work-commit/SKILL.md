@@ -45,3 +45,15 @@ The message describes **why**, not **what**.
 - No period at the end
 - No ticket/issue numbers unless they add clarity
 - If a commit touches tests AND code, use the prefix for the code change (e.g. `feat`), not `test`
+
+## Granularity
+
+Each TODO = one commit. **Exception:** if the user explicitly says "join", "merge", or "squash" multiple TODOs, combine them into one commit with a unified message covering all of them.
+
+When squashing N commits on request:
+```bash
+git reset --soft HEAD~N
+git commit -m "<prefix>: <unified why covering all N changes>"
+```
+
+The unified message must cover the full scope — do not just repeat the first TODO's message.
