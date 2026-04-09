@@ -56,6 +56,17 @@ If your change creates resources, verify cleanup exists:
 1. Review file-level constraints from Phase 1
 2. Identify symbols that need modification
 3. Plan the change sequence — which files, which order
+4. For method additions/removals, classify each touched method as one of:
+   - **Reachable** (called from production paths now)
+   - **Test-only reachable** (used only in tests/fixtures)
+   - **Unreachable** (no callers after this change)
+
+### Reachability guardrail (high-friction rule)
+When the task is to “cover all reachable methods” or similar:
+- Use reference tracing first (`go_symbol_references`, callers/callees, or equivalent) to produce a concrete reachable set.
+- Implement/test **only** that reachable set.
+- Remove methods introduced during exploration that ended up unreachable.
+- If a method appears unreachable but might be reflection/dynamic entrypoint, mark it explicitly as `needs verification` instead of silently keeping it.
 
 ## Execution Rule
 
