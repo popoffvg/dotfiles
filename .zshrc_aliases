@@ -1,0 +1,10 @@
+# Aliases (fish-style, edit this file to add more)
+alias g='git'
+alias k='kubectl'
+alias ls='eza'
+alias ll='eza -la'
+alias lt='eza --tree --level=2'
+alias pltmp='pl-db-cli --db-dir=/tmp/db'
+
+# direnv
+eval "$(direnv hook zsh)"

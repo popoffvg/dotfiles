@@ -1,0 +1,8 @@
+[language-server.bash-language-server]
+command = "bash-language-server"
+args = ["start"]
+
+[[language]]
+name = "bash"
+language-servers = ["bash-language-server"]
+file-types = ["sh", "bash", "zsh"]
