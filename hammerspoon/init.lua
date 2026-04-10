@@ -133,8 +133,7 @@ end
 ensureSpaces()
 syncSpaceNames()
 
--- Re-sync names when spaces change
-hs.spaces.watcher.new(syncSpaceNames):start()
+-- Manual sync: call syncSpaceNames() from Raycast when needed
 
 -- Hotkeys: Cmd+7 ensure spaces, Cmd+8 show names, Cmd+9 create & name, Cmd+0 rename current
 hs.hotkey.bind({"cmd"}, "7", ensureSpaces)

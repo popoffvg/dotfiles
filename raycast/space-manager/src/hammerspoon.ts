@@ -1,0 +1,136 @@
+import { execSync } from "child_process";
+import { readFileSync, writeFileSync, mkdirSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
+
+const HS_PATH = "/opt/homebrew/bin/hs";
+const NAMES_DIR = join(homedir(), ".config", "hammerspoon");
+const NAMES_FILE = join(NAMES_DIR, "space_names.json");
+
+export type SpaceType = "user" | "fullscreen";
+
+export interface Space {
+  index: number;
+  id: number;
+  name: string;
+  active: boolean;
+  type: SpaceType;
+  screen: string;
+}
+
+function hs(lua: string): string {
+  return execSync(`${HS_PATH} -c '${lua.replace(/'/g, "'\\''")}'`, {
+    encoding: "utf-8",
+    timeout: 10000,
+  }).trim();
+}
+
+function loadNames(): Record<string, string> {
+  try {
+    return JSON.parse(readFileSync(NAMES_FILE, "utf-8"));
+  } catch {
+    return {};
+  }
+}
+
+function saveNames(names: Record<string, string>) {
+  mkdirSync(NAMES_DIR, { recursive: true });
+  writeFileSync(NAMES_FILE, JSON.stringify(names, null, 2));
+}
+
+export async function listSpaces(allScreens = false): Promise<Space[]> {
+  const mode = allScreens ? "all" : "current";
+  const raw = hs(`
+    local focused = hs.spaces.focusedSpace()
+    local mode = "${mode}"
+    local result = {}
+    if mode == "all" then
+      for _, screen in ipairs(hs.screen.allScreens()) do
+        local screenName = screen:name()
+        local spaces = hs.spaces.spacesForScreen(screen)
+        local active = hs.spaces.activeSpaceOnScreen(screen)
+        for i, id in ipairs(spaces) do
+          local t = hs.spaces.spaceType(id)
+          table.insert(result, { index = i, id = id, active = (id == active), type = t, screen = screenName })
+        end
+      end
+    else
+      local allSpaces = hs.spaces.allSpaces()
+      local targetScreen = nil
+      for uuid, list in pairs(allSpaces) do
+        for _, id in ipairs(list) do
+          if id == focused then
+            targetScreen = hs.screen.find(uuid)
+            break
+          end
+        end
+        if targetScreen then break end
+      end
+      if not targetScreen then targetScreen = hs.screen.mainScreen() end
+      local screenName = targetScreen:name()
+      local spaces = hs.spaces.spacesForScreen(targetScreen)
+      for i, id in ipairs(spaces) do
+        local t = hs.spaces.spaceType(id)
+        table.insert(result, { index = i, id = id, active = (id == focused), type = t, screen = screenName })
+      end
+    end
+    print(hs.json.encode(result))
+  `);
+  const spaces: { index: number; id: number; active: boolean; type: string; screen: string }[] = JSON.parse(raw);
+  const names = loadNames();
+  return spaces.map((s) => ({
+    ...s,
+    type: s.type === "user" ? "user" as const : "fullscreen" as const,
+    name: names[String(s.id)] || (s.type === "user" ? `Desktop ${s.index}` : "Fullscreen"),
+  }));
+}
+
+export function gotoSpace(spaceID: number) {
+  hs(`
+    hs.spaces.gotoSpace(${spaceID})
+  `);
+  // Wait for space switch to complete, then focus top window
+  try {
+    execSync(`sleep 0.7 && ${HS_PATH} -c 'local wins = hs.window.orderedWindows(); for _, w in ipairs(wins) do local ws = hs.spaces.windowSpaces(w); if ws and ws[1] == ${spaceID} then w:focus(); break end end'`, {
+      encoding: "utf-8",
+      timeout: 5000,
+    });
+  } catch {
+    // ignore focus errors
+  }
+}
+
+export function createSpace(): number {
+  const raw = hs(`
+    local win = hs.window.frontmostWindow()
+    local screen = win and win:screen() or hs.screen.mainScreen()
+    hs.spaces.addSpaceToScreen(screen, true)
+    local spaces = hs.spaces.spacesForScreen(screen)
+    print(spaces[#spaces])
+  `);
+  return parseInt(raw, 10);
+}
+
+export function removeSpace(spaceID: number) {
+  hs(`hs.spaces.removeSpace(${spaceID}, true)`);
+}
+
+export function renameSpace(spaceID: number, name: string) {
+  const names = loadNames();
+  names[String(spaceID)] = name;
+  saveNames(names);
+}
+
+export function getSpaceName(spaceID: number): string {
+  const names = loadNames();
+  return names[String(spaceID)] || "";
+}
+
+export function activeSpaceID(): number {
+  const raw = hs(`
+    local win = hs.window.frontmostWindow()
+    local screen = win and win:screen() or hs.screen.mainScreen()
+    print(hs.spaces.activeSpaceOnScreen(screen))
+  `);
+  return parseInt(raw, 10);
+}
