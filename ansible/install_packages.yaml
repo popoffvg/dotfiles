@@ -60,6 +60,9 @@
       - kind
       - k9s
       - ansible
+      # git
+      - lefthook
+      - gitleaks
       # terminal
       - zellij
       # apps
@@ -93,6 +96,7 @@
       - ghostty
       - direnv
       - zellij
+      - helix
       - starship.toml
 
   tasks:
@@ -177,6 +181,25 @@
       ansible.builtin.shell:
         cmd: "{{ ansible_env.HOME }}/.local/bin/mise install"
         chdir: "{{ ansible_env.HOME }}"
+      changed_when: false
+
+    # --- Git hooks (global) ---
+    - name: Ensure ~/.config/git exists
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.config/git"
+        state: directory
+        mode: "0755"
+
+    - name: Symlink global git hooks
+      ansible.builtin.file:
+        src: "{{ dotfiles_dir }}/.config/git/hooks"
+        dest: "{{ ansible_env.HOME }}/.config/git/hooks"
+        state: link
+        force: true
+
+    - name: Set global git hooks path
+      ansible.builtin.shell:
+        cmd: git config --global core.hooksPath ~/.config/git/hooks
       changed_when: false
 
     # --- Cleanup zcompdump ---
