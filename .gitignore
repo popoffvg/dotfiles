@@ -42,3 +42,13 @@ luac.out
 .config/zellij/plugins
 
 **/node_modules/
+
+# Legacy Pi skills (migrated to skills/)
+.pi/agent/skills/
+
+# Editor configs
+.vscode/
+vscode/
+
+# Removed setups
+nushell/
