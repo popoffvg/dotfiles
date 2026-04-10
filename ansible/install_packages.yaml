@@ -1,64 +1,189 @@
 # yaml-language-server: $schema= https://raw.githubusercontent.com/ansible/schemas/main/f/ansible.json
 
-- name: Install system packages
+- name: Setup laptop
   hosts: all
   vars:
-    system_packages:
+    dotfiles_dir: "{{ ansible_env.HOME }}/Documents/git/dotfiles"
+    brew_packages:
+      # shell
+      - zsh-autosuggestions
+      - zsh-completions
+      - zsh-syntax-highlighting
+      - fzf
+      - fzf-tab
+      - mcfly
+      - starship
+      - direnv
+      # tools
+      - bat
       - entr
       - eza
-      - fzf
       - zoxide
-      - thefuck
       - grc
-      - zinit
-      - atuin
       - jq
       - fd
       - sd
       - yq
       - ripgrep
       - delta
-      - direnv
-      # - nerdfonts
       - tldr
       - stow
-      - mise
-      - oh-my-posh
-      - kubectl
-      - zsh-autosuggestions
       - gh
-      - nodejs
-      - pamburus/tap/hl
-      - viu # image viewer
-      - broot # file manager
-      - go
-      - sq
-      - neovim
       - dua-cli
-      - vimmotion
+      - broot
+      - viu
+      - sq
+      - pamburus/tap/hl
+      - difftastic
+      - dust
+      - procs
+      - htop
+      - tree
+      - wget
+      - hurl
+      - grpcurl
+      - grpcui
+      - yazi
+      - ast-grep
+      - lazygit
+      - lazydocker
+      - rtk
+      - worktrunk
+      # dev
+      - mise
+      - go
+      - nodejs
+      - neovim
+      - kubectl
+      - helm
+      - k3d
+      - kind
+      - k9s
+      - ansible
+      # terminal
+      - zellij
+      # apps
       - hiddenbar
- 
+    brew_casks:
+      - ghostty
+      - amazon-q
+      - claude-code
+      - visual-studio-code
+      - obsidian
+      - slack
+      - telegram
+      - stats
+      - alt-tab
+    home_symlinks:
+      - .zshrc
+      - .zshrc_aliases
+      - .zshrc_broot
+      - .zshrc_fish
+      - .zshrc_git
+      - .zshrc_go
+      - .zshrc_mcfly
+      - .zshrc_mise
+      - .zshrc_sq
+      - .zshrc_starship
+      - .zshrc_zoxide
+      - .mise.toml
+      - cspell.json
+    config_symlinks:
+      - nvim
+      - ghostty
+      - direnv
+      - zellij
+      - starship.toml
+
   tasks:
-    - name: Install system packages
-      ansible.builtin.homebrew:
-        name: "{{ system_packages }}"
-        state: present
-    - name: Install zk
-      ansible.builtin.git:
-         repo: 'https://github.com/sirupsen/zk.git'
-         dest: '~/zk'
-    - name: Install sketchybar
+    # --- Homebrew ---
+    - name: Install Homebrew
       ansible.builtin.shell:
-         cmd: 'brew tap FelixKratz/formulae && brew install sketchybar'
-    - name: Install mise
-      block:
-        - name: load mise
-          ansible.builtin.shell:
-             cmd: "curl https://mise.run | sh"
-        - name: init mise
-          ansible.builtin.shell:
-             cmd: ~/.local/bin/mise activate zsh >> ~/.zshrc.mise
-    - name: Install terminal
+        cmd: '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+        creates: /opt/homebrew/bin/brew
+
+    - name: Install brew packages
       ansible.builtin.homebrew:
-       name: ghostty
-       state: present
+        name: "{{ brew_packages }}"
+        state: present
+
+    - name: Install brew casks
+      ansible.builtin.homebrew_cask:
+        name: "{{ brew_casks }}"
+        state: present
+
+    - name: Install nerd font
+      ansible.builtin.homebrew_cask:
+        name: font-fira-mono-nerd-font
+        state: present
+
+    # --- Shell ---
+    - name: Set zsh as default shell
+      ansible.builtin.shell:
+        cmd: chsh -s /bin/zsh
+      changed_when: false
+
+    - name: Fix brew share permissions for compinit
+      ansible.builtin.file:
+        path: /opt/homebrew/share
+        mode: "0755"
+
+    # --- Symlinks: home ---
+    - name: Symlink dotfiles to home
+      ansible.builtin.file:
+        src: "{{ dotfiles_dir }}/{{ item }}"
+        dest: "{{ ansible_env.HOME }}/{{ item }}"
+        state: link
+        force: true
+      loop: "{{ home_symlinks }}"
+
+    # --- Symlinks: ~/.config ---
+    - name: Ensure ~/.config exists
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.config"
+        state: directory
+        mode: "0755"
+
+    - name: Symlink config dirs
+      ansible.builtin.file:
+        src: "{{ dotfiles_dir }}/.config/{{ item }}"
+        dest: "{{ ansible_env.HOME }}/.config/{{ item }}"
+        state: link
+        force: true
+      loop: "{{ config_symlinks }}"
+
+    # --- Git scripts ---
+    - name: Find git scripts
+      ansible.builtin.find:
+        paths: "{{ dotfiles_dir }}"
+        patterns: "git_*.sh"
+      register: git_scripts
+
+    - name: Symlink git scripts to home
+      ansible.builtin.file:
+        src: "{{ item.path }}"
+        dest: "{{ ansible_env.HOME }}/{{ item.path | basename }}"
+        state: link
+        force: true
+      loop: "{{ git_scripts.files }}"
+
+    # --- Mise ---
+    - name: Install mise
+      ansible.builtin.shell:
+        cmd: "curl https://mise.run | sh"
+        creates: "{{ ansible_env.HOME }}/.local/bin/mise"
+
+    - name: Install mise tools
+      ansible.builtin.shell:
+        cmd: "{{ ansible_env.HOME }}/.local/bin/mise install"
+        chdir: "{{ ansible_env.HOME }}"
+      changed_when: false
+
+    # --- Cleanup zcompdump ---
+    - name: Remove stale zcompdump
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ ansible_env.HOME }}/.zcompdump"
+        - "{{ ansible_env.HOME }}/.zcompdump.zwc"
