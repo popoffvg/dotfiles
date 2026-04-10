@@ -16,6 +16,11 @@ source ($nu.default-config-dir | path join 'scripts' 'zoxide.nu')
 source ($nu.default-config-dir | path join 'scripts' 'atuin.nu')
 
 # ---------------------------------------------------------------------------
+# Suvadu — shell history (recording only, no keybindings)
+# ---------------------------------------------------------------------------
+source ($nu.default-config-dir | path join 'scripts' 'suvadu.nu')
+
+# ---------------------------------------------------------------------------
 # Carapace — completions
 # ---------------------------------------------------------------------------
 source ($nu.default-config-dir | path join 'scripts' 'carapace.nu')
