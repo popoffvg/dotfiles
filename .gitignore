@@ -40,3 +40,5 @@ luac.out
 *.hex
 
 .config/zellij/plugins
+
+**/node_modules/
