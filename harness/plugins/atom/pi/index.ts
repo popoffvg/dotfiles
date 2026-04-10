@@ -15,8 +15,8 @@ import {
   readSettings,
   settingsPath,
   taskDirFromSettings,
-} from "../work/state";
-import { WORK_EVENTS } from "../work/events";
+} from "../../work/pi/state";
+import { WORK_EVENTS } from "../../work/pi/events";
 
 const ATOM_ROOT = path.join(process.env.HOME || "~", ".pi/agent/extensions/atom");
 

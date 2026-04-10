@@ -13,7 +13,7 @@ Every tool (skill, MCP server, hook, plugin) MUST be configured for **both** Pi 
 dotfiles/
 ├── skills/                    ← standalone skills (shared, single source of truth)
 │   └── <skill>/SKILL.md
-├── harness/<plugin>/          ← plugins with agent-specific adapters
+├── harness/plugins/<plugin>/          ← plugins with agent-specific adapters
 │   ├── common/                ← shared logic, MCP servers, core code
 │   ├── pi/                    ← Pi extension adapter (index.ts)
 │   └── claude/                ← Claude Code plugin (.claude-plugin/, hooks, agents, commands)
@@ -57,10 +57,10 @@ harness/<plugin-name>/
 
 1. **Create the directory structure:**
    ```bash
-   mkdir -p harness/<name>/{common,pi,claude/.claude-plugin}
+   mkdir -p harness/plugins/<name>/{common,pi,claude/.claude-plugin}
    ```
 
-2. **Write plugin.json** (`harness/<name>/claude/.claude-plugin/plugin.json`):
+2. **Write plugin.json** (`harness/plugins/<name>/claude/.claude-plugin/plugin.json`):
    ```json
    {
      "name": "<name>",
@@ -73,13 +73,13 @@ harness/<plugin-name>/
 3. **Register in Pi** — add extension to `dotfiles/.pi/agent/settings.json`:
    ```json
    "extensions": [
-     "~/Documents/git/dotfiles/harness/<name>/pi/index.ts"
+     "~/Documents/git/dotfiles/harness/plugins/<name>/pi/index.ts"
    ]
    ```
 
 4. **Register in Claude Code** — symlink plugin to `~/.claude/plugins/`:
    ```bash
-   ln -sfn ~/Documents/git/dotfiles/harness/<name>/claude ~/.claude/plugins/<name>
+   ln -sfn ~/Documents/git/dotfiles/harness/plugins/<name>/claude ~/.claude/plugins/<name>
    ```
 
 5. **Enable in Claude Code** — add to `~/.claude/settings.json`:
@@ -91,9 +91,9 @@ harness/<plugin-name>/
 
 ### Plugin MCP servers
 
-Plugin-scoped MCP servers go in `harness/<name>/claude/.mcp.json`.
+Plugin-scoped MCP servers go in `harness/plugins/<name>/claude/.mcp.json`.
 Use `${CLAUDE_PLUGIN_ROOT}` to reference paths relative to the claude/ dir.
-The common server code lives in `harness/<name>/common/server/`.
+The common server code lives in `harness/plugins/<name>/common/server/`.
 
 ```json
 {
@@ -111,8 +111,8 @@ For Pi, reference the same server in the extension's index.ts.
 
 ### Plugin checklist
 
-- [ ] `harness/<name>/claude/.claude-plugin/plugin.json` exists
-- [ ] `harness/<name>/pi/index.ts` exists (even if minimal)
+- [ ] `harness/plugins/<name>/claude/.claude-plugin/plugin.json` exists
+- [ ] `harness/plugins/<name>/pi/index.ts` exists (even if minimal)
 - [ ] Pi extension registered in `dotfiles/.pi/agent/settings.json` → `extensions`
 - [ ] Claude plugin symlinked to `~/.claude/plugins/<name>`
 - [ ] Claude plugin enabled in `~/.claude/settings.json` → `enabledPlugins`
@@ -201,6 +201,6 @@ readlink ~/.pi/agent/.mcp.json
 
 - **Never add a tool to only one agent.** Always both.
 - Skills live in `dotfiles/skills/` — never directly in agent dirs.
-- Plugins live in `dotfiles/harness/<name>/` with `common/`, `pi/`, `claude/` dirs.
+- Plugins live in `dotfiles/harness/plugins/<name>/` with `common/`, `pi/`, `claude/` dirs.
 - MCP config lives in `dotfiles/.mcp.json` — never edit symlink targets directly.
 - Shared code goes in `common/` — never duplicate between `pi/` and `claude/`.

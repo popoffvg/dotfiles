@@ -27,7 +27,7 @@ import {
   type TodoCompletedPayload,
   type ReturnToPlanPayload,
 } from "./events";
-import { SKILL_EVENTS, type SkillLoadPayload, type SkillLoadResult, type SkillFeedbackPayload, type SkillResetSessionPayload, type SkillGetEvalsPayload } from "../skill-manager/events";
+import { SKILL_EVENTS, type SkillLoadPayload, type SkillLoadResult, type SkillFeedbackPayload, type SkillResetSessionPayload, type SkillGetEvalsPayload } from "../../skill-manager/pi/events";
 import {
   type WorkStats,
   type UsageData,

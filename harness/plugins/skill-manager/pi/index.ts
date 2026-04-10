@@ -8,14 +8,14 @@ import {
   WORK_EVENTS,
   type TodoCompletedPayload,
   type ReturnToPlanPayload,
-} from "../work/events";
+} from "../../work/pi/events";
 import { SKILL_EVENTS, type SkillLoadPayload, type SkillLoadResult, type SkillFile, type SkillFeedbackPayload, type SkillResetSessionPayload, type SkillGetEvalsPayload, type SkillSessionScoresPayload, type SkillSessionScoreEntry } from "./events";
 import {
   PLUGIN_WORKFLOW_EVENTS,
   type PluginWorkflowStartPayload,
   type PluginWorkflowEndPayload,
   type PluginWorkflowEventPayload,
-} from "../plugin-workflow-events";
+} from "../../plugin-workflow-events/pi/index.ts";
 import {
   readFileSync,
   writeFileSync,

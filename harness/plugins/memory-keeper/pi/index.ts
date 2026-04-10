@@ -4,7 +4,7 @@ import {
   type PluginWorkflowStartPayload,
   type PluginWorkflowEndPayload,
   type PluginWorkflowEventPayload,
-} from "../../pi-extensions/plugin-workflow-events";
+} from "../../plugin-workflow-events/pi/index.ts";
 import { keyHint } from "@mariozechner/pi-coding-agent";
 import { Text } from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
