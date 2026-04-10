@@ -1,6 +1,6 @@
 ---
 name: agent-setup
-description: This skill should be used when the user wants to "add a skill", "add MCP server", "add a hook", "configure agent", "setup tool for pi and claude", "add plugin", "sync pi and claude", or mentions configuring Pi agent or Claude Code settings. Ensures every tool is registered in both Pi and Claude Code.
+description: This skill should be used when the user wants to "add a skill", "add MCP server", "add a hook", "configure agent", "setup tool for pi and claude", "add plugin", "create plugin", "sync pi and claude", "write harness", or mentions configuring Pi agent or Claude Code settings. Ensures every tool is registered in both Pi and Claude Code.
 ---
 
 # Agent Setup
@@ -10,21 +10,117 @@ Every tool (skill, MCP server, hook, plugin) MUST be configured for **both** Pi 
 ## Architecture
 
 ```
-dotfiles/skills/           ← shared skills (single source of truth)
-├── <skill>/SKILL.md
+dotfiles/
+├── skills/                    ← standalone skills (shared, single source of truth)
+│   └── <skill>/SKILL.md
+├── harness/<plugin>/          ← plugins with agent-specific adapters
+│   ├── common/                ← shared logic, MCP servers, core code
+│   ├── pi/                    ← Pi extension adapter (index.ts)
+│   └── claude/                ← Claude Code plugin (.claude-plugin/, hooks, agents, commands)
+├── .mcp.json                  ← global MCP servers (symlinked to both agents)
+└── .pi/agent/settings.json    ← Pi settings
 
-~/.claude/skills/<skill>   → symlink → dotfiles/skills/<skill>
-~/.pi/agent/settings.json  → skills: ["~/Documents/git/dotfiles/skills"]
-
-dotfiles/.mcp.json         ← shared MCP servers (single source of truth)
-~/.claude/.mcp.json        → symlink → dotfiles/.mcp.json
-~/.pi/agent/.mcp.json      → symlink → dotfiles/.mcp.json
-
-~/.claude/settings.json    ← Claude Code hooks, permissions, env
-dotfiles/.pi/agent/settings.json ← Pi extensions, packages, settings
+~/.claude/skills/<skill>       → symlink → dotfiles/skills/<skill>
+~/.pi/agent/settings.json      → skills: ["~/Documents/git/dotfiles/skills"]
+~/.claude/.mcp.json            → symlink → dotfiles/.mcp.json
+~/.pi/agent/.mcp.json          → symlink → dotfiles/.mcp.json
+~/.claude/settings.json        ← Claude Code hooks, permissions, env
 ```
 
-## Adding a Skill
+## Harness Plugin Structure
+
+A plugin is a feature that needs agent-specific adapters (MCP servers, hooks, commands).
+
+### Directory layout
+
+```
+harness/<plugin-name>/
+├── common/                    ← shared code used by both agents
+│   ├── server/                ← MCP server (if any)
+│   │   ├── index.ts
+│   │   └── package.json
+│   └── core/                  ← shared logic, types, utilities
+├── pi/                        ← Pi extension
+│   └── index.ts               ← Pi extension entry point
+└── claude/                    ← Claude Code plugin
+    └── .claude-plugin/
+        └── plugin.json        ← plugin metadata
+    ├── .mcp.json              ← plugin-local MCP servers (use ${CLAUDE_PLUGIN_ROOT})
+    ├── agents/                ← agent .md files
+    ├── commands/              ← slash command .md files
+    ├── hooks/                 ← hooks.json
+    ├── skills/                ← plugin-scoped skills (SKILL.md per dir)
+    └── bin/                   ← helper scripts
+```
+
+### Creating a new plugin
+
+1. **Create the directory structure:**
+   ```bash
+   mkdir -p harness/<name>/{common,pi,claude/.claude-plugin}
+   ```
+
+2. **Write plugin.json** (`harness/<name>/claude/.claude-plugin/plugin.json`):
+   ```json
+   {
+     "name": "<name>",
+     "version": "0.1.0",
+     "description": "<what the plugin does>",
+     "author": { "name": "popoffvg" }
+   }
+   ```
+
+3. **Register in Pi** — add extension to `dotfiles/.pi/agent/settings.json`:
+   ```json
+   "extensions": [
+     "~/Documents/git/dotfiles/harness/<name>/pi/index.ts"
+   ]
+   ```
+
+4. **Register in Claude Code** — symlink plugin to `~/.claude/plugins/`:
+   ```bash
+   ln -sfn ~/Documents/git/dotfiles/harness/<name>/claude ~/.claude/plugins/<name>
+   ```
+
+5. **Enable in Claude Code** — add to `~/.claude/settings.json`:
+   ```json
+   "enabledPlugins": {
+     "<name>": true
+   }
+   ```
+
+### Plugin MCP servers
+
+Plugin-scoped MCP servers go in `harness/<name>/claude/.mcp.json`.
+Use `${CLAUDE_PLUGIN_ROOT}` to reference paths relative to the claude/ dir.
+The common server code lives in `harness/<name>/common/server/`.
+
+```json
+{
+  "mcpServers": {
+    "<name>": {
+      "command": "npx",
+      "args": ["tsx", "${CLAUDE_PLUGIN_ROOT}/../common/server/index.ts"],
+      "env": { "CWD": "${CWD}" }
+    }
+  }
+}
+```
+
+For Pi, reference the same server in the extension's index.ts.
+
+### Plugin checklist
+
+- [ ] `harness/<name>/claude/.claude-plugin/plugin.json` exists
+- [ ] `harness/<name>/pi/index.ts` exists (even if minimal)
+- [ ] Pi extension registered in `dotfiles/.pi/agent/settings.json` → `extensions`
+- [ ] Claude plugin symlinked to `~/.claude/plugins/<name>`
+- [ ] Claude plugin enabled in `~/.claude/settings.json` → `enabledPlugins`
+- [ ] Shared code lives in `common/`, not duplicated
+
+## Adding a Standalone Skill
+
+For simple skills without agent-specific adapters:
 
 1. Create `dotfiles/skills/<name>/SKILL.md` with frontmatter:
    ```yaml
@@ -39,18 +135,16 @@ dotfiles/.pi/agent/settings.json ← Pi extensions, packages, settings
    ln -sfn ~/Documents/git/dotfiles/skills/<name> ~/.claude/skills/<name>
    ```
 
-3. Pi picks it up automatically via `"skills": ["~/Documents/git/dotfiles/skills"]` in settings.json.
+3. Pi picks it up automatically via `"skills": ["~/Documents/git/dotfiles/skills"]`.
 
 **Checklist:**
 - [ ] Skill created in `dotfiles/skills/<name>/SKILL.md`
 - [ ] Symlink exists at `~/.claude/skills/<name>`
-- [ ] Pi settings.json `skills` array includes the dotfiles/skills path
 
-## Adding an MCP Server
+## Adding a Global MCP Server
 
 Single config at `dotfiles/.mcp.json` — both agents read it via symlink.
 
-Edit `dotfiles/.mcp.json`:
 ```json
 {
   "mcpServers": {
@@ -61,15 +155,13 @@ Edit `dotfiles/.mcp.json`:
 
 **Checklist:**
 - [ ] Server added to `dotfiles/.mcp.json`
-- [ ] Symlinks exist: `~/.claude/.mcp.json` → `dotfiles/.mcp.json`, `~/.pi/agent/.mcp.json` → `dotfiles/.mcp.json`
+- [ ] Symlinks exist: `~/.claude/.mcp.json` and `~/.pi/agent/.mcp.json` → `dotfiles/.mcp.json`
 
 ## Adding a Hook
 
-Hooks differ between Pi (extensions) and Claude Code (settings.json hooks).
+### Claude Code
 
-### Claude Code hook
-
-Edit `~/.claude/settings.json`, add to `hooks` object:
+Edit `~/.claude/settings.json` → `hooks`:
 ```json
 {
   "hooks": {
@@ -80,26 +172,27 @@ Edit `~/.claude/settings.json`, add to `hooks` object:
 }
 ```
 
-### Pi equivalent
+### Pi
 
-Pi uses extensions in `dotfiles/.pi/agent/settings.json` → `extensions` array.
-If no direct equivalent exists, document the gap.
+Add extension to `dotfiles/.pi/agent/settings.json` → `extensions` array.
 
 **Checklist:**
-- [ ] Hook added to Claude Code `~/.claude/settings.json`
-- [ ] Equivalent behavior added to Pi (extension or skill)
+- [ ] Hook added to Claude Code
+- [ ] Equivalent behavior added to Pi
 - [ ] Both agents have the same capability
 
 ## Verification
-
-After any change, verify both agents see the tool:
 
 ```bash
 # Skills: check symlinks
 ls -la ~/.claude/skills/<name>
 ls ~/.pi/agent/skills/ | grep <name>
 
-# MCP: verify symlinks point to dotfiles
+# Plugins: check both registrations
+ls -la ~/.claude/plugins/<name>
+grep '<name>' dotfiles/.pi/agent/settings.json
+
+# MCP: verify symlinks
 readlink ~/.claude/.mcp.json
 readlink ~/.pi/agent/.mcp.json
 ```
@@ -107,6 +200,7 @@ readlink ~/.pi/agent/.mcp.json
 ## Rules
 
 - **Never add a tool to only one agent.** Always both.
-- Skills live in `dotfiles/skills/` — never in `~/.claude/skills/` or `~/.pi/agent/skills/` directly.
-- MCP config lives in `dotfiles/.mcp.json` — never edit the symlink targets directly.
-- After adding, run verification to confirm both agents see the new tool.
+- Skills live in `dotfiles/skills/` — never directly in agent dirs.
+- Plugins live in `dotfiles/harness/<name>/` with `common/`, `pi/`, `claude/` dirs.
+- MCP config lives in `dotfiles/.mcp.json` — never edit symlink targets directly.
+- Shared code goes in `common/` — never duplicate between `pi/` and `claude/`.
