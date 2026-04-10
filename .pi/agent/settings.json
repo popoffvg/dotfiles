@@ -1,8 +1,8 @@
 {
   "lastChangelogVersion": "0.62.0",
   "quietStartup": true,
-  "defaultProvider": "anthropic",
-  "defaultModel": "claude-sonnet-4-6",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.3-codex",
   "extensions": [
     "~/Documents/git/dotfiles/harness/pi/extensions/memory-keeper/extensions/index.ts",
     "~/.pi/agent/extensions/async-session-queue.ts",
@@ -21,7 +21,7 @@
     "!~/Documents/git/dotfiles/harness/pi/extensions/grepai.ts"
   ],
   "skills": [
-    "~/.pi/agent/skills"
+    "~/Documents/git/dotfiles/skills"
   ],
   "packages": [
     "npm:pi-mcp-adapter",
@@ -33,7 +33,7 @@
     "npm:pi-notify",
     "npm:pi-fzf"
   ],
-  "defaultThinkingLevel": "medium",
+  "defaultThinkingLevel": "low",
   "pi-tilth": {
     "enabled": false
   }
