@@ -30,6 +30,19 @@ Clearly understand what the user wants to find. Ask clarifying questions if need
 - Are there specific edge cases or variations to consider?
 - What should be included or excluded from matches?
 
+Before writing a rule, restate the query as a **testable assumption** and verify it with the user when scope is ambiguous.
+
+Required restatement template:
+- Scope: `<repo/path or package>`
+- Language: `<go|ts|...>`
+- Match shape: `<AST structure>`
+- Exclusions: `<what must not match>`
+
+If the request comes from a code-review comment, extract and confirm:
+1. Exact file path(s)
+2. Target line range (if provided)
+3. Whether the user wants one location fixed or all similar patterns in the codebase
+
 ### Step 2: Create Example Code
 
 Write a simple code snippet that represents what the user wants to match. Save this to a temporary file for testing.
@@ -268,6 +281,29 @@ ast-grep scan --inline-rules 'rule: {pattern: "console.log($ARG)"}' .
 ```
 
 ## Common Use Cases
+
+### Go: Find functions that take both context and tx
+
+Use this pattern when the request is: "find places where tx and ctx are function parameters together".
+
+```bash
+ast-grep scan --inline-rules "id: go-ctx-tx-params
+language: go
+rule:
+  kind: function_declaration
+  has:
+    kind: parameter_list
+    all:
+      - has:
+          pattern: \$CTX context.Context
+          stopBy: end
+      - has:
+          regex: '(?i)\\btx\\b'
+          stopBy: end
+    stopBy: end" /path/to/repo
+```
+
+Then narrow scope to controller paths (for example `controllers/workflow/`) and inspect exact matches.
 
 ### Find Functions with Specific Content
 
