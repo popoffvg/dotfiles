@@ -41,6 +41,8 @@ If iterating:
 Read all `_notes/*.md` files for current state.
 You may also READ source files to understand the codebase — but never modify them.
 
+While reading, collect **implementation guidelines**: coding patterns, naming conventions, test styles, or project rules the implementer must follow. You will write these into the plan in Step 3.
+
 ## Step 3: Build / refine the plan
 
 Write everything to a single file `_notes/plan.md`. The plan is a TODO list.
@@ -52,6 +54,28 @@ Write everything to a single file `_notes/plan.md`. The plan is a TODO list.
 
 ## Description
 <what this work is about>
+
+## Implementation Guidelines
+
+> Rules the implementer must follow. Written by the planner based on codebase reading and available skills.
+
+### Skills
+List skills the implementer should load. Reference skills from `<available_skills>` by name.
+- `go-modify` — for any Go file edits (pre-edit analysis, gopls validation)
+- `bdd-tests` — all new tests must follow BDD Given/When/Then scenario structure
+- `work-commit` — commit message conventions
+
+### Coding Patterns
+Patterns discovered from reading the codebase that the implementer must replicate:
+- <pattern observed in file X — e.g. "all handlers return structured errors via `pkg/errors.Wrap`">
+- <e.g. "tests use `helper.Tx` + `CommitWithRetry` for all write operations">
+
+### References
+Existing files or docs that demonstrate the expected style:
+- `<path/to/example_file.go>` — reference implementation for <pattern>
+- `<path/to/test_file_test.go>` — shows expected test structure
+
+> If no project-specific patterns were found, write "No project-specific guidelines identified — follow language defaults and loaded skills."
 
 ## Acceptance Criteria
 - [ ] Auth endpoint returns 401 for expired tokens
@@ -106,8 +130,9 @@ Write everything to a single file `_notes/plan.md`. The plan is a TODO list.
 
 ## Plan-Readiness Checklist
 
-Before signaling the plan is ready, verify each TODO against this checklist:
+Before signaling the plan is ready, verify each item:
 
+- [ ] **Guidelines written.** `Implementation Guidelines` section is filled — skills listed, patterns documented, or explicitly marked "no project-specific guidelines".
 - [ ] **Full file context read.** For every file a TODO will modify, read the ENTIRE file (not just the target section). Note file-level constraints: strict modes, build tags, linter directives, module-level error handling patterns. These constraints dictate what patterns are safe to use.
 - [ ] **Test strategy specified.** Each TODO that changes behavior must state: what test level (unit/integration/e2e), which test file, what cases. "Add tests" alone is not a valid sub-item.
 - [ ] **Resource lifecycle addressed.** If a TODO creates temporary resources (temp files, open handles, network connections, goroutines), the sub-items must include cleanup mechanism. Consult language-specific skills for correct patterns.
@@ -153,11 +178,12 @@ Not every message requires a plan change. Some messages are informational — th
 ## Autoresearch rules
 
 **Eval checklist:**
-1. Does every TODO have a `skills:` sub-item listing required skills (or `skills: none`)?
-2. Are there zero TODOs that mix unrelated concerns (each TODO = one git commit)?
-3. Does every TODO that changes behavior specify test strategy (level, file, cases)?
-4. Did the plan require zero additional TODOs discovered during implement phase?
-5. Does the plan have both non-empty Acceptance Criteria and TODOs sections?
+1. Does the plan have a filled `Implementation Guidelines` section (skills + patterns or explicit "none")?
+2. Does every TODO have a `skills:` sub-item listing required skills (or `skills: none`)?
+3. Are there zero TODOs that mix unrelated concerns (each TODO = one git commit)?
+4. Does every TODO that changes behavior specify test strategy (level, file, cases)?
+5. Did the plan require zero additional TODOs discovered during implement phase?
+6. Does the plan have both non-empty Acceptance Criteria and TODOs sections?
 
 **Test inputs:**
 - "Add JWT auth with refresh tokens to existing Go REST API"

@@ -52,6 +52,8 @@ You may also READ source files to understand the codebase — but never modify t
 
 If `_notes/research-*.md` files exist, incorporate their findings into the plan.
 
+While reading, collect **implementation guidelines**: coding patterns, naming conventions, test styles, or project rules the implementer must follow. You will write these into the plan in Step 3.
+
 ## Step 3: Build / refine the plan
 
 Write everything to a single file `_notes/plan.md`. The plan is a TODO list.
@@ -65,6 +67,28 @@ Write everything to a single file `_notes/plan.md`. The plan is a TODO list.
 
 ## Description
 <what this work is about>
+
+## Implementation Guidelines
+
+> Rules the implementer must follow. Written by the planner based on codebase reading and available skills.
+
+### Skills
+List skills the implementer should load. Reference skills from `<available_skills>` by name.
+- `go-modify` — for any Go file edits (pre-edit analysis, gopls validation)
+- `bdd-tests` — all new tests must follow BDD Given/When/Then scenario structure
+- `work-commit` — commit message conventions
+
+### Coding Patterns
+Patterns discovered from reading the codebase that the implementer must replicate:
+- <pattern observed in file X — e.g. "all handlers return structured errors via `pkg/errors.Wrap`">
+- <e.g. "tests use helper transactions with retry on conflict">
+
+### References
+Existing files or docs that demonstrate the expected style:
+- `<path/to/example_file>` — reference implementation for <pattern>
+- `<path/to/test_file>` — shows expected test structure
+
+> If no project-specific patterns were found, write "No project-specific guidelines identified — follow language defaults and loaded skills."
 
 ## Acceptance Criteria
 - [ ] Auth endpoint returns 401 for expired tokens
@@ -256,10 +280,11 @@ Unknowns found: <list>. Clarifications/research needed before planning can conti
 ## Autoresearch rules
 
 **Eval checklist:**
-1. Were zero code changes or file edits made outside `_notes/`?
-2. Does every TODO have acceptance criteria that can be verified independently?
-3. Does the plan include both Acceptance Criteria and TODOs sections?
-4. Were user messages interpreted as plan input (not executed as tasks)?
+1. Does the plan have a filled `Implementation Guidelines` section (skills + patterns or explicit "none")?
+2. Were zero code changes or file edits made outside `_notes/`?
+3. Does every TODO have acceptance criteria that can be verified independently?
+4. Does the plan include both Acceptance Criteria and TODOs sections?
+5. Were user messages interpreted as plan input (not executed as tasks)?
 
 **Test inputs:**
 - "Plan a multi-service auth system with JWT + refresh tokens"
