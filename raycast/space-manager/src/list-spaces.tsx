@@ -1,23 +1,34 @@
-import { List, Action, ActionPanel, showToast, Toast, Icon, Color, closeMainWindow } from "@raycast/api";
-import { useState, useCallback } from "react";
+import { List, Action, ActionPanel, showToast, Toast, Icon, Color, closeMainWindow, LocalStorage } from "@raycast/api";
+import { useState, useCallback, useEffect } from "react";
 import { usePromise } from "@raycast/utils";
 import { listSpaces, gotoSpace, removeSpace, createSpace, Space } from "./hammerspoon";
 import { RenameForm } from "./rename-form";
 
+const ALL_SCREENS_KEY = "allScreens";
+
 export default function ListSpacesCommand() {
   const [renaming, setRenaming] = useState<Space | null>(null);
   const [allScreens, setAllScreens] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
-  const { data: spaces, isLoading, revalidate } = usePromise(listSpaces, [allScreens]);
+  useEffect(() => {
+    LocalStorage.getItem<boolean>(ALL_SCREENS_KEY).then((val) => {
+      if (val !== undefined) setAllScreens(val);
+      setLoaded(true);
+    });
+  }, []);
+
+  const { data: spaces, isLoading, revalidate } = usePromise(listSpaces, [allScreens], { execute: loaded });
 
   const handleSwitch = useCallback(async (space: Space) => {
     try {
       await closeMainWindow();
       gotoSpace(space.id);
+      revalidate();
     } catch {
       await showToast({ style: Toast.Style.Failure, title: "Failed to switch" });
     }
-  }, []);
+  }, [revalidate]);
 
   const handleDelete = useCallback(async (space: Space) => {
     try {
@@ -40,7 +51,11 @@ export default function ListSpacesCommand() {
   }, [revalidate]);
 
   const toggleScreens = useCallback(() => {
-    setAllScreens((prev) => !prev);
+    setAllScreens((prev) => {
+      const next = !prev;
+      LocalStorage.setItem(ALL_SCREENS_KEY, next);
+      return next;
+    });
   }, []);
 
   if (renaming) {

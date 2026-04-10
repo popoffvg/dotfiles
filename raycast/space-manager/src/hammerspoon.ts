@@ -87,17 +87,23 @@ export async function listSpaces(allScreens = false): Promise<Space[]> {
 
 export function gotoSpace(spaceID: number) {
   hs(`
+    local focused = hs.spaces.focusedSpace()
+    local targetScreen, focusedScreen = nil, nil
+    for _, screen in ipairs(hs.screen.allScreens()) do
+      for _, id in ipairs(hs.spaces.spacesForScreen(screen)) do
+        if id == ${spaceID} then targetScreen = screen end
+        if id == focused then focusedScreen = screen end
+      end
+    end
+    local crossScreen = targetScreen and focusedScreen and targetScreen:getUUID() ~= focusedScreen:getUUID()
     hs.spaces.gotoSpace(${spaceID})
+    if crossScreen then
+      hs.timer.doAfter(0.7, function()
+        local f = targetScreen:frame()
+        hs.eventtap.leftClick(hs.geometry.point(f.x + f.w / 2, f.y + f.h / 2))
+      end)
+    end
   `);
-  // Wait for space switch to complete, then focus top window
-  try {
-    execSync(`sleep 0.7 && ${HS_PATH} -c 'local wins = hs.window.orderedWindows(); for _, w in ipairs(wins) do local ws = hs.spaces.windowSpaces(w); if ws and ws[1] == ${spaceID} then w:focus(); break end end'`, {
-      encoding: "utf-8",
-      timeout: 5000,
-    });
-  } catch {
-    // ignore focus errors
-  }
 }
 
 export function createSpace(): number {
