@@ -1543,7 +1543,7 @@ export default function (pi: ExtensionAPI) {
   );
 
   pi.registerCommand("work:done", {
-    description: "Mark work complete",
+    description: "Finalize work: save memory notes, remove _notes, mark done",
     handler: async (_args, ctx) => {
       const sf = currentSettingsFile || findSettings(ctx.cwd);
       if (!sf) {
@@ -1557,6 +1557,23 @@ export default function (pi: ExtensionAPI) {
         return;
       }
 
+      const rootDir = taskDirFromSettings(sf);
+      const notesDir = path.join(rootDir, "_notes");
+
+      // Trigger memory finalization flow first (context-done skill)
+      const doneSkill = readSkill("context-done");
+      if (doneSkill) {
+        pi.sendUserMessage(
+          doneSkill +
+            `\n\n---\nFinalize this completed work item and persist key insights.\nWork ID: ${settings.workId || "(none)"}\nName: ${settings.name || "(none)"}`,
+        );
+      }
+
+      // Remove local notes workspace after memory finalization is triggered
+      if (fs.existsSync(notesDir)) {
+        fs.rmSync(notesDir, { recursive: true, force: true });
+      }
+
       updateSettings(sf, { status: "done" });
 
       currentPhase = null;
@@ -1565,9 +1582,21 @@ export default function (pi: ExtensionAPI) {
       markWork();
       exitImplementVisuals(ctx);
       ctx.ui.setStatus("work", "");
-      ctx.ui.notify("Work marked done.", "success");
+      ctx.ui.notify("Work finalized: memory flow triggered, _notes removed, status=done.", "success");
     },
   });
+
+  registerWorkCommand(
+    "work:done-skill",
+    "Run work-done skill flow (alternative to direct /work:done)",
+    () => readSkill("work-done"),
+  );
+
+  registerWorkCommand(
+    "work:finish",
+    "Alias for /work:done-skill",
+    () => readSkill("work-done"),
+  );
 
   registerWorkCommand(
     "work:help",

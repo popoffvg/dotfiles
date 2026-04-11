@@ -17,6 +17,8 @@ Display the following usage guide:
 | `/work:status` | Show current work status and progress |
 | `/work:implement` | Enter implement phase (from plan only) |
 | `/work:done` | Mark work complete |
+| `/work:done-skill` | Run the skill-driven done flow (alternative) |
+| `/work:finish` | Alias for `/work:done-skill` |
 | `/work:off` | Disable work tracking for this session |
 | `/work:help` | This guide |
 
