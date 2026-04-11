@@ -9,20 +9,8 @@
   "commands": [
     {
       "name": "list-spaces",
-      "title": "List Spaces",
+      "title": "Spaces",
       "description": "Show all macOS spaces with names, switch or rename",
-      "mode": "view"
-    },
-    {
-      "name": "create-space",
-      "title": "Create Space",
-      "description": "Create a new macOS space with a name",
-      "mode": "view"
-    },
-    {
-      "name": "rename-current-space",
-      "title": "Rename Current Space",
-      "description": "Rename the currently active space",
       "mode": "view"
     }
   ],
