@@ -13,10 +13,11 @@ Finalize the current work item.
 1. Read current state via `work_state` (action: `read`)
 2. Run memory finalization by loading and following `context-done` skill to persist insights.
 3. Stop and wait for explicit user confirmation that memory finalization succeeded.
-4. Remove local `_notes/` directory for this work item.
-5. Update state via `work_state` (action: `update`, updates: `{ status: "done" }`)
-6. Confirm completion:
-   - "Work finalized: insights saved, notes removed, status set to done."
+4. If `worktreePath` and `worktreeBranch` are set in state: merge the worktree branch back into the source branch (`branch` field), then remove the worktree and delete the worktree branch. If merge conflicts occur, stop and ask the user to resolve them.
+5. Remove local `_notes/` directory for this work item.
+6. Update state via `work_state` (action: `update`, updates: `{ status: "done" }`)
+7. Confirm completion:
+   - "Work finalized: worktree merged, insights saved, notes removed, status set to done."
 
 ## Notes
 
