@@ -7,11 +7,13 @@ export {
   type TokenUsage,
   type ProcessResult,
   type DayStats,
+  type QueueStats,
   type QmdSearchFn,
   type QmdHit,
 
   // Constants
   TOKEN_STATS_FILE,
+  QMD_STATS_FILE,
   CLASSIFY_PROMPT,
 
   // Config
@@ -39,6 +41,12 @@ export {
 
   // Stats
   trackTokenUsage,
+  trackQmdUsage,
   loadTokenStatsByDay,
+  formatStatsTable,
+  formatStatsDayDetail,
+  formatHealthBanner,
+
+  // Topics
   listTopics,
 } from "./memory.js";

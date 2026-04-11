@@ -23,6 +23,8 @@ import {
   saveInsight,
   trackTokenUsage,
   loadTokenStatsByDay,
+  formatStatsTable,
+  formatStatsDayDetail,
   listTopics,
   type Config,
   type QmdSearchFn,
@@ -264,39 +266,23 @@ server.tool(
 // --- Tool: memory_stats ---
 server.tool(
   "memory_stats",
-  "Show token usage statistics for insight extraction (last N days).",
-  { days: z.number().optional().describe("Number of days to show (default: 10)") },
-  async ({ days }) => {
+  "Show token usage statistics for insight extraction (last N days). Pass a specific day index for detail view.",
+  {
+    days: z.number().optional().describe("Number of days to show (default: 10)"),
+    detail: z.number().optional().describe("Day index (1-based) for detail view"),
+  },
+  async ({ days, detail }) => {
     const stats = loadTokenStatsByDay(days || 10);
-    if (stats.length === 0) {
-      return { content: [{ type: "text" as const, text: "No token stats yet." }] };
+
+    if (detail != null) {
+      const idx = detail - 1;
+      if (idx >= 0 && idx < stats.length) {
+        return { content: [{ type: "text" as const, text: formatStatsDayDetail(stats[idx]) }] };
+      }
+      return { content: [{ type: "text" as const, text: `Day ${detail} not found. Range: 1-${stats.length}` }] };
     }
 
-    const totals = stats.reduce(
-      (acc, d) => {
-        acc.sessions += d.sessions;
-        acc.totalTokens += d.totalTokens;
-        acc.savedCount += d.savedCount;
-        return acc;
-      },
-      { sessions: 0, totalTokens: 0, savedCount: 0 }
-    );
-
-    let text = `Memory Keeper Stats — last ${stats.length} day(s)\n\n`;
-    text += `  #  Date         Sessions   Tokens  Insights\n`;
-    text += `  —— ———————————— ———————— ———————— ————————\n`;
-    for (let i = 0; i < stats.length; i++) {
-      const d = stats[i];
-      const idx = String(i + 1).padStart(2);
-      const sess = String(d.sessions).padStart(8);
-      const tok = d.totalTokens.toLocaleString().padStart(8);
-      const ins = String(d.savedCount).padStart(8);
-      text += `  ${idx} ${d.date} ${sess} ${tok} ${ins}${i === 0 ? " ◀" : ""}\n`;
-    }
-    text += `  —— ———————————— ———————— ———————— ————————\n`;
-    text += `     Total       ${String(totals.sessions).padStart(8)} ${totals.totalTokens.toLocaleString().padStart(8)} ${String(totals.savedCount).padStart(8)}\n`;
-
-    return { content: [{ type: "text" as const, text }] };
+    return { content: [{ type: "text" as const, text: formatStatsTable(stats) }] };
   }
 );
 
