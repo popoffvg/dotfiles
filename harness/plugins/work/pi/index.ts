@@ -51,6 +51,66 @@ function formatStatus(settings: { workId?: string; name?: string }, phase: strin
   return `📋 ${label} [${phase}]`;
 }
 
+// --- Worktree helpers ---
+
+const { execSync: execSyncCP } = require("node:child_process") as typeof import("node:child_process");
+
+function isGitRepo(cwd: string): boolean {
+  try {
+    execSyncCP("git rev-parse --is-inside-work-tree", { cwd, stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function gitRepoRoot(cwd: string): string {
+  return execSyncCP("git rev-parse --show-toplevel", { cwd, encoding: "utf-8" }).trim();
+}
+
+function createWorktree(cwd: string, branch: string): { worktreePath: string; worktreeBranch: string } {
+  const root = gitRepoRoot(cwd);
+  const sanitized = branch.replace(/[^a-zA-Z0-9._-]/g, "-");
+  const worktreeBranch = `work/${sanitized}`;
+  const worktreePath = path.join(root, ".claude", "worktrees", sanitized);
+
+  fs.mkdirSync(path.dirname(worktreePath), { recursive: true });
+  execSyncCP(`git worktree add -b "${worktreeBranch}" "${worktreePath}"`, { cwd: root, stdio: "ignore" });
+  return { worktreePath, worktreeBranch };
+}
+
+function cleanupWorktree(settings: WorkSettings, cwd: string): void {
+  if (!settings.worktreePath || !settings.worktreeBranch) return;
+  try {
+    execSyncCP(`git worktree remove "${settings.worktreePath}" --force`, { cwd, stdio: "ignore" });
+  } catch { /* already removed */ }
+  try {
+    execSyncCP(`git branch -D "${settings.worktreeBranch}"`, { cwd, stdio: "ignore" });
+  } catch { /* already removed */ }
+}
+
+function mergeWorktree(settings: WorkSettings, cwd: string): { ok: boolean; error?: string } {
+  if (!settings.worktreePath || !settings.worktreeBranch || !settings.branch) {
+    return { ok: true };
+  }
+  const root = gitRepoRoot(cwd);
+  try {
+    execSyncCP(`git merge "${settings.worktreeBranch}" --no-edit`, { cwd: root, encoding: "utf-8" });
+  } catch (err: any) {
+    // Abort failed merge
+    try { execSyncCP("git merge --abort", { cwd: root, stdio: "ignore" }); } catch {}
+    return { ok: false, error: `Merge conflict merging ${settings.worktreeBranch} into ${settings.branch}: ${err.message}` };
+  }
+  // Merge succeeded — remove worktree and branch
+  try {
+    execSyncCP(`git worktree remove "${settings.worktreePath}" --force`, { cwd: root, stdio: "ignore" });
+  } catch {}
+  try {
+    execSyncCP(`git branch -d "${settings.worktreeBranch}"`, { cwd: root, stdio: "ignore" });
+  } catch {}
+  return { ok: true };
+}
+
 // --- Helpers ---
 
 function readFileOr(filePath: string, fallback: string): string {
@@ -1108,7 +1168,7 @@ export default function (pi: ExtensionAPI) {
         `\n- ${ts}: Implement interrupted by user: ${userText.slice(0, 100)}\n`,
     );
 
-    updateSettings(sf, { phase: "plan", worktreePath: null, worktreeBranch: null });
+    updateSettings(sf, { phase: "plan" });
 
     currentPhase = "plan";
     ctx.ui.setStatus("work", formatStatus(settings, "plan"));
@@ -1214,11 +1274,7 @@ export default function (pi: ExtensionAPI) {
       existing.trimEnd() + `\n- ${ts}: Verify: rejected — ${reason} → ${targetPhase}\n`,
     );
 
-    updateSettings(sf, {
-      phase: targetPhase,
-      worktreePath: null,
-      worktreeBranch: null,
-    });
+    updateSettings(sf, { phase: targetPhase });
 
     currentPhase = targetPhase;
     ctx.ui.setStatus("work", formatStatus(settings, targetPhase));
@@ -1468,12 +1524,27 @@ export default function (pi: ExtensionAPI) {
       if (!fs.existsSync(settingsDir)) {
         fs.mkdirSync(settingsDir, { recursive: true });
       }
+      // Create worktree if in a git repo
+      let wtPath: string | null = null;
+      let wtBranch: string | null = null;
+      if (isGitRepo(ctx.cwd)) {
+        try {
+          const wt = createWorktree(ctx.cwd, branch || slug || "work");
+          wtPath = wt.worktreePath;
+          wtBranch = wt.worktreeBranch;
+        } catch (err: any) {
+          ctx.ui.notify(`Worktree creation failed (continuing without): ${err.message}`, "warning");
+        }
+      }
+
       updateSettings(sf, {
         phase: "plan",
         workId,
         name,
         status: "active",
         branch,
+        worktreePath: wtPath,
+        worktreeBranch: wtBranch,
         phaseBeforeTodo: null,
         approveCommits: true,
       });
@@ -1483,7 +1554,8 @@ export default function (pi: ExtensionAPI) {
       taskContext = detectTaskContext(ctx.cwd);
 
       ctx.ui.setStatus("work", formatStatus({ workId, name }, "plan"));
-      ctx.ui.notify(`Work initialized: ${workId || name}. Phase: plan.`, "success");
+      const wtMsg = wtPath ? ` Worktree: ${wtPath}` : "";
+      ctx.ui.notify(`Work initialized: ${workId || name}. Phase: plan.${wtMsg}`, "success");
 
       // Inject plan skill to start planning
       const skill = readSkillWithEvals("work-plan");
@@ -1513,9 +1585,14 @@ export default function (pi: ExtensionAPI) {
         return;
       }
 
+      // Remove worktree without merging on cancel
+      cleanupWorktree(settings, taskDirFromSettings(sf));
+
       updateSettings(sf, {
         status: "done",
         phaseBeforeTodo: null,
+        worktreePath: null,
+        worktreeBranch: null,
       });
 
       // Best-effort audit entry
@@ -1578,6 +1655,17 @@ export default function (pi: ExtensionAPI) {
         );
         ctx.ui.notify("Memory finalization started. After it succeeds, run /work:done --confirm to remove _notes and mark done.", "info");
         return;
+      }
+
+      // Merge worktree back to source branch if active
+      if (settings.worktreePath && settings.worktreeBranch) {
+        const result = mergeWorktree(settings, rootDir);
+        if (!result.ok) {
+          ctx.ui.notify(`Cannot finalize: ${result.error}. Resolve conflicts manually, then retry.`, "error");
+          return;
+        }
+        updateSettings(sf, { worktreePath: null, worktreeBranch: null });
+        ctx.ui.notify(`Worktree ${settings.worktreeBranch} merged into ${settings.branch} and removed.`, "info");
       }
 
       if (fs.existsSync(notesDir)) {
@@ -1788,11 +1876,7 @@ export default function (pi: ExtensionAPI) {
       // Auto-commit _notes/ before entering implement
       commitNotes(notesDir, `plan: save plan before starting implementation`);
 
-      updateSettings(sf, {
-        phase: "implement",
-        worktreePath: null,
-        worktreeBranch: null,
-      });
+      updateSettings(sf, { phase: "implement" });
 
       const worklogPath = path.join(notesDir, "worklog.md");
       const existing = readFileOr(worklogPath, "# Work Log\n");
@@ -2062,7 +2146,7 @@ export default function (pi: ExtensionAPI) {
       }
 
       // Return to plan
-      updateSettings(sf, { phase: "plan", worktreePath: null, worktreeBranch: null });
+      updateSettings(sf, { phase: "plan" });
       currentPhase = "plan";
       ctx.ui.setStatus("work", formatStatus(settings, "plan"));
       exitImplementVisuals(ctx);
