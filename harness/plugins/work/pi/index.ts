@@ -1402,6 +1402,10 @@ export default function (pi: ExtensionAPI) {
 
           ctx.ui.setStatus("work", formatStatus(settingsExisting, settingsExisting.phase));
           ctx.ui.notify("Work already initialized — setup verified. Keeping current context.", "info");
+          pi.sendUserMessage(
+            "Existing work context detected. Do you want to create a trunk/worktree for isolated implementation? " +
+            "If yes, confirm and specify naming/location constraints.",
+          );
           return;
         }
 

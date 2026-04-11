@@ -124,6 +124,12 @@ function registerCommands(pi: ExtensionAPI) {
         const current = state.readSettings(existing);
         if (current && current.status === "active") {
           ctx.ui.notify(`Work already active: ${current.workId || current.name || "unnamed"} [${current.phase}]`, "info");
+          if (!current.worktreePath) {
+            pi.sendUserMessage(
+              "Existing work detected. Do you want to create a trunk/worktree before continuing implementation? " +
+              "Reply with your preferred branch/path naming.",
+            );
+          }
           return;
         }
       }
