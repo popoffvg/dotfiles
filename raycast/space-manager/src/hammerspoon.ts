@@ -132,6 +132,62 @@ export function getSpaceName(spaceID: number): string {
   return names[String(spaceID)] || "";
 }
 
+export function moveWindowToSpace(_spaceID: number) {
+  // hs.spaces.moveWindowToSpace is broken on macOS 26 (Tahoe)
+  // SkyLight private APIs (SLSAddWindowsToSpaces, SLSMoveWindowsToManagedSpace,
+  // SLSSetWindowListWorkspace) are all silently blocked.
+  // TODO: revisit when Hammerspoon or macOS fixes this
+  throw new Error("Move window to space is not supported on macOS 26");
+}
+
+export interface Window {
+  id: number;
+  title: string;
+  app: string;
+  appBundleID: string;
+}
+
+export async function listWindowsForSpace(spaceID: number): Promise<Window[]> {
+  const raw = hs(`
+    local wids = hs.spaces.windowsForSpace(${spaceID})
+    local widSet = {}
+    for _, wid in ipairs(wids) do widSet[wid] = true end
+    local result = {}
+    for _, app in ipairs(hs.application.runningApplications()) do
+      if app:kind() == 1 then
+        for _, win in ipairs(app:allWindows()) do
+          if widSet[win:id()] and win:title() ~= "" then
+            table.insert(result, { id = win:id(), title = win:title(), app = app:name(), appBundleID = app:bundleID() })
+          end
+        end
+      end
+    end
+    print(hs.json.encode(result))
+  `);
+  if (!raw || raw === "") return [];
+  return JSON.parse(raw);
+}
+
+export function focusWindow(windowID: number) {
+  hs(`
+    local targetWin = nil
+    for _, app in ipairs(hs.application.runningApplications()) do
+      if app:kind() == 1 then
+        for _, win in ipairs(app:allWindows()) do
+          if win:id() == ${windowID} then targetWin = win; break end
+        end
+      end
+      if targetWin then break end
+    end
+    if targetWin then targetWin:focus() end
+  `);
+}
+
+export function moveSpecificWindowToSpace(_windowID: number, _spaceID: number) {
+  // hs.spaces.moveWindowToSpace is broken on macOS 26 (Tahoe)
+  throw new Error("Move window to space is not supported on macOS 26");
+}
+
 export function activeSpaceID(): number {
   const raw = hs(`
     local win = hs.window.frontmostWindow()

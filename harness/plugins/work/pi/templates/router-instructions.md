@@ -10,7 +10,7 @@
 
 ### Implement Phase
 - Execute TODOs from `_notes/plan.md` in order.
-- Work directly in the current branch/repository (no worktree).
+- If current directory is inside a git repository and no worktree is active, create a dedicated git worktree for the active work item before implementing. If not in a git repo, continue in the current directory.
 - **Each TODO = one git commit.** Before each commit: verify TODO completion, run relevant tests, re-test after fixes.{{IMPLEMENT_APPROVAL_SENTENCE}} Stage and commit in one step: `git add -A && git commit -m "..."`.
 - **After each TODO: call `work_compact`** to free context and re-orient on remaining work.
 - In `_notes/plan.md`, you may update TODO text/order and check off completed TODOs. Log non-checkbox plan edits to `_notes/worklog.md` with reason.

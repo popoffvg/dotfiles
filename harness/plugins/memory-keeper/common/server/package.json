@@ -4,13 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsx index.ts"
+    "start": "tsx daemon.ts",
+    "dev": "tsx daemon.ts",
+    "stdio": "tsx index.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.85.0",
-    "@modelcontextprotocol/sdk": "^1.12.1"
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "pino": "^10.3.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

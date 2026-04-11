@@ -1402,6 +1402,10 @@ export default function (pi: ExtensionAPI) {
 
           ctx.ui.setStatus("work", formatStatus(settingsExisting, settingsExisting.phase));
           ctx.ui.notify("Work already initialized — setup verified. Keeping current context.", "info");
+          pi.sendUserMessage(
+            "Existing work context detected. Do you want to create a trunk/worktree for isolated implementation? " +
+            "If yes, confirm and specify naming/location constraints.",
+          );
           return;
         }
 
@@ -1543,8 +1547,8 @@ export default function (pi: ExtensionAPI) {
   );
 
   pi.registerCommand("work:done", {
-    description: "Mark work complete",
-    handler: async (_args, ctx) => {
+    description: "Finalize work (2-step): save memory notes, then confirm cleanup",
+    handler: async (args, ctx) => {
       const sf = currentSettingsFile || findSettings(ctx.cwd);
       if (!sf) {
         ctx.ui.notify("No work settings found (.pi/work.settings.json).", "error");
@@ -1557,6 +1561,29 @@ export default function (pi: ExtensionAPI) {
         return;
       }
 
+      const rootDir = taskDirFromSettings(sf);
+      const notesDir = path.join(rootDir, "_notes");
+      const confirm = (args || "").includes("--confirm");
+
+      if (!confirm) {
+        const doneSkill = readSkill("context-done");
+        if (!doneSkill) {
+          ctx.ui.notify("context-done skill not found. Cannot finalize memory safely.", "error");
+          return;
+        }
+
+        pi.sendUserMessage(
+          doneSkill +
+            `\n\n---\nFinalize this completed work item and persist key insights.\nWork ID: ${settings.workId || "(none)"}\nName: ${settings.name || "(none)"}`,
+        );
+        ctx.ui.notify("Memory finalization started. After it succeeds, run /work:done --confirm to remove _notes and mark done.", "info");
+        return;
+      }
+
+      if (fs.existsSync(notesDir)) {
+        fs.rmSync(notesDir, { recursive: true, force: true });
+      }
+
       updateSettings(sf, { status: "done" });
 
       currentPhase = null;
@@ -1565,9 +1592,21 @@ export default function (pi: ExtensionAPI) {
       markWork();
       exitImplementVisuals(ctx);
       ctx.ui.setStatus("work", "");
-      ctx.ui.notify("Work marked done.", "success");
+      ctx.ui.notify("Work finalized: _notes removed, status=done.", "success");
     },
   });
+
+  registerWorkCommand(
+    "work:done-skill",
+    "Run work-done skill flow (alternative to direct /work:done)",
+    () => readSkill("work-done"),
+  );
+
+  registerWorkCommand(
+    "work:finish",
+    "Alias for /work:done-skill",
+    () => readSkill("work-done"),
+  );
 
   registerWorkCommand(
     "work:help",

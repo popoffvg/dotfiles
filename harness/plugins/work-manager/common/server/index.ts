@@ -123,6 +123,17 @@ server.tool(
     const taskDir = CWD;
     const sf = state.settingsPath(taskDir);
 
+    const existing = state.readSettings(sf);
+    if (existing && existing.status === "active") {
+      const label = existing.workId || existing.name || "unnamed";
+      const trunkPrompt = existing.worktreePath
+        ? `Work already active: ${label} [${existing.phase}]\nWorktree: ${existing.worktreePath}`
+        : `Work already active: ${label} [${existing.phase}]\n[question] Existing work detected. Create trunk/worktree before continuing?`;
+      return {
+        content: [{ type: "text" as const, text: trunkPrompt }],
+      };
+    }
+
     // Create _notes/
     const notesDir = notes.ensureNotesDir(taskDir, execGit);
     notes.ensureClaudeMd(taskDir);

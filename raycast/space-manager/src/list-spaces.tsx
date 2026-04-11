@@ -1,13 +1,15 @@
-import { List, Action, ActionPanel, showToast, Toast, Icon, Color, closeMainWindow, LocalStorage } from "@raycast/api";
+import { List, Action, ActionPanel, Form, showToast, Toast, Icon, Color, closeMainWindow, popToRoot, LocalStorage } from "@raycast/api";
 import { useState, useCallback, useEffect } from "react";
 import { usePromise } from "@raycast/utils";
-import { listSpaces, gotoSpace, removeSpace, createSpace, Space } from "./hammerspoon";
+import { listSpaces, gotoSpace, removeSpace, createSpace, renameSpace, Space } from "./hammerspoon";
 import { RenameForm } from "./rename-form";
+import { WindowList } from "./window-list";
 
 const ALL_SCREENS_KEY = "allScreens";
 
 export default function ListSpacesCommand() {
   const [renaming, setRenaming] = useState<Space | null>(null);
+  const [creating, setCreating] = useState(false);
   const [allScreens, setAllScreens] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
@@ -22,13 +24,13 @@ export default function ListSpacesCommand() {
 
   const handleSwitch = useCallback(async (space: Space) => {
     try {
+      popToRoot();
       await closeMainWindow();
       gotoSpace(space.id);
-      revalidate();
     } catch {
       await showToast({ style: Toast.Style.Failure, title: "Failed to switch" });
     }
-  }, [revalidate]);
+  }, []);
 
   const handleDelete = useCallback(async (space: Space) => {
     try {
@@ -40,15 +42,21 @@ export default function ListSpacesCommand() {
     }
   }, [revalidate]);
 
-  const handleCreate = useCallback(async () => {
+
+  const handleCreateSubmit = useCallback(async (values: { name: string }) => {
     try {
-      createSpace();
-      await showToast({ style: Toast.Style.Success, title: "Space created" });
-      revalidate();
+      const newID = createSpace();
+      if (values.name.trim()) {
+        renameSpace(newID, values.name.trim());
+      }
+      await showToast({ style: Toast.Style.Success, title: `Created: ${values.name.trim() || "Unnamed"}` });
+      setCreating(false);
+      await closeMainWindow();
+      gotoSpace(newID);
     } catch {
-      await showToast({ style: Toast.Style.Failure, title: "Failed to create" });
+      await showToast({ style: Toast.Style.Failure, title: "Failed to create space" });
     }
-  }, [revalidate]);
+  }, []);
 
   const toggleScreens = useCallback(() => {
     setAllScreens((prev) => {
@@ -67,6 +75,21 @@ export default function ListSpacesCommand() {
           revalidate();
         }}
       />
+    );
+  }
+
+  if (creating) {
+    return (
+      <Form
+        navigationTitle="Create Space"
+        actions={
+          <ActionPanel>
+            <Action.SubmitForm title="Create" onSubmit={handleCreateSubmit} />
+          </ActionPanel>
+        }
+      >
+        <Form.TextField id="name" title="Space Name" placeholder="e.g. Work, Personal, Music" autoFocus />
+      </Form>
     );
   }
 
@@ -90,12 +113,24 @@ export default function ListSpacesCommand() {
           : { source: Icon.Circle, tintColor: Color.SecondaryText }
       }
       accessories={[
+        { text: "⌘O switch" },
         ...(space.index <= 9 ? [{ text: `⌃${space.index}` }] : []),
         ...(space.active ? [{ tag: { value: "active", color: Color.Green } }] : []),
       ]}
       actions={
         <ActionPanel>
-          <Action title="Switch to Space" icon={Icon.ArrowRight} onAction={() => handleSwitch(space)} />
+          <Action.Push
+            title="Show Windows"
+            icon={Icon.AppWindowList}
+            target={<WindowList spaceID={space.id} spaceName={space.name} isActive={space.active} />}
+          />
+          <Action
+            title="Switch to Space"
+            icon={Icon.ArrowRight}
+            shortcut={{ modifiers: ["cmd"], key: "o" }}
+            onAction={() => handleSwitch(space)}
+          />
+
           {space.type === "user" && (
             <Action title="Rename" icon={Icon.Pencil} shortcut={{ modifiers: ["cmd"], key: "r" }} onAction={() => setRenaming(space)} />
           )}
@@ -105,7 +140,7 @@ export default function ListSpacesCommand() {
             shortcut={{ modifiers: ["cmd", "shift"], key: "a" }}
             onAction={toggleScreens}
           />
-          <Action title="Create New Space" icon={Icon.Plus} shortcut={{ modifiers: ["cmd"], key: "n" }} onAction={handleCreate} />
+          <Action title="Create New Space" icon={Icon.Plus} shortcut={{ modifiers: ["cmd"], key: "n" }} onAction={() => setCreating(true)} />
           <Action title="Refresh" icon={Icon.ArrowClockwise} shortcut={{ modifiers: ["cmd"], key: "e" }} onAction={revalidate} />
           {space.type === "user" && (
             <Action

@@ -1,3 +1,5 @@
+export { logger, createLogger, LOG_DIR, LOG_FILE } from "./logger.js";
+
 export {
   // Types
   type Config,
@@ -5,21 +7,17 @@ export {
   type TokenUsage,
   type ProcessResult,
   type DayStats,
+  type QueueStats,
   type QmdSearchFn,
   type QmdHit,
 
   // Constants
-  LOG_DIR,
-  LOG_FILE,
   TOKEN_STATS_FILE,
+  QMD_STATS_FILE,
   CLASSIFY_PROMPT,
 
   // Config
   loadConfig,
-
-  // Logging
-  log,
-  rotateLog,
 
   // Project
   detectProject,
@@ -43,6 +41,32 @@ export {
 
   // Stats
   trackTokenUsage,
+  trackQmdUsage,
   loadTokenStatsByDay,
+  formatStatsTable,
+  formatStatsDayDetail,
+  formatHealthBanner,
+
+  // Topics
   listTopics,
 } from "./memory.js";
+
+export {
+  openQueue,
+  enqueue,
+  dequeue,
+  markDone,
+  markFailed,
+  getQueueStats,
+  gcSessions,
+  closeQueue,
+  type QueueItem,
+  type QueueStats as DbQueueStats,
+  type EnqueueInput,
+} from "./queue.js";
+
+export {
+  processQueue,
+  type ProcessQueueOptions,
+  type ProcessQueueResult,
+} from "./processor.js";
