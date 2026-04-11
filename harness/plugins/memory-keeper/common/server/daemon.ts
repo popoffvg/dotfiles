@@ -438,6 +438,56 @@ export async function startDaemon(): Promise<void> {
       return;
     }
 
+    // ─── REST: stats table (for Pi adapter) ───
+    if (url === "/api/stats" && req.method === "GET") {
+      const stats = loadTokenStatsByDay(10);
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end(formatStatsTable(stats));
+      return;
+    }
+
+    // ─── REST: project context (for Pi adapter) ───
+    if (url.startsWith("/api/context") && req.method === "GET") {
+      const parsedUrl = new URL(url, `http://127.0.0.1:${PORT}`);
+      const project = parsedUrl.searchParams.get("project") || "unknown";
+      const cfg = loadConfig();
+      if (!cfg.insights_root) {
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.end("");
+        return;
+      }
+      const summary = findProjectSummary(cfg.insights_root, process.cwd());
+      const topics = listTopics(cfg.insights_root, project);
+      let text = "";
+      if (summary) text += summary + "\n\n";
+      if (topics.length > 0) {
+        text += "## Known Topics\n\n";
+        for (const cat of topics) {
+          text += `### ${cat.category}\n`;
+          for (const t of cat.topics) text += `- ${t}\n`;
+          text += "\n";
+        }
+      }
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end(text);
+      return;
+    }
+
+    // ─── REST: track QMD usage (for Pi adapter) ───
+    if (url === "/api/track-qmd" && req.method === "POST") {
+      try {
+        const body = await readBody(req);
+        const data = JSON.parse(body);
+        const { trackQmdUsage } = await import("../memory.js");
+        trackQmdUsage(data.toolName, data.toolInput || {}, data.resultText || "");
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: true }));
+      } catch {
+        res.writeHead(400).end();
+      }
+      return;
+    }
+
     // ─── SSE endpoint (MCP transport) ───
     if (url === "/sse" && req.method === "GET") {
       log.info("SSE client connecting");
