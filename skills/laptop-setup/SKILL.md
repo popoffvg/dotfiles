@@ -1,6 +1,6 @@
 ---
 name: laptop-setup
-description: This skill should be used when the user wants to "add a package", "install tool", "remove package", "add symlink", "add config", "update ansible", "change laptop setup", "add brew package", "add cask", or mentions modifying the dotfiles ansible playbook.
+description: This skill should be used when the user says "install <something>", "brew install", "add a package", "install tool", "remove package", "add symlink", "add config", "update ansible", "change laptop setup", "add brew package", "add cask", or mentions modifying the dotfiles ansible playbook. Trigger on ANY install request for CLI tools or GUI apps.
 ---
 
 # Laptop Setup
