@@ -9,8 +9,10 @@ import { keyHint } from "@mariozechner/pi-coding-agent";
 import { Text } from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
 import { readFileSync } from "fs";
-import { join, basename } from "path";
+import { join, basename, dirname, resolve } from "path";
 import { homedir } from "os";
+import { spawn } from "child_process";
+import { fileURLToPath } from "url";
 
 // ─── Render helpers for collapsed tool output ──────────────────────────────
 
@@ -229,6 +231,9 @@ function globMatch(str: string, pattern: string): boolean {
 // ─── Daemon HTTP client ───────────────────────────────────────────────────
 
 const DAEMON_URL = process.env.MK_DAEMON_URL || "http://127.0.0.1:7420";
+const DAEMON_STARTUP_WAIT_MS = 1500;
+const extensionDir = dirname(fileURLToPath(import.meta.url));
+const daemonServerDir = resolve(extensionDir, "../common/server");
 
 async function daemonGet(path: string): Promise<any> {
   try {
@@ -259,6 +264,25 @@ async function daemonPost(path: string, body: object): Promise<any> {
 async function isDaemonRunning(): Promise<boolean> {
   const health = await daemonGet("/health");
   return health?.status === "ok";
+}
+
+async function ensureDaemonRunning(): Promise<boolean> {
+  if (await isDaemonRunning()) return true;
+
+  try {
+    const child = spawn("npx", ["tsx", "daemon.ts"], {
+      cwd: daemonServerDir,
+      detached: true,
+      stdio: "ignore",
+      env: process.env,
+    });
+    child.unref();
+  } catch {
+    return false;
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, DAEMON_STARTUP_WAIT_MS));
+  return isDaemonRunning();
 }
 
 // ─── Extension ────────────────────────────────────────────────────────────
@@ -653,8 +677,11 @@ When a skill says "use mcp__firecrawl__*", use bash with curl or any available w
     lastProcessedCursor = restoreCursor(entries);
     cronProcessing = false;
 
-    // Check daemon health
-    const running = await isDaemonRunning();
+    // Check daemon health and try auto-start once
+    let running = await isDaemonRunning();
+    if (!running) {
+      running = await ensureDaemonRunning();
+    }
     if (!running) {
       ctx.ui.notify("memory-keeper: daemon not running on " + DAEMON_URL, "warning");
     }
