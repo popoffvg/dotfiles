@@ -64,3 +64,9 @@ export {
   type QueueStats as DbQueueStats,
   type EnqueueInput,
 } from "./queue.js";
+
+export {
+  processQueue,
+  type ProcessQueueOptions,
+  type ProcessQueueResult,
+} from "./processor.js";
