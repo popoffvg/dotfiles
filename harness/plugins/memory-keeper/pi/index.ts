@@ -232,12 +232,17 @@ function globMatch(str: string, pattern: string): boolean {
 
 const DAEMON_URL = process.env.MK_DAEMON_URL || "http://127.0.0.1:7420";
 const DAEMON_STARTUP_WAIT_MS = 1500;
+const DAEMON_REQUEST_TIMEOUT_MS = 1500;
 const extensionDir = dirname(fileURLToPath(import.meta.url));
 const daemonServerDir = resolve(extensionDir, "../common/server");
 
+function createTimeoutSignal(timeoutMs = DAEMON_REQUEST_TIMEOUT_MS): AbortSignal {
+  return AbortSignal.timeout(timeoutMs);
+}
+
 async function daemonGet(path: string): Promise<any> {
   try {
-    const res = await fetch(`${DAEMON_URL}${path}`);
+    const res = await fetch(`${DAEMON_URL}${path}`, { signal: createTimeoutSignal() });
     if (!res.ok) return null;
     const ct = res.headers.get("content-type") || "";
     if (ct.includes("json")) return res.json();
@@ -253,6 +258,7 @@ async function daemonPost(path: string, body: object): Promise<any> {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
+      signal: createTimeoutSignal(),
     });
     if (!res.ok) return null;
     return res.json();
@@ -327,16 +333,17 @@ When a skill says "use mcp__firecrawl__*", use bash with curl or any available w
 
     let extra = TOOL_GUIDE;
 
-    // Fetch health banner from daemon
-    const banner = await daemonGet("/api/health-banner");
+    // Fetch health banner + project context from daemon (parallel, timeout-bounded)
+    const project = detectProject(ctx.cwd);
+    const contextPath = `/api/context?project=${encodeURIComponent(project)}`;
+    const [banner, context] = await Promise.all([
+      daemonGet("/api/health-banner"),
+      daemonGet(contextPath),
+    ]);
+
     if (banner && typeof banner === "string") {
       extra += `\n${banner}\n`;
     }
-
-    // Fetch project context from daemon
-    const project = detectProject(ctx.cwd);
-    const contextPath = `/api/context?project=${encodeURIComponent(project)}`;
-    const context = await daemonGet(contextPath);
     if (context && typeof context === "string" && context.length > 0) {
       extra += "\n# Context Knowledge Base\n\n" + context + "\n";
     }

@@ -11,7 +11,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { z } from "zod";
-import { execSync, execFileSync } from "child_process";
+import { spawn } from "child_process";
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
 import { join } from "path";
 
@@ -29,9 +29,6 @@ import {
   formatHealthBanner,
   listTopics,
   type Config,
-  type QmdSearchFn,
-  type QmdHit,
-  type TokenUsage,
 } from "../index.js";
 
 import {
@@ -42,7 +39,6 @@ import {
   closeQueue,
 } from "../queue.js";
 
-import { processQueue } from "../processor.js";
 
 const log = createLogger("daemon");
 
@@ -76,121 +72,64 @@ function removePid(): void {
   } catch {}
 }
 
-// ─── QMD search via CLI ─────────────────────────────────────────────────
+// ─── Drain worker pool (separate processes) ─────────────────────────────
 
-function shellEscape(s: string): string {
-  return "'" + s.replace(/'/g, "'\\''") + "'";
-}
+const DRAIN_WORKERS = Math.max(1, parseInt(process.env.MK_DRAIN_WORKERS || "2", 10));
+const DRAIN_WORKER_TIMEOUT_MS = parseInt(process.env.MK_DRAIN_WORKER_TIMEOUT_MS || "120000", 10);
 
-const qmdSearch: QmdSearchFn = (
-  query: string,
-  collection = "ctx",
-  n = 3,
-  minScore = 0.5
-): QmdHit[] => {
-  try {
-    const q = query
-      .replace(/[`#*|[\]"'$\\]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, 200);
-    const out = execSync(
-      `qmd search ${shellEscape(q)} -c ${collection} -n ${n} --min-score ${minScore} --json`,
-      { encoding: "utf8", timeout: 5000 }
-    );
-    const results = JSON.parse(out);
-    return results.map((r: { file: string; score: number; title: string }) => {
-      const match = r.file.match(/insights\/([^/]+)\//);
-      return {
-        project: match ? match[1] : "unknown",
-        file: r.file.replace(/^qmd:\/\/ctx\//, ""),
-        score: r.score,
-        title: r.title,
-      };
-    });
-  } catch {
-    return [];
-  }
-};
+async function runDrainWorker(config: Config, insightsRoot: string): Promise<{ processed: number; saved: number; skipped: number; failed: number }> {
+  return new Promise((resolve, reject) => {
+    const env = {
+      ...process.env,
+      MK_WORKER_CONFIG_B64: Buffer.from(JSON.stringify(config), "utf8").toString("base64"),
+      MK_WORKER_INSIGHTS_ROOT: insightsRoot,
+    };
 
-// ─── Pi CLI LLM call (for drain loop) ───────────────────────────────────
-
-function createLlmCallFn(config: Config): (prompt: string) => Promise<{ text: string; usage: TokenUsage }> {
-  const provider = config.llm_provider || "openrouter";
-  const model = config.llm_model || config.openrouter_model || "google/gemma-4-31b-it:free";
-  const apiKey = config.llm_api_key || config.openrouter_api_key || "";
-
-  log.info({ provider, model }, "LLM via Pi CLI");
-
-  return async (prompt: string) => {
-    const env: Record<string, string> = { ...process.env as Record<string, string> };
-    if (apiKey) {
-      if (provider === "openrouter") env.OPENROUTER_API_KEY = apiKey;
-      else if (provider === "google") env.GOOGLE_API_KEY = apiKey;
-      else if (provider === "openai") env.OPENAI_API_KEY = apiKey;
-    }
-
-    const args = [
-      "-p",
-      "--mode", "json",
-      "--no-tools",
-      "--no-extensions",
-      "--no-skills",
-      "--no-session",
-      "--no-prompt-templates",
-      "--provider", provider,
-      "--model", model,
-    ];
-
-    // Pass prompt via stdin to handle large prompts safely
-    const output = execFileSync("pi", args, {
-      encoding: "utf8",
-      timeout: 60_000,
-      input: prompt,
+    const child = spawn("npx", ["tsx", "drain-worker.ts"], {
+      cwd: process.cwd(),
       env,
-      maxBuffer: 10 * 1024 * 1024,
+      stdio: ["ignore", "pipe", "pipe"],
     });
 
-    // Parse JSONL — find turn_end with assistant content + usage
-    let text = "";
-    let usage: TokenUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+    let stdout = "";
+    let stderr = "";
 
-    for (const line of output.split("\n").filter(Boolean)) {
-      try {
-        const event = JSON.parse(line);
-        if (event.type === "turn_end" && event.message?.role === "assistant") {
-          const content = event.message.content || [];
-          text = content
-            .filter((b: { type: string }) => b.type === "text")
-            .map((b: { text: string }) => b.text)
-            .join("");
-          const u = event.message.usage;
-          if (u) {
-            usage = {
-              inputTokens: u.input ?? 0,
-              outputTokens: u.output ?? 0,
-              totalTokens: u.totalTokens ?? ((u.input ?? 0) + (u.output ?? 0)),
-            };
-          }
-        }
-      } catch {}
-    }
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
 
-    if (!text) {
-      const errorLine = output.split("\n").find(l => l.includes('"errorMessage"'));
-      if (errorLine) {
-        try {
-          const parsed = JSON.parse(errorLine);
-          throw new Error(parsed.message?.errorMessage || "Pi CLI returned no text");
-        } catch (e) {
-          if (e instanceof Error && e.message !== "Pi CLI returned no text") throw e;
-        }
+    const timer = setTimeout(() => {
+      child.kill("SIGKILL");
+      reject(new Error(`worker timeout after ${DRAIN_WORKER_TIMEOUT_MS}ms`));
+    }, DRAIN_WORKER_TIMEOUT_MS);
+
+    child.on("error", (err) => {
+      clearTimeout(timer);
+      reject(err);
+    });
+
+    child.on("exit", (code) => {
+      clearTimeout(timer);
+      if (code !== 0) {
+        reject(new Error(stderr.trim() || `worker exited with code ${code}`));
+        return;
       }
-      throw new Error("Pi CLI returned no assistant text");
-    }
-
-    return { text, usage };
-  };
+      try {
+        const parsed = JSON.parse(stdout || "{}");
+        resolve({
+          processed: parsed.processed ?? 0,
+          saved: parsed.saved ?? 0,
+          skipped: parsed.skipped ?? 0,
+          failed: parsed.failed ?? 0,
+        });
+      } catch (err) {
+        reject(err);
+      }
+    });
+  });
 }
 
 // ─── MCP Server (tools) ─────────────────────────────────────────────────
@@ -398,22 +337,37 @@ export async function startDaemon(): Promise<void> {
 
   const config = loadConfig();
   const insightsRoot = config.insights_root;
-  const llmCallFn = createLlmCallFn(config);
+  log.info({ workers: DRAIN_WORKERS }, "drain worker pool enabled");
 
   // Background drain loop
   let drainRunning = false;
   const drainTimer = setInterval(async () => {
     if (!insightsRoot || drainRunning) return;
+    const pending = getQueueStats().pending;
+    if (pending === 0) return;
+
     drainRunning = true;
     try {
-      const result = await processQueue({
-        batchSize: 5,
-        llmCallFn,
-        qmdSearchFn: qmdSearch,
-        insightsRoot,
-      });
-      if (result.processed > 0) {
-        log.info(result, "drain loop cycle complete");
+      const workersToRun = Math.min(DRAIN_WORKERS, pending);
+      const results = await Promise.allSettled(
+        Array.from({ length: workersToRun }, () => runDrainWorker(config, insightsRoot))
+      );
+
+      const total = { processed: 0, saved: 0, skipped: 0, failed: 0 };
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          total.processed += result.value.processed;
+          total.saved += result.value.saved;
+          total.skipped += result.value.skipped;
+          total.failed += result.value.failed;
+        } else {
+          total.failed += 1;
+          log.error({ err: result.reason instanceof Error ? result.reason.message : String(result.reason) }, "drain worker failed");
+        }
+      }
+
+      if (total.processed > 0 || total.failed > 0) {
+        log.info(total, "drain loop cycle complete");
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
