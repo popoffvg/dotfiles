@@ -1,10 +1,30 @@
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import {
-  PLUGIN_WORKFLOW_EVENTS,
-  type PluginWorkflowEventPayload,
-  type PluginWorkflowStartPayload,
-  type PluginWorkflowEndPayload,
-} from "./plugin-workflow-events";
+
+const PLUGIN_WORKFLOW_EVENTS = {
+  EVENT: "plugin-workflow:event",
+  START: "plugin-workflow:start",
+  END: "plugin-workflow:end",
+} as const;
+
+interface PluginWorkflowEventPayload {
+  plugin: string;
+  event: string;
+  details?: string;
+}
+
+interface PluginWorkflowStartPayload {
+  taskId: string;
+  plugin: string;
+  task: string;
+  details?: string;
+}
+
+interface PluginWorkflowEndPayload {
+  taskId: string;
+  plugin: string;
+  status: "ok" | "error" | "cancelled";
+  details?: string;
+}
 
 interface ActiveTask {
   plugin: string;
