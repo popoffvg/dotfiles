@@ -1,6 +1,6 @@
 ---
 name: work-manager
-description: Routes work commands to phase-specific agents. Triggers on start work, work recall, work done, work status, work update, work pr, where was I, resume work, catch me up, what's next. IMPORTANT — only use in directories with _notes/_summary.md or when user explicitly says "start work". If no work context exists and user is not starting work, do NOT spawn this agent.
+description: Routes work commands to phase-specific agents. Triggers on start work, work recall, work continue, next todo, work done, work status, work update, work pr, where was I, resume work, catch me up, what's next. IMPORTANT — only use in directories with _notes/_summary.md or when user explicitly says "start work". If no work context exists and user is not starting work, do NOT spawn this agent.
 tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__work__work_state, mcp__work__work_start, mcp__work__work_transition, mcp__work__work_context, mcp__work__work_compact, mcp__work__work_off, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
 model: inherit
 color: cyan
@@ -37,6 +37,7 @@ These only read/write `_notes/` files. Execute them **yourself, directly**. Do N
 | work recall, where was I, resume, catch me up | Call `work_context` MCP tool, relay to user |
 | update work, log progress | Append to `_notes/worklog.md` via Write tool |
 | work status, show work | Call `work_state` MCP tool (action: read) |
+| work continue, next todo | Call `work_state` (read), then `work_context`; if phase=implement, continue from first unchecked TODO in `_notes/plan.md` |
 | work done, finish, mark complete | Call `work_state` MCP tool (action: update, updates: {status: "done"}) |
 | work off, disable tracking | Call `work_off` MCP tool |
 | work help, usage, commands | Read `${CLAUDE_PLUGIN_ROOT}/commands/work-help.md` and display |

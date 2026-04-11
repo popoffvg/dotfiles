@@ -145,6 +145,7 @@ function registerCommands(pi: ExtensionAPI) {
 
       const sf = state.settingsPath(ctx.cwd || CWD);
       const notesDir = notes.ensureNotesDir(ctx.cwd || CWD, execGit);
+      notes.ensureClaudeMd(ctx.cwd || CWD);
       const worklogPath = path.join(notesDir, "worklog.md");
       if (!fs.existsSync(worklogPath)) {
         fs.writeFileSync(worklogPath, "# Work Log\n");
@@ -293,6 +294,7 @@ export default function (pi: ExtensionAPI) {
       const taskDir = ctx.cwd || CWD;
       const sf = state.settingsPath(taskDir);
       const notesDir = notes.ensureNotesDir(taskDir, execGit);
+      notes.ensureClaudeMd(taskDir);
 
       const worklogPath = path.join(notesDir, "worklog.md");
       if (!fs.existsSync(worklogPath)) {

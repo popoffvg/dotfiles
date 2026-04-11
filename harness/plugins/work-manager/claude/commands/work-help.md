@@ -16,6 +16,7 @@ Display the following usage guide:
 | `/work:start` | Begin new work — creates `_notes/`, phase = plan |
 | `/work:status` | Show current work status and progress |
 | `/work:implement` | Enter implement phase (from plan only) |
+| `/work:continue` | Continue implement phase with the next TODO |
 | `/work:done` | Mark work complete |
 | `/work:off` | Disable work tracking for this session |
 | `/work:help` | This guide |

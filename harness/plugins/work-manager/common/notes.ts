@@ -87,7 +87,31 @@ export function appendWorklog(notesDir: string, entry: string): void {
   );
 }
 
-/** Get last N worklog lines (lines starting with "- ") */
+/** Ensure root CLAUDE.md contains basic work-manager instructions. */
+export function ensureClaudeMd(targetDir: string): void {
+  const claudePath = path.join(targetDir, "CLAUDE.md");
+  const sectionHeader = "## Work Manager Plugin";
+  const sectionBody = `${sectionHeader}
+
+This repository uses the work-manager plugin for phased execution.
+
+- Start or resume with /work:start and /work:status
+- Follow the active phase from .pi/work.settings.json
+- In implement phase: complete one TODO at a time and call work_compact after each TODO
+- Keep planning artifacts in _notes/ (plan.md, worklog.md, impl-learnings.md)
+`;
+
+  const existing = readFileOr(claudePath, "");
+  if (!existing.trim()) {
+    fs.writeFileSync(claudePath, `# CLAUDE.md\n\n${sectionBody}`);
+    return;
+  }
+
+  if (existing.includes(sectionHeader)) return;
+
+  fs.writeFileSync(claudePath, `${existing.trimEnd()}\n\n${sectionBody}`);
+}
+
 export function worklogTail(notesDir: string, n: number): string {
   const worklogPath = path.join(notesDir, "worklog.md");
   const worklog = readFileOr(worklogPath, "");

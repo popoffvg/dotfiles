@@ -125,6 +125,7 @@ server.tool(
 
     // Create _notes/
     const notesDir = notes.ensureNotesDir(taskDir, execGit);
+    notes.ensureClaudeMd(taskDir);
 
     // Initialize worklog
     const worklogPath = path.join(notesDir, "worklog.md");
