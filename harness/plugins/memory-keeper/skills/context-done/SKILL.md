@@ -16,6 +16,14 @@ Finalize an active task: summarize collected insights and distribute to each rel
 
 Read `insights_root` from `~/.claude/memory-keeper.local.md` YAML frontmatter. If the file is missing, stop and ask the user to create it with the required settings (see plugin README).
 
+## Command visibility and wiring checks
+
+Run these checks when user reports "command not visible" or asks "for Claude?":
+
+1. **Pi skill visibility**: ensure `~/.pi/agent/skills/context-done/SKILL.md` exists (usually symlinked to this file).
+2. **Claude command visibility**: ensure a Claude command file exists under `harness/plugins/work-manager/claude/commands/` and that it explicitly instructs invoking `context-done`.
+3. If Claude command is missing, do not claim the skill is available from Claude slash commands; state that only direct skill invocation works until command wiring is added.
+
 ## Procedure
 
 ### Step 1: Find the active task
@@ -29,6 +37,7 @@ Read `insights_root` from `~/.claude/memory-keeper.local.md` YAML frontmatter. I
 1. Read `<insights_root>/_tasks/<task-slug>/notes.md`
 2. Extract all insights with their repo tags (`_(repo: <name>)_`)
 3. Read the task description from `pending.md`
+4. If notes are sparse, still produce concrete repo-ready notes from available artifacts (commands run, files changed, config values) instead of skipping distribution
 
 ### Step 3: Generate summary
 
@@ -54,6 +63,7 @@ For each unique repo in the task's `Repos` list:
 
 1. In `<insights_root>/_tasks/pending.md`, change the task's status from `active` to `done`
 2. Keep `<insights_root>/_tasks/<task-slug>/` as-is (archive, don't delete)
+3. If this run was triggered by a work-completion flow that requires cleanup, explicitly instruct the caller to remove local temporary planning notes (for example project `_notes/`) **after** insight distribution succeeds
 
 ## Output
 
