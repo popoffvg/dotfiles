@@ -12,6 +12,7 @@ import { execSync } from "child_process";
 import Anthropic from "@anthropic-ai/sdk";
 
 import {
+  logger,
   loadConfig,
   detectProject,
   findProjectSummary,
@@ -23,8 +24,6 @@ import {
   trackTokenUsage,
   loadTokenStatsByDay,
   listTopics,
-  log,
-  rotateLog,
   type Config,
   type QmdSearchFn,
   type QmdHit,
@@ -180,12 +179,12 @@ server.tool(
     );
 
     if (savedTo) {
-      log(`MCP memory_save: saved "${topic}" to ${savedTo}`);
+      logger.info({ topic, file: savedTo }, "memory_save: saved");
       return {
         content: [{ type: "text" as const, text: `Saved "${topic}" to ${savedTo}` }],
       };
     } else {
-      log(`MCP memory_save: dedup skipped "${topic}"`);
+      logger.debug({ topic }, "memory_save: dedup skipped");
       return {
         content: [
           { type: "text" as const, text: `Skipped "${topic}" (duplicate detected)` },
@@ -240,9 +239,7 @@ server.tool(
       );
 
       trackTokenUsage(sessionId, project, usage, savedCount);
-      log(
-        `MCP memory_extract: saved=${savedCount} skipped=${skippedCount} tokens=${usage.totalTokens}`
-      );
+      logger.info({ savedCount, skippedCount, tokens: usage.totalTokens }, "memory_extract complete");
 
       return {
         content: [
@@ -254,7 +251,7 @@ server.tool(
       };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      log(`ERROR MCP memory_extract: ${msg}`);
+      logger.error({ err: msg }, "memory_extract failed");
       return {
         content: [
           { type: "text" as const, text: `Extraction failed: ${msg}` },
@@ -343,17 +340,16 @@ server.tool(
 // ─── Start server ─────────────────────────────────────────────────────────
 
 async function main() {
-  rotateLog();
-  log(`INFO MCP server starting cwd=${CWD}`);
+  logger.info({ cwd: CWD }, "MCP server starting");
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  log(`INFO MCP server connected`);
+  logger.info("MCP server connected");
 }
 
 main().catch((err: unknown) => {
   const msg = err instanceof Error ? err.message : String(err);
-  log(`FATAL MCP server error: ${msg}`);
+  logger.fatal({ err: msg }, "MCP server error");
   process.exit(1);
 });

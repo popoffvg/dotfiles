@@ -9,14 +9,12 @@ import {
   appendFileSync,
   existsSync,
   mkdirSync,
-  writeFileSync,
-  statSync,
   readdirSync,
-  unlinkSync,
-  renameSync,
+  statSync,
 } from "fs";
 import { join, basename } from "path";
 import { homedir } from "os";
+import { logger, LOG_DIR } from "./logger.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -81,38 +79,7 @@ export interface QmdHit {
 
 // ─── Constants ────────────────────────────────────────────────────────────
 
-export const LOG_DIR = join(homedir(), ".claude", "debug");
-export const LOG_FILE = join(LOG_DIR, "memory-keeper.log");
 export const TOKEN_STATS_FILE = join(LOG_DIR, "token-stats.jsonl");
-const MAX_LOG_SIZE = 512 * 1024;
-const MAX_LOG_FILES = 3;
-
-// ─── Logging ──────────────────────────────────────────────────────────────
-
-export function rotateLog(): void {
-  try {
-    if (!existsSync(LOG_FILE)) return;
-    const { size } = statSync(LOG_FILE);
-    if (size < MAX_LOG_SIZE) return;
-    for (let i = MAX_LOG_FILES - 1; i >= 1; i--) {
-      const older = `${LOG_FILE}.${i}`;
-      const newer = i === 1 ? LOG_FILE : `${LOG_FILE}.${i - 1}`;
-      if (existsSync(newer)) {
-        if (i === MAX_LOG_FILES - 1 && existsSync(older)) unlinkSync(older);
-        renameSync(newer, older);
-      }
-    }
-    writeFileSync(LOG_FILE, "");
-  } catch {}
-}
-
-export function log(msg: string): void {
-  const ts = new Date().toISOString().replace("T", " ").slice(0, 19);
-  try {
-    mkdirSync(LOG_DIR, { recursive: true });
-    appendFileSync(LOG_FILE, `${ts} ${msg}\n`);
-  } catch {}
-}
 
 // ─── Config ───────────────────────────────────────────────────────────────
 
@@ -446,7 +413,7 @@ export function saveInsight(
     const targetFile = join(projectDir, `${cat}.md`);
 
     if (deduplicateCheck(targetFile, topic)) {
-      log(`DEDUP skipped "${topic}" in ${targetFile}`);
+      logger.debug({ topic, file: targetFile }, "dedup skipped insight");
       return null;
     }
     appendFileSync(targetFile, "\n" + entry);
@@ -459,7 +426,7 @@ export function saveInsight(
     const targetFile = join(tasksDir, "pending.md");
     const taskEntry = `## ${topic}\n- **Status**: active\n- **Repos**: ${project}\n- **Captured**: ${now}\n${body}\n`;
     if (deduplicateCheck(targetFile, topic)) {
-      log(`DEDUP skipped task "${topic}"`);
+      logger.debug({ topic }, "dedup skipped task");
       return null;
     }
     appendFileSync(targetFile, "\n" + taskEntry);
@@ -476,7 +443,7 @@ export function saveInsight(
     mkdirSync(configDir, { recursive: true });
     const targetFile = join(configDir, "behavior.md");
     if (deduplicateCheck(targetFile, topic)) {
-      log(`DEDUP skipped agent_edit "${topic}"`);
+      logger.debug({ topic }, "dedup skipped agent_edit");
       return null;
     }
     appendFileSync(targetFile, "\n" + entry);
@@ -535,13 +502,13 @@ export function parseClassification(text: string): Insight[] {
       const salvaged = cleaned.slice(0, lastBrace + 1) + "]";
       try {
         parsed = JSON.parse(salvaged);
-        log(`WARN [parse] Salvaged truncated JSON`);
+        logger.warn("salvaged truncated JSON from LLM response");
       } catch {
-        log(`ERROR [parse] Unsalvageable JSON: ${cleaned.slice(0, 200)}`);
+        logger.error({ raw: cleaned.slice(0, 200) }, "unsalvageable JSON from LLM response");
         return [];
       }
     } else {
-      log(`ERROR [parse] No JSON to salvage`);
+      logger.error("no JSON to salvage from LLM response");
       return [];
     }
   }
@@ -571,9 +538,7 @@ export function processInsights(
     if (classification !== "task" && qmdSearchFn) {
       const qmd = qmdDedup(topic, body, targetRepo, qmdSearchFn);
       if (qmd.action === "skip") {
-        log(
-          `QMD-DEDUP skipped "${topic}" repo=${targetRepo} reason=${qmd.reason || ""}`
-        );
+        logger.debug({ topic, repo: targetRepo, reason: qmd.reason }, "qmd-dedup skipped");
         skippedCount++;
         continue;
       }
@@ -590,8 +555,9 @@ export function processInsights(
       body,
       category
     );
-    log(
-      `SAVED class=${classification} cat=${category || "general"} repo=${targetRepo} topic="${topic}" file=${savedTo || "dedup"}`
+    logger.info(
+      { classification, category: category || "general", repo: targetRepo, topic, file: savedTo || "dedup" },
+      "insight processed"
     );
     if (savedTo) savedCount++;
     else skippedCount++;

@@ -1,3 +1,5 @@
+export { logger, createLogger, LOG_DIR, LOG_FILE } from "./logger.js";
+
 export {
   // Types
   type Config,
@@ -9,17 +11,11 @@ export {
   type QmdHit,
 
   // Constants
-  LOG_DIR,
-  LOG_FILE,
   TOKEN_STATS_FILE,
   CLASSIFY_PROMPT,
 
   // Config
   loadConfig,
-
-  // Logging
-  log,
-  rotateLog,
 
   // Project
   detectProject,
