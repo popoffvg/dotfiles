@@ -11,10 +11,9 @@ import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { z } from "zod";
-import { execSync } from "child_process";
+import { execSync, execFileSync } from "child_process";
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
 import { join } from "path";
-import Anthropic from "@anthropic-ai/sdk";
 
 import {
   logger,
@@ -29,6 +28,7 @@ import {
   formatStatsDayDetail,
   formatHealthBanner,
   listTopics,
+  type Config,
   type QmdSearchFn,
   type QmdHit,
   type TokenUsage,
@@ -113,29 +113,83 @@ const qmdSearch: QmdSearchFn = (
   }
 };
 
-// ─── Anthropic LLM call (for drain loop) ────────────────────────────────
+// ─── Pi CLI LLM call (for drain loop) ───────────────────────────────────
 
-const anthropic = new Anthropic();
+function createLlmCallFn(config: Config): (prompt: string) => Promise<{ text: string; usage: TokenUsage }> {
+  const provider = config.llm_provider || "openrouter";
+  const model = config.llm_model || config.openrouter_model || "google/gemma-4-31b-it:free";
+  const apiKey = config.llm_api_key || config.openrouter_api_key || "";
 
-async function llmCallFn(prompt: string): Promise<{ text: string; usage: TokenUsage }> {
-  const response = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 2048,
-    messages: [{ role: "user", content: prompt }],
-  });
+  log.info({ provider, model }, "LLM via Pi CLI");
 
-  const text = response.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("");
+  return async (prompt: string) => {
+    const env: Record<string, string> = { ...process.env as Record<string, string> };
+    if (apiKey) {
+      if (provider === "openrouter") env.OPENROUTER_API_KEY = apiKey;
+      else if (provider === "google") env.GOOGLE_API_KEY = apiKey;
+      else if (provider === "openai") env.OPENAI_API_KEY = apiKey;
+    }
 
-  return {
-    text,
-    usage: {
-      inputTokens: response.usage.input_tokens,
-      outputTokens: response.usage.output_tokens,
-      totalTokens: response.usage.input_tokens + response.usage.output_tokens,
-    },
+    const args = [
+      "-p",
+      "--mode", "json",
+      "--no-tools",
+      "--no-extensions",
+      "--no-skills",
+      "--no-session",
+      "--no-prompt-templates",
+      "--provider", provider,
+      "--model", model,
+    ];
+
+    // Pass prompt via stdin to handle large prompts safely
+    const output = execFileSync("pi", args, {
+      encoding: "utf8",
+      timeout: 60_000,
+      input: prompt,
+      env,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+
+    // Parse JSONL — find turn_end with assistant content + usage
+    let text = "";
+    let usage: TokenUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+
+    for (const line of output.split("\n").filter(Boolean)) {
+      try {
+        const event = JSON.parse(line);
+        if (event.type === "turn_end" && event.message?.role === "assistant") {
+          const content = event.message.content || [];
+          text = content
+            .filter((b: { type: string }) => b.type === "text")
+            .map((b: { text: string }) => b.text)
+            .join("");
+          const u = event.message.usage;
+          if (u) {
+            usage = {
+              inputTokens: u.input ?? 0,
+              outputTokens: u.output ?? 0,
+              totalTokens: u.totalTokens ?? ((u.input ?? 0) + (u.output ?? 0)),
+            };
+          }
+        }
+      } catch {}
+    }
+
+    if (!text) {
+      const errorLine = output.split("\n").find(l => l.includes('"errorMessage"'));
+      if (errorLine) {
+        try {
+          const parsed = JSON.parse(errorLine);
+          throw new Error(parsed.message?.errorMessage || "Pi CLI returned no text");
+        } catch (e) {
+          if (e instanceof Error && e.message !== "Pi CLI returned no text") throw e;
+        }
+      }
+      throw new Error("Pi CLI returned no assistant text");
+    }
+
+    return { text, usage };
   };
 }
 
@@ -344,6 +398,7 @@ export async function startDaemon(): Promise<void> {
 
   const config = loadConfig();
   const insightsRoot = config.insights_root;
+  const llmCallFn = createLlmCallFn(config);
 
   // Background drain loop
   let drainRunning = false;
