@@ -13,11 +13,11 @@ Your state was auto-committed before entering this phase. Work freely.
 
 ## ⚠️ Repository scope
 
-You are working in the **current branch/repository** (no worktree).
+If current directory is inside a git repository and no worktree is active, create a dedicated git worktree for the active work item before implementing. If not in a git repo, work in the current directory.
 
-- Make code changes in the current repository.
+- Make code changes in the active worktree (or current repository when no git repo/worktree is available).
 - Use `_notes/` (plan.md, worklog.md) for planning/logging.
-- Commit directly on the current branch.
+- Commit on the active worktree branch (or current branch when no worktree is used).
 
 ## Step 1: Read the plan
 
