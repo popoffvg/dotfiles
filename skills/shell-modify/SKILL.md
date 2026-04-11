@@ -23,10 +23,17 @@ For patterns, idioms, and a full script template, see **`references/best-practic
 - One-line fix to a simple script
 - Adding a comment or changing a string literal
 - User says "just fix it" for an obvious typo
+- The input is workflow/planning text (e.g., `work-plan` front matter, friction logs, YAML/Markdown snippets) with no explicit shell script edit request
+
+### Trigger guard (important)
+Only apply this skill when the task clearly targets `.sh`/`.bash` code or shell behavior changes.
+If text includes other skill docs/front matter (for example `name: work-plan`) treat it as context noise unless the user also names a shell script path or asks for shell script modifications.
 
 ## PHASE 1: Pre-Edit Analysis
 
-Before making any changes, read the ENTIRE script and fill this checklist:
+Before making any changes, confirm the target script path.
+If no script path is provided, ask for it instead of inferring from unrelated pasted text.
+Then read the ENTIRE script and fill this checklist:
 
 ### Strict mode audit
 - [ ] **Shebang**: `#!/bin/bash`, `#!/bin/sh`, `#!/usr/bin/env bash`? This determines which features are safe (see **`references/best-practices.md` § Portability**).
