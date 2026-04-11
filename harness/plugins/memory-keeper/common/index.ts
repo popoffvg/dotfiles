@@ -50,3 +50,17 @@ export {
   // Topics
   listTopics,
 } from "./memory.js";
+
+export {
+  openQueue,
+  enqueue,
+  dequeue,
+  markDone,
+  markFailed,
+  getQueueStats,
+  gcSessions,
+  closeQueue,
+  type QueueItem,
+  type QueueStats as DbQueueStats,
+  type EnqueueInput,
+} from "./queue.js";
