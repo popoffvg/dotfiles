@@ -1543,8 +1543,8 @@ export default function (pi: ExtensionAPI) {
   );
 
   pi.registerCommand("work:done", {
-    description: "Finalize work: save memory notes, remove _notes, mark done",
-    handler: async (_args, ctx) => {
+    description: "Finalize work (2-step): save memory notes, then confirm cleanup",
+    handler: async (args, ctx) => {
       const sf = currentSettingsFile || findSettings(ctx.cwd);
       if (!sf) {
         ctx.ui.notify("No work settings found (.pi/work.settings.json).", "error");
@@ -1559,17 +1559,23 @@ export default function (pi: ExtensionAPI) {
 
       const rootDir = taskDirFromSettings(sf);
       const notesDir = path.join(rootDir, "_notes");
+      const confirm = (args || "").includes("--confirm");
 
-      // Trigger memory finalization flow first (context-done skill)
-      const doneSkill = readSkill("context-done");
-      if (doneSkill) {
+      if (!confirm) {
+        const doneSkill = readSkill("context-done");
+        if (!doneSkill) {
+          ctx.ui.notify("context-done skill not found. Cannot finalize memory safely.", "error");
+          return;
+        }
+
         pi.sendUserMessage(
           doneSkill +
             `\n\n---\nFinalize this completed work item and persist key insights.\nWork ID: ${settings.workId || "(none)"}\nName: ${settings.name || "(none)"}`,
         );
+        ctx.ui.notify("Memory finalization started. After it succeeds, run /work:done --confirm to remove _notes and mark done.", "info");
+        return;
       }
 
-      // Remove local notes workspace after memory finalization is triggered
       if (fs.existsSync(notesDir)) {
         fs.rmSync(notesDir, { recursive: true, force: true });
       }
@@ -1582,7 +1588,7 @@ export default function (pi: ExtensionAPI) {
       markWork();
       exitImplementVisuals(ctx);
       ctx.ui.setStatus("work", "");
-      ctx.ui.notify("Work finalized: memory flow triggered, _notes removed, status=done.", "success");
+      ctx.ui.notify("Work finalized: _notes removed, status=done.", "success");
     },
   });
 

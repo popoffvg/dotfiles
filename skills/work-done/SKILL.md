@@ -12,9 +12,10 @@ Finalize the current work item.
 
 1. Read current state via `work_state` (action: `read`)
 2. Run memory finalization by loading and following `context-done` skill to persist insights.
-3. Remove local `_notes/` directory for this work item.
-4. Update state via `work_state` (action: `update`, updates: `{ status: "done" }`)
-5. Confirm completion:
+3. Stop and wait for explicit user confirmation that memory finalization succeeded.
+4. Remove local `_notes/` directory for this work item.
+5. Update state via `work_state` (action: `update`, updates: `{ status: "done" }`)
+6. Confirm completion:
    - "Work finalized: insights saved, notes removed, status set to done."
 
 ## Notes
