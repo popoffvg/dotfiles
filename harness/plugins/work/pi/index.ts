@@ -28,6 +28,7 @@ import {
   type ReturnToPlanPayload,
 } from "./events";
 import { SKILL_EVENTS, type SkillLoadPayload, type SkillLoadResult, type SkillFeedbackPayload, type SkillResetSessionPayload, type SkillGetEvalsPayload } from "../../skill-manager/pi/events";
+import { MODE_SCOPE_EVENTS, type ModeScopeSetPayload } from "../../mode-scope/pi/events";
 import {
   type WorkStats,
   type UsageData,
@@ -838,18 +839,18 @@ export default function (pi: ExtensionAPI) {
   }
 
   /** Exit implement visual mode: restore tools, clear widget, restore model */
-  function exitImplementVisuals(ctx: { ui: ExtensionUIContext; modelRegistry: any }) {
+  function exitImplementVisuals(ctx: { ui: ExtensionUIContext }) {
     if (toolsWereExpanded !== null) {
       ctx.ui.setToolsExpanded(toolsWereExpanded);
       toolsWereExpanded = null;
     }
     ctx.ui.setWidget("work-progress", undefined);
 
-    // Restore opus after implement phase
-    const opus = ctx.modelRegistry?.find?.("anthropic", "claude-opus-4-1");
-    if (opus) {
-      pi.setModel(opus);
-    }
+    // Restore heavy model after implement phase
+    pi.events.emit(MODE_SCOPE_EVENTS.SET, {
+      mode: "heavy",
+      reason: "exit implement phase",
+    } satisfies ModeScopeSetPayload);
   }
 
   // --- Listen for atom's notes creation requests ---
@@ -912,7 +913,7 @@ export default function (pi: ExtensionAPI) {
         approveCommits:
           payload.approveCommits ??
           current?.approveCommits ??
-          true,
+          false,
       });
 
       commitNotes(notesDir, `init: subtask ${payload.subtaskName} (atom)`);
@@ -1191,7 +1192,7 @@ export default function (pi: ExtensionAPI) {
       pi.events.emit(SKILL_EVENTS.FEEDBACK, { skill: "work-implement", correct: true, reason: "verify approved" } satisfies SkillFeedbackPayload);
 
       ctx.ui.notify(
-        "Approved! Run /work:done to finish, or /atom:pr for PRs.",
+        "Approved! Run /work:abandon to finish, or /atom:pr for PRs.",
         "success",
       );
       return;
@@ -1248,9 +1249,11 @@ export default function (pi: ExtensionAPI) {
     }
 
     if (goToImplement) {
-      // Switch to sonnet for implement phase
-      const sonnet = ctx.modelRegistry.find("anthropic", "claude-sonnet-4-6");
-      if (sonnet) await pi.setModel(sonnet);
+      // Switch to medium model for implement phase
+      pi.events.emit(MODE_SCOPE_EVENTS.SET, {
+        mode: "medium",
+        reason: "enter implement phase",
+      } satisfies ModeScopeSetPayload);
 
       ctx.ui.notify(`Returning to implement — fix: ${reason}`, "warning");
       const skill = readSkillWithEvals("work-implement");
@@ -1497,7 +1500,7 @@ export default function (pi: ExtensionAPI) {
         worktreePath: wtPath,
         worktreeBranch: wtBranch,
         phaseBeforeTodo: null,
-        approveCommits: true,
+        approveCommits: false,
       });
 
       currentPhase = "plan";
@@ -1574,9 +1577,9 @@ export default function (pi: ExtensionAPI) {
     () => readCommand("work-status"),
   );
 
-  pi.registerCommand("work:done", {
-    description: "Finalize work (2-step): save memory notes, then confirm cleanup",
-    handler: async (args, ctx) => {
+  pi.registerCommand("work:abandon", {
+    description: "Cancel all work-manager logic for this workspace",
+    handler: async (_args, ctx) => {
       const sf = currentSettingsFile || findSettings(ctx.cwd);
       if (!sf) {
         ctx.ui.notify("No work settings found (.pi/work.settings.json).", "error");
@@ -1589,41 +1592,26 @@ export default function (pi: ExtensionAPI) {
         return;
       }
 
-      const rootDir = taskDirFromSettings(sf);
-      const notesDir = path.join(rootDir, "_notes");
-      const confirm = (args || "").includes("--confirm");
+      // Remove worktree without merging when abandoning
+      cleanupWorktree(settings, taskDirFromSettings(sf));
 
-      if (!confirm) {
-        const doneSkill = readSkill("context-done");
-        if (!doneSkill) {
-          ctx.ui.notify("context-done skill not found. Cannot finalize memory safely.", "error");
-          return;
-        }
+      updateSettings(sf, {
+        status: "done",
+        phaseBeforeTodo: null,
+        worktreePath: null,
+        worktreeBranch: null,
+      });
 
-        pi.sendUserMessage(
-          doneSkill +
-            `\n\n---\nFinalize this completed work item and persist key insights.\nWork ID: ${settings.workId || "(none)"}\nName: ${settings.name || "(none)"}`,
+      const notesDir = path.join(taskDirFromSettings(sf), "_notes");
+      const worklogPath = path.join(notesDir, "worklog.md");
+      if (fs.existsSync(worklogPath)) {
+        const ts = makeTimestamp();
+        const existing = readFileOr(worklogPath, "# Work Log\n");
+        fs.writeFileSync(
+          worklogPath,
+          existing.trimEnd() + `\n- ${ts}: Work abandoned via /work:abandon (plugin deactivated)\n`,
         );
-        ctx.ui.notify("Memory finalization started. After it succeeds, run /work:done --confirm to remove _notes and mark done.", "info");
-        return;
       }
-
-      // Merge worktree back to source branch if active
-      if (settings.worktreePath && settings.worktreeBranch) {
-        const result = mergeWorktree(settings, rootDir);
-        if (!result.ok) {
-          ctx.ui.notify(`Cannot finalize: ${result.error}. Resolve conflicts manually, then retry.`, "error");
-          return;
-        }
-        updateSettings(sf, { worktreePath: null, worktreeBranch: null });
-        ctx.ui.notify(`Worktree ${settings.worktreeBranch} merged into ${settings.branch} and removed.`, "info");
-      }
-
-      if (fs.existsSync(notesDir)) {
-        fs.rmSync(notesDir, { recursive: true, force: true });
-      }
-
-      updateSettings(sf, { status: "done" });
 
       currentPhase = null;
       taskContext = null;
@@ -1631,13 +1619,13 @@ export default function (pi: ExtensionAPI) {
       markWork();
       exitImplementVisuals(ctx);
       ctx.ui.setStatus("work", "");
-      ctx.ui.notify("Work finalized: _notes removed, status=done.", "success");
+      ctx.ui.notify("Work-manager cancelled for this workspace.", "warning");
     },
   });
 
   registerWorkCommand(
     "work:abandon-skill",
-    "Run work-abandon skill flow (alternative to direct /work:done)",
+    "Run work-abandon skill flow (alternative to direct /work:abandon)",
     () => readSkill("work-abandon"),
   );
 

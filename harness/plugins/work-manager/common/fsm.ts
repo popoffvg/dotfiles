@@ -259,7 +259,7 @@ function transitionToVerified(
     { kind: "commit_notes", message: "phase: verified" },
     {
       kind: "notify",
-      message: "Work verified! Use /work:done to mark complete.",
+      message: "Work verified! Use /work:abandon to end work-manager flow.",
       level: "success",
     },
   ];

@@ -192,12 +192,12 @@ function registerCommands(pi: ExtensionAPI) {
     },
   });
 
-  pi.registerCommand("work:done", {
-    description: "Mark active work as done",
+  pi.registerCommand("work:abandon", {
+    description: "Cancel work-manager flow for this workspace",
     handler: async (_args, ctx) => {
       const sf = resolveSettingsFile(ctx.cwd);
       if (!sf) {
-        ctx.ui.notify("No active work.", "info");
+        ctx.ui.notify("No active work to cancel.", "info");
         return;
       }
 
@@ -207,10 +207,10 @@ function registerCommands(pi: ExtensionAPI) {
         return;
       }
 
-      const result = fsm.done(s);
+      const result = fsm.cancel(s);
       state.updateSettings(sf, result.newState);
       const messages = executeEffects(result.effects, sf);
-      ctx.ui.notify("Work marked done.", "success");
+      ctx.ui.notify("Work-manager cancelled.", "warning");
       if (messages) pi.sendUserMessage(messages);
     },
   });

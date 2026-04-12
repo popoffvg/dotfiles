@@ -17,10 +17,10 @@ Display the following usage guide:
 | `/work:status` | Show current work status and progress |
 | `/work:implement` | Enter implement phase (from plan only) |
 | `/work:continue` | Continue implement phase with the next TODO |
-| `/work:done` | Mark work complete |
-| `/work:abandon-skill` | Run the skill-driven abandon flow (alternative) |
+| `/work:abandon` | Cancel work-manager flow for this workspace |
+| `/work:abandon-skill` | Run the skill-driven abandon flow |
 | `/work:finish` | Alias for `/work:abandon-skill` |
-| `/work:off` | Disable work tracking for this session |
+| `/work:off` | Disable work tracking for this session (MCP/tool-level) |
 | `/work:help` | This guide |
 
 ### Phases & Flow
