@@ -409,7 +409,7 @@ server.tool(
       content: [
         {
           type: "text" as const,
-          text: `TODO completed and logged: ${summary}\n\nContext freed. Continue with next TODO.`,
+          text: `TODO completed and logged: ${summary}`, 
         },
       ],
     };

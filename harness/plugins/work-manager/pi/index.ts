@@ -454,7 +454,7 @@ export default function (pi: ExtensionAPI) {
 
       return {
         content: [
-          { type: "text", text: `TODO completed and logged: ${params.summary}\n\nContext freed. Continue with next TODO.` },
+          { type: "text", text: `TODO completed and logged: ${params.summary}` },
         ],
       };
     },
