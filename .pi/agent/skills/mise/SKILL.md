@@ -1,118 +1,110 @@
 ---
 name: mise
-description: This skill should be used when the user mentions "mise", "mise run", "mise task", "copy-logs", "dump-db", "repos", "open repo", "add repo to workspace", or wants to search/open repositories.
+description: Use only for explicit mise/task/repo commands: "mise", "mise run", "mise task", "copy-logs", "dump-db", "repos", "open repo", "add repo to workspace", or "use mise to setup deps".
 ---
 
-# Mise tasks
+# Mise skill
 
-Run mise tasks defined in `mise-tasks/` directory of the current project workspace.
+Run workspace tasks through `mise` and handle repo discovery/open flows.
 
-## Usage
+## Trigger guard (important)
 
-Parse the user's input to determine the action:
+Use this skill **only** when the user explicitly asks for mise/tasks/repos actions.
+Do **not** route generic product/feature requests here.
 
-### List tasks (`/mise` or `/mise list`)
+Examples that SHOULD trigger:
+- "use mise to setup deps"
+- "mise run <task>"
+- "install new version" **when paired with** "use air setup" / "use mise"
+- "mise repos" / "open repo"
 
+Examples that should NOT trigger:
+- comment UI behavior changes
+- bug triage unrelated to tasks/tooling
+
+## Execution-first behavior
+
+When user gives a direct execution cue ("continue", "install new version", "reinstall now"):
+1. Run one concrete mise action first.
+2. Then report result briefly.
+3. If task name is unclear, list tasks once (`mise tasks ls`) and pick the closest explicit task from user wording.
+
+## Core commands
+
+### List tasks
 ```bash
 mise tasks ls
 ```
 
-### Run a task (`/mise <task> [args]`)
-
+### Run task
 ```bash
 mise run <task> [-- args]
 ```
 
-Flags go after `--`:
+Pass flags after `--`:
 ```bash
 mise run dump-db -- -n my-namespace -o /tmp/mydb
 ```
 
-### Task info (`/mise info <task>`)
+### Task info
+Read first lines of task file (prefer file read tool):
+`mise-tasks/<task>`
 
-Read the task file to show `#MISE` and `#USAGE` header lines:
-```bash
-head -10 mise-tasks/<task>
-```
+### Reinstall / install-new-version flow (common friction)
+If user asks to reinstall/install with mise:
+1. `mise tasks ls`
+2. Run dependency/setup task explicitly requested (for example `air setup` if present).
+3. Run build/package/install tasks in order from available task list.
+4. Return exact commands executed and status.
 
-### Search repos (`/mise repos [query]`)
+If any required task is missing, stop and report missing task names (no guessing).
 
-Search git repositories in the workspace:
+## Repo search/open
+
+### Search repos
 ```bash
 mise run repos -- <query>
 ```
 
-Without a query, lists all repos. With a query, filters by substring match on directory name.
+No query => list all repos.
 
-After showing results, ask the user which repo to open and how:
-1. **Add to current workspace** — `surf --add <repo_path>`
-2. **Open in new window** — `surf -n <repo_path>`
+After results, ask user:
+1. Which repo?
+2. Open mode:
+   - Add to current workspace: `surf --add <repo_path>`
+   - Open new window: `surf -n <repo_path>`
 
-Example flow:
-```
-> /mise repos auth
+Fallback if `surf` missing: use `code` or `cursor` per user preference.
 
-  auth-service      /path/to/workspace/auth-service
-  auth-gateway      /path/to/workspace/auth-gateway
+## Safety + correctness
 
-Which repo to open? → auth-service
-How? → Add to current workspace
+- Never invent task names.
+- Prefer `mise tasks ls` before first run in a workspace.
+- Keep output concise: command + result.
+- If command fails, show error and the next minimal recovery step.
 
-$ surf --add /path/to/workspace/auth-service
-```
+## Skill storage (dotfiles + stow)
 
-Use AskUserQuestion to let the user pick the repo and the open mode.
-
-## Notes
-
-- The `repos` task script lives at `~/.pi/agent/skills/mise/repos-task`, with a wrapper in each project's `mise-tasks/repos`
-- It uses `$CLAUDE_PROJECT_DIR` (from `.mise.toml`) or `pwd` as workspace root
-- `surf` is the Windsurf CLI (install location varies — check `which surf` or use `code` / `cursor` as fallback)
-- Task config is in `.mise.toml` at workspace root: `[task_config] dir = "mise-tasks"`
-
-## Skill Storage with Dotfiles + Stow
-
-Pi skills should be stored in a dotfiles repository and symlinked via GNU Stow. This keeps skills version-controlled and portable across machines.
-
-**Layout inside dotfiles repo:**
-```
-dotfiles/
-  pi-skills/
-    .pi/
-      agent/
-        skills/
-          <skill-name>/
-            SKILL.md
-```
-
-**Install/update a skill:**
+If skills are stow-managed, edit source in dotfiles and restow:
 ```bash
 cd ~/dotfiles
-stow pi-skills   # symlinks .pi/agent/skills/<skill-name> into ~/.pi/agent/skills/
-```
-
-**Restow after adding new skill files:**
-```bash
 stow --restow pi-skills
 ```
-
-- Skills live at `~/.pi/agent/skills/<name>/SKILL.md` (symlinks or real files)
-- Do **not** edit skills directly inside `~/.pi/agent/skills/` if they are managed by stow; edit the source in `~/dotfiles/` instead
 
 ## Autoresearch rules
 
 **Eval checklist:**
-1. Did the agent correctly parse the user's intent (list vs run a specific task)?
-2. Was `mise tasks ls` used before attempting to run an unknown task?
-3. Did task arguments get passed correctly after `--` separator?
-4. Were zero mise tasks run that don't exist in the workspace?
+1. Did the agent trigger this skill only on explicit mise/task intent?
+2. On reinstall/install requests, did it execute a concrete task before narration?
+3. Were commands sourced from `mise tasks ls` (no invented tasks)?
+4. Were task args passed after `--` correctly?
 
 **Test inputs:**
-- "mise" (should list tasks)
+- "use air setup for reinstall immediately, use mise to setup deps"
+- "continue" (while active mise task request context exists)
 - "mise run copy-logs -- --since 1h"
-- "mise task-create feat/new-feature"
 
-**Can change:** input parsing logic, task discovery steps, error messages, argument formatting
-**Cannot change:** mise CLI as the tool, `mise tasks ls` for discovery, `mise run` for execution
+**Can change:** trigger guards, execution order, error handling, argument formatting
+**Cannot change:** use `mise` as executor, `mise tasks ls` for discovery, `mise run` for task execution
 **Min sessions before eval:** 5
 **Runs per experiment:** 3

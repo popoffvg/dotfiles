@@ -22,7 +22,9 @@
       "Bash(mkdir -p ~/.config/worktrunk)",
       "Bash(rm ~/.claude/skills)",
       "Bash(stow -t ~ -R .)",
-      "Bash(stow -t ~ -R . --ignore='\\\\.config/wt\\\\.toml')"
+      "Bash(stow -t ~ -R . --ignore='\\\\.config/wt\\\\.toml')",
+      "Bash(stow -t ~ -R . --ignore='\\\\.config/wt\\\\.toml' -v)",
+      "Bash(find /Users/popoffvg/Documents/git/dotfiles/harness -path */.pi* -maxdepth 3)"
     ]
   },
   "sandbox": {

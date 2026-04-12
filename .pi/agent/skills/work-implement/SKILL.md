@@ -13,11 +13,10 @@ Your state was auto-committed before entering this phase. Work freely.
 
 ## ⚠️ Repository scope
 
-You are working in the **current branch/repository** (no worktree).
+A worktree is created automatically by `/work:start` (check `worktreePath` in settings). If a worktree is active, make all code changes there. If not, work in the current directory.
 
-- Make code changes in the current repository.
 - Use `_notes/` (plan.md, worklog.md) for planning/logging.
-- Commit directly on the current branch.
+- Commit on the worktree branch (or current branch when no worktree is active).
 
 ## Step 1: Read the plan
 
@@ -36,23 +35,16 @@ For each unchecked `- [ ]` TODO in `_notes/plan.md`:
 8. Verify the TODO is fully satisfied (code + tests)
 9. If test coverage is narrow/insufficient for the change, note that in `_notes/worklog.md` and tell the user manual verification is required
 10. **Stage changes** with `git add` for the files you changed
-11. **Launch subagent review.** Call the `subagent` tool:
-   ```
-   agent: "work-reviewer"
-   task: "Review the staged changes for this TODO:\n\nTODO: <todo text>\n\nStaged diff:\n```diff\n<output of git diff --cached>\n```\n\nPlan context: <relevant acceptance criteria>"
-   ```
-   - If the reviewer says **BLOCKED**: fix the issues, re-stage, and re-run the reviewer.
-   - If the reviewer says **APPROVED**: proceed to the next step.
-12. If `approveCommits` is enabled in settings: **Ask the user for approval before committing.** Show: TODO text, changed files, test results, and **reviewer verdict**. Wait for explicit "yes"/"ok"/"approve". If rejected — fix and ask again (re-run reviewer after fixes).
-13. **Commit the changes** with a meaningful message referencing the TODO (commit only after steps 1–12 are complete)
-14. Check off the TODO: `- [ ]` → `- [x]`
-15. Log what was done to `_notes/worklog.md`
-16. **Call `work_compact`** with a brief summary of what was completed — this frees context space and re-injects the plan so you stay oriented
-17. Continue to the next TODO
+11. If `approveCommits` is enabled in settings: **Ask the user for approval before committing.** Show: TODO text, changed files, and test results. Wait for explicit "yes"/"ok"/"approve". If rejected — fix and ask again.
+12. **Commit the changes** with a meaningful message referencing the TODO (commit only after steps 1–11 are complete)
+13. Check off the TODO: `- [ ]` → `- [x]`
+14. Log what was done to `_notes/worklog.md`
+15. **Call `work_compact`** with a brief summary of what was completed — this frees context space and re-injects the plan so you stay oriented
+16. Continue to the next TODO
 
 **IMPORTANT: Call `work_compact` after each TODO.** Long implementation sessions accumulate tool calls, file reads, and test output that consume context. Compaction discards this noise and re-injects the current plan + worklog, keeping you focused on remaining work.
 
-**Each TODO = one git commit.** Commit only after implementation + tests + re-tests + **subagent review approval** confirm the TODO is done. Follow the `work-commit` skill for commit message format:
+**Each TODO = one git commit.** Commit only after implementation + tests + re-tests confirm the TODO is done. Follow the `work-commit` skill for commit message format:
 - Prefix: `feat|fix|doc|test|build|refactor`
 - Message describes **why**, not what: e.g. `feat: support token refresh on expired sessions`
 - ≤ 72 chars, imperative mood, no period
@@ -112,6 +104,13 @@ The fixup commits will be squashed into their targets later via `git rebase -i -
 - **Defend technical decisions before switching.** When the user questions a design choice (format, approach, algorithm), present trade-offs of 2–3 alternatives instead of immediately switching. Only change after the user picks an option. Premature capitulation causes churn.
 - **If a tool returns a permission/access error**, ask the user for help instead of retrying blindly.
 - **If blocked on something minor**, try a reasonable workaround and log the decision in worklog.
+
+### Clarification-first behavior (reduce phase confusion)
+
+- If the user sends a short correction like **"i mean for implement phase"**, treat it as a scope reset for the very next action.
+- After such correction, restate the active mode in one line ("implement phase: execute next TODO action") and immediately perform a concrete implementation step.
+- Do **not** switch to meta/review narration first (for example, lengthy reviewer workflow explanation) unless the user explicitly asked for review.
+- If the user asks for **skill maintenance during implement** (e.g. "auto-improve work-implement"), do that maintenance task directly in the referenced skill file before returning to code TODO execution.
 
 ## Step 3: Log progress to worklog
 
