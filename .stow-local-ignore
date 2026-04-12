@@ -1,0 +1,53 @@
+# Managed by dotfiles repo (stow conflict)
+\.git
+\.gitignore
+\.mcp\.json
+\.aerospace\.toml
+\.oh-my-posh\.json
+\.mise\.toml
+\.tmux\.conf
+\.wezterm\.lua
+\.zshrc.*
+\.zshrc
+\.claude
+\.pi
+alacritty
+ansible
+direnv
+hammerspoon
+harness
+nvim
+raycast
+scripts
+skills
+cspell\.json
+
+# .config paths managed by dotfiles repo
+\.config/atuin
+\.config/direnv
+\.config/fish
+\.config/ghostty
+\.config/git
+\.config/helix
+\.config/nix
+\.config/nvim
+\.config/sketchybar
+\.config/zellij
+\.config/\.oh-my-posh\.json
+
+# Shell scripts managed by dotfiles repo
+git_.*\.sh
+install\.sh
+
+# Misc files that shouldn't be stowed
+CLAUDE\.md
+LICENSE
+README\.md
+error\.txt
+hello\.txt
+lefthook\.yml
+no-neck-pain-left\.norg
+nushell
+tmux
+vscode
+s$
