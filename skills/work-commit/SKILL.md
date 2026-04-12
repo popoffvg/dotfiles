@@ -46,6 +46,13 @@ The message describes **why**, not **what**.
 - No ticket/issue numbers unless they add clarity
 - If a commit touches tests AND code, use the prefix for the code change (e.g. `feat`), not `test`
 
+## Execution Cue Handling
+
+When the user gives a short execution cue like `continue` during implement work:
+- Perform the next concrete commit-related action first (prepare message, stage, or commit)
+- Do not switch into review narration before taking that action
+- Keep status text to 1-2 lines after the action, focused on files/tests/commit state
+
 ## Granularity
 
 Each TODO = one commit. **Exception:** if the user explicitly says "join", "merge", or "squash" multiple TODOs, combine them into one commit with a unified message covering all of them.
