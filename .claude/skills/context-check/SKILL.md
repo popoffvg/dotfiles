@@ -30,6 +30,7 @@ Scan the conversation for concrete, reusable knowledge:
 - Routine: "ran tests", "committed code", "read a file"
 - Too vague: "fixed authentication issues"
 - Too granular: "added field X to struct Y" (what is it FOR?)
+- Numeric-only or empty friction notes (for example: "3") without concrete context
 
 ## Entry Format
 
@@ -77,6 +78,6 @@ If nothing worth saving: return "nothing worth saving".
 - "Session where an architectural decision was made and rationale explained"
 
 **Can change:** extraction criteria, insight categories, save format, scanning depth
-**Cannot change:** save-without-asking behavior, QMD tool usage for persistence
+**Cannot change:** save-without-asking behavior, QMD tool usage for persistence, removed `_tasks` routing
 **Min sessions before eval:** 5
 **Runs per experiment:** 3
