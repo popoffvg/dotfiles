@@ -45,7 +45,7 @@ For each session, identify distinct topics worth remembering. For each:
 Classifications:
 - `insight`: completed work — how things work, patterns, gotchas, decisions
 - `agent_edit`: AI behavior changes — hooks, prompts, skills, plugin config
-- `none`: routine, skip
+- `none`: routine, skip (including numeric-only friction notes with no context)
 
 ### Step 4: Write entries in wiki format
 
@@ -105,6 +105,6 @@ Append each processed session filename to `<insights_root>/.scanned_sessions`.
 - "Scan when no sessions exist in the time window"
 
 **Can change:** log parsing strategy, time window parsing, insight extraction criteria, deduplication
-**Cannot change:** insights_root config requirement, session log location, fallback nature (supplements Stop hook)
+**Cannot change:** insights_root config requirement, session log location, fallback nature (supplements Stop hook), removed `_tasks` routing
 **Min sessions before eval:** 5
 **Runs per experiment:** 3
