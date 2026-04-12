@@ -5,7 +5,7 @@ description: This skill should be used when the user says "work done", "context 
 
 # Context Done
 
-Finalize an active task: summarize collected insights and distribute to each related repo's insight folder.
+Finalize current work context: summarize collected insights and distribute to each related repo's insight folder.
 
 ## Usage
 
@@ -26,44 +26,35 @@ Run these checks when user reports "command not visible" or asks "for Claude?":
 
 ## Procedure
 
-### Step 1: Find the active task
+### Step 1: Collect current work insights
 
-1. Read `<insights_root>/_tasks/pending.md`
-2. Find the task with **Status: active** (or match by name if provided)
-3. If no active task found, tell the user and stop
+1. Read recent session context and work notes provided by the caller
+2. Extract concrete insights with repo relevance (`repo`, file paths, commands, config keys)
+3. If artifacts are sparse, still produce concrete repo-ready notes from available facts
 
-### Step 2: Collect task insights
-
-1. Read `<insights_root>/_tasks/<task-slug>/notes.md`
-2. Extract all insights with their repo tags (`_(repo: <name>)_`)
-3. Read the task description from `pending.md`
-4. If notes are sparse, still produce concrete repo-ready notes from available artifacts (commands run, files changed, config values) instead of skipping distribution
-
-### Step 3: Generate summary
+### Step 2: Generate summary
 
 Create a concise task summary (3-5 sentences max):
 - What the task was about
 - Key decisions made
 - Important findings or patterns discovered
 
-### Step 4: Distribute to repo insight folders
+### Step 3: Distribute to repo insight folders
 
 For each unique repo in the task's `Repos` list:
 1. Read `<insights_root>/<repo>/insights.md` first
 2. **Deduplicate**: skip if an existing entry already covers the same knowledge (same topic heading, semantic overlap, or broader superset). If the new summary is a broader version of an existing entry, replace it.
 3. Append to `<insights_root>/<repo>/insights.md`:
    ```
-   ## <task-title> (task summary) — YYYY-MM-DD HH:MM
+   ## <work-title> (work summary) — YYYY-MM-DD HH:MM
    <summary focusing on insights relevant to this specific repo>
-   _(from task: <task-slug>)_
    ```
 4. Create the repo directory if it doesn't exist
 
-### Step 5: Archive the task
+### Step 4: Finalize
 
-1. In `<insights_root>/_tasks/pending.md`, change the task's status from `active` to `done`
-2. Keep `<insights_root>/_tasks/<task-slug>/` as-is (archive, don't delete)
-3. If this run was triggered by a work-completion flow that requires cleanup, explicitly instruct the caller to remove local temporary planning notes (for example project `_notes/`) **after** insight distribution succeeds
+1. Confirm insight distribution completed for each affected repo
+2. If this run was triggered by a work-completion flow that requires cleanup, explicitly instruct the caller to remove local temporary planning notes (for example project `_notes/`) **after** insight distribution succeeds
 
 ## Output
 

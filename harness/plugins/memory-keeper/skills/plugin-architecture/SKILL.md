@@ -177,7 +177,6 @@ Degraded states:
 5. `processInsights()` — per entry: QMD dedup → file dedup → `saveInsight()`
 6. `saveInsight()` routes by classification:
    - `insight` → `<insights_root>/<repo>/<category>.md`
-   - `task` → `<insights_root>/_tasks/pending.md`
    - `agent_edit` → `<insights_root>/claude-config/behavior.md`
 7. `trackTokenUsage()` → `~/.claude/debug/token-stats.jsonl`
 

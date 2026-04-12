@@ -19,7 +19,6 @@ Read `insights_root` from `~/.claude/memory-keeper.local.md` YAML frontmatter. I
 |---|---|---|
 | `insight` | Completed work — architecture, patterns, gotchas, decisions | `<insights_root>/<repo>/<category>.md` |
 | `agent_edit` | AI behavior changes — hooks, prompts, skills, CLAUDE.md, plugin config | `<insights_root>/claude-config/behavior.md` |
-| `task` | ONLY unstarted intentions — "I need to refactor X" | `<insights_root>/_tasks/pending.md` |
 | `none` | Routine work, nothing worth recording — skip silently |
 
 One save invocation may produce multiple entries with different classifications.
@@ -61,14 +60,6 @@ No preamble — write for someone with zero memory of this session.>
 
 Run `git -C <cwd> rev-parse --show-toplevel 2>/dev/null | xargs basename`. Fallback: `basename <cwd>`. User or conversation context may override.
 
-## Active Task Awareness
-
-Before saving an `insight`, check `<insights_root>/_tasks/pending.md` for an active task (status: active).
-
-- **Active task exists** → save to `<insights_root>/_tasks/<task-slug>/notes.md`
-- **No active task** → save via `memory_save` MCP tool
-
-`agent_edit` and `task` always go to their fixed locations regardless of active task.
 
 ## Deduplication
 

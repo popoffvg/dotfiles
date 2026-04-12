@@ -34,7 +34,7 @@ export interface Config {
 }
 
 export interface Insight {
-  classification: "insight" | "task" | "agent_edit" | "none";
+  classification: "insight" | "agent_edit" | "none";
   category: string;
   repo: string;
   topic: string;
@@ -224,7 +224,7 @@ Respond with ONLY valid JSON array (no markdown fences):
 
 [
   {
-    "classification": "insight" | "task" | "agent_edit" | "none",
+    "classification": "insight" | "agent_edit" | "none",
     "category": "tool or technology slug (see list below)",
     "repo": "repository basename (e.g. 'pl', 'memory-keeper')",
     "topic": "keyword-rich title 3-7 words",
@@ -289,7 +289,6 @@ Bad: "Shutdown analysis", "Important fix", "Database stuff"
 ## Classifications
 
 - "insight": completed work — how things work, architecture, patterns, gotchas, decisions
-- "task": ONLY work planned but NOT started yet
 - "agent_edit": changes to AI behavior, skills, hooks, prompts, plugin config
 - "none": routine work, nothing reusable
 
@@ -373,7 +372,6 @@ export function qmdDedup(
   const otherProjects = hits.filter(
     (h: QmdHit) =>
       h.project !== targetProject &&
-      h.project !== "_tasks" &&
       h.score >= 0.6
   );
 
@@ -427,23 +425,6 @@ export function saveInsight(
     return targetFile;
   }
 
-  if (classification === "task") {
-    const tasksDir = join(insightsRoot, "_tasks");
-    mkdirSync(tasksDir, { recursive: true });
-    const targetFile = join(tasksDir, "pending.md");
-    const taskEntry = `## ${topic}\n- **Status**: active\n- **Repos**: ${project}\n- **Captured**: ${now}\n${body}\n`;
-    if (deduplicateCheck(targetFile, topic)) {
-      logger.debug({ topic }, "dedup skipped task");
-      return null;
-    }
-    appendFileSync(targetFile, "\n" + taskEntry);
-    const slug = topic
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/-+$/, "");
-    mkdirSync(join(tasksDir, slug), { recursive: true });
-    return targetFile;
-  }
 
   if (classification === "agent_edit") {
     const configDir = join(insightsRoot, "claude-config");
@@ -542,7 +523,7 @@ export function processInsights(
     let { body } = result;
     const targetRepo = repo || project;
 
-    if (classification !== "task" && qmdSearchFn) {
+    if (qmdSearchFn) {
       const qmd = qmdDedup(topic, body, targetRepo, qmdSearchFn);
       if (qmd.action === "skip") {
         logger.debug({ topic, repo: targetRepo, reason: qmd.reason }, "qmd-dedup skipped");

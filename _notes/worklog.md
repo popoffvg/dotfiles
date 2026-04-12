@@ -29,3 +29,18 @@ Friction log from this session:
 - "[Skill conflicts]
   ~/.pi/agent/skills/mise
 - 2026-04-12 18:59: [USER] approve
+- 2026-04-12 18:59: [USER] remove ~/ctx/insights/_tasks/* work totally
+- 2026-04-12 18:59: Session ended (phase: implement)
+- 2026-04-12 19:01: Improved `.claude/skills/work-done/SKILL.md` as legacy alias guidance to `work-abandon` to reduce rename-related friction.
+- 2026-04-12 19:00: [USER] ~/ctx/insights/_tasks/* remove it totally
+- 2026-04-12 19:00: [USER] yeap
+- 2026-04-12 19:01: [USER] 3
+- 2026-04-12 19:04: Removed `~/ctx/insights/_tasks` directory and removed `_tasks` routing from memory-keeper code/skills; memory now saves to repo insights and claude-config only.
+- 2026-04-12 19:05: [USER] The following skill(s) have a high correction ratio (threshold: 0.5, min uses: 3):
+
+- **context-check** (3 uses, ratio 4.67)
+- **context-scan** (3 uses, ratio 5.67)
+
+Friction log from this session:
+-
+- 2026-04-12 19:05: [USER] yes

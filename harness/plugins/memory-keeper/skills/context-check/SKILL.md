@@ -26,10 +26,6 @@ Scan the conversation for concrete, reusable knowledge:
 - CLAUDE.md or plugin config changes
 - Directives that change how the assistant behaves
 
-**task** — ONLY unstarted intentions:
-- "I need to refactor X", "TODO: add Y"
-- Work planned but not started
-
 **none** — skip silently:
 - Routine: "ran tests", "committed code", "read a file"
 - Too vague: "fixed authentication issues"
@@ -61,9 +57,8 @@ No preamble. Write for someone with zero memory of this session.>
 
 1. Scan the conversation — identify distinct topics with reusable value
 2. For each topic: classify, write entry in wiki format
-3. Check active task in `<insights_root>/_tasks/pending.md` — route `insight` entries to task notes if active task exists
-4. Deduplicate against target file (exact heading, semantic overlap, superset/subset)
-5. Save immediately — do NOT ask for confirmation
-6. Report: topic + classification + file saved to
+3. Deduplicate against target file (exact heading, semantic overlap, superset/subset)
+4. Save immediately — do NOT ask for confirmation
+5. Report: topic + classification + file saved to
 
 If nothing worth saving: return "nothing worth saving".

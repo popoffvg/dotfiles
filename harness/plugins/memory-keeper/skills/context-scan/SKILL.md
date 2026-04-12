@@ -38,14 +38,13 @@ For each unscanned JSONL:
 
 For each session, identify distinct topics worth remembering. For each:
 
-- **classification**: `insight` | `agent_edit` | `task` | `none`
+- **classification**: `insight` | `agent_edit` | `none`
 - **repo**: basename from `~/.claude/projects/<encoded-path>/` last path segment
 - **topic**: keyword-rich title, 3-7 words
 
 Classifications:
 - `insight`: completed work — how things work, patterns, gotchas, decisions
 - `agent_edit`: AI behavior changes — hooks, prompts, skills, plugin config
-- `task`: ONLY unstarted intentions (not completed work)
 - `none`: routine, skip
 
 ### Step 4: Write entries in wiki format
@@ -78,9 +77,8 @@ Before saving each entry, read the target file:
 4. Existing entry is broader → skip
 
 Save locations:
-- `insight` → `<insights_root>/<repo>/insights.md` (or `_tasks/<slug>/notes.md` if active task in `_tasks/pending.md`)
+- `insight` → `<insights_root>/<repo>/insights.md`
 - `agent_edit` → `<insights_root>/claude-config/behavior.md`
-- `task` → `<insights_root>/_tasks/pending.md`
 
 ### Step 6: Mark as scanned
 
