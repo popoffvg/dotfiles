@@ -1,6 +1,6 @@
 ---
 name: mise
-description: Use only for explicit mise/task/repo commands: "mise", "mise run", "mise task", "copy-logs", "dump-db", "repos", "open repo", "add repo to workspace", or "use mise to setup deps".
+description: "Use only for explicit mise/task/repo commands: 'mise', 'mise run', 'mise task', 'copy-logs', 'dump-db', 'repos', 'open repo', 'add repo to workspace', or 'use mise to setup deps'."
 ---
 
 # Mise skill
