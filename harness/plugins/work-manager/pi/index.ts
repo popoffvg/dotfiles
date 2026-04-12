@@ -181,7 +181,7 @@ function registerCommands(pi: ExtensionAPI) {
         return;
       }
 
-      const result = fsm.transition(s, Phase.Implement);
+      const result = fsm.transition(s, Phase.PlanVerify);
       if (Object.keys(result.newState).length > 0) {
         state.updateSettings(sf, result.newState);
       }

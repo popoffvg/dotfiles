@@ -4,7 +4,7 @@ description: >
   Research phase agent — explores codebase, gathers context, saves findings to _notes/.
   Cannot edit source code. Triggers when work-manager routes research-phase work.
   NEVER spawn directly — only the work-manager router should delegate here.
-tools: Read, Glob, Grep, Bash, Agent, Write, AskUserQuestion, mcp__work__work_state, mcp__work__work_context, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
+tools: Read, Glob, Grep, Bash, Agent, Write, AskUserQuestion, mcp__plugin_work-manager_work__work_state, mcp__plugin_work-manager_work__work_context, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
 model: inherit
 color: green
 ---

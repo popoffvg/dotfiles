@@ -1,2 +1,5 @@
 # Trust mise config so tools/env are available in new worktrees
 post-create = "mise trust ."
+
+[merge]
+no-squash = true

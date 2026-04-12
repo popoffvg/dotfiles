@@ -1873,41 +1873,32 @@ export default function (pi: ExtensionAPI) {
 
       const ts = makeTimestamp();
 
-      // Auto-commit _notes/ before entering implement
-      commitNotes(notesDir, `plan: save plan before starting implementation`);
+      // Auto-commit _notes/ before entering plan verification
+      commitNotes(notesDir, `plan: save plan before verification`);
 
-      updateSettings(sf, { phase: "implement" });
+      updateSettings(sf, { phase: "plan-verify" });
 
       const worklogPath = path.join(notesDir, "worklog.md");
       const existing = readFileOr(worklogPath, "# Work Log\n");
       fs.writeFileSync(
         worklogPath,
         existing.trimEnd() +
-          `\n- ${ts}: Phase transition: plan → implement\n`,
+          `\n- ${ts}: Phase transition: plan → plan-verify\n`,
       );
 
-      currentPhase = "implement";
+      currentPhase = "plan-verify";
 
-      // Switch to sonnet for implement phase
-      const sonnet = ctx.modelRegistry.find("anthropic", "claude-sonnet-4-6");
-      if (sonnet) {
-        await pi.setModel(sonnet);
-        ctx.ui.notify("Switched to Sonnet for implement phase.", "info");
-      }
+      ctx.ui.setStatus("work", formatStatus(settings, "plan-verify"));
+      ctx.ui.notify("Running plan verification before implementation.", "info");
 
-      ctx.ui.setStatus("work", formatStatus(settings, "implement"));
-      ctx.ui.notify("Implement phase started in current branch.", "info");
-
-      const focusExtra = args ? `**Focus:** ${args}` : undefined;
-
-      // Branch off plan context and start fresh for implementation
-      const skill = readSkillWithEvals("work-implement");
-      const implCtx = buildImplementContext(notesDir, focusExtra);
+      // Inject work-plan-verifier skill — it will auto-transition to implement or back to plan
+      const skill = readSkillWithEvals("work-plan-verifier");
+      const verifyCtx = buildImplementContext(notesDir);
       compactAndInject(
         ctx,
-        "plan-to-implement",
-        "Plan phase completed. Entering implement phase.",
-        skill + "\n\n---\n" + implCtx,
+        "plan-to-verify",
+        "Plan phase completed. Running plan verification before implementation.",
+        skill + "\n\n---\n" + verifyCtx,
       );
     },
   });

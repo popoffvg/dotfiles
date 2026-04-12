@@ -63,6 +63,50 @@ Runs on `localhost:7420`. Owns SQLite DB, queue drain loop, stats, pino logger.
 
 State tracked in `.pi/work.settings.json`. Notes in `_notes/` (worklog, plan, research).
 
+## Local Plugin Development (Claude Code)
+
+### Plugin cache
+
+Claude Code copies marketplace plugins to `~/.claude/plugins/cache/`. **Path traversal (`../`) is blocked** — files outside the plugin root are not copied. Symlinks within the plugin directory are **not followed** during caching.
+
+**Workaround for shared code** (e.g., `common/` used by both `claude/` and `pi/`):
+1. Place shared code in `common/` at plugin root level
+2. Create a symlink inside the claude dir: `claude/common → ../common` (relative)
+3. Reference via `${CLAUDE_PLUGIN_ROOT}/common/...` (not `../common/...`)
+4. After any source change, sync cache: `cp -r <source>/common <cache>/common`
+
+**To bypass cache entirely** during development:
+```bash
+claude --plugin-dir ~/.claude/plugins/local-plugins/work-manager
+```
+
+### MCP tool naming
+
+Plugin MCP tools are namespaced as `mcp__plugin_<plugin-name>_<server-name>__<tool>`. Example:
+- Server `"work"` in plugin `"work-manager"` → `mcp__plugin_work-manager_work__work_state`
+- Use these full names in agent `tools:` frontmatter
+
+### Plugin structure (dual-agent: Pi + Claude)
+
+```
+harness/plugins/<name>/
+├── common/           # Shared: skills, server, FSM, types
+│   ├── skills/       # SKILL.md files (source of truth)
+│   ├── server/       # MCP server (stdio)
+│   └── *.ts          # Shared logic
+├── claude/           # Claude Code plugin root (= CLAUDE_PLUGIN_ROOT)
+│   ├── .claude-plugin/plugin.json
+│   ├── .mcp.json
+│   ├── agents/
+│   ├── hooks/
+│   ├── commands/
+│   └── skills → ../common/skills   # symlink
+└── pi/               # Pi agent extension
+    └── index.ts
+```
+
+Skill-manager syncs `common/skills/` to `~/.pi/agent/skills/` on session start via `sources.json` (`symlinkBack: true` replaces originals with symlinks to global store).
+
 ## Dev Conventions
 
 - **TypeScript** for plugins — `tsx` runtime, no `tsc` build step

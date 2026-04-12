@@ -4,7 +4,7 @@ description: >
   Implement phase agent — writes code, runs tests, makes commits. Full tool access.
   Triggers when work-manager routes implement-phase work.
   NEVER spawn directly — only the work-manager router should delegate here.
-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__work__work_state, mcp__work__work_context, mcp__work__work_compact, mcp__work__work_transition, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
+tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__plugin_work-manager_work__work_state, mcp__plugin_work-manager_work__work_context, mcp__plugin_work-manager_work__work_compact, mcp__plugin_work-manager_work__work_transition, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
 model: sonnet
 color: red
 ---

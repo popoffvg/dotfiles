@@ -1,7 +1,7 @@
 ---
 name: work-manager
 description: Routes work commands to phase-specific agents. Triggers on start work, work recall, work continue, next todo, work done, work status, work update, work pr, where was I, resume work, catch me up, what's next. IMPORTANT — only use in directories with _notes/_summary.md or when user explicitly says "start work". If no work context exists and user is not starting work, do NOT spawn this agent.
-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__work__work_state, mcp__work__work_start, mcp__work__work_transition, mcp__work__work_context, mcp__work__work_compact, mcp__work__work_off, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
+tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__plugin_work-manager_work__work_state, mcp__plugin_work-manager_work__work_start, mcp__plugin_work-manager_work__work_transition, mcp__plugin_work-manager_work__work_context, mcp__plugin_work-manager_work__work_compact, mcp__plugin_work-manager_work__work_off, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
 model: inherit
 color: cyan
 ---
@@ -49,7 +49,8 @@ When user says "move to plan", "start implementing", "need more research":
 1. Call `work_state` (action: read) to get current phase
 2. Validate transition is allowed:
    - research → plan
-   - plan → implement, plan → research
+   - plan → plan-verify, plan → research
+   - plan-verify → implement, plan-verify → plan
    - implement → plan, implement → verify
    - verify → verified, verify → plan, verify → implement
    - verified → plan
@@ -67,6 +68,7 @@ Anything that is NOT a skill command and NOT a phase transition → delegate to 
 |-------|---------------|
 | research | `work-researcher` |
 | plan | `work-planner` |
+| plan-verify | *(handled automatically — work-plan-verifier skill auto-transitions)* |
 | implement | `work-implementer` |
 
 **Spawn template:**

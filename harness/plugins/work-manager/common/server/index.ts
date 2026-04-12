@@ -172,10 +172,10 @@ server.tool(
 
 server.tool(
   "work_transition",
-  "Transition between work phases (research, plan, implement, verify, verified)",
+  "Transition between work phases (research, plan, plan-verify, implement, verify, verified)",
   {
     to: z
-      .enum(["research", "plan", "implement", "verify", "verified"])
+      .enum(["research", "plan", "plan-verify", "implement", "verify", "verified"])
       .describe("Target phase"),
     feedback: z.string().optional().describe("User feedback (for plan transition)"),
     focus: z.string().optional().describe("Focus area (for implement transition)"),

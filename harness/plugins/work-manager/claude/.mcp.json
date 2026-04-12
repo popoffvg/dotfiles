@@ -2,7 +2,7 @@
   "mcpServers": {
     "work": {
       "command": "npx",
-      "args": ["tsx", "${CLAUDE_PLUGIN_ROOT}/../common/server/index.ts"],
+      "args": ["tsx", "${CLAUDE_PLUGIN_ROOT}/common/server/index.ts"],
       "env": {
         "WORK_CWD": "${CWD}",
         "PLUGIN_ROOT": "${CLAUDE_PLUGIN_ROOT}",
