@@ -112,6 +112,13 @@ The fixup commits will be squashed into their targets later via `git rebase -i -
 - **If a tool returns a permission/access error**, ask the user for help instead of retrying blindly.
 - **If blocked on something minor**, try a reasonable workaround and log the decision in worklog.
 
+### Clarification-first behavior (reduce phase confusion)
+
+- If the user sends a short correction like **"i mean for implement phase"**, treat it as a scope reset for the very next action.
+- After such correction, restate the active mode in one line ("implement phase: execute next TODO action") and immediately perform a concrete implementation step.
+- Do **not** switch to meta/review narration first (for example, lengthy reviewer workflow explanation) unless the user explicitly asked for review.
+- If the user asks for **skill maintenance during implement** (e.g. "auto-improve work-implement"), do that maintenance task directly in the referenced skill file before returning to code TODO execution.
+
 ## Step 3: Log progress to worklog
 
 After each TODO, append to `_notes/worklog.md`:
