@@ -6,6 +6,7 @@
 export enum Phase {
   Research = "research",
   Plan = "plan",
+  PlanVerify = "plan-verify",
   Implement = "implement",
   Verify = "verify",
   Verified = "verified",

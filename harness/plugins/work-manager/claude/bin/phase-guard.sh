@@ -28,8 +28,8 @@ SETTINGS_FILE=$(find_settings 2>/dev/null) || exit 0
 PHASE=$(jq -r '.phase // "unknown"' "$SETTINGS_FILE" 2>/dev/null) || exit 0
 STATUS=$(jq -r '.status // "active"' "$SETTINGS_FILE" 2>/dev/null) || exit 0
 
-# Only guard in plan phase with active work
-if [[ "$PHASE" != "plan" ]] || [[ "$STATUS" != "active" ]]; then
+# Only guard in plan/plan-verify phase with active work
+if [[ "$PHASE" != "plan" && "$PHASE" != "plan-verify" ]] || [[ "$STATUS" != "active" ]]; then
   exit 0
 fi
 

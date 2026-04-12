@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__qmd__deep_search",
+      "WebFetch(domain:registry.npmjs.org)",
+      "Read(//Users/popoffvg/Documents/git/dotfiles/harness/plugins/work-manager/claude/.claude-plugin/**)",
+      "Read(//Users/popoffvg/Documents/git/dotfiles/harness/plugins/work-manager/claude/**)",
+      "Bash(ln:*)",
+      "Bash(WORK_CWD=\"$PWD\" PLUGIN_ROOT=/Users/popoffvg/.claude/plugins/work-manager timeout 3 npx tsx /Users/popoffvg/.claude/plugins/work-manager/common/server/index.ts)",
+      "Bash(# Copy common/server into the cached v2.0.0 plugin\ncp -r /Users/popoffvg/Documents/git/dotfiles/harness/plugins/work-manager/common /Users/popoffvg/.claude/plugins/cache/local-plugins/work-manager/2.0.0/common && echo \"Copied common/ to cache\"\n# Remove orphaned marker\nrm -f /Users/popoffvg/.claude/plugins/cache/local-plugins/work-manager/2.0.0/.orphaned_at && echo \"Removed .orphaned_at\"\n# Verify\nls /Users/popoffvg/.claude/plugins/cache/local-plugins/work-manager/2.0.0/common/server/index.ts && echo \"Server exists in cache\")",
+      "mcp__plugin_work-manager_work__work_state",
+      "Bash(PLUGIN=\"/Users/popoffvg/Documents/git/dotfiles.plan-verifier/harness/plugins/work-manager\")",
+      "Bash(rm \"$PLUGIN/claude/skills\")",
+      "Read(//Users/popoffvg/Documents/git/dotfiles.plan-verifier/$PLUGIN/**)",
+      "Read(//Users/popoffvg/Documents/git/dotfiles.plan-verifier/$PLUGIN/claude/**)",
+      "Bash(find /Users/popoffvg/.claude/plugins/cache -path */plugin-dev* -name SKILL.md)",
+      "Bash(find /Users/popoffvg/Documents/git/dotfiles -path *smart*commit* -type f)",
+      "Bash(find /Users/popoffvg/.claude -name SKILL.md -path *smart*)",
+      "Bash(find /Users/popoffvg/.claude -name *.md -path *smart*commit*)"
+    ]
+  },
+  "sandbox": {
+    "enabled": false,
+    "autoAllowBashIfSandboxed": false
+  }
+}

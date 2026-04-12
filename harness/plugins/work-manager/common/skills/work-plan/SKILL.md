@@ -147,8 +147,10 @@ Append to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: <action summary>`
 
 When the plan has both **Acceptance Criteria** and **TODOs** filled:
 ```
-Plan is ready. Run `/work:implement` to begin autonomous implementation.
+Plan is ready. Run `/work:implement` to begin plan verification, then autonomous implementation.
 ```
+
+`/work:implement` will first run **plan-verifier** — an automated quality gate that checks approach validation, TODO specificity, test strategy, convention alignment, and infrastructure assumptions against the actual codebase. If verification passes, implementation begins automatically. If it finds gaps, it returns to plan phase with specific feedback.
 
 **Do NOT signal readiness if Acceptance Criteria section is empty or missing.**
 

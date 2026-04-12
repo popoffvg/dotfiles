@@ -66,6 +66,14 @@ case "$PHASE" in
 - Call work_compact after each TODO
 - Work autonomously"
     ;;
+  plan-verify)
+    CONTEXT+="You are in **plan-verify** phase. You are an AUDITOR, not a planner or executor.
+- READ the plan and codebase to verify plan quality
+- NEVER write code or edit source files outside _notes/
+- Produce a verification report, then auto-transition:
+  - If READY (0 FAILs): call work_transition with phase=implement
+  - If NEEDS REVISION (1+ FAILs): call work_transition with phase=plan and feedback=<findings>"
+    ;;
   research)
     CONTEXT+="You are in **research** phase. Explore and gather context.
 - Save findings to _notes/research-*.md

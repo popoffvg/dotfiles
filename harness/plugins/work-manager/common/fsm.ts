@@ -18,7 +18,8 @@ import { DEFAULT_PLAN_ALLOWED_COMMANDS } from "./state";
 
 const ALLOWED_TRANSITIONS: Record<Phase, Phase[]> = {
   [Phase.Research]: [Phase.Plan],
-  [Phase.Plan]: [Phase.Research, Phase.Implement],
+  [Phase.Plan]: [Phase.Research, Phase.PlanVerify],
+  [Phase.PlanVerify]: [Phase.Implement, Phase.Plan],
   [Phase.Implement]: [Phase.Plan, Phase.Verify],
   [Phase.Verify]: [Phase.Verified, Phase.Plan, Phase.Implement],
   [Phase.Verified]: [Phase.Plan],
@@ -107,6 +108,8 @@ export function transition(
       return transitionToPlan(from, state, opts);
     case Phase.Research:
       return transitionToResearch(from, state);
+    case Phase.PlanVerify:
+      return transitionToPlanVerify(from, state);
     case Phase.Implement:
       return transitionToImplement(from, state, opts);
     case Phase.Verify:
@@ -158,6 +161,30 @@ function transitionToResearch(
       {
         kind: "compact",
         summary: `Transitioning to research phase from ${from}. Keep work context, discard plan details.`,
+      },
+    ],
+  };
+}
+
+function transitionToPlanVerify(
+  from: Phase,
+  _state: WorkSettings,
+): TransitionResult {
+  return {
+    newState: { phase: Phase.PlanVerify },
+    effects: [
+      { kind: "worklog", entry: `Phase transition: ${from} → plan-verify` },
+      { kind: "commit_notes", message: `phase: ${from} → plan-verify` },
+      { kind: "set_model", model: "opus" },
+      { kind: "inject_skill", skill: "work-plan-verifier" },
+      {
+        kind: "compact",
+        summary: `Entering plan verification. Keep the plan and research notes. Discard planning discussion.`,
+      },
+      {
+        kind: "notify",
+        message: "Running plan verification before implementation",
+        level: "info",
       },
     ],
   };
@@ -310,7 +337,7 @@ export function guardToolCall(
   input: ToolInput,
   notesDir: string,
 ): string | null {
-  if (state.phase !== Phase.Plan) return null;
+  if (state.phase !== Phase.Plan && state.phase !== Phase.PlanVerify) return null;
 
   // Plan phase: block bash mutations
   if (toolName === "Bash" || toolName === "bash") {
