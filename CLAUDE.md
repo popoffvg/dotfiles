@@ -110,7 +110,7 @@ Skill-manager syncs `common/skills/` to `~/.pi/agent/skills/` on session start v
 ## Dev Conventions
 
 - **TypeScript** for plugins — `tsx` runtime, no `tsc` build step
-- **Stow-compatible paths** — repo structure mirrors `~/`
+- **Stow-compatible paths** — repo structure mirrors `~/`. **Never create config files directly in `~/`** — always place them in the repo at the matching path (e.g., `.config/worktrunk/config.toml`) and run `stow -t ~ .` to symlink. If a broken symlink or real file already exists at the target, remove it first before stowing.
 - **Atomic changes** — one logical change per commit, codebase always valid
 - **Plugin entry** — `export default function(pi: ExtensionAPI) { ... }`
 - **Skill entry** — `SKILL.md` with `name:`, `description:` frontmatter
@@ -119,6 +119,7 @@ Skill-manager syncs `common/skills/` to `~/.pi/agent/skills/` on session start v
 
 ```sh
 ansible-playbook .ansible/install_packages.yaml
+mkdir -p ~/.claude/skills
 stow -t ~ .
 ```
 

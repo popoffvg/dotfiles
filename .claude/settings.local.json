@@ -16,7 +16,13 @@
       "Bash(find /Users/popoffvg/.claude/plugins/cache -path */plugin-dev* -name SKILL.md)",
       "Bash(find /Users/popoffvg/Documents/git/dotfiles -path *smart*commit* -type f)",
       "Bash(find /Users/popoffvg/.claude -name SKILL.md -path *smart*)",
-      "Bash(find /Users/popoffvg/.claude -name *.md -path *smart*commit*)"
+      "Bash(find /Users/popoffvg/.claude -name *.md -path *smart*commit*)",
+      "Bash(wt config:*)",
+      "Bash(rm ~/.config/worktrunk)",
+      "Bash(mkdir -p ~/.config/worktrunk)",
+      "Bash(rm ~/.claude/skills)",
+      "Bash(stow -t ~ -R .)",
+      "Bash(stow -t ~ -R . --ignore='\\\\.config/wt\\\\.toml')"
     ]
   },
   "sandbox": {
