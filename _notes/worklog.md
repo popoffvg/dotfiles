@@ -36,6 +36,7 @@ Friction log from this session:
 - 2026-04-12 19:00: [USER] yeap
 - 2026-04-12 19:01: [USER] 3
 - 2026-04-12 19:04: Removed `~/ctx/insights/_tasks` directory and removed `_tasks` routing from memory-keeper code/skills; memory now saves to repo insights and claude-config only.
+- 2026-04-12 19:14: Changed work-manager abandon semantics for both Pi and Claude: `/work:abandon` now cancels/deactivates flow immediately (no finalize dialog/workflow).
 - 2026-04-12 19:05: [USER] The following skill(s) have a high correction ratio (threshold: 0.5, min uses: 3):
 
 - **context-check** (3 uses, ratio 4.67)
@@ -44,3 +45,39 @@ Friction log from this session:
 Friction log from this session:
 -
 - 2026-04-12 19:05: [USER] yes
+- 2026-04-12 19:10: [USER] let's rethink work-manager.
+ TODO 7/9 done. Just completed: Completed TODO for inline multiline Add Comment thread
+ capture and marked corresponding acceptance criterion done.
+
+ → ✅ Approve — continue
+- 2026-04-12 19:11: [USER] Session low-score evaluation triggered by agent_end with score 6/10 (mixed).
+
+## Session Signals
+- quality 8/10
+- efficiency 4/10
+- stability 4/10
+- user messages 5
+- friction count 1
+- tool failures
+- 2026-04-12 19:11: Session ended (phase: implement)
+- 2026-04-12 19:12: Added skill_eval directives #100 (work-implement) and #101 (context-done) from low-score friction review.
+- 2026-04-12 19:12: [USER] recall work-manager flow
+- 2026-04-12 19:13: [USER] work:abandon should cancell all work-manager logic. It also should work for pi and cluade
+- 2026-04-12 19:21: Updated Claude-side abandon aliases to immediate cancel semantics (no context-done/finalize path): `harness/plugins/work-manager/claude/commands/work-finish.md` and `.claude/skills/work-done/SKILL.md`.
+- 2026-04-12 19:23: Updated Claude router agent mapping so abandon/done/finish routes to `work_off` immediate cancel in `harness/plugins/work-manager/claude/agents/work-manager.md`.
+- 2026-04-12 19:32: Added abandoned-plan migration on `/work:start` for both Pi and Claude flows: detect existing `plan.md` after abandon, prompt continue/new, resume plan or archive old plan (`plan.abandoned-*.md`) before fresh start.
+- 2026-04-12 19:15: [USER] approve
+- 2026-04-12 19:20: [USER] work abandaon should immidetly turn off work manager flow:
+ I can’t complete context-done exactly as specified because the required memory task files do
+ not exist:
+
+ - Config found: /Users/popoffvg/.
+- 2026-04-12 19:22: [USER] if work abandon any logic should be turned off
+- 2026-04-12 19:24: [USER] done -> abandone + migration
+- 2026-04-12 19:24: [USER] context injection still wokring after abandon
+- 2026-04-12 19:25: [USER] does it work for claude?
+- 2026-04-12 19:26: [USER] wait claude should use hooks for context injection
+- 2026-04-12 19:27: [USER] do it
+- 2026-04-12 19:28: [USER] yes
+- 2026-04-12 19:29: Session ended (phase: implement)
+- 2026-04-12 19:29: Work abandoned via /work:abandon (plugin deactivated)

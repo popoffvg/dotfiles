@@ -12,6 +12,23 @@ Finalize an active task: summarize collected insights and distribute to each rel
 `/context done` — complete the current active task
 `/context done <task-name>` — complete a specific task
 
+## Trigger guard (important)
+
+Run this skill **only** when the user is explicitly asking to finish/close a task, for example:
+- `work done`
+- `context done`
+- `finish task`
+- `complete task`
+- `close task`
+
+Do **not** run this skill for:
+- friction/evaluation logs that merely quote this skill's frontmatter
+- requests to improve or edit skill files
+- generic status questions (e.g. "continue", "what's next")
+- plan/implement workflow commands unrelated to task finalization
+
+If intent is unclear, ask one short clarification: "Do you want me to finalize the active memory task now?"
+
 ## Configuration
 
 Read `insights_root` from `~/.claude/memory-keeper.local.md` YAML frontmatter. If the file is missing, stop and ask the user to create it with the required settings (see plugin README).

@@ -118,8 +118,9 @@ server.tool(
     branch: z.string().describe("Current git branch name"),
     workId: z.string().optional().describe("Work/ticket ID (e.g., MILAB-1234)"),
     name: z.string().optional().describe("Human-readable work name"),
+    resumeMode: z.enum(["continue", "new"]).optional().describe("When abandoned plan exists: continue old plan or start new (archive old plan)"),
   },
-  async ({ branch, workId, name }) => {
+  async ({ branch, workId, name, resumeMode }) => {
     const taskDir = CWD;
     const sf = state.settingsPath(taskDir);
 
@@ -137,6 +138,33 @@ server.tool(
     // Create _notes/
     const notesDir = notes.ensureNotesDir(taskDir, execGit);
     notes.ensureClaudeMd(taskDir);
+
+    const planPath = path.join(notesDir, "plan.md");
+    const hasPlan = notes.readFileOr(planPath, "").trim().length > 0;
+    if (existing && existing.status !== "active" && hasPlan) {
+      if (!resumeMode) {
+        return {
+          content: [{
+            type: "text" as const,
+            text: "[question] Found abandoned work with existing `_notes/plan.md`. Reply with `continue` to resume previous plan or `new` to archive old plan and start fresh.",
+          }],
+        };
+      }
+
+      if (resumeMode === "continue") {
+        state.updateSettings(sf, { status: "active", phase: "plan", phaseBeforeTodo: null } as any);
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Resumed abandoned work.\n\nPhase: plan\nBranch: ${existing.branch || branch}\nWorkId: ${existing.workId || workId || "(auto)"}\nNotes: ${notesDir}`,
+          }],
+        };
+      }
+
+      const ts = notes.makeTimestamp().replace(/[: ]/g, "-");
+      const archived = path.join(notesDir, `plan.abandoned-${ts}.md`);
+      try { fs.renameSync(planPath, archived); } catch { /* best effort */ }
+    }
 
     // Initialize worklog
     const worklogPath = path.join(notesDir, "worklog.md");

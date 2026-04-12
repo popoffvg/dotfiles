@@ -1,0 +1,4 @@
+[projects."github.com/popoffvg/dotfiles"]
+approved-commands = [
+    "mise trust .",
+]

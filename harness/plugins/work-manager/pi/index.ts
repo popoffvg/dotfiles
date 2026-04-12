@@ -132,6 +132,31 @@ function registerCommands(pi: ExtensionAPI) {
           }
           return;
         }
+
+        const notesDirExisting = resolveNotesDir(existing);
+        const planPath = path.join(notesDirExisting, "plan.md");
+        const hasPlan = notes.readFileOr(planPath, "").trim().length > 0;
+        if (current && current.status !== "active" && hasPlan) {
+          const choice = await ctx.ui.select(
+            "Found abandoned work with existing plan. What do you want?",
+            ["↩️ Continue previous plan", "🆕 Start new work (archive old plan)"],
+          );
+
+          if (!choice || choice.startsWith("↩️")) {
+            state.updateSettings(existing, { status: "active", phase: "plan", phaseBeforeTodo: null });
+            const resumed = state.readSettings(existing);
+            ctx.ui.notify(`Resumed work: ${resumed?.workId || resumed?.name || "unnamed"} [plan]`, "success");
+            const skill = loadSkill("work-plan");
+            if (skill) {
+              pi.sendUserMessage(skill + "\n\n---\nResumed abandoned work from existing `_notes/plan.md`. Continue from that plan.");
+            }
+            return;
+          }
+
+          const ts = notes.makeTimestamp().replace(/[: ]/g, "-");
+          const archived = path.join(notesDirExisting, `plan.abandoned-${ts}.md`);
+          try { fs.renameSync(planPath, archived); } catch { /* best effort */ }
+        }
       }
 
       let branch = "unknown";

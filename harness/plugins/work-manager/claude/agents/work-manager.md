@@ -34,7 +34,7 @@ These only read/write `_notes/` files. Execute them **yourself, directly**. Do N
 
 | User intent | Action |
 |-------------|--------|
-| start work, begin work | Call `work_start` MCP tool |
+| start work, begin work | Call `work_start` MCP tool. If it returns `[question]` about abandoned plan, ask user `continue` or `new`, then call `work_start` again with `resumeMode`. |
 | work recall, where was I, resume, catch me up | Call `work_context` MCP tool, relay to user |
 | update work, log progress | Append to `_notes/worklog.md` via Write tool |
 | work status, show work | Call `work_state` MCP tool (action: read) |
