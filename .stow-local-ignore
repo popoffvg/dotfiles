@@ -9,8 +9,6 @@
 \.wezterm\.lua
 \.zshrc.*
 \.zshrc
-\.claude
-\.pi
 alacritty
 ansible
 direnv
@@ -19,7 +17,6 @@ harness
 nvim
 raycast
 scripts
-skills
 cspell\.json
 
 # .config paths managed by dotfiles repo
@@ -38,6 +35,10 @@ cspell\.json
 # Shell scripts managed by dotfiles repo
 git_.*\.sh
 install\.sh
+
+# Runtime state (not config)
+_notes
+\.pi/work\.settings\.json
 
 # Misc files that shouldn't be stowed
 CLAUDE\.md

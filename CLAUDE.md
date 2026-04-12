@@ -7,8 +7,7 @@ Personal dotfiles repo managed with **GNU Stow** + **Ansible**. The repo root mi
 ```
 .
 ├── harness/plugins/     # 16 Pi agent plugins (TypeScript)
-├── skills/              # 39 Claude Code / Pi skills (Markdown)
-├── .claude/             # Claude Code settings, agents
+├── .claude/             # Claude Code settings, agents, skills
 ├── .pi/                 # Pi agent settings, extension load order
 ├── .config/             # App configs: nvim, helix, zellij, git, ghostty, atuin, direnv, nix
 ├── raycast/             # Raycast extensions (space-manager)
@@ -119,7 +118,7 @@ Skill-manager syncs `common/skills/` to `~/.pi/agent/skills/` on session start v
 
 ```sh
 ansible-playbook .ansible/install_packages.yaml
-mkdir -p ~/.claude/skills
+mkdir -p ~/.claude/skills ~/.pi/agent/skills
 stow -t ~ .
 ```
 
