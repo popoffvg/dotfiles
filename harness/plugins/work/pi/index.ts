@@ -1636,15 +1636,15 @@ export default function (pi: ExtensionAPI) {
   });
 
   registerWorkCommand(
-    "work:done-skill",
-    "Run work-done skill flow (alternative to direct /work:done)",
-    () => readSkill("work-done"),
+    "work:abandon-skill",
+    "Run work-abandon skill flow (alternative to direct /work:done)",
+    () => readSkill("work-abandon"),
   );
 
   registerWorkCommand(
     "work:finish",
-    "Alias for /work:done-skill",
-    () => readSkill("work-done"),
+    "Alias for /work:abandon-skill",
+    () => readSkill("work-abandon"),
   );
 
   registerWorkCommand(

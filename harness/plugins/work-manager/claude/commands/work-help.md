@@ -18,8 +18,8 @@ Display the following usage guide:
 | `/work:implement` | Enter implement phase (from plan only) |
 | `/work:continue` | Continue implement phase with the next TODO |
 | `/work:done` | Mark work complete |
-| `/work:done-skill` | Run the skill-driven done flow (alternative) |
-| `/work:finish` | Alias for `/work:done-skill` |
+| `/work:abandon-skill` | Run the skill-driven abandon flow (alternative) |
+| `/work:finish` | Alias for `/work:abandon-skill` |
 | `/work:off` | Disable work tracking for this session |
 | `/work:help` | This guide |
 

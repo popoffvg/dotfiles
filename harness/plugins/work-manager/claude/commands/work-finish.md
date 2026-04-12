@@ -1,9 +1,9 @@
 ---
 name: work-finish
-description: Alias for work-done
+description: Alias for work-abandon
 ---
 
-Use the same flow as `work-done`:
+Use the same flow as `work-abandon`:
 
 1. Call `work_state` MCP tool (action: read) to get current state
 2. Run memory finalization flow via `context-done` skill to persist insights.

@@ -1,6 +1,6 @@
 ---
-name: work-done
-description: Mark work complete
+name: work-abandon
+description: Mark work abandoned/complete
 ---
 
 1. Call `work_state` MCP tool (action: read) to get current state
