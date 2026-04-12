@@ -43,8 +43,8 @@ luac.out
 
 **/node_modules/
 
-# Legacy Pi skills (migrated to skills/)
-.pi/agent/skills/
+# Pi agent runtime state
+.pi/
 
 # Editor configs
 .vscode/
