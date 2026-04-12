@@ -1119,7 +1119,7 @@ export default function (pi: ExtensionAPI) {
     if (tc.settings.phase !== "implement")
       return { action: "continue" as const };
 
-    const { settings, settingsFile: sf, notesDir } = tc;
+    const { notesDir } = tc;
     const userText = event.text;
 
     // FIX / FIXUP prefix — pass through without dialog, LLM handles as fixup commit
@@ -1136,65 +1136,16 @@ export default function (pi: ExtensionAPI) {
       return { action: "continue" as const };
     }
 
-    const choice = await ctx.ui.select(
-      "You're interrupting implementation. What do you want?",
-      [
-        "💬 Answer implementer's question — continue implementing",
-        "📋 Return to plan phase",
-      ],
-    );
-
-    if (!choice || choice.startsWith("💬")) {
-      // Log user input and let the message through to the implementer
-      const ts = makeTimestamp();
-      const worklogPath = path.join(notesDir, "worklog.md");
-      const existing = readFileOr(worklogPath, "# Work Log\n");
-      fs.writeFileSync(
-        worklogPath,
-        existing.trimEnd() +
-          `\n- ${ts}: [USER] ${userText.slice(0, 200)}\n`,
-      );
-      return { action: "continue" as const };
-    }
-
-    // Return to plan
+    // No interruption dialog in implement phase: treat user input as implementation guidance.
     const ts = makeTimestamp();
-
     const worklogPath = path.join(notesDir, "worklog.md");
     const existing = readFileOr(worklogPath, "# Work Log\n");
     fs.writeFileSync(
       worklogPath,
       existing.trimEnd() +
-        `\n- ${ts}: Implement interrupted by user: ${userText.slice(0, 100)}\n`,
+        `\n- ${ts}: [USER] ${userText.slice(0, 200)}\n`,
     );
-
-    updateSettings(sf, { phase: "plan" });
-
-    currentPhase = "plan";
-    ctx.ui.setStatus("work", formatStatus(settings, "plan"));
-
-    // Feedback: plan was insufficient (implement→plan)
-    pi.events.emit(SKILL_EVENTS.FEEDBACK, { skill: "work-plan", correct: false, reason: `implement→plan: ${userText.slice(0, 100)}` } satisfies SkillFeedbackPayload);
-
-    // Emit return-to-plan event for skill-manager
-    const planContent = readFileOr(path.join(notesDir, "plan.md"), "");
-    pi.events.emit(WORK_EVENTS.RETURN_TO_PLAN, {
-      reason: `Implement interrupted by user: "${userText}"`,
-      notesDir,
-      recentWorklog: worklogTail(notesDir, 20),
-      planContent,
-    } satisfies ReturnToPlanPayload);
-
-    const skill = readSkillWithEvals("work-plan");
-    const returnCtx = buildReturnToPlanContext(notesDir, `Implement interrupted by user: "${userText}"`);
-    compactAndInject(
-      ctx,
-      "implement-interrupted",
-      "Implementation interrupted by user. Summarize what was done.",
-      skill + "\n\n---\n" + returnCtx,
-    );
-
-    return { action: "handled" as const };
+    return { action: "continue" as const };
   });
 
 
