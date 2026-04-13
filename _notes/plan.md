@@ -120,3 +120,11 @@ harness/plugins/skill-manager/
 ### TODOs
 
 - [x] TODO-D1: Replace one-shot startup sleep with health polling loop in `harness/plugins/memory-keeper/pi/index.ts`
+
+---
+
+## Subtask: auto-improve flagged skills
+
+### TODOs
+
+- [x] TODO-S1: Improve `.claude/skills/agent-setup/SKILL.md` to reduce correction friction (activation guardrails, path precedence, pre-change checklist)

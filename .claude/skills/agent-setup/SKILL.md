@@ -7,6 +7,13 @@ description: This skill should be used when the user wants to "add a skill", "ad
 
 Every tool (skill, MCP server, hook, plugin) MUST be configured for **both** Pi and Claude Code.
 
+## Activation guardrails
+
+Use this skill only when the user is explicitly changing agent infrastructure (skills, plugins, MCP, hooks, settings).
+Do **not** use it for normal feature coding, bug fixes, or repository-only code changes.
+
+If the user asks for a single-agent local experiment, confirm scope before enforcing dual-agent wiring.
+
 ## Architecture
 
 ```
@@ -26,6 +33,14 @@ dotfiles/
 ~/.pi/agent/.mcp.json          → symlink → dotfiles/.mcp.json
 ~/.claude/settings.json        ← Claude Code hooks, permissions, env
 ```
+
+## Path/source-of-truth resolution
+
+When duplicate-looking skill paths exist, use this precedence:
+1. `dotfiles/.claude/skills/<name>/SKILL.md` (repo source of truth for this setup)
+2. `~/.pi/agent/skills/<name>/SKILL.md` (runtime copy/symlink if present)
+
+If one path is missing, edit the existing source-of-truth file and state which path was used.
 
 ## Harness Plugin Structure
 
@@ -196,6 +211,13 @@ grep '<name>' dotfiles/.pi/agent/settings.json
 readlink ~/.claude/.mcp.json
 readlink ~/.pi/agent/.mcp.json
 ```
+
+## Pre-change checklist
+
+- [ ] Restate requested scope (skill/plugin/MCP/hook; Pi/Claude/both)
+- [ ] Confirm target paths before editing
+- [ ] Prefer minimal changes; avoid unrelated refactors
+- [ ] After edits, verify registrations/symlinks with concrete checks
 
 ## Rules
 
