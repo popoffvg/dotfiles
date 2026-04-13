@@ -58,6 +58,7 @@ harness/plugins/skill-manager/
 
 ### TODOs
 
+- [x] TODO-0: Investigate why "plan verification" skill is not visible — confirmed `work-plan-verifier` is referenced by FSM/router but no `SKILL.md` exists, so it cannot be discovered/loaded.
 - [ ] TODO-1: Create plugin scaffold — `claude/.claude-plugin/plugin.json`, `claude/bin/`, `claude/hooks/`, `claude/commands/` directories
 - [ ] TODO-2: Create `claude/bin/track-skill.sh` — PostToolUse(Read) hook script. Reads stdin JSON, checks if `tool_input.file_path` ends with `SKILL.md`, extracts skill name from path, appends `{"type":"skill_activate","skill":"<name>","ts":"<iso>"}` to `~/.pi/agent/skill-stats-session.jsonl`
 - [ ] TODO-3: Create `claude/bin/track-edit.sh` — PostToolUse(Edit/Write) hook script. Reads stdin JSON, extracts `tool_input.file_path`, appends `{"type":"file_edit","path":"<path>","ts":"<iso>"}` to JSONL
@@ -79,6 +80,7 @@ harness/plugins/skill-manager/
 
 - [ ] TODO-9: Verify `work_start` MCP tool registration — check `.mcp.json` points to server correctly, test that `mcp__work__work_start` is available
 - [ ] TODO-10: Add `/work-manager:work-start` command markdown if missing — documents usage and params
+- [x] TODO-11: Recreate missing `work-plan-verifier` skill from Pi/Claude session records and work-manager activation behavior
 
 ---
 
@@ -92,3 +94,29 @@ harness/plugins/skill-manager/
 6. TODO-7 (stats command)
 7. TODO-8 (e2e test)
 8. TODO-9, TODO-10 (work-manager — parallel, independent)
+
+---
+
+## Hotfix: project subrepo skills/rules discovery
+
+### Acceptance criteria
+
+- [x] AC-H1: skill-manager discovers `.claude/skills` from cwd and first-level subrepos
+- [x] AC-H2: skill-manager exposes `.claude/rules` via `promptPaths` in `resources_discover`
+
+### TODOs
+
+- [x] TODO-H1: Update discovery function to return both `skillPaths` and `promptPaths`
+- [x] TODO-H2: Wire `resources_discover` to return both when present
+
+---
+
+## Hotfix: suppress false "daemon not running" warning
+
+### Acceptance criteria
+
+- [x] AC-D1: memory-keeper waits for daemon health with retries before warning
+
+### TODOs
+
+- [x] TODO-D1: Replace one-shot startup sleep with health polling loop in `harness/plugins/memory-keeper/pi/index.ts`

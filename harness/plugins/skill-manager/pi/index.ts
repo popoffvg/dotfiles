@@ -623,10 +623,12 @@ export default function (pi: ExtensionAPI) {
     rotateDailyScores();
   });
 
-  /** Discover project-level skill directories from cwd + 1 level of subdirectories */
-  function discoverProjectSkillPaths(cwd: string): string[] {
-    const skillPaths: string[] = [];
+  /** Discover project-level resource directories from cwd + 1 level of subdirectories */
+  function discoverProjectResourcePaths(cwd: string): { skillPaths: string[]; promptPaths: string[] } {
+    const skillPaths = new Set<string>();
+    const promptPaths = new Set<string>();
     const searchDirs = [cwd];
+
     try {
       for (const entry of readdirSync(cwd)) {
         const sub = join(cwd, entry);
@@ -640,17 +642,23 @@ export default function (pi: ExtensionAPI) {
 
     for (const dir of searchDirs) {
       const claudeSkills = join(dir, ".claude", "skills");
-      if (existsSync(claudeSkills)) {
-        skillPaths.push(claudeSkills);
-      }
+      if (existsSync(claudeSkills)) skillPaths.add(claudeSkills);
+
+      const claudeRules = join(dir, ".claude", "rules");
+      if (existsSync(claudeRules)) promptPaths.add(claudeRules);
     }
-    return skillPaths;
+
+    return {
+      skillPaths: [...skillPaths],
+      promptPaths: [...promptPaths],
+    };
   }
 
-  // Register project-level skill paths with pi's discovery system
+  // Register project-level skills and rules with pi's discovery system
   pi.on("resources_discover", async (event) => {
-    const skillPaths = discoverProjectSkillPaths(event.cwd);
-    if (skillPaths.length > 0) return { skillPaths };
+    const { skillPaths, promptPaths } = discoverProjectResourcePaths(event.cwd);
+    if (skillPaths.length === 0 && promptPaths.length === 0) return;
+    return { skillPaths, promptPaths };
   });
 
   // Track which skills were loaded in current agent run

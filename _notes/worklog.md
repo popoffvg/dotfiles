@@ -81,3 +81,7 @@ Friction log from this session:
 - 2026-04-12 19:28: [USER] yes
 - 2026-04-12 19:29: Session ended (phase: implement)
 - 2026-04-12 19:29: Work abandoned via /work:abandon (plugin deactivated)
+- 2026-04-13 12:05: Investigated `MILAB-5820-workflow-security` subrepo load issue. Found `skill-manager` only returned `skillPaths`; `.claude/rules` were never exposed. Updated `harness/plugins/skill-manager/pi/index.ts` discovery to return both `skillPaths` and `promptPaths` from cwd + first-level subdirs (including `pl/.claude/{skills,rules}`).
+- 2026-04-13 12:22: Investigated missing "plan verification" skill visibility. Root cause: `work-plan-verifier` is referenced in FSM/router (`harness/plugins/work-manager/common/fsm.ts`, `harness/plugins/work-manager/claude/agents/work-manager.md`) but no corresponding `SKILL.md` exists under `harness/plugins/work-manager/skills/`, so it is never discoverable.
+- 2026-04-13 12:41: Recreated `.claude/skills/work-plan-verifier/SKILL.md` from Pi/Claude session traces and work-manager phase behavior. Added strict auditor checklist, `_notes/plan-verify.md` report contract, and immediate transition rule (READY→implement, FAIL→plan with feedback) to avoid interactive interruption when work-manager is active.
+- 2026-04-13 12:56: Fixed memory-keeper startup warning path in `harness/plugins/memory-keeper/pi/index.ts`: replaced one-shot 1.5s sleep with a 5s bounded health-poll loop (250ms interval) after daemon spawn. This avoids false `daemon not running on http://127.0.0.1:7420` warnings when daemon boot is slow.

@@ -231,7 +231,8 @@ function globMatch(str: string, pattern: string): boolean {
 // ─── Daemon HTTP client ───────────────────────────────────────────────────
 
 const DAEMON_URL = process.env.MK_DAEMON_URL || "http://127.0.0.1:7420";
-const DAEMON_STARTUP_WAIT_MS = 1500;
+const DAEMON_STARTUP_WAIT_MS = 5000;
+const DAEMON_HEALTH_RETRY_MS = 250;
 const DAEMON_REQUEST_TIMEOUT_MS = 1500;
 const extensionDir = dirname(fileURLToPath(import.meta.url));
 const daemonServerDir = resolve(extensionDir, "../common/server");
@@ -287,8 +288,12 @@ async function ensureDaemonRunning(): Promise<boolean> {
     return false;
   }
 
-  await new Promise((resolve) => setTimeout(resolve, DAEMON_STARTUP_WAIT_MS));
-  return isDaemonRunning();
+  const deadline = Date.now() + DAEMON_STARTUP_WAIT_MS;
+  while (Date.now() < deadline) {
+    if (await isDaemonRunning()) return true;
+    await new Promise((resolve) => setTimeout(resolve, DAEMON_HEALTH_RETRY_MS));
+  }
+  return false;
 }
 
 // ─── Extension ────────────────────────────────────────────────────────────
