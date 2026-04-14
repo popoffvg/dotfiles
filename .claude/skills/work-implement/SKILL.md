@@ -18,11 +18,48 @@ A worktree is created automatically by `/work:start` (check `worktreePath` in se
 - Use `_notes/` (plan.md, worklog.md) for planning/logging.
 - Commit on the worktree branch (or current branch when no worktree is active).
 
-## Step 1: Read the plan
+## Step 1: Verify plan is approved
+
+1. Call `work_state` to read current settings
+2. Confirm the phase history shows `plan-verify` was completed. If the previous phase was `plan` (not `plan-verify`), **stop immediately** — tell the user: "Plan must pass verification before implementation. Run `/work:plan-verify` first." Do not proceed.
+3. Read `_notes/plan.md` — confirm it has no unchecked items in the `## Verification` section (left by plan-verifier). If unresolved items exist, **stop** and tell the user to fix them first.
+
+## Step 2: Read the plan
 
 Read `_notes/plan.md` for the TODO list. Read `_notes/research-*.md` for additional context.
 
-## Step 2: Execute TODOs in order
+## Step 3: Execute TODOs in order
+
+### Zellij session-per-TODO (mandatory when inside Zellij)
+
+If `$ZELLIJ_SESSION_NAME` is set, each TODO runs in a **fresh Claude session** to keep context clean.
+
+**Flow for each unchecked TODO:**
+
+1. **Prepare the prompt** — self-contained context for the TODO:
+   - Full TODO text and acceptance criteria from `_notes/plan.md`
+   - Relevant file paths and constraints
+   - Instruction to commit after passing tests (use `work-commit` format)
+   - Instruction: after commit, check off the TODO in `_notes/plan.md` and log to `_notes/worklog.md`
+
+2. **Launch a new Claude session in Zellij:**
+   ```bash
+   zellij run -i -n "todo: <short-label>" --cwd "$PWD" -- \
+     claude "<todo-prompt>"
+   ```
+   The `-i` flag runs in-place — replaces the current pane.
+
+3. **The new session executes the TODO** — implement, test, commit.
+
+4. **User reviews the commit** and approves.
+
+5. **Session exits.** You return to the previous pane.
+
+6. **If more TODOs remain** — repeat from step 1 with the next TODO.
+
+7. **When all TODOs are done** — proceed to Step 4 (log progress) and Step 5 (final verification).
+
+**When NOT in Zellij** (`$ZELLIJ_SESSION_NAME` is empty), execute TODOs sequentially as described below.
 
 For each unchecked `- [ ]` TODO in `_notes/plan.md`:
 1. **Load required skills first.** If the TODO has a `skills:` sub-item, read each listed skill's SKILL.md before starting. Use absolute paths from `<available_skills>` in the system prompt. Follow skill instructions throughout the TODO.
@@ -112,7 +149,7 @@ The fixup commits will be squashed into their targets later via `git rebase -i -
 - Do **not** switch to meta/review narration first (for example, lengthy reviewer workflow explanation) unless the user explicitly asked for review.
 - If the user asks for **skill maintenance during implement** (e.g. "auto-improve work-implement"), do that maintenance task directly in the referenced skill file before returning to code TODO execution.
 
-## Step 3: Log progress to worklog
+## Step 4: Log progress to worklog
 
 After each TODO, append to `_notes/worklog.md`:
 
@@ -125,13 +162,13 @@ After each TODO, append to `_notes/worklog.md`:
 
 **Do NOT create `impl-*.md` files. Everything goes in worklog.**
 
-## Step 4: Final verification
+## Step 5: Final verification
 
 After all TODOs are checked off:
 - Run a final test pass
 - Log summary to worklog
 
-## Step 5: Mark implementation complete
+## Step 6: Mark implementation complete
 
 **This is mandatory.** After implementation is complete:
 
