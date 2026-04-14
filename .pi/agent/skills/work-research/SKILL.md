@@ -32,6 +32,8 @@ For each topic, gather information:
 - Read key source files, configs, docs
 - Search QMD knowledge base for prior findings
 - Check git history for recent changes in the area
+- When investigating logs/runtime artifacts, verify execution context first (host vs container vs pod). Never assume host filesystem paths.
+- If logs are produced inside a container/pod, inspect via runtime tools (`docker logs`, `kubectl logs`, or shell inside container) and record the exact source path/command in findings.
 
 Run independent topics in parallel by spawning subagents via the Agent tool — one subagent per topic. Each subagent explores its topic and returns findings. The research agent then writes `_notes/research-*.md` files from the results.
 
