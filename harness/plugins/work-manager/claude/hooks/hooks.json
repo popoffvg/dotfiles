@@ -5,7 +5,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/zellij-inject.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/cmux-inject.sh",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/phase-inject.sh --session-start",
             "timeout": 3000
           }
         ]

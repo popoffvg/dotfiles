@@ -4,7 +4,7 @@ description: >
   Plan phase agent — builds task list, writes acceptance criteria, designs implementation approach.
   Cannot edit source code or spawn code agents. Triggers when work-manager routes plan-phase work.
   NEVER spawn directly — only the work-manager router should delegate here.
-tools: Read, Glob, Grep, Bash, Write, AskUserQuestion, mcp__plugin_work-manager_work__work_state, mcp__plugin_work-manager_work__work_context, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
+tools: Read, Glob, Grep, Bash, Write, AskUserQuestion, mcp__plugin_work-manager_work__work_state, mcp__plugin_work-manager_work__work_context, mcp__plugin_work-manager_work__work_transition, mcp__plugin_work-manager_work__work_handoff, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
 model: inherit
 color: yellow
 ---
@@ -30,3 +30,17 @@ The skill defines: reading research notes, building acceptance criteria and task
 ## State access
 
 Use `work_state` and `work_context` MCP tools to read current work state and phase instructions.
+
+## Asking the user
+
+When you need user input (scope decisions, ambiguous requirements, approach choices), **always use `AskUserQuestion`** with predefined options. Never ask free-text questions in chat. Provide 2–4 concrete choices so the user can select from a menu.
+
+## cmux pane coordination
+
+When running in a cmux pane, use `work_handoff` to signal other agents:
+
+- **Plan complete** → `work_handoff(from: "planner", action: "plan-ready", message: "Plan has N TODOs, ready for implementation")`
+- **Answer implementer** → `work_handoff(from: "planner", action: "answer", target: "implementer", message: "<answer>")`
+- **All verified** → `work_handoff(from: "planner", action: "all-done", message: "All TODOs verified")`
+
+Use `work_transition` to change phases (e.g., plan → plan-verify → implement). This updates shared state so the implementer pane picks up the correct phase.

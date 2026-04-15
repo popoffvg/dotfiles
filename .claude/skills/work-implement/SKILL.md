@@ -30,9 +30,9 @@ Read `_notes/plan.md` for the TODO list. Read `_notes/research-*.md` for additio
 
 ## Step 3: Execute TODOs in order
 
-### Zellij session-per-TODO (mandatory when inside Zellij)
+### cmux session-per-TODO (when inside cmux)
 
-If `$ZELLIJ_SESSION_NAME` is set, each TODO runs in a **fresh Claude session** to keep context clean.
+If `$CMUX_SURFACE_ID` is set, each TODO runs in a **fresh Claude pane** to keep context clean. Follow the `work-cmux` skill for orchestration details.
 
 **Flow for each unchecked TODO:**
 
@@ -42,24 +42,25 @@ If `$ZELLIJ_SESSION_NAME` is set, each TODO runs in a **fresh Claude session** t
    - Instruction to commit after passing tests (use `work-commit` format)
    - Instruction: after commit, check off the TODO in `_notes/plan.md` and log to `_notes/worklog.md`
 
-2. **Launch a new Claude session in Zellij:**
+2. **Launch a new Claude pane via cmux:**
    ```bash
-   zellij run -i -n "todo: <short-label>" --cwd "$PWD" -- \
-     claude "<todo-prompt>"
+   OUTPUT=$(cmux new-pane --type terminal --direction right --cwd "$PWD")
+   SURFACE=$(echo "$OUTPUT" | grep -o 'surface:[0-9]*')
+   cmux send --surface "$SURFACE" "claude --dangerously-skip-permissions '<todo-prompt>'"
+   cmux send-key --surface "$SURFACE" enter
    ```
-   The `-i` flag runs in-place — replaces the current pane.
 
 3. **The new session executes the TODO** — implement, test, commit.
 
 4. **User reviews the commit** and approves.
 
-5. **Session exits.** You return to the previous pane.
+5. **Close the pane** after approval: `cmux close-surface --surface "$SURFACE"`
 
-6. **If more TODOs remain** — repeat from step 1 with the next TODO.
+6. **If more TODOs remain** — repeat from step 1 with a fresh pane for the next TODO.
 
 7. **When all TODOs are done** — proceed to Step 4 (log progress) and Step 5 (final verification).
 
-**When NOT in Zellij** (`$ZELLIJ_SESSION_NAME` is empty), execute TODOs sequentially as described below.
+**When NOT in cmux** (`$CMUX_SURFACE_ID` is empty), execute TODOs sequentially as described below.
 
 For each unchecked `- [ ]` TODO in `_notes/plan.md`:
 1. **Load required skills first.** If the TODO has a `skills:` sub-item, read each listed skill's SKILL.md before starting. Use absolute paths from `<available_skills>` in the system prompt. Follow skill instructions throughout the TODO.
