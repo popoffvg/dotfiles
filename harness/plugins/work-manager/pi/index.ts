@@ -256,7 +256,10 @@ function registerCommands(pi: ExtensionAPI) {
       }
 
       const current = s.phase as Phase;
-      const target = current === Phase.PlanVerify ? Phase.Implement : Phase.PlanVerify;
+      const target =
+        current === Phase.PlanVerify || current === Phase.TodoDone
+          ? Phase.Implement
+          : Phase.PlanVerify;
 
       const result = fsm.transition(s, target);
       if (Object.keys(result.newState).length > 0) {
