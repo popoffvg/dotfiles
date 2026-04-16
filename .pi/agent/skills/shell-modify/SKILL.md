@@ -13,6 +13,7 @@ For patterns, idioms, and a full script template, see **`references/best-practic
 ## When to Use
 
 **Use when:**
+- The target file is a shell script (`*.sh`, `*.bash`) or has a shell shebang
 - Modifying scripts with `set -e` / `set -eu` / `set -o pipefail`
 - Adding temp files, subprocesses, or background jobs to scripts
 - Changing scripts that run in CI, containers, or k8s jobs
@@ -20,13 +21,17 @@ For patterns, idioms, and a full script template, see **`references/best-practic
 - Writing new shell scripts from scratch
 
 **Skip when:**
+- Target file is not a shell script (for example TypeScript extension files like `index.ts`)
 - One-line fix to a simple script
 - Adding a comment or changing a string literal
 - User says "just fix it" for an obvious typo
 
 ## PHASE 1: Pre-Edit Analysis
 
-Before making any changes, read the ENTIRE script and fill this checklist:
+Before making any changes, validate target type first:
+- [ ] **File-type gate**: confirm the requested edit is for a shell script. If not, stop this skill and switch to the relevant language workflow/skill.
+
+Then read the ENTIRE script and fill this checklist:
 
 ### Strict mode audit
 - [ ] **Shebang**: `#!/bin/bash`, `#!/bin/sh`, `#!/usr/bin/env bash`? This determines which features are safe (see **`references/best-practices.md` § Portability**).
