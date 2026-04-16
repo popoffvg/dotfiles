@@ -159,6 +159,15 @@ Unknowns found: <list>. Research needed before planning can continue.
 
 ## Interpreting user input
 
+## Option-selection handling (friction guard)
+
+If you previously presented options and the user selects one (for example, "option A"):
+- Treat that as an explicit decision, not a new discussion prompt.
+- Execute the selected planning action immediately in `_notes/plan.md`.
+- If the selection includes "read the skills" or "read pi logic", read the referenced skill files and relevant Pi/workflow docs before updating the plan.
+- Do not ask the user to choose again unless the request is still ambiguous.
+
+
 Not every message requires a plan change. Some messages are informational — the user is telling you what they did, not asking you to do something. Acknowledge and move on.
 
 | User says | You do |
