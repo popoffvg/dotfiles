@@ -57,7 +57,7 @@ When user says "move to plan", "start implementing", "need more research":
    - plan → plan-verify, plan → research
    - plan-verify → implement, plan-verify → plan
    - implement → plan, implement → verify
-   - verify → verified, verify → plan, verify → implement
+   - verify → verified, verify → plan
    - verified → plan
 3. **Ask for explicit confirmation**: "Transition from `<current>` to `<next>`?"
 4. After confirmation, call `work_transition` MCP tool with target phase

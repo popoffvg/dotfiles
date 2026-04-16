@@ -20,8 +20,9 @@ const ALLOWED_TRANSITIONS: Record<Phase, Phase[]> = {
   [Phase.Research]: [Phase.Plan],
   [Phase.Plan]: [Phase.Research, Phase.PlanVerify],
   [Phase.PlanVerify]: [Phase.Implement, Phase.Plan],
-  [Phase.Implement]: [Phase.Plan, Phase.Verify],
-  [Phase.Verify]: [Phase.Verified, Phase.Plan, Phase.Implement],
+  [Phase.Implement]: [Phase.Plan, Phase.Verify, Phase.TodoDone],
+  [Phase.TodoDone]: [Phase.Implement],
+  [Phase.Verify]: [Phase.Verified, Phase.Plan],
   [Phase.Verified]: [Phase.Plan],
 };
 
@@ -56,6 +57,7 @@ export function start(
       worktreeBranch: null,
       approveCommits: true,
       planAllowedCommands: DEFAULT_PLAN_ALLOWED_COMMANDS,
+      planVerified: false,
     },
     effects: [
       { kind: "worklog", entry: "Work initialized" },
@@ -112,6 +114,8 @@ export function transition(
       return transitionToPlanVerify(from, state);
     case Phase.Implement:
       return transitionToImplement(from, state, opts);
+    case Phase.TodoDone:
+      return transitionToTodoDone(from, state);
     case Phase.Verify:
       return transitionToVerify(from, state, opts);
     case Phase.Verified:
@@ -144,7 +148,7 @@ function transitionToPlan(
   });
 
   return {
-    newState: { phase: Phase.Plan, phaseBeforeTodo: null },
+    newState: { phase: Phase.Plan, phaseBeforeTodo: null, planVerified: false },
     effects,
   };
 }
@@ -222,8 +226,20 @@ function transitionToImplement(
   });
 
   return {
-    newState: { phase: Phase.Implement },
+    newState: { phase: Phase.Implement, planVerified: true },
     effects,
+  };
+}
+
+function transitionToTodoDone(
+  from: Phase,
+  _state: WorkSettings,
+): TransitionResult {
+  return {
+    newState: { phase: Phase.TodoDone },
+    effects: [
+      { kind: "worklog", entry: `Phase transition: ${from} → todo-done (staging & commit)` },
+    ],
   };
 }
 
@@ -327,6 +343,31 @@ export function sessionEnd(state: WorkSettings): TransitionResult {
 
 // --- Guards ---
 
+/** Read-only commands allowed in all guarded phases */
+const READ_ONLY_COMMANDS = [
+  "cat", "head", "tail", "less", "grep", "rg", "find", "ls", "tree",
+  "wc", "file", "stat", "echo", "pwd",
+  "git log", "git show", "git diff", "git status", "git branch",
+  "gh api", "gh pr list", "gh pr view", "gh pr status", "gh pr checks",
+  "gh issue list", "gh issue view", "gh issue status",
+  "gh run list", "gh run view", "gh repo view",
+];
+
+/** Test/lint commands additionally allowed in verify phase */
+const VERIFY_EXTRA_COMMANDS = [
+  "go test", "go vet",
+  "npm test", "npm run test", "npm run lint",
+  "pnpm test", "pnpm run test", "pnpm run lint",
+  "yarn test", "make test", "make lint", "make check",
+  "pytest", "ruff", "mypy", "flake8", "eslint",
+  "golangci-lint", "shellcheck", "tsc",
+  "mise run test", "mise run lint",
+];
+
+function isCmdInList(cmd: string, list: string[]): boolean {
+  return list.some((prefix) => cmd === prefix || cmd.startsWith(prefix + " "));
+}
+
 /**
  * Guard a tool call based on current phase.
  * Returns null if allowed, or a reason string if blocked.
@@ -337,42 +378,73 @@ export function guardToolCall(
   input: ToolInput,
   notesDir: string,
 ): string | null {
-  if (state.phase !== Phase.Plan && state.phase !== Phase.PlanVerify) return null;
+  const phase = state.phase as Phase;
+  const isPlan = phase === Phase.Plan || phase === Phase.PlanVerify;
+  const isVerify = phase === Phase.Verify;
+  const isImplement = phase === Phase.Implement;
 
-  // Plan phase: block bash mutations
+  if (!isPlan && !isVerify && !isImplement) return null;
+
+  // --- Bash guard ---
   if (toolName === "Bash" || toolName === "bash") {
-    const cmd = input.command || "";
-    const allowed = state.planAllowedCommands || DEFAULT_PLAN_ALLOWED_COMMANDS;
-    const readOnly = allowed.some(
-      (prefix) => cmd === prefix || cmd.startsWith(prefix + " "),
-    );
-    if (!readOnly) {
-      return "Plan phase: bash commands that modify files are not allowed. Only reading/inspecting is permitted. Write your plan in _notes/ using edit/write tools.";
+    const cmd = (input.command || "").trim();
+    const chained = cmd.match(/^cd\s+.+?\s*&&\s*(.+)$/);
+    const candidate = (chained?.[1] || cmd).trim();
+
+    if (isPlan) {
+      const allowed = state.planAllowedCommands?.length
+        ? state.planAllowedCommands
+        : READ_ONLY_COMMANDS;
+      if (!isCmdInList(candidate, allowed)) {
+        return "Plan phase: bash commands that modify files are not allowed. Only reading/inspecting is permitted. Write your plan in _notes/ using edit/write tools.";
+      }
     }
+
+    if (isVerify) {
+      const allowed = [...READ_ONLY_COMMANDS, ...VERIFY_EXTRA_COMMANDS];
+      if (!isCmdInList(candidate, allowed)) {
+        return "Verify phase: only read-only and test/lint commands are allowed. You are a reviewer — do not modify files via bash.";
+      }
+    }
+
+    if (isImplement) {
+      if (isCmdInList(candidate, ["git add", "git commit", "git stage"])) {
+        return "Implement phase: git staging and committing are not allowed. Use /work:next to commit after a TODO is complete — it transitions to todo-done phase first.";
+      }
+    }
+
     return null;
   }
 
-  // Plan phase: block file edits outside _notes/
+  // --- Edit/Write guard ---
   if (
-    toolName === "Edit" ||
-    toolName === "edit" ||
-    toolName === "Write" ||
-    toolName === "write"
+    toolName === "Edit" || toolName === "edit" ||
+    toolName === "Write" || toolName === "write"
   ) {
     const targetPath = input.file_path || "";
     if (!targetPath) return null;
 
     const resolved = path.resolve(targetPath);
     const notesResolved = path.resolve(notesDir);
+    const isInNotes =
+      resolved.startsWith(notesResolved + path.sep) || resolved === notesResolved;
 
-    if (
-      resolved.startsWith(notesResolved + path.sep) ||
-      resolved === notesResolved
-    ) {
-      return null; // Allow writes to _notes/
+    if (isPlan) {
+      if (!isInNotes) {
+        return `Plan phase: cannot modify files outside _notes/. Tried to ${toolName}: ${targetPath}. Add this to the plan instead.`;
+      }
+      return null;
     }
 
-    return `Plan phase: cannot modify files outside _notes/. Tried to ${toolName}: ${targetPath}. Add this to the plan instead.`;
+    if (isVerify) {
+      if (isInNotes) return null;
+      // Also allow .pi/work.settings.json for phase transitions
+      const settingsDir = path.dirname(notesDir);
+      const workSettings = path.resolve(settingsDir, ".pi", "work.settings.json");
+      if (resolved === workSettings) return null;
+
+      return `Verify phase: cannot modify source files. Only _notes/ and .pi/work.settings.json are allowed. You are a reviewer, not an implementer.`;
+    }
   }
 
   return null;

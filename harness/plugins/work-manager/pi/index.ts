@@ -4,7 +4,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { execSync } from "node:child_process";
 
-import { Phase, type SideEffect } from "../common/types";
+import { Phase, type SideEffect, type WorkSettings } from "../common/types";
 import * as state from "../common/state";
 import * as notes from "../common/notes";
 import * as fsm from "../common/fsm";
@@ -28,6 +28,27 @@ function resolveNotesDir(settingsFile: string): string {
 function loadSkill(name: string): string {
   const skillPath = path.join(PLUGIN_ROOT, "skills", name, "SKILL.md");
   return notes.readFileOr(skillPath, "");
+}
+
+function formatPhaseWidget(settings: WorkSettings): string {
+  const label = settings.workId || settings.name || "work";
+  return `🧭 ${label} · ${settings.phase} · ${settings.status}`;
+}
+
+function updatePhaseWidget(ui: { setStatus: (slot: string, value?: string) => void }, cwd: string): void {
+  const sf = resolveSettingsFile(cwd);
+  if (!sf) {
+    ui.setStatus("work", undefined);
+    return;
+  }
+
+  const s = state.readSettings(sf);
+  if (!s || s.status !== "active") {
+    ui.setStatus("work", undefined);
+    return;
+  }
+
+  ui.setStatus("work", formatPhaseWidget(s as WorkSettings));
 }
 
 function executeEffects(effects: SideEffect[], settingsFile: string): string {
@@ -188,11 +209,12 @@ function registerCommands(pi: ExtensionAPI) {
 
       ctx.ui.notify(`Work started: ${workId || name || branch} [plan]`, "success");
       if (messages) pi.sendUserMessage(messages);
+      updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
     },
   });
 
-  pi.registerCommand("work:implement", {
-    description: "Transition from plan to implement",
+  pi.registerCommand("work:plan", {
+    description: "Enter or re-enter plan phase",
     handler: async (_args, ctx) => {
       const sf = resolveSettingsFile(ctx.cwd);
       if (!sf) {
@@ -206,7 +228,7 @@ function registerCommands(pi: ExtensionAPI) {
         return;
       }
 
-      const result = fsm.transition(s, Phase.PlanVerify);
+      const result = fsm.transition(s, Phase.Plan);
       if (Object.keys(result.newState).length > 0) {
         state.updateSettings(sf, result.newState);
       }
@@ -214,58 +236,139 @@ function registerCommands(pi: ExtensionAPI) {
       const updated = state.readSettings(sf);
       ctx.ui.notify(`Phase: ${updated?.phase || "unknown"}`, "success");
       if (messages) pi.sendUserMessage(messages);
+      updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
     },
   });
+
+  pi.registerCommand("work:implement", {
+    description: "Transition toward implement (plan → plan-verify, plan-verify → implement)",
+    handler: async (_args, ctx) => {
+      const sf = resolveSettingsFile(ctx.cwd);
+      if (!sf) {
+        ctx.ui.notify("No active work. Use /work:start.", "error");
+        return;
+      }
+
+      const s = state.readSettings(sf);
+      if (!s) {
+        ctx.ui.notify("Cannot read work settings.", "error");
+        return;
+      }
+
+      const current = s.phase as Phase;
+      const target = current === Phase.PlanVerify ? Phase.Implement : Phase.PlanVerify;
+
+      const result = fsm.transition(s, target);
+      if (Object.keys(result.newState).length > 0) {
+        state.updateSettings(sf, result.newState);
+      }
+      const messages = executeEffects(result.effects, sf);
+      const updated = state.readSettings(sf);
+      ctx.ui.notify(`Phase: ${updated?.phase || "unknown"}`, "success");
+      if (messages) pi.sendUserMessage(messages);
+      updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
+    },
+  });
+
+  pi.registerCommand("work:next", {
+    description: "Continue to the next unchecked TODO (reminds to /compact first)",
+    handler: async (_args, ctx) => {
+      const sf = resolveSettingsFile(ctx.cwd);
+      if (!sf) {
+        ctx.ui.notify("No active work. Use /work:start.", "error");
+        return;
+      }
+
+      const s = state.readSettings(sf);
+      if (!s) {
+        ctx.ui.notify("Cannot read work settings.", "error");
+        return;
+      }
+
+      if (s.phase !== "implement") {
+        ctx.ui.notify(`Phase is '${s.phase}', not implement. Use /work:implement first.`, "error");
+        return;
+      }
+
+      const notesDir = resolveNotesDir(sf);
+      const planPath = path.join(notesDir, "plan.md");
+      const plan = notes.readFileOr(planPath, "");
+      if (!plan) {
+        ctx.ui.notify("No plan found at _notes/plan.md.", "error");
+        return;
+      }
+
+      const wl = notes.worklogTail(notesDir, 5);
+
+      const msg = [
+        "## /work:next — Execute ONE TODO then STOP",
+        "",
+        "⛔ YOU MUST EXECUTE EXACTLY ONE TODO. AFTER THAT TODO IS DONE, STOP IMMEDIATELY AND ASK THE USER FOR APPROVAL. DO NOT START THE NEXT TODO. DO NOT CONTINUE WORKING. STOP AND WAIT.",
+        "",
+        "### Plan",
+        "```markdown",
+        plan,
+        "```",
+        "",
+        wl ? `### Recent progress\n\`\`\`\n${wl}\n\`\`\`\n` : "",
+        "Read `_notes/plan.md`, find the first unchecked `- [ ]` TODO, and execute it.",
+        "If all TODOs are checked off, transition to auto-verify phase.",
+        "Follow work-implement skill: read files, implement, test, commit, check off TODO, log to worklog, call work_compact.",
+        "",
+        "⛔ AFTER THE TODO IS COMPLETE: STOP. Show the user: TODO text, changed files, test results.",
+        "Ask: \"Approve this TODO? Then run `/compact` and `/work:next` for the next one.\"",
+        "Do NOT proceed to the next TODO. Do NOT do any more work. WAIT for the user.",
+      ].filter(Boolean).join("\n");
+
+      pi.sendUserMessage(msg);
+      ctx.ui.notify("Executing next TODO...", "info");
+    },
+  });
+
+  const abandonHandler = async (ctx: any) => {
+    const sf = resolveSettingsFile(ctx.cwd);
+    if (!sf) {
+      ctx.ui.notify("No active work to cancel.", "info");
+      updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
+      return;
+    }
+
+    const s = state.readSettings(sf);
+    if (!s) {
+      ctx.ui.notify("Cannot read work settings.", "error");
+      return;
+    }
+
+    const result = fsm.cancel(s);
+    state.updateSettings(sf, result.newState);
+    const messages = executeEffects(result.effects, sf);
+    ctx.ui.notify("Work-manager cancelled.", "warning");
+    if (messages) pi.sendUserMessage(messages);
+    updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
+  };
 
   pi.registerCommand("work:abandon", {
     description: "Cancel work-manager flow for this workspace",
-    handler: async (_args, ctx) => {
-      const sf = resolveSettingsFile(ctx.cwd);
-      if (!sf) {
-        ctx.ui.notify("No active work to cancel.", "info");
-        return;
-      }
-
-      const s = state.readSettings(sf);
-      if (!s) {
-        ctx.ui.notify("Cannot read work settings.", "error");
-        return;
-      }
-
-      const result = fsm.cancel(s);
-      state.updateSettings(sf, result.newState);
-      const messages = executeEffects(result.effects, sf);
-      ctx.ui.notify("Work-manager cancelled.", "warning");
-      if (messages) pi.sendUserMessage(messages);
-    },
+    handler: async (_args, ctx) => abandonHandler(ctx),
   });
 
-  pi.registerCommand("work:off", {
-    description: "Disable work tracking for this session",
-    handler: async (_args, ctx) => {
-      const sf = resolveSettingsFile(ctx.cwd);
-      if (!sf) {
-        ctx.ui.notify("No active work to disable.", "info");
-        return;
-      }
-
-      const s = state.readSettings(sf);
-      if (!s) {
-        ctx.ui.notify("Cannot read work settings.", "error");
-        return;
-      }
-
-      const result = fsm.cancel(s);
-      state.updateSettings(sf, result.newState);
-      const messages = executeEffects(result.effects, sf);
-      ctx.ui.notify("Work tracking disabled.", "warning");
-      if (messages) pi.sendUserMessage(messages);
-    },
+  // Alias for compatibility with command namespaces users type in Claude.
+  pi.registerCommand("work-manager:work-abandon", {
+    description: "Alias of /work:abandon",
+    handler: async (_args, ctx) => abandonHandler(ctx),
   });
 }
 
 export default function (pi: ExtensionAPI) {
   registerCommands(pi);
+
+  pi.on("session_start", async (_event, ctx) => {
+    updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
+  });
+
+  pi.on("before_agent_start", async (_event, ctx) => {
+    updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
+  });
 
   pi.on("tool_call", async (event, ctx) => {
     if (!["bash", "edit", "write"].includes(event.toolName)) return;
@@ -355,7 +458,9 @@ export default function (pi: ExtensionAPI) {
       to: Type.Union([
         Type.Literal("research"),
         Type.Literal("plan"),
+        Type.Literal("plan-verify"),
         Type.Literal("implement"),
+        Type.Literal("todo-done"),
         Type.Literal("verify"),
         Type.Literal("verified"),
       ]),
@@ -486,15 +591,19 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerTool({
-    name: "work_off",
-    label: "Work Off",
-    description: "Disable work tracking for current session",
+    name: "work_abandon",
+    label: "Work Abandon",
+    description: "Cancel active work-manager flow",
     parameters: Type.Object({}),
     async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
       const sf = resolveSettingsFile(ctx.cwd || CWD);
-      if (!sf) return { content: [{ type: "text", text: "No active work to disable." }] };
-      state.updateSettings(sf, { status: "done" });
-      return { content: [{ type: "text", text: "Work tracking disabled for this session." }] };
+      if (!sf) return { content: [{ type: "text", text: "No active work to cancel." }] };
+      const s = state.readSettings(sf);
+      if (!s) return { content: [{ type: "text", text: "Cannot read work settings." }] };
+      const result = fsm.cancel(s);
+      state.updateSettings(sf, result.newState);
+      updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
+      return { content: [{ type: "text", text: "Work-manager cancelled." }] };
     },
   });
 }

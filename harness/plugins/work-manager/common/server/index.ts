@@ -200,10 +200,10 @@ server.tool(
 
 server.tool(
   "work_transition",
-  "Transition between work phases (research, plan, plan-verify, implement, verify, verified)",
+  "Transition between work phases (research, plan, plan-verify, implement, todo-done, verify, verified)",
   {
     to: z
-      .enum(["research", "plan", "plan-verify", "implement", "verify", "verified"])
+      .enum(["research", "plan", "plan-verify", "implement", "todo-done", "verify", "verified"])
       .describe("Target phase"),
     feedback: z.string().optional().describe("User feedback (for plan transition)"),
     focus: z.string().optional().describe("Focus area (for implement transition)"),
@@ -357,6 +357,7 @@ server.tool(
     const phaseSkillMap: Record<string, string> = {
       research: "work-research",
       plan: "work-plan",
+      "plan-verify": "work-plan-verifier",
       implement: "work-implement",
       verify: "work-verify",
       "auto-verify": "work-auto-verify",
