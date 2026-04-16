@@ -13,6 +13,7 @@ Use this skill only when the user is explicitly changing agent infrastructure (s
 Do **not** use it for normal feature coding, bug fixes, or repository-only code changes.
 
 If the user asks for a single-agent local experiment, confirm scope before enforcing dual-agent wiring.
+If the request is "change an existing extension" (without adding new tool surface), default to minimal in-place edits instead of proposing full plugin wiring.
 
 ## Architecture
 
@@ -215,13 +216,19 @@ readlink ~/.pi/agent/.mcp.json
 ## Pre-change checklist
 
 - [ ] Restate requested scope (skill/plugin/MCP/hook; Pi/Claude/both)
+- [ ] Classify request: **new infra wiring** vs **modify existing extension behavior**
 - [ ] Confirm target paths before editing
 - [ ] Prefer minimal changes; avoid unrelated refactors
-- [ ] After edits, verify registrations/symlinks with concrete checks
+- [ ] After edits, verify registrations/symlinks with concrete checks (only when wiring was changed)
+
+### Scope decision rule (prevents "no changes with extension")
+
+- **Modify existing extension only**: edit the requested extension files directly; do not block on dual-agent registration unless a new tool/command/hook/server is introduced.
+- **Add new capability surface** (new skill/MCP server/hook/plugin/command): apply full dual-agent wiring and verification.
 
 ## Rules
 
-- **Never add a tool to only one agent.** Always both.
+- **Never add a new tool surface to only one agent.** Always both.
 - Skills live in `dotfiles/skills/` — never directly in agent dirs.
 - Plugins live in `dotfiles/harness/plugins/<name>/` with `common/`, `pi/`, `claude/` dirs.
 - MCP config lives in `dotfiles/.mcp.json` — never edit symlink targets directly.
