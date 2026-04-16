@@ -16,11 +16,11 @@ Display the following usage guide:
 | `/work:start` | Begin new work — creates `_notes/`, phase = plan |
 | `/work:status` | Show current work status and progress |
 | `/work:implement` | Enter implement phase (from plan only) |
-| `/work:continue` | Continue implement phase with the next TODO |
+| `/work:next` | Execute the next unchecked TODO, commit, then stop |
 | `/work:abandon` | Cancel work-manager flow for this workspace |
 | `/work:abandon-skill` | Run the skill-driven abandon flow |
 | `/work:finish` | Alias for `/work:abandon-skill` |
-| `/work:off` | Disable work tracking for this session (MCP/tool-level) |
+| `/work:off` | Removed (use `/work:abandon`) |
 | `/work:help` | This guide |
 
 ### Phases & Flow
@@ -72,4 +72,5 @@ research -> plan -> implement -> auto-verify -> verify -> verified
 | `work_guard` | Check if tool call is allowed |
 | `work_context` | Get phase instructions + plan |
 | `work_compact` | Signal TODO completion |
-| `work_off` | Disable tracking |
+| `work_next` | Prepare next TODO execution prompt |
+| `work_abandon` | Cancel active work-manager flow |

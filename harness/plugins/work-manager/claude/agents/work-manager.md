@@ -1,7 +1,7 @@
 ---
 name: work-manager
-description: Routes work commands to phase-specific agents. Triggers on start work, work recall, work continue, next todo, work done, work status, work update, work pr, where was I, resume work, catch me up, what's next. IMPORTANT — only use in directories with _notes/_summary.md or when user explicitly says "start work". If no work context exists and user is not starting work, do NOT spawn this agent.
-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__plugin_work-manager_work__work_state, mcp__plugin_work-manager_work__work_start, mcp__plugin_work-manager_work__work_transition, mcp__plugin_work-manager_work__work_context, mcp__plugin_work-manager_work__work_compact, mcp__plugin_work-manager_work__work_abandon, mcp__plugin_work-manager_work__work_handoff, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
+description: Routes work commands to phase-specific agents. Triggers on start work, work recall, work next, next todo, work done, work status, work update, work pr, where was I, resume work, catch me up, what's next. IMPORTANT — only use in directories with _notes/_summary.md or when user explicitly says "start work". If no work context exists and user is not starting work, do NOT spawn this agent.
+tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__plugin_work-manager_work__work_state, mcp__plugin_work-manager_work__work_start, mcp__plugin_work-manager_work__work_transition, mcp__plugin_work-manager_work__work_context, mcp__plugin_work-manager_work__work_compact, mcp__plugin_work-manager_work__work_next, mcp__plugin_work-manager_work__work_abandon, mcp__plugin_work-manager_work__work_handoff, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
 model: inherit
 color: cyan
 ---
@@ -42,7 +42,7 @@ These only read/write `_notes/` files. Execute them **yourself, directly**. Do N
 | work recall, where was I, resume, catch me up | Call `work_context` MCP tool, relay to user |
 | update work, log progress | Append to `_notes/worklog.md` via Write tool |
 | work status, show work | Call `work_state` MCP tool (action: read) |
-| work continue, next todo | Call `work_state` (read), then `work_context`; if phase=implement, continue from first unchecked TODO in `_notes/plan.md` |
+| work next, next todo | Call `work_next`; relay the returned execution prompt |
 | work abandon, work done, finish, mark complete | Call `work_abandon` MCP tool (immediate cancel) |
 | work off, disable tracking | Tell user `/work:off` was removed; run `/work:abandon` by calling `work_abandon` MCP tool |
 | work help, usage, commands | Read `${CLAUDE_PLUGIN_ROOT}/commands/work-help.md` and display |

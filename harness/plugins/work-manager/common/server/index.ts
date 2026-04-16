@@ -55,6 +55,35 @@ function makeEffectContext(settingsFile: string): EffectContext {
   };
 }
 
+function buildWorkNextPrompt(notesDir: string): string {
+  const planPath = path.join(notesDir, "plan.md");
+  const plan = notes.readFileOr(planPath, "");
+  if (!plan) {
+    return "No plan found at _notes/plan.md.";
+  }
+
+  const wl = notes.worklogTail(notesDir, 5);
+  return [
+    "## /work:next — Execute ONE TODO then STOP",
+    "",
+    "⛔ YOU MUST EXECUTE EXACTLY ONE TODO. AFTER THAT TODO IS DONE, STOP IMMEDIATELY AND ASK THE USER FOR APPROVAL. DO NOT START THE NEXT TODO. DO NOT CONTINUE WORKING. STOP AND WAIT.",
+    "",
+    "### Plan",
+    "```markdown",
+    plan,
+    "```",
+    "",
+    wl ? `### Recent progress\n\`\`\`\n${wl}\n\`\`\`\n` : "",
+    "Read `_notes/plan.md`, find the first unchecked `- [ ]` TODO, and execute it.",
+    "If all TODOs are checked off, transition to auto-verify phase.",
+    "Follow work-implement skill: read files, implement, test, commit, check off TODO, log to worklog, call work_compact.",
+    "",
+    "⛔ AFTER THE TODO IS COMPLETE: STOP. Show the user: TODO text, changed files, test results.",
+    "Ask: \"Approve this TODO? Then run `/compact` and `/work:next` for the next one.\"",
+    "Do NOT proceed to the next TODO. Do NOT do any more work. WAIT for the user.",
+  ].filter(Boolean).join("\n");
+}
+
 // --- MCP Server ---
 
 const server = new McpServer({
@@ -441,6 +470,41 @@ server.tool(
           text: `TODO completed and logged: ${summary}`, 
         },
       ],
+    };
+  },
+);
+
+// --- Tool: work_next ---
+
+server.tool(
+  "work_next",
+  "Prepare next TODO execution prompt in implement phase",
+  {},
+  async () => {
+    const sf = resolveSettingsFile();
+    if (!sf) {
+      return {
+        content: [{ type: "text" as const, text: "No active work found. Use /work:start." }],
+      };
+    }
+
+    const settings = state.readSettings(sf);
+    if (!settings) {
+      return {
+        content: [{ type: "text" as const, text: "Cannot read work settings." }],
+      };
+    }
+
+    if (settings.phase !== "implement") {
+      return {
+        content: [{ type: "text" as const, text: `Phase is '${settings.phase}', not implement. Use /work:implement first.` }],
+      };
+    }
+
+    const notesDir = resolveNotesDir(sf);
+    const prompt = buildWorkNextPrompt(notesDir);
+    return {
+      content: [{ type: "text" as const, text: prompt }],
     };
   },
 );
