@@ -1,9 +1,9 @@
 {
-  "phase": "implement",
+  "phase": "plan",
   "phaseBeforeTodo": null,
   "workId": "claude-skill-stats",
   "name": "claude-skill-stats",
-  "status": "active",
+  "status": "done",
   "branch": "claude-skill-stats",
   "worktreePath": null,
   "worktreeBranch": null,
@@ -40,6 +40,7 @@
     "gh run view",
     "gh repo view"
   ],
+  "planVerified": true,
   "work_id": "claude-skill-stats",
   "plan_file": "_notes/plan.md",
   "started": "2026-04-12"

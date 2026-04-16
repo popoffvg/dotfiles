@@ -250,7 +250,7 @@ function transitionToVerify(
 ): TransitionResult {
   const effects: SideEffect[] = [
     { kind: "worklog", entry: `Phase transition: ${from} → verify` },
-    { kind: "inject_skill", skill: "work-auto-verify" },
+    { kind: "inject_skill", skill: "work-verify" },
   ];
 
   effects.push({ kind: "set_model", model: "opus" });

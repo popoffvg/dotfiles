@@ -5,49 +5,51 @@ description: This skill should be used when the user says "idea", "I have an ide
 
 # Idea
 
-Capture ideas with full context so they're actionable later. **Always uses subagents** — never do inline work.
+Capture ideas with full context so they're actionable later.
 
 ## Usage
 
 `/idea <description of the idea>`
 
-## Storage
-
-Ideas are saved to `~/ctx/insights/_ideas/<slug>.md` — one file per idea.
-
 ## Procedure
 
-1. **Spawn a context-gathering subagent** (Explore type) to collect:
-   - Current repo name (`git rev-parse --show-toplevel | xargs basename`)
-   - Current branch
-   - Recently changed files (`git diff --name-only HEAD~3..HEAD 2>/dev/null`)
-   - Active work context: check `_notes/plan.md` or `.pi/work.settings.json` if they exist
+1. **Gather context inline** (fast, no subagent):
+   - Repo name: `git rev-parse --show-toplevel | xargs basename`
+   - Branch: `git branch --show-current`
+   - Recent files: `git diff --name-only HEAD~3..HEAD 2>/dev/null`
 
-2. **Spawn an idea-writer subagent** (general-purpose) with the gathered context. The subagent must:
-   - Generate a slug from the idea title (lowercase, hyphens, max 60 chars)
-   - Write the idea file to `~/ctx/insights/_ideas/<slug>.md` using this format:
+2. **Spawn context-keeper agent** (haiku model) with this prompt:
 
-```markdown
-## <Idea title, 5-10 words> — YYYY-MM-DD HH:MM
+```
+Save an idea to memory. Use `memory_save` with type=`task` and the following content:
+
+## <Idea title, 5-10 words> — <date>
 
 **Context:** <repo> / <branch>
-**Related files:** <recently changed files, if relevant to the idea>
-**Work context:** <active task summary, if any>
+**Related files:** <recently changed files, if relevant>
 
-<1-3 paragraphs expanding the idea. Include:
-- What problem it solves or what it improves
-- Rough approach or key insight
-- Any constraints or dependencies noticed>
+<1-2 paragraphs expanding the idea: what it solves, rough approach, constraints>
 
 ### Open questions
 - <Things to figure out before implementing>
+
+---
+Idea text: <user's idea>
+Repo: <repo>
+Branch: <branch>
+Recent files: <files>
 ```
 
-3. **Report** the saved file path and a one-line summary to the user.
+   The agent must:
+   - First call `memory_context` to check for duplicate ideas
+   - Then call `memory_save` with the formatted content
+
+3. **Also write** the idea to `~/ctx/insights/_ideas/<slug>.md` (slug: lowercase, hyphens, max 60 chars) as a file backup.
+
+4. **Report** the saved path and a one-line summary to the user.
 
 ## Rules
 
-- **Never save inline** — always delegate to subagents
-- **Never skip context** — even if the idea seems simple, gather repo/branch/work state
-- **One idea per file** — if the user gives multiple ideas, spawn parallel subagents
-- **Dedup check** — the writer subagent should `ls ~/ctx/insights/_ideas/` and scan for duplicates by title similarity before writing. If a match exists, append to the existing file instead of creating a new one.
+- **Use context-keeper agent** (haiku) for memory operations — never call MCP tools directly
+- **One idea per invocation** — if the user gives multiple, spawn parallel agents
+- **Dedup** — the agent checks memory before saving; if a match exists, it appends instead

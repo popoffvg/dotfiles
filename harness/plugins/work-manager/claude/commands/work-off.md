@@ -1,7 +1,9 @@
 ---
 name: work-off
-description: Disable work tracking for current session
+description: Deprecated alias — use work-abandon
 ---
 
-1. Call `work_off` MCP tool
-2. Confirm: "Work tracking disabled. Normal chat mode."
+`/work:off` was removed.
+
+1. Call `work_abandon` MCP tool.
+2. Confirm: "`/work:off` is deprecated; work-manager cancelled via `/work:abandon`."

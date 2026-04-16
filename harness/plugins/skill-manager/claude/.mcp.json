@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "skills": {
+      "command": "bash",
+      "args": ["-c", "PLUGIN_ROOT=\"${CLAUDE_PLUGIN_ROOT}\" npx tsx \"${CLAUDE_PLUGIN_ROOT}/common/server/index.ts\""],
+      "env": {
+        "PLUGIN_ROOT": "${CLAUDE_PLUGIN_ROOT}"
+      }
+    }
+  }
+}

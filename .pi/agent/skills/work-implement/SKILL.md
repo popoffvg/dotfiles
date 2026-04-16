@@ -111,6 +111,8 @@ The fixup commits will be squashed into their targets later via `git rebase -i -
 - After such correction, restate the active mode in one line ("implement phase: execute next TODO action") and immediately perform a concrete implementation step.
 - Do **not** switch to meta/review narration first (for example, lengthy reviewer workflow explanation) unless the user explicitly asked for review.
 - If the user asks for **skill maintenance during implement** (e.g. "auto-improve work-implement"), do that maintenance task directly in the referenced skill file before returning to code TODO execution.
+- If you presented options and the user picks one (for example, "option A"), execute that option immediately. Do not re-open option discussion.
+- If selected option says to "read the skills" or "read Pi logic", perform those reads first, then continue implementation actions.
 
 ## Step 3: Log progress to worklog
 

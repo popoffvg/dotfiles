@@ -8,6 +8,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { WorkSettings } from "./types";
+export type { WorkSettings };
 
 const SETTINGS_FILE = ".pi/work.settings.json";
 
@@ -55,6 +56,7 @@ export const DEFAULTS: WorkSettings = {
   worktreeBranch: null,
   approveCommits: true,
   planAllowedCommands: DEFAULT_PLAN_ALLOWED_COMMANDS,
+  planVerified: false,
 };
 
 /** Resolve the settings file path for a given directory */

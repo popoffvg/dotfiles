@@ -29,6 +29,16 @@ Examples:
 7. If nothing found → ask the user once where to search (e.g. specific repo, web, docs URL) and use the appropriate tool
 8. Present results with project/topic context and source file paths
 
+## Follow-up intent handling (critical)
+
+After presenting memory results, treat short follow-up messages as intent updates for the same task (for example: "yes, that's it, relaunch and add X dependency for Y").
+
+Rules:
+1. **Do not re-run context-find automatically** on confirmation-like follow-ups unless the user explicitly asks to search/recall again.
+2. If follow-up asks for an action (edit, relaunch, configure, add dependency), restate the action in one sentence and hand off to normal implementation flow.
+3. If target/service name is ambiguous (e.g., typo like `orb` vs `orbs`), ask one focused clarification question; otherwise execute directly.
+4. Keep memory context as evidence only; do not block execution behind another memory-search round.
+
 ## List Procedure
 
 1. Read `<insights_root>/INDEX.md` for project overview
@@ -51,6 +61,7 @@ Examples:
 3. Did the agent present findings with source file paths (not just content)?
 4. Was the insights_root config read before searching?
 5. Did the agent complete the search without asking any yes/no confirmation questions mid-procedure?
+6. On a confirmation-like follow-up with an action request, did the agent avoid re-invoking context-find and switch to execution/clarification?
 
 **Test inputs:**
 - "Recall what I know about Kubernetes debugging patterns"

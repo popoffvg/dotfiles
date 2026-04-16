@@ -1,7 +1,28 @@
-import { List, Action, ActionPanel, Form, showToast, Toast, Icon, Color, closeMainWindow, popToRoot, LocalStorage } from "@raycast/api";
+import {
+  List,
+  Action,
+  ActionPanel,
+  Form,
+  showToast,
+  Toast,
+  Icon,
+  Color,
+  closeMainWindow,
+  popToRoot,
+  LocalStorage,
+} from "@raycast/api";
 import { useState, useCallback, useEffect } from "react";
 import { usePromise } from "@raycast/utils";
-import { listSpaces, gotoSpace, removeSpace, createSpace, renameSpace, Space } from "./hammerspoon";
+import {
+  listSpaces,
+  gotoSpace,
+  removeSpace,
+  createSpace,
+  renameSpace,
+  Space,
+  createCodeSpace,
+  syncCmuxForSpace,
+} from "./hammerspoon";
 import { RenameForm } from "./rename-form";
 import { WindowList } from "./window-list";
 
@@ -10,6 +31,7 @@ const ALL_SCREENS_KEY = "allScreens";
 export default function ListSpacesCommand() {
   const [renaming, setRenaming] = useState<Space | null>(null);
   const [creating, setCreating] = useState(false);
+  const [creatingCodeSpace, setCreatingCodeSpace] = useState(false);
   const [allScreens, setAllScreens] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
@@ -20,28 +42,53 @@ export default function ListSpacesCommand() {
     });
   }, []);
 
-  const { data: spaces, isLoading, revalidate } = usePromise(listSpaces, [allScreens], { execute: loaded });
+  const {
+    data: spaces,
+    isLoading,
+    revalidate,
+  } = usePromise(listSpaces, [allScreens], { execute: loaded });
 
   const handleSwitch = useCallback(async (space: Space) => {
     try {
       popToRoot();
       await closeMainWindow();
       gotoSpace(space.id);
+
+      const cmuxResults = syncCmuxForSpace(space.id);
+      const cmuxFailure = cmuxResults.find((r) => !r.ok);
+      if (cmuxFailure) {
+        await showToast({
+          style: Toast.Style.Failure,
+          title: "Switched space, cmux sync failed",
+          message: cmuxFailure.detail,
+        });
+      }
     } catch {
-      await showToast({ style: Toast.Style.Failure, title: "Failed to switch" });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to switch",
+      });
     }
   }, []);
 
-  const handleDelete = useCallback(async (space: Space) => {
-    try {
-      removeSpace(space.id);
-      await showToast({ style: Toast.Style.Success, title: `Removed ${space.name}` });
-      revalidate();
-    } catch {
-      await showToast({ style: Toast.Style.Failure, title: "Failed to remove" });
-    }
-  }, [revalidate]);
-
+  const handleDelete = useCallback(
+    async (space: Space) => {
+      try {
+        removeSpace(space.id);
+        await showToast({
+          style: Toast.Style.Success,
+          title: `Removed ${space.name}`,
+        });
+        revalidate();
+      } catch {
+        await showToast({
+          style: Toast.Style.Failure,
+          title: "Failed to remove",
+        });
+      }
+    },
+    [revalidate],
+  );
 
   const handleCreateSubmit = useCallback(async (values: { name: string }) => {
     try {
@@ -49,14 +96,64 @@ export default function ListSpacesCommand() {
       if (values.name.trim()) {
         renameSpace(newID, values.name.trim());
       }
-      await showToast({ style: Toast.Style.Success, title: `Created: ${values.name.trim() || "Unnamed"}` });
+      await showToast({
+        style: Toast.Style.Success,
+        title: `Created: ${values.name.trim() || "Unnamed"}`,
+      });
       setCreating(false);
       await closeMainWindow();
       gotoSpace(newID);
     } catch {
-      await showToast({ style: Toast.Style.Failure, title: "Failed to create space" });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to create space",
+      });
     }
   }, []);
+
+  const handleCreateCodeSpaceSubmit = useCallback(
+    async (values: { name: string }) => {
+      const name = values.name.trim();
+      if (!name) {
+        await showToast({
+          style: Toast.Style.Failure,
+          title: "Space name is required",
+        });
+        return;
+      }
+
+      try {
+        const result = createCodeSpace(name);
+        setCreatingCodeSpace(false);
+        await closeMainWindow();
+        gotoSpace(result.spaceID);
+
+        const failed = result.stepResults.filter((s) => !s.ok);
+        if (failed.length === 0) {
+          await showToast({
+            style: Toast.Style.Success,
+            title: `Code space created: ${name}`,
+          });
+        } else {
+          const first = failed[0];
+          await showToast({
+            style: Toast.Style.Failure,
+            title: `Code space partial failure: ${first?.errorCode ?? "unknown"}`,
+            message: first?.detail,
+          });
+        }
+
+        revalidate();
+      } catch (error) {
+        await showToast({
+          style: Toast.Style.Failure,
+          title: "Failed to create code space",
+          message: String(error),
+        });
+      }
+    },
+    [revalidate],
+  );
 
   const toggleScreens = useCallback(() => {
     setAllScreens((prev) => {
@@ -88,12 +185,39 @@ export default function ListSpacesCommand() {
           </ActionPanel>
         }
       >
-        <Form.TextField id="name" title="Space Name" placeholder="e.g. Work, Personal, Music" autoFocus />
+        <Form.TextField
+          id="name"
+          title="Space Name"
+          placeholder="e.g. Work, Personal, Music"
+          autoFocus
+        />
       </Form>
     );
   }
 
-  // Group spaces by screen when showing all
+  if (creatingCodeSpace) {
+    return (
+      <Form
+        navigationTitle="Create Code Space"
+        actions={
+          <ActionPanel>
+            <Action.SubmitForm
+              title="Create Code Space"
+              onSubmit={handleCreateCodeSpaceSubmit}
+            />
+          </ActionPanel>
+        }
+      >
+        <Form.TextField
+          id="name"
+          title="Space Name"
+          placeholder="e.g. feature-auth, client-bugfix"
+          autoFocus
+        />
+      </Form>
+    );
+  }
+
   const screens = new Map<string, Space[]>();
   for (const space of spaces ?? []) {
     const list = screens.get(space.screen) ?? [];
@@ -106,23 +230,32 @@ export default function ListSpacesCommand() {
       key={space.id}
       title={space.name}
       subtitle={space.type === "user" ? `Space ${space.index}` : "Fullscreen"}
-      icon={space.active
-        ? { source: Icon.CircleFilled, tintColor: Color.Green }
-        : space.type === "fullscreen"
-          ? { source: Icon.AppWindowGrid2x2, tintColor: Color.SecondaryText }
-          : { source: Icon.Circle, tintColor: Color.SecondaryText }
+      icon={
+        space.active
+          ? { source: Icon.CircleFilled, tintColor: Color.Green }
+          : space.type === "fullscreen"
+            ? { source: Icon.AppWindowGrid2x2, tintColor: Color.SecondaryText }
+            : { source: Icon.Circle, tintColor: Color.SecondaryText }
       }
       accessories={[
         { text: "⌘O switch" },
         ...(space.index <= 9 ? [{ text: `⌃${space.index}` }] : []),
-        ...(space.active ? [{ tag: { value: "active", color: Color.Green } }] : []),
+        ...(space.active
+          ? [{ tag: { value: "active", color: Color.Green } }]
+          : []),
       ]}
       actions={
         <ActionPanel>
           <Action.Push
             title="Show Windows"
             icon={Icon.AppWindowList}
-            target={<WindowList spaceID={space.id} spaceName={space.name} isActive={space.active} />}
+            target={
+              <WindowList
+                spaceID={space.id}
+                spaceName={space.name}
+                isActive={space.active}
+              />
+            }
           />
           <Action
             title="Switch to Space"
@@ -132,7 +265,12 @@ export default function ListSpacesCommand() {
           />
 
           {space.type === "user" && (
-            <Action title="Rename" icon={Icon.Pencil} shortcut={{ modifiers: ["cmd"], key: "r" }} onAction={() => setRenaming(space)} />
+            <Action
+              title="Rename"
+              icon={Icon.Pencil}
+              shortcut={{ modifiers: ["cmd"], key: "r" }}
+              onAction={() => setRenaming(space)}
+            />
           )}
           <Action
             title={allScreens ? "Current Screen Only" : "All Screens"}
@@ -140,8 +278,24 @@ export default function ListSpacesCommand() {
             shortcut={{ modifiers: ["cmd", "shift"], key: "a" }}
             onAction={toggleScreens}
           />
-          <Action title="Create New Space" icon={Icon.Plus} shortcut={{ modifiers: ["cmd"], key: "n" }} onAction={() => setCreating(true)} />
-          <Action title="Refresh" icon={Icon.ArrowClockwise} shortcut={{ modifiers: ["cmd"], key: "e" }} onAction={revalidate} />
+          <Action
+            title="Create New Space"
+            icon={Icon.Plus}
+            shortcut={{ modifiers: ["cmd"], key: "n" }}
+            onAction={() => setCreating(true)}
+          />
+          <Action
+            title="Create Code Space"
+            icon={Icon.Code}
+            shortcut={{ modifiers: ["cmd", "shift"], key: "n" }}
+            onAction={() => setCreatingCodeSpace(true)}
+          />
+          <Action
+            title="Refresh"
+            icon={Icon.ArrowClockwise}
+            shortcut={{ modifiers: ["cmd"], key: "e" }}
+            onAction={revalidate}
+          />
           {space.type === "user" && (
             <Action
               title="Delete Space"
@@ -164,8 +318,7 @@ export default function ListSpacesCommand() {
               {screenSpaces.map(renderItem)}
             </List.Section>
           ))
-        : spaces?.map(renderItem)
-      }
+        : spaces?.map(renderItem)}
     </List>
   );
 }

@@ -1,0 +1,8 @@
+{
+  "shortcuts": {
+    "bindings": {
+      "selectWorkspaceByNumber": "cmd+1",
+      "selectSurfaceByNumber": "cmd+shift+1"
+    }
+  }
+}

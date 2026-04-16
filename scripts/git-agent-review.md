@@ -54,7 +54,7 @@ Space-R    staged files only
 ```
   a5e94a1 2026-04-04 anti-thrash, squash support (you)
 ▸ cd9fd0f 2026-04-05 auto-improve self-reflection (you)    │ git show --stat
-  ef1b912 2026-04-06 auto-improve work-auto-verify (you)   │ (right pane)
+  ef1b912 2026-04-06 auto-improve work-verify-gate (you)   │ (right pane)
 ```
 
 - `TAB` — mark/unmark a commit

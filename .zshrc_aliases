@@ -6,5 +6,6 @@ alias ll='eza -la'
 alias lt='eza --tree --level=2'
 alias pltmp='pl-db-cli --db-dir=/tmp/db'
 
+
 # direnv
 eval "$(direnv hook zsh)"

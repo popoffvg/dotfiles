@@ -5,3 +5,11 @@ FIRECRAWL_API_KEY = "fc-6369ed54b3374805af4b30196cd98c83"
 [tools]
 neovim = "latest"
 go = "1.23.7"
+
+[tasks.openrouter-env]
+description = "Print export command for OPENROUTER_API_KEY from macOS Keychain"
+run = "echo \"export OPENROUTER_API_KEY=$(security find-generic-password -s OPENROUTER_API_KEY -w 2>/dev/null)\""
+
+[tasks.openrouter-check]
+description = "Check if OPENROUTER_API_KEY is available in current shell"
+run = "[ -n \"$OPENROUTER_API_KEY\" ] && echo OPENROUTER_API_KEY=SET || echo OPENROUTER_API_KEY=NOT_SET"

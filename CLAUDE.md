@@ -32,7 +32,6 @@ Each plugin targets **Pi**, **Claude Code**, or both. Pi side: `<name>/pi/index.
 | **memory-keeper** | commands, cron, renderers | agents, skills, hooks, MCP (SSE) | Long-lived daemon (port 7420): SQLite queue, async insight extraction |
 | **work-manager** | — | agents (4), commands, hooks, statusline | Work phase management: plan → research → implement → verify → done |
 | **work** | commands, state, phase transitions | — | Work phase state machine, Pi-side commands |
-| **atom** | subtask execution | — | Atomic subtask with `TASK.md` and `_notes/` tracking |
 | **skill-manager** | skill loading, overrides | — | Skill usage tracking |
 | **smart-commit** | commit generation | — | Intelligent commit messages |
 | **plugin-workflow** | lifecycle coordination | — | Plugin lifecycle events |

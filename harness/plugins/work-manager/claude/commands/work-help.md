@@ -26,25 +26,23 @@ Display the following usage guide:
 ### Phases & Flow
 
 ```
-research -> plan -> implement -> auto-verify -> verify -> verified
-              ^         ^           |                       |
-              |         <-----------< (issues)              |
-              <---------------------------------------------<
+research -> plan -> implement -> verify -> verified
+              ^         ^           |              |
+              |         <-----------< (issues)     |
+              <------------------------------------<
 ```
 
 | Phase | Description | Transition |
 |-------|-------------|------------|
 | **research** | Explore, gather context | -> plan |
 | **plan** | Build task list, criteria | -> implement (via command) |
-| **implement** | Execute plan autonomously | -> auto-verify (auto) |
-| **auto-verify** | LLM reviews diff vs plan | -> verify or -> implement |
+| **implement** | Execute plan autonomously | -> verify |
 | **verify** | User approves or rejects | -> verified or -> plan |
 | **verified** | Done, normal chat mode | -> plan (if more work) |
 
 ### Key Rules
 
 - **plan -> implement**: must use explicit transition command
-- **auto-verify**: independent review of full diff, no code execution
 - **Each TODO = one git commit** during implement
 - **work_compact** called after each TODO to free context
 - `_notes/` has its own git repo for plan evolution tracking

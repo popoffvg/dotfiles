@@ -1,8 +1,8 @@
 ---
 name: work-commit
 description: >
-  Git commit message conventions. Used during implement phase when
-  committing after each completed TODO.
+  Git commit message conventions. Use only when a commit is explicitly
+  requested or when implement-phase workflow says to commit completed TODOs.
 ---
 
 # Commit Message Rules
@@ -57,6 +57,13 @@ git commit -m "<prefix>: <unified why covering all N changes>"
 ```
 
 The unified message must cover the full scope — do not just repeat the first TODO's message.
+
+## Activation guardrails
+
+- Do not activate this skill during research-only work.
+- If user asks to return to research, stop commit planning immediately.
+- Never infer "time to commit" from progress alone; wait for explicit user request or implement-phase commit step.
+- If user gives a direct workflow correction (e.g., "do research now"), that instruction overrides this skill.
 
 ## Autoresearch rules
 

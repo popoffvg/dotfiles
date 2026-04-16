@@ -23,6 +23,14 @@ Present a compact summary:
 
 ## Step 2: Wait for user feedback
 
+## Option-selection handling (friction guard)
+
+If you offered options and the user chooses one (for example, "option A"):
+- Treat that as a concrete instruction.
+- Execute the chosen verify-path response immediately (approve route vs return-to-plan route).
+- Do not re-list the same options unless the user request remains ambiguous.
+- If the chosen option asks to "read the skills" or "read Pi logic", do those reads before responding.
+
 The user may:
 - **Approve** — all criteria met, move to `/work:done`
 - **Request changes** — specific feedback on what to fix or redo

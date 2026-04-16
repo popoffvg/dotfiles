@@ -1,8 +1,22 @@
-keybind = unconsumed:ctrl+k=goto_split:top
-keybind = unconsumed:ctrl+j=goto_split:bottom
-keybind = unconsumed:ctrl+h=goto_split:left
-keybind = unconsumed:ctrl+l=goto_split:right
 keybind = global:cmd+grave_accent=toggle_quick_terminal
+keybind = cmd+k=text:\x02
+
+# Pane navigation (aligned with VS Code ctrl+arrow)
+keybind = ctrl+right=goto_split:right
+keybind = ctrl+left=goto_split:left
+keybind = ctrl+up=goto_split:up
+keybind = ctrl+down=goto_split:down
+
+# Pane switch (cmd+1/2 = previous/next split, overrides default goto_tab)
+keybind = cmd+1=goto_split:previous
+keybind = cmd+2=goto_split:next
+
+# Workspace switch (cmd+shift+N)
+keybind = cmd+shift+1=goto_tab:1
+keybind = cmd+shift+2=goto_tab:2
+keybind = cmd+shift+3=goto_tab:3
+keybind = cmd+shift+4=goto_tab:4
+keybind = cmd+shift+5=goto_tab:5
 
 theme = Monokai Pro
 macos-titlebar-style = tabs

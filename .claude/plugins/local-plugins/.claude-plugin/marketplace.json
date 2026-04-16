@@ -1,0 +1,32 @@
+{
+  "name": "local-plugins",
+  "owner": {
+    "name": "popoffvg"
+  },
+  "plugins": [
+    {
+      "name": "memory-keeper",
+      "source": "./memory-keeper",
+      "description": "Persistent knowledge management — automatic insight extraction, context injection, and memory search/save across sessions.",
+      "version": "0.2.0"
+    },
+    {
+      "name": "work-manager",
+      "source": "./work-manager",
+      "description": "Work lifecycle management v2 — phased workflows (research, plan, implement, verify) with MCP server, hooks, and agents.",
+      "version": "2.0.0"
+    },
+    {
+      "name": "trace",
+      "source": "./trace",
+      "description": "Navigate code flows with NAV markers at meaningful decision points, integrated with TODO Tree",
+      "version": "0.1.0"
+    },
+    {
+      "name": "agent-review",
+      "source": "./agent-review",
+      "description": "Agent review comments: MCP tools for state management, guard hook to block direct edits, and fix-comments skill.",
+      "version": "1.0.0"
+    }
+  ]
+}

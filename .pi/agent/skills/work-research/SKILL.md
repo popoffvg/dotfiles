@@ -27,6 +27,14 @@ Proceed? (y / n / adjust)
 
 ## Step 2: Explore each topic
 
+## Option-selection handling (friction guard)
+
+If you offered options and the user replies with a selection (for example, "option A"):
+- Treat it as approval to proceed with that exact path.
+- Start execution immediately; do not restate the same options.
+- If the user asks to "read the skills" or "read Pi logic", do that first, then continue research with those constraints.
+
+
 For each topic, gather information:
 - Search codebase for relevant files and patterns
 - Read key source files, configs, docs

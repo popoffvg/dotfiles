@@ -315,7 +315,7 @@ function registerCommands(pi: ExtensionAPI) {
         "",
         wl ? `### Recent progress\n\`\`\`\n${wl}\n\`\`\`\n` : "",
         "Read `_notes/plan.md`, find the first unchecked `- [ ]` TODO, and execute it.",
-        "If all TODOs are checked off, transition to auto-verify phase.",
+        "If all TODOs are checked off, transition to verify phase.",
         "Follow work-implement skill: read files, implement, test, commit, check off TODO, log to worklog, call work_compact.",
         "",
         "⛔ AFTER THE TODO IS COMPLETE: STOP. Show the user: TODO text, changed files, test results.",

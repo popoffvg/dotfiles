@@ -63,10 +63,14 @@ function buildWorkNextPrompt(notesDir: string): string {
   }
 
   const wl = notes.worklogTail(notesDir, 5);
+  const skill = loadSkill("work-implement");
+
   return [
     "## /work:next — Execute ONE TODO then STOP",
     "",
     "⛔ YOU MUST EXECUTE EXACTLY ONE TODO. AFTER THAT TODO IS DONE, STOP IMMEDIATELY AND ASK THE USER FOR APPROVAL. DO NOT START THE NEXT TODO. DO NOT CONTINUE WORKING. STOP AND WAIT.",
+    "",
+    skill ? "### Skill: work-implement\n" + skill : "",
     "",
     "### Plan",
     "```markdown",
@@ -75,7 +79,7 @@ function buildWorkNextPrompt(notesDir: string): string {
     "",
     wl ? `### Recent progress\n\`\`\`\n${wl}\n\`\`\`\n` : "",
     "Read `_notes/plan.md`, find the first unchecked `- [ ]` TODO, and execute it.",
-    "If all TODOs are checked off, transition to auto-verify phase.",
+    "If all TODOs are checked off, transition to verify phase."
     "Follow work-implement skill: read files, implement, test, commit, check off TODO, log to worklog, call work_compact.",
     "",
     "⛔ AFTER THE TODO IS COMPLETE: STOP. Show the user: TODO text, changed files, test results.",
@@ -389,7 +393,7 @@ server.tool(
       "plan-verify": "work-plan-verifier",
       implement: "work-implement",
       verify: "work-verify",
-      "auto-verify": "work-auto-verify",
+
     };
 
     const skillName = phaseSkillMap[settings.phase];

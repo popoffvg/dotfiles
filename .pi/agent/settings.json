@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.62.0",
+  "lastChangelogVersion": "0.67.3",
   "quietStartup": true,
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.3-codex",
@@ -12,12 +12,12 @@
     "~/Documents/git/dotfiles/harness/plugins/plugin-workflow/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/readmd-command/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/rtk/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/atom/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/prompt-rewriter/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/repo-context/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/skill-manager/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/smart-commit/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/work/pi/index.ts",
+    "~/Documents/git/dotfiles/harness/plugins/work-manager/pi/index.ts",
+    "~/Documents/git/dotfiles/harness/plugins/agent-review/pi/index.ts",
     "!~/Documents/git/dotfiles/harness/plugins/grepai/pi/index.ts"
   ],
   "skills": [
@@ -31,7 +31,8 @@
     "npm:@aaronmaturen/pi-context7",
     "npm:pi-subagents",
     "npm:pi-notify",
-    "npm:pi-fzf"
+    "npm:pi-fzf",
+    "npm:@plannotator/pi-extension"
   ],
   "defaultThinkingLevel": "low",
   "pi-tilth": {

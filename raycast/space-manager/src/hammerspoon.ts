@@ -18,10 +18,31 @@ export interface Space {
   screen: string;
 }
 
+export interface StepResult {
+  step: string;
+  ok: boolean;
+  errorCode?: "vscode" | "chrome" | "tmux" | "cmux" | "space";
+  detail?: string;
+}
+
+export interface CodeSpaceResult {
+  spaceID: number;
+  workspaceName: string;
+  stepResults: StepResult[];
+}
+
 function hs(lua: string): string {
   return execSync(`${HS_PATH} -c '${lua.replace(/'/g, "'\\''")}'`, {
     encoding: "utf-8",
     timeout: 10000,
+  }).trim();
+}
+
+function run(command: string, timeout = 10000): string {
+  return execSync(command, {
+    encoding: "utf-8",
+    timeout,
+    stdio: ["ignore", "pipe", "pipe"],
   }).trim();
 }
 
@@ -36,6 +57,203 @@ function loadNames(): Record<string, string> {
 function saveNames(names: Record<string, string>) {
   mkdirSync(NAMES_DIR, { recursive: true });
   writeFileSync(NAMES_FILE, JSON.stringify(names, null, 2));
+}
+
+export function normalizeWorkspaceName(
+  name: string,
+  fallbackID?: number,
+): string {
+  const normalized = name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9_-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^[-_]+|[-_]+$/g, "");
+
+  if (normalized.length > 0) return normalized;
+  return fallbackID ? `space-${fallbackID}` : "space-work";
+}
+
+function escapeShellArg(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+function ensureTmuxSession(sessionName: string): void {
+  const target = escapeShellArg(sessionName);
+  run(
+    `/opt/homebrew/bin/tmux has-session -t ${target} 2>/dev/null || /opt/homebrew/bin/tmux new-session -d -s ${target}`,
+  );
+}
+
+interface CmuxWorkspace {
+  ref: string;
+  title: string;
+}
+
+function listCmuxWorkspaces(): CmuxWorkspace[] {
+  const raw = run("cmux list-workspaces --json", 15000);
+  const parsed = JSON.parse(raw) as {
+    workspaces?: Array<{ ref?: string; title?: string }>;
+  };
+  return (parsed.workspaces ?? [])
+    .filter((w) => typeof w.ref === "string")
+    .map((w) => ({ ref: w.ref!, title: w.title ?? "" }));
+}
+
+function findCmuxWorkspaceByTitle(title: string): CmuxWorkspace | undefined {
+  const normalizedTitle = normalizeWorkspaceName(title);
+  const workspaces = listCmuxWorkspaces();
+  return workspaces.find(
+    (w) => normalizeWorkspaceName(w.title) === normalizedTitle,
+  );
+}
+
+function ensureCmuxWorkspace(title: string, cwd: string): string {
+  run(`cmux ${escapeShellArg(cwd)}`, 15000);
+
+  const existing = findCmuxWorkspaceByTitle(title);
+  if (existing) {
+    run(`cmux select-workspace --workspace ${escapeShellArg(existing.ref)}`);
+    return existing.ref;
+  }
+
+  const created = run(`cmux new-workspace --cwd ${escapeShellArg(cwd)}`);
+  const refMatch = created.match(/workspace:\d+/);
+  const createdRef = refMatch?.[0] ?? "";
+
+  if (createdRef) {
+    run(
+      `cmux rename-workspace --workspace ${escapeShellArg(createdRef)} ${escapeShellArg(title)}`,
+    );
+    run(`cmux select-workspace --workspace ${escapeShellArg(createdRef)}`);
+    return createdRef;
+  }
+
+  const afterCreate = findCmuxWorkspaceByTitle(title);
+  if (!afterCreate)
+    throw new Error("Could not resolve newly created cmux workspace");
+  run(`cmux select-workspace --workspace ${escapeShellArg(afterCreate.ref)}`);
+  return afterCreate.ref;
+}
+
+export function openVSCodeNewWindow(cwd: string): void {
+  run(`code -n ${escapeShellArg(cwd)}`);
+}
+
+export function openChromeNewWindow(): void {
+  run(`open -na 'Google Chrome' --args --new-window about:blank`);
+}
+
+export function createCodeSpace(
+  spaceName: string,
+  cwd = process.cwd(),
+): CodeSpaceResult {
+  const stepResults: StepResult[] = [];
+
+  let spaceID: number;
+  try {
+    spaceID = createSpace();
+    stepResults.push({ step: "create-space", ok: true });
+  } catch (error) {
+    stepResults.push({
+      step: "create-space",
+      ok: false,
+      errorCode: "space",
+      detail: String(error),
+    });
+    throw new Error("Failed to create macOS space");
+  }
+
+  const workspaceName = normalizeWorkspaceName(spaceName, spaceID);
+
+  try {
+    renameSpace(spaceID, spaceName.trim() || workspaceName);
+    stepResults.push({ step: "rename-space", ok: true });
+  } catch (error) {
+    stepResults.push({
+      step: "rename-space",
+      ok: false,
+      errorCode: "space",
+      detail: String(error),
+    });
+  }
+
+  try {
+    openVSCodeNewWindow(cwd);
+    stepResults.push({ step: "open-vscode", ok: true });
+  } catch (error) {
+    stepResults.push({
+      step: "open-vscode",
+      ok: false,
+      errorCode: "vscode",
+      detail: String(error),
+    });
+  }
+
+  try {
+    openChromeNewWindow();
+    stepResults.push({ step: "open-chrome", ok: true });
+  } catch (error) {
+    stepResults.push({
+      step: "open-chrome",
+      ok: false,
+      errorCode: "chrome",
+      detail: String(error),
+    });
+  }
+
+  try {
+    ensureTmuxSession(workspaceName);
+    stepResults.push({ step: "ensure-tmux", ok: true });
+  } catch (error) {
+    stepResults.push({
+      step: "ensure-tmux",
+      ok: false,
+      errorCode: "tmux",
+      detail: String(error),
+    });
+  }
+
+  try {
+    ensureCmuxWorkspace(workspaceName, cwd);
+    stepResults.push({ step: "ensure-cmux", ok: true });
+  } catch (error) {
+    stepResults.push({
+      step: "ensure-cmux",
+      ok: false,
+      errorCode: "cmux",
+      detail: String(error),
+    });
+  }
+
+  return { spaceID, workspaceName, stepResults };
+}
+
+export function syncCmuxForSpace(
+  spaceID: number,
+  cwd = process.cwd(),
+): StepResult[] {
+  const stepResults: StepResult[] = [];
+  const spaceName = getSpaceName(spaceID);
+  const workspaceName = normalizeWorkspaceName(
+    spaceName || `space-${spaceID}`,
+    spaceID,
+  );
+
+  try {
+    ensureCmuxWorkspace(workspaceName, cwd);
+    stepResults.push({ step: "sync-cmux", ok: true });
+  } catch (error) {
+    stepResults.push({
+      step: "sync-cmux",
+      ok: false,
+      errorCode: "cmux",
+      detail: String(error),
+    });
+  }
+
+  return stepResults;
 }
 
 export async function listSpaces(allScreens = false): Promise<Space[]> {
@@ -76,12 +294,20 @@ export async function listSpaces(allScreens = false): Promise<Space[]> {
     end
     print(hs.json.encode(result))
   `);
-  const spaces: { index: number; id: number; active: boolean; type: string; screen: string }[] = JSON.parse(raw);
+  const spaces: {
+    index: number;
+    id: number;
+    active: boolean;
+    type: string;
+    screen: string;
+  }[] = JSON.parse(raw);
   const names = loadNames();
   return spaces.map((s) => ({
     ...s,
-    type: s.type === "user" ? "user" as const : "fullscreen" as const,
-    name: names[String(s.id)] || (s.type === "user" ? `Desktop ${s.index}` : "Fullscreen"),
+    type: s.type === "user" ? ("user" as const) : ("fullscreen" as const),
+    name:
+      names[String(s.id)] ||
+      (s.type === "user" ? `Desktop ${s.index}` : "Fullscreen"),
   }));
 }
 

@@ -8,7 +8,7 @@ import {
   WORK_EVENTS,
   type TodoCompletedPayload,
   type ReturnToPlanPayload,
-} from "../../work/pi/events";
+} from "../../work-manager/common/events";
 import { SKILL_EVENTS, type SkillLoadPayload, type SkillLoadResult, type SkillFile, type SkillFeedbackPayload, type SkillResetSessionPayload, type SkillGetEvalsPayload, type SkillSessionScoresPayload, type SkillSessionScoreEntry } from "./events";
 import {
   PLUGIN_WORKFLOW_EVENTS,
@@ -16,6 +16,21 @@ import {
   type PluginWorkflowEndPayload,
   type PluginWorkflowEventPayload,
 } from "../../plugin-workflow-events/pi/index.ts";
+import {
+  AGENTS_EVALS_FILE,
+  ensureAgentsEvalsFile,
+  parseSkillEvalEntries,
+  formatSkillEvalEntry,
+  readAgentsEvalsLines,
+  writeAgentsEvalsLines,
+  upsertEvaluationsSection,
+  nextSkillEvalId,
+  sanitizeEvalNote,
+  parseEvalsSection,
+  buildSkillEvalSnippet,
+  today,
+  type SkillEvalEntry,
+} from "../common/evals";
 import {
   readFileSync,
   writeFileSync,
@@ -38,7 +53,7 @@ const SKILLS_DIR = join(homedir(), ".pi", "agent", "skills");
 const PI_AGENT_DIR = join(homedir(), ".pi", "agent");
 const STATS_FILE = join(PI_AGENT_DIR, "skills-stats.json");
 const OVERRIDES_FILE = join(PI_AGENT_DIR, "skills-overrides.json");
-const AGENTS_EVALS_FILE = join(homedir(), ".pi", "agent", "AGENTS_EVALS.md");
+// AGENTS_EVALS_FILE imported from common/evals
 // jiti provides __dirname for TypeScript modules
 const SOURCES_FILE = join(__dirname, "sources.json");
 
@@ -132,73 +147,9 @@ function loadSources(): Sources {
   }
 }
 
-function ensureAgentsEvalsFile(): void {
-  if (existsSync(AGENTS_EVALS_FILE)) return;
-  mkdirSync(dirname(AGENTS_EVALS_FILE), { recursive: true });
-  writeFileSync(
-    AGENTS_EVALS_FILE,
-    "# AGENTS_EVALS\n\nEvaluation notes that **overlay skill instructions**. Injected into the system prompt automatically.\n\n- `## Common` — directives applied to every session regardless of loaded skills.\n- `## <skill-name>` — directives applied only when that skill is active.\n\nWrite actionable directives (\"always X\", \"never Y\", \"when Z do W\"), not observations.\n\n## Common\n\n## work-plan\n\n## work-implement\n\n## work-verify\n",
-    "utf8",
-  );
-}
-
-interface SkillEvalEntry {
-  id: number;
-  date: string;
-  skill: string;
-  score: number;
-  note: string;
-  lineIndex: number;
-}
-
-const SKILL_EVAL_RE = /^- \[(\d+)\] (\d{4}-\d{2}-\d{2}) skill=([^\s]+) score=(10|[1-9]) note=(.*)$/;
-
-function parseSkillEvalEntries(lines: string[]): SkillEvalEntry[] {
-  const entries: SkillEvalEntry[] = [];
-  for (let i = 0; i < lines.length; i++) {
-    const match = lines[i].match(SKILL_EVAL_RE);
-    if (!match) continue;
-    entries.push({
-      id: Number.parseInt(match[1], 10),
-      date: match[2],
-      skill: match[3],
-      score: Number.parseInt(match[4], 10),
-      note: match[5],
-      lineIndex: i,
-    });
-  }
-  return entries;
-}
-
-function formatSkillEvalEntry(entry: Omit<SkillEvalEntry, "lineIndex">): string {
-  return `- [${entry.id}] ${entry.date} skill=${entry.skill} score=${entry.score} note=${entry.note}`;
-}
-
-function readAgentsEvalsLines(): string[] {
-  ensureAgentsEvalsFile();
-  return readFileSync(AGENTS_EVALS_FILE, "utf8").split("\n");
-}
-
-function writeAgentsEvalsLines(lines: string[]): void {
-  writeFileSync(AGENTS_EVALS_FILE, `${lines.join("\n").replace(/\n*$/, "\n")}`, "utf8");
-}
-
-function upsertEvaluationsSection(lines: string[]): string[] {
-  const hasSection = lines.some((line) => line.trim() === "## Evaluations");
-  if (hasSection) return lines;
-  const result = [...lines];
-  if (result.length > 0 && result[result.length - 1].trim() !== "") result.push("");
-  result.push("## Evaluations", "");
-  return result;
-}
-
-function nextSkillEvalId(entries: SkillEvalEntry[]): number {
-  return entries.length === 0 ? 1 : Math.max(...entries.map((e) => e.id)) + 1;
-}
-
-function sanitizeEvalNote(note: string): string {
-  return note.replace(/\s+/g, " ").trim();
-}
+// ensureAgentsEvalsFile, SkillEvalEntry, parseSkillEvalEntries, formatSkillEvalEntry,
+// readAgentsEvalsLines, writeAgentsEvalsLines, upsertEvaluationsSection, nextSkillEvalId,
+// sanitizeEvalNote — imported from ../common/evals
 
 /**
  * Sync skills from plugin sources into the global store.
@@ -302,9 +253,7 @@ function saveStats(stats: Stats): void {
   writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2) + "\n", "utf8");
 }
 
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+// today() — imported from ../common/evals
 
 function ensureStat(stats: Stats, name: string): SkillStat {
   if (!stats[name]) {
@@ -937,36 +886,7 @@ export default function (pi: ExtensionAPI) {
     refreshFooterStatus(ctx);
   });
 
-  /** Parse AGENTS_EVALS.md into sections keyed by header name (lowercase). */
-  function parseEvalsSection(): Map<string, string> {
-    const sections = new Map<string, string>();
-    if (!existsSync(AGENTS_EVALS_FILE)) return sections;
-    const content = readFileSync(AGENTS_EVALS_FILE, "utf8");
-    const lines = content.split("\n");
-    let currentSection = "";
-    let currentLines: string[] = [];
-
-    for (const line of lines) {
-      const headerMatch = line.match(/^## (.+)$/);
-      if (headerMatch) {
-        // Save previous section
-        if (currentSection) {
-          const body = currentLines.join("\n").trim();
-          if (body) sections.set(currentSection, body);
-        }
-        currentSection = headerMatch[1].trim().toLowerCase();
-        currentLines = [];
-      } else if (currentSection) {
-        currentLines.push(line);
-      }
-    }
-    // Save last section
-    if (currentSection) {
-      const body = currentLines.join("\n").trim();
-      if (body) sections.set(currentSection, body);
-    }
-    return sections;
-  }
+  // parseEvalsSection, buildSkillEvalSnippet — imported from ../common/evals
 
   /** Build AGENTS_EVALS system prompt snippet: Common directives only. */
   function buildEvalsPromptSnippet(): string {
@@ -1000,20 +920,6 @@ export default function (pi: ExtensionAPI) {
     }
 
     return parts.join("\n");
-  }
-
-  /** Build skill-specific evaluation snippet appended when a skill is loaded/read. */
-  function buildSkillEvalSnippet(skillName: string): string {
-    const sections = parseEvalsSection();
-    const section = sections.get(skillName.toLowerCase());
-    if (!section) return "";
-    return [
-      "",
-      "## Skill-Specific Evaluation Overrides",
-      "",
-      `## ${skillName}`,
-      section,
-    ].join("\n");
   }
 
   // Parse <available_skills> from system prompt to build path→name map.

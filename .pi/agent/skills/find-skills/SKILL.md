@@ -18,6 +18,12 @@ Use this skill when the user:
 - Wants to search for tools, templates, or workflows
 - Mentions they wish they had help with a specific domain (design, testing, deployment, etc.)
 
+Do **not** use this skill when the user already asked to:
+- create or edit a specific local skill file
+- implement a skill directly from a provided URL/spec
+- wire an already-known skill into existing workflow docs
+In those cases, execute the requested local change directly.
+
 ## What is the Skills CLI?
 
 The Skills CLI (`npx skills`) is the package manager for the open agent skills ecosystem. Skills are modular packages that extend agent capabilities with specialized knowledge, workflows, and tools.
@@ -40,6 +46,9 @@ When a user asks for help with something, identify:
 1. The domain (e.g., React, testing, design, deployment)
 2. The specific task (e.g., writing tests, creating animations, reviewing PRs)
 3. Whether this is a common enough task that a skill likely exists
+4. Whether the user wants **discovery** (find options) or **execution** (build/edit now)
+
+If intent is execution, do not pivot into marketplace search unless the user explicitly asks for discovery.
 
 ### Step 2: Search for Skills
 

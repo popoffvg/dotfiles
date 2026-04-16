@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "memory-keeper-queue": {
+      "command": "node",
+      "args": ["/Users/popoffvg/.claude/plugins/memory-keeper/mcp/queue-server.mjs"],
+      "type": "stdio"
+    }
+  }
+}

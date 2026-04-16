@@ -8,6 +8,7 @@ export enum Phase {
   Plan = "plan",
   PlanVerify = "plan-verify",
   Implement = "implement",
+  TodoDone = "todo-done",
   Verify = "verify",
   Verified = "verified",
 }
@@ -23,6 +24,7 @@ export interface WorkSettings {
   worktreeBranch: string | null;
   approveCommits: boolean;
   planAllowedCommands: string[];
+  planVerified: boolean;
 }
 
 export interface WorkState {

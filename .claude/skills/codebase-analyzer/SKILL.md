@@ -41,7 +41,11 @@ If the user sends a short cue like `continue`:
 - Complex algorithms or calculations
 - Configuration and feature flags
 
-## Output Format
+## Output
+
+Always save the analysis to `_notes/analysis-<component>.md` (create `_notes/` if missing). Use a short kebab-case name derived from the analyzed component.
+
+### Format
 
 ```
 ## Analysis: [Feature/Component Name]

@@ -4,5 +4,9 @@
   "description": "Work lifecycle management v2 — phased workflows (research, plan, implement, verify) with MCP server, hooks, and agents.",
   "author": {
     "name": "popoffvg"
+  },
+  "statusLine": {
+    "command": "${CLAUDE_PLUGIN_ROOT}/bin/statusline.sh",
+    "refreshInterval": 10
   }
 }
