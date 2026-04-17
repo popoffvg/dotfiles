@@ -3,8 +3,8 @@
  * This is the adapter layer — core returns effects, server executes them.
  */
 
-import type { SideEffect, GitFn } from "../types";
-import * as notes from "../notes";
+import type { SideEffect, GitFn } from "../../common/types";
+import * as notes from "../../common/notes";
 
 export interface EffectContext {
   notesDir: string;

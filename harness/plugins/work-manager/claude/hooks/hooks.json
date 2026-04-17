@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/cmux-inject.sh",
+            "command": "tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts cmux-inject",
             "timeout": 3000
           }
         ]
@@ -14,7 +14,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/phase-inject.sh --session-start",
+            "command": "tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts inject",
             "timeout": 3000
           }
         ]
@@ -22,11 +22,11 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash|Edit|Write",
+        "matcher": "Bash|Edit|Write|bash|edit|write",
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/phase-guard.sh",
+            "command": "tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts guard",
             "timeout": 3000
           }
         ]
@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/phase-inject.sh --post-compact",
+            "command": "tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts inject",
             "timeout": 3000
           }
         ]

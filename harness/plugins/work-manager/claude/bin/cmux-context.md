@@ -1,14 +1,3 @@
-#!/usr/bin/env bash
-# Inject cmux context on SessionStart.
-# Outputs additionalContext JSON when running inside cmux.
-
-set -euo pipefail
-
-if [[ -z "${CMUX_SURFACE_ID:-}" ]]; then
-  exit 0
-fi
-
-read -r -d '' CTX <<'MSG' || true
 ## cmux Environment
 
 You are running inside cmux. During work-manager implement phase, use the **3-pane cmux orchestration** pattern (skill: work-cmux):
@@ -54,6 +43,3 @@ Write refs to `/tmp/work-cmux-surfaces` so any pane can address others:
 echo "PLANNER=$PLANNER_SURFACE" > /tmp/work-cmux-surfaces
 echo "IMPL=$IMPL_SURFACE" >> /tmp/work-cmux-surfaces
 ```
-MSG
-
-jq -n --arg ctx "$CTX" '{"additionalContext": $ctx}'

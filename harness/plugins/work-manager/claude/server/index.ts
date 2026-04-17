@@ -12,16 +12,17 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { execSync } from "node:child_process";
 
-import { Phase } from "../types";
-import * as state from "../state";
-import * as notes from "../notes";
-import * as fsm from "../fsm";
+import { Phase } from "../../common/types";
+import * as state from "../../common/state";
+import * as notes from "../../common/notes";
+import * as fsm from "../../common/fsm";
+import { buildWorkNextPrompt } from "../../common/work-next-prompt";
 import { executeEffects, type EffectContext } from "./effects";
 
 // --- Environment ---
 
 const CWD = process.env.WORK_CWD || process.cwd();
-const PLUGIN_ROOT = process.env.PLUGIN_ROOT || path.resolve(__dirname, "../../claude");
+const PLUGIN_ROOT = process.env.PLUGIN_ROOT || path.resolve(__dirname, "..");
 
 // --- Git helper (injected into core/notes) ---
 
@@ -55,37 +56,12 @@ function makeEffectContext(settingsFile: string): EffectContext {
   };
 }
 
-function buildWorkNextPrompt(notesDir: string): string {
+function renderWorkNextPrompt(notesDir: string): string {
   const planPath = path.join(notesDir, "plan.md");
   const plan = notes.readFileOr(planPath, "");
-  if (!plan) {
-    return "No plan found at _notes/plan.md.";
-  }
-
-  const wl = notes.worklogTail(notesDir, 5);
+  const recentWorklog = notes.worklogTail(notesDir, 5);
   const skill = loadSkill("work-implement");
-
-  return [
-    "## /work:next — Execute ONE TODO then STOP",
-    "",
-    "⛔ YOU MUST EXECUTE EXACTLY ONE TODO. AFTER THAT TODO IS DONE, STOP IMMEDIATELY AND ASK THE USER FOR APPROVAL. DO NOT START THE NEXT TODO. DO NOT CONTINUE WORKING. STOP AND WAIT.",
-    "",
-    skill ? "### Skill: work-implement\n" + skill : "",
-    "",
-    "### Plan",
-    "```markdown",
-    plan,
-    "```",
-    "",
-    wl ? `### Recent progress\n\`\`\`\n${wl}\n\`\`\`\n` : "",
-    "Read `_notes/plan.md`, find the first unchecked `- [ ]` TODO, and execute it.",
-    "If all TODOs are checked off, transition to verify phase."
-    "Follow work-implement skill: read files, implement, test, commit, check off TODO, log to worklog, call work_compact.",
-    "",
-    "⛔ AFTER THE TODO IS COMPLETE: STOP. Show the user: TODO text, changed files, test results.",
-    "Ask: \"Approve this TODO? Then run `/compact` and `/work:next` for the next one.\"",
-    "Do NOT proceed to the next TODO. Do NOT do any more work. WAIT for the user.",
-  ].filter(Boolean).join("\n");
+  return buildWorkNextPrompt({ plan, recentWorklog, skill });
 }
 
 // --- MCP Server ---
@@ -160,6 +136,23 @@ server.tool(
     const existing = state.readSettings(sf);
     if (existing && existing.status === "active") {
       const label = existing.workId || existing.name || "unnamed";
+
+      if (existing.phase === Phase.Implement || existing.phase === Phase.TodoDone) {
+        if (existing.phase === Phase.TodoDone) {
+          const resumeResult = fsm.transition(existing, Phase.Implement);
+          if (Object.keys(resumeResult.newState).length > 0) {
+            state.updateSettings(sf, resumeResult.newState);
+          }
+          const resumeCtx = makeEffectContext(sf);
+          executeEffects(resumeResult.effects, resumeCtx);
+        }
+
+        const prompt = renderWorkNextPrompt(resolveNotesDir(sf));
+        return {
+          content: [{ type: "text" as const, text: prompt }],
+        };
+      }
+
       const trunkPrompt = existing.worktreePath
         ? `Work already active: ${label} [${existing.phase}]\nWorktree: ${existing.worktreePath}`
         : `Work already active: ${label} [${existing.phase}]\n[question] Existing work detected. Create trunk/worktree before continuing?`;
@@ -233,17 +226,15 @@ server.tool(
 
 server.tool(
   "work_transition",
-  "Transition between work phases (research, plan, plan-verify, implement, todo-done, verify, verified)",
+  "Transition between work phases (research, plan, plan-verify, implement, todo-done)",
   {
     to: z
-      .enum(["research", "plan", "plan-verify", "implement", "todo-done", "verify", "verified"])
+      .enum(["research", "plan", "plan-verify", "implement", "todo-done"])
       .describe("Target phase"),
     feedback: z.string().optional().describe("User feedback (for plan transition)"),
     focus: z.string().optional().describe("Focus area (for implement transition)"),
-    approved: z.boolean().optional().describe("Whether verify was approved"),
-    reason: z.string().optional().describe("Reason for verify rejection"),
   },
-  async ({ to, feedback, focus, approved, reason }) => {
+  async ({ to, feedback, focus }) => {
     const sf = resolveSettingsFile();
     if (!sf) {
       return {
@@ -265,8 +256,6 @@ server.tool(
     const result = fsm.transition(settings, to as Phase, {
       feedback,
       focus,
-      approved,
-      reason,
     });
 
     // Apply state updates
@@ -392,8 +381,6 @@ server.tool(
       plan: "work-plan",
       "plan-verify": "work-plan-verifier",
       implement: "work-implement",
-      verify: "work-verify",
-
     };
 
     const skillName = phaseSkillMap[settings.phase];
@@ -499,14 +486,24 @@ server.tool(
       };
     }
 
-    if (settings.phase !== "implement") {
+    const nextGuard = fsm.guardWorkNextPhase(settings);
+    if (!nextGuard.allowed) {
       return {
-        content: [{ type: "text" as const, text: `Phase is '${settings.phase}', not implement. Use /work:implement first.` }],
+        content: [{ type: "text" as const, text: nextGuard.reason || "Cannot run /work:next in current phase." }],
       };
     }
 
+    if (nextGuard.autoResumeImplement) {
+      const resumeResult = fsm.transition(settings, Phase.Implement);
+      if (Object.keys(resumeResult.newState).length > 0) {
+        state.updateSettings(sf, resumeResult.newState);
+      }
+      const resumeCtx = makeEffectContext(sf);
+      executeEffects(resumeResult.effects, resumeCtx);
+    }
+
     const notesDir = resolveNotesDir(sf);
-    const prompt = buildWorkNextPrompt(notesDir);
+    const prompt = renderWorkNextPrompt(notesDir);
     return {
       content: [{ type: "text" as const, text: prompt }],
     };
