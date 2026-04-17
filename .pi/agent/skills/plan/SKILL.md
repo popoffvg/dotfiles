@@ -186,10 +186,15 @@ Ask clarifying questions instead of guessing when:
 - task granularity is unclear (too broad vs too fine)
 - architecture choices are not finalized
 - user asks for formalism but value is uncertain
-- user reply is terse/ambiguous (e.g. "1", "2", "yes", "do it") and could map to multiple actions
+- user reply is terse/ambiguous (e.g. "1", "2", "yes", "do it", "commit") and could map to multiple actions
 
 Prefer 1–3 focused questions, then update the plan.
 When the user replies with a numeric choice, restate the selected option in one sentence before editing the plan.
+
+For a bare "commit" in plan phase:
+- Do not run git commit.
+- Ask whether they mean "commit to this direction" (record a decision/TODO) or "create a git commit".
+- If they mean git, remind them plan phase is planning-only and continue refining `_notes/plan.md`.
 
 ### Pseudocode and edge case tests
 
