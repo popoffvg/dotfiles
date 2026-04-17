@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts cmux-inject",
+            "command": "npx tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts cmux-inject",
             "timeout": 3000
           }
         ]
@@ -14,7 +14,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts inject",
+            "command": "npx tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts inject",
             "timeout": 3000
           }
         ]
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts guard",
+            "command": "npx tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts guard",
             "timeout": 3000
           }
         ]
@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts inject",
+            "command": "npx tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts inject",
             "timeout": 3000
           }
         ]
