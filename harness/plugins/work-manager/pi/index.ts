@@ -8,6 +8,8 @@ import { Phase, type SideEffect, type WorkSettings } from "../common/types";
 import * as state from "../common/state";
 import * as notes from "../common/notes";
 import * as fsm from "../common/fsm";
+import { guard } from "../common/hooks";
+import { buildWorkNextPrompt } from "../common/work-next-prompt";
 
 const CWD = process.cwd();
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
@@ -145,6 +147,30 @@ function registerCommands(pi: ExtensionAPI) {
         const current = state.readSettings(existing);
         if (current && current.status === "active") {
           ctx.ui.notify(`Work already active: ${current.workId || current.name || "unnamed"} [${current.phase}]`, "info");
+
+          if (current.phase === Phase.Implement || current.phase === Phase.TodoDone) {
+            const nextGuard = fsm.guardWorkNextPhase(current);
+            if (nextGuard.autoResumeImplement) {
+              const resumeResult = fsm.transition(current, Phase.Implement);
+              if (Object.keys(resumeResult.newState).length > 0) {
+                state.updateSettings(existing, resumeResult.newState);
+              }
+            }
+
+            const notesDir = resolveNotesDir(existing);
+            const planPath = path.join(notesDir, "plan.md");
+            const plan = notes.readFileOr(planPath, "");
+            const wl = notes.worklogTail(notesDir, 5);
+            const skill = loadSkill("work-implement");
+            const msg = buildWorkNextPrompt({
+              plan,
+              recentWorklog: wl,
+              skill,
+            });
+            pi.sendUserMessage(msg);
+            return;
+          }
+
           if (!current.worktreePath) {
             pi.sendUserMessage(
               "Existing work detected. Do you want to create a trunk/worktree before continuing implementation? " +
@@ -288,9 +314,19 @@ function registerCommands(pi: ExtensionAPI) {
         return;
       }
 
-      if (s.phase !== "implement") {
-        ctx.ui.notify(`Phase is '${s.phase}', not implement. Use /work:implement first.`, "error");
+      const nextGuard = fsm.guardWorkNextPhase(s);
+      if (!nextGuard.allowed) {
+        ctx.ui.notify(nextGuard.reason || "Cannot run /work:next in current phase.", "error");
         return;
+      }
+
+      if (nextGuard.autoResumeImplement) {
+        const resumeResult = fsm.transition(s, Phase.Implement);
+        if (Object.keys(resumeResult.newState).length > 0) {
+          state.updateSettings(sf, resumeResult.newState);
+        }
+        // Avoid nested prompt injection while command handler is executing.
+        // /work:next will emit the execution prompt below.
       }
 
       const notesDir = resolveNotesDir(sf);
@@ -302,26 +338,12 @@ function registerCommands(pi: ExtensionAPI) {
       }
 
       const wl = notes.worklogTail(notesDir, 5);
-
-      const msg = [
-        "## /work:next — Execute ONE TODO then STOP",
-        "",
-        "⛔ YOU MUST EXECUTE EXACTLY ONE TODO. AFTER THAT TODO IS DONE, STOP IMMEDIATELY AND ASK THE USER FOR APPROVAL. DO NOT START THE NEXT TODO. DO NOT CONTINUE WORKING. STOP AND WAIT.",
-        "",
-        "### Plan",
-        "```markdown",
+      const skill = loadSkill("work-implement");
+      const msg = buildWorkNextPrompt({
         plan,
-        "```",
-        "",
-        wl ? `### Recent progress\n\`\`\`\n${wl}\n\`\`\`\n` : "",
-        "Read `_notes/plan.md`, find the first unchecked `- [ ]` TODO, and execute it.",
-        "If all TODOs are checked off, transition to verify phase.",
-        "Follow work-implement skill: read files, implement, test, commit, check off TODO, log to worklog, call work_compact.",
-        "",
-        "⛔ AFTER THE TODO IS COMPLETE: STOP. Show the user: TODO text, changed files, test results.",
-        "Ask: \"Approve this TODO? Then run `/compact` and `/work:next` for the next one.\"",
-        "Do NOT proceed to the next TODO. Do NOT do any more work. WAIT for the user.",
-      ].filter(Boolean).join("\n");
+        recentWorklog: wl,
+        skill,
+      });
 
       pi.sendUserMessage(msg);
       ctx.ui.notify("Executing next TODO...", "info");
@@ -376,21 +398,9 @@ export default function (pi: ExtensionAPI) {
   pi.on("tool_call", async (event, ctx) => {
     if (!["bash", "edit", "write"].includes(event.toolName)) return;
 
-    const sf = resolveSettingsFile(ctx.cwd);
-    if (!sf) return;
-
-    const s = state.readSettings(sf);
-    if (!s || s.status !== "active") return;
-
-    const reason = fsm.guardToolCall(
-      s,
-      event.toolName,
-      event.input as Record<string, unknown>,
-      resolveNotesDir(sf),
-    );
-
-    if (reason) {
-      return { block: true, reason };
+    const result = guard(ctx.cwd, event.toolName, event.input as Record<string, unknown>);
+    if (!result.allowed) {
+      return { block: true, reason: result.reason };
     }
   });
 
@@ -464,13 +474,9 @@ export default function (pi: ExtensionAPI) {
         Type.Literal("plan-verify"),
         Type.Literal("implement"),
         Type.Literal("todo-done"),
-        Type.Literal("verify"),
-        Type.Literal("verified"),
       ]),
       feedback: Type.Optional(Type.String()),
       focus: Type.Optional(Type.String()),
-      approved: Type.Optional(Type.Boolean()),
-      reason: Type.Optional(Type.String()),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       const sf = resolveSettingsFile(ctx.cwd || CWD);
@@ -482,8 +488,6 @@ export default function (pi: ExtensionAPI) {
       const result = fsm.transition(s, params.to as Phase, {
         feedback: params.feedback,
         focus: params.focus,
-        approved: params.approved,
-        reason: params.reason,
       });
 
       if (Object.keys(result.newState).length > 0) {

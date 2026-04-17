@@ -25,3 +25,21 @@
 - 2026-04-16 19:55: Phase transition: todo-done → implement
 - 2026-04-16 19:59: [TODO] Implemented Create Code Space end-to-end in Raycast Space Manager: new UI action/form, macOS space creation + naming, VS Code/Chrome new-window launch, tmux session ensure by normalized name, and switch-triggered cmux workspace sync with structured partial-failure reporting.
 - 2026-04-16 20:14: Work cancelled
+- 2026-04-16 20:16: Phase transition: plan → plan-verify
+- 2026-04-16 20:16: Phase transition: plan-verify → implement
+- 2026-04-16 20:22: [TODO] Add “Create Code Space” UI flow in `raycast/space-manager/src/list-spaces.tsx`
+  - changed `raycast/space-manager/src/list-spaces.tsx` — verified existing Create Code Space action/form and switch hook implementation
+  - tests: `cd raycast/space-manager && npx tsc --noEmit` pass
+- 2026-04-16 20:23: [TODO] Add code-space bootstrap helpers in `raycast/space-manager/src/hammerspoon.ts`
+  - changed `raycast/space-manager/src/hammerspoon.ts` — verified existing normalization, app launch, tmux ensure, and cmux ensure implementation
+  - tests: `cd raycast/space-manager && npx tsc --noEmit` pass
+- 2026-04-16 20:24: [TODO] Add switch-triggered cmux sync wiring in `raycast/space-manager/src/hammerspoon.ts` and `raycast/space-manager/src/list-spaces.tsx`
+  - changed `raycast/space-manager/src/hammerspoon.ts` — verified `syncCmuxForSpace()` behavior
+  - changed `raycast/space-manager/src/list-spaces.tsx` — verified post-switch cmux sync call path
+  - tests: `cd raycast/space-manager && npx tsc --noEmit` pass
+- 2026-04-16 20:25: [TODO] Add structured partial-failure handling for bootstrap and switch sync in `raycast/space-manager/src/hammerspoon.ts` and toast rendering in `raycast/space-manager/src/list-spaces.tsx`
+  - changed `raycast/space-manager/src/hammerspoon.ts` — verified per-step `StepResult` and error codes
+  - changed `raycast/space-manager/src/list-spaces.tsx` — verified partial-failure toast path
+  - tests: `cd raycast/space-manager && npx tsc --noEmit` pass
+- 2026-04-16 20:26: Implementation complete
+- 2026-04-16 20:17: [TODO] Validated and completed all four TODOs in plan for Raycast Space Manager code-space flow; confirmed existing implementation in list-spaces.tsx and hammerspoon.ts and re-checked TypeScript compile.

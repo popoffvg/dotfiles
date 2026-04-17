@@ -32,7 +32,8 @@
     "npm:pi-subagents",
     "npm:pi-notify",
     "npm:pi-fzf",
-    "npm:@plannotator/pi-extension"
+    "npm:@plannotator/pi-extension",
+    "git:https://github.com/badlogic/pi-diff-review"
   ],
   "defaultThinkingLevel": "low",
   "pi-tilth": {

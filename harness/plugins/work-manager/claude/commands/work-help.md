@@ -26,19 +26,20 @@ Display the following usage guide:
 ### Phases & Flow
 
 ```
-research -> plan -> implement -> verify -> verified
-              ^         ^           |              |
-              |         <-----------< (issues)     |
-              <------------------------------------<
+research -> plan -> implement <-> todo-done
+              ^         ^
+              |         |
+              <---------< (issues → back to plan)
 ```
 
 | Phase | Description | Transition |
 |-------|-------------|------------|
 | **research** | Explore, gather context | -> plan |
-| **plan** | Build task list, criteria | -> implement (via command) |
-| **implement** | Execute plan autonomously | -> verify |
-| **verify** | User approves or rejects | -> verified or -> plan |
-| **verified** | Done, normal chat mode | -> plan (if more work) |
+| **plan** | Build task list, criteria | -> implement (via plan-verify) |
+| **implement** | Execute plan autonomously | -> todo-done (per TODO commit) |
+| **todo-done** | Commit & check off TODO | -> implement (next TODO) |
+
+When all TODOs are done, use `/work:abandon` to end the flow.
 
 ### Key Rules
 

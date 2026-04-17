@@ -56,9 +56,8 @@ When user says "move to plan", "start implementing", "need more research":
    - research → plan
    - plan → plan-verify, plan → research
    - plan-verify → implement, plan-verify → plan
-   - implement → plan, implement → verify
-   - verify → verified, verify → plan
-   - verified → plan
+   - implement → plan, implement → todo-done
+   - todo-done → implement
 3. **Ask for explicit confirmation**: "Transition from `<current>` to `<next>`?"
 4. After confirmation, call `work_transition` MCP tool with target phase
 5. Report: "Phase changed to `<new>`. Next commands go to `work-<phase>` agent."

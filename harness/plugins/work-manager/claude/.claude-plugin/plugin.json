@@ -1,7 +1,7 @@
 {
   "name": "work-manager",
   "version": "2.0.0",
-  "description": "Work lifecycle management v2 — phased workflows (research, plan, implement, verify) with MCP server, hooks, and agents.",
+  "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with MCP server, hooks, and agents.",
   "author": {
     "name": "popoffvg"
   },

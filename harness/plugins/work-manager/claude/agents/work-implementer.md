@@ -28,7 +28,7 @@ The skill defines: task execution workflow, commit conventions, blocker handling
 - Use `work_state` to read current settings
 - Use `work_context` to get phase instructions and plan
 - Use `work_compact` after completing each TODO (MANDATORY)
-- Use `work_transition` to move to verify when all TODOs are done
+- When all TODOs are done, notify the user and stop. Use /work:abandon to end the flow
 
 ## Asking the user
 

@@ -20,10 +20,8 @@ const ALLOWED_TRANSITIONS: Record<Phase, Phase[]> = {
   [Phase.Research]: [Phase.Plan],
   [Phase.Plan]: [Phase.Research, Phase.PlanVerify],
   [Phase.PlanVerify]: [Phase.Implement, Phase.Plan],
-  [Phase.Implement]: [Phase.Plan, Phase.Verify, Phase.TodoDone],
+  [Phase.Implement]: [Phase.Plan, Phase.TodoDone],
   [Phase.TodoDone]: [Phase.Implement],
-  [Phase.Verify]: [Phase.Verified, Phase.Plan],
-  [Phase.Verified]: [Phase.Plan],
 };
 
 /** Check if a phase transition is allowed */
@@ -116,10 +114,13 @@ export function transition(
       return transitionToImplement(from, state, opts);
     case Phase.TodoDone:
       return transitionToTodoDone(from, state);
-    case Phase.Verify:
-      return transitionToVerify(from, state, opts);
-    case Phase.Verified:
-      return transitionToVerified(from, state, opts);
+    default:
+      return {
+        newState: {},
+        effects: [
+          { kind: "notify", message: `Unknown target phase: ${to}`, level: "error" },
+        ],
+      };
   }
 }
 
@@ -243,56 +244,6 @@ function transitionToTodoDone(
   };
 }
 
-function transitionToVerify(
-  from: Phase,
-  _state: WorkSettings,
-  _opts?: TransitionOpts,
-): TransitionResult {
-  const effects: SideEffect[] = [
-    { kind: "worklog", entry: `Phase transition: ${from} → verify` },
-    { kind: "inject_skill", skill: "work-verify" },
-  ];
-
-  effects.push({ kind: "set_model", model: "opus" });
-  effects.push({
-    kind: "compact",
-    summary: `Implementation complete. Entering verify phase. Keep plan and acceptance criteria. Discard implementation details.`,
-  });
-
-  return {
-    newState: { phase: Phase.Verify },
-    effects,
-  };
-}
-
-function transitionToVerified(
-  _from: Phase,
-  _state: WorkSettings,
-  opts?: TransitionOpts,
-): TransitionResult {
-  const effects: SideEffect[] = [
-    { kind: "worklog", entry: `Phase transition: → verified` },
-    { kind: "commit_notes", message: "phase: verified" },
-    {
-      kind: "notify",
-      message: "Work verified! Use /work:abandon to end work-manager flow.",
-      level: "success",
-    },
-  ];
-
-  if (opts?.approved) {
-    effects.unshift({
-      kind: "worklog",
-      entry: "Verify: approved",
-    });
-  }
-
-  return {
-    newState: { phase: Phase.Verified },
-    effects,
-  };
-}
-
 // --- Terminal transitions ---
 
 /** Mark work as done */
@@ -341,6 +292,28 @@ export function sessionEnd(state: WorkSettings): TransitionResult {
   };
 }
 
+export function guardWorkNextPhase(state: WorkSettings): {
+  allowed: boolean;
+  autoResumeImplement: boolean;
+  reason?: string;
+} {
+  const phase = state.phase as Phase;
+
+  if (phase === Phase.Implement) {
+    return { allowed: true, autoResumeImplement: false };
+  }
+
+  if (phase === Phase.TodoDone) {
+    return { allowed: true, autoResumeImplement: true };
+  }
+
+  return {
+    allowed: false,
+    autoResumeImplement: false,
+    reason: `Phase is '${state.phase}', not implement. Use /work:implement first.`,
+  };
+}
+
 // --- Guards ---
 
 /** Read-only commands allowed in all guarded phases */
@@ -353,19 +326,24 @@ const READ_ONLY_COMMANDS = [
   "gh run list", "gh run view", "gh repo view",
 ];
 
-/** Test/lint commands additionally allowed in verify phase */
-const VERIFY_EXTRA_COMMANDS = [
-  "go test", "go vet",
-  "npm test", "npm run test", "npm run lint",
-  "pnpm test", "pnpm run test", "pnpm run lint",
-  "yarn test", "make test", "make lint", "make check",
-  "pytest", "ruff", "mypy", "flake8", "eslint",
-  "golangci-lint", "shellcheck", "tsc",
-  "mise run test", "mise run lint",
-];
 
 function isCmdInList(cmd: string, list: string[]): boolean {
   return list.some((prefix) => cmd === prefix || cmd.startsWith(prefix + " "));
+}
+
+function isPlanCheckboxCompletionOnly(input: ToolInput): boolean {
+  const edits = (input.edits as Array<{ oldText?: string; newText?: string }> | undefined) || [];
+  if (!Array.isArray(edits) || edits.length === 0) return false;
+
+  return edits.every((e) => {
+    const oldText = e?.oldText;
+    const newText = e?.newText;
+    if (typeof oldText !== "string" || typeof newText !== "string") return false;
+
+    if (!oldText.includes("[ ]")) return false;
+    const expected = oldText.replace("[ ]", "[x]");
+    return newText === expected;
+  });
 }
 
 /**
@@ -380,10 +358,9 @@ export function guardToolCall(
 ): string | null {
   const phase = state.phase as Phase;
   const isPlan = phase === Phase.Plan || phase === Phase.PlanVerify;
-  const isVerify = phase === Phase.Verify;
   const isImplement = phase === Phase.Implement;
 
-  if (!isPlan && !isVerify && !isImplement) return null;
+  if (!isPlan && !isImplement) return null;
 
   // --- Bash guard ---
   if (toolName === "Bash" || toolName === "bash") {
@@ -397,13 +374,6 @@ export function guardToolCall(
         : READ_ONLY_COMMANDS;
       if (!isCmdInList(candidate, allowed)) {
         return "Plan phase: bash commands that modify files are not allowed. Only reading/inspecting is permitted. Write your plan in _notes/ using edit/write tools.";
-      }
-    }
-
-    if (isVerify) {
-      const allowed = [...READ_ONLY_COMMANDS, ...VERIFY_EXTRA_COMMANDS];
-      if (!isCmdInList(candidate, allowed)) {
-        return "Verify phase: only read-only and test/lint commands are allowed. You are a reviewer — do not modify files via bash.";
       }
     }
 
@@ -421,7 +391,11 @@ export function guardToolCall(
     toolName === "Edit" || toolName === "edit" ||
     toolName === "Write" || toolName === "write"
   ) {
-    const targetPath = input.file_path || "";
+    const targetPath =
+      (input.file_path as string | undefined) ||
+      (input.path as string | undefined) ||
+      (input.filePath as string | undefined) ||
+      "";
     if (!targetPath) return null;
 
     const resolved = path.resolve(targetPath);
@@ -436,14 +410,16 @@ export function guardToolCall(
       return null;
     }
 
-    if (isVerify) {
-      if (isInNotes) return null;
-      // Also allow .pi/work.settings.json for phase transitions
-      const settingsDir = path.dirname(notesDir);
-      const workSettings = path.resolve(settingsDir, ".pi", "work.settings.json");
-      if (resolved === workSettings) return null;
+    if (isImplement) {
+      const planPath = path.resolve(notesDir, "plan.md");
+      if (resolved === planPath) {
+        const isEditTool = toolName === "Edit" || toolName === "edit";
+        if (isEditTool && isPlanCheckboxCompletionOnly(input)) {
+          return null;
+        }
 
-      return `Verify phase: cannot modify source files. Only _notes/ and .pi/work.settings.json are allowed. You are a reviewer, not an implementer.`;
+        return "Implement phase: _notes/plan.md edits are restricted. Only checkbox completion edits (`- [ ]` → `- [x]`) are allowed.";
+      }
     }
   }
 

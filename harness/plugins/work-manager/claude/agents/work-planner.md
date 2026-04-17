@@ -41,6 +41,4 @@ When running in a cmux pane, use `work_handoff` to signal other agents:
 
 - **Plan complete** → `work_handoff(from: "planner", action: "plan-ready", message: "Plan has N TODOs, ready for implementation")`
 - **Answer implementer** → `work_handoff(from: "planner", action: "answer", target: "implementer", message: "<answer>")`
-- **All verified** → `work_handoff(from: "planner", action: "all-done", message: "All TODOs verified")`
-
 Use `work_transition` to change phases (e.g., plan → plan-verify → implement). This updates shared state so the implementer pane picks up the correct phase.

@@ -9,8 +9,6 @@ export enum Phase {
   PlanVerify = "plan-verify",
   Implement = "implement",
   TodoDone = "todo-done",
-  Verify = "verify",
-  Verified = "verified",
 }
 
 export interface WorkSettings {
@@ -40,8 +38,6 @@ export interface TransitionOpts {
   feedback?: string;
   focus?: string;
   hasCriteria?: boolean;
-  approved?: boolean;
-  reason?: string;
   fixNow?: boolean;
   choice?: "continue" | "return_to_plan";
   userInput?: string;
