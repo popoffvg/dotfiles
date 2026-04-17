@@ -37,10 +37,11 @@ For each unchecked `- [ ]` TODO in `_notes/plan.md`:
 10. **Stage changes** with `git add` for the files you changed
 11. If `approveCommits` is enabled in settings: **Ask the user for approval before committing.** Show: TODO text, changed files, and test results. Wait for explicit "yes"/"ok"/"approve". If rejected — fix and ask again.
 12. **Commit the changes** with a meaningful message referencing the TODO (commit only after steps 1–11 are complete)
-13. Check off the TODO: `- [ ]` → `- [x]`
-14. Log what was done to `_notes/worklog.md`
-15. **Call `work_compact`** with a brief summary of what was completed — this frees context space and re-injects the plan so you stay oriented
-16. Continue to the next TODO
+13. **Hard guard:** never check off a TODO until commit succeeds (or user explicitly says "no commit").
+14. Check off the TODO: `- [ ]` → `- [x]`
+15. Log what was done to `_notes/worklog.md`
+16. **Call `work_compact`** with a brief summary of what was completed — this frees context space and re-injects the plan so you stay oriented
+17. Continue to the next TODO
 
 **IMPORTANT: Call `work_compact` after each TODO.** Long implementation sessions accumulate tool calls, file reads, and test output that consume context. Compaction discards this noise and re-injects the current plan + worklog, keeping you focused on remaining work.
 
@@ -83,6 +84,7 @@ The fixup commits will be squashed into their targets later via `git rebase -i -
 ## CRITICAL: plan.md edit rules
 
 **`_notes/plan.md` is editable during implement phase when needed.**
+This supersedes older restricted guidance ("checkbox-only edits"). Do not apply the old restriction.
 - ✅ Allowed:
   - `- [ ]` → `- [x]` (check off completed TODOs)
   - Clarify TODO wording when implementation reveals ambiguity
@@ -113,6 +115,8 @@ The fixup commits will be squashed into their targets later via `git rebase -i -
 - If the user asks for **skill maintenance during implement** (e.g. "auto-improve work-implement"), do that maintenance task directly in the referenced skill file before returning to code TODO execution.
 - If you presented options and the user picks one (for example, "option A"), execute that option immediately. Do not re-open option discussion.
 - If selected option says to "read the skills" or "read Pi logic", perform those reads first, then continue implementation actions.
+- If the user explicitly says `/work-next`, execute exactly one next unchecked TODO end-to-end using this same checklist (including staging, commit, checkbox, worklog, and `work_compact`) before returning control.
+- Never infer `/improve` or any other command from keypress words (for example, "tab"). Only run explicit slash commands typed by the user.
 
 ## Step 3: Log progress to worklog
 
@@ -137,10 +141,12 @@ After all TODOs are checked off:
 
 **This is mandatory.** After implementation is complete:
 
-1. Update `.pi/work.settings.json`: set `"phase": "auto-verify"`
+1. Confirm all TODOs are checked and each completed TODO has a commit (unless user explicitly waived commits).
 2. Append to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: Implementation complete`
+3. Stop execution.
 
-**Do NOT present results or ask the user anything.** The extension will run an automatic review. Just update the files and stop.
+**Do NOT mutate `.pi/work.settings.json` to `auto-verify`** (that phase is not part of current FSM).
+Phase transitions are command-driven (`/work:plan` or `/work:abandon`) and handled outside this skill.
 
 ## Autoresearch rules
 
