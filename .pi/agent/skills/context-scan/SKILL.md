@@ -91,6 +91,12 @@ Append each processed session filename to `<insights_root>/.scanned_sessions`.
 - Brief list: topic + file
 - "No new insights" if nothing found
 
+## Commit/side-effect guard
+
+- Do not run git commands from this skill.
+- If user says only "commit" while scanning/reviewing, ask what they want committed and where; do not assume.
+- This skill only reads session logs and writes insight markdown files.
+
 ## Autoresearch rules
 
 **Eval checklist:**
