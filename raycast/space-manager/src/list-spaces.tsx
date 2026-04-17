@@ -11,7 +11,10 @@ import {
   popToRoot,
   LocalStorage,
 } from "@raycast/api";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { readdirSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
 import { usePromise } from "@raycast/utils";
 import {
   listSpaces,
@@ -28,12 +31,49 @@ import { WindowList } from "./window-list";
 
 const ALL_SCREENS_KEY = "allScreens";
 
+function listFolderOptions(): string[] {
+  const roots = [process.cwd(), join(homedir(), "Documents", "git")];
+  const out = new Set<string>();
+
+  for (const root of roots) {
+    out.add(root);
+    try {
+      const entries = readdirSync(root, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) out.add(join(root, entry.name));
+      }
+    } catch {
+      // ignore unavailable roots
+    }
+  }
+
+  return Array.from(out).sort((a, b) => a.localeCompare(b));
+}
+
+function subsystemFromErrorCode(code?: string): string {
+  switch (code) {
+    case "vscode":
+      return "VS Code";
+    case "chrome":
+      return "Chrome";
+    case "tmux":
+      return "tmux";
+    case "cmux":
+      return "cmux";
+    case "space":
+      return "Space";
+    default:
+      return "Unknown subsystem";
+  }
+}
+
 export default function ListSpacesCommand() {
   const [renaming, setRenaming] = useState<Space | null>(null);
   const [creating, setCreating] = useState(false);
   const [creatingCodeSpace, setCreatingCodeSpace] = useState(false);
   const [allScreens, setAllScreens] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const folderOptions = useMemo(() => listFolderOptions(), []);
 
   useEffect(() => {
     LocalStorage.getItem<boolean>(ALL_SCREENS_KEY).then((val) => {
@@ -59,7 +99,7 @@ export default function ListSpacesCommand() {
       if (cmuxFailure) {
         await showToast({
           style: Toast.Style.Failure,
-          title: "Switched space, cmux sync failed",
+          title: `${subsystemFromErrorCode(cmuxFailure.errorCode)} sync failed`,
           message: cmuxFailure.detail,
         });
       }
@@ -112,8 +152,9 @@ export default function ListSpacesCommand() {
   }, []);
 
   const handleCreateCodeSpaceSubmit = useCallback(
-    async (values: { name: string }) => {
+    async (values: { name: string; codePath?: string }) => {
       const name = values.name.trim();
+      const codePath = values.codePath?.trim();
       if (!name) {
         await showToast({
           style: Toast.Style.Failure,
@@ -122,8 +163,16 @@ export default function ListSpacesCommand() {
         return;
       }
 
+      if (!codePath) {
+        await showToast({
+          style: Toast.Style.Failure,
+          title: "VS Code path is required",
+        });
+        return;
+      }
+
       try {
-        const result = createCodeSpace(name);
+        const result = createCodeSpace(name, codePath);
         setCreatingCodeSpace(false);
         await closeMainWindow();
         gotoSpace(result.spaceID);
@@ -138,7 +187,7 @@ export default function ListSpacesCommand() {
           const first = failed[0];
           await showToast({
             style: Toast.Style.Failure,
-            title: `Code space partial failure: ${first?.errorCode ?? "unknown"}`,
+            title: `${subsystemFromErrorCode(first?.errorCode)} setup failed`,
             message: first?.detail,
           });
         }
@@ -214,6 +263,11 @@ export default function ListSpacesCommand() {
           placeholder="e.g. feature-auth, client-bugfix"
           autoFocus
         />
+        <Form.Dropdown id="codePath" title="VS Code Folder" defaultValue={process.cwd()}>
+          {folderOptions.map((path) => (
+            <Form.Dropdown.Item key={path} value={path} title={path} />
+          ))}
+        </Form.Dropdown>
       </Form>
     );
   }
