@@ -1,6 +1,6 @@
 ---
 name: plan-verify
-description: "Use after drafting `_notes/plan.md` to verify SudoLang contract compliance: sections, checkbox rules, criteria↔TODO traceability, and unresolved decision handling."
+description: "Use after drafting `_notes/plan.md` to verify SudoLang contract compliance: sections, checkbox rules, criteria-TODO traceability, integrity, and contradiction detection."
 ---
 
 # plan-verify
@@ -9,25 +9,69 @@ Validate that a plan follows the `sudlang` contract before signaling readiness.
 
 ## Verification checklist
 
-- Required sections exist: `Description`, `Acceptance Criteria`, `TODOs`.
+### Structure
+- Required sections exist: `Description`, `Glossary`, `Acceptance Criteria`, `TODOs`.
 - All Acceptance Criteria entries are `- [ ]` checkboxes.
 - All TODO entries are `- [ ]` checkboxes.
+
+### Traceability
 - Every TODO has at least one `criteria:` mapping.
 - Every Acceptance Criterion is referenced by at least one TODO.
+- Every TODO declares a C4 `level:` (L1-L4).
 - TODOs that change code include concrete file paths.
+
+### C4 level gates
+- Design decisions at level N are fixed before TODOs at level N+1 exist.
+- L4 (Code-level) TODOs include a SudoLang algorithm block — declarative pseudocode with constraints/invariants.
+
+### Glossary
+- Glossary exists and every domain noun in Criteria/TODOs has an entry.
+- Glossary uses domain language, not implementation jargon (`Order`, not `OrderDTO`).
+
+### Open questions
 - Open decisions/questions are explicit (not hidden in TODO text).
+- No unresolved open questions or decisions — all must be resolved before the plan passes. If any exist, FAIL and list them so the user can decide.
+
+### Clarity
 - No vague TODOs (`improve`, `refactor stuff`, `handle edge cases` without specifics).
+
+### Integrity checks
+- Every `criteria:` reference in a TODO points to an existing AC ID.
+- Every `decisions:` reference in a TODO points to an existing Decision ID.
+- Every `depends on:` reference points to an existing item.
+- No orphaned Decisions (every Decision is referenced by at least one TODO or another Decision).
+- No circular dependencies between TODOs.
+- TODO file paths are consistent — the same file is not claimed by contradicting TODOs.
+
+### Contradiction detection
+- No two Decisions contradict each other (e.g., D1 says "use REST" while D5 says "use gRPC" for the same interface).
+- Glossary terms are consistent — the same concept must not have conflicting definitions.
+- Acceptance Criteria do not contradict each other (e.g., AC1 requires feature X, AC3 forbids it).
+- L4 algorithm constraints do not violate higher-level decisions (e.g., L2 says "eventual consistency" but L4 algorithm assumes synchronous writes).
+- If a contradiction is detected: FAIL with both sides quoted and ask the user to resolve.
 
 ## Output format
 
-When issues exist, report:
-- `FAIL: <rule>`
-- `location: <section/TODO id>`
-- `fix: <specific rewrite>`
+When issues exist, report each as:
+```
+FAIL: <rule>
+  location: <section/ID>
+  fix: <specific rewrite or resolution needed>
+```
 
-When all checks pass, report:
-- `PASS: sudlang contract verified`
+When contradictions exist, report as:
+```
+CONTRADICTION: <summary>
+  side A: <Decision/AC/Term ID> — <statement>
+  side B: <Decision/AC/Term ID> — <statement>
+  resolve: <ask user which to keep>
+```
+
+When all checks pass:
+```
+PASS: sudlang contract verified (integrity OK, no contradictions)
+```
 
 ## Gate rule
 
-Do not declare "Plan is ready" until `PASS: sudlang contract verified` is true.
+Do not declare "Plan is ready" until `PASS` is true.
