@@ -15,8 +15,8 @@ Display the following usage guide:
 |---------|-------------|
 | `/work:start` | Begin new work — creates `_notes/`, phase = plan |
 | `/work:status` | Show current work status and progress |
-| `/work:implement` | Enter implement phase (from plan only) |
-| `/work:next` | Execute the next unchecked TODO, commit, then stop |
+| `/work:implement` | Enter implement phase in **autopilot** mode (all TODOs) |
+| `/work:next` | Execute **one** TODO then stop (manual per-TODO mode) |
 | `/work:abandon` | Cancel work-manager flow for this workspace |
 | `/work:abandon-skill` | Run the skill-driven abandon flow |
 | `/work:finish` | Alias for `/work:abandon-skill` |
@@ -26,18 +26,18 @@ Display the following usage guide:
 ### Phases & Flow
 
 ```
-research -> plan -> implement <-> todo-done
-              ^         ^
-              |         |
-              <---------< (issues → back to plan)
+research -> plan -> implement
+              ^
+              |
+              <--------- (issues → back to plan)
 ```
 
 | Phase | Description | Transition |
 |-------|-------------|------------|
 | **research** | Explore, gather context | -> plan |
 | **plan** | Build task list, criteria | -> implement (via plan-verify) |
-| **implement** | Execute plan autonomously | -> todo-done (per TODO commit) |
-| **todo-done** | Commit & check off TODO | -> implement (next TODO) |
+| **implement (autopilot)** | Execute all TODOs autonomously | -> plan (if issues found) |
+| **implement (manual)** | One TODO per `/work:next` | -> plan (if issues found) |
 
 When all TODOs are done, use `/work:abandon` to end the flow.
 
