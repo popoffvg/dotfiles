@@ -57,6 +57,7 @@ export const DEFAULTS: WorkSettings = {
   approveCommits: true,
   planAllowedCommands: DEFAULT_PLAN_ALLOWED_COMMANDS,
   planVerified: false,
+  implementMode: "manual",
 };
 
 /** Resolve the settings file path for a given directory */
@@ -64,11 +65,28 @@ export function settingsPath(dir: string): string {
   return path.join(dir, SETTINGS_FILE);
 }
 
-/** Find settings file in dir or scanning immediate subdirs */
+/** Find settings file in cwd, parent dirs, or immediate subdirs */
 export function findSettings(cwd: string): string | null {
+  // 1) Direct in current dir
   const direct = settingsPath(cwd);
   if (fs.existsSync(direct)) return direct;
 
+  // 2) Walk up parent directories (supports running from nested repo paths)
+  try {
+    let cur = path.resolve(cwd);
+    while (true) {
+      const candidate = settingsPath(cur);
+      if (fs.existsSync(candidate)) return candidate;
+
+      const parent = path.dirname(cur);
+      if (parent === cur) break;
+      cur = parent;
+    }
+  } catch {
+    /* ignore */
+  }
+
+  // 3) Scan immediate subdirs (existing behavior)
   try {
     const entries = fs.readdirSync(cwd, { withFileTypes: true });
     const found: string[] = [];

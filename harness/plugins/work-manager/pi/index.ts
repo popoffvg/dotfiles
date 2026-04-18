@@ -148,14 +148,7 @@ function registerCommands(pi: ExtensionAPI) {
         if (current && current.status === "active") {
           ctx.ui.notify(`Work already active: ${current.workId || current.name || "unnamed"} [${current.phase}]`, "info");
 
-          if (current.phase === Phase.Implement || current.phase === Phase.TodoDone) {
-            const nextGuard = fsm.guardWorkNextPhase(current);
-            if (nextGuard.autoResumeImplement) {
-              const resumeResult = fsm.transition(current, Phase.Implement);
-              if (Object.keys(resumeResult.newState).length > 0) {
-                state.updateSettings(existing, resumeResult.newState);
-              }
-            }
+          if (current.phase === Phase.Implement) {
 
             const notesDir = resolveNotesDir(existing);
             const planPath = path.join(notesDir, "plan.md");
@@ -166,6 +159,8 @@ function registerCommands(pi: ExtensionAPI) {
               plan,
               recentWorklog: wl,
               skill,
+              approveCommits: current.approveCommits,
+              mode: current.implementMode || "manual",
             });
             pi.sendUserMessage(msg);
             return;
@@ -267,7 +262,7 @@ function registerCommands(pi: ExtensionAPI) {
   });
 
   pi.registerCommand("work:implement", {
-    description: "Transition toward implement (plan → plan-verify, plan-verify → implement)",
+    description: "Transition toward implement in autopilot mode (all TODOs)",
     handler: async (_args, ctx) => {
       const sf = resolveSettingsFile(ctx.cwd);
       if (!sf) {
@@ -282,25 +277,22 @@ function registerCommands(pi: ExtensionAPI) {
       }
 
       const current = s.phase as Phase;
-      const target =
-        current === Phase.PlanVerify || current === Phase.TodoDone
-          ? Phase.Implement
-          : Phase.PlanVerify;
+      const target = current === Phase.PlanVerify ? Phase.Implement : Phase.PlanVerify;
 
-      const result = fsm.transition(s, target);
+      const result = fsm.transition(s, target, { implementMode: "autopilot" });
       if (Object.keys(result.newState).length > 0) {
         state.updateSettings(sf, result.newState);
       }
       const messages = executeEffects(result.effects, sf);
       const updated = state.readSettings(sf);
-      ctx.ui.notify(`Phase: ${updated?.phase || "unknown"}`, "success");
+      ctx.ui.notify(`Phase: ${updated?.phase || "unknown"} (autopilot)`, "success");
       if (messages) pi.sendUserMessage(messages);
       updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
     },
   });
 
   pi.registerCommand("work:next", {
-    description: "Continue to the next unchecked TODO (reminds to /compact first)",
+    description: "Execute one TODO then stop (manual per-TODO mode)",
     handler: async (_args, ctx) => {
       const sf = resolveSettingsFile(ctx.cwd);
       if (!sf) {
@@ -316,17 +308,20 @@ function registerCommands(pi: ExtensionAPI) {
 
       const nextGuard = fsm.guardWorkNextPhase(s);
       if (!nextGuard.allowed) {
-        ctx.ui.notify(nextGuard.reason || "Cannot run /work:next in current phase.", "error");
-        return;
-      }
-
-      if (nextGuard.autoResumeImplement) {
-        const resumeResult = fsm.transition(s, Phase.Implement);
-        if (Object.keys(resumeResult.newState).length > 0) {
-          state.updateSettings(sf, resumeResult.newState);
+        // Auto-transition to implement if in plan-verify
+        if ((s.phase as Phase) === Phase.PlanVerify) {
+          const result = fsm.transition(s, Phase.Implement, { implementMode: "manual" });
+          if (Object.keys(result.newState).length > 0) {
+            state.updateSettings(sf, result.newState);
+          }
+          executeEffects(result.effects, sf);
+        } else {
+          ctx.ui.notify(nextGuard.reason || "Cannot run /work:next in current phase.", "error");
+          return;
         }
-        // Avoid nested prompt injection while command handler is executing.
-        // /work:next will emit the execution prompt below.
+      } else if (s.implementMode !== "manual") {
+        // Switch to manual mode if currently autopilot
+        state.updateSettings(sf, { implementMode: "manual" } as any);
       }
 
       const notesDir = resolveNotesDir(sf);
@@ -343,10 +338,12 @@ function registerCommands(pi: ExtensionAPI) {
         plan,
         recentWorklog: wl,
         skill,
+        approveCommits: s.approveCommits,
+        mode: "manual",
       });
 
       pi.sendUserMessage(msg);
-      ctx.ui.notify("Executing next TODO...", "info");
+      ctx.ui.notify("Executing next TODO (manual mode)...", "info");
     },
   });
 
@@ -473,10 +470,10 @@ export default function (pi: ExtensionAPI) {
         Type.Literal("plan"),
         Type.Literal("plan-verify"),
         Type.Literal("implement"),
-        Type.Literal("todo-done"),
       ]),
       feedback: Type.Optional(Type.String()),
       focus: Type.Optional(Type.String()),
+      implementMode: Type.Optional(Type.Union([Type.Literal("autopilot"), Type.Literal("manual")])),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       const sf = resolveSettingsFile(ctx.cwd || CWD);
@@ -488,6 +485,7 @@ export default function (pi: ExtensionAPI) {
       const result = fsm.transition(s, params.to as Phase, {
         feedback: params.feedback,
         focus: params.focus,
+        implementMode: params.implementMode as any,
       });
 
       if (Object.keys(result.newState).length > 0) {

@@ -7,10 +7,11 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
+import { z } from "zod/v3";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { execSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 import { Phase } from "../../common/types";
 import * as state from "../../common/state";
@@ -22,6 +23,8 @@ import { executeEffects, type EffectContext } from "./effects";
 // --- Environment ---
 
 const CWD = process.env.WORK_CWD || process.cwd();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const PLUGIN_ROOT = process.env.PLUGIN_ROOT || path.resolve(__dirname, "..");
 
 // --- Git helper (injected into core/notes) ---
@@ -56,12 +59,12 @@ function makeEffectContext(settingsFile: string): EffectContext {
   };
 }
 
-function renderWorkNextPrompt(notesDir: string): string {
+function renderWorkNextPrompt(notesDir: string, approveCommits: boolean, mode: "autopilot" | "manual" = "manual"): string {
   const planPath = path.join(notesDir, "plan.md");
   const plan = notes.readFileOr(planPath, "");
   const recentWorklog = notes.worklogTail(notesDir, 5);
   const skill = loadSkill("work-implement");
-  return buildWorkNextPrompt({ plan, recentWorklog, skill });
+  return buildWorkNextPrompt({ plan, recentWorklog, skill, approveCommits, mode });
 }
 
 // --- MCP Server ---
@@ -137,17 +140,8 @@ server.tool(
     if (existing && existing.status === "active") {
       const label = existing.workId || existing.name || "unnamed";
 
-      if (existing.phase === Phase.Implement || existing.phase === Phase.TodoDone) {
-        if (existing.phase === Phase.TodoDone) {
-          const resumeResult = fsm.transition(existing, Phase.Implement);
-          if (Object.keys(resumeResult.newState).length > 0) {
-            state.updateSettings(sf, resumeResult.newState);
-          }
-          const resumeCtx = makeEffectContext(sf);
-          executeEffects(resumeResult.effects, resumeCtx);
-        }
-
-        const prompt = renderWorkNextPrompt(resolveNotesDir(sf));
+      if (existing.phase === Phase.Implement) {
+        const prompt = renderWorkNextPrompt(resolveNotesDir(sf), existing.approveCommits, existing.implementMode || "manual");
         return {
           content: [{ type: "text" as const, text: prompt }],
         };
@@ -178,7 +172,7 @@ server.tool(
       }
 
       if (resumeMode === "continue") {
-        state.updateSettings(sf, { status: "active", phase: "plan", phaseBeforeTodo: null } as any);
+        state.updateSettings(sf, { status: "active", phase: "plan" } as any);
         return {
           content: [{
             type: "text" as const,
@@ -226,15 +220,16 @@ server.tool(
 
 server.tool(
   "work_transition",
-  "Transition between work phases (research, plan, plan-verify, implement, todo-done)",
+  "Transition between work phases (research, plan, plan-verify, implement)",
   {
     to: z
-      .enum(["research", "plan", "plan-verify", "implement", "todo-done"])
+      .enum(["research", "plan", "plan-verify", "implement"])
       .describe("Target phase"),
     feedback: z.string().optional().describe("User feedback (for plan transition)"),
     focus: z.string().optional().describe("Focus area (for implement transition)"),
+    implementMode: z.enum(["autopilot", "manual"]).optional().describe("Implement mode: autopilot (all TODOs) or manual (one at a time). Default: manual"),
   },
-  async ({ to, feedback, focus }) => {
+  async ({ to, feedback, focus, implementMode }) => {
     const sf = resolveSettingsFile();
     if (!sf) {
       return {
@@ -256,6 +251,7 @@ server.tool(
     const result = fsm.transition(settings, to as Phase, {
       feedback,
       focus,
+      implementMode: implementMode as any,
     });
 
     // Apply state updates
@@ -417,13 +413,32 @@ server.tool(
   "work_compact",
   "Signal TODO completion during implement phase — logs progress, commits notes",
   {
-    summary: z.string().describe("Brief summary of what was completed"),
+    summary: z
+      .string()
+      .optional()
+      .describe("Brief summary of what was completed"),
+    message: z
+      .string()
+      .optional()
+      .describe("Legacy alias for summary"),
     learnings: z
       .string()
       .optional()
       .describe("Code understanding notes for the next implementer"),
   },
-  async ({ summary, learnings }) => {
+  async ({ summary, message, learnings }) => {
+    const effectiveSummary = (summary || message || "").trim();
+    if (!effectiveSummary) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "work_compact requires summary (or legacy message).",
+          },
+        ],
+      };
+    }
+
     const sf = resolveSettingsFile();
     if (!sf) {
       return {
@@ -444,21 +459,21 @@ server.tool(
       fs.writeFileSync(
         learningsPath,
         existing.trimEnd() +
-          `\n\n## TODO: ${summary} (${ts})\n\n${learnings}\n`,
+          `\n\n## TODO: ${effectiveSummary} (${ts})\n\n${learnings}\n`,
       );
     }
 
     // Worklog entry
-    notes.appendWorklog(notesDir, `[TODO] ${summary}`);
+    notes.appendWorklog(notesDir, `[TODO] ${effectiveSummary}`);
 
     // Commit notes
-    notes.commitNotes(notesDir, `todo: ${summary}`, execGit);
+    notes.commitNotes(notesDir, `todo: ${effectiveSummary}`, execGit);
 
     return {
       content: [
         {
           type: "text" as const,
-          text: `TODO completed and logged: ${summary}`, 
+          text: `TODO completed and logged: ${effectiveSummary}`,
         },
       ],
     };
@@ -493,17 +508,8 @@ server.tool(
       };
     }
 
-    if (nextGuard.autoResumeImplement) {
-      const resumeResult = fsm.transition(settings, Phase.Implement);
-      if (Object.keys(resumeResult.newState).length > 0) {
-        state.updateSettings(sf, resumeResult.newState);
-      }
-      const resumeCtx = makeEffectContext(sf);
-      executeEffects(resumeResult.effects, resumeCtx);
-    }
-
     const notesDir = resolveNotesDir(sf);
-    const prompt = renderWorkNextPrompt(notesDir);
+    const prompt = renderWorkNextPrompt(notesDir, settings.approveCommits, settings.implementMode || "manual");
     return {
       content: [{ type: "text" as const, text: prompt }],
     };

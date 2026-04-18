@@ -20,8 +20,7 @@ const ALLOWED_TRANSITIONS: Record<Phase, Phase[]> = {
   [Phase.Research]: [Phase.Plan],
   [Phase.Plan]: [Phase.Research, Phase.PlanVerify],
   [Phase.PlanVerify]: [Phase.Implement, Phase.Plan],
-  [Phase.Implement]: [Phase.Plan, Phase.TodoDone],
-  [Phase.TodoDone]: [Phase.Implement],
+  [Phase.Implement]: [Phase.Plan],
 };
 
 /** Check if a phase transition is allowed */
@@ -112,8 +111,6 @@ export function transition(
       return transitionToPlanVerify(from, state);
     case Phase.Implement:
       return transitionToImplement(from, state, opts);
-    case Phase.TodoDone:
-      return transitionToTodoDone(from, state);
     default:
       return {
         newState: {},
@@ -226,21 +223,11 @@ function transitionToImplement(
     level: "info",
   });
 
-  return {
-    newState: { phase: Phase.Implement, planVerified: true },
-    effects,
-  };
-}
+  const implementMode = opts?.implementMode || "manual";
 
-function transitionToTodoDone(
-  from: Phase,
-  _state: WorkSettings,
-): TransitionResult {
   return {
-    newState: { phase: Phase.TodoDone },
-    effects: [
-      { kind: "worklog", entry: `Phase transition: ${from} → todo-done (staging & commit)` },
-    ],
+    newState: { phase: Phase.Implement, planVerified: true, implementMode },
+    effects,
   };
 }
 
@@ -303,10 +290,6 @@ export function guardWorkNextPhase(state: WorkSettings): {
     return { allowed: true, autoResumeImplement: false };
   }
 
-  if (phase === Phase.TodoDone) {
-    return { allowed: true, autoResumeImplement: true };
-  }
-
   return {
     allowed: false,
     autoResumeImplement: false,
@@ -362,6 +345,14 @@ export function guardToolCall(
 
   if (!isPlan && !isImplement) return null;
 
+  // --- Claude TODO tool guard ---
+  if (isImplement) {
+    const t = toolName.toLowerCase();
+    if (t === "todowrite" || t === "todo_write" || t === "todo") {
+      return "Implement phase: Claude TODO list writes are disabled. Track progress in _notes/worklog.md and complete plan checkboxes in _notes/plan.md.";
+    }
+  }
+
   // --- Bash guard ---
   if (toolName === "Bash" || toolName === "bash") {
     const cmd = (input.command || "").trim();
@@ -379,7 +370,7 @@ export function guardToolCall(
 
     if (isImplement) {
       if (isCmdInList(candidate, ["git add", "git commit", "git stage"])) {
-        return "Implement phase: git staging and committing are not allowed. Use /work:next to commit after a TODO is complete — it transitions to todo-done phase first.";
+        return "Implement phase: git staging and committing are reserved for work-manager. Finish TODO implementation, then hand off for manager-owned commit.";
       }
     }
 
@@ -420,6 +411,7 @@ export function guardToolCall(
 
         return "Implement phase: _notes/plan.md edits are restricted. Only checkbox completion edits (`- [ ]` → `- [x]`) are allowed.";
       }
+
     }
   }
 

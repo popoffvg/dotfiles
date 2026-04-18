@@ -8,12 +8,12 @@ export enum Phase {
   Plan = "plan",
   PlanVerify = "plan-verify",
   Implement = "implement",
-  TodoDone = "todo-done",
 }
+
+export type ImplementMode = "autopilot" | "manual";
 
 export interface WorkSettings {
   phase: string;
-  phaseBeforeTodo: string | null;
   workId: string;
   name: string;
   status: string;
@@ -23,6 +23,7 @@ export interface WorkSettings {
   approveCommits: boolean;
   planAllowedCommands: string[];
   planVerified: boolean;
+  implementMode: ImplementMode;
 }
 
 export interface WorkState {
@@ -42,6 +43,7 @@ export interface TransitionOpts {
   choice?: "continue" | "return_to_plan";
   userInput?: string;
   text?: string;
+  implementMode?: ImplementMode;
 }
 
 export interface TransitionResult {

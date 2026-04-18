@@ -28,7 +28,22 @@ export function guard(
   toolName: string,
   toolInput: Record<string, unknown>,
 ): GuardResult {
-  const sf = state.findSettings(cwd);
+  let sf = state.findSettings(cwd);
+
+  // If no active settings in current cwd, and this is a bash command that
+  // changes directory first, try resolving settings from that target dir.
+  if (!sf && (toolName === "Bash" || toolName === "bash")) {
+    const cmd = String(toolInput.command || "").trim();
+    const m = cmd.match(/^cd\s+([^&;]+?)\s*&&/);
+    if (m?.[1]) {
+      const cdTargetRaw = m[1].trim().replace(/^['\"]|['\"]$/g, "");
+      const cdTarget = path.isAbsolute(cdTargetRaw)
+        ? cdTargetRaw
+        : path.resolve(cwd, cdTargetRaw);
+      sf = state.findSettings(cdTarget);
+    }
+  }
+
   if (!sf) return { allowed: true };
 
   const s = state.readSettings(sf);
