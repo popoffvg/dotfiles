@@ -72,12 +72,12 @@ Work has two implement modes stored in `implementMode` setting:
 
 | Mode | Trigger | Behavior |
 |------|---------|----------|
-| **manual** (default) | `/work:next`, "next todo" | Execute one TODO, stop, return control to user |
-| **autopilot** | `/work:implement`, "autopilot", "run all" | Execute all TODOs autonomously |
+| **autopilot** (default) | `/work:implement`, "autopilot", "run all" | Execute all TODOs autonomously |
+| **manual** | `/work:next`, "next todo" | Execute one TODO, stop, return control to user |
 
 When transitioning to implement phase, pass `implementMode` to `work_transition`:
-- `work_transition({ to: "implement", implementMode: "autopilot" })` for autopilot
-- `work_transition({ to: "implement", implementMode: "manual" })` for manual (default)
+- `work_transition({ to: "implement", implementMode: "autopilot" })` for autopilot (default)
+- `work_transition({ to: "implement", implementMode: "manual" })` for manual
 
 User can switch modes mid-implementation via `work_state` update:
 - `work_state({ action: "update", updates: { implementMode: "autopilot" } })`

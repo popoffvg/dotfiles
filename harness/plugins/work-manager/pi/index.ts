@@ -160,7 +160,7 @@ function registerCommands(pi: ExtensionAPI) {
               recentWorklog: wl,
               skill,
               approveCommits: current.approveCommits,
-              mode: current.implementMode || "manual",
+              mode: current.implementMode || "autopilot",
             });
             pi.sendUserMessage(msg);
             return;
@@ -310,7 +310,7 @@ function registerCommands(pi: ExtensionAPI) {
       if (!nextGuard.allowed) {
         // Auto-transition to implement if in plan-verify
         if ((s.phase as Phase) === Phase.PlanVerify) {
-          const result = fsm.transition(s, Phase.Implement, { implementMode: "manual" });
+          const result = fsm.transition(s, Phase.Implement, { implementMode: "autopilot" });
           if (Object.keys(result.newState).length > 0) {
             state.updateSettings(sf, result.newState);
           }

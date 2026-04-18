@@ -20,7 +20,7 @@ const ALLOWED_TRANSITIONS: Record<Phase, Phase[]> = {
   [Phase.Research]: [Phase.Plan],
   [Phase.Plan]: [Phase.Research, Phase.PlanVerify],
   [Phase.PlanVerify]: [Phase.Implement, Phase.Plan],
-  [Phase.Implement]: [Phase.Plan],
+  [Phase.Implement]: [Phase.Plan, Phase.Implement],
 };
 
 /** Check if a phase transition is allowed */
@@ -223,7 +223,7 @@ function transitionToImplement(
     level: "info",
   });
 
-  const implementMode = opts?.implementMode || "manual";
+  const implementMode = opts?.implementMode || "autopilot";
 
   return {
     newState: { phase: Phase.Implement, planVerified: true, implementMode },
@@ -368,7 +368,7 @@ export function guardToolCall(
       }
     }
 
-    if (isImplement) {
+    if (isImplement && state.implementMode !== "autopilot") {
       if (isCmdInList(candidate, ["git add", "git commit", "git stage"])) {
         return "Implement phase: git staging and committing are reserved for work-manager. Finish TODO implementation, then hand off for manager-owned commit.";
       }
@@ -401,7 +401,7 @@ export function guardToolCall(
       return null;
     }
 
-    if (isImplement) {
+    if (isImplement && state.implementMode !== "autopilot") {
       const planPath = path.resolve(notesDir, "plan.md");
       if (resolved === planPath) {
         const isEditTool = toolName === "Edit" || toolName === "edit";
@@ -411,7 +411,6 @@ export function guardToolCall(
 
         return "Implement phase: _notes/plan.md edits are restricted. Only checkbox completion edits (`- [ ]` → `- [x]`) are allowed.";
       }
-
     }
   }
 

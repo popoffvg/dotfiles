@@ -54,10 +54,10 @@ export const DEFAULTS: WorkSettings = {
   branch: "",
   worktreePath: null,
   worktreeBranch: null,
-  approveCommits: true,
+  approveCommits: false,
   planAllowedCommands: DEFAULT_PLAN_ALLOWED_COMMANDS,
   planVerified: false,
-  implementMode: "manual",
+  implementMode: "autopilot",
 };
 
 /** Resolve the settings file path for a given directory */

@@ -8,7 +8,7 @@ export interface WorkNextPromptInput {
 }
 
 export function buildWorkNextPrompt(input: WorkNextPromptInput): string {
-  const { plan, recentWorklog, skill, approveCommits, mode = "manual" } = input;
+  const { plan, recentWorklog, skill, approveCommits, mode = "autopilot" } = input;
 
   if (!plan.trim()) {
     return "No plan found at _notes/plan.md.";

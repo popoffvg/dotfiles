@@ -59,7 +59,7 @@ function makeEffectContext(settingsFile: string): EffectContext {
   };
 }
 
-function renderWorkNextPrompt(notesDir: string, approveCommits: boolean, mode: "autopilot" | "manual" = "manual"): string {
+function renderWorkNextPrompt(notesDir: string, approveCommits: boolean, mode: "autopilot" | "manual" = "autopilot"): string {
   const planPath = path.join(notesDir, "plan.md");
   const plan = notes.readFileOr(planPath, "");
   const recentWorklog = notes.worklogTail(notesDir, 5);
@@ -141,7 +141,7 @@ server.tool(
       const label = existing.workId || existing.name || "unnamed";
 
       if (existing.phase === Phase.Implement) {
-        const prompt = renderWorkNextPrompt(resolveNotesDir(sf), existing.approveCommits, existing.implementMode || "manual");
+        const prompt = renderWorkNextPrompt(resolveNotesDir(sf), existing.approveCommits, existing.implementMode || "autopilot");
         return {
           content: [{ type: "text" as const, text: prompt }],
         };
@@ -227,7 +227,7 @@ server.tool(
       .describe("Target phase"),
     feedback: z.string().optional().describe("User feedback (for plan transition)"),
     focus: z.string().optional().describe("Focus area (for implement transition)"),
-    implementMode: z.enum(["autopilot", "manual"]).optional().describe("Implement mode: autopilot (all TODOs) or manual (one at a time). Default: manual"),
+    implementMode: z.enum(["autopilot", "manual"]).optional().describe("Implement mode: autopilot (all TODOs) or manual (one at a time). Default: autopilot"),
   },
   async ({ to, feedback, focus, implementMode }) => {
     const sf = resolveSettingsFile();
@@ -509,7 +509,7 @@ server.tool(
     }
 
     const notesDir = resolveNotesDir(sf);
-    const prompt = renderWorkNextPrompt(notesDir, settings.approveCommits, settings.implementMode || "manual");
+    const prompt = renderWorkNextPrompt(notesDir, settings.approveCommits, settings.implementMode || "autopilot");
     return {
       content: [{ type: "text" as const, text: prompt }],
     };

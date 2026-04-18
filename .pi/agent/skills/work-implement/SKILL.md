@@ -3,16 +3,16 @@ name: work-implement
 description: >
   This skill should be used when the current work phase is "implement".
   Two modes: autopilot (all TODOs) or manual (one TODO via /work:next).
-  Default is manual — user triggers each TODO with /work:next.
-  Autopilot runs all TODOs autonomously when explicitly requested.
+  Default is autopilot — all TODOs run autonomously.
+  Manual mode available via /work:next (one TODO at a time).
 ---
 
 # work:implement
 
 Implement phase workflow. Behavior depends on `implementMode` in `.pi/work.settings.json`:
 
-- **manual** (default): Execute one TODO per `/work:next` call, then stop and return control.
-- **autopilot**: Execute all TODOs autonomously — do not ask the user for guidance.
+- **autopilot** (default): Execute all TODOs autonomously — do not ask the user for guidance.
+- **manual**: Execute one TODO per `/work:next` call, then stop and return control.
 
 Your state was auto-committed before entering this phase. Work freely.
 

@@ -44,18 +44,23 @@ You must verify all items before marking TODO done:
 
 - Code change matches TODO scope
 - Relevant tests/checks run and pass (or explicit limitation logged)
-- Changes prepared for manager-owned commit (no implementer commit)
+- Changes committed per `work-commit` skill (autopilot) or prepared for manager commit (manual)
 - `_notes/plan.md` checkbox updated `- [ ]` → `- [x]`
 - `_notes/worklog.md` updated with timestamp and summary
 - `work_compact` called with concise summary/learnings
 
 If any item is missing, do not proceed to next TODO.
 
-## Commit contract (manager-owned)
+## Commit contract
 
-- Implementer must NOT run `git add` or `git commit`
-- After TODO passes validation, hand off to work-manager for commit creation
-- Keep change scope to one TODO so manager can produce one commit per TODO
+**Autopilot mode (default):** Implementer stages and commits directly — one commit per TODO. No handoff needed. Follow the `work-commit` skill for commit message format:
+- Prefix: `feat|fix|doc|test|build|refactor`
+- Message describes **why**, not what
+- ≤ 72 chars, imperative mood, no period
+
+**Manual mode:** Implementer must NOT run `git add` or `git commit`. After TODO passes validation, hand off to work-manager for commit creation.
+
+In both modes, keep change scope to one TODO = one commit.
 
 ## Loop termination
 
@@ -78,5 +83,5 @@ Use `AskUserQuestion` only for real blockers/ambiguity. Provide options, not fre
 When running in cmux, emit handoffs:
 
 - Question → `work_handoff(from: "implementer", action: "question", target: "planner", message: "...")`
-- TODO ready for manager commit → after `work_compact`, `work_handoff(from: "implementer", action: "todo-done", message: "ready for manager commit: <summary>")`
+- TODO done → after `work_compact`, `work_handoff(from: "implementer", action: "todo-done", message: "<summary>")`
 - Blocked → `work_handoff(from: "implementer", action: "blocked", message: "...")`
