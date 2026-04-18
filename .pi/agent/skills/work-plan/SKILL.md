@@ -22,7 +22,7 @@ description: >
 ## Phase Flow
 
 ```
-plan → /work:implement → auto-verify → verify → /work:plan → ...
+research → plan → plan-verify → implement → plan (iterate)
 ```
 
 ## Step 1: Assess current state

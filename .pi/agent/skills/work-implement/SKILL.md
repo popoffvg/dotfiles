@@ -2,12 +2,17 @@
 name: work-implement
 description: >
   This skill should be used when the current work phase is "implement".
-  LLM executes the plan autonomously. After completion, auto-transitions to auto-verify.
+  Two modes: autopilot (all TODOs) or manual (one TODO via /work:next).
+  Default is manual — user triggers each TODO with /work:next.
+  Autopilot runs all TODOs autonomously when explicitly requested.
 ---
 
 # work:implement
 
-Implement phase workflow. **Execute autonomously — do not ask the user for guidance.**
+Implement phase workflow. Behavior depends on `implementMode` in `.pi/work.settings.json`:
+
+- **manual** (default): Execute one TODO per `/work:next` call, then stop and return control.
+- **autopilot**: Execute all TODOs autonomously — do not ask the user for guidance.
 
 Your state was auto-committed before entering this phase. Work freely.
 

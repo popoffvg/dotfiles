@@ -1,13 +1,22 @@
 ---
 name: context-find
-description: Search and retrieve insights from persistent memory. This skill should be used when the user says "context find", "recall", "what do I know about", "find my notes on", "search memory", "do I have anything on", or wants to retrieve previously saved knowledge. Always invoke to check memory before answering any topic-based question.
+description: Search and retrieve insights from persistent memory. Use this only when the user explicitly asks to recall/search memory ("context find", "recall", "what do I know about", "find my notes on", "search memory", "do I have anything on") or clearly asks for previously saved notes. Do not trigger for live operational requests (for example "check health/status of jobs/services").
 ---
 
 # Context Find
 
 ## Core rule
 
-**Execute all search steps autonomously. Never ask the user for confirmation between steps.** Run keyword search, semantic search, and fallback search without prompting. Only ask once — at the end — if nothing was found and you need the user to specify where else to look.
+**Execute all search steps autonomously after intent is confirmed as memory recall. Never ask the user for confirmation between search steps.** Run keyword search, semantic search, and fallback search without prompting. Only ask once — at the end — if nothing was found and you need the user to specify where else to look.
+
+## Intent gate (run before search)
+
+Classify the request first:
+1. **Memory intent (run this skill):** explicit recall phrasing like "context find", "recall", "find my notes", "what do I know about".
+2. **Live/operational intent (do not run this skill):** status/health/action phrasing like "check health of jobs", "are jobs running", "fix", "restart", "deploy", "debug".
+3. **Ambiguous intent:** ask one short clarification question: "Do you want me to search saved notes, or check the live system?"
+
+Typo tolerance: interpret obvious typos (e.g. "helth" → "health") before intent classification.
 
 ## Usage
 
@@ -62,6 +71,7 @@ Rules:
 4. Was the insights_root config read before searching?
 5. Did the agent complete the search without asking any yes/no confirmation questions mid-procedure?
 6. On a confirmation-like follow-up with an action request, did the agent avoid re-invoking context-find and switch to execution/clarification?
+7. Did the agent avoid invoking context-find for live operational status/health requests?
 
 **Test inputs:**
 - "Recall what I know about Kubernetes debugging patterns"
