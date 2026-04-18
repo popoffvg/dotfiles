@@ -2,7 +2,7 @@
   "mcpServers": {
     "comments": {
       "command": "bash",
-      "args": ["-c", "WORK_CWD=\"$PWD\" npx tsx /Users/popoffvg/Documents/git/dotfiles/harness/plugins/agent-review/server/index.ts"],
+      "args": ["-c", "WORK_CWD=\"$PWD\" npx tsx \"${CLAUDE_PLUGIN_ROOT}/server.ts\""],
       "env": {}
     }
   }
