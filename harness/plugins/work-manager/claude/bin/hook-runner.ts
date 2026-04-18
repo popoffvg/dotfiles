@@ -29,24 +29,62 @@ function out(obj: Record<string, unknown>): void {
   process.stdout.write(JSON.stringify(obj));
 }
 
+function logGuardDecision(data: {
+  decision: "allow" | "block";
+  reason?: string;
+  toolName?: string;
+}): void {
+  try {
+    const piDir = path.join(process.cwd(), ".pi");
+    if (!fs.existsSync(piDir)) {
+      fs.mkdirSync(piDir, { recursive: true });
+    }
+
+    const logPath = path.join(piDir, "work-guard.log");
+    const ts = new Date().toISOString();
+    const line = JSON.stringify({ ts, cwd: process.cwd(), ...data });
+    fs.appendFileSync(logPath, line + "\n", "utf-8");
+  } catch {
+    // best effort
+  }
+}
+
 switch (command) {
   case "guard": {
     const raw = readStdin();
-    if (!raw) break;
+    if (!raw || !raw.trim()) {
+      const reason = "work-manager guard failed closed: empty hook input";
+      logGuardDecision({ decision: "block", reason });
+      out({ decision: "block", reason });
+      break;
+    }
 
     let parsed: { tool_name?: string; tool_input?: Record<string, unknown> };
     try {
       parsed = JSON.parse(raw);
     } catch {
+      const reason = "work-manager guard failed closed: invalid hook JSON";
+      logGuardDecision({ decision: "block", reason });
+      out({ decision: "block", reason });
       break;
     }
 
     const toolName = parsed.tool_name || "";
     const toolInput = parsed.tool_input || {};
 
+    if (!toolName.trim()) {
+      const reason = "work-manager guard failed closed: missing tool_name";
+      logGuardDecision({ decision: "block", reason });
+      out({ decision: "block", reason });
+      break;
+    }
+
     const result = guard(process.cwd(), toolName, toolInput);
     if (!result.allowed) {
+      logGuardDecision({ decision: "block", reason: result.reason, toolName });
       out({ decision: "block", reason: result.reason });
+    } else {
+      logGuardDecision({ decision: "allow", toolName });
     }
     break;
   }

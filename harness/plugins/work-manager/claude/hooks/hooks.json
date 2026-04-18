@@ -27,7 +27,7 @@
           {
             "type": "command",
             "command": "npx tsx ${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.ts guard",
-            "timeout": 3000
+            "timeout": 10000
           }
         ]
       }
