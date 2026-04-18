@@ -43,3 +43,24 @@
   - tests: `cd raycast/space-manager && npx tsc --noEmit` pass
 - 2026-04-16 20:26: Implementation complete
 - 2026-04-16 20:17: [TODO] Validated and completed all four TODOs in plan for Raycast Space Manager code-space flow; confirmed existing implementation in list-spaces.tsx and hammerspoon.ts and re-checked TypeScript compile.
+- 2026-04-17 18:07: Work initialized
+- 2026-04-17 18:16: Phase transition: plan → plan-verify
+- 2026-04-17 18:17: Phase transition: plan-verify → plan
+- 2026-04-17 18:24: Drafted fail-closed guard hardening plan for Claude harness (hook-runner guard blocking, guard telemetry log, PreToolUse timeout increase).
+- 2026-04-17 18:18: Phase transition: plan → plan-verify
+- 2026-04-17 18:19: Phase transition: plan-verify → implement
+- 2026-04-17 18:20: [TODO] Implement fail-closed guard decisions in `harness/plugins/work-manager/claude/bin/hook-runner.ts`
+  - changed `harness/plugins/work-manager/claude/bin/hook-runner.ts` — guard now blocks on empty stdin, invalid JSON, and missing/blank `tool_name`
+  - tests: `printf '' | npx tsx harness/plugins/work-manager/claude/bin/hook-runner.ts guard` => block; `printf 'not-json' | ...` => block; `printf '{"tool_input":{}}' | ...` => block; valid `tool_name` input => no block output
+- 2026-04-17 18:21: [TODO] Add guard telemetry logging in `harness/plugins/work-manager/claude/bin/hook-runner.ts`
+  - changed `harness/plugins/work-manager/claude/bin/hook-runner.ts` — added JSONL append logging to `.pi/work-guard.log` for allow/block decisions
+  - tests: `.pi/work-guard.log` contains timestamped entries for block and allow outcomes with reason/tool where applicable
+- 2026-04-17 18:22: [TODO] Increase PreToolUse guard timeout in `harness/plugins/work-manager/claude/hooks/hooks.json`
+  - changed `harness/plugins/work-manager/claude/hooks/hooks.json` — updated PreToolUse guard timeout from `3000` to `10000`
+  - tests: file verification confirms only guard timeout updated
+- 2026-04-17 18:22: Note: `cd harness/plugins/work-manager && npx tsc --noEmit` fails due tsconfig include paths (`core/**/*.ts`, `server/**/*.ts`) not matching plugin layout; validation used direct hook-runner runtime simulations for this change.
+- 2026-04-17 18:20: [TODO] TODO1 fail-closed guard decisions
+- 2026-04-17 18:20: [TODO] TODO2 guard telemetry logging
+- 2026-04-17 18:20: [TODO] TODO3 PreToolUse timeout increase
+- 2026-04-17 18:23: Implementation complete
+- 2026-04-17 18:31: Work cancelled

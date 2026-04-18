@@ -156,7 +156,10 @@
       "Bash(node mcp/queue-server.mjs)",
       "Bash(kill %1)",
       "Bash(timeout 3 bash -c 'WORK_CWD=\"$PWD\" PLUGIN_ROOT=\"harness/plugins/work-manager/claude\" npx tsx harness/plugins/work-manager/common/server/index.ts')",
-      "Bash(timeout 3 bash -c 'WORK_CWD=\"$PWD\" npx tsx /Users/popoffvg/Documents/git/dotfiles/harness/plugins/agent-review/server/index.ts')"
+      "Bash(timeout 3 bash -c 'WORK_CWD=\"$PWD\" npx tsx /Users/popoffvg/Documents/git/dotfiles/harness/plugins/agent-review/server/index.ts')",
+      "Bash(python3 -c ':*)",
+      "Bash(rm -rf ~/.claude/plugins/cache/local-plugins/memory-keeper/0.1.0)",
+      "Bash(cp -r /Users/popoffvg/Documents/git/dotfiles/harness/plugins/memory-keeper/claude ~/.claude/plugins/cache/local-plugins/memory-keeper/0.1.0)"
     ]
   },
   "sandbox": {
