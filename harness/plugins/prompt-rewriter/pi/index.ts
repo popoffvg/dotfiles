@@ -2,11 +2,11 @@
  * Prompt Rewriter Extension
  *
  * Features:
- * - Ctrl+I (configurable): Rewrite prompt with approve/restore dialog
+ * - Ctrl+R (configurable): Rewrite prompt with approve/restore dialog
  * - Ctrl+Shift+I (configurable): Show hints for improving current prompt
  *
  * Flow:
- * 1. Press Ctrl+I → AI improves your prompt
+ * 1. Press Ctrl+R → AI improves your prompt
  * 2. Dialog shows original vs improved versions
  * 3. Choose "Use Improved" or "Use Original"
  * 4. If original chosen, both versions saved to ~/.pi/agent/extensions/prompt-rewriter/rejected-improvements.jsonl for evaluation
@@ -20,7 +20,7 @@
  * {
  *   "provider": "anthropic",
  *   "model": "claude-sonnet-4-6",
- *   "rewriteShortcut": "ctrl+i",
+ *   "rewriteShortcut": "ctrl+r",
  *   "hintsShortcut": "ctrl+shift+i"
  * }
  * ```
@@ -37,7 +37,7 @@ interface Config {
 	provider: string;
 	/** Model ID (default: "claude-haiku-3-5-20241022") */
 	model: string;
-	/** Keyboard shortcut for rewrite (default: "ctrl+p") */
+	/** Keyboard shortcut for rewrite (default: "ctrl+r") */
 	rewriteShortcut: string;
 	/** Keyboard shortcut for hints (default: "ctrl+shift+p") */
 	hintsShortcut: string;
@@ -46,7 +46,7 @@ interface Config {
 const DEFAULT_CONFIG: Config = {
 	provider: "anthropic",
 	model: "claude-haiku-4-5-20251001",
-	rewriteShortcut: "ctrl+i",
+	rewriteShortcut: "ctrl+r",
 	hintsShortcut: "ctrl+shift+i",
 };
 
@@ -102,6 +102,13 @@ function loadConfig(cwd: string): Config {
 		}
 	}
 
+	// Hard guard: never bind rewrite to Tab or Ctrl+I (Ctrl+I sends Tab).
+	const shortcut = (config.rewriteShortcut || "").trim().toLowerCase();
+	if (shortcut === "tab" || shortcut === "ctrl+i") {
+		console.warn("⚠️ Prompt Rewriter: tab/ctrl+i are disallowed; falling back to ctrl+r");
+		config.rewriteShortcut = "ctrl+r";
+	}
+
 	return config;
 }
 
@@ -124,11 +131,11 @@ async function callLLM(
 		return null;
 	}
 
-	const apiKey = await ctx.modelRegistry.getApiKey(model);
-	if (!apiKey) {
+	const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
+	if (!auth.ok) {
 		ctx.ui.notify(
-			`🔑 API Key Missing\n\nNo API key found for ${config.provider}.\n\n` +
-			`💡 Set up your API key:\n` +
+			`🔑 Authentication Missing\n\n${auth.error}\n\n` +
+			`💡 Set up your credentials:\n` +
 			`• Run: pi auth ${config.provider}\n` +
 			`• Or check your environment variables`,
 			"error"
@@ -150,7 +157,7 @@ async function callLLM(
 			const response = await complete(
 				model,
 				{ systemPrompt, messages: [userMessage] },
-				{ apiKey, signal: loader.signal },
+				{ apiKey: auth.apiKey, headers: auth.headers, signal: loader.signal },
 			);
 
 			if (response.stopReason === "aborted") {
@@ -227,7 +234,7 @@ export default function (pi: ExtensionAPI) {
 	async function handleRewrite(ctx: ExtensionContext) {
 		const currentText = ctx.ui.getEditorText();
 		if (!currentText?.trim()) {
-			ctx.ui.notify("✍️ Write something first!\n\nType your prompt in the editor, then press Ctrl+I to improve it.", "warning");
+			ctx.ui.notify("✍️ Write something first!\n\nType your prompt in the editor, then press Ctrl+R to improve it.", "warning");
 			return;
 		}
 
@@ -342,8 +349,18 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	// Clear hints widget when user submits a prompt
-	pi.on("input", async (_event, ctx) => {
+	pi.on("input", async (event, ctx) => {
 		ctx.ui.setWidget("prompt-hints", undefined);
+
+		const submitted = (event.text || "").trim();
+		if (submitted.startsWith("/improve")) {
+			const rest = submitted.replace(/^\/improve\b\s*/, "").trim();
+			if (rest) {
+				ctx.ui.setEditorText(rest);
+			}
+			await handleRewrite(ctx);
+		}
+
 		return { action: "continue" as const };
 	});
 
@@ -360,6 +377,14 @@ export default function (pi: ExtensionAPI) {
 		description: "Show hints for improving the current editor prompt",
 		handler: async (_args, ctx) => {
 			await handleHints(ctx);
+		},
+	});
+
+	// /improve command (alias for /rewrite)
+	pi.registerCommand("improve", {
+		description: "Improve the current editor prompt (alias of /rewrite)",
+		handler: async (_args, ctx) => {
+			await handleRewrite(ctx);
 		},
 	});
 }
