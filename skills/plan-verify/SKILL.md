@@ -12,11 +12,17 @@ Validate that a plan follows the `sudlang` contract before signaling readiness.
 ### Structure
 - Required sections exist: `Description`, `Glossary`, `Acceptance Criteria`, `TODOs`.
 - All Acceptance Criteria entries are `- [ ]` checkboxes.
-- All TODO entries are `- [ ]` checkboxes.
+- Every TODO is a `### TODO-N: <title>` header section.
+- Each TODO header contains a `- [ ]` checkbox as the first item.
+- Each TODO has all required fields: **Details**, **Skills**, **Autotest**, **Manual test**.
+
+### Test strategy
+- Every TODO has an **Autotest** field specifying: level (`unit`/`integration`/`e2e`), target file, and test cases. `Autotest: none` only valid for non-behavioral changes (rename, move, docs).
+- Every TODO has a **Manual test** field specifying concrete human-executable steps with inputs and expected outcomes.
+- If `Manual test: skip` — a **Skip manual reason** field must explain why manual testing adds no value beyond autotests. Missing reason → FAIL.
+- **Skip manual reason** must be specific (not "too hard" or "not worth it"). Valid: pure function fully covered by unit tests, no UI/external interface, TODO only adds tests.
 
 ### Traceability
-- Every TODO has at least one `criteria:` mapping.
-- Every Acceptance Criterion is referenced by at least one TODO.
 - Every TODO declares a C4 `level:` (L1-L4).
 - TODOs that change code include concrete file paths.
 
