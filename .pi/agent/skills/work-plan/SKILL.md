@@ -45,9 +45,9 @@ While reading, collect **implementation guidelines**: coding patterns, naming co
 
 ## Step 3: Build / refine the plan
 
-Write everything to a single file `_notes/plan.md`. The plan is a TODO list.
+Write everything to a single file `_notes/plan.md`. Each TODO is a header section.
 
-**Every item must be a `- [ ]` checkbox.** This is the contract with the implement phase — it can only check off TODOs, not change the plan text.
+**Every TODO must be a `- [ ]` checkbox under its header.** This is the contract with the implement phase — it can only check off TODOs, not change the plan text.
 
 ```markdown
 # Plan
@@ -84,20 +84,72 @@ Existing files or docs that demonstrate the expected style:
 - [ ] Integration tests pass for all auth flows
 
 ## TODOs
+
+### TODO-1: Add refresh endpoint
+
 - [ ] Add refresh endpoint to `core/pl/pkg/auth/handler.go`
-  - endpoint path: POST /auth/refresh
-  - accept refresh token in body, return new access + refresh tokens
-  - return 401 for expired/invalid tokens
+
+**Details:**
+- endpoint path: POST /auth/refresh
+- accept refresh token in body, return new access + refresh tokens
+- return 401 for expired/invalid tokens
+
+**Skills:** go-modify
+
+**Autotest:** unit — `handler_test.go` — cases: valid refresh returns 200 + new tokens, expired token returns 401, missing body returns 400
+
+**Manual test:** curl POST /auth/refresh with valid refresh token, verify 200 + new token pair; repeat with expired token, verify 401; check Redis key deleted
+
+---
+
+### TODO-2: Implement token rotation
+
 - [ ] Implement token rotation in `core/pl/pkg/auth/token.go`
-  - store refresh tokens in Redis with TTL
-  - invalidate old token on rotation
+
+**Details:**
+- store refresh tokens in Redis with TTL
+- invalidate old token on rotation
+
+**Skills:** go-modify
+
+**Autotest:** unit — `token_test.go` — cases: valid rotation, expired token rejected, old token invalidated after rotation
+
+**Manual test:** skip
+**Skip manual reason:** internal token logic with no UI or external interface — unit tests cover all state transitions exhaustively
+
+---
+
+### TODO-3: Update SDK client
+
 - [ ] Update SDK client in `core/platforma/sdk/src/auth.ts`
-  - transparent refresh on 401 response
-  - retry original request after refresh
+
+**Details:**
+- transparent refresh on 401 response
+- retry original request after refresh
+
+**Skills:** none
+
+**Autotest:** unit — `auth.test.ts` — cases: 401 triggers refresh, retried request succeeds, refresh failure propagates error
+
+**Manual test:** use SDK in sample app, let token expire, verify next API call succeeds transparently without client-side error
+
+---
+
+### TODO-4: Add integration tests
+
 - [ ] Add integration tests in `core/pl/pkg/auth/handler_test.go`
-  - test expired token → 401
-  - test valid refresh → new tokens
-  - test rotation invalidates old token
+
+**Details:**
+- test expired token → 401
+- test valid refresh → new tokens
+- test rotation invalidates old token
+
+**Skills:** go-test-debug
+
+**Autotest:** integration — `handler_test.go` — cases: full auth flow with Redis, token rotation end-to-end
+
+**Manual test:** skip
+**Skip manual reason:** integration tests themselves ARE the verification — this TODO only adds tests, no production code
 
 ## Design Decisions
 
@@ -113,20 +165,16 @@ Existing files or docs that demonstrate the expected style:
 - **TODOs** — concrete implementation steps (how to get there)
 
 **Rules for TODOs:**
-- Each TODO is a concrete, implementable task
-- Sub-items under a TODO provide details, not separate tasks
+- Each TODO is a `### TODO-N: <title>` header section
+- The checkbox `- [ ]` line is the first item under the header — this is the implementer's contract
+- **Details**, **Skills**, **Autotest**, **Manual test** are required fields under each TODO
 - TODOs are ordered by execution sequence
 - Each TODO references specific files where changes happen
 - No vague TODOs like "improve performance" — be specific
 - **Each TODO = one git commit.** Design TODOs so each one is a self-contained, committable unit of work. Don't make TODOs too large (multiple unrelated changes) or too small (not worth a commit).
-- **Each TODO must list required skills.** Add a `skills:` sub-item listing skills the implementer should load before starting. Include language-specific skills (`go-modify`, `shell-modify`), project rules from AGENTS.md/CLAUDE.md, and any domain skills relevant to the change. Example:
-  ```
-  - [ ] Add refresh endpoint to `core/pl/pkg/auth/handler.go`
-    - skills: go-modify, go-test-debug
-    - endpoint path: POST /auth/refresh
-    ...
-  ```
-  Review `<available_skills>` in the system prompt to find matching skills by description. If no skills are relevant, write `skills: none`.
+- **Skills** — list skills the implementer should load. Include language-specific skills (`go-modify`, `shell-modify`), project rules from AGENTS.md/CLAUDE.md, and domain skills. Review `<available_skills>` in the system prompt. Write `none` if no skills are relevant.
+- **Autotest** — automated verification: level (`unit`/`integration`/`e2e`), target file, test cases. Write `none — no behavioral change` only for purely structural TODOs (rename, move, docs).
+- **Manual test** — human-executed verification: specific steps, inputs, expected observable outcomes. If skipped, write `skip` and add **Skip manual reason** explaining why manual testing adds no value beyond autotests. Reason must be specific (not "too hard"). Valid: pure function fully covered by unit tests, no UI/external interface, TODO only adds tests.
 
 ## Plan-Readiness Checklist
 
@@ -134,8 +182,8 @@ Before signaling the plan is ready, verify each item:
 
 - [ ] **Guidelines written.** `Implementation Guidelines` section is filled — skills listed, patterns documented, or explicitly marked "no project-specific guidelines".
 - [ ] **Full file context read.** For every file a TODO will modify, read the ENTIRE file (not just the target section). Note file-level constraints: strict modes, build tags, linter directives, module-level error handling patterns. These constraints dictate what patterns are safe to use.
-- [ ] **Test strategy specified.** Each TODO that changes behavior must state: what test level (unit/integration/e2e), which test file, what cases. "Add tests" alone is not a valid sub-item.
-- [ ] **Resource lifecycle addressed.** If a TODO creates temporary resources (temp files, open handles, network connections, goroutines), the sub-items must include cleanup mechanism. Consult language-specific skills for correct patterns.
+- [ ] **Test strategy specified.** Each TODO has both **Autotest** and **Manual test** fields. Skipped manual tests have **Skip manual reason**. "Add tests" alone is not a valid test strategy.
+- [ ] **Resource lifecycle addressed.** If a TODO creates temporary resources (temp files, open handles, network connections, goroutines), the details must include cleanup mechanism. Consult language-specific skills for correct patterns.
 - [ ] **Format/protocol decisions justified.** When a TODO picks a data format, protocol, or approach with alternatives, record the choice and rationale in Design Decisions. Don't defer this to implement time.
 - [ ] **Execution environment noted.** For scripts/commands: where does this run? (CI, container, user shell, k8s job). What tools are available? What shell? This prevents assumptions about available commands.
 
@@ -172,12 +220,12 @@ Not every message requires a plan change. Some messages are informational — th
 
 | User says | You do |
 |-----------|--------|
-| "add X feature" | Add as TODO with sub-items for details |
-| "fix bug in Y" | Add as TODO, note the file/location |
+| "add X feature" | Add as TODO header with details |
+| "fix bug in Y" | Add as TODO header, note the file/location |
 | "use approach Z" | Record in Design Decisions section |
 | "what about X?" | Discuss, then update plan if agreed |
 | "looks good" | Confirm plan is ready, suggest `/work:implement` |
-| "change the order" | Reorder TODOs |
+| "change the order" | Reorder TODO headers |
 | "I left a comment/note in the plan" | Acknowledge. Read `plan.md` to see what changed. Don't rewrite or duplicate their edit. |
 | "just did X" / "I updated Y" | Acknowledge the user's manual edit. Re-read the file if needed to stay in sync. |
 | Status updates, confirmations | Acknowledge briefly. No plan change needed. |
@@ -188,11 +236,12 @@ Not every message requires a plan change. Some messages are informational — th
 
 **Eval checklist:**
 1. Does the plan have a filled `Implementation Guidelines` section (skills + patterns or explicit "none")?
-2. Does every TODO have a `skills:` sub-item listing required skills (or `skills: none`)?
+2. Does every TODO have a `### TODO-N:` header with all required fields (Details, Skills, Autotest, Manual test)?
 3. Are there zero TODOs that mix unrelated concerns (each TODO = one git commit)?
-4. Does every TODO that changes behavior specify test strategy (level, file, cases)?
-5. Did the plan require zero additional TODOs discovered during implement phase?
-6. Does the plan have both non-empty Acceptance Criteria and TODOs sections?
+4. Does every TODO have both **Autotest** and **Manual test** fields?
+5. Does every skipped manual test have a **Skip manual reason** explaining why?
+6. Did the plan require zero additional TODOs discovered during implement phase?
+7. Does the plan have both non-empty Acceptance Criteria and TODOs sections?
 
 **Test inputs:**
 - "Add JWT auth with refresh tokens to existing Go REST API"
