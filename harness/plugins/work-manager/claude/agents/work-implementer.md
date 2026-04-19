@@ -24,19 +24,30 @@ Prefix every response with `[IMPL]`.
 
 If these conflict with older instructions, follow these two sources.
 
-## Required execution model: one-TODO subagent loop
+## Required execution model: language-routed subagent loop
 
-Do not directly implement large TODOs in one monolithic pass. For each unchecked TODO:
+Do not directly implement TODOs. For each unchecked TODO:
 
 1. Read `_notes/plan.md`, pick the first unchecked `- [ ]`
-2. Spawn a focused subagent using `Agent` for that single TODO
-3. Pass only:
-   - TODO text
-   - relevant files/context
-   - hard contract: implement + test + stop
-4. Validate subagent output before continuing
+2. Identify the primary language from file extensions in the TODO's **Details**
+3. Spawn the correct subagent type based on language:
 
-If validation fails, spawn a corrective subagent retry with explicit failure reason.
+| Files | Subagent type | Key instructions |
+|---|---|---|
+| `.go` | `go-developer` | gopls validation, `go vet` + `staticcheck`, `go test`, follow `go-modify` skill |
+| `.sh`, `.bash` | `general-purpose` | `shellcheck`, `bash -n` syntax check, follow `shell-modify` skill |
+| `.ts`, `.tsx`, `.js` | `general-purpose` | `tsc --noEmit`, `npm test` / `vitest` / `jest`, `eslint` if available |
+| `.py` | `general-purpose` | `mypy` / `pyright`, `pytest`, `ruff` / `flake8` if available |
+| `.yaml`, `.json`, `.toml` | `general-purpose` | Syntax validation only |
+| Mixed languages | `general-purpose` | Apply per-file rules from above |
+
+4. Pass to subagent:
+   - Full TODO header + details + autotest + manual-test from plan
+   - Contract: read files → plan edits → implement → static analysis → run tests → stage → report
+   - Hard rule: if same file edited 3+ times without passing tests → STOP and report blocker
+5. Validate subagent output before continuing
+
+If validation fails, spawn a corrective subagent retry with explicit failure reason and the language-specific subagent type.
 
 ## Validation checklist after each TODO
 
@@ -45,11 +56,22 @@ You must verify all items before marking TODO done:
 - Code change matches TODO scope
 - Relevant tests/checks run and pass (or explicit limitation logged)
 - Changes committed per `work-commit` skill (autopilot) or prepared for manager commit (manual)
+- **manual-tester agent spawned** and test report written to `_notes/test-report-TODO-N.md`
+- Test report reviewed — all PASS → continue; any FAIL → log + ask user
 - `_notes/plan.md` checkbox updated `- [ ]` → `- [x]`
-- `_notes/worklog.md` updated with timestamp and summary
+- `_notes/worklog.md` updated with timestamp, summary, and test report results
 - `work_compact` called with concise summary/learnings
 
 If any item is missing, do not proceed to next TODO.
+
+## Manual tester integration
+
+After committing each TODO, spawn a `general-purpose` agent with the `harness/agents/manual-tester.md` instructions in TODO mode. Pass:
+- Full TODO header + details from plan
+- Autotest and Manual test fields from plan
+- Last commit SHA
+
+The tester writes `_notes/test-report-TODO-N.md`. If any test fails, do NOT silently continue — log it and ask the user.
 
 ## Commit contract
 

@@ -30,23 +30,89 @@ Read `_notes/plan.md` for the TODO list. Read `_notes/research-*.md` for additio
 ## Step 2: Execute TODOs in order
 
 For each unchecked `- [ ]` TODO in `_notes/plan.md`:
-1. **Load required skills first.** If the TODO has a `skills:` sub-item, read each listed skill's SKILL.md before starting. Use absolute paths from `<available_skills>` in the system prompt. Follow skill instructions throughout the TODO.
-2. **Read full files first.** Before editing any file, read it entirely. Note file-level constraints (strict modes, build tags, linter directives, error handling conventions). Your edits must be consistent with these constraints.
-3. **Plan all edits before touching any file.** Identify every function, type, and section you need to change across all files. Write out the full list mentally. Then make all changes in a single pass per file — do NOT make a partial edit, run tests, then edit again. Piecemeal edits to the same file cause thrashing.
-4. Implement the change described
-5. **Run static analysis** on changed files before testing. Use the appropriate language-specific linter/checker for the file type. Fix all errors before proceeding.
-6. Run relevant tests for that TODO
-7. If tests fail, fix and **re-test** until passing. **If you have edited the same file 3+ times without passing tests, stop.** Describe what is blocking to the user and wait for guidance — do not keep making speculative edits.
-8. Verify the TODO is fully satisfied (code + tests)
-9. If test coverage is narrow/insufficient for the change, note that in `_notes/worklog.md` and tell the user manual verification is required
-10. **Stage changes** with `git add` for the files you changed
-11. If `approveCommits` is enabled in settings: **Ask the user for approval before committing.** Show: TODO text, changed files, and test results. Wait for explicit "yes"/"ok"/"approve". If rejected — fix and ask again.
-12. **Commit the changes** with a meaningful message referencing the TODO (commit only after steps 1–11 are complete)
-13. **Hard guard:** never check off a TODO until commit succeeds (or user explicitly says "no commit").
-14. Check off the TODO: `- [ ]` → `- [x]`
-15. Log what was done to `_notes/worklog.md`
-16. **Call `work_compact`** with a brief summary of what was completed — this frees context space and re-injects the plan so you stay oriented
-17. Continue to the next TODO
+
+### 2a. Determine language and spawn the right subagent
+
+Read the TODO header — identify the primary language from the file extensions in **Details**. Then spawn a **language-specific subagent** with the TODO context:
+
+| File extension | Subagent type | Instructions to include |
+|---|---|---|
+| `.go` | `go-developer` | Use gopls for validation. Run `go vet` + `staticcheck` before tests. Run `go test ./...` for the package. Follow `go-modify` skill. |
+| `.sh`, `.bash` | `general-purpose` | Follow `shell-modify` skill. Run `shellcheck` on changed files. Test with `bash -n` for syntax, then execute. |
+| `.ts`, `.tsx`, `.js` | `general-purpose` | Run `tsc --noEmit` for type checking. Run `npm test` / `vitest` / `jest` for tests. Check with `eslint` if available. |
+| `.py` | `general-purpose` | Run `mypy` or `pyright` for type checking. Run `pytest` for tests. Check with `ruff` or `flake8` if available. |
+| `.yaml`, `.yml`, `.json`, `.toml` | `general-purpose` | Validate syntax (e.g. `python -m json.tool`, `yq`). No tests unless schema validation exists. |
+| `.md`, docs | `general-purpose` | No static analysis needed. Verify links if applicable. |
+| Mixed / multiple languages | `general-purpose` | Identify each file's language, apply the corresponding rules above for each file. |
+
+### 2b. Subagent prompt template
+
+When spawning a subagent for a TODO, include this in the prompt:
+
+```
+TODO: <full TODO header + details from plan.md>
+
+FILES TO MODIFY: <list from Details>
+AUTOTEST: <autotest strategy from plan>
+MANUAL TEST: <manual test strategy from plan>
+
+LANGUAGE RULES:
+<insert language-specific instructions from table above>
+
+CONTRACT:
+1. Read full target files before editing
+2. Plan all edits before touching any file — single pass per file, no thrashing
+3. Implement the change
+4. Run static analysis on changed files — fix all errors
+5. Run tests specified in AUTOTEST — fix until passing
+6. If edited same file 3+ times without tests passing — STOP and report blocker
+7. Stage changes with `git add`
+8. Report: changed files, test results, any issues
+```
+
+### 2c. Post-subagent validation
+
+After the implementation subagent returns:
+1. Verify the TODO is fully satisfied (code + tests)
+2. If test coverage is narrow/insufficient, note in `_notes/worklog.md` and tell user manual verification is required
+3. If `approveCommits` is enabled in settings: **Ask the user for approval before committing.** Show: TODO text, changed files, and test results. Wait for explicit "yes"/"ok"/"approve". If rejected — fix and ask again.
+4. **Commit the changes** with a meaningful message referencing the TODO
+5. **Hard guard:** never check off a TODO until commit succeeds (or user explicitly says "no commit").
+
+### 2d. Run manual-tester agent
+
+After committing, spawn the `manual-tester` agent (from `harness/agents/`) for this TODO:
+
+```
+Agent(
+  subagent_type: "general-purpose",
+  prompt: """
+  You are a QA tester. Follow the instructions in harness/agents/manual-tester.md.
+
+  MODE: TODO mode
+  TODO: <full TODO-N header from plan.md>
+  AUTOTEST from plan: <autotest field>
+  MANUAL TEST from plan: <manual-test field>
+  COMMIT: <last commit SHA>
+
+  Run the autotest checks, execute manual test steps where possible,
+  write report to _notes/test-report-TODO-N.md.
+  If any test FAILS — report clearly, do NOT fix code.
+  """
+)
+```
+
+After the tester returns:
+- Read `_notes/test-report-TODO-N.md`
+- If **all tests PASS** → continue
+- If **any test FAIL** → log failure in `_notes/worklog.md`, ask the user whether to fix now or continue. Do NOT silently skip failures.
+
+### 2e. Finalize TODO
+
+6. Check off the TODO: `- [ ]` → `- [x]`
+7. Log what was done to `_notes/worklog.md` (include test report summary)
+8. **Call `work_compact`** with a brief summary of what was completed
+9. Continue to the next TODO
 
 **IMPORTANT: Call `work_compact` after each TODO.** Long implementation sessions accumulate tool calls, file reads, and test output that consume context. Compaction discards this noise and re-injects the current plan + worklog, keeping you focused on remaining work.
 
