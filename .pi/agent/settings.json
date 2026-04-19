@@ -18,6 +18,8 @@
     "~/Documents/git/dotfiles/harness/plugins/smart-commit/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/work-manager/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/agent-review/pi/index.ts",
+    "~/Documents/git/dotfiles/harness/plugins/session-export/pi/index.ts",
+    "~/Documents/git/dotfiles/harness/plugins/role-picker/pi/index.ts",
     "!~/Documents/git/dotfiles/harness/plugins/grepai/pi/index.ts"
   ],
   "skills": [

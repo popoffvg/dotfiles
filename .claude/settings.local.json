@@ -159,7 +159,19 @@
       "Bash(timeout 3 bash -c 'WORK_CWD=\"$PWD\" npx tsx /Users/popoffvg/Documents/git/dotfiles/harness/plugins/agent-review/server/index.ts')",
       "Bash(python3 -c ':*)",
       "Bash(rm -rf ~/.claude/plugins/cache/local-plugins/memory-keeper/0.1.0)",
-      "Bash(cp -r /Users/popoffvg/Documents/git/dotfiles/harness/plugins/memory-keeper/claude ~/.claude/plugins/cache/local-plugins/memory-keeper/0.1.0)"
+      "Bash(cp -r /Users/popoffvg/Documents/git/dotfiles/harness/plugins/memory-keeper/claude ~/.claude/plugins/cache/local-plugins/memory-keeper/0.1.0)",
+      "Read(//Users/popoffvg/Documents/**)",
+      "Bash(grepai --help)",
+      "Bash(grepai mcp-serve:*)",
+      "Bash(grepai search:*)",
+      "Bash(grepai workspace:*)",
+      "Read(//Users/popoffvg/.config/mise/**)",
+      "Bash(worktrunk --help)",
+      "Bash(wt --help)",
+      "Bash(wt hook:*)",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(k\\) for k in d.keys\\(\\)]\")",
+      "Bash(python3:*)"
     ]
   },
   "sandbox": {
