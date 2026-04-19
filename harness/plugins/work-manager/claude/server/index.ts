@@ -80,7 +80,7 @@ server.tool(
   "work_state",
   "Read or update work state (.pi/work.settings.json)",
   {
-    action: z.enum(["read", "update"]).describe("read or update state"),
+    action: z.enum(["read", "get", "update"]).describe("read/get or update state"),
     updates: z
       .record(z.unknown())
       .optional()
@@ -99,7 +99,7 @@ server.tool(
       };
     }
 
-    if (action === "read") {
+    if (action === "read" || action === "get") {
       const settings = state.readSettings(sf);
       return {
         content: [

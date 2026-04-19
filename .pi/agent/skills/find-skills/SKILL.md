@@ -22,6 +22,7 @@ Do **not** use this skill when the user already asked to:
 - create or edit a specific local skill file
 - implement a skill directly from a provided URL/spec
 - wire an already-known skill into existing workflow docs
+- run a project-specific workflow that happens to include the word "skill" (for example: "add blog" in OpenClaw)
 In those cases, execute the requested local change directly.
 
 ## What is the Skills CLI?
@@ -49,6 +50,8 @@ When a user asks for help with something, identify:
 4. Whether the user wants **discovery** (find options) or **execution** (build/edit now)
 
 If intent is execution, do not pivot into marketplace search unless the user explicitly asks for discovery.
+
+**OpenClaw guardrail:** when the user asks for "add blog" and provides an article URL, treat it as the blog-source onboarding workflow (derive site root, update scraper settings, remove unsupported source types when requested, then run the expected add-blog flow). Do **not** run `npx skills find/add` unless the user explicitly asks to install marketplace skills.
 
 ### Step 2: Search for Skills
 
