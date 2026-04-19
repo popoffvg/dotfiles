@@ -80,6 +80,64 @@ Always save the analysis to `_notes/analysis-<component>.md` (create `_notes/` i
 - Error type at `handler.go:28` — what happens
 ```
 
+## Flow Description (SudoLang)
+
+When the analyzed component has a clear execution flow (request handling, state machine, pipeline, event processing), describe it using SudoLang notation. Add a `### Flow` section to the output.
+
+```sudo
+FlowName {
+  Constraints {
+    <invariants that hold throughout the flow>
+  }
+
+  States {
+    <state definitions if stateful>
+  }
+
+  <StepName>(input) {
+    <what happens — transformations, side effects, branching>
+    => <next step or output>
+  }
+
+  ErrorHandling {
+    <error type> => <what happens>
+  }
+}
+```
+
+**Example** — describing an auth refresh flow found in code:
+
+```sudo
+TokenRefresh {
+  Constraints {
+    Refresh token is single-use — invalidated after rotation.
+    Access token TTL < Refresh token TTL.
+  }
+
+  HandleRefresh(refreshToken) {
+    validate(refreshToken) |> fail => 401 "invalid token"
+    oldToken = lookupRedis(refreshToken)
+    oldToken.expired? => 401 "token expired"
+    newPair = generateTokenPair()
+    redis.delete(oldToken.key)
+    redis.set(newPair.refreshKey, TTL: 7d)
+    => 200 { accessToken: newPair.access, refreshToken: newPair.refresh }
+  }
+
+  ErrorHandling {
+    RedisUnavailable => 503 "service unavailable", log.error
+    MalformedToken => 400 "bad request"
+  }
+}
+```
+
+**Rules for flow descriptions:**
+- Only describe flows that actually exist in the code — do not invent or idealize
+- Every step must reference `file:line` where the logic lives
+- Use `|>` for pipeline/chaining, `=>` for transitions/returns
+- Keep it concise — SudoLang is pseudocode, not a full specification
+- If the component has no clear flow (e.g. pure config, type definitions), skip this section
+
 ## What NOT to Do
 
 - Don't guess about implementation
