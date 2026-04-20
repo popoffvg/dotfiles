@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.67.3",
   "quietStartup": true,
-  "defaultProvider": "openai-codex",
+  "defaultProvider": "github-copilot",
   "defaultModel": "gpt-5.3-codex",
   "extensions": [
     "~/Documents/git/dotfiles/harness/plugins/memory-keeper/pi/index.ts",

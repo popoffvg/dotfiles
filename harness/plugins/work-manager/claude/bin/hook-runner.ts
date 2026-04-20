@@ -13,7 +13,7 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { guard, inject } from "../../common/hooks";
+import { guard, inject } from "../common/hooks";
 
 const command = process.argv[2];
 

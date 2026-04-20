@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Global post-checkout hook: auto-pull when switching to main/master.
+# Installed via: git config --global core.hooksPath ~/.config/git/hooks
+set -euo pipefail
+
+# post-checkout args:
+#   $1 - previous HEAD
+#   $2 - new HEAD
+#   $3 - flag (1 = branch checkout, 0 = file checkout)
+is_branch_checkout="${3:-0}"
+
+# Only run on branch switches (not file checkouts)
+if [ "$is_branch_checkout" != "1" ]; then
+  exit 0
+fi
+
+# Resolve current branch name; exits on detached HEAD
+branch_name="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+if [ -z "$branch_name" ]; then
+  exit 0
+fi
+
+case "$branch_name" in
+  main|master)
+    echo "[git-hook] auto-pull on $branch_name"
+    # Pull fast-forward only to avoid implicit merge commits.
+    git pull --ff-only
+    ;;
+esac
