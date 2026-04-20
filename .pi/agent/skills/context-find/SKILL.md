@@ -1,6 +1,6 @@
 ---
 name: context-find
-description: Search and retrieve insights from persistent memory. Use this only when the user explicitly asks to recall/search memory ("context find", "recall", "what do I know about", "find my notes on", "search memory", "do I have anything on") or clearly asks for previously saved notes. Do not trigger for live operational requests (for example "check health/status of jobs/services").
+description: Search and retrieve insights from persistent memory. Use this when the user explicitly asks to recall/search memory ("context find", "recall", "what do I know about", "find my notes on", "search memory", "do I have anything on") and for summary-style recall requests ("get summary", "summary", "summarize my notes", "what's the summary"). Do not trigger for live operational requests (for example "check health/status of jobs/services").
 ---
 
 # Context Find
@@ -12,11 +12,13 @@ description: Search and retrieve insights from persistent memory. Use this only 
 ## Intent gate (run before search)
 
 Classify the request first:
-1. **Memory intent (run this skill):** explicit recall phrasing like "context find", "recall", "find my notes", "what do I know about".
+1. **Memory intent (run this skill):** explicit recall phrasing like "context find", "recall", "find my notes", "what do I know about", and summary-style recall phrasing like "get summary", "summary", "summarize my notes".
 2. **Live/operational intent (do not run this skill):** status/health/action phrasing like "check health of jobs", "are jobs running", "fix", "restart", "deploy", "debug".
 3. **Ambiguous intent:** ask one short clarification question: "Do you want me to search saved notes, or check the live system?"
 
 Typo tolerance: interpret obvious typos (e.g. "helth" → "health") before intent classification.
+
+Short-command handling: if the message is a terse command like "get summary" with no object, default to memory-summary behavior (run List Procedure first, then ask one narrowing question only if needed).
 
 ## Usage
 
@@ -51,8 +53,9 @@ Rules:
 ## List Procedure
 
 1. Read `<insights_root>/INDEX.md` for project overview
-2. For specific project → read `<insights_root>/<project>/_summary.md`
-3. Present organized summary
+2. If user asked a generic summary (e.g. "get summary") with no project/topic, return a concise cross-project summary from `INDEX.md` first
+3. For specific project → read `<insights_root>/<project>/_summary.md`
+4. Present organized summary
 
 ## Tool name mapping
 
