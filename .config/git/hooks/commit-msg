@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Global commit-msg hook:
+# - Scores commit message vs staged diff using Claude Haiku
+# - Falls back to pi when Claude is unavailable/fails
+# - Rejects low-score commits
+# - Skips checks during merge/rebase flows
+set -euo pipefail
+
+MSG_FILE="${1:?commit message file is required}"
+
+# Configurable limits
+SCORE_THRESHOLD="${GIT_HOOK_SCORE_THRESHOLD:-6}"
+MAX_DIFF_BYTES="${GIT_HOOK_MAX_DIFF_BYTES:-12000}"
+
+# Skip during merge/rebase flows
+GIT_DIR="$(git rev-parse --git-dir)"
+if [ -f "$GIT_DIR/MERGE_HEAD" ] || [ -d "$GIT_DIR/rebase-merge" ] || [ -d "$GIT_DIR/rebase-apply" ]; then
+  exit 0
+fi
+
+MESSAGE="$(cat "$MSG_FILE")"
+DIFF="$(git diff --cached --no-color --unified=0)"
+DIFF_BYTES="$(printf "%s" "$DIFF" | wc -c | tr -d ' ')"
+
+if [ "$DIFF_BYTES" -gt "$MAX_DIFF_BYTES" ]; then
+  echo "❌ Commit rejected: staged diff is too large ($DIFF_BYTES bytes > $MAX_DIFF_BYTES bytes)."
+  echo "   Split this commit into smaller logical commits."
+  exit 1
+fi
+
+# If nothing staged, allow commit-msg to pass.
+if [ -z "$DIFF" ]; then
+  exit 0
+fi
+
+build_prompt() {
+  cat <<'EOF'
+You are a strict commit-message reviewer.
+Score how well the commit message matches the staged diff.
+Return ONLY one line in this exact format:
+score: <0-10>
+
+Scoring guide:
+- 9-10: message precisely describes the key change(s)
+- 7-8: mostly accurate, minor omissions
+- 5-6: somewhat vague/misaligned
+- 0-4: misleading or unrelated
+EOF
+}
+
+PROMPT_HEADER="$(build_prompt)"
+PROMPT="$PROMPT_HEADER
+
+Commit message:
+$MESSAGE
+
+Staged diff:
+$DIFF"
+
+extract_score() {
+  # Extract first integer 0-10 from tool output
+  printf "%s" "$1" | grep -Eo '(^|[^0-9])(10|[0-9])([^0-9]|$)' | head -n1 | grep -Eo '(10|[0-9])' || true
+}
+
+score_with_claude() {
+  command -v claude >/dev/null 2>&1 || return 1
+  CLAUDECODE= MAX_THINKING_TOKENS=0 \
+    claude -p \
+      --model=haiku \
+      --tools='' \
+      --disable-slash-commands \
+      --setting-sources='' \
+      --system-prompt='' \
+      "$PROMPT" 2>/dev/null
+}
+
+score_with_pi() {
+  command -v pi >/dev/null 2>&1 || return 1
+  pi -p "$PROMPT" 2>/dev/null
+}
+
+RAW_OUTPUT=""
+SCORE=""
+
+if RAW_OUTPUT="$(score_with_claude)"; then
+  SCORE="$(extract_score "$RAW_OUTPUT")"
+fi
+
+if [ -z "$SCORE" ]; then
+  if RAW_OUTPUT="$(score_with_pi)"; then
+    SCORE="$(extract_score "$RAW_OUTPUT")"
+  fi
+fi
+
+if [ -z "$SCORE" ]; then
+  echo "❌ Commit rejected: failed to obtain score from Claude Haiku and pi fallback."
+  echo "   Ensure 'claude' or 'pi' CLI is available."
+  exit 1
+fi
+
+if [ "$SCORE" -lt "$SCORE_THRESHOLD" ]; then
+  echo "❌ Commit rejected: message/diff fit score $SCORE is below threshold $SCORE_THRESHOLD."
+  echo "   Update commit message to better reflect the staged changes."
+  exit 1
+fi
+
+exit 0
