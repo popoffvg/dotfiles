@@ -13,12 +13,15 @@ description: Search and retrieve insights from persistent memory. Use this when 
 
 Classify the request first:
 1. **Memory intent (run this skill):** explicit recall phrasing like "context find", "recall", "find my notes", "what do I know about", and summary-style recall phrasing like "get summary", "summary", "summarize my notes".
-2. **Live/operational intent (do not run this skill):** status/health/action phrasing like "check health of jobs", "are jobs running", "fix", "restart", "deploy", "debug".
+2. **Live/operational intent (do not run this skill):** status/health/action phrasing like "check health of jobs", "are jobs running", "fix", "restart", "deploy", "debug", "why failed", "retry", "recheck ssh", "commit and push", "do it" after an operational thread, or "check how <url> was processed".
 3. **Ambiguous intent:** ask one short clarification question: "Do you want me to search saved notes, or check the live system?"
+4. **URL handling:** a raw URL or "check <url>" is operational/research intent by default, not memory recall, unless the user explicitly asks for "my notes"/"context"/"memory" about it.
 
 Typo tolerance: interpret obvious typos (e.g. "helth" → "health") before intent classification.
 
 Short-command handling: if the message is a terse command like "get summary" with no object, default to memory-summary behavior (run List Procedure first, then ask one narrowing question only if needed).
+
+Thread-continuity rule: if the previous assistant/user turns are in an active operational workflow (debugging, SSH checks, runtime failure triage, repo fixes), interpret short replies like "yes", "do it", "retry", "1" as continuation of that workflow, **not** as a new memory-search request.
 
 ## Usage
 
@@ -46,9 +49,10 @@ After presenting memory results, treat short follow-up messages as intent update
 
 Rules:
 1. **Do not re-run context-find automatically** on confirmation-like follow-ups unless the user explicitly asks to search/recall again.
-2. If follow-up asks for an action (edit, relaunch, configure, add dependency), restate the action in one sentence and hand off to normal implementation flow.
+2. If follow-up asks for an action (edit, relaunch, configure, add dependency, timeout tuning, SSH recheck, retry), restate the action in one sentence and hand off to normal implementation flow.
 3. If target/service name is ambiguous (e.g., typo like `orb` vs `orbs`), ask one focused clarification question; otherwise execute directly.
 4. Keep memory context as evidence only; do not block execution behind another memory-search round.
+5. If a follow-up references failure diagnosis ("why failed", "what failed", "check processing"), treat it as live troubleshooting unless memory is explicitly requested.
 
 ## List Procedure
 
