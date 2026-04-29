@@ -14,6 +14,7 @@ export PATH=$PATH:~/local/bin
 export PATH=/opt/homebrew/bin:$HOME/.local/share/mise/shims:/sbin:/usr/sbin:$HOME/zk/bin:$PATH
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
+source <(sk --shell zsh)
 
 autoload -Uz add-zsh-hook
 

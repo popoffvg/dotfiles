@@ -5,4 +5,4 @@ args = ["start"]
 [[language]]
 name = "bash"
 language-servers = ["bash-language-server"]
-file-types = ["sh", "bash", "zsh"]
+file-types = ["sh", "bash", "zsh", "zshrc"]

@@ -56,6 +56,8 @@ export interface ProcessResult {
 export interface DayStats {
   date: string;
   sessions: number;
+  claudeSessions: number;
+  piSessions: number;
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;
@@ -560,7 +562,8 @@ export function trackTokenUsage(
   sessionId: string,
   project: string,
   usage: TokenUsage,
-  savedCount: number
+  savedCount: number,
+  source: "claude" | "pi" = "claude"
 ): void {
   try {
     mkdirSync(LOG_DIR, { recursive: true });
@@ -569,6 +572,7 @@ export function trackTokenUsage(
       timestamp: ts,
       session: sessionId,
       project,
+      source,
       input_tokens: usage.inputTokens,
       output_tokens: usage.outputTokens,
       total_tokens: usage.totalTokens,
@@ -597,6 +601,8 @@ export function loadTokenStatsByDay(days: number = 10): DayStats[] {
           d = {
             date,
             sessions: 0,
+            claudeSessions: 0,
+            piSessions: 0,
             inputTokens: 0,
             outputTokens: 0,
             totalTokens: 0,
@@ -605,6 +611,9 @@ export function loadTokenStatsByDay(days: number = 10): DayStats[] {
           byDay.set(date, d);
         }
         d.sessions += 1;
+        const rawSource = String(e.source ?? "").toLowerCase();
+        if (rawSource === "claude") d.claudeSessions += 1;
+        else if (rawSource === "pi") d.piSessions += 1;
         d.inputTokens += e.input_tokens ?? 0;
         d.outputTokens += e.output_tokens ?? 0;
         d.totalTokens += e.total_tokens ?? 0;
@@ -658,22 +667,25 @@ export function formatStatsTable(days: DayStats[]): string {
   const totals = days.reduce(
     (acc, d) => {
       acc.sessions += d.sessions;
+      acc.claudeSessions += d.claudeSessions;
+      acc.piSessions += d.piSessions;
       acc.totalTokens += d.totalTokens;
       acc.savedCount += d.savedCount;
       return acc;
     },
-    { sessions: 0, totalTokens: 0, savedCount: 0 }
+    { sessions: 0, claudeSessions: 0, piSessions: 0, totalTokens: 0, savedCount: 0 }
   );
 
-  const header = `  #  Date         Sessions   Tokens  Insights`;
-  const sep = `  —— ———————————— ———————— ———————— ————————`;
+  const header = `  #  Date         Sessions  Source(C/P)   Tokens  Insights`;
+  const sep = `  —— ———————————— ———————— ———————————— ———————— ————————`;
   const rows = days.map((d, i) => {
     const idx = String(i + 1).padStart(2);
     const sess = String(d.sessions).padStart(8);
+    const src = `${d.claudeSessions}/${d.piSessions}`.padStart(11);
     const tok = d.totalTokens.toLocaleString().padStart(8);
     const ins = String(d.savedCount).padStart(8);
     const marker = i === 0 ? " ◀" : "";
-    return `  ${idx} ${d.date} ${sess} ${tok} ${ins}${marker}`;
+    return `  ${idx} ${d.date} ${sess} ${src} ${tok} ${ins}${marker}`;
   });
 
   return (
@@ -686,7 +698,7 @@ export function formatStatsTable(days: DayStats[]): string {
     "\n" +
     sep +
     "\n" +
-    `     Total       ${String(totals.sessions).padStart(8)} ${totals.totalTokens.toLocaleString().padStart(8)} ${String(totals.savedCount).padStart(8)}`
+    `     Total       ${String(totals.sessions).padStart(8)} ${`${totals.claudeSessions}/${totals.piSessions}`.padStart(11)} ${totals.totalTokens.toLocaleString().padStart(8)} ${String(totals.savedCount).padStart(8)}`
   );
 }
 
@@ -694,6 +706,7 @@ export function formatStatsDayDetail(day: DayStats): string {
   return (
     `📅 ${day.date}\n` +
     `  Sessions     : ${day.sessions}\n` +
+    `  Source       : claude=${day.claudeSessions}, pi=${day.piSessions}\n` +
     `  Total tokens : ${day.totalTokens.toLocaleString()}\n` +
     `  Input tokens : ${day.inputTokens.toLocaleString()}\n` +
     `  Output tokens: ${day.outputTokens.toLocaleString()}\n` +

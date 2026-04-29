@@ -1,5 +1,5 @@
 ---
-name: memory-stats
+name: memory-status
 description: Show memory-keeper stats report and queue counts
 ---
 

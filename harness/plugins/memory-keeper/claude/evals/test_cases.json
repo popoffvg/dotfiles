@@ -1,0 +1,245 @@
+{
+  "version": "0.1.0",
+  "description": "Eval test cases for memory-keeper plugin skills. Extracted from real session logs.",
+  "skills": ["context-save", "context-find", "context-check", "context-research"],
+  "cases": [
+    {
+      "id": "save-01",
+      "prompt": "context save",
+      "expected_skill": "context-save",
+      "type": "direct",
+      "description": "Bare context save command"
+    },
+    {
+      "id": "save-02",
+      "prompt": "save ctx",
+      "expected_skill": "context-save",
+      "type": "paraphrased",
+      "description": "Shorthand save"
+    },
+    {
+      "id": "save-03",
+      "prompt": "save ctx. all you know about docker images",
+      "expected_skill": "context-save",
+      "type": "direct",
+      "description": "Save with topic"
+    },
+    {
+      "id": "save-04",
+      "prompt": "save to ctx",
+      "expected_skill": "context-save",
+      "type": "paraphrased",
+      "description": "Shorthand variant"
+    },
+    {
+      "id": "save-05",
+      "prompt": "save insight isn't async. It exec directly",
+      "expected_skill": "context-save",
+      "type": "edge_case",
+      "description": "Correcting a misconception, wants it saved"
+    },
+    {
+      "id": "save-06",
+      "prompt": "remember this pattern for next time",
+      "expected_skill": "context-save",
+      "type": "semantic",
+      "description": "Remember trigger"
+    },
+    {
+      "id": "find-01",
+      "prompt": "recall mise setup",
+      "expected_skill": "context-find",
+      "type": "direct",
+      "description": "Recall + topic"
+    },
+    {
+      "id": "find-02",
+      "prompt": "recall task and memory agent arch",
+      "expected_skill": "context-find",
+      "type": "direct",
+      "description": "Recall architecture knowledge"
+    },
+    {
+      "id": "find-03",
+      "prompt": "recall ctx about task managment",
+      "expected_skill": "context-find",
+      "type": "direct",
+      "description": "Explicit ctx recall"
+    },
+    {
+      "id": "find-04",
+      "prompt": "recall ctx about openclaw server",
+      "expected_skill": "context-find",
+      "type": "direct",
+      "description": "Recall project knowledge"
+    },
+    {
+      "id": "find-05",
+      "prompt": "recall my openclaw setup",
+      "expected_skill": "context-find",
+      "type": "paraphrased",
+      "description": "Recall personal setup"
+    },
+    {
+      "id": "find-06",
+      "prompt": "recall work",
+      "expected_skill": "context-find",
+      "type": "edge_case",
+      "description": "Very short recall"
+    },
+    {
+      "id": "find-07",
+      "prompt": "recall ctx about trivy checks",
+      "expected_skill": "context-find",
+      "type": "direct",
+      "description": "Recall specific topic"
+    },
+    {
+      "id": "find-08",
+      "prompt": "what do I know about kubernetes networking",
+      "expected_skill": "context-find",
+      "type": "semantic",
+      "description": "Knowledge query"
+    },
+    {
+      "id": "find-09",
+      "prompt": "context find auth service patterns",
+      "expected_skill": "context-find",
+      "type": "direct",
+      "description": "Explicit context find"
+    },
+    {
+      "id": "check-01",
+      "prompt": "context check",
+      "expected_skill": "context-check",
+      "type": "direct",
+      "description": "Bare context check command"
+    },
+    {
+      "id": "check-02",
+      "prompt": "anything worth saving from this session?",
+      "expected_skill": "context-check",
+      "type": "semantic",
+      "description": "Semantic check trigger"
+    },
+    {
+      "id": "check-03",
+      "prompt": "check for insights",
+      "expected_skill": "context-check",
+      "type": "paraphrased",
+      "description": "Direct check request"
+    },
+    {
+      "id": "check-04",
+      "prompt": "review session for learnings",
+      "expected_skill": "context-check",
+      "type": "semantic",
+      "description": "Session review request"
+    },
+    {
+      "id": "research-01",
+      "prompt": "research best practice for hetzner server security",
+      "expected_skill": "context-research",
+      "type": "direct",
+      "description": "Research external topic"
+    },
+    {
+      "id": "research-02",
+      "prompt": "continue research about ollama",
+      "expected_skill": "context-research",
+      "type": "direct",
+      "description": "Continue prior research"
+    },
+    {
+      "id": "research-03",
+      "prompt": "let's start the research what is test strategy and what structure it should have",
+      "expected_skill": "context-research",
+      "type": "direct",
+      "description": "Explicit research request"
+    },
+    {
+      "id": "research-04",
+      "prompt": "look into how NATS JetStream handles message dedup",
+      "expected_skill": "context-research",
+      "type": "semantic",
+      "description": "Look into trigger"
+    },
+    {
+      "id": "research-05",
+      "prompt": "find out about grpc-gateway v2 migration",
+      "expected_skill": "context-research",
+      "type": "semantic",
+      "description": "Find out about trigger"
+    },
+    {
+      "id": "neg-01",
+      "prompt": "get changes from k8s-research. I mean my changes of helm and my values",
+      "expected_skill": null,
+      "type": "negative",
+      "description": "research is a repo name, not an action"
+    },
+    {
+      "id": "neg-02",
+      "prompt": "grpcurl vpopov.research.mixcr.pro:443 list",
+      "expected_skill": null,
+      "type": "negative",
+      "description": "research is in a hostname"
+    },
+    {
+      "id": "neg-03",
+      "prompt": "errorMessage -> failedContext  not filter, just print all conditions section",
+      "expected_skill": null,
+      "type": "negative",
+      "description": "context is a code variable name"
+    },
+    {
+      "id": "neg-04",
+      "prompt": "failContext -> failureDetail. Rename",
+      "expected_skill": null,
+      "type": "negative",
+      "description": "context is a code identifier being renamed"
+    },
+    {
+      "id": "neg-05",
+      "prompt": "what --raw for task recall does",
+      "expected_skill": null,
+      "type": "negative",
+      "description": "Asking about a CLI flag, not recalling knowledge"
+    },
+    {
+      "id": "neg-06",
+      "prompt": "split task skill to: task-start task-status task-recall task-done task-pr",
+      "expected_skill": null,
+      "type": "negative",
+      "description": "recall is a skill name being defined, not invoked"
+    },
+    {
+      "id": "neg-07",
+      "prompt": "I want add task recall",
+      "expected_skill": null,
+      "type": "negative",
+      "description": "Adding a feature called task recall"
+    },
+    {
+      "id": "neg-08",
+      "prompt": "why you don't save context for task?",
+      "expected_skill": null,
+      "type": "negative",
+      "description": "Debugging save behavior, not requesting a save"
+    },
+    {
+      "id": "neg-09",
+      "prompt": "add note to README in project about proposal",
+      "expected_skill": null,
+      "type": "negative",
+      "description": "note used in file-editing sense"
+    },
+    {
+      "id": "neg-10",
+      "prompt": "chart locates here: /Users/popoffvg/Documents/git/mil/k8s-research/charts",
+      "expected_skill": null,
+      "type": "negative",
+      "description": "research appears in a file path"
+    }
+  ]
+}

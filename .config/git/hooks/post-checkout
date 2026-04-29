@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Global post-checkout hook: auto-pull when switching to main/master.
 # Installed via: git config --global core.hooksPath ~/.config/git/hooks
+#
+# Safety: runs pull in background to avoid blocking checkout and
+# holding the index lock. Skips entirely in worktrees to prevent
+# concurrent index writes.
 set -euo pipefail
 
 # post-checkout args:
@@ -9,12 +13,17 @@ set -euo pipefail
 #   $3 - flag (1 = branch checkout, 0 = file checkout)
 is_branch_checkout="${3:-0}"
 
-# Only run on branch switches (not file checkouts)
 if [ "$is_branch_checkout" != "1" ]; then
   exit 0
 fi
 
-# Resolve current branch name; exits on detached HEAD
+# Skip in worktrees — pulling here can corrupt the shared object store
+# or race with operations on other worktrees.
+GIT_DIR="$(git rev-parse --git-dir)"
+if [ -f "$(pwd)/.git" ] || [[ "$GIT_DIR" == */worktrees/* ]]; then
+  exit 0
+fi
+
 branch_name="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
 if [ -z "$branch_name" ]; then
   exit 0
@@ -22,8 +31,8 @@ fi
 
 case "$branch_name" in
   main|master)
-    echo "[git-hook] auto-pull on $branch_name"
-    # Pull fast-forward only to avoid implicit merge commits.
-    git pull --ff-only
+    # Background pull: exit hook immediately, pull happens async.
+    # Errors go to /dev/null — this is best-effort.
+    (git pull --ff-only &>/dev/null &)
     ;;
 esac

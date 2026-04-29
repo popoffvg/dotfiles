@@ -19,6 +19,18 @@ Read `insights_root` from `~/.claude/memory-keeper.local.md` YAML frontmatter.
 
 ## Procedure
 
+### Step 0: Load config first (required)
+
+- Read `insights_root` from `~/.claude/memory-keeper.local.md` YAML frontmatter **before any file operations** (including listing sessions or reading logs).
+- If `insights_root` is missing/unreadable, report the blocking config error and stop.
+
+### Preflight: local-only scan and recovery behavior
+
+- This skill operates on local files under `~/.claude/...`; do **not** require SSH for normal operation.
+- If a path read fails, report the exact missing/inaccessible path and stop speculative diagnosis.
+- If the user indicates environment recovery (e.g., "I fixed ssh"), retry the original scan flow once from Step 1 instead of giving more setup advice.
+- Do not loop on connectivity guidance; either proceed with the scan or return one concrete blocking error.
+
 ### Step 1: Find recent sessions
 
 1. List `~/.claude/projects/` subdirectories

@@ -222,7 +222,7 @@ server.tool(
       const insights = parseClassification(text);
 
       if (insights.length === 0) {
-        trackTokenUsage(sessionId, project, usage, 0);
+        trackTokenUsage(sessionId, project, usage, 0, "claude");
         return {
           content: [
             {
@@ -240,7 +240,7 @@ server.tool(
         qmdSearch
       );
 
-      trackTokenUsage(sessionId, project, usage, savedCount);
+      trackTokenUsage(sessionId, project, usage, savedCount, "claude");
       logger.info({ savedCount, skippedCount, tokens: usage.totalTokens }, "memory_extract complete");
 
       return {

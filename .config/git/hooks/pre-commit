@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Global pre-commit hook: runs gitleaks on all repos.
+# Global pre-commit hook: gitleaks + repo-local lefthook.
 # Installed via: git config --global core.hooksPath ~/.config/git/hooks
 set -euo pipefail
 
-# Run gitleaks if available
+# Run gitleaks with timeout (10s max)
 if command -v gitleaks >/dev/null 2>&1; then
-  gitleaks protect --staged --no-banner
+  if ! timeout 10 gitleaks protect --staged -v --no-banner; then
+    exit 1
+  fi
 fi
 
 # Delegate to repo-local lefthook if present

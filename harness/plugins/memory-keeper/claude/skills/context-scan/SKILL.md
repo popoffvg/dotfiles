@@ -38,14 +38,15 @@ For each unscanned JSONL:
 
 For each session, identify distinct topics worth remembering. For each:
 
-- **classification**: `insight` | `agent_edit` | `none`
+- **classification**: `insight` | `agent_edit` | `task` | `none`
 - **repo**: basename from `~/.claude/projects/<encoded-path>/` last path segment
 - **topic**: keyword-rich title, 3-7 words
 
 Classifications:
 - `insight`: completed work — how things work, patterns, gotchas, decisions
 - `agent_edit`: AI behavior changes — hooks, prompts, skills, plugin config
-- `none`: routine, skip (including numeric-only friction notes with no context)
+- `task`: ONLY unstarted intentions (not completed work)
+- `none`: routine, skip
 
 ### Step 4: Write entries in wiki format
 
@@ -77,8 +78,9 @@ Before saving each entry, read the target file:
 4. Existing entry is broader → skip
 
 Save locations:
-- `insight` → `<insights_root>/<repo>/insights.md`
+- `insight` → `<insights_root>/<repo>/insights.md` (or `_tasks/<slug>/notes.md` if active task in `_tasks/pending.md`)
 - `agent_edit` → `<insights_root>/claude-config/behavior.md`
+- `task` → `<insights_root>/_tasks/pending.md`
 
 ### Step 6: Mark as scanned
 
@@ -90,21 +92,3 @@ Append each processed session filename to `<insights_root>/.scanned_sessions`.
 - Entries saved (by classification)
 - Brief list: topic + file
 - "No new insights" if nothing found
-
-## Autoresearch rules
-
-**Eval checklist:**
-1. Were session logs scanned within the requested time window (not broader/narrower)?
-2. Did the scan find insights that the Stop hook missed (not re-saving existing ones)?
-3. Were extracted insights saved to the correct repo insight folders?
-4. Was the insights_root config read before any file operations?
-
-**Test inputs:**
-- "Scan last hour for missed insights"
-- "Scan last day of sessions"
-- "Scan when no sessions exist in the time window"
-
-**Can change:** log parsing strategy, time window parsing, insight extraction criteria, deduplication
-**Cannot change:** insights_root config requirement, session log location, fallback nature (supplements Stop hook), removed `_tasks` routing
-**Min sessions before eval:** 5
-**Runs per experiment:** 3

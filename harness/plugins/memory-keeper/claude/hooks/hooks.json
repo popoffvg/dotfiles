@@ -1,12 +1,22 @@
 {
   "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "mcp__qmd__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/qmd-stats.mjs"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/memory-extract.sh",
-            "timeout": 10000
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stop-capture.mjs"
           }
         ]
       }
@@ -16,8 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/ensure-daemon.sh",
-            "timeout": 10000
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh"
           }
         ]
       }

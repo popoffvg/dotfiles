@@ -105,10 +105,33 @@ Use short kebab-case `<target>`.
 - **TermA -> TermB**: relation description (`/abs/path/file.ext:line`)
 
 ### Constraints
-- **Constraint** — where/how enforced (`/abs/path/file.ext:line`)
 
-### End-to-End Flow (optional)
-- Add only if a concrete execution flow exists.
+Express as a SudoLang contract — hard constraints as `require`, soft as `warn`:
+
+    <Target>Constraints {
+      require <invariant description> // <file.ext:line>
+      require <invariant description> // <file.ext:line>
+      warn <soft limit description> // <file.ext:line>
+
+      Interactions {
+        <ConstraintA> + <ConstraintB> => <combined effect>
+      }
+    }
+
+### Flow (optional)
+
+Express as a SudoLang state machine — only if a concrete execution flow exists:
+
+    <Target>Flow {
+      State { <list of states> }
+      Transitions {
+        <stateA> -> <stateB> : <trigger> // <file.ext:line>
+        <stateA> -> <stateC> : <trigger> // <file.ext:line>
+      }
+      Invariants {
+        <state-level invariant> // <file.ext:line>
+      }
+    }
 
 ### Sources
 - Flat list of referenced files.

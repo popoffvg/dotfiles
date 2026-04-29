@@ -23,6 +23,22 @@ Reference: https://github.com/paralleldrive/sudolang/blob/main/sudolang.sudo.md
 | All levels fixed | **plan-verify** |
 
 3. **Skip levels** when scope is contained within a single level (e.g., a bugfix may start directly at L4). State the skip explicitly: `Skipping L1–L3: scope is a single-function change.`
+4. If routing confidence is low (missing plan context, conflicting decisions, unclear scope), do **not** guess. Ask up to 3 targeted clarification questions, then route.
+
+## Output contract (router response)
+
+Always return a compact routing decision in this shape:
+
+```md
+Routing Decision
+- selected phase skill: <plan-context|plan-container|plan-component|plan-code|plan-verify>
+- why: <1-2 concrete reasons tied to plan state>
+- evidence: <file/section names used>
+- skipped levels: <none|L1-L2... + explicit reason>
+- next action: <run selected phase skill>
+```
+
+If `_notes/plan.md` is absent, return `plan-context` and explicitly say "starting from L1 because plan file is missing".
 
 ## Phase skills
 

@@ -17,8 +17,9 @@ Read `insights_root` from `~/.claude/memory-keeper.local.md` YAML frontmatter. I
 
 | Classification | What it is | Saved to |
 |---|---|---|
-| `insight` | Completed work — architecture, patterns, gotchas, decisions | `<insights_root>/<repo>/<category>.md` |
+| `insight` | Completed work — architecture, patterns, gotchas, decisions | `<insights_root>/<repo>/insights.md` |
 | `agent_edit` | AI behavior changes — hooks, prompts, skills, CLAUDE.md, plugin config | `<insights_root>/claude-config/behavior.md` |
+| `task` | ONLY unstarted intentions — "I need to refactor X" | `<insights_root>/_tasks/pending.md` |
 | `none` | Routine work, nothing worth recording — skip silently |
 
 One save invocation may produce multiple entries with different classifications.
@@ -50,17 +51,43 @@ No preamble — write for someone with zero memory of this session.>
 - State facts directly: "X does Y because Z"
 - Subsections only for 2+ distinct concerns within the same topic
 
-## Procedure
+**Good entry:**
+```
+## Pi session_shutdown: handler fully awaited — 2026-03-19 10:00
 
-1. Classify the user's input + recent conversation context
-2. For each classified entry, call the `memory_save` MCP tool with: classification, topic, body, category, repo
-3. Report what was saved and where
+Pi's `shutdown()` in `interactive-mode.js` calls `await extensionRunner.emit("session_shutdown")`
+before `process.exit(0)` — handlers have unlimited time. The current fire-and-forget
+`processAllPending().catch()` call is a bug: it escapes the await chain and gets killed.
+Fix: either `await processAllPending()` directly, or spawn a detached child process.
+```
+
+**Bad entry (skip these):**
+```
+## Shutdown fix — 2026-03-19
+- Fixed the shutdown issue
+- Added await
+```
 
 ## Repo Detection
 
 Run `git -C <cwd> rev-parse --show-toplevel 2>/dev/null | xargs basename`. Fallback: `basename <cwd>`. User or conversation context may override.
 
+## Active Task Awareness
+
+Before saving an `insight`, check `<insights_root>/_tasks/pending.md` for an active task (status: active).
+
+- **Active task exists** → save to `<insights_root>/_tasks/<task-slug>/notes.md`
+- **No active task** → save to `<insights_root>/<repo>/insights.md`
+
+`agent_edit` and `task` always go to their fixed locations regardless of active task.
 
 ## Deduplication
 
-The `memory_save` MCP tool handles dedup automatically. It will report if an entry was skipped.
+Before appending, read the target file and check:
+
+1. **Exact heading match** → skip
+2. **Semantic overlap** → skip (same fact, different words)
+3. **New entry is broader** → replace old entry
+4. **Existing entry is broader** → skip
+
+One precise entry beats two fuzzy ones.

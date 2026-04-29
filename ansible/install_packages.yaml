@@ -33,6 +33,7 @@
       - broot
       - viu
       - sq
+      - sk
       - pamburus/tap/hl
       - difftastic
       - dust
@@ -120,6 +121,11 @@
       ansible.builtin.homebrew_cask:
         name: font-fira-mono-nerd-font
         state: present
+
+    - name: Install git-split-diffs globally via npm
+      ansible.builtin.shell:
+        cmd: npm install -g git-split-diffs
+      changed_when: false
 
     # --- Shell ---
     - name: Set zsh as default shell

@@ -1,0 +1,13 @@
+{
+  "name": "memory-keeper",
+  "version": "0.2.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@ai-sdk/google": "^3.0.43",
+    "@ai-sdk/openai": "^3.0.41",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "ai": "^6.0.116",
+    "better-sqlite3": "^11.7.0"
+  }
+}

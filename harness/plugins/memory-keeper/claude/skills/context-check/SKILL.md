@@ -61,7 +61,9 @@ No preamble. Write for someone with zero memory of this session.>
 
 1. Scan the conversation — identify distinct topics with reusable value
 2. For each topic: classify, write entry in wiki format
-3. Call `memory_save` MCP tool for each entry with: classification, topic, body, category, repo
-4. Report: topic + classification + file saved to
+3. Check active task in `<insights_root>/_tasks/pending.md` — route `insight` entries to task notes if active task exists
+4. Deduplicate against target file (exact heading, semantic overlap, superset/subset)
+5. Save immediately — do NOT ask for confirmation
+6. Report: topic + classification + file saved to
 
 If nothing worth saving: return "nothing worth saving".

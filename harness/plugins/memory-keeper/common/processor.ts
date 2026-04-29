@@ -83,7 +83,13 @@ export async function processQueue(
         skippedCount = result.skippedCount;
       }
 
-      trackTokenUsage(item.sessionId, item.project, usage, savedCount);
+      trackTokenUsage(
+        item.sessionId,
+        item.project,
+        usage,
+        savedCount,
+        item.source === "claude" ? "claude" : "pi"
+      );
       markDone(item.id);
 
       totalSaved += savedCount;

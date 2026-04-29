@@ -171,11 +171,25 @@
       "Bash(wt hook:*)",
       "Bash(python3 -m json.tool)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(k\\) for k in d.keys\\(\\)]\")",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "mcp__plugin_memory-keeper_memory-keeper-queue__memory_stats",
+      "mcp__plugin_memory-keeper_memory-keeper-queue__memory_queue_stats",
+      "Bash(sqlite3 ~/.claude/debug/memory-keeper.db \".schema queue\")",
+      "Bash(sqlite3 ~/.claude/debug/memory-keeper.db \".schema sessions\")",
+      "Bash(sqlite3:*)",
+      "Bash(sort -t/ -k8)",
+      "Bash(code --list-extensions)",
+      "Bash(code:*)",
+      "Bash(ssh openclaw:*)",
+      "Bash(scp:*)",
+      "Bash(mkdir -p /tmp/vault-backup-check)",
+      "Bash(tar tzf:*)"
     ]
   },
   "sandbox": {
     "enabled": false,
     "autoAllowBashIfSandboxed": false
-  }
+  },
+  "spinnerTipsEnabled": false,
+  "prefersReducedMotion": true
 }

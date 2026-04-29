@@ -33,21 +33,3 @@ Read `insights_root` from `~/.claude/memory-keeper.local.md` YAML frontmatter. I
 ## Output
 
 Return both the answer AND confirmation of what was persisted to memory.
-
-## Autoresearch rules
-
-**Eval checklist:**
-1. Was persistent memory checked BEFORE performing web research?
-2. Did web research only trigger when memory was insufficient (not by default)?
-3. Were research results persisted to memory for future recall?
-4. Did the agent present what was already known before adding new findings?
-
-**Test inputs:**
-- "Research Go context cancellation patterns" (likely in memory)
-- "Research a brand new library released last week" (memory empty, needs web)
-- "Look into why our CI is slow" (mixed: some memory, some new research)
-
-**Can change:** memory check depth, web search strategy, persistence format, presentation order
-**Cannot change:** memory-first principle, QMD for memory, firecrawl for web, persist-results requirement
-**Min sessions before eval:** 5
-**Runs per experiment:** 3

@@ -1,0 +1,37 @@
+{
+  "name": "memory-keeper-marketplace",
+  "owner": {
+    "name": "popoffvg"
+  },
+  "metadata": {
+    "description": "Persistent knowledge management plugin for Claude Code",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "memory-keeper",
+      "source": {
+        "source": "github",
+        "repo": "popoffvg/claude-plugin-memory-keeper"
+      },
+      "description": "Persistent knowledge management — automatic insight extraction, context injection, and memory search/save across sessions. Stop hook classifies sessions and saves debugging patterns, architectural decisions, and workflow optimizations with deduplication.",
+      "version": "0.1.0",
+      "author": {
+        "name": "popoffvg"
+      },
+      "repository": "https://github.com/popoffvg/claude-plugin-memory-keeper",
+      "license": "MIT",
+      "keywords": [
+        "memory",
+        "knowledge-management",
+        "persistent-context",
+        "insights",
+        "session-capture",
+        "context-recall",
+        "qmd"
+      ],
+      "category": "productivity",
+      "strict": true
+    }
+  ]
+}
