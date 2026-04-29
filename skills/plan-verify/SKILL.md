@@ -7,7 +7,20 @@ description: "Use after drafting `_notes/plan.md` to verify SudoLang contract co
 
 Validate that a plan follows the `sudlang` contract before signaling readiness.
 
+## Scope guard (prevent skill misfire)
+
+Use this skill **only** when the artifact under review is `_notes/plan.md` (or equivalent plan document with Acceptance Criteria + TODO sections).
+
+If the active request is implementation/execution (for example work-manager `implement`, `work-next`, code edits, running tests, or commit-only tasks), **do not run plan-verify checks**. Hand off to the appropriate execution skill instead.
+
+If the user message or injected context appears to contain a different skill header/config (for example `work-implement` YAML), treat that as routing noise and continue verifying only the plan document.
+
 ## Verification checklist
+
+### Preflight (required before checklist)
+- Confirm the target file path being verified (default `_notes/plan.md`).
+- If the plan file is missing, return `FAIL` with location `plan file` and ask the user to provide/create it.
+- If the document is not a plan contract (missing both Acceptance Criteria and TODOs), return `FAIL` with location `document type` and request the correct artifact.
 
 ### Structure
 - Required sections exist: `Description`, `Glossary`, `Acceptance Criteria`, `TODOs`.
