@@ -567,35 +567,6 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerTool({
-    name: "work_compact",
-    label: "Work Compact",
-    description: "Log TODO completion and append learnings",
-    parameters: Type.Object({
-      summary: Type.String(),
-      learnings: Type.String(),
-    }),
-    async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-      const sf = resolveSettingsFile(ctx.cwd || CWD);
-      if (!sf) return { content: [{ type: "text", text: "No active work." }] };
-
-      const notesDir = resolveNotesDir(sf);
-      const lp = path.join(notesDir, "impl-learnings.md");
-      const existing = notes.readFileOr(lp, "# Implementation Learnings\n\nNotes from each TODO for the next implementer.\n");
-      const ts = notes.makeTimestamp();
-      fs.writeFileSync(lp, `${existing.trimEnd()}\n\n## TODO: ${params.summary} (${ts})\n\n${params.learnings}\n`);
-
-      notes.appendWorklog(notesDir, `[TODO] ${params.summary}`);
-      notes.commitNotes(notesDir, `todo: ${params.summary}`, execGit);
-
-      return {
-        content: [
-          { type: "text", text: `TODO completed and logged: ${params.summary}` },
-        ],
-      };
-    },
-  });
-
-  pi.registerTool({
     name: "work_abandon",
     label: "Work Abandon",
     description: "Cancel active work-manager flow",

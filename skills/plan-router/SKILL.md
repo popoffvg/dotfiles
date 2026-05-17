@@ -5,9 +5,7 @@ description: Use when creating or refining any implementation plan, roadmap, or 
 
 # plan-router — Plan Router
 
-Routes planning work to the correct C4 phase skill. Apply SudoLang principles throughout: declarative, constraint-first, easy for LLM execution.
-
-Reference: https://github.com/paralleldrive/sudolang/blob/main/sudolang.sudo.md
+Routes planning work to the correct C4 phase skill. Be declarative, constraint-first, and concrete (real file paths, real types).
 
 ## Routing logic
 
@@ -53,11 +51,11 @@ If `_notes/plan.md` is absent, return `plan-context` and explicitly say "startin
 - **plan-context** — L1: system boundaries, actors, scope decisions, seed glossary
 - **plan-container** — L2: services, databases, protocols, technology choices
 - **plan-component** — L3: modules, interfaces, dependency directions
-- **plan-code** — L4: algorithms as SudoLang pseudocode, data structures, patterns
+- **plan-code** — L4: algorithms as TS pseudocode (see `work-plan-flow`), data structures, patterns
 
 ## Plan contract
 
-Load `sudolang-plan` skill for PlanContract, style constraints, and traceability rules.
+Constraints, layout, and traceability rules live in `work-plan` (router) and `work-plan-flow` (TS pseudocode patterns). No separate contract skill.
 
 ## Autoresearch rules
 

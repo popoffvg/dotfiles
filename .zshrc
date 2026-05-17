@@ -3,20 +3,29 @@
 [[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh"
 
 # Extra completions from brew
-FPATH=/opt/homebrew/share/zsh-completions:$FPATH
+FPATH=$FPATH:/opt/homebrew/share/zsh-completions
 
-autoload -Uz compinit && compinit
+setopt AUTO_PUSHD                  # pushes the old directory onto the stack
+setopt PUSHD_MINUS                 # exchange the meanings of '+' and '-'
+setopt CDABLE_VARS                 # expand the expression (allows 'cd -2/tmp')
 
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/Users/popoffvg/.cargo/bin
 export PATH=$PATH:"$(go env GOPATH)/bin"
 export PATH=$PATH:~/local/bin
-export PATH=/opt/homebrew/bin:$HOME/.local/share/mise/shims:/sbin:/usr/sbin:$HOME/zk/bin:$PATH
-
-eval "$(/opt/homebrew/bin/brew shellenv)"
-source <(sk --shell zsh)
+export MCFLY_FUZZY=1
 
 autoload -Uz add-zsh-hook
+autoload -Uz compinit && compinit -i
+compdef _task task
+zstyle ':completion:*' special-dirs true
+
+eval "$(/opt/homebrew/bin/brew shellenv)"
+eval "$(mise activate)"
+source <(sk --shell zsh)
+eval "$(mcfly init zsh)"
+eval "$(task --completion zsh)"
+source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # Report CWD to terminal via OSC 7 so splits open in the same directory
 _osc7_cwd() {
@@ -32,7 +41,7 @@ function edit-command-line-trim() {
   BUFFER="${BUFFER%%$'\n'}"
 }
 zle -N edit-command-line-trim
-bindkey '^O' edit-command-line-trim
+bindkey '^E' edit-command-line-trim
 
 if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
 
@@ -61,3 +70,5 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+
+export PATH="$HOME/.local/bin:$PATH"

@@ -1,7 +1,7 @@
 ---
 name: work-manager
 description: Routes work commands to phase-specific agents. Triggers on start work, work recall, work next, next todo, work done, work status, work update, work pr, where was I, resume work, catch me up, what's next. IMPORTANT — only use in directories with _notes/_summary.md or when user explicitly says "start work". If no work context exists and user is not starting work, do NOT spawn this agent.
-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__plugin_work-manager_work__work_state, mcp__plugin_work-manager_work__work_start, mcp__plugin_work-manager_work__work_transition, mcp__plugin_work-manager_work__work_context, mcp__plugin_work-manager_work__work_compact, mcp__plugin_work-manager_work__work_next, mcp__plugin_work-manager_work__work_abandon, mcp__plugin_work-manager_work__work_handoff, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
+tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__plugin_work-manager_work__work_state, mcp__plugin_work-manager_work__work_start, mcp__plugin_work-manager_work__work_transition, mcp__plugin_work-manager_work__work_context, mcp__plugin_work-manager_work__work_next, mcp__plugin_work-manager_work__work_abandon, mcp__plugin_work-manager_work__work_handoff, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
 model: inherit
 color: cyan
 ---
@@ -82,6 +82,13 @@ When transitioning to implement phase, pass `implementMode` to `work_transition`
 User can switch modes mid-implementation via `work_state` update:
 - `work_state({ action: "update", updates: { implementMode: "autopilot" } })`
 
+## Implement-phase launch gate
+
+**Before spawning `work-implementer`, always ask the user for confirmation** via `AskUserQuestion`:
+- Show the plan summary (number of TODOs, key files)
+- Ask: "Launch implementation in subagent? (autopilot / manual / cancel)"
+- Only proceed after explicit approval
+
 ## Implement-phase routing contract
 
 When delegating to `work-implementer`, include this requirement in the prompt:
@@ -89,7 +96,7 @@ When delegating to `work-implementer`, include this requirement in the prompt:
 - Follow `work_next` + `work-implement` contract
 - Execute TODOs in plan order
 - Use a strict **one-TODO subagent loop** for execution discipline
-- After each completed TODO: tests + checkbox + worklog + `work_compact`
+- After each completed TODO: tests + checkbox + worklog
 - Create commits in work-manager only (implementer must not commit)
 - In **autopilot**: continue until all TODOs are done, then stop and tell user to run `/work:abandon`
 - In **manual**: stop after each TODO and return control to user

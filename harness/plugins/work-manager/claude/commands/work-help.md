@@ -44,8 +44,7 @@ When all TODOs are done, use `/work:abandon` to end the flow.
 ### Key Rules
 
 - **plan -> implement**: must use explicit transition command
-- **Each TODO = one git commit** during implement
-- **work_compact** called after each TODO to free context
+- **Each TODO = one feature-notable git commit** during implement
 - `_notes/` has its own git repo for plan evolution tracking
 
 ### Work Notes Structure
@@ -70,6 +69,6 @@ When all TODOs are done, use `/work:abandon` to end the flow.
 | `work_transition` | Change phase |
 | `work_guard` | Check if tool call is allowed |
 | `work_context` | Get phase instructions + plan |
-| `work_compact` | Signal TODO completion |
+
 | `work_next` | Prepare next TODO execution prompt |
 | `work_abandon` | Cancel active work-manager flow |

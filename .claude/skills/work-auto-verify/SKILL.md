@@ -1,5 +1,5 @@
 ---
-name: work-verify-gate
+name: work-auto-verify
 description: Verify phase review guidance is handled by work-verify. Use that skill for final checks and phase decisions.
 ---
 

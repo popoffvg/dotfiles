@@ -510,7 +510,7 @@ setInterval(async () => {
   await processQueue({
     batchSize: 5,
     llmCallFn: anthropicClassify,
-    qmdSearchFn: qmdSearch,
+    // qmdSearchFn: function() {},
     insightsRoot: config.insights_root!,
   })
 }, DRAIN_INTERVAL_MS)

@@ -13,3 +13,6 @@ run = "echo \"export OPENROUTER_API_KEY=$(security find-generic-password -s OPEN
 [tasks.openrouter-check]
 description = "Check if OPENROUTER_API_KEY is available in current shell"
 run = "[ -n \"$OPENROUTER_API_KEY\" ] && echo OPENROUTER_API_KEY=SET || echo OPENROUTER_API_KEY=NOT_SET"
+
+[settings]
+env_shell_expand = true

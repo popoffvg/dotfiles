@@ -14,6 +14,7 @@ description: Search and retrieve insights from persistent memory. Use this when 
 Classify the request first:
 1. **Memory intent (run this skill):** explicit recall phrasing like "context find", "recall", "find my notes", "what do I know about", and summary-style recall phrasing like "get summary", "summary", "summarize my notes".
 2. **Live/operational intent (do not run this skill):** status/health/action phrasing like "check health of jobs", "are jobs running", "fix", "restart", "deploy", "debug", "why failed", "retry", "recheck ssh", "commit and push", "do it" after an operational thread, or "check how <url> was processed".
+   - Treat implementation steering such as "use fallback to <provider>", "switch model/provider", "apply this fix", and "check the docs for that" as **execution/research follow-up**, not memory recall.
 3. **Ambiguous intent:** ask one short clarification question: "Do you want me to search saved notes, or check the live system?"
 4. **URL handling:** a raw URL or "check <url>" is operational/research intent by default, not memory recall, unless the user explicitly asks for "my notes"/"context"/"memory" about it.
 
@@ -49,10 +50,12 @@ After presenting memory results, treat short follow-up messages as intent update
 
 Rules:
 1. **Do not re-run context-find automatically** on confirmation-like follow-ups unless the user explicitly asks to search/recall again.
-2. If follow-up asks for an action (edit, relaunch, configure, add dependency, timeout tuning, SSH recheck, retry), restate the action in one sentence and hand off to normal implementation flow.
-3. If target/service name is ambiguous (e.g., typo like `orb` vs `orbs`), ask one focused clarification question; otherwise execute directly.
-4. Keep memory context as evidence only; do not block execution behind another memory-search round.
-5. If a follow-up references failure diagnosis ("why failed", "what failed", "check processing"), treat it as live troubleshooting unless memory is explicitly requested.
+2. If follow-up asks for an action (edit, relaunch, configure, add dependency, timeout tuning, SSH recheck, retry, switch provider/model, use fallback), restate the action in one sentence and hand off to normal implementation flow.
+3. If follow-up includes "check docs" / "look up docs" / "confirm in docs", route to documentation lookup (Context7 or project docs as appropriate) and then continue execution; do not re-run memory search.
+4. If target/service name is ambiguous (e.g., typo like `orb` vs `orbs`), ask one focused clarification question; otherwise execute directly.
+5. Keep memory context as evidence only; do not block execution behind another memory-search round.
+6. If a follow-up references failure diagnosis ("why failed", "what failed", "check processing"), treat it as live troubleshooting unless memory is explicitly requested.
+
 
 ## List Procedure
 
@@ -79,6 +82,7 @@ Rules:
 5. Did the agent complete the search without asking any yes/no confirmation questions mid-procedure?
 6. On a confirmation-like follow-up with an action request, did the agent avoid re-invoking context-find and switch to execution/clarification?
 7. Did the agent avoid invoking context-find for live operational status/health requests?
+8. On follow-ups like "use fallback to openrouter auto" and "check the docs for that", did the agent switch to execution + docs lookup instead of re-running memory search?
 
 **Test inputs:**
 - "Recall what I know about Kubernetes debugging patterns"

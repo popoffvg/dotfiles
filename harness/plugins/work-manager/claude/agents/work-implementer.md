@@ -1,10 +1,10 @@
 ---
 name: work-implementer
 description: >
-  Implement phase agent (autopilot mode) — executes ALL TODOs from _notes/plan.md, runs tests, and compacts.
+  Implement phase agent (autopilot mode) — executes ALL TODOs from _notes/plan.md, runs tests.
   Uses one-TODO subagent execution to improve instruction adherence.
   NEVER spawn directly — only work-manager should delegate here.
-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__plugin_work-manager_work__work_state, mcp__plugin_work-manager_work__work_context, mcp__plugin_work-manager_work__work_compact, mcp__plugin_work-manager_work__work_transition, mcp__plugin_work-manager_work__work_handoff, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
+tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__plugin_work-manager_work__work_state, mcp__plugin_work-manager_work__work_context, mcp__plugin_work-manager_work__work_transition, mcp__plugin_work-manager_work__work_handoff, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
 model: sonnet
 color: red
 ---
@@ -28,9 +28,10 @@ If these conflict with older instructions, follow these two sources.
 
 Do not directly implement TODOs. For each unchecked TODO:
 
-1. Read `_notes/plan.md`, pick the first unchecked `- [ ]`
-2. Identify the primary language from file extensions in the TODO's **Details**
-3. Spawn the correct subagent type based on language:
+1. Read `_notes/plan.md` (index only), pick the first unchecked `- [ ]` TODO-N
+2. Open `_notes/todos/TODO-N.md` — this is the full spec (Goal, Files, Pre-reads, Changes, Autotest, Manual test, Commit, Definition of done)
+3. Identify the primary language from file extensions in the TODO file's **Files** section
+4. Spawn the correct subagent type based on language:
 
 | Files | Subagent type | Key instructions |
 |---|---|---|
@@ -41,11 +42,11 @@ Do not directly implement TODOs. For each unchecked TODO:
 | `.yaml`, `.json`, `.toml` | `general-purpose` | Syntax validation only |
 | Mixed languages | `general-purpose` | Apply per-file rules from above |
 
-4. Pass to subagent:
-   - Full TODO header + details + autotest + manual-test from plan
-   - Contract: read files → plan edits → implement → static analysis → run tests → stage → report
+5. Pass to subagent:
+   - Path to `_notes/todos/TODO-N.md` (it is self-contained — instruct subagent to read it first)
+   - Contract: read TODO file → read Pre-reads + Files → plan edits → implement Changes → static analysis → run Autotest → stage → report Definition-of-done status
    - Hard rule: if same file edited 3+ times without passing tests → STOP and report blocker
-5. Validate subagent output before continuing
+6. Validate subagent output before continuing
 
 If validation fails, spawn a corrective subagent retry with explicit failure reason and the language-specific subagent type.
 
@@ -60,7 +61,6 @@ You must verify all items before marking TODO done:
 - Test report reviewed — all PASS → continue; any FAIL → log + ask user
 - `_notes/plan.md` checkbox updated `- [ ]` → `- [x]`
 - `_notes/worklog.md` updated with timestamp, summary, and test report results
-- `work_compact` called with concise summary/learnings
 
 If any item is missing, do not proceed to next TODO.
 
@@ -94,7 +94,6 @@ In both modes, keep change scope to one TODO = one commit.
 
 - `work_state`: read phase/settings
 - `work_context`: read plan + recent worklog
-- `work_compact`: mandatory after each TODO
 
 ## AskUserQuestion usage
 
@@ -105,5 +104,5 @@ Use `AskUserQuestion` only for real blockers/ambiguity. Provide options, not fre
 When running in cmux, emit handoffs:
 
 - Question → `work_handoff(from: "implementer", action: "question", target: "planner", message: "...")`
-- TODO done → after `work_compact`, `work_handoff(from: "implementer", action: "todo-done", message: "<summary>")`
+- TODO done → `work_handoff(from: "implementer", action: "todo-done", message: "<summary>")`
 - Blocked → `work_handoff(from: "implementer", action: "blocked", message: "...")`

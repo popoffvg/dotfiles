@@ -16,6 +16,8 @@ const server = new McpServer({
   version: "0.2.0",
 });
 
+const NODE_BIN = process.env.MEM_KEEPER_NODE_BIN || "/Users/popoffvg/.local/share/mise/installs/node/20.19.3/bin/node";
+
 const STATS_FILE = join(homedir(), ".claude", "debug", "memory-keeper-stats.json");
 
 function hasStatusColumn(db) {
@@ -197,7 +199,7 @@ server.tool(
     const __dirname = dirname(fileURLToPath(import.meta.url));
     const workerPath = join(__dirname, "..", "worker", "process-sessions.mjs");
 
-    const child = spawn("node", [workerPath], {
+    const child = spawn(NODE_BIN, [workerPath], {
       detached: true,
       stdio: "ignore",
     });

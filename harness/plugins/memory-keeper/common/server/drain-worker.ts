@@ -24,7 +24,7 @@ const qmdSearch: QmdSearchFn = (
   query: string,
   collection = "ctx",
   n = 3,
-  minScore = 0.5
+  minScore = 0.5,
 ): QmdHit[] => {
   try {
     const q = query
@@ -34,7 +34,7 @@ const qmdSearch: QmdSearchFn = (
       .slice(0, 200);
     const out = execSync(
       `qmd search ${shellEscape(q)} -c ${collection} -n ${n} --min-score ${minScore} --json`,
-      { encoding: "utf8", timeout: 5000 }
+      { encoding: "utf8", timeout: 5000 },
     );
     const results = JSON.parse(out);
     return results.map((r: { file: string; score: number; title: string }) => {
@@ -51,13 +51,18 @@ const qmdSearch: QmdSearchFn = (
   }
 };
 
-function createLlmCallFn(config: Config): (prompt: string) => Promise<{ text: string; usage: TokenUsage }> {
+function createLlmCallFn(
+  config: Config,
+): (prompt: string) => Promise<{ text: string; usage: TokenUsage }> {
   const provider = config.llm_provider || "openrouter";
-  const model = config.llm_model || config.openrouter_model || "google/gemma-4-31b-it:free";
+  const model =
+    config.llm_model || config.openrouter_model || "google/gemma-4-31b-it:free";
   const apiKey = config.llm_api_key || config.openrouter_api_key || "";
 
   return async (prompt: string) => {
-    const env: Record<string, string> = { ...process.env as Record<string, string> };
+    const env: Record<string, string> = {
+      ...(process.env as Record<string, string>),
+    };
     if (apiKey) {
       if (provider === "openrouter") env.OPENROUTER_API_KEY = apiKey;
       else if (provider === "google") env.GOOGLE_API_KEY = apiKey;
@@ -66,14 +71,17 @@ function createLlmCallFn(config: Config): (prompt: string) => Promise<{ text: st
 
     const args = [
       "-p",
-      "--mode", "json",
+      "--mode",
+      "json",
       "--no-tools",
       "--no-extensions",
       "--no-skills",
       "--no-session",
       "--no-prompt-templates",
-      "--provider", provider,
-      "--model", model,
+      "--provider",
+      provider,
+      "--model",
+      model,
     ];
 
     const output = execFileSync("pi", args, {
@@ -101,7 +109,7 @@ function createLlmCallFn(config: Config): (prompt: string) => Promise<{ text: st
             usage = {
               inputTokens: u.input ?? 0,
               outputTokens: u.output ?? 0,
-              totalTokens: u.totalTokens ?? ((u.input ?? 0) + (u.output ?? 0)),
+              totalTokens: u.totalTokens ?? (u.input ?? 0) + (u.output ?? 0),
             };
           }
         }
@@ -117,17 +125,21 @@ async function main() {
   const configEncoded = process.env.MK_WORKER_CONFIG_B64 || "";
   const insightsRoot = process.env.MK_WORKER_INSIGHTS_ROOT || "";
   if (!configEncoded || !insightsRoot) {
-    throw new Error("worker missing MK_WORKER_CONFIG_B64 or MK_WORKER_INSIGHTS_ROOT");
+    throw new Error(
+      "worker missing MK_WORKER_CONFIG_B64 or MK_WORKER_INSIGHTS_ROOT",
+    );
   }
 
-  const config = JSON.parse(Buffer.from(configEncoded, "base64").toString("utf8")) as Config;
+  const config = JSON.parse(
+    Buffer.from(configEncoded, "base64").toString("utf8"),
+  ) as Config;
 
   openQueue();
   try {
     const result = await processQueue({
       batchSize: 1,
       llmCallFn: createLlmCallFn(config),
-      qmdSearchFn: qmdSearch,
+      // qmdSearchFn: qmdSearch,
       insightsRoot,
     });
     process.stdout.write(JSON.stringify(result));

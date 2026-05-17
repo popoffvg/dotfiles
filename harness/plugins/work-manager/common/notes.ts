@@ -97,7 +97,7 @@ This repository uses the work-manager plugin for phased execution.
 
 - Start or resume with /work:start and /work:status
 - Follow the active phase from .pi/work.settings.json
-- In implement phase: complete one TODO at a time and call work_compact after each TODO
+- In implement phase: complete one TODO at a time
 - Keep planning artifacts in _notes/ (plan.md, worklog.md, impl-learnings.md)
 `;
 

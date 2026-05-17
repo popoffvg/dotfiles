@@ -9,6 +9,9 @@ description: This skill should be used when the user says "context save", "remem
 
 `/context save <what to remember>`
 
+Trigger even when phrased indirectly inside implementation chat (for example: "remember on this project", "save this setup", "keep this config").
+If the user intent to persist is unclear, ask exactly one clarification question before writing.
+
 ## Configuration
 
 Read `insights_root` from `~/.claude/memory-keeper.local.md` YAML frontmatter. If the file is missing, stop and ask the user to create it.
@@ -17,7 +20,7 @@ Read `insights_root` from `~/.claude/memory-keeper.local.md` YAML frontmatter. I
 
 | Classification | What it is | Saved to |
 |---|---|---|
-| `insight` | Completed work — architecture, patterns, gotchas, decisions | `<insights_root>/<repo>/insights.md` |
+| `insight` | Completed work — architecture, patterns, gotchas, decisions, validated runtime config behavior/errors | `<insights_root>/<repo>/insights.md` |
 | `agent_edit` | AI behavior changes — hooks, prompts, skills, CLAUDE.md, plugin config | `<insights_root>/claude-config/behavior.md` |
 | `task` | ONLY unstarted intentions — "I need to refactor X" | `<insights_root>/_tasks/pending.md` |
 | `none` | Routine work, nothing worth recording — skip silently |
@@ -71,6 +74,18 @@ Fix: either `await processAllPending()` directly, or spawn a detached child proc
 ## Repo Detection
 
 Run `git -C <cwd> rev-parse --show-toplevel 2>/dev/null | xargs basename`. Fallback: `basename <cwd>`. User or conversation context may override.
+
+## Precision for config/provider incidents
+
+When saving operational setup learnings (providers, fallbacks, API keys, gateway failures):
+- Capture exact system terms (provider name, model name, fallback mode, failing error text).
+- Preserve causal chain in one lead paragraph: `symptom -> cause -> fix`.
+- Prefer concrete keys/paths/commands over narrative.
+- If user asks to "remember" while setup is still in progress, save only verified facts and mark unresolved parts as `needs verification`.
+
+Example title patterns:
+- `OpenRouter fallback: auto after gemma4-free failure`
+- `Gateway provider google: missing API key blocks model route`
 
 ## Active Task Awareness
 

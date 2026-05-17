@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git add)",
+      "Bash(git add:*)",
+      "Bash(git commit)",
+      "Bash(git commit:*)",
+      "Bash(git stage)",
+      "Bash(git stage:*)"
+    ]
+  }
+}

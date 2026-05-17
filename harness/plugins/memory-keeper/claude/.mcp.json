@@ -1,9 +1,3 @@
 {
-  "mcpServers": {
-    "memory-keeper-queue": {
-      "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/queue-server.mjs"],
-      "type": "stdio"
-    }
-  }
+  "mcpServers": {}
 }

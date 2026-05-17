@@ -2,7 +2,7 @@
 // Stop hook: captures session metadata + conversation to SQLite, spawns background worker.
 // Designed to be fast and never fail — all heavy lifting is in the worker.
 
-import { readFileSync, readdirSync, statSync, mkdirSync, appendFileSync } from "fs";
+import { readFileSync, readdirSync, statSync, mkdirSync, appendFileSync, realpathSync } from "fs";
 import { join, basename } from "path";
 import { homedir } from "os";
 import { spawn, execSync } from "child_process";
@@ -11,6 +11,7 @@ import { loadConfig } from "../lib/config.mjs";
 
 const LOG_DIR = join(homedir(), ".claude", "debug");
 const LOG_FILE = join(LOG_DIR, "stop-capture.log");
+const NODE_BIN = process.env.MEM_KEEPER_NODE_BIN || "/Users/popoffvg/.local/share/mise/installs/node/20.19.3/bin/node";
 
 function log(msg) {
   const ts = new Date().toISOString().replace("T", " ").slice(0, 19);
@@ -186,7 +187,7 @@ function run() {
 
   // Spawn background worker (detached, won't block session exit)
   const workerPath = join(import.meta.dirname, "..", "worker", "process-sessions.mjs");
-  const child = spawn("node", [workerPath], {
+  const child = spawn(NODE_BIN, [workerPath], {
     detached: true,
     stdio: "ignore",
     env: { ...process.env },
@@ -195,8 +196,19 @@ function run() {
   log(`WORKER spawned pid=${child.pid}`);
 }
 
-// Only run when executed directly, not when imported for tests
-const isMain = process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"));
-if (isMain) {
+// Only run when executed directly, not when imported for tests.
+// Use realpath comparison so symlinked plugin paths still execute.
+function isMainModule() {
+  if (!process.argv[1]) return false;
+  try {
+    const entry = realpathSync(process.argv[1]);
+    const self = realpathSync(new URL(import.meta.url));
+    return entry === self;
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
   run();
 }

@@ -1,0 +1,8 @@
+{
+  "name": "prompt-coach",
+  "version": "0.1.0",
+  "description": "Inline prompt-quality coach. Flags weak prompts (missing context, vague goals, no success criteria) before they run. Modes: off | async | warn | strict | block.",
+  "author": {
+    "name": "popoffvg"
+  }
+}

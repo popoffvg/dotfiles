@@ -65,9 +65,9 @@ const PHASE_RULES: Record<string, string> = {
 - You may READ any file. You may ONLY WRITE to _notes/`,
 
   implement: `You are in **implement** phase. Execute TODOs from _notes/plan.md.
-- Each TODO = one git commit
-- Call work_compact after each TODO
-- Work autonomously`,
+- Each TODO = one feature-notable git commit
+- Work autonomously
+- NEVER run git push directly — print the exact git command for the user to execute`,
 
   "plan-verify": `You are in **plan-verify** phase. You are an AUDITOR, not a planner or executor.
 - READ the plan and codebase to verify plan quality

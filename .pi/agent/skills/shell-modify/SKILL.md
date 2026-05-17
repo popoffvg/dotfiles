@@ -87,6 +87,15 @@ See **`references/best-practices.md` § Trap for Cleanup** and **§ Temporary Fi
 - [ ] **What's available?** Don't assume `jq`, `curl`, `realpath` exist. Use `command -v` to guard (see **`references/best-practices.md` § Check Command Existence**).
 - [ ] **Which shell version?** `bash 3.x` (macOS default) lacks associative arrays, `readarray`, `${var,,}`.
 
+### External command contract checks (required)
+Before changing command arguments for system tools (`security`, `git`, `kubectl`, `docker`, etc.):
+- [ ] Confirm the exact flag/positional contract from current usage in the script or tool help (`<tool> --help`).
+- [ ] Preserve required identifier values exactly (service/account names, profile names, namespaces). Do not invent or shorten literals.
+- [ ] If identifiers come from variables, verify variable names and defaults are valid under `set -u` (`${var:?missing ...}` or `${var:-...}`).
+- [ ] Add/keep actionable error output that includes command stderr and the resolved identifier value.
+
+**Example (macOS Keychain):** avoid opaque errors like `Could not read keychain service: ...` by validating service/account inputs and surfacing `security` stderr in the failure path.
+
 ## PHASE 2: Make Changes
 
 1. Edit using exact text replacement

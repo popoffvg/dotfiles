@@ -1,49 +1,25 @@
 #!/usr/bin/env bash
-# SessionStart hook: Injects project context from ~/ctx/insights/ into the
+# SessionStart hook: Injects project context from insights root into the
 # session so Claude has relevant knowledge loaded before the first message.
 set -euo pipefail
 
 LOG_FILE="$HOME/.claude/debug/session-start-hook.log"
+CONFIG_FILE="$HOME/.config/mem-keeper/config.json"
 
-# --- Load config from memory-keeper.local.md ---
-load_config() {
-  local config_file="$HOME/.claude/memory-keeper.local.md"
-  local key="$1"
-  local default="$2"
-  if [[ ! -f "$config_file" ]]; then
-    echo "$default"
-    return
-  fi
-  local in_frontmatter=0
-  while IFS= read -r line; do
-    if [[ "$line" == "---" ]]; then
-      if [[ "$in_frontmatter" -eq 1 ]]; then
-        break
-      fi
-      in_frontmatter=1
-      continue
-    fi
-    if [[ "$in_frontmatter" -eq 1 ]]; then
-      local k v
-      k=$(echo "$line" | cut -d: -f1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-      v=$(echo "$line" | cut -d: -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-      if [[ "$k" == "$key" && -n "$v" ]]; then
-        echo "${v/#\~/$HOME}"
-        return
-      fi
-    fi
-  done < "$config_file"
-  echo "$default"
-}
+log() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1" >> "$LOG_FILE" 2>/dev/null || true; }
 
-INSIGHTS_ROOT=$(load_config "insights_root" "")
-
-if [[ -z "$INSIGHTS_ROOT" ]]; then
-  log "WARN insights_root not configured in ~/.claude/memory-keeper.local.md, skipping"
+if [[ ! -f "$CONFIG_FILE" ]]; then
+  log "WARN config missing at $CONFIG_FILE, skipping"
   exit 0
 fi
 
-log() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1" >> "$LOG_FILE" 2>/dev/null || true; }
+INSIGHTS_ROOT=$(jq -r '.insights_root // .insightsRoot // ""' "$CONFIG_FILE" 2>/dev/null || echo "")
+INSIGHTS_ROOT="${INSIGHTS_ROOT/#\~/$HOME}"
+
+if [[ -z "$INSIGHTS_ROOT" ]]; then
+  log "WARN insights_root not configured in $CONFIG_FILE, skipping"
+  exit 0
+fi
 
 INPUT=$(cat /dev/stdin)
 CWD=$(echo "$INPUT" | jq -r '.cwd // ""')

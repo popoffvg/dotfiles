@@ -36,14 +36,14 @@ export function buildWorkNextPrompt(input: WorkNextPromptInput): string {
     "",
     recentWorklog ? `### Recent progress\n\`\`\`\n${recentWorklog}\n\`\`\`\n` : "",
     "Read `_notes/plan.md`, find the first unchecked `- [ ]` TODO, and execute it.",
-    "After each TODO: run tests, check off TODO, log to worklog, and call work_compact.",
+    "After each TODO: run tests, check off TODO, log to worklog.",
     "After each TODO, stage and commit the code changes with one commit per TODO.",
     approveCommits
       ? "HARD GUARD: if approval is not explicitly granted for this TODO commit, do not commit and do not proceed to the next TODO."
       : "Commit approval is disabled in settings; commit directly after tests pass.",
     isAutopilot
-      ? "After completing one TODO and compacting, immediately continue to the next unchecked TODO."
-      : "HARD GUARD: After completing exactly ONE TODO (implement + test + commit + compact), STOP and return control to the user. Do NOT proceed to the next TODO.",
+      ? "After completing one TODO, immediately continue to the next unchecked TODO."
+      : "HARD GUARD: After completing exactly ONE TODO (implement + test + commit), STOP and return control to the user. Do NOT proceed to the next TODO.",
     "When all TODOs are checked off, notify the user and stop. Use /work:abandon to end the flow.",
     "If current phase is not implement or plan is missing, stop and report that exact blocker.",
   ].filter(Boolean).join("\n");

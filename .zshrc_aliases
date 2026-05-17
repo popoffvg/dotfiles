@@ -5,7 +5,88 @@ alias ls='eza'
 alias ll='eza -la'
 alias lt='eza --tree --level=2'
 alias pltmp='pl-db-cli --db-dir=/tmp/db'
+alias claude='claude --plugin-dir ~/.claude/plugins/local-plugins'
+alias ask='pi -p --no-extensions'
+alias zed='mise x -- zed .'
+sec() {
+  local cmd="$1"
 
+  if [[ "$cmd" == "-h" || "$cmd" == "--help" ]]; then
+    cat <<'EOF'
+sec — keychain helper (add + pick + env usage)
+
+Usage:
+  sec            # pick service via skim (sk); choose [NEW] to create one
+  sec -h         # show this help
+  sec -w         # pick service and print secret only (for scripting)
+
+Examples:
+  # Export into current shell
+  export OPENROUTER_API_KEY="$(security find-generic-password -s OPENROUTER_API_KEY -w)"
+
+  # One-shot command
+  OPENROUTER_API_KEY="$(security find-generic-password -s OPENROUTER_API_KEY -w)" pi -p "hello"
+EOF
+    return 0
+  fi
+
+  local selection
+  selection=$({
+    printf '[NEW]\n'
+    security dump-keychain 2>/dev/null \
+      | awk -F'"' '/"svce"<blob>="/{print $4}' \
+      | awk 'NF' \
+      | sort -u
+  } | sk --prompt 'keychain service> ' --height 40%)
+
+  [[ -z "$selection" ]] && return 0
+
+  if [[ "$selection" == "[NEW]" ]]; then
+    local service account label secret
+
+    read -r '?Service name: ' service
+    [[ -z "$service" ]] && { echo 'Service name is required.'; return 1; }
+
+    read -r "?Account (default: $USER): " account
+    account=${account:-$USER}
+
+    read -r '?Label (optional): ' label
+
+    read -rs '?Secret value: ' secret
+    echo
+    [[ -z "$secret" ]] && { echo 'Secret value is required.'; return 1; }
+
+    if [[ -n "$label" ]]; then
+      security add-generic-password -a "$account" -s "$service" -l "$label" -w "$secret" -U
+    else
+      security add-generic-password -a "$account" -s "$service" -w "$secret" -U
+    fi
+
+    echo "Saved keychain item: $service"
+    return 0
+  fi
+
+  local secret
+  if ! secret=$(security find-generic-password -s "$selection" -w 2>/dev/null); then
+    echo "Could not read keychain service: $selection"
+    return 1
+  fi
+
+  if [[ "$cmd" == "-w" ]]; then
+    printf '%s\n' "$secret"
+    return 0
+  fi
+
+  printf '%s' "$secret" | pbcopy
+
+  local var_name
+  var_name=$(printf '%s' "$selection" | tr '[:lower:]' '[:upper:]' | tr -c 'A-Z0-9' '_')
+
+  echo "Selected: $selection"
+  echo "Secret copied to clipboard."
+  echo "Export in current shell:"
+  echo "  export $var_name=\"\$(security find-generic-password -s '$selection' -w)\""
+}
 
 # direnv
 eval "$(direnv hook zsh)"

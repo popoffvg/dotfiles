@@ -11,7 +11,7 @@ Run planner and implementer as **separate interactive Claude agents** in cmux pa
 ## Source of truth + compatibility (read first)
 
 - **Command flow source of truth:** Claude command behavior (especially `work-next`) is canonical.
-- **MCP scope:** MCP tools expose low-level primitives (`work_state`, `work_context`, `work_transition`, `work_compact`, `work_abandon`, optional `work_handoff`).
+- **MCP scope:** MCP tools expose low-level primitives (`work_state`, `work_context`, `work_transition`, `work_abandon`, optional `work_handoff`).
 - **Not an MCP tool:** `work-next` is a command/orchestration flow, not a required MCP primitive.
 - **Plugin naming:** repos may use `work` (new) or `work-manager` (legacy). Detect installed plugin/command set first; do not hardcode one name.
 - **Transition invariant:** after `todo-done`, do **not** auto-route to `plan-verify`. Route to `verify` (or remain in `implement` until user confirms) based on current command contract.
@@ -122,7 +122,7 @@ $TODO_TEXT
 
 Rules:
 - Implement ONLY this TODO, nothing else
-- When done: call work_compact(summary: '<what you did>'), then work_handoff(from: 'implementer', action: 'todo-done', message: '<summary>')
+- When done: call work_handoff(from: 'implementer', action: 'todo-done', message: '<summary>')
 - If you need clarification: call work_handoff(from: 'implementer', action: 'question', target: 'planner', message: '<question>') and WAIT for answer
 - If blocked: call work_handoff(from: 'implementer', action: 'blocked', message: '<problem>')
 - Do NOT modify _notes/plan.md"
@@ -191,7 +191,7 @@ Each pane agent loads the active work plugin and has access to:
 | `work_context` | Get plan, worklog, phase instructions | all |
 | `work_transition` | Change phases | planner, control |
 | `work_handoff` | Signal between panes | planner, implementer |
-| `work_compact` | Log TODO completion | implementer |
+
 | `work_abandon` | Cancel everything | control |
 
 ## Error handling

@@ -1,12 +1,3 @@
 {
-  "mcpServers": {
-    "work": {
-      "command": "bash",
-      "args": ["-c", "WORK_CWD=\"$PWD\" PLUGIN_ROOT=\"${CLAUDE_PLUGIN_ROOT}\" PLUGIN_DATA=\"${CLAUDE_PLUGIN_DATA}\" npx tsx \"${CLAUDE_PLUGIN_ROOT}/server/index.ts\""],
-      "env": {
-        "PLUGIN_ROOT": "${CLAUDE_PLUGIN_ROOT}",
-        "PLUGIN_DATA": "${CLAUDE_PLUGIN_DATA}"
-      }
-    }
-  }
+  "mcpServers": {}
 }

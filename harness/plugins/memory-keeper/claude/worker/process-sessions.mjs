@@ -2,14 +2,12 @@
 // Background worker: reads pending sessions from SQLite, classifies via LLM,
 // saves insights to the filesystem. Runs detached from the Stop hook.
 
-import { readFileSync, appendFileSync, mkdirSync, existsSync, writeFileSync, unlinkSync, statSync, renameSync } from "fs";
+import { readFileSync, appendFileSync, mkdirSync, existsSync, writeFileSync, unlinkSync, statSync, renameSync, realpathSync } from "fs";
 import { join, basename } from "path";
 import { homedir } from "os";
-import { execSync } from "child_process";
-import { generateText } from "ai";
+import { execSync, spawnSync } from "child_process";
 import { getDb } from "../lib/db.mjs";
 import { loadConfig } from "../lib/config.mjs";
-import { createModel } from "../lib/llm.mjs";
 import { CLASSIFY_PROMPT } from "./prompts.mjs";
 
 const LOCK_FILE = join(homedir(), ".claude", "debug", "memory-keeper-worker.lock");
@@ -238,11 +236,69 @@ export function writeStats(db) {
   } catch {}
 }
 
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, `'"'"'`)}'`;
+}
+
+function extractJsonPayload(raw) {
+  const text = String(raw || "").replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  try {
+    return JSON.parse(text);
+  } catch {}
+
+  const start = text.search(/[\[{]/);
+  if (start === -1) throw new Error("No JSON payload in classifier output");
+
+  const endCandidates = [text.lastIndexOf("]"), text.lastIndexOf("}")].filter((i) => i >= start);
+  if (endCandidates.length === 0) throw new Error("No JSON terminator in classifier output");
+
+  const end = Math.max(...endCandidates);
+  return JSON.parse(text.slice(start, end + 1));
+}
+
+function classifyWithCli(prompt, config) {
+  const classifier = config.classifier || {};
+  const timeoutMs = Number(classifier.timeout_ms || 120000);
+
+  const llm = Array.isArray(classifier.llm)
+    ? classifier.llm.filter((x) => x && typeof x.sh === "string" && x.sh.includes("${prompt}"))
+    : [];
+  if (llm.length === 0) throw new Error("No classifier.llm commands configured");
+
+  const classifyInstruction = [
+    "Use the cheapest available model/config.",
+    "Return only valid JSON (no markdown fences).",
+    "Keep response concise and under 500 tokens.",
+  ].join(" ");
+
+  const fullPrompt = `${classifyInstruction}\n\n${prompt}`;
+
+  let lastError = "unknown error";
+  for (const backend of llm) {
+    const name = backend.name || "unnamed";
+    const cmd = backend.sh.replaceAll("${prompt}", shellQuote(fullPrompt));
+    const res = spawnSync("sh", ["-c", cmd], {
+      encoding: "utf8",
+      timeout: timeoutMs,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+
+    if (res.status === 0 && (res.stdout || "").trim()) {
+      log(`CLASSIFIER ok backend=${name}`);
+      return extractJsonPayload(res.stdout);
+    }
+
+    lastError = (res.stderr || res.stdout || "").trim() || `${name} exited with status ${res.status}`;
+    log(`CLASSIFIER failed backend=${name} err=${lastError.slice(0, 400)}`);
+  }
+
+  throw new Error(`All classifier backends failed: ${lastError}`);
+}
+
 /**
- * Process a single session. Accepts a `generate` function for testability.
- * Default: Vercel AI SDK `generateText`.
+ * Process a single session.
  */
-export async function processSession(db, session, model, config, { generate = generateText } = {}) {
+export async function processSession(db, session, _model, config, { generate } = {}) {
   const { id, session_id, project, conversation, retry_count = 0 } = session;
 
   // Drop after MAX_RETRIES
@@ -268,15 +324,10 @@ export async function processSession(db, session, model, config, { generate = ge
       ? `\n[Existing topics — do NOT duplicate these]:\n${existingTopics.map((t) => `- ${t}`).join("\n")}\n\n`
       : "\n";
 
-    const { text } = await generate({
-      model,
-      prompt: CLASSIFY_PROMPT + `[Project: ${project}]` + dedupBlock + conversation,
-      maxTokens: 500,
-      temperature: 0.1,
-    });
-
-    const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-    const parsed = JSON.parse(cleaned);
+    const fullPrompt = CLASSIFY_PROMPT + `[Project: ${project}]` + dedupBlock + conversation;
+    const parsed = generate
+      ? extractJsonPayload(await generate({ prompt: fullPrompt }))
+      : classifyWithCli(fullPrompt, config);
 
     // Support both array (new) and single object (legacy) responses
     const results = Array.isArray(parsed) ? parsed : [parsed];
@@ -352,7 +403,6 @@ async function main() {
       return;
     }
 
-    const model = createModel(config);
     const db = getDb();
 
     try {
@@ -368,7 +418,7 @@ async function main() {
       log(`PROCESSING ${pending.length} pending sessions`);
 
       for (const session of pending) {
-        await processSession(db, session, model, config);
+        await processSession(db, session, null, config);
       }
 
       writeStats(db);
@@ -383,8 +433,19 @@ async function main() {
   }
 }
 
-// Only run main() when executed directly, not when imported for tests
-const isMain = process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"));
-if (isMain) {
+// Only run main() when executed directly, not when imported for tests.
+// Use realpath comparison so symlinked plugin paths still execute.
+function isMainModule() {
+  if (!process.argv[1]) return false;
+  try {
+    const entry = realpathSync(process.argv[1]);
+    const self = realpathSync(new URL(import.meta.url));
+    return entry === self;
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
   main();
 }

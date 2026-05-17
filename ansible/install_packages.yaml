@@ -127,6 +127,12 @@
         cmd: npm install -g git-split-diffs
       changed_when: false
 
+    - name: Install television
+      ansible.builtin.shell:
+        cmd: curl -fsSL https://alexpasmantier.github.io/television/install.sh | bash
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/tv"
+
     # --- Shell ---
     - name: Set zsh as default shell
       ansible.builtin.shell:

@@ -3,7 +3,6 @@
  * All transitions return { newState, effects }. No I/O.
  */
 
-import * as path from "node:path";
 import {
   Phase,
   type WorkSettings,
@@ -299,34 +298,10 @@ export function guardWorkNextPhase(state: WorkSettings): {
 
 // --- Guards ---
 
-/** Read-only commands allowed in all guarded phases */
-const READ_ONLY_COMMANDS = [
-  "cat", "head", "tail", "less", "grep", "rg", "find", "ls", "tree",
-  "wc", "file", "stat", "echo", "pwd",
-  "git log", "git show", "git diff", "git status", "git branch",
-  "gh api", "gh pr list", "gh pr view", "gh pr status", "gh pr checks",
-  "gh issue list", "gh issue view", "gh issue status",
-  "gh run list", "gh run view", "gh repo view",
-];
-
+const GIT_PUSH_PREFIXES = ["git push"];
 
 function isCmdInList(cmd: string, list: string[]): boolean {
   return list.some((prefix) => cmd === prefix || cmd.startsWith(prefix + " "));
-}
-
-function isPlanCheckboxCompletionOnly(input: ToolInput): boolean {
-  const edits = (input.edits as Array<{ oldText?: string; newText?: string }> | undefined) || [];
-  if (!Array.isArray(edits) || edits.length === 0) return false;
-
-  return edits.every((e) => {
-    const oldText = e?.oldText;
-    const newText = e?.newText;
-    if (typeof oldText !== "string" || typeof newText !== "string") return false;
-
-    if (!oldText.includes("[ ]")) return false;
-    const expected = oldText.replace("[ ]", "[x]");
-    return newText === expected;
-  });
 }
 
 /**
@@ -337,80 +312,20 @@ export function guardToolCall(
   state: WorkSettings,
   toolName: string,
   input: ToolInput,
-  notesDir: string,
+  _notesDir: string,
 ): string | null {
   const phase = state.phase as Phase;
-  const isPlan = phase === Phase.Plan || phase === Phase.PlanVerify;
   const isImplement = phase === Phase.Implement;
 
-  if (!isPlan && !isImplement) return null;
+  if (!isImplement) return null;
 
-  // --- Claude TODO tool guard ---
-  if (isImplement) {
-    const t = toolName.toLowerCase();
-    if (t === "todowrite" || t === "todo_write" || t === "todo") {
-      return "Implement phase: Claude TODO list writes are disabled. Track progress in _notes/worklog.md and complete plan checkboxes in _notes/plan.md.";
-    }
-  }
-
-  // --- Bash guard ---
   if (toolName === "Bash" || toolName === "bash") {
     const cmd = (input.command || "").trim();
     const chained = cmd.match(/^cd\s+.+?\s*&&\s*(.+)$/);
     const candidate = (chained?.[1] || cmd).trim();
 
-    if (isPlan) {
-      const allowed = state.planAllowedCommands?.length
-        ? state.planAllowedCommands
-        : READ_ONLY_COMMANDS;
-      if (!isCmdInList(candidate, allowed)) {
-        return "Plan phase: bash commands that modify files are not allowed. Only reading/inspecting is permitted. Write your plan in _notes/ using edit/write tools.";
-      }
-    }
-
-    if (isImplement && state.implementMode !== "autopilot") {
-      if (isCmdInList(candidate, ["git add", "git commit", "git stage"])) {
-        return "Implement phase: git staging and committing are reserved for work-manager. Finish TODO implementation, then hand off for manager-owned commit.";
-      }
-    }
-
-    return null;
-  }
-
-  // --- Edit/Write guard ---
-  if (
-    toolName === "Edit" || toolName === "edit" ||
-    toolName === "Write" || toolName === "write"
-  ) {
-    const targetPath =
-      (input.file_path as string | undefined) ||
-      (input.path as string | undefined) ||
-      (input.filePath as string | undefined) ||
-      "";
-    if (!targetPath) return null;
-
-    const resolved = path.resolve(targetPath);
-    const notesResolved = path.resolve(notesDir);
-    const isInNotes =
-      resolved.startsWith(notesResolved + path.sep) || resolved === notesResolved;
-
-    if (isPlan) {
-      if (!isInNotes) {
-        return `Plan phase: cannot modify files outside _notes/. Tried to ${toolName}: ${targetPath}. Add this to the plan instead.`;
-      }
-      return null;
-    }
-
-    if (isImplement && state.implementMode !== "autopilot") {
-      const planPath = path.resolve(notesDir, "plan.md");
-      if (resolved === planPath) {
-        const isEditTool = toolName === "Edit" || toolName === "edit";
-        if (isEditTool && isPlanCheckboxCompletionOnly(input)) {
-          return null;
-        }
-
-        return "Implement phase: _notes/plan.md edits are restricted. Only checkbox completion edits (`- [ ]` → `- [x]`) are allowed.";
-      }
+    if (isCmdInList(candidate, GIT_PUSH_PREFIXES)) {
+      return "Implement phase: git push is blocked. Show the git push command to the user and let them run it manually.";
     }
   }
 
