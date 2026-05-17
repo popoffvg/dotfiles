@@ -1,7 +1,7 @@
 {
-  "lastChangelogVersion": "0.67.3",
+  "lastChangelogVersion": "0.70.6",
   "quietStartup": true,
-  "defaultProvider": "github-copilot",
+  "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.3-codex",
   "extensions": [
     "~/Documents/git/dotfiles/harness/plugins/memory-keeper/pi/index.ts",
@@ -12,7 +12,7 @@
     "~/Documents/git/dotfiles/harness/plugins/plugin-workflow/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/readmd-command/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/rtk/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/prompt-rewriter/pi/index.ts",
+    "!~/Documents/git/dotfiles/harness/plugins/prompt-rewriter/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/repo-context/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/skill-manager/pi/index.ts",
     "~/Documents/git/dotfiles/harness/plugins/smart-commit/pi/index.ts",
@@ -34,11 +34,17 @@
     "npm:pi-subagents",
     "npm:pi-notify",
     "npm:pi-fzf",
-    "npm:@plannotator/pi-extension",
     "git:https://github.com/badlogic/pi-diff-review"
   ],
-  "defaultThinkingLevel": "low",
+  "defaultThinkingLevel": "medium",
   "pi-tilth": {
     "enabled": false
-  }
+  },
+  "showHardwareCursor": true,
+  "terminal": {
+    "showTerminalProgress": true
+  },
+  "transport": "auto",
+  "hideThinkingBlock": true,
+  "theme": "dark"
 }
