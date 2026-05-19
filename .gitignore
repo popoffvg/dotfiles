@@ -45,6 +45,9 @@ luac.out
 
 # Pi agent runtime state
 .pi/
+harness/pi/agent/skills/
+harness/pi/work-guard.log
+harness/pi/work.settings.json
 
 # Editor configs
 .vscode/
@@ -56,3 +59,11 @@ _notes/
 .grepai/
 
 work.settings.json
+
+# Editor swap files
+*.swp
+*.swo
+
+# Python bytecode
+__pycache__/
+*.pyc

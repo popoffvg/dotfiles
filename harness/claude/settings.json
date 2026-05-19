@@ -1,0 +1,246 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "SHELL": "/opt/homebrew/bin/bash",
+    "ENABLE_LSP_TOOL": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(npm:*)",
+      "Grep",
+      "Bash(go *)",
+      "Bash(ls *)",
+      "Bash(cd ./*)",
+      "Bash(rg *)",
+      "Read(~/Documents/git/mil/**)",
+      "Edit(~/Documents/git/mil/**)",
+      "Bash(tee:*)",
+      "Bash(PATH=\"/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH\" grep:*)",
+      "Read(~/ctx/insights/**)",
+      "Edit(~/ctx/insights/**)",
+      "Write(~/ctx/insights/**)",
+      "Read(~/.claude/skills/**)",
+      "Bash(network:api.github.com:443)",
+      "Bash(network:github.com:443)",
+      "Bash(gh pr create *)",
+      "mcp__qmd__search",
+      "mcp__qmd__vector_search",
+      "mcp__qmd__get",
+      "mcp__qmd__multi_get",
+      "mcp__qmd__status",
+      "Bash(act workflow_dispatch -n -W subtasks/workflow-integration/github-ci-internal/.github/workflows/e2e-tests.yaml --local-repository milaboratory/github-ci-internal@v4=./github-ci-internal --local-repository milaboratory/github-ci@v4=./github-ci -P ubuntu-latest=catthehacker/ubuntu:act-latest -P dev-ganglion=act-runner:helm-kubectl)",
+      "Bash(kubectl config:*)",
+      "Bash(act --help)",
+      "Bash(gh auth:*)",
+      "Bash(kubectl delete:*)",
+      "Bash(helm uninstall:*)",
+      "Bash(k3d image:*)",
+      "Bash(k3d registry:*)",
+      "Bash(k3d cluster:*)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml get nodes)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml get namespace ci-platforma)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml get secrets -n ci-platforma)",
+      "Bash(htpasswd -nbB testuser1 testpassword1)",
+      "Bash(find /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests -name *.license -o -name pl-license* -o -name license.key)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml get secrets -A)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml get secret platforma-license -n platforma-e2e -o json)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml apply -f -)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml get secret platforma-license -n ci-platforma -o jsonpath='{.data}')",
+      "Bash(printenv)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml create secret generic platforma-license -n ci-platforma --from-literal=pl-license-key=\"$MIL_LICENSE\" --dry-run=client -o yaml)",
+      "Bash(helm --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml list -n ci-platforma)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml get pods -n ci-platforma)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml describe pod -n ci-platforma -l app.kubernetes.io/instance)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml logs -n ci-platforma -l app.kubernetes.io/instance --previous)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml get secret platforma-license -n ci-platforma -o jsonpath='{.data.pl-license-key}')",
+      "Bash(xxd)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml delete secret platforma-license -n ci-platforma)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml create secret generic platforma-license -n ci-platforma --from-literal=pl-license-key=\"$MIL_LICENSE\")",
+      "Bash(echo \"MIL_LICENSE=[$MIL_LICENSE]\")",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml get secret platforma-license -n ci-platforma -o json)",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml create secret generic platforma-license -n ci-platforma --from-literal=pl-license-key=\"E-XBHIBHOWZFMGWUZYZKHGIBRGHNGEHUGQWBNGRCLTOHLZHITP\")",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml delete pod -n ci-platforma -l \"app.kubernetes.io/instance\")",
+      "Bash(kubectl --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml logs -n ci-platforma -l \"app.kubernetes.io/instance\" --tail=20)",
+      "Bash(helm --kubeconfig /private/tmp/claude/kubeconfig-e2e.yaml uninstall pl-e2e-1 -n ci-platforma --wait --timeout 2m)",
+      "Bash(docker network:*)",
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); [print\\(c[''''Name''''], c[''''IPv4Address'''']\\) for c in data[0].get\\(''''Containers'''',{}\\).values\\(\\)]\")",
+      "Bash(KUBECONFIG=/private/tmp/claude/kubeconfig-e2e.yaml helm upgrade --install pl-e2e-1 /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/pl/helm/charts/platforma-local --values /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/pl/helm/charts/platforma-local/ci-values.yaml --set image.repository=pl-app --set image.tag=local --atomic --timeout 5m0s --namespace ci-platforma)",
+      "Bash(bash run-act.sh)",
+      "Bash(KUBECONFIG=/private/tmp/claude/kubeconfig-e2e.yaml kubectl create secret generic platforma-htpasswd --from-literal=htpasswd='testuser1:$2y$05$3GIijYgqGs/8spr3Qq08ouhFQpKwTFwTAC.ehf58CpHDOrei6f18W' --namespace ci-platforma --dry-run=client -o yaml)",
+      "Bash(KUBECONFIG=/private/tmp/claude/kubeconfig-e2e.yaml kubectl apply -f -)",
+      "Bash(KUBECONFIG=/private/tmp/claude/kubeconfig-e2e.yaml helm uninstall pl-e2e-1 --namespace ci-platforma --wait --timeout 2m0s)",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(KUBECONFIG=/private/tmp/claude/kubeconfig-e2e.yaml helm upgrade --install pl-e2e-1 /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/subtasks/workflow-integration/pl/helm/charts/platforma-local --values /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/subtasks/workflow-integration/pl/helm/values-ci-local.yaml --set image.repository=pl-app --set image.tag=local --atomic --timeout 5m0s --namespace ci-platforma)",
+      "Bash(KUBECONFIG=/private/tmp/claude/kubeconfig-e2e.yaml helm upgrade --install pl-e2e-1 /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/subtasks/workflow-integration/pl/helm/charts/platforma-local --values /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/subtasks/workflow-integration/pl/helm/charts/platforma-local/ci-values.yaml --set image.repository=pl-app --set image.tag=local --atomic --timeout 5m0s --namespace ci-platforma)",
+      "Bash(bash -x run-act.sh -n)",
+      "Bash(bash /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/subtasks/workflow-integration/run-act.sh)",
+      "Bash(GIT_SSL_NO_VERIFY=1 gh pr view 1694 --repo milaboratory/pl --json title,body,url,state,headRefName,baseRefName)",
+      "Bash(GIT_SSL_NO_VERIFY=1 gh api repos/milaboratory/pl/contents/.github/workflows/ci.yaml --jq '.content' -H \"Accept: application/vnd.github.v3+json\" --method GET -f ref=MILAB-5891-ci-refactor)",
+      "Bash(GIT_SSL_NO_VERIFY=1 gh api repos/milaboratory/pl/actions/runs/23253628987/jobs --paginate --jq '.jobs[] | select\\(.id == 67602871534\\) | {name, status, conclusion, steps: [.steps[] | {name, status, conclusion}]}')",
+      "Bash(GIT_SSL_NO_VERIFY=1 gh api repos/milaboratory/pl/contents/.github/workflows/build.yaml --jq '.content' -H \"Accept: application/vnd.github.v3+json\" --method GET -f ref=main)",
+      "Bash(gh pr:*)",
+      "Bash(gh api:*)",
+      "Read(//Users/popoffvg/.claude/**)",
+      "Bash(gotestfmt -help)",
+      "mcp__firecrawl__firecrawl_search",
+      "mcp__firecrawl__firecrawl_scrape",
+      "mcp__firecrawl__firecrawl_map",
+      "mcp__plugin_work-manager_work__work_start",
+      "Bash(ssh dev-htz-fra1 *)",
+      "Read(//Users/popoffvg/.ssh/**)",
+      "Bash(ssh dev-htz-fra1.infra.platforma.bio 'cat /etc/rancher/k3s/registries.yaml 2>/dev/null || echo \"FILE NOT FOUND\"')",
+      "Bash(ssh -o IdentitiesOnly=yes -i ~/.ssh/milab root@dev-htz-fra1.infra.platforma.bio 'cat /etc/rancher/k3s/registries.yaml 2>/dev/null || echo \"FILE NOT FOUND\"')",
+      "Bash(ssh -o IdentitiesOnly=yes -i ~/.ssh/milab root@dev-htz-fra1.infra.platforma.bio 'ls /etc/docker/certs.d/ 2>/dev/null || echo \"DIR NOT FOUND\"')",
+      "Bash(ssh -o IdentitiesOnly=yes -i ~/.ssh/milab root@dev-htz-fra1.infra.platforma.bio 'which docker && docker info --format \"{{.Driver}}\" 2>/dev/null || echo \"no docker\"')",
+      "Bash(ssh -o IdentitiesOnly=yes -i ~/.ssh/milab root@dev-htz-fra1.infra.platforma.bio 'mkdir -p /etc/rancher/k3s/certs')",
+      "Bash(ssh -o *)",
+      "Bash(openssl x509 *)",
+      "Bash(python3 -c ' *)",
+      "Bash(helm upgrade *)",
+      "Bash(grep -E \"\\\\.\\(yaml|yml|md\\)$\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); cs=d['spec'].get\\('containers',[]\\)+d['spec'].get\\('initContainers',[]\\); [print\\(f\\\\\"{c['name']}: {c['image']}\\\\\"\\) for c in cs]\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d[0].get\\('Options',{}\\), indent=2\\)\\)\")",
+      "Bash(helm -n dev-ci list)",
+      "Bash(helm -n dev-ci get values pl-ci)",
+      "Bash(helm -n dev-ci show values oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set --version 0.13.1)",
+      "Bash(helm -n dev-ci diff upgrade pl-ci oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set --version 0.13.1 -f /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/scripts/staging/pl-ci-values.yaml)",
+      "Bash(helm -n dev-ci template pl-ci oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set --version 0.13.1 -f /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/scripts/staging/pl-ci-values.yaml)",
+      "Bash(helm -n dev-ci upgrade pl-ci oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set --version 0.13.1 -f /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/scripts/staging/pl-ci-values.yaml)",
+      "mcp__plugin_work-manager_work__work_off",
+      "Bash(sort -t' ' -k3 -rn)",
+      "mcp__plugin_work-manager_work__work_state",
+      "mcp__plugin_work-manager_work__work_context",
+      "Bash(GIT_SSL_NO_VERIFY=1 gh api repos/milaboratory/github-ci-internal/contents/.github/workflows/ --jq '.[].name')",
+      "Bash(GH_HOST=api.github.com gh api repos/milaboratory/github-ci-internal/contents/.github/workflows/ --jq '.[].name')",
+      "mcp__plugin_agent-review_comments__comment_list"
+    ],
+    "deny": [
+      "Bash(cd ./../*)",
+      "Bash(cd ./..)",
+      "Bash(sudo *)",
+      "Bash(rm -rf /*)",
+      "Read(.env)",
+      "Read(**/.env*)"
+    ],
+    "defaultMode": "auto",
+    "additionalDirectories": [
+      "/private/tmp/claude-501",
+      "/tmp"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [],
+    "PreCompact": [],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/popoffvg/.claude/hooks/rtk-rewrite.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [],
+    "SessionStart": [],
+    "Stop": [],
+    "UserPromptSubmit": []
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "ast-grep@ast-grep-marketplace": true,
+    "claude-md-management@claude-plugins-official": true,
+    "claude-mem@thedotmack": false,
+    "code-review@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true,
+    "context-mode@claude-context-mode": false,
+    "explanatory-output-style@claude-plugins-official": false,
+    "feature-dev@claude-plugins-official": false,
+    "github@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "memory-keeper": false,
+    "plugin-dev@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": false,
+    "typescript-lsp@claude-plugins-official": true,
+    "memory-keeper@local-plugins": true,
+    "worktrunk@worktrunk": true,
+    "work-manager@local-plugins": true,
+    "agent-review@local-plugins": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "exploration@local-plugins": true
+  },
+  "extraKnownMarketplaces": {
+    "ast-grep-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "ast-grep/agent-skill"
+      }
+    },
+    "worktrunk": {
+      "source": {
+        "source": "github",
+        "repo": "max-sixty/worktrunk"
+      }
+    },
+    "trace-marketplace": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/popoffvg/.claude/plugins/trace-marketplace"
+      }
+    },
+    "local-plugins": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/popoffvg/.claude/plugins/local-plugins"
+      }
+    },
+    "work-manager-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "popoffvg/claude-plugin-work-manager"
+      }
+    }
+  },
+  "sandbox": {
+    "enabled": true,
+    "network": {
+      "allowedDomains": [
+        "api.github.com",
+        "github.com"
+      ]
+    },
+    "filesystem": {
+      "allowWrite": [
+        "~/.kube",
+        "//tmp/build",
+        "~/.npm",
+        "~/.pnpm",
+        "~/go",
+        "~/.config/gh",
+        "~/ctx",
+        "~/Library/Caches/gopls",
+        "~/.claude/plugins"
+      ]
+    },
+    "allowedCommands": [
+      "gh"
+    ]
+  },
+  "effortLevel": "medium",
+  "advisorModel": "opus",
+  "autoMemoryEnabled": false,
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "auto",
+  "terminalProgressBarEnabled": true,
+  "teammateMode": "auto",
+  "skipAutoPermissionPrompt": true,
+  "useAutoModeDuringPlan": true,
+  "enableWeakerNestedSandbox": true
+}

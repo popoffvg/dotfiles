@@ -1,3 +1,9 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "fff": {
+      "type": "stdio",
+      "command": "/Users/popoffvg/.local/bin/fff-mcp",
+      "args": []
+    }
+  }
 }

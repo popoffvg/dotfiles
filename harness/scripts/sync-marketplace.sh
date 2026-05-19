@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PLUGINS_DIR="$ROOT/harness/plugins"
-MP_DIR="$ROOT/harness/claude/.claude/plugins/local-plugins"
+MP_DIR="$ROOT/harness/claude/plugins/local-plugins"
 
 mkdir -p "$MP_DIR/.claude-plugin"
 
@@ -17,7 +17,7 @@ for plugin_root in "$PLUGINS_DIR"/*/claude; do
   ver=$(jq -r '.version // "1.0.0"' "$manifest")
   desc=$(jq -r '.description // ""' "$manifest")
 
-  ln -snf "../../../../plugins/$name/claude" "$MP_DIR/$name"
+  ln -snf "../../../plugins/$name/claude" "$MP_DIR/$name"
 
   entries+=("$(jq -nc \
       --arg name "$name" \

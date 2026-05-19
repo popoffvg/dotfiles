@@ -5,14 +5,14 @@ watchexec = "latest"
 [tasks."plugins:sync"]
 description = "Regenerate local-plugins marketplace + plugin symlinks from harness/plugins/"
 sources = ["plugins/*/claude/.claude-plugin/plugin.json"]
-outputs = ["claude/.claude/plugins/local-plugins/.claude-plugin/marketplace.json"]
+outputs = ["claude/plugins/local-plugins/.claude-plugin/marketplace.json"]
 run = "bash {{config_root}}/scripts/sync-marketplace.sh"
 
 [tasks.stow]
-description = "Stow harness/claude → ~/.claude (per-package)"
+description = "Stow harness/claude → ~/.claude"
 depends = ["plugins:sync"]
 sources = ["claude/**/*"]
-run = "stow --target=$HOME --dir={{config_root}} --restow claude"
+run = "stow --target=$HOME/.claude --dir={{config_root}} --restow claude"
 
 [tasks."claude:sync"]
 description = "Sync marketplace + restow"
@@ -32,4 +32,14 @@ watchexec \
 
 [tasks."claude:unstow"]
 description = "Remove harness/claude symlinks from ~/.claude"
-run = "stow --target=$HOME --dir={{config_root}} --delete claude"
+run = "stow --target=$HOME/.claude --dir={{config_root}} --delete claude"
+
+[tasks."pi:stow"]
+description = "Stow harness/pi → ~/.pi (settings.json only; skills owned by skill-manager)"
+sources = ["pi/agent/settings.json"]
+run = "stow --target=$HOME/.pi --dir={{config_root}} --restow pi"
+
+[tasks."pi:unstow"]
+description = "Remove harness/pi symlinks from ~/.pi"
+run = "stow --target=$HOME/.pi --dir={{config_root}} --delete pi"
+

@@ -14,5 +14,28 @@ run = "echo \"export OPENROUTER_API_KEY=$(security find-generic-password -s OPEN
 description = "Check if OPENROUTER_API_KEY is available in current shell"
 run = "[ -n \"$OPENROUTER_API_KEY\" ] && echo OPENROUTER_API_KEY=SET || echo OPENROUTER_API_KEY=NOT_SET"
 
+[tasks.stow]
+description = "Stow everything: repo → ~, harness/claude → ~/.claude, harness/pi → ~/.pi"
+depends = ["harness:plugins:sync"]
+run = [
+  "stow --target=$HOME --dir={{config_root}}/.. --restow {{ config_root | basename }}",
+  "stow --target=$HOME/.claude --dir={{config_root}}/harness --restow claude",
+  "stow --target=$HOME/.pi --dir={{config_root}}/harness --restow pi",
+]
+
+[tasks.unstow]
+description = "Unstow everything"
+run = [
+  "stow --target=$HOME --dir={{config_root}}/.. --delete {{ config_root | basename }}",
+  "stow --target=$HOME/.claude --dir={{config_root}}/harness --delete claude",
+  "stow --target=$HOME/.pi --dir={{config_root}}/harness --delete pi",
+]
+
+[tasks."harness:plugins:sync"]
+description = "Regenerate local-plugins marketplace + plugin symlinks"
+sources = ["harness/plugins/*/claude/.claude-plugin/plugin.json"]
+outputs = ["harness/claude/plugins/local-plugins/.claude-plugin/marketplace.json"]
+run = "bash {{config_root}}/harness/scripts/sync-marketplace.sh"
+
 [settings]
 env_shell_expand = true

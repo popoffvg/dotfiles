@@ -38,7 +38,8 @@ install\.sh
 
 # Runtime state (not config)
 _notes
-\.pi/work\.settings\.json
+\.DS_Store
+Library
 
 # Misc files that shouldn't be stowed
 CLAUDE\.md

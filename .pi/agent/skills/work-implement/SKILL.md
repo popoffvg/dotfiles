@@ -1,1 +1,0 @@
-../../../.claude/skills/work-implement/SKILL.md
