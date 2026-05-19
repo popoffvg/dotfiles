@@ -443,11 +443,11 @@ server.tool(
   },
 );
 
-// --- Tool: work_off ---
+// --- Tool: work_abandon ---
 
 server.tool(
-  "work_off",
-  "Disable work tracking for current session",
+  "work_abandon",
+  "Cancel active work-manager flow for current session",
   {},
   async () => {
     const sf = resolveSettingsFile();

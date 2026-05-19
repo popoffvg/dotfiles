@@ -1,24 +1,66 @@
 #!/usr/bin/env bash
-# SessionStart hook: Injects project context from insights root into the
+# SessionStart hook: Injects project context from ~/ctx/insights/ into the
 # session so Claude has relevant knowledge loaded before the first message.
 set -euo pipefail
 
 LOG_FILE="$HOME/.claude/debug/session-start-hook.log"
-CONFIG_FILE="$HOME/.config/mem-keeper/config.json"
 
-log() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1" >> "$LOG_FILE" 2>/dev/null || true; }
+# --- Load config from memory-keeper.local.md ---
+load_config() {
+  local config_file="$HOME/.claude/memory-keeper.local.md"
+  local key="$1"
+  local default="$2"
+  if [[ ! -f "$config_file" ]]; then
+    echo "$default"
+    return
+  fi
+  local in_frontmatter=0
+  while IFS= read -r line; do
+    if [[ "$line" == "---" ]]; then
+      if [[ "$in_frontmatter" -eq 1 ]]; then
+        break
+      fi
+      in_frontmatter=1
+      continue
+    fi
+    if [[ "$in_frontmatter" -eq 1 ]]; then
+      local k v
+      k=$(echo "$line" | cut -d: -f1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+      v=$(echo "$line" | cut -d: -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+      if [[ "$k" == "$key" && -n "$v" ]]; then
+        echo "${v/#\~/$HOME}"
+        return
+      fi
+    fi
+  done < "$config_file"
+  echo "$default"
+}
 
-if [[ ! -f "$CONFIG_FILE" ]]; then
-  log "WARN config missing at $CONFIG_FILE, skipping"
+INSIGHTS_ROOT=$(load_config "insights_root" "")
+
+if [[ -z "$INSIGHTS_ROOT" ]]; then
+  log "WARN insights_root not configured in ~/.claude/memory-keeper.local.md, skipping"
   exit 0
 fi
 
-INSIGHTS_ROOT=$(jq -r '.insights_root // .insightsRoot // ""' "$CONFIG_FILE" 2>/dev/null || echo "")
-INSIGHTS_ROOT="${INSIGHTS_ROOT/#\~/$HOME}"
+log() { echo "$(date '+%Y-%m-%d %H:%M:%S') $1" >> "$LOG_FILE" 2>/dev/null || true; }
 
-if [[ -z "$INSIGHTS_ROOT" ]]; then
-  log "WARN insights_root not configured in $CONFIG_FILE, skipping"
-  exit 0
+# --- Prune _daily/ memory: keep today + yesterday only ---
+DAILY_DIR="$INSIGHTS_ROOT/_daily"
+if [[ -d "$DAILY_DIR" ]]; then
+  TODAY=$(date -u +%Y-%m-%d)
+  YESTERDAY=$(date -u -v-1d +%Y-%m-%d 2>/dev/null || date -u -d "yesterday" +%Y-%m-%d 2>/dev/null || echo "")
+  PRUNED=0
+  for f in "$DAILY_DIR"/*.md; do
+    [[ -f "$f" ]] || continue
+    NAME=$(basename "$f" .md)
+    # Only consider files whose basename is a YYYY-MM-DD date (leave README.md etc alone)
+    [[ "$NAME" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || continue
+    if [[ "$NAME" != "$TODAY" && "$NAME" != "$YESTERDAY" ]]; then
+      rm -f "$f" && PRUNED=$((PRUNED + 1))
+    fi
+  done
+  [[ "$PRUNED" -gt 0 ]] && log "INFO Pruned $PRUNED old daily file(s) (kept today=$TODAY, yesterday=$YESTERDAY)"
 fi
 
 INPUT=$(cat /dev/stdin)
@@ -87,6 +129,17 @@ if [[ -z "$CONTEXT" ]]; then
 fi
 
 log "INFO Injecting context (${#CONTEXT} chars)"
+
+# --- Ensure the memory-keeper daemon is alive (pre-warm) ---
+DAEMON_SCRIPT="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/memory-keeper}/worker/daemon.mjs"
+if [[ -f "$DAEMON_SCRIPT" ]]; then
+  node -e "
+    import('${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/plugins/memory-keeper}/lib/daemon-control.mjs').then(({ ensureDaemon }) => {
+      const r = ensureDaemon('$DAEMON_SCRIPT');
+      process.stderr.write(r.spawned ? 'daemon spawned pid=' + r.pid + '\n' : 'daemon already running\n');
+    });
+  " 2>>"$LOG_FILE" || log "WARN ensureDaemon failed (non-fatal)"
+fi
 
 jq -n --arg ctx "$CONTEXT" '{
   hookSpecificOutput: {

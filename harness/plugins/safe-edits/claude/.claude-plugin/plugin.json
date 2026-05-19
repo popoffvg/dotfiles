@@ -1,0 +1,6 @@
+{
+  "name": "safe-edits",
+  "version": "1.0.0",
+  "description": "Validated edits for shell scripts and protobuf files.",
+  "author": { "name": "popoffvg" }
+}

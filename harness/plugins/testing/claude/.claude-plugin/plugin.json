@@ -1,0 +1,6 @@
+{
+  "name": "testing",
+  "version": "1.0.0",
+  "description": "Plugin/harness testing tooling and manual-tester agent.",
+  "author": { "name": "popoffvg" }
+}

@@ -67,6 +67,8 @@ State tracked in `.pi/work.settings.json`. Notes in `_notes/` (worklog, plan, re
 
 Claude Code copies marketplace plugins to `~/.claude/plugins/cache/`. **Path traversal (`../`) is blocked** — files outside the plugin root are not copied. Symlinks within the plugin directory are **not followed** during caching.
 
+**Edits to `~/.claude/plugins/cache/` are wiped on next stow.** Always edit the dotfiles source at `~/Documents/git/dotfiles/harness/plugins/<name>/` and re-stow.
+
 **Workaround for shared code** (e.g., `common/` used by both `claude/` and `pi/`):
 1. Place shared code in `common/` at plugin root level
 2. Create a symlink inside the claude dir: `claude/common → ../common` (relative)

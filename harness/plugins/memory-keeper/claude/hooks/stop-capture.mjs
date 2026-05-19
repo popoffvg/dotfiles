@@ -1,17 +1,17 @@
 #!/usr/bin/env node
-// Stop hook: captures session metadata + conversation to SQLite, spawns background worker.
-// Designed to be fast and never fail — all heavy lifting is in the worker.
+// Stop hook: enqueues a session_end event, ensures the daemon is alive.
+// Must be fast and never fail — the daemon does all heavy lifting.
 
-import { readFileSync, readdirSync, statSync, mkdirSync, appendFileSync, realpathSync } from "fs";
+import { readFileSync, readdirSync, statSync, mkdirSync, appendFileSync } from "fs";
 import { join, basename } from "path";
 import { homedir } from "os";
-import { spawn, execSync } from "child_process";
-import { getDb } from "../lib/db.mjs";
+import { execSync } from "child_process";
+import { enqueue } from "../lib/queue.mjs";
 import { loadConfig } from "../lib/config.mjs";
+import { ensureDaemon } from "../lib/daemon-control.mjs";
 
 const LOG_DIR = join(homedir(), ".claude", "debug");
 const LOG_FILE = join(LOG_DIR, "stop-capture.log");
-const NODE_BIN = process.env.MEM_KEEPER_NODE_BIN || "/Users/popoffvg/.local/share/mise/installs/node/20.19.3/bin/node";
 
 function log(msg) {
   const ts = new Date().toISOString().replace("T", " ").slice(0, 19);
@@ -29,7 +29,6 @@ export function findSessionJsonl(sessionId) {
   try {
     const dirs = readdirSync(projectsDir);
     const candidates = [];
-
     for (const dir of dirs) {
       const fullDir = join(projectsDir, dir);
       try {
@@ -43,19 +42,12 @@ export function findSessionJsonl(sessionId) {
         }
       } catch {}
     }
-
     candidates.sort((a, b) => b.mtime - a.mtime);
-
     for (const c of candidates.slice(0, 30)) {
       try {
         const firstLine = readFileSync(c.path, "utf8").split("\n")[0];
         const first = JSON.parse(firstLine);
-        if (
-          first.sessionId === sessionId ||
-          first.session_id === sessionId
-        ) {
-          return c.path;
-        }
+        if (first.sessionId === sessionId || first.session_id === sessionId) return c.path;
       } catch {}
     }
   } catch {}
@@ -65,43 +57,24 @@ export function findSessionJsonl(sessionId) {
 export function extractConversation(jsonlPath) {
   const content = readFileSync(jsonlPath, "utf8");
   const lines = content.split("\n").filter(Boolean);
-
   const messages = [];
   for (const line of lines) {
     try {
       const record = JSON.parse(line);
-
       if (record.type === "user" || record.type === "human") {
-        const text =
-          typeof record.message?.content === "string"
-            ? record.message.content
-            : "";
-        if (
-          text &&
-          !text.startsWith("<command") &&
-          !text.startsWith("<system") &&
-          !text.startsWith("<local")
-        ) {
+        const text = typeof record.message?.content === "string" ? record.message.content : "";
+        if (text && !text.startsWith("<command") && !text.startsWith("<system") && !text.startsWith("<local")) {
           messages.push(`User: ${text}`);
         }
       } else if (record.type === "assistant") {
         const blocks = record.message?.content || [];
         const texts = Array.isArray(blocks)
-          ? blocks
-              .filter((b) => b.type === "text")
-              .map((b) => b.text)
-              .join("\n")
-          : typeof blocks === "string"
-            ? blocks
-            : "";
-        if (texts) {
-          messages.push(`Assistant: ${texts}`);
-        }
+          ? blocks.filter((b) => b.type === "text").map((b) => b.text).join("\n")
+          : typeof blocks === "string" ? blocks : "";
+        if (texts) messages.push(`Assistant: ${texts}`);
       }
     } catch {}
   }
-
-  // Take last N messages that fit within budget
   let total = 0;
   const selected = [];
   for (let i = messages.length - 1; i >= 0; i--) {
@@ -109,15 +82,11 @@ export function extractConversation(jsonlPath) {
     selected.unshift(messages[i]);
     total += messages[i].length;
   }
-
   return selected.join("\n\n");
 }
 
 export function projectFromJsonlPath(jsonlPath) {
-  // Path: ~/.claude/projects/-Users-popoffvg-Documents-git-mil-pl/session.jsonl
-  // Dir name encodes the cwd with / → -
   const dir = basename(join(jsonlPath, ".."));
-  // Last segment of the decoded path is the project name
   const parts = dir.split("-").filter(Boolean);
   return parts[parts.length - 1] || "unknown";
 }
@@ -125,9 +94,7 @@ export function projectFromJsonlPath(jsonlPath) {
 export function detectProject(cwd) {
   if (!cwd) return "unknown";
   try {
-    const root = execSync(`git -C "${cwd}" rev-parse --show-toplevel 2>/dev/null`, {
-      encoding: "utf8",
-    }).trim();
+    const root = execSync(`git -C "${cwd}" rev-parse --show-toplevel 2>/dev/null`, { encoding: "utf8" }).trim();
     return basename(root);
   } catch {
     return basename(cwd);
@@ -136,79 +103,40 @@ export function detectProject(cwd) {
 
 function run() {
   const config = loadConfig();
-  log(`DEBUG config keys=${Object.keys(config).join(",") || "(none)"} home=${homedir()}`);
-  if (!config.insights_root) {
-    log("SKIP no insights_root configured");
-    process.exit(0);
-  }
+  if (!config.insights_root) { log("SKIP no insights_root"); process.exit(0); }
 
   const raw = readFileSync("/dev/stdin", "utf8");
-  if (!raw.trim()) {
-    log("SKIP empty stdin");
-    process.exit(0);
-  }
+  if (!raw.trim()) { log("SKIP empty stdin"); process.exit(0); }
+
   const input = JSON.parse(raw);
   const sessionId = input.session_id || input.sessionId;
   const cwd = input.cwd || "";
 
-  if (!sessionId) {
-    log("SKIP no session_id in input");
-    process.exit(0);
-  }
+  if (!sessionId) { log("SKIP no session_id"); process.exit(0); }
 
   const jsonlPath = findSessionJsonl(sessionId);
-  if (!jsonlPath) {
-    log(`SKIP session=${sessionId} jsonl not found`);
-    process.exit(0);
-  }
+  if (!jsonlPath) { log(`SKIP session=${sessionId} jsonl not found`); process.exit(0); }
 
   const conversation = extractConversation(jsonlPath);
-
   if (!conversation || conversation.length < 50) {
-    log(`SKIP session=${sessionId} conversation too short (${conversation?.length ?? 0} chars)`);
+    log(`SKIP session=${sessionId} too short (${conversation?.length ?? 0} chars)`);
     process.exit(0);
   }
 
-  // Extract project from Claude projects path: -Users-popoffvg-Documents-git-mil-pl → pl
   const project = projectFromJsonlPath(jsonlPath);
-
-  log(`QUEUED session=${sessionId} project=${project} conv=${conversation.length} chars cwd=${cwd}`);
-
-  // Store in SQLite
-  const db = getDb();
-  try {
-    db.prepare(
-      `INSERT OR IGNORE INTO sessions (session_id, cwd, project, conversation, status)
-       VALUES (?, ?, ?, ?, 'pending')`
-    ).run(sessionId, cwd, project, conversation);
-  } finally {
-    db.close();
-  }
-
-  // Spawn background worker (detached, won't block session exit)
-  const workerPath = join(import.meta.dirname, "..", "worker", "process-sessions.mjs");
-  const child = spawn(NODE_BIN, [workerPath], {
-    detached: true,
-    stdio: "ignore",
-    env: { ...process.env },
+  const id = enqueue({
+    event_type: "session_end",
+    session_id: sessionId,
+    cwd,
+    project,
+    payload: conversation,
   });
-  child.unref();
-  log(`WORKER spawned pid=${child.pid}`);
+  log(`ENQUEUE session_end id=${id} session=${sessionId} project=${project} conv=${conversation.length}`);
+
+  const daemonPath = join(import.meta.dirname, "..", "worker", "daemon.mjs");
+  const r = ensureDaemon(daemonPath);
+  log(r.spawned ? `DAEMON spawned pid=${r.pid}` : "DAEMON already running");
 }
 
-// Only run when executed directly, not when imported for tests.
-// Use realpath comparison so symlinked plugin paths still execute.
-function isMainModule() {
-  if (!process.argv[1]) return false;
-  try {
-    const entry = realpathSync(process.argv[1]);
-    const self = realpathSync(new URL(import.meta.url));
-    return entry === self;
-  } catch {
-    return false;
-  }
-}
-
-if (isMainModule()) {
-  run();
-}
+const isMain = process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"));
+if (isMain) run();

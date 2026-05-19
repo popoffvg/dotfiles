@@ -1,2 +1,35 @@
 [tools]
 node = "20"
+watchexec = "latest"
+
+[tasks."plugins:sync"]
+description = "Regenerate local-plugins marketplace + plugin symlinks from harness/plugins/"
+sources = ["plugins/*/claude/.claude-plugin/plugin.json"]
+outputs = ["claude/.claude/plugins/local-plugins/.claude-plugin/marketplace.json"]
+run = "bash {{config_root}}/scripts/sync-marketplace.sh"
+
+[tasks.stow]
+description = "Stow harness/claude → ~/.claude (per-package)"
+depends = ["plugins:sync"]
+sources = ["claude/**/*"]
+run = "stow --target=$HOME --dir={{config_root}} --restow claude"
+
+[tasks."claude:sync"]
+description = "Sync marketplace + restow"
+depends = ["plugins:sync", "stow"]
+run = "echo claude:sync done"
+
+[tasks."claude:watch"]
+description = "Watch harness/{plugins,claude} and re-sync on change"
+run = """
+watchexec \
+  --watch {{config_root}}/plugins \
+  --watch {{config_root}}/claude \
+  --debounce 500ms \
+  --on-busy-update=queue \
+  -- mise run claude:sync
+"""
+
+[tasks."claude:unstow"]
+description = "Remove harness/claude symlinks from ~/.claude"
+run = "stow --target=$HOME --dir={{config_root}} --delete claude"

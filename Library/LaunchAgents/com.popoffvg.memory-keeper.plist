@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.popoffvg.memory-keeper</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/Users/popoffvg/.local/share/mise/installs/node/20.19.3/bin/node</string>
+      <string>/Users/popoffvg/Documents/git/dotfiles/harness/plugins/memory-keeper/common/server/node_modules/tsx/dist/cli.mjs</string>
+      <string>daemon.ts</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/popoffvg/Documents/git/dotfiles/harness/plugins/memory-keeper/common/server</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>HOME</key>
+      <string>/Users/popoffvg</string>
+      <key>MK_PORT</key>
+      <string>7420</string>
+      <key>PATH</key>
+      <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/popoffvg/.claude/debug/memory-keeper-launchd.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/popoffvg/.claude/debug/memory-keeper-launchd.err.log</string>
+  </dict>
+</plist>

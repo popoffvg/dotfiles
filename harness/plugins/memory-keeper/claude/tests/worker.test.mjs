@@ -1,17 +1,20 @@
+// Tests for the event-based worker (processEvent) and pure helpers.
+
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import Database from "better-sqlite3";
+
+import { processEvent } from "../worker/process-event.mjs";
 import {
-  processSession,
   saveInsight,
   deduplicateCheck,
   readActiveTask,
   extractHeadings,
   CLASSIFY_PROMPT,
 } from "../worker/process-sessions.mjs";
+import { PROMPT_CLASSIFY_PROMPT } from "../worker/prompts.mjs";
 
 // --- Test helpers ---
 
@@ -21,87 +24,62 @@ function makeTmpDir() {
   return dir;
 }
 
-function makeTestDb(dir) {
-  const db = new Database(join(dir, "test.db"));
-  db.pragma("journal_mode = WAL");
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS sessions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      session_id TEXT UNIQUE NOT NULL,
-      cwd TEXT,
-      project TEXT,
-      conversation TEXT,
-      status TEXT DEFAULT 'pending',
-      classification TEXT,
-      insight_text TEXT,
-      error_message TEXT,
-      retry_count INTEGER DEFAULT 0,
-      created_at TEXT DEFAULT (datetime('now')),
-      processed_at TEXT
-    )
-  `);
-  return db;
-}
-
-function insertSession(db, overrides = {}) {
-  const defaults = {
-    session_id: `test-${Date.now()}`,
+function makeEvent(overrides = {}) {
+  return {
+    id: overrides.id ?? `${Date.now()}-test`,
+    event_type: "session_end",
+    session_id: `session-${Date.now()}`,
     cwd: "/tmp/test-project",
     project: "test-project",
-    conversation: "User: How do I fix the auth bug?\n\nAssistant: The issue is that JWT tokens expire silently. Add a refresh middleware.",
+    payload: "User: How do I fix the auth bug?\n\nAssistant: The issue is that JWT tokens expire silently. Add a refresh middleware.",
     retry_count: 0,
-    status: "pending",
+    ...overrides,
   };
-  const s = { ...defaults, ...overrides };
-  db.prepare(
-    "INSERT INTO sessions (session_id, cwd, project, conversation, status, retry_count, error_message) VALUES (?, ?, ?, ?, ?, ?, ?)"
-  ).run(s.session_id, s.cwd, s.project, s.conversation, s.status, s.retry_count, s.error_message || null);
-  return db.prepare("SELECT * FROM sessions WHERE session_id = ?").get(s.session_id);
 }
 
 /**
- * Mock generate function — returns a canned LLM response.
+ * Mock generator. The classifier now expects a `{ long_term, daily }` envelope.
+ * Tests may pass either:
+ *  - the full envelope, or
+ *  - a single long-term entry (auto-wrapped for back-compat with old tests).
  */
-function mockGenerate(response) {
+function mockGenerate(response, { expectPrompt = CLASSIFY_PROMPT } = {}) {
+  const envelope = response && typeof response === "object" && ("long_term" in response || "daily" in response)
+    ? response
+    : (response && response.classification ? { long_term: [response], daily: [] } : { long_term: [], daily: [] });
   return async (opts) => {
-    // Verify prompt structure
-    assert.ok(opts.prompt.startsWith(CLASSIFY_PROMPT), "prompt should start with CLASSIFY_PROMPT");
-    assert.ok(opts.prompt.includes("[Project:"), "prompt should include project metadata");
-    return { text: JSON.stringify(response) };
+    assert.ok(opts.prompt.startsWith(expectPrompt), "prompt should start with the expected classifier prompt");
+    return { text: JSON.stringify(envelope) };
   };
 }
 
-// --- Tests ---
+const silentLog = () => {};
 
-describe("processSession", () => {
-  let tmpDir, db, insightsRoot;
+// --- session_end tests ---
+
+describe("processEvent — session_end", () => {
+  let tmpDir, insightsRoot;
 
   beforeEach(() => {
     tmpDir = makeTmpDir();
-    db = makeTestDb(tmpDir);
     insightsRoot = join(tmpDir, "insights");
     mkdirSync(insightsRoot, { recursive: true });
   });
 
   afterEach(() => {
-    db.close();
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
   it("classifies insight and saves to project insights.md", async () => {
-    const session = insertSession(db);
+    const event = makeEvent();
     const config = { insights_root: insightsRoot };
     const generate = mockGenerate({
       classification: "insight",
       topic: "JWT silent expiry",
-      body: "JWT tokens expire without error on 401 responses. Add refresh middleware to catch silent expiry and re-authenticate transparently.",
+      body: "JWT tokens expire without error on 401 responses. Add refresh middleware.",
     });
 
-    await processSession(db, session, "mock-model", config, { generate });
-
-    // Session deleted after success
-    const row = db.prepare("SELECT * FROM sessions WHERE id = ?").get(session.id);
-    assert.equal(row, undefined, "processed session should be deleted from DB");
+    await processEvent({ event, model: "mock", config, generate, log: silentLog });
 
     const insightsFile = join(insightsRoot, "test-project", "insights.md");
     assert.ok(existsSync(insightsFile), "insights.md should be created");
@@ -111,167 +89,105 @@ describe("processSession", () => {
   });
 
   it("uses LLM-chosen repo instead of detected project", async () => {
-    const session = insertSession(db);
+    const event = makeEvent();
     const config = { insights_root: insightsRoot };
     const generate = mockGenerate({
       classification: "insight",
       repo: "pl",
       topic: "RocksDB WAL tuning",
-      body: "Set `fsync=true` for RocksDB WAL on ext4 to prevent corruption after power loss.",
+      body: "Set fsync=true for RocksDB WAL to prevent corruption.",
     });
 
-    await processSession(db, session, "mock-model", config, { generate });
+    await processEvent({ event, model: "mock", config, generate, log: silentLog });
 
-    // Should save to LLM-chosen "pl" dir, not detected "test-project"
-    const insightsFile = join(insightsRoot, "pl", "insights.md");
-    assert.ok(existsSync(insightsFile), "should save to LLM-chosen repo dir");
-    const content = readFileSync(insightsFile, "utf8");
-    const wrongFile = join(insightsRoot, "test-project", "insights.md");
-    assert.ok(!existsSync(wrongFile), "should NOT save to detected project dir");
+    assert.ok(existsSync(join(insightsRoot, "pl", "insights.md")), "should save to LLM-chosen repo dir");
+    assert.ok(!existsSync(join(insightsRoot, "test-project", "insights.md")), "should NOT save to detected project dir");
   });
 
-  it("deletes session classified as none", async () => {
-    const session = insertSession(db);
+  it("returns without saving when classification is none", async () => {
+    const event = makeEvent();
     const config = { insights_root: insightsRoot };
-    const generate = mockGenerate({
-      classification: "none",
-      topic: "routine",
-      body: "",
-    });
+    const generate = mockGenerate({ classification: "none" });
 
-    await processSession(db, session, "mock-model", config, { generate });
+    await processEvent({ event, model: "mock", config, generate, log: silentLog });
 
-    const row = db.prepare("SELECT * FROM sessions WHERE id = ?").get(session.id);
-    assert.equal(row, undefined, "skipped session should be deleted from DB");
+    assert.ok(!existsSync(join(insightsRoot, "test-project", "insights.md")));
   });
 
   it("saves task to pending.md and creates task directory", async () => {
-    const session = insertSession(db);
+    const event = makeEvent();
     const config = { insights_root: insightsRoot };
     const generate = mockGenerate({
       classification: "task",
       topic: "Refactor auth module",
-      body: "Break auth into separate JWT and session services. Current auth.go is 800 lines with mixed concerns.",
+      body: "Break auth into separate JWT and session services.",
     });
 
-    await processSession(db, session, "mock-model", config, { generate });
-
-    const row = db.prepare("SELECT * FROM sessions WHERE id = ?").get(session.id);
-    assert.equal(row, undefined, "processed session should be deleted from DB");
+    await processEvent({ event, model: "mock", config, generate, log: silentLog });
 
     const pendingFile = join(insightsRoot, "_tasks", "pending.md");
     assert.ok(existsSync(pendingFile));
     const content = readFileSync(pendingFile, "utf8");
     assert.ok(content.includes("Refactor auth module"));
     assert.ok(content.includes("**Status**: active"));
-    assert.ok(content.includes("Break auth into separate JWT"));
-
-    const taskDir = join(insightsRoot, "_tasks", "refactor-auth-module");
-    assert.ok(existsSync(taskDir), "task directory should be created");
+    assert.ok(existsSync(join(insightsRoot, "_tasks", "refactor-auth-module")), "task directory should be created");
   });
 
   it("saves agent_edit to behavior.md", async () => {
-    const session = insertSession(db);
+    const event = makeEvent();
     const config = { insights_root: insightsRoot };
     const generate = mockGenerate({
       classification: "agent_edit",
       topic: "Use concise responses",
-      body: "User prefers short answers without preamble. Skip re-proposals when corrected — act immediately.",
+      body: "User prefers short answers without preamble.",
     });
 
-    await processSession(db, session, "mock-model", config, { generate });
-
-    const row = db.prepare("SELECT * FROM sessions WHERE id = ?").get(session.id);
-    assert.equal(row, undefined, "processed session should be deleted");
+    await processEvent({ event, model: "mock", config, generate, log: silentLog });
 
     const behaviorFile = join(insightsRoot, "claude-config", "behavior.md");
     assert.ok(existsSync(behaviorFile));
-    const content = readFileSync(behaviorFile, "utf8");
-    assert.ok(content.includes("Use concise responses"));
-    assert.ok(content.includes("User prefers short answers"));
+    assert.ok(readFileSync(behaviorFile, "utf8").includes("Use concise responses"));
   });
 
-  it("increments retry_count on LLM error and keeps pending", async () => {
-    const session = insertSession(db);
+  it("throws on invalid LLM JSON (so daemon can requeue)", async () => {
+    const event = makeEvent();
     const config = { insights_root: insightsRoot };
     const generate = async () => ({ text: "this is not valid json at all" });
 
-    await processSession(db, session, "mock-model", config, { generate });
-
-    const row = db.prepare("SELECT * FROM sessions WHERE id = ?").get(session.id);
-    assert.equal(row.status, "pending", "should stay pending for retry");
-    assert.equal(row.retry_count, 1);
-    assert.ok(row.error_message, "should have error message");
+    await assert.rejects(
+      () => processEvent({ event, model: "mock", config, generate, log: silentLog }),
+      /JSON|Unexpected/i
+    );
   });
 
-  it("increments retry_count on LLM throw and keeps pending", async () => {
-    const session = insertSession(db);
+  it("propagates generate() throws (so daemon can requeue)", async () => {
+    const event = makeEvent();
     const config = { insights_root: insightsRoot };
-    const generate = async () => {
-      throw new Error("API rate limit exceeded");
-    };
+    const generate = async () => { throw new Error("API rate limit exceeded"); };
 
-    await processSession(db, session, "mock-model", config, { generate });
-
-    const row = db.prepare("SELECT * FROM sessions WHERE id = ?").get(session.id);
-    assert.equal(row.status, "pending");
-    assert.equal(row.retry_count, 1);
-    assert.ok(row.error_message.includes("rate limit"));
-  });
-
-  it("drops session after MAX_RETRIES (5) attempts", async () => {
-    const session = insertSession(db, {
-      retry_count: 4,
-      error_message: "previous error",
-    });
-    const config = { insights_root: insightsRoot };
-    const generate = async () => {
-      throw new Error("still failing");
-    };
-
-    await processSession(db, session, "mock-model", config, { generate });
-
-    const row = db.prepare("SELECT * FROM sessions WHERE id = ?").get(session.id);
-    assert.equal(row.status, "dropped");
-    assert.equal(row.retry_count, 5);
-    assert.ok(row.error_message.includes("still failing"));
-  });
-
-  it("drops session immediately if retry_count already >= MAX_RETRIES", async () => {
-    const session = insertSession(db, {
-      retry_count: 5,
-      error_message: "old error",
-    });
-    const config = { insights_root: insightsRoot };
-    const generate = mockGenerate({ classification: "insight", topic: "X", body: "Y" });
-
-    await processSession(db, session, "mock-model", config, { generate });
-
-    const row = db.prepare("SELECT * FROM sessions WHERE id = ?").get(session.id);
-    assert.equal(row.status, "dropped");
-    assert.ok(row.error_message.includes("5 failed attempts"));
+    await assert.rejects(
+      () => processEvent({ event, model: "mock", config, generate, log: silentLog }),
+      /rate limit/
+    );
   });
 
   it("handles LLM response wrapped in markdown fences", async () => {
-    const session = insertSession(db);
+    const event = makeEvent();
     const config = { insights_root: insightsRoot };
     const generate = async () => ({
-      text: '```json\n{"classification":"insight","topic":"Fenced response","body":"LLM wrapped response in markdown fences."}\n```',
+      text: '```json\n{"classification":"insight","topic":"Fenced response","body":"LLM wrapped response."}\n```',
     });
 
-    await processSession(db, session, "mock-model", config, { generate });
-
-    const row = db.prepare("SELECT * FROM sessions WHERE id = ?").get(session.id);
-    assert.equal(row, undefined, "processed session should be deleted");
+    await processEvent({ event, model: "mock", config, generate, log: silentLog });
+    assert.ok(existsSync(join(insightsRoot, "test-project", "insights.md")));
   });
 
   it("passes existing headings to LLM prompt for dedup", async () => {
-    // Pre-populate an existing insight
     const projDir = join(insightsRoot, "test-project");
     mkdirSync(projDir, { recursive: true });
     writeFileSync(join(projDir, "insights.md"), "## JWT silent expiry — 2026-03-11\n- Old fact\n");
 
-    const session = insertSession(db);
+    const event = makeEvent();
     const config = { insights_root: insightsRoot };
     let capturedPrompt = "";
     const generate = async ({ prompt }) => {
@@ -279,14 +195,13 @@ describe("processSession", () => {
       return { text: JSON.stringify([{ classification: "insight", topic: "New topic", body: "A new discovery." }]) };
     };
 
-    await processSession(db, session, "mock-model", config, { generate });
+    await processEvent({ event, model: "mock", config, generate, log: silentLog });
 
     assert.ok(capturedPrompt.includes("Existing topics"), "prompt should contain existing topics block");
     assert.ok(capturedPrompt.includes("JWT silent expiry"), "prompt should list existing heading");
   });
 
   it("routes insight to active task when one exists", async () => {
-    // Create an active task
     const tasksDir = join(insightsRoot, "_tasks");
     mkdirSync(tasksDir, { recursive: true });
     writeFileSync(
@@ -294,37 +209,87 @@ describe("processSession", () => {
       "## Fix auth flow\n- **Status**: active\n- **Repos**: test-project\n"
     );
 
-    const session = insertSession(db);
+    const event = makeEvent();
     const config = { insights_root: insightsRoot };
     const generate = mockGenerate({
       classification: "insight",
       topic: "Token refresh edge case",
-      body: "Refresh token can race with concurrent requests. Use mutex to serialize token refresh calls.",
+      body: "Refresh token can race with concurrent requests.",
     });
 
-    await processSession(db, session, "mock-model", config, { generate });
+    await processEvent({ event, model: "mock", config, generate, log: silentLog });
 
-    // Should go to task notes, not project insights
     const taskNotes = join(tasksDir, "fix-auth-flow", "notes.md");
-    assert.ok(existsSync(taskNotes), "notes.md should exist in task dir");
-    const content = readFileSync(taskNotes, "utf8");
-    assert.ok(content.includes("Token refresh edge case"));
-
-    const projectInsights = join(insightsRoot, "test-project", "insights.md");
-    assert.ok(!existsSync(projectInsights), "should NOT save to project insights when task is active");
+    assert.ok(existsSync(taskNotes), "task notes.md should exist");
+    assert.ok(readFileSync(taskNotes, "utf8").includes("Token refresh edge case"));
+    assert.ok(!existsSync(join(insightsRoot, "test-project", "insights.md")), "should NOT save to project insights when task active");
   });
 });
 
-describe("deduplicateCheck", () => {
-  let tmpDir;
+// --- user_prompt tests ---
+
+describe("processEvent — user_prompt", () => {
+  let tmpDir, insightsRoot;
 
   beforeEach(() => {
     tmpDir = makeTmpDir();
+    insightsRoot = join(tmpDir, "insights");
+    mkdirSync(insightsRoot, { recursive: true });
   });
 
   afterEach(() => {
     rmSync(tmpDir, { recursive: true, force: true });
   });
+
+  it("uses the short PROMPT_CLASSIFY_PROMPT for user prompts", async () => {
+    const event = makeEvent({
+      event_type: "user_prompt",
+      payload: "let's rewrite the plugin to use a daemon and a queue",
+    });
+    const config = { insights_root: insightsRoot };
+    const generate = mockGenerate(
+      { classification: "agent_edit", repo: "memory-keeper", topic: "Daemon-based queue rewrite", body: "Switch to filesystem queue + long-running daemon." },
+      { expectPrompt: PROMPT_CLASSIFY_PROMPT }
+    );
+
+    await processEvent({ event, model: "mock", config, generate, log: silentLog });
+
+    const behaviorFile = join(insightsRoot, "claude-config", "behavior.md");
+    assert.ok(existsSync(behaviorFile));
+    assert.ok(readFileSync(behaviorFile, "utf8").includes("Daemon-based queue rewrite"));
+  });
+
+  it("does nothing when payload is empty", async () => {
+    const event = makeEvent({ event_type: "user_prompt", payload: "" });
+    const config = { insights_root: insightsRoot };
+    let called = false;
+    const generate = async () => { called = true; return { text: "{}" }; };
+
+    await processEvent({ event, model: "mock", config, generate, log: silentLog });
+
+    assert.equal(called, false, "generate should not be called for empty payload");
+  });
+
+  it("classification=none produces no file writes", async () => {
+    const event = makeEvent({
+      event_type: "user_prompt",
+      payload: "show me the contents of foo.txt",
+    });
+    const config = { insights_root: insightsRoot };
+    const generate = mockGenerate({ classification: "none" }, { expectPrompt: PROMPT_CLASSIFY_PROMPT });
+
+    await processEvent({ event, model: "mock", config, generate, log: silentLog });
+
+    assert.ok(!existsSync(join(insightsRoot, "claude-config", "behavior.md")));
+  });
+});
+
+// --- Pure helper tests (unchanged behavior) ---
+
+describe("deduplicateCheck", () => {
+  let tmpDir;
+  beforeEach(() => { tmpDir = makeTmpDir(); });
+  afterEach(() => { rmSync(tmpDir, { recursive: true, force: true }); });
 
   it("returns false for non-existent file", () => {
     assert.equal(deduplicateCheck(join(tmpDir, "nope.md"), "anything"), false);
@@ -352,28 +317,20 @@ describe("deduplicateCheck", () => {
     const f = join(tmpDir, "insights.md");
     writeFileSync(f, "## Refined facts field requirements — 2026-03-11\n");
     assert.equal(deduplicateCheck(f, "Refining fact extraction rules"), false);
-    // But very similar rephrasing should match
     assert.equal(deduplicateCheck(f, "Refined facts field rules"), true);
   });
 
   it("detects reverse substring match", () => {
     const f = join(tmpDir, "insights.md");
     writeFileSync(f, "## hooks — 2026-03-04\n");
-    // Longer topic that contains the existing heading
     assert.equal(deduplicateCheck(f, "hooks"), true);
   });
 });
 
 describe("extractHeadings", () => {
   let tmpDir;
-
-  beforeEach(() => {
-    tmpDir = makeTmpDir();
-  });
-
-  afterEach(() => {
-    rmSync(tmpDir, { recursive: true, force: true });
-  });
+  beforeEach(() => { tmpDir = makeTmpDir(); });
+  afterEach(() => { rmSync(tmpDir, { recursive: true, force: true }); });
 
   it("returns empty array for non-existent file", () => {
     assert.deepEqual(extractHeadings(join(tmpDir, "nope.md")), []);
@@ -388,14 +345,8 @@ describe("extractHeadings", () => {
 
 describe("readActiveTask", () => {
   let tmpDir;
-
-  beforeEach(() => {
-    tmpDir = makeTmpDir();
-  });
-
-  afterEach(() => {
-    rmSync(tmpDir, { recursive: true, force: true });
-  });
+  beforeEach(() => { tmpDir = makeTmpDir(); });
+  afterEach(() => { rmSync(tmpDir, { recursive: true, force: true }); });
 
   it("returns null when no pending.md exists", () => {
     assert.equal(readActiveTask(tmpDir), null);
@@ -417,5 +368,29 @@ describe("readActiveTask", () => {
     );
     const task = readActiveTask(tmpDir);
     assert.deepEqual(task, { title: "Refactor Auth Module", slug: "refactor-auth-module" });
+  });
+});
+
+describe("saveInsight", () => {
+  let tmpDir, insightsRoot;
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    insightsRoot = join(tmpDir, "insights");
+    mkdirSync(insightsRoot, { recursive: true });
+  });
+  afterEach(() => { rmSync(tmpDir, { recursive: true, force: true }); });
+
+  it("returns null when an existing heading matches (dedup)", () => {
+    const projDir = join(insightsRoot, "p");
+    mkdirSync(projDir, { recursive: true });
+    writeFileSync(join(projDir, "insights.md"), "## Topic A — 2026-01-01 00:00\nbody\n");
+    const result = saveInsight({ insights_root: insightsRoot }, "p", "insight", "Topic A", "new body");
+    assert.equal(result, null);
+  });
+
+  it("writes a new insight to <project>/insights.md", () => {
+    const result = saveInsight({ insights_root: insightsRoot }, "p", "insight", "Brand new", "body line");
+    assert.ok(result?.endsWith("insights.md"));
+    assert.ok(readFileSync(result, "utf8").includes("Brand new"));
   });
 });

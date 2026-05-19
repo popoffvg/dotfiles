@@ -1,0 +1,6 @@
+{
+  "name": "subagents",
+  "version": "1.0.0",
+  "description": "Spawn Claude Code subagents in terminal-multiplexer panes (cmux, tmux) for parallel/interactive work.",
+  "author": { "name": "popoffvg" }
+}

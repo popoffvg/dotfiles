@@ -62,9 +62,6 @@ Start a new Claude Code session. The SessionStart hook should load without error
 | `/context research <topic>` | Search memory + web, then persist results |
 | `/context scan [timeframe]` | Scan recent session logs for missed insights (fallback for failed Stop hooks) |
 | `/context done [task-name]` | Complete active task — summarize insights and distribute to repo folders |
-| `/memory-stats` | Show memory-keeper stats report and queue counts |
-| `/memory-status` | Alias for `/memory-stats` |
-| `/mem-stats` | Alias for `/memory-stats` |
 
 ## Hourly Scan (Cron)
 

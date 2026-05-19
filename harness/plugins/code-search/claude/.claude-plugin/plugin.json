@@ -1,0 +1,6 @@
+{
+  "name": "code-search",
+  "version": "1.0.0",
+  "description": "Codebase search and structural analysis (ast-grep, codebase-analyzer, find-skills).",
+  "author": { "name": "popoffvg" }
+}
