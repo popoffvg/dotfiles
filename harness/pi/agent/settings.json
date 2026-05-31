@@ -7,20 +7,8 @@
     "~/Documents/git/dotfiles/harness/plugins/memory-keeper/pi/index.ts",
     "~/.pi/agent/extensions/async-session-queue.ts",
     "~/.pi/agent/extensions/code-links.ts",
-    "~/Documents/git/dotfiles/harness/plugins/compact-startup/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/plugin-workflow-events/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/plugin-workflow/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/readmd-command/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/rtk/pi/index.ts",
-    "!~/Documents/git/dotfiles/harness/plugins/prompt-rewriter/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/repo-context/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/skill-manager/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/smart-commit/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/work-manager/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/agent-review/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/session-export/pi/index.ts",
-    "~/Documents/git/dotfiles/harness/plugins/role-picker/pi/index.ts",
-    "!~/Documents/git/dotfiles/harness/plugins/grepai/pi/index.ts"
+    "~/Documents/git/dotfiles/harness/plugins/common/pi/index.ts",
+    "~/Documents/git/dotfiles/harness/plugins/work-manager/pi/index.ts"
   ],
   "skills": [
     "~/Documents/git/dotfiles/skills"

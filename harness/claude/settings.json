@@ -113,7 +113,7 @@
       "mcp__plugin_work-manager_work__work_context",
       "Bash(GIT_SSL_NO_VERIFY=1 gh api repos/milaboratory/github-ci-internal/contents/.github/workflows/ --jq '.[].name')",
       "Bash(GH_HOST=api.github.com gh api repos/milaboratory/github-ci-internal/contents/.github/workflows/ --jq '.[].name')",
-      "mcp__plugin_agent-review_comments__comment_list"
+      "mcp__plugin_work-manager_comments__comment_list"
     ],
     "deny": [
       "Bash(cd ./../*)",
@@ -130,7 +130,17 @@
     ]
   },
   "hooks": {
-    "PostToolUse": [],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/popoffvg/.claude/hooks/bash-tool-bypass-notify.sh"
+          }
+        ]
+      }
+    ],
     "PreCompact": [],
     "PreToolUse": [
       {
@@ -141,10 +151,29 @@
             "command": "/Users/popoffvg/.claude/hooks/rtk-rewrite.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/codedb-block-legacy.sh"
+          }
+        ]
       }
     ],
     "SessionEnd": [],
-    "SessionStart": [],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/codedb-warmup.sh"
+          }
+        ]
+      }
+    ],
     "Stop": [],
     "UserPromptSubmit": []
   },
@@ -172,9 +201,8 @@
     "memory-keeper@local-plugins": true,
     "worktrunk@worktrunk": true,
     "work-manager@local-plugins": true,
-    "agent-review@local-plugins": true,
-    "rust-analyzer-lsp@claude-plugins-official": true,
-    "exploration@local-plugins": true
+    "common@local-plugins": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -235,11 +263,13 @@
   },
   "effortLevel": "medium",
   "advisorModel": "opus",
-  "autoMemoryEnabled": false,
+  "promptSuggestionEnabled": false,
+  "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
   "theme": "auto",
   "terminalProgressBarEnabled": true,
-  "teammateMode": "auto",
+  "teammateMode": "in-process",
+  "inputNeededNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "useAutoModeDuringPlan": true,
   "enableWeakerNestedSandbox": true

@@ -5,39 +5,9 @@
   },
   "plugins": [
     {
-      "name": "agent-review",
-      "source": "./agent-review",
-      "description": "Agent review comments: MCP tool for state management, guard hook to block direct edits, and fix-comments skill.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "ci-github",
-      "source": "./ci-github",
-      "description": "GitHub Actions authoring and local testing (act, gh-test).",
-      "version": "1.0.0"
-    },
-    {
-      "name": "code-search",
-      "source": "./code-search",
-      "description": "Codebase search and structural analysis (ast-grep, codebase-analyzer, find-skills).",
-      "version": "1.0.0"
-    },
-    {
-      "name": "diagrams",
-      "source": "./diagrams",
-      "description": "Visual diagram authoring (Excalidraw) and interactive plan annotation/review UI.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "exploration",
-      "source": "./exploration",
-      "description": "Codebase exploration, flow mapping, and conversation handoff skills.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "go-tools",
-      "source": "./go-tools",
-      "description": "Go debugging, modification, understanding, and log analysis skills.",
+      "name": "common",
+      "source": "./common",
+      "description": "Shared rules, language/tooling skills, prompt & model utilities",
       "version": "1.0.0"
     },
     {
@@ -45,42 +15,6 @@
       "source": "./memory-keeper",
       "description": "Persistent knowledge management — automatic insight extraction, context injection, and memory search/save across sessions.",
       "version": "0.3.0"
-    },
-    {
-      "name": "prompt-coach",
-      "source": "./prompt-coach",
-      "description": "Inline prompt-quality coach. Flags weak prompts (missing context, vague goals, no success criteria) before they run. Modes: off | async | warn | strict | block.",
-      "version": "0.1.0"
-    },
-    {
-      "name": "safe-edits",
-      "source": "./safe-edits",
-      "description": "Validated edits for shell scripts and protobuf files.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "skill-manager",
-      "source": "./skill-manager",
-      "description": "Skill usage tracking for Claude Code — hooks + JSONL persistence",
-      "version": "1.0.0"
-    },
-    {
-      "name": "subagents",
-      "source": "./subagents",
-      "description": "Spawn Claude Code subagents in terminal-multiplexer panes (cmux, tmux) for parallel/interactive work.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "test-design",
-      "source": "./test-design",
-      "description": "Test design skills: BDD scenarios, test-set authoring and verification.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "testing",
-      "source": "./testing",
-      "description": "Plugin/harness testing tooling and manual-tester agent.",
-      "version": "1.0.0"
     },
     {
       "name": "work-manager",
