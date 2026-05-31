@@ -1,6 +1,0 @@
-{
-  "name": "ci-github",
-  "version": "1.0.0",
-  "description": "GitHub Actions authoring and local testing (act, gh-test).",
-  "author": { "name": "popoffvg" }
-}
