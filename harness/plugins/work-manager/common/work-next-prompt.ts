@@ -27,7 +27,7 @@ export function buildWorkNextPrompt(input: WorkNextPromptInput): string {
       ? "HARD GUARD: before each commit, stop and request explicit user approval (yes/ok/approve)."
       : "",
     "",
-    skill ? "### Skill: work-implement\n" + skill : "",
+    skill ? "### Skill: implement\n" + skill : "",
     "",
     "### Plan",
     "```markdown",

@@ -21,7 +21,7 @@ export interface SkillEvalEntry {
 const SKILL_EVAL_RE = /^- \[(\d+)\] (\d{4}-\d{2}-\d{2}) skill=([^\s]+) score=(10|[1-9]) note=(.*)$/;
 
 const DEFAULT_EVALS_CONTENT =
-  '# AGENTS_EVALS\n\nEvaluation notes that **overlay skill instructions**. Injected into the system prompt automatically.\n\n- `## Common` — directives applied to every session regardless of loaded skills.\n- `## <skill-name>` — directives applied only when that skill is active.\n\nWrite actionable directives ("always X", "never Y", "when Z do W"), not observations.\n\n## Common\n\n## work-plan\n\n## work-implement\n\n## work-verify\n';
+  '# AGENTS_EVALS\n\nEvaluation notes that **overlay skill instructions**. Injected into the system prompt automatically.\n\n- `## Common` — directives applied to every session regardless of loaded skills.\n- `## <skill-name>` — directives applied only when that skill is active.\n\nWrite actionable directives ("always X", "never Y", "when Z do W"), not observations.\n\n## Common\n\n## plan\n\n## implement\n\n## verify\n';
 
 export function ensureAgentsEvalsFile(): void {
   if (existsSync(AGENTS_EVALS_FILE)) return;

@@ -58,7 +58,7 @@ export function start(
     effects: [
       { kind: "worklog", entry: "Work initialized" },
       { kind: "commit_notes", message: "init: work started" },
-      { kind: "inject_skill", skill: "work-plan" },
+      { kind: "inject_skill", skill: "plan" },
       {
         kind: "notify",
         message: `Work started: ${workId || name || branch}`,
@@ -128,13 +128,13 @@ function transitionToPlan(
   const effects: SideEffect[] = [
     { kind: "worklog", entry: `Phase transition: ${from} → plan` },
     { kind: "commit_notes", message: `phase: ${from} → plan` },
-    { kind: "inject_skill", skill: "work-plan" },
+    { kind: "inject_skill", skill: "plan" },
   ];
 
   if (opts?.feedback) {
     effects.push({
       kind: "inject_skill",
-      skill: "work-plan",
+      skill: "plan",
       context: `User feedback: ${opts.feedback}`,
     });
   }
@@ -158,7 +158,7 @@ function transitionToResearch(
     newState: { phase: Phase.Research },
     effects: [
       { kind: "worklog", entry: `Phase transition: ${from} → research` },
-      { kind: "inject_skill", skill: "work-research" },
+      { kind: "inject_skill", skill: "research" },
       {
         kind: "compact",
         summary: `Transitioning to research phase from ${from}. Keep work context, discard plan details.`,
@@ -177,7 +177,7 @@ function transitionToPlanVerify(
       { kind: "worklog", entry: `Phase transition: ${from} → plan-verify` },
       { kind: "commit_notes", message: `phase: ${from} → plan-verify` },
       { kind: "set_model", model: "opus" },
-      { kind: "inject_skill", skill: "work-plan-verifier" },
+      { kind: "inject_skill", skill: "plan-verifier" },
       {
         kind: "compact",
         summary: `Entering plan verification. Keep the plan and research notes. Discard planning discussion.`,
@@ -200,13 +200,13 @@ function transitionToImplement(
     { kind: "worklog", entry: `Phase transition: ${from} → implement` },
     { kind: "commit_notes", message: `phase: ${from} → implement` },
     { kind: "set_model", model: "sonnet" },
-    { kind: "inject_skill", skill: "work-implement" },
+    { kind: "inject_skill", skill: "implement" },
   ];
 
   if (opts?.focus) {
     effects.push({
       kind: "inject_skill",
-      skill: "work-implement",
+      skill: "implement",
       context: `Focus: ${opts.focus}`,
     });
   }

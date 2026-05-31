@@ -17,6 +17,7 @@ Display the following usage guide:
 | `/work:status` | Show current work status and progress |
 | `/work:implement` | Enter implement phase in **autopilot** mode (all TODOs) |
 | `/work:next` | Execute **one** TODO then stop (manual per-TODO mode) |
+| `/work:plan-revise <TODO-N> [<sha>]` | Rewrite plan.md + todos/TODO-N.md to match what the last commit for TODO-N actually shipped |
 | `/work:abandon` | Cancel work-manager flow for this workspace |
 | `/work:abandon-skill` | Run the skill-driven abandon flow |
 | `/work:finish` | Alias for `/work:abandon-skill` |

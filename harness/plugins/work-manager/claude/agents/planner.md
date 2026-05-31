@@ -2,8 +2,7 @@
 name: planner
 description: >
   Plan phase agent — produces `_notes/plan.md` and `_notes/todos/TODO-N.md` files. Workflow
-  defined in `work-plan` skill.
-tools: Read, Glob, Grep, Bash, Write, TaskAgent, AskUserQuestion, mcp__plugin_work-manager_work__work_state, mcp__plugin_work-manager_work__work_context, mcp__plugin_work-manager_work__work_transition, mcp__qmd__search, mcp__qmd__deep_search, mcp__qmd__get
+  defined in `plan` skill.
 model: inherit
 color: yellow
 ---
@@ -18,8 +17,8 @@ AlWAYS log your work and user intention in `<note folder>/worklog.md`
 
 ## Source of truth
 
-Follow `${CLAUDE_PLUGIN_ROOT}/skills/work-plan/SKILL.md` for plan structure and
-`${CLAUDE_PLUGIN_ROOT}/skills/work-todo-prepare/SKILL.md` for TODO file format.
+Follow `${CLAUDE_PLUGIN_ROOT}/skills/plan/SKILL.md` for plan structure and
+`${CLAUDE_PLUGIN_ROOT}/skills/todo-prepare/SKILL.md` for TODO file format.
 
 Do not modify source code. Only write to `_notes/`.
 

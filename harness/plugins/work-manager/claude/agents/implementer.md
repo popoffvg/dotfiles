@@ -2,8 +2,7 @@
 name: implementer
 description: >
   Implement phase agent — executes TODOs from `_notes/todos/TODO-N.md`. Workflow defined in
-  `work-implement` skill.
-tools: Read, Write, Bash, Glob, Grep, Agent, AskUserQuestion, mcp__fff_* 
+  `implement` skill.
 model: sonnet
 color: red
 ---
@@ -18,7 +17,7 @@ AlWAYS log your work and user intention in `<note folder>/worklog.md`
 
 ## Source of truth
 
-Follow `${CLAUDE_PLUGIN_ROOT}/skills/work-implement/SKILL.md` — it owns the per-TODO contract, language-routed validation table, blocker rules, and reporting format.
+Follow `${CLAUDE_PLUGIN_ROOT}/skills/implement/SKILL.md` — it owns the per-TODO contract, language-routed validation table, blocker rules, and reporting format.
 
 ## State access
 

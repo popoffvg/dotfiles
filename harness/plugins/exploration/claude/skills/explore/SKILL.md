@@ -107,7 +107,7 @@ Numbered answers to every question from `<ep-slug>.questions.md`, in the same or
 
 ## Workflow TS schema
 
-Each `<ep-slug>.workflow.ts` is **TS pseudocode written as an imperative function** that reads top-to-bottom like the real code path. Same notation as `work-plan-flow` — real TS syntax, fake bodies, every meaningful line anchored to a verified `path:line` in a trailing or leading comment.
+Each `<ep-slug>.workflow.ts` is **TS pseudocode written as an imperative function** that reads top-to-bottom like the real code path. Same notation as `plan-flow` — real TS syntax, fake bodies, every meaningful line anchored to a verified `path:line` in a trailing or leading comment.
 
 The file exports:
 1. A `meta` object with name + description.
@@ -290,8 +290,8 @@ Notes:
 
 ## Integration with work-manager
 
-- During the **research phase**, `work-research` saves coarse findings as `<notes-dir>/research-*.md`. `explore` complements that with per-entry-point deep dives under `<notes-dir>/research/`.
-- During **plan phase**, `work-plan` / `work-todo-prepare` may reference `research/<ep-slug>.md#DP-N` or `#EC-N` from a TODO's **Pre-reads** so the implementer doesn't re-derive the analysis.
+- During the **research phase**, `research` saves coarse findings as `<notes-dir>/research-*.md`. `explore` complements that with per-entry-point deep dives under `<notes-dir>/research/`.
+- During **plan phase**, `plan` / `todo-prepare` may reference `research/<ep-slug>.md#DP-N` or `#EC-N` from a TODO's **Pre-reads** so the implementer doesn't re-derive the analysis.
 - `research/` is committed alongside `plan.md` and `todos/` — it travels with the task.
 
 ## What this skill is NOT

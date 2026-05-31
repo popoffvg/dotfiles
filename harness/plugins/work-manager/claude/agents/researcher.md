@@ -18,7 +18,7 @@ Prefix **every** response with `[RESEARCH]`.
 
 ## Workflow
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/work-research/SKILL.md` and follow its steps exactly.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/research/SKILL.md` and follow its steps exactly.
 
 The skill defines: research planning, codebase exploration, saving findings to `_notes/research-*.md`, writing rules, and completion signals.
 

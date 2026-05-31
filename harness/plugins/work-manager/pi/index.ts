@@ -154,7 +154,7 @@ function registerCommands(pi: ExtensionAPI) {
             const planPath = path.join(notesDir, "plan.md");
             const plan = notes.readFileOr(planPath, "");
             const wl = notes.worklogTail(notesDir, 5);
-            const skill = loadSkill("work-implement");
+            const skill = loadSkill("implement");
             const msg = buildWorkNextPrompt({
               plan,
               recentWorklog: wl,
@@ -188,7 +188,7 @@ function registerCommands(pi: ExtensionAPI) {
             state.updateSettings(existing, { status: "active", phase: "plan", phaseBeforeTodo: null });
             const resumed = state.readSettings(existing);
             ctx.ui.notify(`Resumed work: ${resumed?.workId || resumed?.name || "unnamed"} [plan]`, "success");
-            const skill = loadSkill("work-plan");
+            const skill = loadSkill("plan");
             if (skill) {
               pi.sendUserMessage(skill + "\n\n---\nResumed abandoned work from existing `_notes/plan.md`. Continue from that plan.");
             }
@@ -333,7 +333,7 @@ function registerCommands(pi: ExtensionAPI) {
       }
 
       const wl = notes.worklogTail(notesDir, 5);
-      const skill = loadSkill("work-implement");
+      const skill = loadSkill("implement");
       const msg = buildWorkNextPrompt({
         plan,
         recentWorklog: wl,

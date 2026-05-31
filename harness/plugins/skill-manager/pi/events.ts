@@ -33,7 +33,7 @@ export interface SkillLoadResult {
 }
 
 export interface SkillLoadPayload {
-  /** Skill name (e.g. "work-implement", "go-modify") */
+  /** Skill name (e.g. "implement", "go-modify") */
   name: string;
   /** Callback: resolve with skill content (null if not found) */
   resolve: (result: SkillLoadResult | null) => void;
