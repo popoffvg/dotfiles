@@ -27,17 +27,21 @@ invoke the agent you need; each agent follows its skill.
 
 | Agent | Role | Skill |
 |-------|------|-------|
-| `planner` | Writes `_notes/plan.md` + `todos/TODO-N.md` | `plan`, `todo-prepare` |
-| `researcher` | Explores codebase, writes `_notes/research-*.md` | `research` |
-| `implementer` | Executes one TODO, then stops | `implement` |
-| `tester` | Designs/executes tests, writes report | `test-set-*`, `bdd-tests`, `behavior-driven-development`, `test-harness-plugin` |
+| `planner` | Writes `_notes/plan.md` + `todos/TODO-N.md` | `plan`, `plan-todo-prepare` |
+| `researcher` | Explores codebase, writes `_notes/research-*.md` | `explore-research` |
+| `implementer` | Executes one TODO, then stops | `impl` |
+| `tester` | Designs/executes tests, writes report | `test-set-*`, `test-bdd`, `test-bdd-tdd`, `test-harness-plugin` |
 | `codebase-analyzer` | Documents how code works | — |
 
-### Skills
+### Skills (grouped by prefix)
 
-`plan`, `todo-prepare`, `plan-flow`, `plan-verifier`, `plan-revise`,
-`research`, `implement`, `test-set-create`, `verify`, `commit`, `code-map`,
-`prototype`, `pr-comments-fix`, `install` — invoke directly as needed.
+- **explore-**: `explore`, `explore-flow-map`, `explore-handoff`, `explore-research`
+- **plan-**: `plan`, `plan-flow`, `plan-verifier`, `plan-revise`, `plan-todo-prepare`, `plan-prototype`, `plan-code-map`
+- **impl-**: `impl`, `impl-commit`
+- **test-**: `test-bdd`, `test-bdd-tdd`, `test-set-create`, `test-set-verify`, `test-set-write`, `test-harness-plugin`, `test-verify`
+- **review-**: `review-pr-comments`, `review-fix-comments`
+
+Invoke directly as needed.
 
 ### Work Notes Structure
 

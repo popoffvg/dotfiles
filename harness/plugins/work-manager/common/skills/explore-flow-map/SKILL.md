@@ -1,5 +1,5 @@
 ---
-name: flow-map
+name: explore-flow-map
 description: Render an interactive single-page HTML that visualizes packages/components and the cross-package flows of named actions (e.g. "Invite new user", "todesktop build"). Driven by a JSON document. Use when the user says "flow map", "render flows", "interactive workflow html", "visualize package interactions", or has a flows.json from the `explore` skill they want to view.
 argument-hint: "path to flows.json (defaults to $TMPDIR/claude-explore/<latest>/flows.json)"
 ---

@@ -1,5 +1,5 @@
 ---
-name: fix-comments
+name: review-fix-comments
 description: Read agent-review comments via MCP tools and/or GitHub PR review comments, fix each one in the code, and mark as applied. Use when user says "fix comments", "apply comments", or "resolve comments".
 ---
 

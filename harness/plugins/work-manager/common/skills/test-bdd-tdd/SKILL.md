@@ -1,5 +1,5 @@
 ---
-name: behavior-driven-development
+name: test-bdd-tdd
 description: Applies behavior-driven development principles including Gherkin scenarios and test-driven development. This skill should be used when the user asks to implement features, fix bugs, or when writing executable specifications and tests before writing production code.
 user-invocable: false
 ---

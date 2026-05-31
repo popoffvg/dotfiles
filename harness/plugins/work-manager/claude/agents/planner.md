@@ -18,7 +18,7 @@ AlWAYS log your work and user intention in `<note folder>/worklog.md`
 ## Source of truth
 
 Follow `${CLAUDE_PLUGIN_ROOT}/skills/plan/SKILL.md` for plan structure and
-`${CLAUDE_PLUGIN_ROOT}/skills/todo-prepare/SKILL.md` for TODO file format.
+`${CLAUDE_PLUGIN_ROOT}/skills/plan-todo-prepare/SKILL.md` for TODO file format.
 
 Do not modify source code. Only write to `_notes/`.
 

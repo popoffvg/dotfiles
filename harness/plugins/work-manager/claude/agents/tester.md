@@ -29,8 +29,8 @@ Read the matching `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` and follow it:
 | `test-set-create` | Design a minimal-but-covering test strategy via pairwise tiering (unit / integration / manual) for a task or TODO. |
 | `test-set-write` | Enumerate scenarios, edge cases, and a coverage matrix before implementation. |
 | `test-set-verify` | Review / audit / score an existing test set for missed cases before execution or merge. |
-| `bdd-tests` | Design integration & e2e tests as Cucumber-style Given/When/Then scenarios. |
-| `behavior-driven-development` | Drive feature implementation/bug-fix with Gherkin specs + TDD (spec before code). |
+| `test-bdd` | Design integration & e2e tests as Cucumber-style Given/When/Then scenarios. |
+| `test-bdd-tdd` | Drive feature implementation/bug-fix with Gherkin specs + TDD (spec before code). |
 | `test-harness-plugin` | Test harness plugins in isolation (MCP servers, unit tests, typecheck, plugin loading) using tmux panes. |
 
 If no skill fits (ad-hoc manual testing of a diff/PR), follow the default workflow below.

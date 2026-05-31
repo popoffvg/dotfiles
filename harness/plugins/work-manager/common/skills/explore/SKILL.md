@@ -1,6 +1,6 @@
 ---
 name: explore
-description: Research phase before implementation. Given a list of entry points, spawn one subagent per entry point in parallel and write refactor-oriented research artifacts into the work-manager notes directory (`<notes-dir>/research/`). Use when the user says "explore", "research these entry points", or provides a list of files/symbols to investigate before starting a task. To render the resulting flows as an interactive HTML, use the `flow-map` skill.
+description: Research phase before implementation. Given a list of entry points, spawn one subagent per entry point in parallel and write refactor-oriented research artifacts into the work-manager notes directory (`<notes-dir>/research/`). Use when the user says "explore", "research these entry points", or provides a list of files/symbols to investigate before starting a task. To render the resulting flows as an interactive HTML, use the `explore-flow-map` skill.
 argument-hint: "list of entry points (files, symbols, urls)"
 ---
 
@@ -47,7 +47,7 @@ Plus, after all subagents finish:
 
 | File | Purpose |
 |---|---|
-| `flows.json` | Aggregated flows document — input for `flow-map` |
+| `flows.json` | Aggregated flows document — input for `explore-flow-map` |
 | `INDEX.md` | One-line summary + links per entry point |
 
 The previous `$TMPDIR/claude-explore/` location is deprecated.
@@ -159,7 +159,7 @@ Cross-reference: the `.md` artifact's "Workflow steps" table is the human-readab
 
 ## Aggregated `flows.json`
 
-After all subagents finish, combine their workflows into a single document at `$RESEARCH_DIR/flows.json` that the `flow-map` skill renders as interactive HTML. Schema:
+After all subagents finish, combine their workflows into a single document at `$RESEARCH_DIR/flows.json` that the `explore-flow-map` skill renders as interactive HTML. Schema:
 
 ```jsonc
 {
@@ -290,8 +290,8 @@ Notes:
 
 ## Integration with work-manager
 
-- During the **research phase**, `research` saves coarse findings as `<notes-dir>/research-*.md`. `explore` complements that with per-entry-point deep dives under `<notes-dir>/research/`.
-- During **plan phase**, `plan` / `todo-prepare` may reference `research/<ep-slug>.md#DP-N` or `#EC-N` from a TODO's **Pre-reads** so the implementer doesn't re-derive the analysis.
+- During the **research phase**, `explore-research` saves coarse findings as `<notes-dir>/research-*.md`. `explore` complements that with per-entry-point deep dives under `<notes-dir>/research/`.
+- During **plan phase**, `plan` / `plan-todo-prepare` may reference `research/<ep-slug>.md#DP-N` or `#EC-N` from a TODO's **Pre-reads** so the implementer doesn't re-derive the analysis.
 - `research/` is committed alongside `plan.md` and `todos/` — it travels with the task.
 
 ## What this skill is NOT

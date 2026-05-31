@@ -12,3 +12,5 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | build-zoom-html.py | Wrap a D2/Graphviz SVG into a zoomable HTML viewer (svg-pan-zoom CDN). Args: <svg-in> <html-out> <title> |
 | cursor-agent-hang-capture.sh | Capture lsof+sample of a hung interactive cursor-agent (agent CLI) to find what startup is blocked on |
 | strip-work-skill-prefix.sh | Strip the "work-" prefix from work-manager skill-name references in given files (Perl word-boundary, idempotent; avoids work-verify-gate/work-abandon/work-next-prompt) |
+| regroup-work-skills.sh | Regroup skills under category prefixes: renames global-store dir + recreates repo symlink (or moves real dir), fixes SKILL.md name frontmatter. Args: <repo-skills-dir> <old:new>... (new=__DELETE__ to drop) |
+| rewrite-skill-refs.sh | Rewrite skill references in delimited forms only (`old`→`new`, skills/old/→skills/new/, @old→@new) so prose words are never touched. Args: <old:new>... -- <file>... |

@@ -1,5 +1,5 @@
 ---
-name: bdd-tests
+name: test-bdd
 description: Guide for designing integration and e2e tests using BDD (Behavior-Driven Development) methodology with Cucumber-style Given/When/Then scenarios. Use when writing or reviewing tests for any service, API, or component. Language-agnostic — covers scenario structure, step notation, assertion principles, async patterns, and common anti-patterns.
 ---
 
