@@ -9,6 +9,6 @@ description: Show current work state and progress
 4. Read recent entries from `_notes/worklog.md` (last 10 lines starting with "- ")
 5. Display:
    - Work ID / name
-   - Current phase
-   - Plan summary (acceptance criteria count, TODO progress)
+   - Status
+   - Plan summary (TODO progress)
    - Recent worklog entries

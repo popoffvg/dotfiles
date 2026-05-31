@@ -46,8 +46,6 @@ export const DEFAULT_PLAN_ALLOWED_COMMANDS: string[] = [
 ];
 
 export const DEFAULTS: WorkSettings = {
-  phase: "research",
-  phaseBeforeTodo: null,
   workId: "",
   name: "",
   status: "active",
@@ -56,8 +54,6 @@ export const DEFAULTS: WorkSettings = {
   worktreeBranch: null,
   approveCommits: false,
   planAllowedCommands: DEFAULT_PLAN_ALLOWED_COMMANDS,
-  planVerified: false,
-  implementMode: "autopilot",
 };
 
 /** Resolve the settings file path for a given directory */

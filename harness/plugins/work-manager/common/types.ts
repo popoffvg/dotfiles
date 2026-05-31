@@ -1,19 +1,11 @@
 /**
- * Shared types for Work Manager v2.
+ * Shared types for Work Manager.
  * No runtime dependencies — pure type definitions.
+ *
+ * Phase state-machine types were removed: work is driven by agents, not a FSM.
  */
 
-export enum Phase {
-  Research = "research",
-  Plan = "plan",
-  PlanVerify = "plan-verify",
-  Implement = "implement",
-}
-
-export type ImplementMode = "autopilot" | "manual";
-
 export interface WorkSettings {
-  phase: string;
   workId: string;
   name: string;
   status: string;
@@ -22,48 +14,7 @@ export interface WorkSettings {
   worktreeBranch: string | null;
   approveCommits: boolean;
   planAllowedCommands: string[];
-  planVerified: boolean;
-  implementMode: ImplementMode;
 }
-
-export interface WorkState {
-  phase: Phase;
-  workId: string;
-  name: string;
-  status: string;
-  branch: string;
-  approveCommits: boolean;
-}
-
-export interface TransitionOpts {
-  feedback?: string;
-  focus?: string;
-  hasCriteria?: boolean;
-  fixNow?: boolean;
-  choice?: "continue" | "return_to_plan";
-  userInput?: string;
-  text?: string;
-  implementMode?: ImplementMode;
-}
-
-export interface TransitionResult {
-  newState: Partial<WorkSettings>;
-  effects: SideEffect[];
-}
-
-export type SideEffect =
-  | { kind: "inject_skill"; skill: string; context?: string }
-  | { kind: "compact"; summary: string; inject?: string }
-  | { kind: "worklog"; entry: string }
-  | { kind: "commit_notes"; message: string }
-  | {
-      kind: "notify";
-      message: string;
-      level: "info" | "success" | "warning" | "error";
-    }
-  | { kind: "set_model"; model: "sonnet" | "opus" }
-  | { kind: "ask_user"; question: string; options?: string[] }
-  | { kind: "block_tool"; reason: string };
 
 export interface ToolInput {
   command?: string;

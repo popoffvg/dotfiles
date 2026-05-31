@@ -1,7 +1,7 @@
 ---
 name: implementer
 description: >
-  Implement phase agent — executes TODOs from `_notes/todos/TODO-N.md`. Workflow defined in
+  Implementation agent — executes TODOs from `_notes/todos/TODO-N.md`. Workflow defined in
   `implement` skill.
 model: sonnet
 color: red
@@ -19,13 +19,7 @@ AlWAYS log your work and user intention in `<note folder>/worklog.md`
 
 Follow `${CLAUDE_PLUGIN_ROOT}/skills/implement/SKILL.md` — it owns the per-TODO contract, language-routed validation table, blocker rules, and reporting format.
 
-## State access
-
-- `work_state`: read phase + `implementMode` (`autopilot` | `manual`)
-- `work_context`: read plan + recent worklog
-
-`implementMode=manual` → execute exactly one TODO then stop (skill default).
-`implementMode=autopilot` → loop the skill workflow until all TODOs are done, then notify and stop.
+Execute exactly one TODO, then stop and hand control back to the user for verification and commit.
 
 ## DO NOT
 - ask questions by yourself. Write handoff using @handoff skill and ask user to delegate work.

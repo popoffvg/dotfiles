@@ -4,12 +4,8 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { execSync } from "node:child_process";
 
-import { Phase, type SideEffect, type WorkSettings } from "../common/types";
 import * as state from "../common/state";
 import * as notes from "../common/notes";
-import * as fsm from "../common/fsm";
-import { guard } from "../common/hooks";
-import { buildWorkNextPrompt } from "../common/work-next-prompt";
 
 const CWD = process.cwd();
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
@@ -27,74 +23,55 @@ function resolveNotesDir(settingsFile: string): string {
   return path.join(state.taskDirFromSettings(settingsFile), "_notes");
 }
 
-function loadSkill(name: string): string {
-  const skillPath = path.join(PLUGIN_ROOT, "skills", name, "SKILL.md");
-  return notes.readFileOr(skillPath, "");
-}
+/** Initialize work-tracking state + notes for a fresh task. */
+function initWork(taskDir: string, workId: string, name: string, branch: string): string {
+  const sf = state.settingsPath(taskDir);
+  const notesDir = notes.ensureNotesDir(taskDir, execGit);
+  notes.ensureClaudeMd(taskDir);
 
-function formatPhaseWidget(settings: WorkSettings): string {
-  const label = settings.workId || settings.name || "work";
-  return `🧭 ${label} · ${settings.phase} · ${settings.status}`;
-}
-
-function updatePhaseWidget(ui: { setStatus: (slot: string, value?: string) => void }, cwd: string): void {
-  const sf = resolveSettingsFile(cwd);
-  if (!sf) {
-    ui.setStatus("work", undefined);
-    return;
+  const worklogPath = path.join(notesDir, "worklog.md");
+  if (!fs.existsSync(worklogPath)) {
+    fs.writeFileSync(worklogPath, "# Work Log\n");
   }
 
-  const s = state.readSettings(sf);
-  if (!s || s.status !== "active") {
-    ui.setStatus("work", undefined);
-    return;
-  }
+  state.writeSettings(sf, {
+    ...state.DEFAULTS,
+    workId,
+    name: name || "unnamed work",
+    branch,
+    status: "active",
+  });
 
-  ui.setStatus("work", formatPhaseWidget(s as WorkSettings));
+  notes.appendWorklog(notesDir, "Work initialized");
+  notes.commitNotes(notesDir, "init: work started", execGit);
+  return notesDir;
 }
 
-function executeEffects(effects: SideEffect[], settingsFile: string): string {
-  const messages: string[] = [];
+function cancelWork(settingsFile: string): void {
+  state.updateSettings(settingsFile, { status: "done" });
   const notesDir = resolveNotesDir(settingsFile);
+  notes.appendWorklog(notesDir, "Work cancelled");
+  notes.commitNotes(notesDir, "work: cancelled", execGit);
+}
 
-  for (const effect of effects) {
-    switch (effect.kind) {
-      case "worklog":
-        notes.appendWorklog(notesDir, effect.entry);
-        break;
-      case "commit_notes":
-        notes.commitNotes(notesDir, effect.message, execGit);
-        break;
-      case "inject_skill": {
-        const skill = loadSkill(effect.skill);
-        if (skill) {
-          messages.push(effect.context ? `${skill}\n\n---\n${effect.context}` : skill);
-        }
-        break;
-      }
-      case "compact":
-        messages.push(`[compact] ${effect.summary}`);
-        break;
-      case "notify":
-        messages.push(`[${effect.level}] ${effect.message}`);
-        break;
-      case "set_model":
-        messages.push(`[model] ${effect.model}`);
-        break;
-      case "ask_user":
-        messages.push(
-          effect.options && effect.options.length > 0
-            ? `[question] ${effect.question}\nOptions: ${effect.options.join(", ")}`
-            : `[question] ${effect.question}`,
-        );
-        break;
-      case "block_tool":
-        messages.push(`[blocked] ${effect.reason}`);
-        break;
-    }
+function deriveWorkId(branch: string): { workId: string; name: string } {
+  const ticketMatch = branch.match(/^([A-Z]+-\d+)/);
+  const workId = ticketMatch ? ticketMatch[1] : "";
+  const name = workId
+    ? branch.replace(workId, "").replace(/^[-_]+/, "").replace(/-/g, " ")
+    : branch.replace(/-/g, " ");
+  return { workId, name };
+}
+
+function currentBranch(cwd: string): string {
+  try {
+    return (
+      execSync("git branch --show-current", { cwd, encoding: "utf-8", stdio: "pipe" }).trim() ||
+      "unknown"
+    );
+  } catch {
+    return "unknown";
   }
-
-  return messages.join("\n\n");
 }
 
 function registerCommands(pi: ExtensionAPI) {
@@ -127,7 +104,6 @@ function registerCommands(pi: ExtensionAPI) {
       const wl = notes.worklogTail(notesDir, 5);
       const text = [
         `Work: ${s.workId || s.name || "unnamed"}`,
-        `Phase: ${s.phase}`,
         `Status: ${s.status}`,
         `Branch: ${s.branch || "(unknown)"}`,
         wl ? `Recent:\n${wl}` : "",
@@ -140,38 +116,13 @@ function registerCommands(pi: ExtensionAPI) {
   });
 
   pi.registerCommand("work:start", {
-    description: "Begin new work and enter plan phase",
+    description: "Begin or resume work tracking for this workspace",
     handler: async (_args, ctx) => {
       const existing = resolveSettingsFile(ctx.cwd);
       if (existing) {
         const current = state.readSettings(existing);
         if (current && current.status === "active") {
-          ctx.ui.notify(`Work already active: ${current.workId || current.name || "unnamed"} [${current.phase}]`, "info");
-
-          if (current.phase === Phase.Implement) {
-
-            const notesDir = resolveNotesDir(existing);
-            const planPath = path.join(notesDir, "plan.md");
-            const plan = notes.readFileOr(planPath, "");
-            const wl = notes.worklogTail(notesDir, 5);
-            const skill = loadSkill("implement");
-            const msg = buildWorkNextPrompt({
-              plan,
-              recentWorklog: wl,
-              skill,
-              approveCommits: current.approveCommits,
-              mode: current.implementMode || "autopilot",
-            });
-            pi.sendUserMessage(msg);
-            return;
-          }
-
-          if (!current.worktreePath) {
-            pi.sendUserMessage(
-              "Existing work detected. Do you want to create a trunk/worktree before continuing implementation? " +
-              "Reply with your preferred branch/path naming.",
-            );
-          }
+          ctx.ui.notify(`Work already active: ${current.workId || current.name || "unnamed"}`, "info");
           return;
         }
 
@@ -180,18 +131,13 @@ function registerCommands(pi: ExtensionAPI) {
         const hasPlan = notes.readFileOr(planPath, "").trim().length > 0;
         if (current && current.status !== "active" && hasPlan) {
           const choice = await ctx.ui.select(
-            "Found abandoned work with existing plan. What do you want?",
-            ["↩️ Continue previous plan", "🆕 Start new work (archive old plan)"],
+            "Found previous work with an existing plan. What do you want?",
+            ["↩️ Resume previous work", "🆕 Start new work (archive old plan)"],
           );
 
           if (!choice || choice.startsWith("↩️")) {
-            state.updateSettings(existing, { status: "active", phase: "plan", phaseBeforeTodo: null });
-            const resumed = state.readSettings(existing);
-            ctx.ui.notify(`Resumed work: ${resumed?.workId || resumed?.name || "unnamed"} [plan]`, "success");
-            const skill = loadSkill("plan");
-            if (skill) {
-              pi.sendUserMessage(skill + "\n\n---\nResumed abandoned work from existing `_notes/plan.md`. Continue from that plan.");
-            }
+            state.updateSettings(existing, { status: "active" });
+            ctx.ui.notify(`Resumed work: ${current.workId || current.name || "unnamed"}`, "success");
             return;
           }
 
@@ -201,149 +147,12 @@ function registerCommands(pi: ExtensionAPI) {
         }
       }
 
-      let branch = "unknown";
-      try {
-        branch = execSync("git branch --show-current", {
-          cwd: ctx.cwd,
-          encoding: "utf-8",
-          stdio: "pipe",
-        }).trim() || "unknown";
-      } catch {
-        // non-git cwd
-      }
+      const branch = currentBranch(ctx.cwd);
+      const { workId, name } = deriveWorkId(branch);
+      const notesDir = initWork(ctx.cwd || CWD, workId, name, branch);
 
-      const ticketMatch = branch.match(/^([A-Z]+-\d+)/);
-      const workId = ticketMatch ? ticketMatch[1] : "";
-      const name = workId ? branch.replace(workId, "").replace(/^[-_]+/, "").replace(/-/g, " ") : branch.replace(/-/g, " ");
-
-      const sf = state.settingsPath(ctx.cwd || CWD);
-      const notesDir = notes.ensureNotesDir(ctx.cwd || CWD, execGit);
-      notes.ensureClaudeMd(ctx.cwd || CWD);
-      const worklogPath = path.join(notesDir, "worklog.md");
-      if (!fs.existsSync(worklogPath)) {
-        fs.writeFileSync(worklogPath, "# Work Log\n");
-      }
-
-      const result = fsm.start(branch, workId, name || "");
-      state.writeSettings(sf, { ...state.DEFAULTS, ...result.newState });
-      const messages = executeEffects(result.effects, sf);
-
-      ctx.ui.notify(`Work started: ${workId || name || branch} [plan]`, "success");
-      if (messages) pi.sendUserMessage(messages);
-      updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
-    },
-  });
-
-  pi.registerCommand("work:plan", {
-    description: "Enter or re-enter plan phase",
-    handler: async (_args, ctx) => {
-      const sf = resolveSettingsFile(ctx.cwd);
-      if (!sf) {
-        ctx.ui.notify("No active work. Use /work:start.", "error");
-        return;
-      }
-
-      const s = state.readSettings(sf);
-      if (!s) {
-        ctx.ui.notify("Cannot read work settings.", "error");
-        return;
-      }
-
-      const result = fsm.transition(s, Phase.Plan);
-      if (Object.keys(result.newState).length > 0) {
-        state.updateSettings(sf, result.newState);
-      }
-      const messages = executeEffects(result.effects, sf);
-      const updated = state.readSettings(sf);
-      ctx.ui.notify(`Phase: ${updated?.phase || "unknown"}`, "success");
-      if (messages) pi.sendUserMessage(messages);
-      updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
-    },
-  });
-
-  pi.registerCommand("work:implement", {
-    description: "Transition toward implement in autopilot mode (all TODOs)",
-    handler: async (_args, ctx) => {
-      const sf = resolveSettingsFile(ctx.cwd);
-      if (!sf) {
-        ctx.ui.notify("No active work. Use /work:start.", "error");
-        return;
-      }
-
-      const s = state.readSettings(sf);
-      if (!s) {
-        ctx.ui.notify("Cannot read work settings.", "error");
-        return;
-      }
-
-      const current = s.phase as Phase;
-      const target = current === Phase.PlanVerify ? Phase.Implement : Phase.PlanVerify;
-
-      const result = fsm.transition(s, target, { implementMode: "autopilot" });
-      if (Object.keys(result.newState).length > 0) {
-        state.updateSettings(sf, result.newState);
-      }
-      const messages = executeEffects(result.effects, sf);
-      const updated = state.readSettings(sf);
-      ctx.ui.notify(`Phase: ${updated?.phase || "unknown"} (autopilot)`, "success");
-      if (messages) pi.sendUserMessage(messages);
-      updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
-    },
-  });
-
-  pi.registerCommand("work:next", {
-    description: "Execute one TODO then stop (manual per-TODO mode)",
-    handler: async (_args, ctx) => {
-      const sf = resolveSettingsFile(ctx.cwd);
-      if (!sf) {
-        ctx.ui.notify("No active work. Use /work:start.", "error");
-        return;
-      }
-
-      const s = state.readSettings(sf);
-      if (!s) {
-        ctx.ui.notify("Cannot read work settings.", "error");
-        return;
-      }
-
-      const nextGuard = fsm.guardWorkNextPhase(s);
-      if (!nextGuard.allowed) {
-        // Auto-transition to implement if in plan-verify
-        if ((s.phase as Phase) === Phase.PlanVerify) {
-          const result = fsm.transition(s, Phase.Implement, { implementMode: "autopilot" });
-          if (Object.keys(result.newState).length > 0) {
-            state.updateSettings(sf, result.newState);
-          }
-          executeEffects(result.effects, sf);
-        } else {
-          ctx.ui.notify(nextGuard.reason || "Cannot run /work:next in current phase.", "error");
-          return;
-        }
-      } else if (s.implementMode !== "manual") {
-        // Switch to manual mode if currently autopilot
-        state.updateSettings(sf, { implementMode: "manual" } as any);
-      }
-
-      const notesDir = resolveNotesDir(sf);
-      const planPath = path.join(notesDir, "plan.md");
-      const plan = notes.readFileOr(planPath, "");
-      if (!plan) {
-        ctx.ui.notify("No plan found at _notes/plan.md.", "error");
-        return;
-      }
-
-      const wl = notes.worklogTail(notesDir, 5);
-      const skill = loadSkill("implement");
-      const msg = buildWorkNextPrompt({
-        plan,
-        recentWorklog: wl,
-        skill,
-        approveCommits: s.approveCommits,
-        mode: "manual",
-      });
-
-      pi.sendUserMessage(msg);
-      ctx.ui.notify("Executing next TODO (manual mode)...", "info");
+      ctx.ui.notify(`Work started: ${workId || name || branch}`, "success");
+      pi.sendUserMessage(`Work started.\n\nBranch: ${branch}\nWorkId: ${workId || "(auto)"}\nNotes: ${notesDir}`);
     },
   });
 
@@ -351,7 +160,6 @@ function registerCommands(pi: ExtensionAPI) {
     const sf = resolveSettingsFile(ctx.cwd);
     if (!sf) {
       ctx.ui.notify("No active work to cancel.", "info");
-      updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
       return;
     }
 
@@ -361,12 +169,8 @@ function registerCommands(pi: ExtensionAPI) {
       return;
     }
 
-    const result = fsm.cancel(s);
-    state.updateSettings(sf, result.newState);
-    const messages = executeEffects(result.effects, sf);
+    cancelWork(sf);
     ctx.ui.notify("Work-manager cancelled.", "warning");
-    if (messages) pi.sendUserMessage(messages);
-    updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
   };
 
   pi.registerCommand("work:abandon", {
@@ -383,23 +187,6 @@ function registerCommands(pi: ExtensionAPI) {
 
 export default function (pi: ExtensionAPI) {
   registerCommands(pi);
-
-  pi.on("session_start", async (_event, ctx) => {
-    updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
-  });
-
-  pi.on("before_agent_start", async (_event, ctx) => {
-    updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
-  });
-
-  pi.on("tool_call", async (event, ctx) => {
-    if (!["bash", "edit", "write"].includes(event.toolName)) return;
-
-    const result = guard(ctx.cwd, event.toolName, event.input as Record<string, unknown>);
-    if (!result.allowed) {
-      return { block: true, reason: result.reason };
-    }
-  });
 
   pi.registerTool({
     name: "work_state",
@@ -435,25 +222,12 @@ export default function (pi: ExtensionAPI) {
       name: Type.Optional(Type.String()),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-      const taskDir = ctx.cwd || CWD;
-      const sf = state.settingsPath(taskDir);
-      const notesDir = notes.ensureNotesDir(taskDir, execGit);
-      notes.ensureClaudeMd(taskDir);
-
-      const worklogPath = path.join(notesDir, "worklog.md");
-      if (!fs.existsSync(worklogPath)) {
-        fs.writeFileSync(worklogPath, "# Work Log\n");
-      }
-
-      const result = fsm.start(params.branch, params.workId || "", params.name || "");
-      state.writeSettings(sf, { ...state.DEFAULTS, ...result.newState });
-      const messages = executeEffects(result.effects, sf);
-
+      const notesDir = initWork(ctx.cwd || CWD, params.workId || "", params.name || "", params.branch);
       return {
         content: [
           {
             type: "text",
-            text: `Work started.\n\nPhase: plan\nBranch: ${params.branch}\nWorkId: ${params.workId || "(auto)"}\nNotes: ${notesDir}${messages ? `\n\n${messages}` : ""}`,
+            text: `Work started.\n\nBranch: ${params.branch}\nWorkId: ${params.workId || "(auto)"}\nNotes: ${notesDir}`,
           },
         ],
       };
@@ -461,75 +235,9 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerTool({
-    name: "work_transition",
-    label: "Work Transition",
-    description: "Transition between work phases",
-    parameters: Type.Object({
-      to: Type.Union([
-        Type.Literal("research"),
-        Type.Literal("plan"),
-        Type.Literal("plan-verify"),
-        Type.Literal("implement"),
-      ]),
-      feedback: Type.Optional(Type.String()),
-      focus: Type.Optional(Type.String()),
-      implementMode: Type.Optional(Type.Union([Type.Literal("autopilot"), Type.Literal("manual")])),
-    }),
-    async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-      const sf = resolveSettingsFile(ctx.cwd || CWD);
-      if (!sf) return { content: [{ type: "text", text: "No active work found." }] };
-
-      const s = state.readSettings(sf);
-      if (!s) return { content: [{ type: "text", text: "Cannot read work settings." }] };
-
-      const result = fsm.transition(s, params.to as Phase, {
-        feedback: params.feedback,
-        focus: params.focus,
-        implementMode: params.implementMode as any,
-      });
-
-      if (Object.keys(result.newState).length > 0) {
-        state.updateSettings(sf, result.newState);
-      }
-
-      const messages = executeEffects(result.effects, sf);
-      const updated = state.readSettings(sf);
-      return {
-        content: [{ type: "text", text: `Phase: ${updated?.phase || "unknown"}${messages ? `\n\n${messages}` : ""}` }],
-      };
-    },
-  });
-
-  pi.registerTool({
-    name: "work_guard",
-    label: "Work Guard",
-    description: "Check if tool call is allowed in current phase",
-    parameters: Type.Object({
-      toolName: Type.String(),
-      input: Type.Object({}, { additionalProperties: true }),
-    }),
-    async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-      const sf = resolveSettingsFile(ctx.cwd || CWD);
-      if (!sf) return { content: [{ type: "text", text: '{"allowed": true}' }] };
-
-      const s = state.readSettings(sf);
-      if (!s || s.status !== "active") {
-        return { content: [{ type: "text", text: '{"allowed": true}' }] };
-      }
-
-      const reason = fsm.guardToolCall(s, params.toolName, params.input, resolveNotesDir(sf));
-      if (reason) {
-        return { content: [{ type: "text", text: JSON.stringify({ allowed: false, reason }) }] };
-      }
-
-      return { content: [{ type: "text", text: '{"allowed": true}' }] };
-    },
-  });
-
-  pi.registerTool({
     name: "work_context",
     label: "Work Context",
-    description: "Get current phase context and plan/worklog snippets",
+    description: "Get current work plan/worklog snippets",
     parameters: Type.Object({}),
     async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
       const sf = resolveSettingsFile(ctx.cwd || CWD);
@@ -543,7 +251,6 @@ export default function (pi: ExtensionAPI) {
       const notesDir = resolveNotesDir(sf);
       const parts: string[] = [];
       parts.push(`## Active Work: ${s.workId || s.name || "unnamed"}`);
-      parts.push(`**Phase:** ${s.phase}`);
       parts.push(`**Branch:** ${s.branch}`);
       parts.push("");
 
@@ -576,9 +283,7 @@ export default function (pi: ExtensionAPI) {
       if (!sf) return { content: [{ type: "text", text: "No active work to cancel." }] };
       const s = state.readSettings(sf);
       if (!s) return { content: [{ type: "text", text: "Cannot read work settings." }] };
-      const result = fsm.cancel(s);
-      state.updateSettings(sf, result.newState);
-      updatePhaseWidget(ctx.ui, ctx.cwd || CWD);
+      cancelWork(sf);
       return { content: [{ type: "text", text: "Work-manager cancelled." }] };
     },
   });

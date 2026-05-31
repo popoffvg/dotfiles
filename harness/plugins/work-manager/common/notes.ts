@@ -93,12 +93,12 @@ export function ensureClaudeMd(targetDir: string): void {
   const sectionHeader = "## Work Manager Plugin";
   const sectionBody = `${sectionHeader}
 
-This repository uses the work-manager plugin for phased execution.
+This repository uses the work-manager plugin. Work is driven by agents/skills.
 
-- Start or resume with /work:start and /work:status
-- Follow the active phase from .pi/work.settings.json
-- In implement phase: complete one TODO at a time
-- Keep planning artifacts in _notes/ (plan.md, worklog.md, impl-learnings.md)
+- Start or resume tracking with /work:start and /work:status
+- Invoke the planner / researcher / implementer agents as needed
+- Implementer executes one TODO at a time
+- Keep planning artifacts in _notes/ (plan.md, worklog.md, todos/TODO-N.md)
 `;
 
   const existing = readFileOr(claudePath, "");

@@ -1,7 +1,7 @@
 ---
 name: planner
 description: >
-  Plan phase agent — produces `_notes/plan.md` and `_notes/todos/TODO-N.md` files. Workflow
+  Planning agent — produces `_notes/plan.md` and `_notes/todos/TODO-N.md` files. Workflow
   defined in `plan` skill.
 model: inherit
 color: yellow
@@ -22,8 +22,4 @@ Follow `${CLAUDE_PLUGIN_ROOT}/skills/plan/SKILL.md` for plan structure and
 
 Do not modify source code. Only write to `_notes/`.
 
-## State access
-
-- `work_state`: inspect current phase
-- `work_context`: load plan/worklog/research
-- `work_transition({ to: "plan-verify" })` when plan is ready
+When the plan is ready, hand control back to the user.
