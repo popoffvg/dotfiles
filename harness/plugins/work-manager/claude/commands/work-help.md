@@ -30,6 +30,7 @@ invoke the agent you need; each agent follows its skill.
 | `planner` | Writes `_notes/plan.md` + `todos/TODO-N.md` | `plan`, `todo-prepare` |
 | `researcher` | Explores codebase, writes `_notes/research-*.md` | `research` |
 | `implementer` | Executes one TODO, then stops | `implement` |
+| `tester` | Designs/executes tests, writes report | `test-set-*`, `bdd-tests`, `behavior-driven-development`, `test-harness-plugin` |
 | `codebase-analyzer` | Documents how code works | — |
 
 ### Skills
