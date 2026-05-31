@@ -6,6 +6,8 @@ import { execSync } from "node:child_process";
 
 import * as state from "../common/state";
 import * as notes from "../common/notes";
+import { register as registerSmartCommit } from "./modules/smart-commit/index.ts";
+import { register as registerAgentReview } from "./modules/agent-review.ts";
 
 const CWD = process.cwd();
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
@@ -187,6 +189,8 @@ function registerCommands(pi: ExtensionAPI) {
 
 export default function (pi: ExtensionAPI) {
   registerCommands(pi);
+  registerSmartCommit(pi);
+  registerAgentReview(pi);
 
   pi.registerTool({
     name: "work_state",
