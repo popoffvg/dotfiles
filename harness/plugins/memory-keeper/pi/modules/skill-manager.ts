@@ -8,14 +8,14 @@ import {
   WORK_EVENTS,
   type TodoCompletedPayload,
   type ReturnToPlanPayload,
-} from "../../work-manager/common/events";
+} from "../../../work-manager/common/events";
 import { SKILL_EVENTS, type SkillLoadPayload, type SkillLoadResult, type SkillFile, type SkillFeedbackPayload, type SkillResetSessionPayload, type SkillGetEvalsPayload, type SkillSessionScoresPayload, type SkillSessionScoreEntry } from "./events";
 import {
   PLUGIN_WORKFLOW_EVENTS,
   type PluginWorkflowStartPayload,
   type PluginWorkflowEndPayload,
   type PluginWorkflowEventPayload,
-} from "../../plugin-workflow-events/pi/index.ts";
+} from "./plugin-workflow-events";
 import {
   AGENTS_EVALS_FILE,
   ensureAgentsEvalsFile,
@@ -30,7 +30,7 @@ import {
   buildSkillEvalSnippet,
   today,
   type SkillEvalEntry,
-} from "../common/evals";
+} from "../../common/skill-manager/evals";
 import {
   readFileSync,
   writeFileSync,
@@ -55,7 +55,7 @@ const STATS_FILE = join(PI_AGENT_DIR, "skills-stats.json");
 const OVERRIDES_FILE = join(PI_AGENT_DIR, "skills-overrides.json");
 // AGENTS_EVALS_FILE imported from common/evals
 // jiti provides __dirname for TypeScript modules
-const SOURCES_FILE = join(__dirname, "sources.json");
+const SOURCES_FILE = join(__dirname, "..", "sources.json");
 
 interface PluginSource {
   skillsDir: string;
@@ -85,7 +85,7 @@ interface Settings {
   autoResearch: AutoResearchSettings;
 }
 
-const SETTINGS_FILE = join(__dirname, "settings.json");
+const SETTINGS_FILE = join(__dirname, "..", "settings.json");
 
 const DEFAULT_SETTINGS: Settings = {
   autoImprove: {
@@ -564,7 +564,7 @@ function skillNameFromPath(path: string): string | null {
   return basename(dirname(path));
 }
 
-export default function (pi: ExtensionAPI) {
+export function register(pi: ExtensionAPI) {
   // Sync plugin skills on startup and reload
   pi.on("session_start", async (_event, ctx) => {
     ensureAgentsEvalsFile();

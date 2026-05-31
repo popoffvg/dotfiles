@@ -1,3 +1,5 @@
+import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+
 export const PLUGIN_WORKFLOW_EVENTS = {
   START: "plugin-workflow:start",
   END: "plugin-workflow:end",
@@ -24,5 +26,6 @@ export interface PluginWorkflowEventPayload {
   details?: string;
 }
 
-// Keep this file safe if extension loader picks it up as a top-level extension.
-export default function () {}
+// This module only exports event-type constants and payload types.
+// register() is a no-op so it can be uniformly invoked from index.ts.
+export function register(_pi: ExtensionAPI): void {}

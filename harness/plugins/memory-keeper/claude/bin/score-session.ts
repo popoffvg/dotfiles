@@ -10,8 +10,8 @@ import { readFileSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
-import { loadStats, saveStats, ensureStat, loadDailyScores, saveDailyScores, rotateDailyScores } from "../../common/stats";
-import { computeSessionScore, scoreLabel } from "../../common/scoring";
+import { loadStats, saveStats, ensureStat, loadDailyScores, saveDailyScores, rotateDailyScores } from "../../common/skill-manager/stats";
+import { computeSessionScore, scoreLabel } from "../../common/skill-manager/scoring";
 
 const PI_AGENT_DIR = join(homedir(), ".pi", "agent");
 const JSONL_FILE = join(PI_AGENT_DIR, "skill-stats-session.jsonl");

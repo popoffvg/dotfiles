@@ -48,7 +48,7 @@ interface EventLog {
   details?: string;
 }
 
-export default function (pi: ExtensionAPI) {
+export function register(pi: ExtensionAPI) {
   let enabled = true;
   const active = new Map<string, ActiveTask>();
   let completed: CompletedTask[] = [];

@@ -4,7 +4,10 @@ import {
   type PluginWorkflowStartPayload,
   type PluginWorkflowEndPayload,
   type PluginWorkflowEventPayload,
-} from "../../plugin-workflow-events/pi/index.ts";
+} from "./modules/plugin-workflow-events";
+import { register as registerPluginWorkflowEvents } from "./modules/plugin-workflow-events";
+import { register as registerPluginWorkflow } from "./modules/plugin-workflow";
+import { register as registerSkillManager } from "./modules/skill-manager";
 import { keyHint } from "@mariozechner/pi-coding-agent";
 import { Text } from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
@@ -299,6 +302,11 @@ async function ensureDaemonRunning(): Promise<boolean> {
 // ─── Extension ────────────────────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
+  // Absorbed modules (formerly standalone plugins)
+  registerPluginWorkflowEvents(pi);
+  registerPluginWorkflow(pi);
+  registerSkillManager(pi);
+
   let workActive = false;
 
   function wfTaskId(task: string): string {

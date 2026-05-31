@@ -1,8 +1,0 @@
-{
-  "name": "skill-manager",
-  "version": "1.0.0",
-  "description": "Skill usage tracking for Claude Code — hooks + JSONL persistence",
-  "author": {
-    "name": "popoffvg"
-  }
-}
