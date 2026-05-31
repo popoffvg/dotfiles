@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "checkJs": false,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "types": []
+  },
+  "include": ["*.workflow.ts", "components/*.d.ts", "_flow.entities.d.ts"]
+}

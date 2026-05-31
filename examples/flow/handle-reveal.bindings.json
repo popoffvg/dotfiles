@@ -1,0 +1,7 @@
+{
+  "01KSZ1B5TZK8YD8PEC7X2CDV5N": {
+    "kind": "if",
+    "label": "no binding on line",
+    "source": "/Users/popoffvg/Documents/git/dotfiles/harness/claude/scripts/flow-reveal.mjs:73"
+  }
+}

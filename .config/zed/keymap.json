@@ -1,0 +1,163 @@
+[
+  {
+    "context": "Terminal",
+    "bindings": {
+      "shift-enter": [
+        "terminal::SendText",
+        "\u001b\r"
+      ]
+    }
+  },
+  {
+    "context": "Editor",
+    "unbind": {
+      "cmd-\"": "editor::ExpandAllDiffHunks"
+    }
+  },
+  {
+    "context": "Editor",
+    "unbind": {
+      "cmd-'": "editor::ToggleSelectedDiffHunks"
+    }
+  },
+  {
+    "bindings": {
+      "alt-pageup": "tab_switcher::OpenInActivePane"
+    }
+  },
+  {
+    "context": "Editor",
+      "bindings": {
+      "cmd-shift-y": "editor::CopyFileLocation"
+    }
+  },
+  {
+    "bindings": {
+      "alt-shift-t": "terminal_panel::ToggleFocus"
+    }
+  },
+  {
+    "context": "VimControl && !menu",
+    "unbind": {
+      "g i": "vim::InsertAtPrevious"
+    }
+  },
+  {
+    "context": "VimControl && !menu",
+    "bindings": {
+      "g i": "editor::GoToImplementation"
+    }
+  },
+  {
+    "context": "VimControl && !menu",
+    "unbind": {
+      "g shift-i": "editor::GoToImplementation"
+    }
+  },
+  {
+    "context": "VimControl && !menu",
+    "unbind": {
+      "q": "vim::ToggleRecord"
+    }
+  },
+  {
+    "context": "VimControl && !menu",
+    "unbind": {
+      "shift-b": [
+        "vim::PreviousWordStart",
+        {
+          "ignore_punctuation": true
+        }
+      ]
+    }
+  },
+  {
+    "context": "VimControl && !menu",
+    "unbind": {
+      "shift-e": [
+        "vim::NextWordEnd",
+        {
+          "ignore_punctuation": true
+        }
+      ]
+    }
+  },
+  {
+    "context": "Editor",
+    "unbind": {
+      "ctrl-alt-shift-f": "editor::SelectToNextSubwordEnd"
+    }
+  },
+  {
+    "context": "Editor && vim_mode == helix_normal",
+    "bindings": {
+      "b": "editor::SelectToPreviousSubwordStart"
+    }
+  },
+  {
+    "context": "Editor",
+    "unbind": {
+      "ctrl-alt-shift-left": "editor::SelectToPreviousSubwordStart"
+    }
+  },
+  {
+    "context": "Editor && vim_mode == helix_normal",
+    "bindings": {
+      "e": "vim::NextSubwordStart"
+    }
+  },
+  {
+    "context": "VimControl && !menu",
+    "bindings": {
+      "shift-b": "vim::PreviousWordStart"
+    }
+  },
+  {
+    "context": "VimControl && !menu",
+    "unbind": {
+      "b": "vim::PreviousWordStart"
+    }
+  },
+  {
+    "context": "VimControl && !menu",
+    "bindings": {
+      "shift-e": "vim::NextWordEnd"
+    }
+  },
+  {
+    "context": "VimControl && !menu",
+    "unbind": {
+      "e": "vim::NextWordEnd"
+    }
+  },
+  {
+    "bindings": {
+      "] r": "editor::GoToNextReference"
+    }
+  },
+  {
+    "bindings": {
+      "[ r": "editor::GoToPreviousReference"
+    }
+  },
+  {
+    "bindings": {
+      "alt-cmd-enter": "editor::ToggleFocus"
+    }
+  },
+  {
+    "context": "OutlinePanel && not_editing",
+    "unbind": {
+      "enter": "editor::ToggleFocus"
+    }
+  },
+  {
+    "context": "Editor",
+    "bindings": {
+      "cmd-alt-r": [
+        "task::Spawn",
+        { "task_name": "Flow: reveal source", "reevaluate_context": true }
+      ]
+    }
+  }
+]
