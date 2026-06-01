@@ -1,7 +1,4 @@
 
-# Kiro CLI pre block. Keep at the top of this file.
-[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh"
-
 # Extra completions from brew
 FPATH=$FPATH:/opt/homebrew/share/zsh-completions
 
@@ -17,22 +14,14 @@ export MCFLY_FUZZY=1
 
 autoload -Uz add-zsh-hook
 autoload -Uz compinit && compinit -i
-compdef _task task
 zstyle ':completion:*' special-dirs true
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 eval "$(mise activate)"
 source <(sk --shell zsh)
 eval "$(mcfly init zsh)"
-eval "$(task --completion zsh)"
 source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-# Report CWD to terminal via OSC 7 so splits open in the same directory
-_osc7_cwd() {
-  printf '\e]7;file://%s%s\e\\' "${HOST}" "${PWD}"
-}
-add-zsh-hook chpwd _osc7_cwd
-_osc7_cwd
 
 export EDITOR=hx
 autoload -z edit-command-line
@@ -60,9 +49,6 @@ for f in ~/.zshrc_*; do
 done
 
 
-# Kiro CLI post block. Keep at the bottom of this file.
-[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh"
-
 # pnpm
 export PNPM_HOME="/Users/popoffvg/Library/pnpm"
 case ":$PATH:" in
@@ -72,3 +58,4 @@ esac
 # pnpm end
 
 export PATH="$HOME/.local/bin:$PATH"
+

@@ -1,0 +1,7 @@
+{
+  "Short variable declaration": {
+    "prefix": "0=",
+    "body": [":= $0"],
+    "description": "Go short variable declaration"
+  }
+}

@@ -1,3 +1,5 @@
+font-family = "FiraCode Nerd Font"
+
 keybind = global:cmd+grave_accent=toggle_quick_terminal
 keybind = cmd+k=text:\x02
 
@@ -25,4 +27,3 @@ cursor-color = #ffffff
 cursor-style = bar
 cursor-style-blink = true
 cursor-invert-fg-bg = true
-

@@ -26,10 +26,11 @@ For any file search or grep in the current git-indexed directory, use fff tools.
 → `/context check` to detect insights worth saving from current session
 
 ### File operations
-→ Read/Edit/Write tools (not cat/sed/echo in bash)
-→ Glob for files, Grep for content
-→ NEVER use `**/` patterns in Glob/Grep — use QMD search tools instead
-→ `cd ./subdir` (relative paths) is pre-approved — use it freely without asking
+- Read/Edit/Write tools (not cat/sed/echo in bash)
+- Glob for files, Grep for content
+- NEVER use `**/` patterns in Glob/Grep — use QMD search tools instead
+- verify that scripts you have written are idempotent and accept args where useful
+- write persistent scripts for complex operations and locate them in `~/.claude/scripts/`
 
 ### Scripts
 **NEVER** embed logic as an inline bash `-c '...'` one-liner when the script has any complexity.

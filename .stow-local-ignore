@@ -18,6 +18,8 @@ nvim
 raycast
 scripts
 cspell\.json
+^git$
+^zsh$
 
 # .config paths managed by dotfiles repo
 \.config/atuin
