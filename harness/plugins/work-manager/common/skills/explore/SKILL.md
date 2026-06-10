@@ -72,6 +72,9 @@ Use markdown links for code references: `[packageName|typeName.functionName](pat
 
 **Scope.** What this doc covers. **Out of scope.** What it doesn't.
 
+**source list**:
+<repo>:<short commit hash>
+
 ## Terms
 The table contains terms used in the workflow and the related area.
 

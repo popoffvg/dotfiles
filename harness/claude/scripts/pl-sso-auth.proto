@@ -1,0 +1,124 @@
+// Minimal, wire-compatible subset of pl/plapi/plapiproto/api.proto covering
+// only the public auth RPCs needed to drive the SSO login flow with grpcurl.
+// Field numbers/types copied verbatim from api.proto (MILAB-6342 branch) —
+// keep in sync if the upstream AuthAPI messages change.
+syntax = "proto3";
+
+package MiLaboratories.PL.API;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+service Platform {
+  rpc AuthMethods(AuthAPI.ListMethods.Request) returns (AuthAPI.ListMethods.Response);
+  rpc Login(AuthAPI.Login.Request) returns (AuthAPI.Login.Response);
+  rpc BeginSSOLogin(AuthAPI.BeginSSOLogin.Request) returns (AuthAPI.BeginSSOLogin.Response);
+  rpc GetSessionInfo(AuthAPI.GetSessionInfo.Request) returns (AuthAPI.GetSessionInfo.Response);
+}
+
+message AuthAPI {
+  message ListMethods {
+    message Request {}
+
+    message Response {
+      repeated MethodInfo methods = 1;
+    }
+
+    message BasicAuthMethod {}
+
+    message TokenAuthMethod {}
+
+    message SSOAuthMethod {
+      enum FlowType {
+        PUBLIC_PKCE = 0;
+      }
+
+      string issuer = 1;
+      string client_id = 2;
+      string scopes = 3;
+      string resource = 4;
+      string prompt = 5;
+      repeated uint32 redirect_ports = 6;
+      string subject_token_source = 7;
+      string user_id_claim = 8;
+      string groups_claim = 9;
+      FlowType flow_type = 10;
+    }
+
+    message MethodInfo {
+      string id = 6;
+      string description = 7;
+
+      oneof method {
+        BasicAuthMethod basic = 4;
+        TokenAuthMethod token = 5;
+        SSOAuthMethod sso = 8;
+      }
+
+      reserved 1, 2, 3;
+    }
+  }
+
+  message BeginSSOLogin {
+    message Request {}
+
+    message PublicPKCE {
+      string nonce = 1;
+      google.protobuf.Timestamp expires_at = 2;
+    }
+
+    message Response {
+      oneof flow {
+        PublicPKCE public_pkce = 1;
+      }
+    }
+  }
+
+  enum Role {
+    ROLE_UNSPECIFIED = 0;
+    ROLE_CONTROLLER = 2;
+    ROLE_WORKFLOW = 3;
+    ROLE_USER = 1;
+    ROLE_ADMIN = 4;
+  }
+
+  message Login {
+    message BasicCredentials {
+      string login = 1;
+      string password = 2;
+    }
+
+    message TokenCredentials {
+      bytes token = 1;
+    }
+
+    message SSOCredentials {
+      bytes token_response = 1;
+    }
+
+    message Request {
+      oneof credentials {
+        BasicCredentials basic = 1;
+        TokenCredentials token = 2;
+        SSOCredentials sso = 5;
+      }
+      optional google.protobuf.Duration expiration = 3;
+      optional Role requested_role = 4;
+    }
+
+    message Response {
+      string token = 1;
+      bytes session_id = 2;
+      Role role = 3;
+    }
+  }
+
+  message GetSessionInfo {
+    message Request {}
+
+    message Response {
+      bytes session_id = 1;
+      Role role = 2;
+    }
+  }
+}

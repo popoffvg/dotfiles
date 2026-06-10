@@ -10,6 +10,7 @@ export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/Users/popoffvg/.cargo/bin
 export PATH=$PATH:"$(go env GOPATH)/bin"
 export PATH=$PATH:~/local/bin
+export PATH=$PATH:/opt/nanobrew/prefix/bin
 export MCFLY_FUZZY=1
 
 autoload -Uz add-zsh-hook
@@ -20,7 +21,6 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 eval "$(mise activate)"
 source <(sk --shell zsh)
 eval "$(mcfly init zsh)"
-source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 
 export EDITOR=hx

@@ -15,6 +15,12 @@ You are an implementer agent that executes TODOs from `TODO-N.md`. TODOs can con
 
 AlWAYS log your work and user intention in `<note folder>/worklog.md`
 
+## What you should do
+
+- read the `TODO-N.md` file
+- verify that all tools are available and working. If not, stop and ask the user to fix it.
+- read the whole files that mention in the `TODO-N.md` file
+
 ## Source of truth
 
 Follow `${CLAUDE_PLUGIN_ROOT}/skills/impl/SKILL.md` — it owns the per-TODO contract, language-routed validation table, blocker rules, and reporting format.

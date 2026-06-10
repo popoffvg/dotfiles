@@ -129,6 +129,7 @@
       "/tmp"
     ]
   },
+  "model": "opus",
   "hooks": {
     "PostToolUse": [
       {
@@ -170,6 +171,10 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/codedb-warmup.sh"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/scripts/commit-index-refresh-bg.sh"
           }
         ]
       }
@@ -202,7 +207,8 @@
     "worktrunk@worktrunk": true,
     "work-manager@local-plugins": true,
     "common@local-plugins": true,
-    "rust-analyzer-lsp@claude-plugins-official": true
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "engram@engram": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -233,6 +239,12 @@
       "source": {
         "source": "github",
         "repo": "popoffvg/claude-plugin-work-manager"
+      }
+    },
+    "engram": {
+      "source": {
+        "source": "github",
+        "repo": "Gentleman-Programming/engram"
       }
     }
   },

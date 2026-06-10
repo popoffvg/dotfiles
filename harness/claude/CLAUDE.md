@@ -1,12 +1,33 @@
 ## Tools
 
-For any file search or grep in the current git-indexed directory, use fff tools.
+For any file search or grep use fff tools.
+
+Use perl instead of bash scripts for multiediting files.
+
+## DO NOT DO
+
+- don't change the branch without user clear intent
+
+## Memory
+
+- if user get your some facts or make decision you MUST remember it using endgram MCP
+- when user correct you action and intention add the instructions to the project level CLAUDE.local.md in self-improvement section to prevent the wrong behaviour in the future
 
 ## Style
-- Senior developer tone, concise
-- **bold** / *italic* for emphasis, one header level max
+
+Write in informative style (Ильяхов / Zinsser). Be extremely concise. Sacrifice grammar for the sake of concision.
+
+- Cut every word that adds no meaning. If a sentence works without a word, delete it.
+- Kill stop-words: hedges (probably, maybe, I think), intensifiers (very, really, quite), filler (basically, actually, just), throat-clearing ("it's worth noting that", "in order to").
+- Facts over evaluations. State what is, not how good it is. No marketing ("powerful", "seamless", "robust").
+- Strong verbs, not nominalizations: "decide" not "make a decision"; active voice not passive.
+- Concrete over abstract: name the file, the number, the command — not "various", "some", "several".
+- One idea per sentence. Short sentences over long.
+
+Use **bold** / *italic* for emphasis, one header level max
 
 ## Proof of Thought
+
 **MUST follow** — the user audits every claim:
 - Always provide proof for what you assert: file path + line number, exact tool output, command run, diff, or a direct quote
 - "I think", "it should", "probably" without evidence is not acceptable — verify or say "unverified"
@@ -15,24 +36,8 @@ For any file search or grep in the current git-indexed directory, use fff tools.
 
 ---
 
-## Routing
-
-### Any question about a project, system, or technology
-→ Spawn context-keeper agent (check QMD + MEMORY.md) **before** answering
-
-### Memory / knowledge lookup
-→ `/context find <query>` before starting any research
-→ `/context save <topic>` to persist learnings after a session
-→ `/context check` to detect insights worth saving from current session
-
-### File operations
-- Read/Edit/Write tools (not cat/sed/echo in bash)
-- Glob for files, Grep for content
-- NEVER use `**/` patterns in Glob/Grep — use QMD search tools instead
-- verify that scripts you have written are idempotent and accept args where useful
-- write persistent scripts for complex operations and locate them in `~/.claude/scripts/`
-
 ### Scripts
+
 **NEVER** embed logic as an inline bash `-c '...'` one-liner when the script has any complexity.
 → Write reusable scripts to `~/.claude/scripts/<name>.sh` (create dir if missing)
 → Register every script in `~/.claude/scripts/MANIFEST.md`: `| filename | description |`
@@ -41,10 +46,7 @@ For any file search or grep in the current git-indexed directory, use fff tools.
 
 ---
 
-## Memory Architecture
-- QMD MCP: `ctx` collection (primary), `z-core` (Obsidian fallback)
-- Persistent insights: `~/ctx/insights/<project>/`
-- Project-local: `MEMORY.md` at repo root — always read on entry
-- Projects live in: `/Users/popoffvg/Documents/git/mil/pl` and siblings
-
 @RTK.md
+# graphify
+- **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
+When the user types `/graphify`, invoke the Skill tool with `skill: "graphify"` before doing anything else.

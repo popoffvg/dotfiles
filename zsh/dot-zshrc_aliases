@@ -8,8 +8,12 @@ alias pltmp='pl-db-cli --db-dir=/tmp/db'
 alias claude='claude --plugin-dir ~/.claude/plugins/local-plugins'
 alias claude-impl='claude --plugin-dir ~/.claude/plugins/local-plugins --agent implementer --model sonnet'
 alias claude-plan='claude --plugin-dir ~/.claude/plugins/local-plugins --agent planner'
+alias claude-exp='claude --plugin-dir ~/.claude/plugins/local-plugins --agent explorer'
 alias ask='pi -p --no-extensions'
 alias zed='mise x -- zed .'
+alias brew-raw='/opt/homebrew/bin/brew' 
+alias brew=nb
+alias bg=mprocs
 sec() {
   local cmd="$1"
 
@@ -151,5 +155,46 @@ roumount() {
   rm -f "$target" && echo "Removed symlink: $target"
 }
 
+# AWS SSO helpers — usage: awsx mil <cmd>
+awsx() {
+  if [[ "$1" != "mil" ]]; then
+    command aws "$@"
+    return
+  fi
+  shift
+  case "${1:-}" in
+    login)
+      # aws mil login [profile]
+      command aws sso login --profile "${2:-${AWS_PROFILE:-research-poweruser}}"
+      ;;
+    use)
+      # aws mil use [profile]  — fuzzy-pick with sk when no arg
+      local profile="${2:-}"
+      if [[ -z "$profile" ]]; then
+        profile=$(grep '^\[profile ' ~/.aws/config \
+          | sed 's/^\[profile //;s/\]//' \
+          | sk --prompt 'aws profile> ' --height 40%) || return 0
+      fi
+      export AWS_PROFILE="$profile"
+      command aws sts get-caller-identity --query 'Arn' --output text
+      ;;
+    who)
+      # aws mil who
+      command aws sts get-caller-identity --query 'Arn' --output text 2>/dev/null \
+        || echo "no active session — run 'awsx mil login'"
+      ;;
+    *)
+      echo "Usage: awsx mil <login|use|who>"
+      ;;
+  esac
+}
+
 # direnv
 eval "$(direnv hook zsh)"
+
+# Source - https://superuser.com/a/1061539
+# Posted by wjv, modified by community. See post 'Timeline' for change history
+# Retrieved 2026-06-06, License - CC BY-SA 4.0
+
+histsearch() { fc -lim "*$@*" 1 }
+

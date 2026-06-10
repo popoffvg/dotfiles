@@ -7,7 +7,7 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | atuin-to-zsh-history.sh | Convert atuin history export to zsh extended_history format for suv import |
 | pl-db-grep-kv.sh | Search RocksDB SST/WAL files for a string pattern in KV metadata |
 | ccc-init-worktree.sh | Initialize and index ccc for all git repos in a worktree directory |
-| ccc-mcp.sh | Launch `ccc mcp` (stdio MCP server) with cwd pinned to a given project root |
+| ccc-mcp.sh | Launch `ccc mcp` (stdio MCP server); project resolved from $COCOINDEX_PROJECT env, else arg, else $PWD (validates it's an initialized ccc project) |
 | lsp-references-smoke.py | Drive tengo-lsp over stdio and issue a textDocument/references request for end-to-end testing |
 | build-zoom-html.py | Wrap a D2/Graphviz SVG into a zoomable HTML viewer (svg-pan-zoom CDN). Args: <svg-in> <html-out> <title> |
 | cursor-agent-hang-capture.sh | Capture lsof+sample of a hung interactive cursor-agent (agent CLI) to find what startup is blocked on |
@@ -16,3 +16,9 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | rewrite-skill-refs.sh | Rewrite skill references in delimited forms only (`old`→`new`, skills/old/→skills/new/, @old→@new) so prose words are never touched. Args: <old:new>... -- <file>... |
 | flow-reveal.mjs | Resolve the real source behind a workflow-pseudocode binding and open it in Zed. `reveal <file> <row> [--print]` opens the source for a notable-if ULID (via sibling *.bindings.json) or a .d.ts `@source` tag; `check <dir>` lints that every ULID/@source resolves to an existing path:line. Node, no deps. |
 | flow-ulid.mjs | Print N ULIDs (Crockford base32, 26 chars) for tagging notable-if branches in workflow pseudocode. Args: [count] (default 1). Node, no deps. |
+| rename-token.sh | Literal, case-explicit token replacement across files. Args: --pair OLD:NEW [--pair ...] FILE... — distinct tokens never collide (literal, not regex); idempotent; reports residual hits. |
+| run-pl-backend-sso.sh | Run Platforma backend (pl) with SSO/OIDC auth against the Logto PoC tenant. Args: [--pl-dir DIR] [--root DIR] [--go-run] [--stub] [-- extra-pl-args]. FS primary storage (no minio); Logto values overridable via PL_SSO_* env. |
+| tengo-lsp-install-local.sh | Install locally-built tengo-lsp release over VS Code bundled binary + ~/.local/bin (+ /usr/local/bin if writable); ad-hoc codesigns on arm64. Arg: [path-to-binary]. |
+| commit-index-refresh.sh | Dump pl+platforma first-parent commits to per-commit JSON and (re)build the cocoindex commit-example index |
+| commit-index-mcp.sh | Launch the commit-example search MCP server (search_commits tool over pl+platforma commit index) |
+| commit-index-refresh-bg.sh | Fire-and-forget background launcher for commit-index refresh (used by SessionStart hook; idempotent, never blocks) |
