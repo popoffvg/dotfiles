@@ -30,7 +30,7 @@ Each plugin targets **Pi**, **Claude Code**, or both. Pi side: `<name>/pi/index.
 | Plugin | Pi | Claude | Purpose |
 |---|---|---|---|
 | **memory-keeper** | commands, cron, renderers | agents, skills, hooks, MCP (SSE) | Long-lived daemon (port 7420): SQLite queue, async insight extraction |
-| **work-manager** | — | agents (4), commands, hooks, statusline | Work phase management: plan → research → implement → verify → done |
+| **work-manager** | — | agents (5), commands, hooks, statusline | Work phase management: research → spec → implement → verify → done |
 | **work** | commands, state, phase transitions | — | Work phase state machine, Pi-side commands |
 | **skill-manager** | skill loading, overrides | — | Skill usage tracking |
 | **smart-commit** | commit generation | — | Intelligent commit messages |
@@ -57,9 +57,9 @@ Runs on `localhost:7420`. Owns SQLite DB, queue drain loop, stats, pino logger.
 
 ### Work Manager Flow
 
-`/work:start` → research → plan → implement (worktree) → verify → `/work:done`
+`/work:start` → research → spec → implement (worktree) → verify → `/work:done`
 
-State tracked in `.pi/work.settings.json`. Notes in `_notes/` (worklog, plan, research).
+State tracked in `.pi/work.settings.json`. Notes in `.notes/` (worklog, plan, research).
 
 ## Local Plugin Development (Claude Code)
 

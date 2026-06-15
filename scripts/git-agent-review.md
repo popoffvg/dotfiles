@@ -64,7 +64,7 @@ Space-R    staged files only
 
 ```
   .pi/agent/skills/implement/SKILL.md
-▸ .pi/agent/skills/plan/SKILL.md       │ delta diff (right pane)
+▸ .pi/agent/skills/spec/SKILL.md       │ delta diff (right pane)
 ```
 
 - `TAB` — mark/unmark a file

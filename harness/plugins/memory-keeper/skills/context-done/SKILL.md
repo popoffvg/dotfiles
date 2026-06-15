@@ -54,7 +54,7 @@ For each unique repo in the task's `Repos` list:
 ### Step 4: Finalize
 
 1. Confirm insight distribution completed for each affected repo
-2. If this run was triggered by a work-completion flow that requires cleanup, explicitly instruct the caller to remove local temporary planning notes (for example project `_notes/`) **after** insight distribution succeeds
+2. If this run was triggered by a work-completion flow that requires cleanup, explicitly instruct the caller to remove local temporary planning notes (for example project `.notes/`) **after** insight distribution succeeds
 
 ## Output
 

@@ -4,12 +4,15 @@ For any file search or grep use fff tools.
 
 Use perl instead of bash scripts for multiediting files.
 
+**Search**: Prefer `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob. fff is faster with frecency ranking.
+
 ## DO NOT DO
 
 - don't change the branch without user clear intent
 
 ## Memory
 
+- every git repository could  contain CLAUDE.local.md, find it and read it first
 - if user get your some facts or make decision you MUST remember it using endgram MCP
 - when user correct you action and intention add the instructions to the project level CLAUDE.local.md in self-improvement section to prevent the wrong behaviour in the future
 

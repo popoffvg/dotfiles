@@ -52,7 +52,7 @@ Identify every consumer **before** editing:
    - **Additive** (new field with new number, new optional message, new RPC) → wire-compatible
    - **Renaming** (field/message name only, number unchanged) → wire-compatible but breaks source consumers
    - **Breaking** (type change, number change, removal, label change) → requires migration plan
-2. For breaking changes: write the migration in `_notes/` before editing (new field + dual-write + flip + remove).
+2. For breaking changes: write the migration in `.notes/` before editing (new field + dual-write + flip + remove).
 3. Pick field numbers explicitly. Use 1–15 for hot fields (1-byte tag), 16+ for cold.
 4. List the exact codegen command(s) to run after the edit.
 

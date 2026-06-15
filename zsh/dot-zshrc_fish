@@ -7,9 +7,12 @@ source /opt/homebrew/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh
 source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
-# fzf key bindings: Ctrl+T files, Alt+C cd (no Ctrl+R — mcfly owns it)
+# fzf key bindings: Ctrl+T files, Alt+C cd (no Ctrl+R — atuin owns it)
 source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
-bindkey -r '^R'
+# fzf just bound ^R to its own history widget — re-assert atuin on Ctrl+R
+bindkey -M emacs '^R' atuin-search
+bindkey -M viins '^R' atuin-search-viins
+bindkey -M vicmd '^R' atuin-search
 
 # Completion style
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'

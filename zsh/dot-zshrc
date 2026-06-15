@@ -11,7 +11,8 @@ export PATH=$PATH:/Users/popoffvg/.cargo/bin
 export PATH=$PATH:"$(go env GOPATH)/bin"
 export PATH=$PATH:~/local/bin
 export PATH=$PATH:/opt/nanobrew/prefix/bin
-export MCFLY_FUZZY=1
+
+export CURSOR_API_KEY="$(security find-generic-password -s CURSOR -w)"
 
 autoload -Uz add-zsh-hook
 autoload -Uz compinit && compinit -i
@@ -20,7 +21,19 @@ zstyle ':completion:*' special-dirs true
 eval "$(/opt/homebrew/bin/brew shellenv)"
 eval "$(mise activate)"
 source <(sk --shell zsh)
-eval "$(mcfly init zsh)"
+
+# --- zinit + OMZ snippets ---
+# Loaded here (before the ~/.zshrc_* satellites) so user aliases win.
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+source "${ZINIT_HOME}/zinit.zsh"
+
+zinit snippet OMZL::git.zsh                 # git aliases and functions
+zinit snippet OMZL::directories.zsh         # .. / ... / take (mkdir + cd)
+zinit snippet OMZL::theme-and-appearance.zsh  # ls colors, terminal title
+zinit snippet OMZP::git                      # 150+ git aliases (gst, gco, gp, ...)
+zinit snippet OMZP::brew                     # Homebrew completions
+zinit snippet OMZP::eza                      # eza aliases + completions
+# dropped: OMZL::async_prompt (starship owns the prompt), OMZP::direnv (hooked in .zshrc_aliases)
 
 
 export EDITOR=hx

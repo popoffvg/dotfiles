@@ -67,7 +67,7 @@ Use **cocoindex** and **fff** MCP servers for code discovery and evidence collec
 When executing this skill, allow only the tools required for analysis output:
 - `mcp` (must use only `cocoindex` and `fff` servers)
 - `read`
-- `write` (only for `_notes/analysis-<target>.md`)
+- `write` (only for `.notes/analysis-<target>.md`)
 
 ## Merge procedure
 
@@ -82,7 +82,7 @@ After the subagent returns:
 
 Always write final result to:
 
-`_notes/analysis-<target>.md`
+`.notes/analysis-<target>.md`
 
 Use short kebab-case `<target>`.
 

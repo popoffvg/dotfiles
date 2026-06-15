@@ -8,7 +8,7 @@ argument-hint: "list of entry points (files, symbols, urls)"
 
 Build a shared understanding of unknown code **before** the task is implemented. The user provides N entry points; you spawn N subagents in parallel, each producing artifacts so a downstream agent (or human) can navigate the territory without re-reading the codebase.
 
-Output lives inside the work-manager **notes directory** for the current task so it persists with the rest of the planning context (`plan.md`, `worklog.md`, `todos/`) and ships with the work, instead of vanishing from `$TMPDIR`.
+Output lives inside the work-manager **notes directory** for the current task so it persists with the rest of the planning context (`spec.md`, `worklog.md`, `todos/`) and ships with the work, instead of vanishing from `$TMPDIR`.
 
 ## Inputs
 
@@ -30,7 +30,7 @@ If user provides a free-form description, use cocoindex to find relevant entry p
 Create the research subdirectory:
 
 ```bash
-NOTES_DIR="${NOTES_DIR:-_notes}"
+NOTES_DIR="${NOTES_DIR:-.notes}"
 RESEARCH_DIR="$NOTES_DIR/research"
 mkdir -p "$RESEARCH_DIR"
 ```
@@ -61,6 +61,19 @@ Plus, after all subagents finish:
 
 The previous `$TMPDIR/claude-explore/` location is deprecated.
 
+## Result criteria — the 6-step chain (MANDATORY)
+
+Every artifact is graded against a 6-step chain. The chain is the **result criteria**, not a reading recipe: the finished `.md` must demonstrably cover all six, in this order. The convergence loop (below) re-spawns any entry point whose artifact leaves a step thin.
+
+| # | Step | Where it lands in the `.md` | Why it matters |
+|---|---|---|---|
+| 1 | **Entry point** | Title + Scope | Names the exact symbol/file the path starts at. |
+| 2 | **Tests** | `## Intent (tests)` | Tests pin *intent* before implementation. Read them first; an artifact with no test trail can't claim it understood what the code is *for*. |
+| 3 | **Follow data** | `## 3. Identity / data carriers` | Trace what value carries identity/state through the path. |
+| 4 | **Skip noise** | Scope → **Out of scope** | State what was deliberately ignored, so a reader knows the gaps are intentional. |
+| 5 | **Failure path** | `## 2. Decision points` + `## 5. Edge cases` | Every branch, throw, partial-failure, rollback. |
+| 6 | **One-sentence trace** | `## Trace` (closing line) | One sentence, entry→exit. Forces clarity and **surfaces gaps** — if you can't write it, the artifact is incomplete. |
+
 ## MD artifact structure (MANDATORY)
 
 The `.md` is read by humans planning refactors. Prose paragraphs are forbidden as the primary form — use the headings below in this order. Each section is short, scannable, and citation-dense.
@@ -70,13 +83,17 @@ Use markdown links for code references: `[packageName|typeName.functionName](pat
 ```md
 # <Title> — <scope one-liner>
 
-**Scope.** What this doc covers. **Out of scope.** What it doesn't.
+**Scope.** What this doc covers. **Out of scope.** What it doesn't — the noise deliberately skipped (step 4).
 
 **source list**:
 <repo>:<short commit hash>
 
 ## Terms
 The table contains terms used in the workflow and the related area.
+
+## Intent (tests)
+Tests-first (step 2). Table: | Test | What intent it pins | Source (file:line) |.
+One row per test that exercises this path. If no tests cover it, write "None — UNTESTED PATH" and flag it as a refactor risk (§6). Read tests before claiming you understood intent.
 
 ## TL;DR
 ASCII flow diagram — the whole pipeline at a glance, using `→`, `│`, `▼`, branches with `├─`/`└─`. No prose.
@@ -109,13 +126,17 @@ Table: | File | Role |. Every file referenced anywhere above.
 
 ## Grill answers
 Numbered answers to every question from `<ep-slug>.questions.md`, in the same order. This is the verification trail.
+
+## Trace
+One-sentence trace (step 6), entry→exit: "<entry> <verb>s <data> through <key steps>, branching on <decision>, returning <result> / failing to <failure>." If you cannot write this in one sentence, the artifact is incomplete — go back.
 ```
 
 **Rules.**
-- Tables over prose. Prose only inside "Scope" and per-row clarifiers.
+- Tables over prose. Prose only inside "Scope", the closing Trace, and per-row clarifiers.
 - Every `path:line` must be verified — open the file before you cite it.
 - Decision points and edge cases are numbered (`DP-1`, `EC-1`, …) so other docs and TODOs can reference them.
 - If a section is genuinely empty (e.g. no decisions), write "None." rather than omitting the heading.
+- All 6 chain steps must be covered (see "Result criteria"). A thin step is a gap the convergence loop will catch and re-spawn.
 
 ## Workflow TS schema
 
@@ -260,7 +281,7 @@ Generated: <ISO date>
 ## Procedure
 
 1. **Resolve task slug.** Use the user's task description, kebab-case, max 40 chars. Save in shell var `TASK_SLUG`.
-2. **Resolve `<notes-dir>`.** Prefer the active work-manager notes dir; fall back to `./_notes/`. Create `$RESEARCH_DIR = $NOTES_DIR/research` if missing.
+2. **Resolve `<notes-dir>`.** Prefer the active work-manager notes dir; fall back to `./.notes/`. Create `$RESEARCH_DIR = $NOTES_DIR/research` if missing.
 3. **Check for prior runs.** If `$RESEARCH_DIR/INDEX.md` exists, ask the user whether to *append*, *overwrite*, or *bail*. Don't silently overwrite previous research.
 4. **Generate question lists** (see "Grill phase" below): run Opus via `claude` CLI per entry point to produce `$RESEARCH_DIR/<ep-slug>.questions.md`. These are questions the explorer must answer — not questions for the user.
 5. **For each entry point, spawn an Explore subagent in parallel** (single message, multiple `Agent` tool calls). Brief each with:
@@ -271,10 +292,32 @@ Generated: <ISO date>
    - "Verify every `path:line` by reading the file — do not guess"
    - "The primary reader is someone planning a refactor. They want to scan steps, decision points, and edge cases in seconds. No paragraphs of prose."
 6. **Wait for all subagents to finish.**
-7. **Aggregate** all per-entry workflows into `$RESEARCH_DIR/flows.json` (schema above). Deduplicate packages by `id`.
-8. **Write** `$RESEARCH_DIR/INDEX.md` (template above).
-9. **Append worklog entry** to `<notes-dir>/worklog.md` if it exists.
-10. **Print the research dir path** and suggest running `/flow-map` against `$RESEARCH_DIR/flows.json` for an interactive HTML view.
+7. **Run the convergence loop** (see below) until research converges. Only then continue.
+8. **Aggregate** all per-entry workflows into `$RESEARCH_DIR/flows.json` (schema above). Deduplicate packages by `id`.
+9. **Write** `$RESEARCH_DIR/INDEX.md` (template above).
+10. **Append worklog entry** to `<notes-dir>/worklog.md` if it exists.
+11. **Print the research dir path** and suggest running `/flow-map` against `$RESEARCH_DIR/flows.json` for an interactive HTML view.
+
+## Convergence loop (autonomous)
+
+A single fan-out misses two things: a **wrong/incomplete entry-point set** (a path nobody was told to explore) and **uncovered edge cases** (the failure path step left thin). The loop closes both. It runs autonomously — no user in the loop — and is the explore analogue of `grill-me`'s relentless questioning: keep probing until nothing new surfaces.
+
+Maintain `seen` = set of (entry-point slug) already explored, and `dry` = count of consecutive rounds that surfaced no new gap. Loop:
+
+1. **Critique every artifact against the 6-step chain.** For each `<ep-slug>.md`, spawn one read-only critic subagent (`subagent_type: "Explore"`) that returns a structured gap list. A step is a **gap** when:
+   - **Tests (2):** marked UNTESTED but tests exist, or test rows cite paths that don't exercise this path.
+   - **Follow data (3):** an identity/data carrier named in the workflow has no row.
+   - **Failure path (5):** a branch/`throw`/early-return in `<ep-slug>.workflow.ts` has no matching DP-N/EC-N, or a partial-failure has no rollback note.
+   - **One-sentence trace (6):** missing, or it references a step/branch absent from the body (= the body is incomplete, not the trace).
+2. **Discover missed entry points.** The critic also reports **new entry points** referenced by the explored path but never explored — downstream calls, dispatched handlers, fan-out targets, error sinks. Filter against `seen` and against the task scope (drop clearly out-of-scope ones; **log what was dropped** with a one-line reason).
+3. **If no fresh gaps and no new entry points:** `dry++`. Else `dry = 0`.
+4. **Stop when `dry >= 2`** (two consecutive clean rounds) or after **4 rounds total** — whichever first. Log the stop reason and any still-open gaps.
+5. **Otherwise re-spawn** a parallel round (single message, multiple `Agent` calls):
+   - For each gapped artifact: an explorer briefed with the specific gaps to fill — it **edits the existing `.md` in place**, not a rewrite.
+   - For each new in-scope entry point: a fresh explorer with full artifact requirements (generate its `.questions.md` first, as in step 4 of the Procedure). Add it to `seen`.
+   Then return to loop step 1.
+
+Log each round: `round N — <k> gaps, <m> new entry points, dry=<d>`. Never silently cap — if you stop at the 4-round limit with open gaps, print them.
 
 ## Grill phase — generate questions FOR the explorer
 
@@ -295,9 +338,14 @@ You are NOT interviewing a human. You are grilling the codebase entry point belo
 Entry point: $EP
 Task context: <one-line task description>
 
-The explorer will use your questions to populate a refactor-oriented artifact organised as: workflow steps, decision points (DP-N), edge cases (EC-N), refactor hotspots. Bias your questions so the explorer is forced to surface those.
+The explorer will use your questions to populate a refactor-oriented artifact graded against a 6-step chain: entry point → tests → follow data → skip noise → failure path → one-sentence trace. Bias your questions so the explorer is forced to satisfy every step.
 
 Produce a markdown file with sections:
+
+## Intent / test questions (tests-first)
+- Which tests exercise this path, and what intent does each pin (the behaviour the code must keep)?
+- Is any part of the path UNTESTED? Which branch has no test?
+- Do the tests reveal intent the implementation hides (edge cases asserted, error messages pinned)?
 
 ## Workflow-step questions
 - What are the ordered atomic steps from entry to exit on the happy path?
@@ -346,8 +394,8 @@ Notes:
 ## Integration with work-manager
 
 - During the **research phase**, `explore-research` saves coarse findings as `<notes-dir>/research-*.md`. `explore` complements that with per-entry-point deep dives under `<notes-dir>/research/`.
-- During **plan phase**, `plan` / `plan-todo-prepare` may reference `research/<ep-slug>.md#DP-N` or `#EC-N` from a TODO's **Pre-reads** so the implementer doesn't re-derive the analysis.
-- `research/` is committed alongside `plan.md` and `todos/` — it travels with the task.
+- During **spec phase**, `spec` (`write` / `todo` subcommands) may reference `research/<ep-slug>.md#DP-N` or `#EC-N` from a TODO's **Pre-reads** so the implementer doesn't re-derive the analysis.
+- `research/` is committed alongside `spec.md` and `todos/` — it travels with the task.
 
 ## What this skill is NOT
 

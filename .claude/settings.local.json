@@ -190,13 +190,15 @@
       "Read(//Users/popoffvg/**)"
     ]
   },
+  "enabledMcpjsonServers": [
+    "fff",
+    "cocoindex",
+    "commit-index"
+  ],
   "sandbox": {
     "enabled": false,
     "autoAllowBashIfSandboxed": false
   },
   "spinnerTipsEnabled": false,
-  "prefersReducedMotion": true,
-  "enabledMcpjsonServers": [
-    "fff"
-  ]
+  "prefersReducedMotion": true
 }

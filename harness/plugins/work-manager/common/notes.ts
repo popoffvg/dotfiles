@@ -1,5 +1,5 @@
 /**
- * _notes/ folder management.
+ * .notes/ folder management.
  * Pure TS with dependency-injected git function.
  */
 
@@ -23,9 +23,9 @@ export function makeTimestamp(): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 }
 
-/** Ensure _notes/ exists with git init and at least one commit. Returns notesDir path. */
+/** Ensure .notes/ exists with git init and at least one commit. Returns notesDir path. */
 export function ensureNotesDir(targetDir: string, git: GitFn): string {
-  const notesDir = path.join(targetDir, "_notes");
+  const notesDir = path.join(targetDir, ".notes");
   if (!fs.existsSync(notesDir)) {
     fs.mkdirSync(notesDir, { recursive: true });
   }
@@ -59,7 +59,7 @@ export function ensureNotesDir(targetDir: string, git: GitFn): string {
   return notesDir;
 }
 
-/** Commit all changes in _notes/ */
+/** Commit all changes in .notes/ */
 export function commitNotes(
   notesDir: string,
   message: string,
@@ -76,7 +76,7 @@ export function commitNotes(
   }
 }
 
-/** Append an entry to _notes/worklog.md */
+/** Append an entry to .notes/worklog.md */
 export function appendWorklog(notesDir: string, entry: string): void {
   const worklogPath = path.join(notesDir, "worklog.md");
   const existing = readFileOr(worklogPath, "# Work Log\n");
@@ -98,7 +98,7 @@ This repository uses the work-manager plugin. Work is driven by agents/skills.
 - Start or resume tracking with /work:start and /work:status
 - Invoke the planner / researcher / implementer agents as needed
 - Implementer executes one TODO at a time
-- Keep planning artifacts in _notes/ (plan.md, worklog.md, todos/TODO-N.md)
+- Keep planning artifacts in .notes/ (spec.md, worklog.md, todos/TODO-N.md)
 `;
 
   const existing = readFileOr(claudePath, "");
@@ -122,7 +122,7 @@ export function worklogTail(notesDir: string, n: number): string {
     .join("\n");
 }
 
-/** Parse TODO items from plan.md content */
+/** Parse TODO items from spec.md content */
 export interface TodoItem {
   text: string;
   done: boolean;

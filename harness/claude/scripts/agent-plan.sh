@@ -7,7 +7,7 @@
 #   agent-plan.sh -p "<prompt>"         # headless one-shot, prints to stdout
 #   agent-plan.sh -- <extra claude args> "<prompt>"
 #
-# The planner is read-only for source code; it writes only to _notes/. It needs ccc
+# The planner is read-only for source code; it writes only to .notes/. It needs ccc
 # to be installed and the project initialized (it will run `ccc init`/`ccc index`
 # itself if needed).
 

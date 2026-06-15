@@ -129,7 +129,6 @@
       "/tmp"
     ]
   },
-  "model": "opus",
   "hooks": {
     "PostToolUse": [
       {
@@ -175,6 +174,10 @@
           {
             "type": "command",
             "command": "$HOME/.claude/scripts/commit-index-refresh-bg.sh"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/scripts/read-claude-local-subrepos.sh"
           }
         ]
       }
@@ -208,7 +211,8 @@
     "work-manager@local-plugins": true,
     "common@local-plugins": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
-    "engram@engram": true
+    "engram@engram": true,
+    "understand-anything@understand-anything": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -246,6 +250,12 @@
         "source": "github",
         "repo": "Gentleman-Programming/engram"
       }
+    },
+    "understand-anything": {
+      "source": {
+        "source": "github",
+        "repo": "Egonex-AI/Understand-Anything"
+      }
     }
   },
   "sandbox": {
@@ -274,11 +284,10 @@
     ]
   },
   "effortLevel": "medium",
-  "advisorModel": "opus",
-  "promptSuggestionEnabled": false,
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
-  "theme": "auto",
+  "skipWorkflowUsageWarning": true,
+  "theme": "dark-ansi",
   "terminalProgressBarEnabled": true,
   "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,

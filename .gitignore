@@ -55,6 +55,7 @@ vscode/
 
 # Removed setups
 nushell/
+.notes/
 _notes/
 .grepai/
 

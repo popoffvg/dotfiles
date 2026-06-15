@@ -11,7 +11,7 @@
       - zsh-syntax-highlighting
       - fzf
       - fzf-tab
-      - mcfly
+      - atuin
       - starship
       - direnv
       # tools
@@ -85,7 +85,7 @@
       - .zshrc_fish
       - .zshrc_git
       - .zshrc_go
-      - .zshrc_mcfly
+      - .zshrc_atuin
       - .zshrc_mise
       - .zshrc_sq
       - .zshrc_starship
@@ -99,6 +99,7 @@
       - zellij
       - helix
       - starship.toml
+      - atuin
 
   tasks:
     # --- Homebrew ---

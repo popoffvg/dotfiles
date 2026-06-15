@@ -22,7 +22,6 @@ cspell\.json
 ^zsh$
 
 # .config paths managed by dotfiles repo
-\.config/atuin
 \.config/direnv
 \.config/fish
 \.config/ghostty
@@ -39,6 +38,7 @@ git_.*\.sh
 install\.sh
 
 # Runtime state (not config)
+\.notes
 _notes
 \.DS_Store
 Library

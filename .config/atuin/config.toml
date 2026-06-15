@@ -23,10 +23,10 @@
 # timezone = "local"
 
 ## enable or disable automatic sync
-# auto_sync = true
+auto_sync = false
 
 ## enable or disable automatic update checks
-# update_check = true
+update_check = false
 
 ## address of the sync server
 # sync_address = "https://api.atuin.sh"
@@ -60,18 +60,21 @@
 
 ## which style to use
 ## possible values: auto, full, compact
-# style = "auto"
+## compact renders less chrome -> faster open
+style = "compact"
 
 ## the maximum number of lines the interface should take up
 ## set it to 0 to always go full screen
-# inline_height = 0
+## inline (no full-screen clear) -> faster paint on open
+inline_height = 10
 
 ## Invert the UI - put the search bar at the top , Default to `false`
-# invert = false
+invert = false
 
 ## enable or disable showing a preview of the selected command
 ## useful when the command is longer than the terminal width and is cut off
-# show_preview = true
+## off -> skip preview computation on open
+show_preview = true
 
 ## what to do when the escape key is pressed when searching
 ## possible values: return-original, return-query
@@ -120,10 +123,10 @@ ctrl_n_shortcuts = true
 ## Configure whether or not to show the help row, which includes the current Atuin
 ## version (and whether an update is available), a keymap hint, and the total
 ## amount of commands in your history.
-# show_help = true
+show_help = false
 
 ## Configure whether or not to show tabs for search and inspect
-# show_tabs = true
+show_tabs = false
 
 ## Defaults to true. This matches history against a set of default regex, and will not save it if we get a match. Defaults include
 ## 1. AWS key id
@@ -131,7 +134,7 @@ ctrl_n_shortcuts = true
 ## 3. Slack oauth tokens (bot, user)
 ## 4. Slack webhooks
 ## 5. Stripe live/test keys
-# secrets_filter = true
+secrets_filter = true
 
 ## Defaults to true. If enabled, upon hitting enter Atuin will immediately execute the command. Press tab to return to the shell and edit.
 # This applies for new installs. Old installs will keep the old behaviour unless configured otherwise.
@@ -143,22 +146,23 @@ enter_accept = true
 ## keybinding is defined.  If this is set to "emacs", "vim-insert", or
 ## "vim-normal", the startup keymap mode in the Atuin search is forced to be
 ## the specified one.
-keymap_mode = "vim-normal"
+keymap_mode = "vim-insert"
 
 ## Cursor style in each keymap mode.  If specified, the cursor style is changed
 ## in entering the cursor shape.  Available values are "default" and
 ## "{blink,steady}-{block,underline,bar}".
 # keymap_cursor = { emacs = "blink-block", vim_insert = "blink-block", vim_normal = "steady-block" }
 
-# network_connect_timeout = 5
-# network_timeout = 5
+network_connect_timeout = 1
+network_timeout = 1
 
 ## Timeout (in seconds) for acquiring a local database connection (sqlite)
 # local_timeout = 5
 
 ## Set this to true and Atuin will minimize motion in the UI - timers will not update live, etc.
 ## Alternatively, set env NO_MOTION=true
-# prefers_reduced_motion = false
+## no live timer updates -> less redraw work
+prefers_reduced_motion = true
 
 [stats]
 ## Set commands where we should consider the subcommand for statistics. Eg, kubectl get vs just kubectl

@@ -15,7 +15,7 @@
     "command": "bash",
     "args": [
       "-lc",
-      "set -euo pipefail\nif ! ref=$(osascript -e 'text returned of (display dialog \"Enter target (file:line[:col] or file:start-end)\" default answer \"_notes/plan.md:85-91\")' 2>/dev/null); then\n  exit 0\nfi\n\n[[ -z \"$ref\" ]] && exit 0\n\nfile=${ref%%:*}\nrest=\"\"\nif [[ \"$ref\" == *:* ]]; then rest=${ref#*:}; fi\n\nline=1\ncol=1\nif [[ -n \"$rest\" ]]; then\n  if [[ \"$rest\" == *-* ]]; then\n    line=${rest%-*}\n  elif [[ \"$rest\" == *:* ]]; then\n    line=${rest%%:*}\n    col=${rest##*:}\n  else\n    line=$rest\n  fi\nfi\n\nzed \"${file}:${line}:${col}\"",
+      "set -euo pipefail\nif ! ref=$(osascript -e 'text returned of (display dialog \"Enter target (file:line[:col] or file:start-end)\" default answer \".notes/spec.md:85-91\")' 2>/dev/null); then\n  exit 0\nfi\n\n[[ -z \"$ref\" ]] && exit 0\n\nfile=${ref%%:*}\nrest=\"\"\nif [[ \"$ref\" == *:* ]]; then rest=${ref#*:}; fi\n\nline=1\ncol=1\nif [[ -n \"$rest\" ]]; then\n  if [[ \"$rest\" == *-* ]]; then\n    line=${rest%-*}\n  elif [[ \"$rest\" == *:* ]]; then\n    line=${rest%%:*}\n    col=${rest##*:}\n  else\n    line=$rest\n  fi\nfi\n\nzed \"${file}:${line}:${col}\"",
     ],
     "use_new_terminal": false,
     "allow_concurrent_runs": true,

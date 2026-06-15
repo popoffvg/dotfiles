@@ -7,11 +7,12 @@ alias lt='eza --tree --level=2'
 alias pltmp='pl-db-cli --db-dir=/tmp/db'
 alias claude='claude --plugin-dir ~/.claude/plugins/local-plugins'
 alias claude-impl='claude --plugin-dir ~/.claude/plugins/local-plugins --agent implementer --model sonnet'
-alias claude-plan='claude --plugin-dir ~/.claude/plugins/local-plugins --agent planner'
+alias claude-impl-subtree='claude --plugin-dir ~/.claude/plugins/local-plugins --agent implementer-subtree --model sonnet'
+alias claude-spec='claude --plugin-dir ~/.claude/plugins/local-plugins --agent planner'
 alias claude-exp='claude --plugin-dir ~/.claude/plugins/local-plugins --agent explorer'
 alias ask='pi -p --no-extensions'
 alias zed='mise x -- zed .'
-alias brew-raw='/opt/homebrew/bin/brew' 
+alias brew-raw='/opt/homebrew/bin/brew'
 alias brew=nb
 alias bg=mprocs
 sec() {
@@ -26,6 +27,9 @@ Usage:
   sec -h         # show this help
   sec -w         # pick service and print secret only (for scripting)
 
+Keys (in picker):
+  ctrl-d         # delete the highlighted keychain item, then reload list
+
 Examples:
   # Export into current shell
   export OPENROUTER_API_KEY="$(security find-generic-password -s OPENROUTER_API_KEY -w)"
@@ -36,14 +40,12 @@ EOF
     return 0
   fi
 
+  local list_cmd
+  list_cmd='printf "[NEW]\n"; security dump-keychain 2>/dev/null | awk -F'\''"'\'' '\''/"svce"<blob>="/{print $4}'\'' | awk '\''NF'\'' | sort -u'
+
   local selection
-  selection=$({
-    printf '[NEW]\n'
-    security dump-keychain 2>/dev/null \
-      | awk -F'"' '/"svce"<blob>="/{print $4}' \
-      | awk 'NF' \
-      | sort -u
-  } | sk --prompt 'keychain service> ' --height 40%)
+  selection=$(eval "$list_cmd" | sk --prompt 'keychain service> ' --height 40% \
+    --bind "ctrl-d:execute-silent([ {} != '[NEW]' ] && security delete-generic-password -s {} >/dev/null 2>&1)+reload($list_cmd)")
 
   [[ -z "$selection" ]] && return 0
 
@@ -198,3 +200,11 @@ eval "$(direnv hook zsh)"
 
 histsearch() { fc -lim "*$@*" 1 }
 
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		builtin cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}

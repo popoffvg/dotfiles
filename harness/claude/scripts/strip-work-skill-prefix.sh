@@ -6,7 +6,7 @@
 set -euo pipefail
 
 # Stripped skill names (the renamed targets). Replacement = token without "work-".
-TOKENS=(auto-verify commit done implement install plan-flow plan-revise plan-verifier plan research test todo-prepare verify prototype)
+TOKENS=(auto-verify commit done implement install spec research test todo-prepare verify prototype)
 
 [ "$#" -ge 1 ] || { echo "usage: $0 <file> [<file> ...]" >&2; exit 1; }
 

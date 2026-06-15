@@ -22,7 +22,7 @@ function resolveSettingsFile(cwd: string): string | null {
 }
 
 function resolveNotesDir(settingsFile: string): string {
-  return path.join(state.taskDirFromSettings(settingsFile), "_notes");
+  return path.join(state.taskDirFromSettings(settingsFile), ".notes");
 }
 
 /** Initialize work-tracking state + notes for a fresh task. */
@@ -129,12 +129,12 @@ function registerCommands(pi: ExtensionAPI) {
         }
 
         const notesDirExisting = resolveNotesDir(existing);
-        const planPath = path.join(notesDirExisting, "plan.md");
+        const planPath = path.join(notesDirExisting, "spec.md");
         const hasPlan = notes.readFileOr(planPath, "").trim().length > 0;
         if (current && current.status !== "active" && hasPlan) {
           const choice = await ctx.ui.select(
-            "Found previous work with an existing plan. What do you want?",
-            ["↩️ Resume previous work", "🆕 Start new work (archive old plan)"],
+            "Found previous work with an existing spec. What do you want?",
+            ["↩️ Resume previous work", "🆕 Start new work (archive old spec)"],
           );
 
           if (!choice || choice.startsWith("↩️")) {
@@ -144,7 +144,7 @@ function registerCommands(pi: ExtensionAPI) {
           }
 
           const ts = notes.makeTimestamp().replace(/[: ]/g, "-");
-          const archived = path.join(notesDirExisting, `plan.abandoned-${ts}.md`);
+          const archived = path.join(notesDirExisting, `spec.abandoned-${ts}.md`);
           try { fs.renameSync(planPath, archived); } catch { /* best effort */ }
         }
       }
@@ -219,7 +219,7 @@ export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "work_start",
     label: "Work Start",
-    description: "Start new work and initialize _notes and state",
+    description: "Start new work and initialize .notes and state",
     parameters: Type.Object({
       branch: Type.String(),
       workId: Type.Optional(Type.String()),
@@ -241,7 +241,7 @@ export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "work_context",
     label: "Work Context",
-    description: "Get current work plan/worklog snippets",
+    description: "Get current work spec/worklog snippets",
     parameters: Type.Object({}),
     async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
       const sf = resolveSettingsFile(ctx.cwd || CWD);
@@ -258,7 +258,7 @@ export default function (pi: ExtensionAPI) {
       parts.push(`**Branch:** ${s.branch}`);
       parts.push("");
 
-      const plan = notes.readFileOr(path.join(notesDir, "plan.md"), "");
+      const plan = notes.readFileOr(path.join(notesDir, "spec.md"), "");
       if (plan) {
         parts.push("### Plan");
         parts.push(plan);

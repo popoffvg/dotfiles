@@ -87,11 +87,11 @@ Wait ~10s, then send role assignment:
 
 ```bash
 cmux send --surface "$PLANNER_SURFACE" "You are the PLANNER agent running in a cmux pane. Your role:
-1. Read _notes/plan.md and own the plan
+1. Read .notes/spec.md and own the plan
 2. Use work_transition according to current command contract (do not force plan-verify if flow says otherwise)
 3. When plan is ready, call work_handoff(from: 'planner', action: 'plan-ready', message: '<summary>')
 4. When implementer asks a question, answer via work_handoff(from: 'planner', action: 'answer', target: 'implementer', message: '<answer>')
-5. NEVER write code outside _notes/
+5. NEVER write code outside .notes/
 
 Start by calling work_context to see current state."
 cmux send-key --surface "$PLANNER_SURFACE" enter
@@ -115,7 +115,7 @@ cmux send-key --surface "$IMPL_SURFACE" enter
 Wait ~10s, then send the TODO:
 
 ```bash
-TODO_TEXT="<extracted from plan.md>"
+TODO_TEXT="<extracted from spec.md>"
 cmux send --surface "$IMPL_SURFACE" "You are the IMPLEMENTER agent for this TODO:
 
 $TODO_TEXT
@@ -125,7 +125,7 @@ Rules:
 - When done: call work_handoff(from: 'implementer', action: 'todo-done', message: '<summary>')
 - If you need clarification: call work_handoff(from: 'implementer', action: 'question', target: 'planner', message: '<question>') and WAIT for answer
 - If blocked: call work_handoff(from: 'implementer', action: 'blocked', message: '<problem>')
-- Do NOT modify _notes/plan.md"
+- Do NOT modify .notes/spec.md"
 cmux send-key --surface "$IMPL_SURFACE" enter
 ```
 
@@ -154,8 +154,8 @@ cmux send-key --surface "$IMPL_SURFACE" enter
 sleep 2
 cmux close-surface --surface "$IMPL_SURFACE"
 
-# 2. Mark TODO done in plan.md (from control pane)
-# Edit _notes/plan.md: [ ] → [x]
+# 2. Mark TODO done in spec.md (from control pane)
+# Edit .notes/spec.md: [ ] → [x]
 
 # 3. Launch fresh implementer for next TODO (repeat Phase 3)
 ```

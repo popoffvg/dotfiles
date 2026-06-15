@@ -16,9 +16,9 @@ invoke the agent you need; each agent follows its skill.
 
 | Command | What it does |
 |---------|-------------|
-| `/work:start` | Begin/resume work tracking — creates `_notes/`, initializes state |
+| `/work:start` | Begin/resume work tracking — creates `.notes/`, initializes state |
 | `/work:status` | Show current work status and recent progress |
-| `/work:plan-revise <TODO-N> [<sha>]` | Rewrite plan.md + todos/TODO-N.md to match what the last commit for TODO-N actually shipped |
+| `/work:spec-revise <TODO-N> [<sha>]` | Rewrite spec.md + todos/TODO-N.md to match what the last commit for TODO-N actually shipped |
 | `/work:abandon` | Cancel work-manager flow for this workspace |
 | `/work:finish` | Alias for `/work:abandon` |
 | `/work:help` | This guide |
@@ -27,18 +27,20 @@ invoke the agent you need; each agent follows its skill.
 
 | Agent | Role | Skill |
 |-------|------|-------|
-| `planner` | Writes `_notes/plan.md` + `todos/TODO-N.md` | `plan`, `plan-todo-prepare` |
-| `researcher` | Explores codebase, writes `_notes/research-*.md` | `explore-research` |
+| `planner` | Writes `.notes/spec.md` + `todos/TODO-N.md` | `spec` |
+| `researcher` | Explores codebase, writes `.notes/research-*.md` | `explore-research` |
 | `implementer` | Executes one TODO, then stops | `impl` |
-| `tester` | Designs/executes tests, writes report | `test-set-*`, `test-bdd`, `test-bdd-tdd`, `test-harness-plugin` |
+| `implementer-subtree` | *(experimental)* One TODO in its own worktree+branch; commits, fixups, squash-merges with spec message | `impl-subtree` |
+| `verifier` | Adversarially checks one implemented TODO vs its spec, writes `.notes/verify-TODO-N.md` | `impl-verify` |
+| `tester` | Designs/executes tests, writes report | `test-suite` |
 | `codebase-analyzer` | Documents how code works | — |
 
 ### Skills (grouped by prefix)
 
 - **explore-**: `explore`, `explore-flow-map`, `explore-handoff`, `explore-research`
-- **plan-**: `plan`, `plan-flow`, `plan-verifier`, `plan-revise`, `plan-todo-prepare`, `plan-prototype`, `plan-code-map`
-- **impl-**: `impl`, `impl-commit`
-- **test-**: `test-bdd`, `test-bdd-tdd`, `test-set-create`, `test-set-verify`, `test-set-write`, `test-harness-plugin`, `test-verify`
+- **spec**: one router — `/spec <write|new|todo|verify|revise|prototype|code-map>` (write the spec, interrogate it until Open Questions is empty, author TODO bodies, audit readiness, sync to a shipped commit, prototype a decision, draw a code map)
+- **impl-**: `impl`, `impl-commit`, `impl-verify` (adversarial post-impl verification), `impl-subtree` (*experimental* — worktree+branch per TODO, commit-as-you-go, fixup corrections; records planned/achieved Outcome), `merge-subtree` (*experimental, human-guarded* — squash-merge a `<task-slug>/TODO-N` branch into its parent, every git action confirmed)
+- **test**: one router — `/test-suite <create|write|verify|case-design|bdd|tdd|harness|review>` (design a pairwise-tiered strategy, enumerate a scenario/coverage matrix, audit an existing set, derive cases by black-box technique, shape BDD scenarios, drive spec-before-code TDD, test a plugin harness, run the verify-phase review)
 - **review-**: `review-pr-comments`, `review-fix-comments`
 
 Invoke directly as needed.
@@ -48,9 +50,9 @@ Invoke directly as needed.
 ```
 <repo>/
   .pi/work.settings.json   # State: workId, name, status, branch
-  _notes/                   # Git-tracked (separate git init)
+  .notes/                   # Git-tracked (separate git init)
     .git/                   # Independent git history
-    plan.md                 # Plan with TODOs
+    spec.md                 # Plan with TODOs
     worklog.md              # Append-only progress log
     research-*.md           # Research findings
     todos/TODO-N.md         # Per-TODO instructions

@@ -144,7 +144,7 @@ function findMarkdownFiles(dir: string, basePath: string = ""): string[] {
 
 /**
  * Discover git repos in task directory subdirectories.
- * Skips dirs starting with _ or . (e.g. _notes, .pi, subtasks).
+ * Skips dirs starting with _ or . (e.g. .notes, .pi, subtasks).
  */
 function discoverRepos(taskDir: string): RepoRef[] {
   if (!fs.existsSync(taskDir)) return [];
