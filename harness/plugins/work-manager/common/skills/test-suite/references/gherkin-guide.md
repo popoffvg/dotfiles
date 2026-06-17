@@ -8,6 +8,7 @@ Gherkin is the language used to define test cases in BDD. It is designed to be n
     *   *Bad:* "Given I click the user field, and I type 'Alice', and I click the password field..."
     *   *Good:* "Given I am logged in as 'Alice'"
 2.  **Business Language:** Use the domain language (Ubiquitous Language) of the business, not technical terms like "JSON", "Database", or "CSS selector".
+    *   **Exception — ops/operator scenarios:** for backend startups, CLI flag changes, and infra configuration, the operator's business language IS the shell command. Embed literal CLI invocations in `"""sh` docstrings on `When` steps; keep `Then` steps declarative.
 3.  **Single Responsibility:** Each scenario should test exactly one rule or behavior.
 
 ## Keywords Reference
@@ -90,9 +91,11 @@ tests/
 
 ## Best Practices Checklist
 
-- [ ] **Golden Rule:** Can a non-technical stakeholder read and understand this?
+- [ ] **Output:** Written to `<notes-dir>/features/<name>.feature` — never inside a Markdown file.
+- [ ] **Golden Rule:** Can a non-technical stakeholder read and understand this? (For ops scenarios: can the operator execute it without guessing?)
 - [ ] **Independence:** Scenarios must not depend on each other (no shared state between tests).
 - [ ] **Brevity:** Keep scenarios short (3-5 steps is ideal).
 - [ ] **Data Tables:** Use data tables for setup to avoid repetitive "Given" steps.
 - [ ] **Backgrounds:** Use Backgrounds to DRY up repeated setup, but don't hide critical context.
 - [ ] **Separation:** Store scenarios in .feature files, not as code comments.
+- [ ] **Shell docstrings:** Annotate with `"""sh`, not bare `"""`.

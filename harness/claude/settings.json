@@ -129,6 +129,7 @@
       "/tmp"
     ]
   },
+  "model": "sonnet",
   "hooks": {
     "PostToolUse": [
       {
@@ -212,7 +213,10 @@
     "common@local-plugins": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "engram@engram": true,
-    "understand-anything@understand-anything": true
+    "understand-anything@understand-anything": true,
+    "mictx-ecosystem@mictx-helper-marketplace": true,
+    "mictx@mictx-helper-marketplace": true,
+    "plannotator@plannotator": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -255,6 +259,18 @@
       "source": {
         "source": "github",
         "repo": "Egonex-AI/Understand-Anything"
+      }
+    },
+    "mictx-helper-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "milaboratory/mictx-helper"
+      }
+    },
+    "plannotator": {
+      "source": {
+        "source": "github",
+        "repo": "backnotprop/plannotator"
       }
     }
   },

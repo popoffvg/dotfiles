@@ -200,6 +200,49 @@ eval "$(direnv hook zsh)"
 
 histsearch() { fc -lim "*$@*" 1 }
 
+handoff-todo() {
+  local root slug
+  root=$(git rev-parse --show-toplevel) || return 1
+
+  local todos_dir="$root/.notes/todos"
+  local todo_id="$1"
+
+  if [[ -n "$todo_id" ]]; then
+    : # use explicit arg
+  elif [[ -d "$todos_dir" ]]; then
+    local picker
+    picker=$(command -v sk 2>/dev/null || command -v fzf 2>/dev/null || true)
+    if [[ -z "$picker" ]]; then
+      echo "sk or fzf required" >&2
+      return 1
+    fi
+    todo_id=$(ls "$todos_dir" | "$picker" --prompt 'TODO> ' --height 40%)
+    [[ -z "$todo_id" ]] && return 0
+    todo_id="${todo_id%.md}"
+  else
+    echo "Usage: handoff-todo <TODO-N>" >&2
+    return 1
+  fi
+
+  slug=$(git rev-parse --abbrev-ref HEAD | tr '/' '-')
+
+  local branch="$slug/$todo_id"
+  local wtslug=$(echo "$todo_id" | tr '/' '-')
+  local wt="$root/../$(basename "$root")-$slug-$wtslug"
+
+  if git worktree list --porcelain | grep -qx "worktree $wt"; then
+    echo "[handoff-todo] Switching to existing worktree: $wt"
+  else
+    git worktree add "$wt" -b "$branch" HEAD || return 1
+    echo "[handoff-todo] Created worktree: $wt ($branch)"
+  fi
+
+
+
+  cd "$wt" || return 1
+  command zed "$wt"
+}
+
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
 	yazi "$@" --cwd-file="$tmp"

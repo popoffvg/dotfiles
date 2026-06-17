@@ -35,6 +35,19 @@
     "use_new_terminal": true,
   },
   {
+    "label": "lazygit",
+    "command": "cd \"$ZED_WORKTREE_ROOT\" && lazygit",
+    "shell": {
+      "program": "sh",
+    },
+    "hide": "on_success",
+    "reveal_target": "center",
+    "show_summary": false,
+    "show_command": false,
+    "allow_concurrent_runs": true,
+    "use_new_terminal": true,
+  },
+  {
     "label": "cwd",
     "command": "echo $ZED_WORKTREE_ROOT",
     "args": [],
@@ -135,7 +148,7 @@
     "command": "bash",
     "args": [
       "-lc",
-      "node \"$HOME/.claude/scripts/flow-reveal.mjs\" reveal \"$ZED_FILE\" \"$ZED_ROW\"",
+      "node \"/Users/popoffvg/Documents/git/dotfiles/harness/claude/scripts/flow-reveal.mjs\" reveal \"$ZED_FILE\" \"$ZED_ROW\"",
     ],
     "use_new_terminal": false,
     "allow_concurrent_runs": true,

@@ -1,5 +1,6 @@
 ---
 name: explore
+model: haiku
 description: Read-only search agent for broad fan-out searches. Returns conclusions, not file dumps. Specify breadth — "medium" or "very thorough".
 ---
 

@@ -161,6 +161,56 @@ For each new test scenario:
 
 ---
 
+## Output format
+
+Always produce a `.feature` file — never embed Gherkin inside a Markdown document.
+
+Place the file in `<notes-dir>/features/<feature-name>.feature`. If the notes dir has no
+`features/` subdirectory, create it.
+
+---
+
+## Ops / manual scenarios
+
+The "business language, not technical terms" rule applies to **user-facing app tests**.
+For **operator runbooks** — backend startups, CLI flag changes, infra config — the
+operator's business language IS the shell command. In these scenarios:
+
+- Embed the literal CLI invocation in a `"""sh` docstring on the `When` step.
+- `Then` steps stay declarative (what the operator observes), not imperative.
+- Use `Background` for shared setup (build step, credential fetch, seed data creation).
+
+```gherkin
+When the backend starts without the library flag
+  """sh
+  ./platforma \
+    --main-root ~/data \
+    --master-secret-file ~/secret.txt
+  """
+Then the library is absent from the library list
+```
+
+For multi-line shell commands in docstrings, always annotate with `"""sh` (not bare `"""`).
+This signals intent and enables syntax highlighting in editors that support it.
+
+---
+
+## Hardest happy path
+
+For every feature, identify the **hardest happy path**: the single scenario that chains
+the most behaviors, crosses the most system boundaries, and uses real infrastructure values.
+This becomes the mandatory pre-merge manual test.
+
+Criteria for "hardest":
+- Requires multiple sequential restarts or state transitions.
+- Uses real credentials / endpoints, not mocks.
+- Exercises the main failure-recovery path (e.g. freeze → re-activate, rotation → re-open).
+- Every intermediate state is independently observable (can be checked before the next step).
+
+Put it first in the `.feature` file and mark it in the strategy doc.
+
+---
+
 ## Anti-patterns
 
 | Don't | Do instead |
@@ -172,3 +222,5 @@ For each new test scenario:
 | One giant scenario covering many behaviors | One scenario per behavior |
 | Testing implementation details | Test observable outcomes only |
 | Sharing state between scenarios | Each scenario sets up its own preconditions |
+| Gherkin in a Markdown file | Write a `.feature` file in `<notes-dir>/features/` |
+| Bare `"""` for shell docstrings | Annotate with `"""sh` |

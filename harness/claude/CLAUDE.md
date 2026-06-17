@@ -6,9 +6,17 @@ Use perl instead of bash scripts for multiediting files.
 
 **Search**: Prefer `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob. fff is faster with frecency ranking.
 
-## DO NOT DO
+## Coding tasks
 
-- don't change the branch without user clear intent
+Always score task complexity from 1 to 5, where 1 is simple and 5 is complex. Show user the score before starting.
+
+1: is fix a few functions
+2: is write tests or 1-2 functions
+3: is implement the feature
+4: is implement the medium feature with tests
+5: is implement the large feature with tests
+
+Delegate task from 3 to 5 to the implementer agent.
 
 ## Memory
 
@@ -50,6 +58,3 @@ Use **bold** / *italic* for emphasis, one header level max
 ---
 
 @RTK.md
-# graphify
-- **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
-When the user types `/graphify`, invoke the Skill tool with `skill: "graphify"` before doing anything else.
