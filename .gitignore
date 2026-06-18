@@ -68,3 +68,5 @@ work.settings.json
 # Python bytecode
 __pycache__/
 *.pyc
+
+.firecrawl
