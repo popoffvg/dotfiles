@@ -4,6 +4,7 @@
   hosts: all
   vars:
     dotfiles_dir: "{{ ansible_env.HOME }}/Documents/git/dotfiles"
+    nb: /opt/nanobrew/prefix/bin/nb
     brew_packages:
       # shell
       - zsh-autosuggestions
@@ -55,6 +56,7 @@
       - go
       - nodejs
       - neovim
+      - helix
       - kubectl
       - helm
       - k3d
@@ -78,6 +80,9 @@
       - telegram
       - stats
       - alt-tab
+      - raycast
+      - zed
+      - google-chrome
     home_symlinks:
       - .zshrc
       - .zshrc_aliases
@@ -102,26 +107,36 @@
       - atuin
 
   tasks:
-    # --- Homebrew ---
-    - name: Install Homebrew
+    # --- nanobrew (nb) ---
+    - name: Install nanobrew
       ansible.builtin.shell:
-        cmd: '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
-        creates: /opt/homebrew/bin/brew
+        cmd: curl -fsSL https://nanobrew.trilok.ai/install | bash
+        creates: "{{ nb }}"
 
-    - name: Install brew packages
-      ansible.builtin.homebrew:
-        name: "{{ brew_packages }}"
-        state: present
+    # Loop one-per-formula: `nb install <list>` aborts the whole batch if any
+    # single name fails dependency resolution.
+    - name: Install packages
+      ansible.builtin.command:
+        cmd: "{{ nb }} install {{ item }}"
+      loop: "{{ brew_packages }}"
+      register: nb_pkg
+      changed_when: "'Already installed' not in nb_pkg.stdout"
 
-    - name: Install brew casks
-      ansible.builtin.homebrew_cask:
-        name: "{{ brew_casks }}"
-        state: present
+    # Casks install in one command: nanobrew continues past individual
+    # failures, and warm casks exit 1 with "refusing to overwrite".
+    - name: Install casks
+      ansible.builtin.command:
+        cmd: "{{ nb }} install --cask {{ brew_casks | join(' ') }}"
+      register: nb_cask
+      changed_when: "'Installing' in nb_cask.stdout"
+      failed_when: false
 
     - name: Install nerd font
-      ansible.builtin.homebrew_cask:
-        name: font-fira-mono-nerd-font
-        state: present
+      ansible.builtin.command:
+        cmd: "{{ nb }} install --cask font-fira-mono-nerd-font"
+      register: nb_font
+      changed_when: "'Installing' in nb_font.stdout"
+      failed_when: false
 
     - name: Install git-split-diffs globally via npm
       ansible.builtin.shell:
@@ -134,6 +149,12 @@
       args:
         creates: "{{ ansible_env.HOME }}/.local/bin/tv"
 
+    - name: Install fff-mcp (fast file search MCP server)
+      ansible.builtin.shell:
+        cmd: curl -fsSL https://raw.githubusercontent.com/dmtrKovalenko/fff/main/install-mcp.sh | bash
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/fff-mcp"
+
     # --- Shell ---
     - name: Set zsh as default shell
       ansible.builtin.shell:
@@ -144,6 +165,15 @@
       ansible.builtin.file:
         path: /opt/homebrew/share
         mode: "0755"
+
+    # --- macOS key repeat ---
+    - name: Enable fast key repeat (caret movement when holding)
+      ansible.builtin.shell:
+        cmd: |
+          defaults write -g ApplePressAndHold -bool false
+          defaults write -g KeyRepeat -int 1
+          defaults write -g InitialKeyRepeat -int 10
+      changed_when: false
 
     # --- Symlinks: home ---
     - name: Symlink dotfiles to home
@@ -213,6 +243,29 @@
     - name: Set global git hooks path
       ansible.builtin.shell:
         cmd: git config --global core.hooksPath ~/.config/git/hooks
+      changed_when: false
+
+    # --- Raycast extensions ---
+    - name: Find Raycast extensions
+      ansible.builtin.find:
+        paths: "{{ dotfiles_dir }}/raycast"
+        file_type: directory
+        recurse: false
+      register: raycast_extensions
+
+    - name: Install Raycast extension dependencies
+      ansible.builtin.command:
+        cmd: npm install
+        chdir: "{{ item.path }}"
+      loop: "{{ raycast_extensions.files }}"
+      register: raycast_npm
+      changed_when: "'added' in raycast_npm.stdout"
+
+    - name: Build Raycast extensions
+      ansible.builtin.command:
+        cmd: npm run build
+        chdir: "{{ item.path }}"
+      loop: "{{ raycast_extensions.files }}"
       changed_when: false
 
     # --- Cleanup zcompdump ---

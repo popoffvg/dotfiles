@@ -61,6 +61,15 @@ _notes/
 
 work.settings.json
 
+# Extracted binary releases
+tv-*/
+
+# Zed prompt DB (binary, machine-local)
+.config/zed/prompts/*.mdb/
+
+# Helix runtime (large, fetched by helix)
+.config/helix/runtime
+
 # Editor swap files
 *.swp
 *.swo

@@ -3,11 +3,17 @@
 # Installed via: git config --global core.hooksPath ~/.config/git/hooks
 set -euo pipefail
 
-# Run gitleaks with timeout (10s max)
+# Run gitleaks with timeout (10s max, portable — no GNU timeout on macOS)
 if command -v gitleaks >/dev/null 2>&1; then
-  if ! timeout 10 gitleaks protect --staged -v --no-banner; then
+  gitleaks protect --staged -v --no-banner &
+  gl_pid=$!
+  ( sleep 10 && kill "$gl_pid" 2>/dev/null ) &
+  watcher=$!
+  if ! wait "$gl_pid" 2>/dev/null; then
+    kill "$watcher" 2>/dev/null; wait "$watcher" 2>/dev/null || true
     exit 1
   fi
+  kill "$watcher" 2>/dev/null; wait "$watcher" 2>/dev/null || true
 fi
 
 # Delegate to repo-local lefthook if present

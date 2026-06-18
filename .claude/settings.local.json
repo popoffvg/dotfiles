@@ -187,7 +187,24 @@
       "Bash(cp /Users/popoffvg/Documents/git/dotfiles/harness/plugins/work-manager/claude/hooks/hooks.json /Users/popoffvg/.claude/plugins/cache/local-plugins/work-manager/2.0.0/hooks/hooks.json)",
       "Bash(cp -r /Users/popoffvg/Documents/git/dotfiles/harness/plugins/work-manager/common/ /Users/popoffvg/.claude/plugins/cache/local-plugins/work-manager/2.0.0/common/)",
       "Read(//Users/popoffvg/.config/zed/**)",
-      "Read(//Users/popoffvg/**)"
+      "Read(//Users/popoffvg/**)",
+      "Bash(xcode-select -p)",
+      "Bash(command -v mise)",
+      "Bash(mise --version)",
+      "Bash(sudo -n true)",
+      "Read(//opt/**)",
+      "Read(//Users/vitaliipopov/**)",
+      "Read(//Users/vitaliipopov/.nanobrew/**)",
+      "Read(//Users/vitaliipopov/.nanobrew/prefix/**)",
+      "Bash(command -v nb)",
+      "Bash(/opt/nanobrew/prefix/bin/nb list *)",
+      "Bash(command -v perl)",
+      "Bash(perl -e 'print \"perl works: $^V\\\\n\"')",
+      "Bash(/bin/bash --version)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('harness/claude/settings.json','utf8'\\)\\)\")",
+      "Bash(node -e \"console.log\\(JSON.parse\\(require\\('fs'\\).readFileSync\\('harness/claude/settings.json','utf8'\\)\\).env.SHELL\\)\")",
+      "Bash(/opt/nanobrew/prefix/bin/nb info *)",
+      "Bash(/opt/nanobrew/prefix/bin/nb search *)"
     ]
   },
   "enabledMcpjsonServers": [

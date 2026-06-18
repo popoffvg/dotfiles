@@ -103,7 +103,7 @@ keybinds clear-defaults=true {
         bind "Ctrl l" { MoveFocusOrTab "right"; }
         bind "Ctrl q" { Quit; }
         bind "Ctrl =" {
-            LaunchOrFocusPlugin "file:/Users/popoffvg/.config/zellij/plugins/zellij_forgot.wasm" {
+            LaunchOrFocusPlugin "file:/Users/vitaliipopov/.config/zellij/plugins/zellij_forgot.wasm" {
                 floating true
                 LOAD_ZELLIJ_BINDINGS "true"
             }
@@ -166,7 +166,7 @@ plugins {
     }
     plugin-manager location="zellij:plugin-manager"
     session-manager location="zellij:session-manager"
-    sessionpicker location="file:/Users/popoffvg/.config/zellij/plugins/zellij-choose-tree.wasm"
+    sessionpicker location="file:/Users/vitaliipopov/.config/zellij/plugins/zellij-choose-tree.wasm"
     status-bar location="zellij:status-bar"
     strider location="zellij:strider"
     tab-bar location="zellij:tab-bar"

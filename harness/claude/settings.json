@@ -1,7 +1,7 @@
 {
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "SHELL": "/opt/homebrew/bin/bash",
+    "SHELL": "/opt/nanobrew/prefix/bin/bash",
     "ENABLE_LSP_TOOL": "1"
   },
   "permissions": {
@@ -136,7 +136,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/popoffvg/.claude/hooks/bash-tool-bypass-notify.sh"
+            "command": "$HOME/.claude/hooks/bash-tool-bypass-notify.sh"
           }
         ]
       }
@@ -148,7 +148,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/popoffvg/.claude/hooks/rtk-rewrite.sh"
+            "command": "$HOME/.claude/hooks/rtk-rewrite.sh"
           }
         ]
       },
@@ -242,13 +242,13 @@
     "trace-marketplace": {
       "source": {
         "source": "directory",
-        "path": "/Users/popoffvg/.claude/plugins/trace-marketplace"
+        "path": "$HOME/.claude/plugins/trace-marketplace"
       }
     },
     "local-plugins": {
       "source": {
         "source": "directory",
-        "path": "/Users/popoffvg/.claude/plugins/local-plugins"
+        "path": "$HOME/.claude/plugins/local-plugins"
       }
     },
     "wm-marketplace": {
@@ -315,7 +315,5 @@
   "terminalProgressBarEnabled": true,
   "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "useAutoModeDuringPlan": true,
   "enableWeakerNestedSandbox": true
 }

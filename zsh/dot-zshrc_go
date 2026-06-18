@@ -1,5 +1,5 @@
 function gouse(){
-    GO_TOOLS_ROOT=/Users/popoffvg/sdk
+    GO_TOOLS_ROOT=$HOME/sdk
 	GO_VERSION=$1
     GO_LAST_VERSION=1.23
 
