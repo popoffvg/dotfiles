@@ -30,7 +30,7 @@ Each plugin targets **Pi**, **Claude Code**, or both. Pi side: `<name>/pi/index.
 | Plugin | Pi | Claude | Purpose |
 |---|---|---|---|
 | **memory-keeper** | commands, cron, renderers | agents, skills, hooks, MCP (SSE) | Long-lived daemon (port 7420): SQLite queue, async insight extraction |
-| **work-manager** | — | agents (5), commands, hooks, statusline | Work phase management: research → spec → implement → verify → done |
+| **wm** | — | agents (5), commands, hooks, statusline | Work phase management: research → spec → implement → verify → done |
 | **work** | commands, state, phase transitions | — | Work phase state machine, Pi-side commands |
 | **skill-manager** | skill loading, overrides | — | Skill usage tracking |
 | **smart-commit** | commit generation | — | Intelligent commit messages |
@@ -55,7 +55,7 @@ Runs on `localhost:7420`. Owns SQLite DB, queue drain loop, stats, pino logger.
 - LLM classification via Pi CLI (`pi -p --mode json`) + OpenRouter/Gemma
 - Auto-starts from Pi extension or `ensure-daemon.sh` SessionStart hook
 
-### Work Manager Flow
+### WM Flow
 
 `/work:start` → research → spec → implement (worktree) → verify → `/work:done`
 
@@ -83,7 +83,7 @@ claude --plugin-dir ~/.claude/plugins/local-plugins/work-manager
 ### MCP tool naming
 
 Plugin MCP tools are namespaced as `mcp__plugin_<plugin-name>_<server-name>__<tool>`. Example:
-- Server `"work"` in plugin `"work-manager"` → `mcp__plugin_work-manager_work__work_state`
+- Server `"work"` in plugin `"wm"` → `mcp__plugin_wm_work__work_state`
 - Use these full names in agent `tools:` frontmatter
 
 ### Plugin structure (dual-agent: Pi + Claude)

@@ -1,5 +1,5 @@
 {
-  "work-manager": {
+  "wm": {
     "skillsDir": "~/.claude/plugins/work-manager/skills",
     "symlinkBack": true
   },

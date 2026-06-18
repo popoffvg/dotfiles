@@ -28,7 +28,7 @@ Personal dotfiles. Managed with **GNU Stow** + **mise**. Repo layout mirrors `~/
 ├── hammerspoon/         # macOS automation Lua
 ├── raycast/             # Raycast extensions
 ├── alacritty/, vscode/  # legacy app configs
-└── .notes/              # Work-manager notes (gitignored runtime)
+└── .notes/              # WM notes (gitignored runtime)
 ```
 
 ### Stow targets

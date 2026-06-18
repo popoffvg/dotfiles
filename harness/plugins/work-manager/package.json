@@ -1,5 +1,5 @@
 {
-  "name": "work-manager-v2",
+  "name": "wm",
   "version": "2.0.0",
   "private": true,
   "description": "Work lifecycle management v2 — shared core + Pi adapter + MCP server + Claude plugin",

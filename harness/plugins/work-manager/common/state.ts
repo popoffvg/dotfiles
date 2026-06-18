@@ -1,5 +1,5 @@
 /**
- * Work Manager state management via .pi/work.settings.json
+ * WM state management via .pi/work.settings.json
  *
  * Source of truth for machine-readable work state.
  * Pure TS — no Pi or MCP dependencies.

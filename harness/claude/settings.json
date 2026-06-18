@@ -86,7 +86,7 @@
       "mcp__firecrawl__firecrawl_search",
       "mcp__firecrawl__firecrawl_scrape",
       "mcp__firecrawl__firecrawl_map",
-      "mcp__plugin_work-manager_work__work_start",
+      "mcp__plugin_wm_work__work_start",
       "Bash(ssh dev-htz-fra1 *)",
       "Read(//Users/popoffvg/.ssh/**)",
       "Bash(ssh dev-htz-fra1.infra.platforma.bio 'cat /etc/rancher/k3s/registries.yaml 2>/dev/null || echo \"FILE NOT FOUND\"')",
@@ -107,13 +107,13 @@
       "Bash(helm -n dev-ci diff upgrade pl-ci oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set --version 0.13.1 -f /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/scripts/staging/pl-ci-values.yaml)",
       "Bash(helm -n dev-ci template pl-ci oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set --version 0.13.1 -f /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/scripts/staging/pl-ci-values.yaml)",
       "Bash(helm -n dev-ci upgrade pl-ci oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set --version 0.13.1 -f /Users/popoffvg/Documents/git/mil/tasks/MILAB-5933-k8s-e2e-tests/scripts/staging/pl-ci-values.yaml)",
-      "mcp__plugin_work-manager_work__work_off",
+      "mcp__plugin_wm_work__work_off",
       "Bash(sort -t' ' -k3 -rn)",
-      "mcp__plugin_work-manager_work__work_state",
-      "mcp__plugin_work-manager_work__work_context",
+      "mcp__plugin_wm_work__work_state",
+      "mcp__plugin_wm_work__work_context",
       "Bash(GIT_SSL_NO_VERIFY=1 gh api repos/milaboratory/github-ci-internal/contents/.github/workflows/ --jq '.[].name')",
       "Bash(GH_HOST=api.github.com gh api repos/milaboratory/github-ci-internal/contents/.github/workflows/ --jq '.[].name')",
-      "mcp__plugin_work-manager_comments__comment_list"
+      "mcp__plugin_wm_comments__comment_list"
     ],
     "deny": [
       "Bash(cd ./../*)",
@@ -129,7 +129,6 @@
       "/tmp"
     ]
   },
-  "model": "sonnet",
   "hooks": {
     "PostToolUse": [
       {
@@ -159,6 +158,15 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/codedb-block-legacy.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/block-branch-change.sh"
           }
         ]
       }
@@ -209,7 +217,7 @@
     "typescript-lsp@claude-plugins-official": true,
     "memory-keeper@local-plugins": true,
     "worktrunk@worktrunk": true,
-    "work-manager@local-plugins": true,
+    "wm@local-plugins": true,
     "common@local-plugins": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "engram@engram": true,
@@ -243,10 +251,10 @@
         "path": "/Users/popoffvg/.claude/plugins/local-plugins"
       }
     },
-    "work-manager-marketplace": {
+    "wm-marketplace": {
       "source": {
         "source": "github",
-        "repo": "popoffvg/claude-plugin-work-manager"
+        "repo": "popoffvg/claude-plugin-wm"
       }
     },
     "engram": {

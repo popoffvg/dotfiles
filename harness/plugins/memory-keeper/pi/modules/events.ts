@@ -1,6 +1,6 @@
 /**
  * Shared event names and payload types for skill-manager.
- * Other extensions (e.g. work-manager) import these to request skills.
+ * Other extensions (e.g. wm) import these to request skills.
  */
 
 export const SKILL_EVENTS = {

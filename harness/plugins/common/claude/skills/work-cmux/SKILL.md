@@ -1,10 +1,10 @@
 ---
 name: work-cmux
-description: Orchestrate work/work-manager planner and implementer as interactive Claude agents in separate cmux panes. Use when user says "start work", "work start" and CMUX_SURFACE_ID is set. Provides 3-pane layout where user controls both agents via cmux.
+description: Orchestrate work/wm planner and implementer as interactive Claude agents in separate cmux panes. Use when user says "start work", "work start" and CMUX_SURFACE_ID is set. Provides 3-pane layout where user controls both agents via cmux.
 argument-hint: <work-id or task description>
 ---
 
-# Work Manager — cmux Pane Orchestration
+# WM — cmux Pane Orchestration
 
 Run planner and implementer as **separate interactive Claude agents** in cmux panes.
 
@@ -13,7 +13,7 @@ Run planner and implementer as **separate interactive Claude agents** in cmux pa
 - **Command flow source of truth:** Claude command behavior (especially `work-next`) is canonical.
 - **MCP scope:** MCP tools expose low-level primitives (`work_state`, `work_context`, `work_transition`, `work_abandon`, optional `work_handoff`).
 - **Not an MCP tool:** `work-next` is a command/orchestration flow, not a required MCP primitive.
-- **Plugin naming:** repos may use `work` (new) or `work-manager` (legacy). Detect installed plugin/command set first; do not hardcode one name.
+- **Plugin naming:** repos may use `work` (new) or `wm` (legacy). Detect installed plugin/command set first; do not hardcode one name.
 - **Transition invariant:** after `todo-done`, do **not** auto-route to `plan-verify`. Route to `verify` (or remain in `implement` until user confirms) based on current command contract.
 
 ## Terms

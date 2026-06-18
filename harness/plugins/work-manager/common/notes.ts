@@ -87,13 +87,13 @@ export function appendWorklog(notesDir: string, entry: string): void {
   );
 }
 
-/** Ensure root CLAUDE.md contains basic work-manager instructions. */
+/** Ensure root CLAUDE.md contains basic wm instructions. */
 export function ensureClaudeMd(targetDir: string): void {
   const claudePath = path.join(targetDir, "CLAUDE.md");
-  const sectionHeader = "## Work Manager Plugin";
+  const sectionHeader = "## WM Plugin";
   const sectionBody = `${sectionHeader}
 
-This repository uses the work-manager plugin. Work is driven by agents/skills.
+This repository uses the wm plugin. Work is driven by agents/skills.
 
 - Start or resume tracking with /work:start and /work:status
 - Invoke the planner / researcher / implementer agents as needed

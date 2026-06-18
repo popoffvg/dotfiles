@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regroup work-manager skills under category prefixes.
+# Regroup wm skills under category prefixes.
 # Handles BOTH repo symlinks (-> global store) and repo real dirs uniformly:
 #   - symlink entry: rename the global-store dir, recreate the repo symlink with the new name
 #   - real-dir entry: move the repo dir to the new name

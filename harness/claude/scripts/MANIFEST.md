@@ -4,6 +4,7 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 
 | Filename | Description |
 |---|---|
+| gen-test-fastq.sh | Generate synthetic paired-end <SAMPLE>_1/_2.sub.fastq.gz for import/sample-matcher tests |
 | atuin-to-zsh-history.sh | Convert atuin history export to zsh extended_history format for suv import |
 | pl-db-grep-kv.sh | Search RocksDB SST/WAL files for a string pattern in KV metadata |
 | ccc-init-worktree.sh | Initialize and index ccc for all git repos in a worktree directory |
@@ -11,7 +12,7 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | lsp-references-smoke.py | Drive tengo-lsp over stdio and issue a textDocument/references request for end-to-end testing |
 | build-zoom-html.py | Wrap a D2/Graphviz SVG into a zoomable HTML viewer (svg-pan-zoom CDN). Args: <svg-in> <html-out> <title> |
 | cursor-agent-hang-capture.sh | Capture lsof+sample of a hung interactive cursor-agent (agent CLI) to find what startup is blocked on |
-| strip-work-skill-prefix.sh | Strip the "work-" prefix from work-manager skill-name references in given files (Perl word-boundary, idempotent; avoids work-verify-gate/work-abandon/work-next-prompt) |
+| strip-work-skill-prefix.sh | Strip the "work-" prefix from wm skill-name references in given files (Perl word-boundary, idempotent; avoids work-verify-gate/work-abandon/work-next-prompt) |
 | regroup-work-skills.sh | Regroup skills under category prefixes: renames global-store dir + recreates repo symlink (or moves real dir), fixes SKILL.md name frontmatter. Args: <repo-skills-dir> <old:new>... (new=__DELETE__ to drop) |
 | rewrite-skill-refs.sh | Rewrite skill references in delimited forms only (`old`→`new`, skills/old/→skills/new/, @old→@new) so prose words are never touched. Args: <old:new>... -- <file>... |
 | flow-reveal.mjs | Resolve the real source behind a workflow-pseudocode binding and open it in Zed. `reveal <file> <row> [--print]` opens the source for a notable-if ULID (via sibling *.bindings.json) or a .d.ts `@source` tag; `check <dir>` lints that every ULID/@source resolves to an existing path:line. Node, no deps. |
@@ -22,7 +23,7 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | commit-index-refresh.sh | Dump pl+platforma first-parent commits to per-commit JSON and (re)build the cocoindex commit-example index |
 | commit-index-mcp.sh | Launch the commit-example search MCP server (search_commits tool over pl+platforma commit index) |
 | commit-index-refresh-bg.sh | Fire-and-forget background launcher for commit-index refresh (used by SessionStart hook; idempotent, never blocks) |
-| rehome-spec-skills.sh | One-time work-manager migration: de-symlink plan-* skills from the global store into the repo as real dirs renamed spec-*, then rename plan→spec inside (frontmatter, cross-refs, spec.md, .notes, prose nouns; keeps planning/planner). Arg: [REPO_ROOT]. Overlaps regroup-work-skills.sh + rewrite-skill-refs.sh — reuse those for future renames. |
+| rehome-spec-skills.sh | One-time wm migration: de-symlink plan-* skills from the global store into the repo as real dirs renamed spec-*, then rename plan→spec inside (frontmatter, cross-refs, spec.md, .notes, prose nouns; keeps planning/planner). Arg: [REPO_ROOT]. Overlaps regroup-work-skills.sh + rewrite-skill-refs.sh — reuse those for future renames. |
 | rename-plan-refs.sh | Safe identifier-level plan→spec rename in given files (plan-* skill names, plan.md/plan-verify.md, /work:plan-revise, claude-plan, _notes→.notes); no blanket prose rebrand. Idempotent. Args: <file>... |
 | graphify_repo_ast_docs.py | Per-repo graphify extraction: AST(code)+semantic(docs only) via claude-cli; writes <repo>/graphify-out/graph.json |
 | read-claude-local-subrepos.sh | SessionStart hook: find every git repo (incl. worktrees) under session cwd and emit each repo's CLAUDE.local.md to stdout as context. Prunes node_modules/.venv/vendor/target/dist/build/.cache. Reads cwd from stdin JSON, arg, or $PWD. |

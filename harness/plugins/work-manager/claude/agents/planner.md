@@ -2,7 +2,7 @@
 name: planner
 description: >
   Planning agent — produces `.notes/spec.md` and `.notes/todos/TODO-N.md` files. Workflow
-  defined in `spec` skill.
+  defined in `code` skill.
 model: inherit
 color: yellow
 ---
@@ -35,9 +35,8 @@ Model the problem domain-first, not implementation-first:
 ## Source of truth
 
 Follow @workflow for pipeline and conventions.
-Follow `${CLAUDE_PLUGIN_ROOT}/skills/spec/SKILL.md` — the `spec` router. Use the
-`write` subcommand (`references/write.md`) for spec structure and the `todo` subcommand
-(`references/todo.md`) for TODO file format.
+Follow `${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md` — the `code` router. Use the
+`new` subcommand (`references/new.md`) for the full pipeline (write spec → grill → notes → TODO bodies).
 
 Do not modify source code. Only write to `.notes/`.
 

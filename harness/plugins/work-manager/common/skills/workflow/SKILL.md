@@ -1,13 +1,13 @@
 ---
 name: workflow
 description: >
-  Work-manager pipeline and conventions shared across all phases.
+  WM pipeline and conventions shared across all phases.
   Agents must read this before spec, impl, or verify work.
 ---
 
 # Workflow — shared conventions
 
-All work-manager agents follow this pipeline. Deviation requires user approval.
+All WM agents follow this pipeline. Deviation requires user approval.
 
 ## Pipeline
 
@@ -18,8 +18,8 @@ research → spec → spec-verify → implement → verify → done
 | Phase | Agent | Skill | Deliverable |
 |---|---|---|---|
 | research | `researcher` | `explore-research` | `.notes/research-*.md` |
-| spec | `planner` | `spec` | `.notes/spec.md` |
-| spec-verify | `planner` | `spec verify` | `.notes/spec-verify.md` |
+| spec | `planner` | `code new` | `.notes/spec.md` |
+| spec-verify | `planner` | `code verify` | `.notes/spec-verify.md` |
 | implement | `implementer` | `impl` | Commit + `.notes/worklog.md` |
 | verify | `verifier` | `impl-verify` | `.notes/verify-TODO-N.md` |
 
@@ -76,7 +76,7 @@ No phase tracking in state — work is agent-driven, not FSM-driven.
 ## Phase detail
 
 For phase-specific instructions, follow the skill mapped above:
-- `/spec <write|new|todo|verify|revise|prototype|code-map>` — spec router
+- `/code <new|verify|revise|prototype|code-map|impl|fix|help>` — code router (spec + impl + fix)
 - `/impl work` — implement one TODO
 - `/impl squash` — learn from fixups (called by `merge-subtree`)
 - `impl-verify` — adversarial post-implementation verification

@@ -1,5 +1,5 @@
 /**
- * Shared types for Work Manager.
+ * Shared types for WM.
  * No runtime dependencies — pure type definitions.
  *
  * Phase state-machine types were removed: work is driven by agents, not a FSM.

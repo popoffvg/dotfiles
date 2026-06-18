@@ -3,7 +3,7 @@ name: explore
 description: >
   Research phase before implementation — subcommand router. Given a list of entry points, spawn one
   subagent per entry point in parallel and write refactor-oriented research artifacts into the
-  work-manager notes directory (`<notes-dir>/research/`). Use when the user says "explore",
+  wm notes directory (`<notes-dir>/research/`). Use when the user says "explore",
   "research these entry points", or provides a list of files/symbols to investigate before a task.
   Invoke as `/explore <docs|workflow>` (default `docs`). `docs` writes the markdown write-ups +
   question lists; `workflow` writes the typed TS pseudocode + path bindings. Render flows with
@@ -50,14 +50,14 @@ working directory.
 
 ## Output location
 
-`<notes-dir>` is the work-manager notes directory for the active task (commonly `.notes/`). It
+`<notes-dir>` is the wm notes directory for the active task (commonly `.notes/`). It
 persists with the rest of the planning context (`spec.md`, `worklog.md`, `todos/`) and ships with the
 work, instead of vanishing from `$TMPDIR`. Resolve it from the phase context:
 
-- If a work-manager flow is active, use its notes dir (typically `.notes/` at repo root).
+- If a wm flow is active, use its notes dir (typically `.notes/` at repo root).
 - If no flow is active, default to `./.notes/` in the current working directory and tell the user.
 - The user may override the notes dir with `--notes-dir <path>`.
-- A `dst:<path>` token in the input sets `$RESEARCH_DIR` directly and **wins over** both the resolved notes dir and `--notes-dir`. Use it to drop research outside the work-manager flow (e.g. into a docs folder).
+- A `dst:<path>` token in the input sets `$RESEARCH_DIR` directly and **wins over** both the resolved notes dir and `--notes-dir`. Use it to drop research outside the wm flow (e.g. into a docs folder).
 
 Create the research subdirectory:
 
@@ -71,10 +71,10 @@ mkdir -p "$RESEARCH_DIR"
 The previous `$TMPDIR/claude-explore/` location is deprecated.
 
 
-## Integration with work-manager
+## Integration with wm
 
 - During the **research phase**, `explore-research` saves coarse findings as `<notes-dir>/research-*.md`. `explore` complements that with per-entry-point deep dives under `<notes-dir>/research/`.
-- During **spec phase**, `spec` (`write` / `todo` subcommands) may reference `research/<ep-slug>.md#DP-N` or `#EC-N` from a TODO's **Pre-reads** so the implementer doesn't re-derive the analysis.
+- During **spec phase**, `code new` may reference `research/<ep-slug>.md#DP-N` or `#EC-N` from a TODO's **Pre-reads** so the implementer doesn't re-derive the analysis.
 - `research/` is committed alongside `spec.md` and `todos/` — it travels with the task.
 
 ## What this skill is NOT

@@ -176,6 +176,39 @@ Then wait for the user's research query.
    - Spawn new sub-agents as needed for additional investigation
    - Continue updating the document and syncing
 
+## Search workflow (for explore sub-agents)
+
+Every sub-agent spawned by this skill is an explore agent. It follows these rules.
+
+### Tool selection
+
+| Question type | Tool |
+|---|---|
+| Semantic / conceptual ("how does X work") | `cocoindex` search first, then confirm hits with `fff grep` |
+| Known identifier (`HandleRequest`, `userController.create`) | `fff grep` — ONE identifier per query |
+| Find which file/module exists for a topic | `fff find_files` |
+| Multiple case variants in one call | `fff multi_grep` |
+| History / "when was X introduced" | `commit-index search_commits` |
+
+### Search tactics
+
+1. Fan out. For "very thorough", run case variants via `multi_grep` and check tests/config/adjacent dirs.
+2. Stop searching once you have the file paths. READ the top results to confirm — do not grep indefinitely.
+3. After ~2 greps, READ the top result instead of grepping more variations.
+
+### Report format
+
+Persist findings, THEN return the same summary to the spawning agent.
+
+1. **Write to `.notes/`** (repo root, create if missing). Descriptive kebab-case filename, e.g. `.notes/explore-<topic>.md`. This is the only place an explore agent may write.
+2. **Return the summary** in your reply.
+
+Both file and reply use this structure:
+- **Answer** — direct conclusion.
+- **Locations** — `path:line` for each relevant hit (clickable).
+- **Notes** — naming conventions, related modules, or history. Omit if none.
+- **Gaps** — what you could NOT find and where you looked, if incomplete.
+
 ## Important notes:
 - Always use parallel Task agents to maximize efficiency and minimize context usage
 - Always run fresh codebase research - never rely solely on existing research documents

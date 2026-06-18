@@ -17,7 +17,7 @@
       "version": "0.3.0"
     },
     {
-      "name": "work-manager",
+      "name": "wm",
       "source": "./work-manager",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with MCP server, hooks, and agents.",
       "version": "2.0.0"

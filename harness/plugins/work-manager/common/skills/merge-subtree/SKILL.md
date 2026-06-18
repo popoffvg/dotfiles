@@ -3,7 +3,7 @@ name: merge-subtree
 description: >
   DANGEROUS, human-guarded merge of an impl-subtree `<task-slug>/TODO-N` worktree branch into its parent
   feature branch. Delegates fixup analysis to `/impl squash`, then squash-merges the branch as ONE
-  commit using the spec's commit message, syncs the spec to what actually shipped (`/spec revise`
+  commit using the spec's commit message, syncs the spec to what actually shipped (`/code revise`
   when the Outcome diverged), and deletes the worktree/branch. Every git action that changes history
   or removes a tree requires explicit user confirmation first — nothing runs unattended. Invoked by
   impl-subtree at merge time.
@@ -92,7 +92,7 @@ hand to `impl-verify`). If it DEVIATES, stop — do not delete the branch; the w
 
 If the achieved Outcome **diverged** from the planned one (impl-subtree Step 5 logged
 `diverged: …`, or the squashed change differs from the TODO's `## Changes`), the spec is now stale.
-Invoke **`/spec revise <TODO-N>`** — it rewrites `<notes-dir>/spec.md` + `todos/TODO-N.md` to match
+Invoke **`/code revise <TODO-N>`** — it rewrites `<notes-dir>/spec.md` + `todos/TODO-N.md` to match
 what the squash commit for TODO-N actually shipped. Run it against the squash commit from Step 3.
 
 - **Show** the proposed spec/TODO diff; **wait** for approval; the revise skill writes only under
@@ -120,7 +120,7 @@ Append to `<notes-dir>/worklog.md`:
 - YYYY-MM-DD HH:MM: [TODO-N] merged to <feature-branch> as <squash-sha>
   - fixups absorbed: <n> — lessons → CLAUDE.local.md (via impl squash)
   - Outcome verified: <yes/no>
-  - spec synced: <no — shipped as planned | yes — /spec revise on <squash-sha>>
+  - spec synced: <no — shipped as planned | yes — /code revise on <squash-sha>>
 ```
 
 Then send the user a **final report**. It MUST contain the TODO's `## Outcome`, verbatim, as the
@@ -132,7 +132,7 @@ headline:
 3. **Merged** — `<squash-sha>` on `<feature-branch>`, commit subject (the spec `## Commit` Subject).
 4. **Autotest** — command + pass/fail from the Outcome check.
 5. **Lessons** — fixups absorbed (`<n>`) and the CLAUDE.local.md rules added (via `impl squash`).
-6. **Spec sync** — `unchanged (shipped as planned)` | `/spec revise` rewrote spec.md + TODO-N.md
+6. **Spec sync** — `unchanged (shipped as planned)` | `/code revise` rewrote spec.md + TODO-N.md
    to match the squash commit.
 
 ## Hard rules
@@ -140,6 +140,6 @@ headline:
 - Never run a history-rewriting or tree-removing command without that step's explicit confirmation.
 - The feature branch gets **exactly one** commit; its message comes from the spec, never the fixups.
 - Never `branch -D` before the squashed commit is confirmed present on the feature branch.
-- When the achieved Outcome diverged from the planned one, run `/spec revise <TODO-N>` (Step 5)
+- When the achieved Outcome diverged from the planned one, run `/code revise <TODO-N>` (Step 5)
   before cleanup — never delete the branch while the spec still describes work that didn't ship.
 - On any conflict or DEVIATES verdict: stop and hand back. Do not improvise.

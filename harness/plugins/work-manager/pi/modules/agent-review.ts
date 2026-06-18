@@ -5,7 +5,7 @@
  *   - A guard hook that blocks direct edits/writes to .vscode/agent-comments.json.
  *   - comment_update_status / comment_get / comment_list tools to manage comment state.
  *
- * Absorbed into work-manager from the former standalone agent-review plugin.
+ * Absorbed into wm from the former standalone agent-review plugin.
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";

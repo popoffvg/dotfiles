@@ -44,4 +44,4 @@ Typical chain for a TODO: `case-design` (derive) → `create` (tier + pairwise) 
 
 ## Output shape
 
-The canonical strategy document is in [`examples/strategy-auth-refresh.md`](examples/strategy-auth-refresh.md). Per-TODO output goes into the `## Autotest` and `## Manual test` sections of `<notes-dir>/todos/TODO-N.md` (follow the `spec` skill's `todo` subcommand); task-wide output goes to `<notes-dir>/test-strategy.md`.
+The canonical strategy document is in [`examples/strategy-auth-refresh.md`](examples/strategy-auth-refresh.md). Per-TODO output goes into the `## Autotest` and `## Manual test` sections of `<notes-dir>/todos/TODO-N.md` (follow the `code` skill's `todo` subcommand); task-wide output goes to `<notes-dir>/test-strategy.md`.

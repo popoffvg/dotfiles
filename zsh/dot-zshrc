@@ -20,6 +20,7 @@ zstyle ':completion:*' special-dirs true
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 eval "$(mise activate)"
+eval "$(atuin init zsh --disable-up-arrow)"
 source <(sk --shell zsh)
 
 # --- zinit + OMZ snippets ---
@@ -43,7 +44,7 @@ function edit-command-line-trim() {
   BUFFER="${BUFFER%%$'\n'}"
 }
 zle -N edit-command-line-trim
-bindkey '^E' edit-command-line-trim
+bindkey '^G' edit-command-line-trim
 
 if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
 

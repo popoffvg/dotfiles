@@ -172,16 +172,16 @@ function registerCommands(pi: ExtensionAPI) {
     }
 
     cancelWork(sf);
-    ctx.ui.notify("Work-manager cancelled.", "warning");
+    ctx.ui.notify("WM cancelled.", "warning");
   };
 
   pi.registerCommand("work:abandon", {
-    description: "Cancel work-manager flow for this workspace",
+    description: "Cancel wm flow for this workspace",
     handler: async (_args, ctx) => abandonHandler(ctx),
   });
 
   // Alias for compatibility with command namespaces users type in Claude.
-  pi.registerCommand("work-manager:work-abandon", {
+  pi.registerCommand("wm:work-abandon", {
     description: "Alias of /work:abandon",
     handler: async (_args, ctx) => abandonHandler(ctx),
   });
@@ -280,7 +280,7 @@ export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "work_abandon",
     label: "Work Abandon",
-    description: "Cancel active work-manager flow",
+    description: "Cancel active wm flow",
     parameters: Type.Object({}),
     async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
       const sf = resolveSettingsFile(ctx.cwd || CWD);
@@ -288,7 +288,7 @@ export default function (pi: ExtensionAPI) {
       const s = state.readSettings(sf);
       if (!s) return { content: [{ type: "text", text: "Cannot read work settings." }] };
       cancelWork(sf);
-      return { content: [{ type: "text", text: "Work-manager cancelled." }] };
+      return { content: [{ type: "text", text: "WM cancelled." }] };
     },
   });
 }

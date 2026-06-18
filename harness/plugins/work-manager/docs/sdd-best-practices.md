@@ -1,6 +1,6 @@
-# Spec-Driven Development: best-practice audit (work-manager)
+# Spec-Driven Development: best-practice audit (wm)
 
-Research synthesis comparing this repo's `work-manager` workflow against external state-of-the-art
+Research synthesis comparing this repo's `wm` workflow against external state-of-the-art
 (humanlayer, plannotator, GitHub spec-kit, AWS Kiro, Anthropic). Source for the `spec` → `new` +
 `impl-verify` additions and the `plan → spec` / `_notes → .notes` rename.
 
@@ -27,7 +27,7 @@ This matches or exceeds humanlayer's `create_plan.md` on most axes.
 
 | Gap | Adoption | Source |
 |---|---|---|
-| No interactive interrogation of the spec before impl (`verify` is a static one-shot audit) | **`spec` → `new`** subcommand — grill-me loop over the spec decision tree; resolves decisions, empties Open Questions before READY | grill-me; humanlayer skeptical/interactive planning |
+| No interactive interrogation of the spec before impl (`verify` is a static one-shot audit) | **`code new`** subcommand — grill-me loop over the spec decision tree; resolves decisions, empties Open Questions before READY | grill-me; humanlayer skeptical/interactive planning |
 | Implementer self-reports pass/fail; no independent check of impl vs spec | **`impl-verify`** skill + **`verifier`** agent — adversarial LLM-as-judge, re-runs Autotest, writes `.notes/verify-TODO-N.md` (PASS\|DEVIATES) | humanlayer `validate_plan.md`; Spotify verification loops; LLM-as-judge |
 | No explicit out-of-scope / unresolved sections in the spec | **What we're NOT doing** + **Open Questions** sections; `spec` → `verify` hard-blocks non-empty Open Questions | humanlayer `create_plan.md`; spec-kit; Kiro |
 

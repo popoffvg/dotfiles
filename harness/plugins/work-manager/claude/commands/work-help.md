@@ -7,7 +7,7 @@ Display the following usage guide:
 
 ---
 
-## Work Manager — Usage Guide
+## WM — Usage Guide
 
 Work is driven by **agents and skills**, not an automated phase machine. You
 invoke the agent you need; each agent follows its skill.
@@ -19,7 +19,7 @@ invoke the agent you need; each agent follows its skill.
 | `/work:start` | Begin/resume work tracking — creates `.notes/`, initializes state |
 | `/work:status` | Show current work status and recent progress |
 | `/work:spec-revise <TODO-N> [<sha>]` | Rewrite spec.md + todos/TODO-N.md to match what the last commit for TODO-N actually shipped |
-| `/work:abandon` | Cancel work-manager flow for this workspace |
+| `/work:abandon` | Cancel wm flow for this workspace |
 | `/work:finish` | Alias for `/work:abandon` |
 | `/work:help` | This guide |
 
@@ -39,7 +39,7 @@ invoke the agent you need; each agent follows its skill.
 
 - **workflow**: shared pipeline, agents contract, notes structure, hard rules — read first by all agents
 - **explore**: one router — `/explore <docs|workflow>` (write the markdown research write-ups + question lists, then the typed TS pseudocode + path bindings). Plus `explore-flow-map`, `explore-handoff`, `explore-research`
-- **spec**: one router — `/spec <write|new|todo|verify|revise|prototype|code-map>` (write the spec, interrogate it until Open Questions is empty, author TODO bodies, audit readiness, sync to a shipped commit, prototype a decision, draw a code map)
+- **code**: one router — `/code <new|verify|revise|prototype|code-map|impl|fix|help>` (write spec, grill to empty Open Questions, auto-write TODO bodies, audit, sync, prototype, diagram, implement, fix bugs)
 - **impl-**: `impl`, `impl-commit`, `impl-verify` (adversarial post-impl verification), `impl-subtree` (*experimental* — worktree+branch per TODO, commit-as-you-go, fixup corrections; records planned/achieved Outcome), `merge-subtree` (*experimental, human-guarded* — squash-merge a `<task-slug>/TODO-N` branch into its parent, every git action confirmed)
 - **test**: one router — `/test-suite <create|write|verify|case-design|bdd|tdd|harness|review>` (design a pairwise-tiered strategy, enumerate a scenario/coverage matrix, audit an existing set, derive cases by black-box technique, shape BDD scenarios, drive spec-before-code TDD, test a plugin harness, run the verify-phase review)
 - **review-**: `review-pr-comments`, `review-fix-comments`
@@ -66,4 +66,4 @@ Invoke directly as needed.
 | `work_state` | Read/update `.pi/work.settings.json` |
 | `work_start` | Initialize new work |
 | `work_context` | Get plan + recent worklog |
-| `work_abandon` | Cancel active work-manager flow |
+| `work_abandon` | Cancel active wm flow |

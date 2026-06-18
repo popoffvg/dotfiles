@@ -33,22 +33,12 @@ You MUST use these tools for search. Reach for `grep -r`, recursive `find`, `ls 
 
 ## Workflow
 
-1. Pick the right tool for the question: semantic → cocoindex; known identifier → fff grep; file existence → fff find_files; history/why → commit-index.
-2. Fan out. For "very thorough", run case variants via `multi_grep` and check tests/config/adjacent dirs.
-3. Stop searching once you have the file paths. READ the top results to confirm.
-4. Report.
+Follow the **explore-research** skill workflow. The skill defines tool selection rules, search tactics, and report format for all explore sub-agents.
+
+If the skill is not loaded: `skill: explore-research`.
 
 ## Final report
 
-Persist your findings, THEN return the same summary to the spawning agent.
-
-1. **Write to `.notes/`** (relative to the repo root, create it if missing). Use a descriptive kebab-case filename, e.g. `.notes/explore-<topic>.md`. Writing here is allowed — it is not source code. This is the only place you may write.
-2. **Return the summary** in your reply.
-
-Both the file and the reply use this structure:
-- **Answer** — the direct conclusion.
-- **Locations** — `path:line` for each relevant hit (clickable).
-- **Notes** — naming conventions, related modules, or history found, only if relevant.
-- **Gaps** — what you could NOT find, and where you looked, if the answer is incomplete.
+Use the report format from the explore-research skill: Answer, Locations, Notes, Gaps. Write to `.notes/` first, then return the summary.
 
 No raw tool dumps. No code review. No source edits.

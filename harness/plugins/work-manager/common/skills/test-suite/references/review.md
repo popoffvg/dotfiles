@@ -11,7 +11,7 @@ The user will now review your work against the acceptance criteria.
 
 Present a compact summary:
 1. **What was done** — list of changes (files modified, tests added/updated)
-2. **Acceptance criteria status** — check each criterion from `_notes/plan.md`
+2. **Acceptance criteria status** — check each criterion from `<note folder>/plan.md`
 3. **Test results** — pass/fail summary from the last test run
 4. **Open issues** — anything incomplete or uncertain
 
@@ -37,7 +37,7 @@ The user must go through plan to refine requirements before another implement cy
 
 Do NOT suggest transitioning to implement or research from verify.
 
-Append to `_notes/worklog.md`: `- YYYY-MM-DD HH:MM: <action summary>`
+Append to `<note folder>/worklog.md`: `- YYYY-MM-DD HH:MM: <action summary>`
 
 ## Autoresearch rules
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Re-home work-manager plan-* skills into the dotfiles repo as REAL dirs (de-symlink),
+# Re-home wm plan-* skills into the dotfiles repo as REAL dirs (de-symlink),
 # rename plan->spec (dir names + frontmatter + cross-refs + artifact filenames + commands),
 # and normalize the notes dir to .notes. Idempotent.
 #

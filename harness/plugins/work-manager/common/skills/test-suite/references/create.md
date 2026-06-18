@@ -12,10 +12,10 @@ Each tier has its own pairwise matrix sized for its cost. Don't reuse the same m
 
 ## Where the output lives
 
-- **Per-TODO scope** — write into the `## Autotest` (unit + integration) and `## Manual test` sections of `<notes-dir>/todos/TODO-N.md`. Follow the `spec` skill's `todo` subcommand for required format.
+- **Per-TODO scope** — write into the `## Autotest` (unit + integration) and `## Manual test` sections of `<notes-dir>/todos/TODO-N.md`. Follow the `code` skill's `todo` subcommand for required format.
 - **Task-wide scope** — write to `<notes-dir>/test-strategy.md`, referenced from `<notes-dir>/spec.md` Implementation Guidelines.
 
-`<notes-dir>` is the work-manager notes directory for the active task (commonly `.notes/`); resolve from phase context.
+`<notes-dir>` is the wm notes directory for the active task (commonly `.notes/`); resolve from phase context.
 
 ## Pairwise rationale
 

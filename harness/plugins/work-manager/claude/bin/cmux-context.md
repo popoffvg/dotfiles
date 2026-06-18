@@ -1,6 +1,6 @@
 ## cmux Environment
 
-You are running inside cmux. During work-manager implement phase, use the **3-pane cmux orchestration** pattern (skill: work-cmux):
+You are running inside cmux. During wm implement phase, use the **3-pane cmux orchestration** pattern (skill: work-cmux):
 
 1. **Planner** — persistent interactive Claude in a right split pane
 2. **Implementer** — ephemeral interactive Claude, one per TODO, in another split pane

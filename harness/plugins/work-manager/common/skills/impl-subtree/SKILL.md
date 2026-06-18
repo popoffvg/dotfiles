@@ -48,7 +48,7 @@ Use `$ROOT` for file operations inside the current working tree.
 
 ## Step 1: Create the subtree
 
-The feature branch is the current branch (or the work-manager `branch` in `.pi/work.settings.json`).
+The feature branch is the current branch (or the wm `branch` in `.pi/work.settings.json`).
 The **task slug** comes from the work name in `.pi/work.settings.json` (`.name`), slugified —
 lowercase, non-alphanumerics → `-`, trimmed. Fall back to the feature branch name.
 
@@ -133,7 +133,7 @@ Do not squash-merge inline. Load the **`merge-subtree`** skill and follow it. It
 1. Runs `/impl squash` to analyze fixups → CLAUDE.local.md lessons.
 2. Human-guarded squash-merge into the parent feature branch with the spec's `## Commit` message.
 3. Verifies the Outcome holds.
-4. Runs `/spec revise <TODO-N>` if the achieved Outcome diverged from planned.
+4. Runs `/code revise <TODO-N>` if the achieved Outcome diverged from planned.
 5. Cleans up the worktree and branch.
 
 Every destructive git action confirmed individually by the user.

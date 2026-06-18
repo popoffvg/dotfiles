@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "MCP stdio server: manage comment status in .vscode/agent-comments.json (absorbed into work-manager).",
+  "description": "MCP stdio server: manage comment status in .vscode/agent-comments.json (absorbed into wm).",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^4.3.6"
