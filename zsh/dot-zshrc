@@ -21,7 +21,10 @@ export PATH=$PATH:"$(go env GOPATH)/bin"
 export PATH=$PATH:~/local/bin
 export PATH=$PATH:/opt/nanobrew/prefix/bin
 
-export CURSOR_API_KEY="$(security find-generic-password -s CURSOR -w)"
+if secret="$(security find-generic-password -s CURSOR -w 2>/dev/null)"; then
+  export CURSOR_API_KEY="$secret"
+fi
+unset secret
 
 autoload -Uz add-zsh-hook
 autoload -Uz compinit && compinit -i

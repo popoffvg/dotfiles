@@ -315,5 +315,6 @@
   "terminalProgressBarEnabled": true,
   "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,
-  "enableWeakerNestedSandbox": true
+  "enableWeakerNestedSandbox": true,
+  "skipAutoPermissionPrompt": true
 }

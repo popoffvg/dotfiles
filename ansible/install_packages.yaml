@@ -155,6 +155,15 @@
       args:
         creates: "{{ ansible_env.HOME }}/.local/bin/fff-mcp"
 
+    # --- zinit (zsh plugin manager) ---
+    - name: Install zinit
+      ansible.builtin.git:
+        repo: https://github.com/zdharma-continuum/zinit.git
+        dest: "{{ ansible_env.HOME }}/.local/share/zinit/zinit.git"
+        depth: 1
+      register: zinit_install
+      changed_when: zinit_install.changed
+
     # --- Shell ---
     - name: Set zsh as default shell
       ansible.builtin.shell:

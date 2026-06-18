@@ -49,5 +49,11 @@
 	pager = hunk pager
 	hooksPath = ~/.config/git/hooks
 	excludesfile = ~/.gitignore
+[credential "https://github.com"]
+	helper =
+	helper = !/opt/nanobrew/prefix/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/opt/nanobrew/prefix/bin/gh auth git-credential
 [safe]
 	directory = *
