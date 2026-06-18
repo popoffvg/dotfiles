@@ -1,0 +1,53 @@
+[interactive]
+    diffFilter = lumen diff
+
+[merge]
+    conflictstyle = diff3
+[merge "mergiraf"]
+    name = mergiraf
+    driver = mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P -l %L
+[push]
+    autoSetupRemote = true # create remote branch auto
+[url "git@github.com:"]
+	insteadOf = https://github.com/
+[url "git@gitlab.com:"]
+	insteadOf = https://gitlab.com/
+[includeIf "gitdir:~/Documents/git/inDrive/"]
+  path = ~/Documents/git/inDrive/.gitconfig
+[includeIf "gitdir:~/Documents/git/emcd/"]
+  path = ~/Documents/git/emcd/.gitconfig
+[includeIf "gitdir:~/Documents/git/mil/"]
+  path = ~/Documents/git/mil/.gitconfig
+[user]
+	email = popoffvg@gmail.com
+	name = Vitalii Popov
+
+[alias]
+	task = !~/task.sh
+	traverse = !~/traverse.sh
+	show = !~/show.sh
+	ch = !~/ch.sh
+	find = !~/branch_find.sh
+	fdiff = !~/fd.sh
+    test = !git diff \"$@\"
+	ia = !git iff \"$@\" --name-only | fzf -m --ansi --preview \"git diff $@ --color=always -- {-1}\" | xargs git add
+	review = !~/local/bin/git-agent-review
+	append = town append
+	hack = town hack
+	sync = town sync
+    st = status
+    a = !git add .
+    fp = !git add . && git commit --amend --no-edit && git push -f
+    pr-diff = !git diff "$(git merge-base --fork-point "$(git show-ref --verify --quiet refs/heads/main && echo main || echo master)")"
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[core]
+	pager = hunk pager
+	hooksPath = ~/.config/git/hooks
+	excludesfile = ~/.gitignore
+[safe]
+	directory = *
