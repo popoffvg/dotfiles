@@ -175,13 +175,11 @@
         path: /opt/homebrew/share
         mode: "0755"
 
-    # --- macOS key repeat ---
-    - name: Enable fast key repeat (caret movement when holding)
-      ansible.builtin.shell:
-        cmd: |
-          defaults write -g ApplePressAndHold -bool false
-          defaults write -g KeyRepeat -int 1
-          defaults write -g InitialKeyRepeat -int 10
+    # --- macOS system settings ---
+    - name: Apply macOS defaults
+      ansible.builtin.command:
+        cmd: ./macos.sh
+        chdir: "{{ dotfiles_dir }}/macos"
       changed_when: false
 
     # --- Symlinks: home ---

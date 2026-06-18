@@ -1,0 +1,3 @@
+# Full domain dump — app state + secrets (tokens, etags, analytics).
+# Not portable, not for version control. Regenerate per machine: ./capture.sh
+dump/
