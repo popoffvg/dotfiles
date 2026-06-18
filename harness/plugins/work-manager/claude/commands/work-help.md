@@ -37,6 +37,7 @@ invoke the agent you need; each agent follows its skill.
 
 ### Skills (grouped by prefix)
 
+- **workflow**: shared pipeline, agents contract, notes structure, hard rules — read first by all agents
 - **explore**: one router — `/explore <docs|workflow>` (write the markdown research write-ups + question lists, then the typed TS pseudocode + path bindings). Plus `explore-flow-map`, `explore-handoff`, `explore-research`
 - **spec**: one router — `/spec <write|new|todo|verify|revise|prototype|code-map>` (write the spec, interrogate it until Open Questions is empty, author TODO bodies, audit readiness, sync to a shipped commit, prototype a decision, draw a code map)
 - **impl-**: `impl`, `impl-commit`, `impl-verify` (adversarial post-impl verification), `impl-subtree` (*experimental* — worktree+branch per TODO, commit-as-you-go, fixup corrections; records planned/achieved Outcome), `merge-subtree` (*experimental, human-guarded* — squash-merge a `<task-slug>/TODO-N` branch into its parent, every git action confirmed)

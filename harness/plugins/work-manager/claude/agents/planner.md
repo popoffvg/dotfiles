@@ -34,6 +34,7 @@ Model the problem domain-first, not implementation-first:
 
 ## Source of truth
 
+Follow @workflow for pipeline and conventions.
 Follow `${CLAUDE_PLUGIN_ROOT}/skills/spec/SKILL.md` — the `spec` router. Use the
 `write` subcommand (`references/write.md`) for spec structure and the `todo` subcommand
 (`references/todo.md`) for TODO file format.

@@ -13,6 +13,8 @@ argument-hint: [write, new, todo, verify — full list /spec-help]
 
 # Spec — subcommand router
 
+> **Read first**: @workflow — pipeline, agents contract, notes structure, hard rules.
+
 `/spec <subcommand>`. Pick the operation, read its reference, follow it. Default subcommand is
 `write`. The artifact is `<notes-dir>/spec.md` plus `<notes-dir>/todos/TODO-N.md`.
 

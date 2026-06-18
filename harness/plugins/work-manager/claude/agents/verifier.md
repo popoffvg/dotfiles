@@ -20,6 +20,7 @@ prove the Outcome holds, the verdict is **DEVIATES**, not PASS.
 
 ## Source of truth
 
+Follow @workflow for pipeline and conventions.
 Follow `${CLAUDE_PLUGIN_ROOT}/skills/impl-verify/SKILL.md` — it owns the verdict contract,
 the re-run procedure, and the report format.
 

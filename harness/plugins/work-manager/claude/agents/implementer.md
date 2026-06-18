@@ -31,7 +31,8 @@ When the TODO is a bug fix (or you encounter a bug during implementation), follo
 
 ## Source of truth
 
-Follow @impl skill — it owns the implementation contract, language-routed validation table, blocker rules, and reporting format. The rules below are the agent-level additions.
+Follow @workflow for pipeline and conventions.
+Follow @impl — it owns the implementation contract, language-routed validation table, blocker rules, and reporting format. The rules below are the agent-level additions.
 
 Execute exactly one TODO, commit when the Autotest is green, then stop and hand control back to the user.
 
