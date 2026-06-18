@@ -1,0 +1,302 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run the `open default settings` command
+// from the command palette or from `Zed` application menu.
+{
+  "language_models": {
+    "openai_compatible": {
+      "cursor": {
+        "api_url": "https://api.cursor.com",
+        "available_models": [
+          {
+            "name": "composer-2.5",
+            "max_tokens": 200000,
+            "max_output_tokens": 32000,
+            "max_completion_tokens": 200000,
+            "capabilities": {
+              "tools": true,
+              "images": false,
+              "parallel_tool_calls": true,
+              "prompt_cache_key": false,
+              "chat_completions": true,
+              "interleaved_reasoning": false,
+            },
+          },
+        ],
+      },
+    },
+  },
+  "show_signature_help_after_edits": true,
+  "auto_signature_help": true,
+  "terminal": {
+    "cursor_shape": "block",
+    "toolbar": {
+      "breadcrumbs": true,
+    },
+    "copy_on_select": true,
+    "font_family": "FiraMono Nerd Font",
+    "show_count_badge": false,
+  },
+  "theme": {
+    "mode": "dark",
+    "light": "One Light",
+    "dark": "One Dark",
+  },
+  "code_lens": "off",
+  "proxy": "",
+  "telemetry": {
+    "diagnostics": true,
+    "metrics": true,
+  },
+  "restore_on_startup": "empty_tab",
+  "enable_language_server": true,
+  "which_key": {
+    "enabled": true,
+  },
+  "tab_bar": {
+    "show_pinned_tabs_in_separate_row": true,
+  },
+  "git": {
+    "inline_blame": {
+      "show_commit_summary": true,
+    },
+    "hunk_style": "unstaged_hollow",
+  },
+  "toolbar": {
+    "code_actions": true,
+  },
+  "buffer_line_height": "comfortable",
+  "agent_buffer_font_size": 14.0,
+  "agent_ui_font_size": 14.0,
+  "inlay_hints": {
+    "show_other_hints": false,
+    "show_parameter_hints": true,
+    "show_type_hints": false,
+    "show_value_hints": false,
+    "enabled": true,
+  },
+  "ui_font_fallbacks": ["FiraCode Nerd Font Mono"],
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Catppuccin Latte",
+    "dark": "Catppuccin Latte",
+  },
+  "title_bar": {
+    "show_branch_status_icon": true,
+  },
+  "semantic_tokens": "combined",
+  "edit_predictions": {
+    "provider": "zed",
+  },
+  "diff_view_style": "split",
+  "cli_default_open_behavior": "new_window",
+  "project_panel": {
+    "sticky_scroll": false,
+    "git_status": false,
+    "git_status_indicator": false,
+    "diagnostic_badges": false,
+    "scrollbar": {
+      "horizontal_scroll": false,
+    },
+    "bold_folder_labels": false,
+    "auto_fold_dirs": false,
+    "starts_open": false,
+    "auto_reveal_entries": false,
+    "entry_spacing": "standard",
+    "dock": "right",
+  },
+  "outline_panel": {
+    "indent_guides": {
+      "show": "never",
+    },
+    "auto_reveal_entries": false,
+    "dock": "right",
+  },
+  "collaboration_panel": {
+    "dock": "right",
+  },
+  "helix_mode": true,
+  "agent_servers": {
+    "cursor": {
+      "favorite_config_option_values": {
+        "model": [
+          "composer-2.5[fast=true]"
+        ]
+      },
+      "type": "registry"
+    },
+    "opencode": {
+      "type": "registry"
+    },
+    "claude-planner": {
+      "type": "custom",
+      "command": "claude",
+      "args": ["--agent", "planner"],
+    },
+    "claude-implementer": {
+      "type": "custom",
+      "command": "bash",
+      "args": [
+        "-c",
+        "eval \"$(mise activate bash)\"; exec claude --agent implementer --model sonnet",
+      ],
+    },
+    "pi-acp": {
+      "type": "registry",
+    },
+    "codex-acp": {
+      "default_config_options": {
+        "mode": "auto",
+        "model": "gpt-5.5"
+      },
+      "type": "registry",
+    },
+  },
+  "context_servers": {
+    "fff": {
+      "command": "/Users/popoffvg/.local/bin/fff-mcp",
+      "args": [],
+      "env": {},
+    },
+  },
+  "agent": {
+    "commit_message_model": {
+      "provider": "zed.dev",
+      "model": "gemini-3.5-flash",
+    },
+    "tool_permissions": {
+      "default": "allow",
+      "tools": {},
+    },
+    "profiles": {
+      "test": {
+        "name": "test",
+        "tools": {},
+        "enable_all_context_servers": false,
+        "context_servers": {},
+      },
+      "explore": {
+        "name": "explore",
+        "tools": {},
+        "enable_all_context_servers": false,
+        "context_servers": {},
+      },
+    },
+    "inline_assistant_model": {
+      "provider": "zed.dev",
+      "model": "gemini-3.1-pro-preview",
+      "enable_thinking": false,
+    },
+    "show_turn_stats": true,
+    "thinking_display": "always_collapsed",
+    "single_file_review": true,
+    "dock": "left",
+    "default_model": {
+      "effort": "medium",
+      "provider": "openai",
+      "model": "gpt-5.3-codex",
+      "enable_thinking": true,
+    },
+    "favorite_models": [
+      {
+        "provider": "openai",
+        "model": "gpt-5.3-codex",
+        "enable_thinking": true,
+      },
+      {
+        "provider": "openai",
+        "model": "gpt-5-mini",
+        "enable_thinking": false,
+      },
+      {
+        "provider": "zed.dev",
+        "model": "gemini-3.5-flash",
+        "enable_thinking": true,
+        "effort": "MEDIUM",
+      },
+    ],
+    "model_parameters": [],
+  },
+  "git_panel": {
+    "dock": "right",
+    "tree_view": true,
+  },
+  "vim_mode": false,
+  "ui_font_size": 16,
+  "buffer_font_size": 14.0,
+  "lsp": {
+    "vtsls": {
+      "settings": {
+        "typescript": {
+          "updateImportsOnFileMove": {
+            "enabled": "always"
+          }
+        },
+        "javascript": {
+          "updateImportsOnFileMove": {
+            "enabled": "always"
+          }
+        }
+      },
+      "enable_lsp_tasks": true
+    },
+    "gopls": {
+      "binary": {
+        "path": "/Users/popoffvg/.local/bin/gopls",
+      },
+    },
+    "golangci-lint": {
+      "initialization_options": {
+        "command": [
+          "golangci-lint",
+          "run",
+          "--output.json.path",
+          "stdout",
+          "--show-stats=false",
+          "--output.text.path=",
+        ],
+      },
+    },
+  },
+  "languages": {
+    "Git Commit": {
+      "tab_size": 3,
+    },
+    "TypeScript": {
+      "auto_indent": "syntax_aware",
+      "document_symbols": "on",
+      "document_folding_ranges": "on",
+      "inlay_hints": {
+        "show_value_hints": true,
+        "show_parameter_hints": true,
+        "show_other_hints": true,
+        "show_background": false,
+        "show_type_hints": false,
+        "enabled": true,
+      },
+      "indent_guides": {
+        "enabled": false,
+        "background_coloring": "indent_aware",
+        "coloring": "disabled",
+      },
+    },
+    "Go": {
+      "language_servers": ["gopls", "golangci-lint"],
+      "show_completion_documentation": true,
+      "colorize_brackets": true,
+
+      "formatter": "language_server",
+      "inlay_hints": {
+        "show_parameter_hints": true,
+        "show_other_hints": false,
+      },
+    },
+    "Plain Text": {
+      "language_servers": ["bookmark-language-server"],
+    },
+  },
+}
