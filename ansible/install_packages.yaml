@@ -113,6 +113,12 @@
         cmd: curl -fsSL https://nanobrew.trilok.ai/install | bash
         creates: "{{ nb }}"
 
+    - name: Symlink nb as brew
+      ansible.builtin.file:
+        src: "{{ nb }}"
+        dest: /opt/nanobrew/prefix/bin/brew
+        state: link
+
     # Loop one-per-formula: `nb install <list>` aborts the whole batch if any
     # single name fails dependency resolution.
     - name: Install packages

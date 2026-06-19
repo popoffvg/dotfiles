@@ -15,11 +15,6 @@ setopt AUTO_PUSHD                  # pushes the old directory onto the stack
 setopt PUSHD_MINUS                 # exchange the meanings of '+' and '-'
 setopt CDABLE_VARS                 # expand the expression (allows 'cd -2/tmp')
 
-export PATH=$PATH:/usr/local/go/bin
-export PATH=$PATH:$HOME/.cargo/bin
-export PATH=$PATH:"$(go env GOPATH)/bin"
-export PATH=$PATH:~/local/bin
-export PATH=$PATH:/opt/nanobrew/prefix/bin
 
 if secret="$(security find-generic-password -s CURSOR -w 2>/dev/null)"; then
   export CURSOR_API_KEY="$secret"
@@ -46,6 +41,18 @@ zinit snippet OMZP::git                      # 150+ git aliases (gst, gco, gp, .
 zinit snippet OMZP::brew                     # Homebrew completions
 zinit snippet OMZP::eza                      # eza aliases + completions
 # dropped: OMZL::async_prompt (starship owns the prompt), OMZP::direnv (hooked in .zshrc_aliases)
+
+# Use Apple clang for CGO (nanobrew LLVM lacks macOS SDK sysroot)
+export CC=/usr/bin/clang
+
+# Corp TLS: combined cert bundle (system + corp proxy certs)
+export NODE_EXTRA_CA_CERTS="$HOME/.config/ssl/combined-certs.pem"
+
+export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:$HOME/.cargo/bin
+export PATH=$PATH:"$(go env GOPATH)/bin"
+export PATH=$PATH:~/local/bin
+export PATH=$PATH:/opt/nanobrew/prefix/bin
 
 
 export EDITOR=hx

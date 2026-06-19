@@ -15,6 +15,9 @@ defaults write -g NSAutomaticCapitalizationEnabled -bool true
 defaults write -g NSAutomaticSpellingCorrectionEnabled -bool false
 defaults write -g NSAutomaticPeriodSubstitutionEnabled -bool true
 
+# --- Caps Lock = language switch only (no uppercase lock) ---
+hidutil property --set '{"CapsLockDelayOverride":0}' >/dev/null
+
 # --- Trackpad / scroll ---
 defaults write -g com.apple.swipescrolldirection -bool false   # "natural" scroll off
 defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true            # tap to click

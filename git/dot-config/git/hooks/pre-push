@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-# Global pre-push hook: block fixup/squash commits.
+# Global pre-push hook: block fixup/squash commits + repo-local delegation.
 # Installed via: git config --global core.hooksPath ~/.config/git/hooks
 set -euo pipefail
 
 # --- Block fixup/squash/amend commits ---
 zero="0000000000000000000000000000000000000000"
 
-while read -r local_ref local_sha remote_ref remote_sha; do
+# Save stdin for repo-local hook (pre-push reads refs from stdin)
+input=$(cat)
+
+echo "$input" | while read -r local_ref local_sha remote_ref remote_sha; do
   if [ "$local_sha" = "$zero" ]; then
     continue
   fi
@@ -28,3 +31,9 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     exit 1
   fi
 done
+
+# Delegate to repo-local hook
+LOCAL_HOOK="$(git rev-parse --git-dir 2>/dev/null)/hooks/pre-push"
+if [ -x "$LOCAL_HOOK" ]; then
+  echo "$input" | exec "$LOCAL_HOOK" "$@"
+fi

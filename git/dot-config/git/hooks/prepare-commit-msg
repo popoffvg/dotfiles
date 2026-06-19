@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Global prepare-commit-msg hook: delegate to repo-local hook.
+# Installed via: git config --global core.hooksPath ~/.config/git/hooks
+set -euo pipefail
+
+LOCAL_HOOK="$(git rev-parse --git-dir 2>/dev/null)/hooks/prepare-commit-msg"
+if [ -x "$LOCAL_HOOK" ]; then
+  exec "$LOCAL_HOOK" "$@"
+fi

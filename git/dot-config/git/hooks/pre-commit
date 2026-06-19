@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Global pre-commit hook: gitleaks + repo-local lefthook.
+# Global pre-commit hook: gitleaks + repo-local delegation.
 # Installed via: git config --global core.hooksPath ~/.config/git/hooks
 set -euo pipefail
 
@@ -10,7 +10,9 @@ if command -v gitleaks >/dev/null 2>&1; then
   fi
 fi
 
-# Delegate to repo-local lefthook if present
+# Delegate to repo-local hooks
 if [ -f "lefthook.yml" ] && command -v lefthook >/dev/null 2>&1; then
   lefthook run pre-commit
+elif [ -x "$(git rev-parse --git-dir 2>/dev/null)/hooks/pre-commit" ]; then
+  exec "$(git rev-parse --git-dir)/hooks/pre-commit" "$@"
 fi
