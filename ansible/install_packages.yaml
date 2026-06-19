@@ -37,6 +37,7 @@
       - sk
       - pamburus/tap/hl
       - difftastic
+      - patchutils
       - dust
       - procs
       - htop

@@ -16,7 +16,14 @@ defaults write -g NSAutomaticSpellingCorrectionEnabled -bool false
 defaults write -g NSAutomaticPeriodSubstitutionEnabled -bool true
 
 # --- Caps Lock = language switch only (no uppercase lock) ---
-hidutil property --set '{"CapsLockDelayOverride":0}' >/dev/null
+# Remap Caps Lock → F18 (Keychron Q11: vendor 13364, product 480)
+defaults -currentHost write -g "com.apple.keyboard.modifiermapping.13364-480-0" -array \
+  '<dict><key>HIDKeyboardModifierMappingSrc</key><integer>30064771129</integer><key>HIDKeyboardModifierMappingDst</key><integer>30064771181</integer></dict>'
+hidutil property --set '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x70000006D}]}' >/dev/null
+# Bind "Select previous input source" to F18
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 \
+  '<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array><integer>63279</integer><integer>79</integer><integer>0</integer></array><key>type</key><string>standard</string></dict></dict>'
+/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u 2>/dev/null || true
 
 # --- Trackpad / scroll ---
 defaults write -g com.apple.swipescrolldirection -bool false   # "natural" scroll off

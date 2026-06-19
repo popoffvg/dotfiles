@@ -191,7 +191,17 @@
         ]
       }
     ],
-    "Stop": [],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Before ending: review this session for corrections, decisions, or conventions. If any found — append to CLAUDE.local.md under `## Self-improvement` section. Skip if nothing new."
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": []
   },
   "statusLine": {
