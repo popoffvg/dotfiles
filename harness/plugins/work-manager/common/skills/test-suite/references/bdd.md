@@ -193,6 +193,38 @@ Then the library is absent from the library list
 For multi-line shell commands in docstrings, always annotate with `"""sh` (not bare `"""`).
 This signals intent and enables syntax highlighting in editors that support it.
 
+### Pinning concrete values
+
+An ops scenario is only as trustworthy as the values it embeds. When you pin a flag, id,
+endpoint, dataset, or secret:
+
+- **Verify every external identifier against its authoritative source — never guess from a
+  label.** A preset id, CLI flag, or resource name must be confirmed (fetch the tool's docs,
+  read the flag definition, grep the source). "Takara Bio v2" is a label; `takara-human-rna-tcr-umi-smarter-v2`
+  is the id. Pin the exact string and cite where it was verified.
+- **Pin infra coordinates from the live deploy config, not a sibling runbook.** Namespace,
+  bucket, endpoint, secret name — read the actual `values-*.yaml` / manifest, which may have
+  drifted from a doc that copied it. (A doc said `-n platforma`; the deploy was `-n platforma-e2e`.)
+- **Cross-check pinned data against the tool that consumes it.** A dataset and a preset/tool
+  must share format and chemistry. A 10x single-cell dataset under a bulk-TCR preset fails for
+  the *wrong* reason and muddies the signal. When two pinned values contradict, stop, flag it,
+  ask which is authoritative, then align the other to it.
+- **Never inline a live secret.** Embed a fetch recipe in `Background` (e.g.
+  `kubectl get secret … -o jsonpath=… | base64 -d` into a shell var) and reference the secret by
+  name. The `.feature` file is committed; the credential must not be.
+
+### Link each step to its coverage
+
+A manual/e2e step should name the automated test that covers it, or mark the gap explicitly. A
+step with neither reads as "covered" when it isn't:
+
+```gherkin
+And importing into a frozen library returns a frozen error
+  # e2e: …/import_frozen_library_test.go:36 TestImportGate_FrozenLibrary_RejectsImport
+And the existing blob is still downloadable
+  # e2e: no automated counterpart yet — gap. Manual only.
+```
+
 ---
 
 ## Hardest happy path
@@ -206,6 +238,11 @@ Criteria for "hardest":
 - Uses real credentials / endpoints, not mocks.
 - Exercises the main failure-recovery path (e.g. freeze → re-activate, rotation → re-open).
 - Every intermediate state is independently observable (can be checked before the next step).
+
+**Prove an invariant by exercising a real downstream consumer, not by asserting it directly.**
+To show "downloads survive a freeze", run a real block (e.g. MiXCR) that pulls the blobs — its
+success *is* the proof, and it gives a stronger, less manual signal than a bare "re-download
+succeeds" check. Pick a consumer whose data path crosses the boundary under test.
 
 Put it first in the `.feature` file and mark it in the strategy doc.
 
@@ -224,3 +261,8 @@ Put it first in the `.feature` file and mark it in the strategy doc.
 | Sharing state between scenarios | Each scenario sets up its own preconditions |
 | Gherkin in a Markdown file | Write a `.feature` file in `<notes-dir>/features/` |
 | Bare `"""` for shell docstrings | Annotate with `"""sh` |
+| Guessing an external id from a label | Verify the exact id against docs/source, pin it, cite where |
+| Inlining a live credential in the feature | Embed a fetch recipe; reference the secret by name |
+| Pinned data that mismatches the consuming tool | Cross-check format/chemistry; flag contradictions, align to the authoritative side |
+| Infra coordinates copied from a sibling doc | Read the live deploy config (`values-*.yaml`/manifest) |
+| Manual step with no test link and no gap marker | Link the e2e test, or mark "gap — manual only" |
