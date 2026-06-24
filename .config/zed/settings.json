@@ -125,6 +125,9 @@
   "helix_mode": true,
   "agent_servers": {
     "cursor": {
+      "default_config_options": {
+        "model": "composer-2.5[fast=true]"
+      },
       "favorite_config_option_values": {
         "model": [
           "composer-2.5[fast=true]"

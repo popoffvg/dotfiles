@@ -157,15 +157,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.claude/hooks/codedb-block-legacy.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
             "command": "$HOME/.claude/hooks/block-branch-change.sh"
           }
         ]
@@ -178,10 +169,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.claude/hooks/codedb-warmup.sh"
-          },
-          {
-            "type": "command",
             "command": "$HOME/.claude/scripts/commit-index-refresh-bg.sh"
           },
           {
@@ -191,17 +178,7 @@
         ]
       }
     ],
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Before ending: review this session for corrections, decisions, or conventions. If any found — append to CLAUDE.local.md under `## Self-improvement` section. Skip if nothing new."
-          }
-        ]
-      }
-    ],
+    "Stop": [],
     "UserPromptSubmit": []
   },
   "statusLine": {
@@ -209,6 +186,7 @@
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
+    "self-improvement@local-plugins": true,
     "ast-grep@ast-grep-marketplace": true,
     "claude-md-management@claude-plugins-official": true,
     "claude-mem@thedotmack": false,
@@ -234,7 +212,8 @@
     "understand-anything@understand-anything": true,
     "mictx-ecosystem@mictx-helper-marketplace": true,
     "mictx@mictx-helper-marketplace": true,
-    "plannotator@plannotator": true
+    "plannotator@plannotator": true,
+    "ponytail@ponytail": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -290,6 +269,12 @@
         "source": "github",
         "repo": "backnotprop/plannotator"
       }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
     }
   },
   "sandbox": {
@@ -325,6 +310,6 @@
   "terminalProgressBarEnabled": true,
   "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,
-  "enableWeakerNestedSandbox": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "enableWeakerNestedSandbox": true
 }

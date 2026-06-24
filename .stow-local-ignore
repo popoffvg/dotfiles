@@ -1,5 +1,6 @@
 # Managed by dotfiles repo (stow conflict)
 \.git
+\.githooks
 \.gitignore
 \.mcp\.json
 \.aerospace\.toml
@@ -22,6 +23,8 @@ cspell\.json
 ^zsh$
 
 # .config paths managed by dotfiles repo
+\.config/atuin
+\.config/zed
 \.config/direnv
 \.config/fish
 \.config/ghostty

@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Repo-local hook multiplexer for the dotfiles repo.
+#
+# This repo sets a LOCAL core.hooksPath -> .githooks (see scripts/setup-githooks.sh),
+# which overrides the global hooks dir. To keep the global hooks working here AND add
+# repo-local behavior, every hook in .githooks/ symlinks to this dispatcher.
+#
+# Flow for each hook:
+#   1. run the matching GLOBAL hook (resolved via `git config --global core.hooksPath`)
+#   2. run repo-local extras (e.g. post-commit -> restow with stow)
+set -euo pipefail
+
+hook="$(basename "$0")"
+[ "$hook" = "dispatch" ] && exit 0
+
+# 1. Delegate to the global hook of the same name, if any.
+global_dir="$(git config --global --get core.hooksPath 2>/dev/null || true)"
+global_dir="${global_dir/#\~/$HOME}"
+if [ -n "$global_dir" ] && [ -x "$global_dir/$hook" ]; then
+  "$global_dir/$hook" "$@" || exit $?
+fi
+
+# 2. Repo-local behavior.
+case "$hook" in
+  post-commit)
+    # Restow so symlinks track committed changes. Background + silent + best-effort:
+    # exit the hook immediately, never block the commit, ignore pre-existing
+    # stow conflicts (mirrors the global post-checkout background-pull pattern).
+    toplevel="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+    if [ -n "$toplevel" ] && command -v stow >/dev/null 2>&1; then
+      ( cd "$toplevel" && stow -R -t "$HOME" . &>/dev/null & )
+    fi
+    ;;
+esac

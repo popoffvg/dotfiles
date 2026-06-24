@@ -13,6 +13,7 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | build-zoom-html.py | Wrap a D2/Graphviz SVG into a zoomable HTML viewer (svg-pan-zoom CDN). Args: <svg-in> <html-out> <title> |
 | cursor-agent-hang-capture.sh | Capture lsof+sample of a hung interactive cursor-agent (agent CLI) to find what startup is blocked on |
 | strip-work-skill-prefix.sh | Strip the "work-" prefix from wm skill-name references in given files (Perl word-boundary, idempotent; avoids work-verify-gate/work-abandon/work-next-prompt) |
+| openclaw-vault-rekey.sh | Re-key openclaw-infra ansible-vault when old password lost: reconstruct vault.yml from server's rendered telepi config.env over SSH, encrypt with new random password, update Keychain, print new password for GitHub secret. Arg: REPO_DIR (default PWD) |
 | regroup-work-skills.sh | Regroup skills under category prefixes: renames global-store dir + recreates repo symlink (or moves real dir), fixes SKILL.md name frontmatter. Args: <repo-skills-dir> <old:new>... (new=__DELETE__ to drop) |
 | rewrite-skill-refs.sh | Rewrite skill references in delimited forms only (`old`→`new`, skills/old/→skills/new/, @old→@new) so prose words are never touched. Args: <old:new>... -- <file>... |
 | flow-reveal.mjs | Resolve the real source behind a workflow-pseudocode binding and open it in Zed. `reveal <file> <row> [--print]` opens the source for a notable-if ULID (via sibling *.bindings.json) or a .d.ts `@source` tag; `check <dir>` lints that every ULID/@source resolves to an existing path:line. Node, no deps. |

@@ -27,10 +27,10 @@ invoke the agent you need; each agent follows its skill.
 
 | Agent | Role | Skill |
 |-------|------|-------|
-| `planner` | Writes `.notes/spec.md` + `todos/TODO-N.md` | `spec` |
-| `researcher` | Explores codebase, writes `.notes/research-*.md` | `explore-research` |
-| `implementer` | Executes one TODO, then stops | `impl` |
-| `implementer-subtree` | *(experimental)* One TODO in its own worktree+branch; commits, fixups, squash-merges with spec message | `impl-subtree` |
+| `planner` | Writes `.notes/spec.md` + `todos/TODO-N.md` | `code new` |
+| `researcher` | Explores codebase, writes `.notes/research-*.md` | `explore research` |
+| `implementer` | Executes one TODO, then stops | `code impl` |
+| `implementer-subtree` | *(experimental)* One TODO in its own `wt` worktree+branch; commits, fixups, squash-merges with spec message | `code tree` |
 | `verifier` | Adversarially checks one implemented TODO vs its spec, writes `.notes/verify-TODO-N.md` | `impl-verify` |
 | `tester` | Designs/executes tests, writes report | `test-suite` |
 | `codebase-analyzer` | Documents how code works | — |
@@ -38,9 +38,9 @@ invoke the agent you need; each agent follows its skill.
 ### Skills (grouped by prefix)
 
 - **workflow**: shared pipeline, agents contract, notes structure, hard rules — read first by all agents
-- **explore**: one router — `/explore <docs|workflow>` (write the markdown research write-ups + question lists, then the typed TS pseudocode + path bindings). Plus `explore-flow-map`, `explore-handoff`, `explore-research`
-- **code**: one router — `/code <new|verify|revise|prototype|code-map|impl|fix|help>` (write spec, grill to empty Open Questions, auto-write TODO bodies, audit, sync, prototype, diagram, implement, fix bugs)
-- **impl-**: `impl`, `impl-commit`, `impl-verify` (adversarial post-impl verification), `impl-subtree` (*experimental* — worktree+branch per TODO, commit-as-you-go, fixup corrections; records planned/achieved Outcome), `merge-subtree` (*experimental, human-guarded* — squash-merge a `<task-slug>/TODO-N` branch into its parent, every git action confirmed)
+- **explore**: one router — `/explore <docs|workflow|research|flow-map>` (write the markdown research write-ups, the typed TS pseudocode + path bindings, document the codebase as-is, render flows.json as HTML). Plus `handoff` (standalone — compact a conversation into a handoff doc)
+- **code**: one router — `/code <new|verify|revise|prototype|code-map|impl|tree|squash|fix|help>` (write spec, grill to empty Open Questions, auto-write TODO bodies, audit, sync, prototype, diagram, implement one TODO, implement-in-`wt`-worktree + merge, distill worktree fixup lessons, fix bugs)
+- **impl-verify**: adversarial post-impl verification (the one surviving `impl-` skill). Commit conventions moved to `/code commit`; the experimental worktree-per-TODO flow now lives in `/code tree` + `/code tree merge` (`wt`-backed) with `/code squash` for fixup learning.
 - **test**: one router — `/test-suite <create|write|verify|case-design|bdd|tdd|harness|review>` (design a pairwise-tiered strategy, enumerate a scenario/coverage matrix, audit an existing set, derive cases by black-box technique, shape BDD scenarios, drive spec-before-code TDD, test a plugin harness, run the verify-phase review)
 - **review-**: `review-pr-comments`, `review-fix-comments`
 

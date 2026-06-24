@@ -19,7 +19,7 @@ Flow: `research → spec → spec-verify → implement → verify → done` (age
 | Pairwise test design, tiered budgets (unit ≤12, integ ≤6, manual ≤4) | `test-set-create` |
 | Test-honesty hard block (boundary changes can't claim "covered by unit tests") | `spec` → `verify` check E |
 | Terms table as canonical vocabulary across spec.md + every TODO | `spec` |
-| Documentarian research mindset + YAML frontmatter (git commit, branch, date, topic) | `explore-research` |
+| Documentarian research mindset + YAML frontmatter (git commit, branch, date, topic) | `explore research` |
 
 This matches or exceeds humanlayer's `create_plan.md` on most axes.
 

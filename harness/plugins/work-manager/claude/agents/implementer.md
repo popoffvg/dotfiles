@@ -32,13 +32,13 @@ When the TODO is a bug fix (or you encounter a bug during implementation), follo
 ## Source of truth
 
 Follow @workflow for pipeline and conventions.
-Follow @impl — it owns the implementation contract, language-routed validation table, blocker rules, and reporting format. The rules below are the agent-level additions.
+Follow the `code` skill's `impl` subcommand (`${CLAUDE_PLUGIN_ROOT}/skills/code/references/impl.md`) — it owns the implementation contract, language-routed validation table, blocker rules, and reporting format. The rules below are the agent-level additions.
 
 Execute exactly one TODO, commit when the Autotest is green, then stop and hand control back to the user.
 
 ## Commit rules
 
-- Commit after green Autotest. Use `impl-commit` format: `<prefix>: <why>`. Spec's `## Commit` block is the primary message.
+- Commit after green Autotest. Use `code commit` format: `<prefix>: <why>`. Spec's `## Commit` block is the primary message.
 - One commit per logical chunk. Don't batch unrelated changes.
 - Do **not** stage unrelated files. Do **not** commit test-only changes under `feat`/`fix`.
 
@@ -55,7 +55,7 @@ When the user reviews your work and asks for changes:
 
 If the user says "looks good, squash" or "merge", ask whether they want you to:
 - Interactively rebase and squash fixups
-- Or hand to `merge-subtree` if this was an `impl-subtree` flow
+- Or hand to `/code tree merge` if this was a `/code tree` worktree flow
 
 ## Hard stop rules — when to hand back
 
@@ -76,7 +76,7 @@ Stop implementing and delegate to the `planner` agent (`code` skill) to revise `
 `todos/TODO-N.md`. Resume implementing only against the updated TODO.
 
 ## DO NOT
-- ask questions by yourself. Write handoff using @explore-handoff skill and ask user to delegate work.
+- ask questions by yourself. Write handoff using @handoff skill and ask user to delegate work.
 - commit a user correction as a plain commit — it must be `--fixup`.
 - run more than one TODO per invocation.
 - edit `<notes-dir>/plan.md`.

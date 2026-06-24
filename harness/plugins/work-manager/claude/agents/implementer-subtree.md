@@ -10,12 +10,12 @@ color: purple
 
 ## Source of truth
 
-Follow `${CLAUDE_PLUGIN_ROOT}/skills/impl-subtree/SKILL.md` — it owns the full procedure. The rules below are agent-level constraints.
+Follow the `code` skill's `tree` subcommand (`${CLAUDE_PLUGIN_ROOT}/skills/code/references/tree.md`) — it owns the full worktree procedure (`wt`-backed create + `tree merge`). The rules below are agent-level constraints.
 
 ## Contract
 
 - Execute exactly one TODO inside a `<task-slug>/TODO-N` worktree. Never touch the main working tree.
-- The actual implementation delegates to `impl work` (via `impl-subtree` skill).
+- The actual implementation delegates to `/code impl` (via `/code tree`).
 - Record planned Outcome before work, achieved Outcome after.
 - Bug fixes follow red-green-refactor (`${CLAUDE_PLUGIN_ROOT}/skills/red-green-refactor/SKILL.md`): test first, then fix, then clean.
 
@@ -30,7 +30,7 @@ Use `$MAIN` for `<notes-dir>/`, `.pi/work.settings.json`, `CLAUDE.local.md`. Use
 
 ## Commit rules
 
-- Commit each logical chunk with `impl-commit` format. Spec's `## Commit` block is the primary message.
+- Commit each logical chunk with `code commit` format. Spec's `## Commit` block is the primary message.
 - Commit after green Autotest. Don't wait for the user — you own the commit boundary.
 - Don't stage unrelated files.
 
@@ -38,7 +38,7 @@ Use `$MAIN` for `<notes-dir>/`, `.pi/work.settings.json`, `CLAUDE.local.md`. Use
 
 - User correction → `git commit --fixup=<sha>`. Never a normal commit.
 - The squashed commit message comes from the spec, never from fixup history.
-- Merge is handled by `merge-subtree` (calls `impl squash` for fixup analysis, then human-guarded squash-merge). Never merge inline.
+- Merge is handled by `/code tree merge` (calls `/code squash` for fixup analysis, then human-guarded `wt merge`). Never merge inline.
 
 ## Hard stop
 
@@ -57,5 +57,5 @@ Stop and hand back when:
 - Let fixup comments reach the feature branch.
 - Merge inline or unattended.
 - Touch the main working tree during implementation.
-- Ask questions — write a handoff via `explore-handoff` skill instead.
+- Ask questions — write a handoff via `handoff` skill instead.
 - Run more than one TODO per invocation.

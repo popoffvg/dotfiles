@@ -18,9 +18,15 @@
     },
     {
       "name": "wm",
-      "source": "./wm",
+      "source": "./work-manager",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with MCP server, hooks, and agents.",
       "version": "2.0.0"
+    },
+    {
+      "name": "self-improvement",
+      "source": "./self-improvement",
+      "description": "Captures generalizable behavioral rules from user corrections into CLAUDE.local.md on session end, maintained via the improve-claude-local skill.",
+      "version": "0.1.0"
     }
   ]
 }
