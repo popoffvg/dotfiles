@@ -7,6 +7,14 @@
 // custom settings, run the `open default settings` command
 // from the command palette or from `Zed` application menu.
 {
+  "colorize_brackets": true,
+  "indent_guides": {
+    "coloring": "fixed",
+    "background_coloring": "disabled"
+  },
+  "preview_tabs": {
+    "enable_keep_preview_on_code_navigation": true
+  },
   "language_models": {
     "openai_compatible": {
       "cursor": {
@@ -47,7 +55,7 @@
   "theme": {
     "mode": "dark",
     "light": "One Light",
-    "dark": "One Dark",
+    "dark": "Catppuccin Macchiato",
   },
   "code_lens": "off",
   "proxy": "",
@@ -86,7 +94,7 @@
   "icon_theme": {
     "mode": "dark",
     "light": "Catppuccin Latte",
-    "dark": "Catppuccin Latte",
+    "dark": "Catppuccin Macchiato",
   },
   "title_bar": {
     "show_branch_status_icon": true,
@@ -252,7 +260,7 @@
     },
     "gopls": {
       "binary": {
-        "path": "gopls",
+        "path": "/Users/vitaliipopov/.local/share/mise/shims/gopls",
       },
     },
     "golangci-lint": {

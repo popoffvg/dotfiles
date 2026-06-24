@@ -142,7 +142,7 @@
   },
   {
     "bindings": {
-      "alt-cmd-enter": "editor::ToggleFocus"
+      "cmd-?": "editor::ToggleFocus"
     }
   },
   {
@@ -158,6 +158,11 @@
         "task::Spawn",
         { "task_name": "Flow: reveal source", "reevaluate_context": true }
       ]
+    }
+  },
+  {
+    "bindings": {
+      "cmd-<": "agent::FocusAgent"
     }
   }
 ]
