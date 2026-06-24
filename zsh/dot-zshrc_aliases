@@ -16,6 +16,7 @@ alias zed='mise x -- zed .'
 alias brew-raw='/opt/homebrew/bin/brew'
 alias brew=nb
 alias bg=mprocs
+alias llm="claude --model sonnet -p"
 sec() {
   local cmd="$1"
 
@@ -242,6 +243,17 @@ handoff-todo() {
 
   cd "$wt" || return 1
   command zed "$wt"
+}
+
+# escape — edit text in helix, print its raw contents on close.
+# Usage: VAR=$(escape)   or   llm "$(escape)"   (NOT `escape | llm` — claude -p
+# times out waiting on stdin while you edit; command substitution finishes first)
+escape() {
+  local tmp
+  tmp=$(mktemp -t escape.XXXXXX) || return 1
+  hx "$tmp" >/dev/tty 2>&1
+  printf '%s' "$(< "$tmp")"   # $(<) strips trailing newline; assignment keeps it raw
+  rm -f "$tmp"
 }
 
 function y() {
