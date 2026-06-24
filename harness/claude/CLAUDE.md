@@ -57,4 +57,10 @@ Use **bold** / *italic* for emphasis, one header level max
 
 ---
 
+## Stop hook: revise session
+
+When the Stop hook fires with reason `revise session`: run `/improve-claude-local` to review this session and append any new non-obvious metarules to `CLAUDE.local.md` under `## Self-improvement`. If nothing new — skip silently.
+
+---
+
 @RTK.md
