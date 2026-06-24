@@ -65,11 +65,7 @@ echo "CONTROL=$CMUX_SURFACE_ID" > /tmp/work-cmux-surfaces
 ## Phase 2: Launch planner
 
 ```bash
-if [ -d "$HOME/Documents/git/dotfiles/harness/plugins/work/claude" ]; then
-  PLUGIN_DIR="$HOME/Documents/git/dotfiles/harness/plugins/work/claude"
-else
-  PLUGIN_DIR="$HOME/Documents/git/dotfiles/harness/plugins/work-manager/claude"
-fi
+PLUGIN_DIR="$HOME/Documents/git/dotfiles/harness/plugins/wm/claude"
 
 # Create planner pane
 OUTPUT=$(cmux new-pane --type terminal --direction right --cwd "$(pwd)")

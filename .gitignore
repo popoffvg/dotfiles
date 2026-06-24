@@ -44,12 +44,6 @@ luac.out
 
 **/node_modules/
 
-# Pi agent runtime state
-.pi/
-harness/pi/agent/skills/
-harness/pi/work-guard.log
-harness/pi/work.settings.json
-
 # Editor configs
 .vscode/
 vscode/

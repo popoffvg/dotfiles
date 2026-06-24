@@ -9,36 +9,6 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/qmd-stats.mjs"
           }
         ]
-      },
-      {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/track-skill.sh",
-            "timeout": 2000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/track-edit.sh",
-            "timeout": 2000
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/track-tool-failure.sh",
-            "timeout": 2000
-          }
-        ]
       }
     ],
     "Stop": [
@@ -47,15 +17,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stop-capture.mjs"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/score-session.sh",
-            "timeout": 10000
           }
         ]
       }
@@ -68,15 +29,6 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-capture.mjs"
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/track-message.sh",
-            "timeout": 2000
-          }
-        ]
       }
     ],
     "SessionStart": [
@@ -85,15 +37,6 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/recover-session.sh",
-            "timeout": 10000
           }
         ]
       }

@@ -34,12 +34,3 @@ watchexec \
 description = "Remove harness/claude symlinks from ~/.claude"
 run = "stow --target=$HOME/.claude --dir={{config_root}} --delete claude"
 
-[tasks."pi:stow"]
-description = "Stow harness/pi → ~/.pi (settings.json only; skills owned by skill-manager)"
-sources = ["pi/agent/settings.json"]
-run = "stow --target=$HOME/.pi --dir={{config_root}} --restow pi"
-
-[tasks."pi:unstow"]
-description = "Remove harness/pi symlinks from ~/.pi"
-run = "stow --target=$HOME/.pi --dir={{config_root}} --delete pi"
-

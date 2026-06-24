@@ -4,13 +4,13 @@
 # and normalize the notes dir to .notes. Idempotent.
 #
 # Source of truth before: ~/.pi/agent/skills/plan*  (live global store, symlinked from repo)
-# Source of truth after:  harness/plugins/work-manager/common/skills/spec*  (real files in repo)
+# Source of truth after:  harness/plugins/wm/common/skills/spec*  (real files in repo)
 #
 # Usage: rehome-spec-skills.sh [REPO_ROOT]   (default: ~/Documents/git/dotfiles)
 set -euo pipefail
 
 REPO="${1:-$HOME/Documents/git/dotfiles}"
-SKILLS="$REPO/harness/plugins/work-manager/common/skills"
+SKILLS="$REPO/harness/plugins/wm/common/skills"
 STORE="$HOME/.pi/agent/skills"
 
 # old:new skill dir mapping

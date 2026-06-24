@@ -20,9 +20,8 @@ Read `insights_root` from `~/.claude/memory-keeper.local.md` YAML frontmatter. I
 
 Run these checks when user reports "command not visible" or asks "for Claude?":
 
-1. **Pi skill visibility**: ensure `~/.pi/agent/skills/context-done/SKILL.md` exists (usually symlinked to this file).
-2. **Claude command visibility**: ensure a Claude command file exists under `harness/plugins/work-manager/claude/commands/` and that it explicitly instructs invoking `context-done`.
-3. If Claude command is missing, do not claim the skill is available from Claude slash commands; state that only direct skill invocation works until command wiring is added.
+1. **Claude command visibility**: ensure a Claude command file exists under `harness/plugins/wm/claude/commands/` and that it explicitly instructs invoking `context-done`.
+2. If Claude command is missing, do not claim the skill is available from Claude slash commands; state that only direct skill invocation works until command wiring is added.
 
 ## Procedure
 

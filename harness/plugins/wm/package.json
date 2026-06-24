@@ -2,7 +2,7 @@
   "name": "wm",
   "version": "2.0.0",
   "private": true,
-  "description": "Work lifecycle management v2 — shared core + Pi adapter + MCP server + Claude plugin",
+  "description": "Work lifecycle management v2 — shared core + MCP server + Claude plugin",
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -10,13 +10,7 @@
     "server:start": "cd server && npx tsx index.ts",
     "server:install": "cd server && npm install"
   },
-  "pi": {
-    "extensions": [
-      "./pi/index.ts"
-    ]
-  },
   "peerDependencies": {
-    "@mariozechner/pi-coding-agent": "*",
     "@sinclair/typebox": "*"
   },
   "devDependencies": {

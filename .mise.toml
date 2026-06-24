@@ -15,12 +15,11 @@ description = "Check if OPENROUTER_API_KEY is available in current shell"
 run = "[ -n \"$OPENROUTER_API_KEY\" ] && echo OPENROUTER_API_KEY=SET || echo OPENROUTER_API_KEY=NOT_SET"
 
 [tasks.stow]
-description = "Stow everything: repo → ~, harness/claude → ~/.claude, harness/pi → ~/.pi, zsh+git (dotfiles) → ~"
+description = "Stow everything: repo → ~, harness/claude → ~/.claude, zsh+git (dotfiles) → ~"
 depends = ["harness:plugins:sync"]
 run = [
   "stow --target=$HOME --dir={{config_root}}/.. --restow {{ config_root | basename }}",
   "stow --target=$HOME/.claude --dir={{config_root}}/harness --restow claude",
-  "stow --target=$HOME/.pi --dir={{config_root}}/harness --restow pi",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow zsh",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow git",
 ]
@@ -30,7 +29,6 @@ description = "Unstow everything"
 run = [
   "stow --target=$HOME --dir={{config_root}}/.. --delete {{ config_root | basename }}",
   "stow --target=$HOME/.claude --dir={{config_root}}/harness --delete claude",
-  "stow --target=$HOME/.pi --dir={{config_root}}/harness --delete pi",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --delete zsh",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --delete git",
 ]
