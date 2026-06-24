@@ -198,12 +198,10 @@
     "feature-dev@claude-plugins-official": false,
     "github@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
-    "memory-keeper": false,
     "plugin-dev@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
     "superpowers@claude-plugins-official": false,
     "typescript-lsp@claude-plugins-official": true,
-    "memory-keeper@local-plugins": true,
     "worktrunk@worktrunk": true,
     "wm@local-plugins": true,
     "common@local-plugins": true,
@@ -311,5 +309,6 @@
   "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "enableWeakerNestedSandbox": true
+  "enableWeakerNestedSandbox": true,
+  "model": "sonnet"
 }

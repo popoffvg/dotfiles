@@ -1,8 +1,0 @@
-{
-  "name": "memory-keeper",
-  "version": "0.3.0",
-  "description": "Persistent knowledge management — automatic insight extraction, context injection, and memory search/save across sessions.",
-  "author": {
-    "name": "popoffvg"
-  }
-}

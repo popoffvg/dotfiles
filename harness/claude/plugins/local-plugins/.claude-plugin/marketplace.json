@@ -11,12 +11,6 @@
       "version": "1.0.0"
     },
     {
-      "name": "memory-keeper",
-      "source": "./memory-keeper",
-      "description": "Persistent knowledge management — automatic insight extraction, context injection, and memory search/save across sessions.",
-      "version": "0.3.0"
-    },
-    {
       "name": "self-improvement",
       "source": "./self-improvement",
       "description": "Captures generalizable behavioral rules from user corrections into CLAUDE.local.md on session end (Stop hook), and maintains them with the improve-claude-local skill.",

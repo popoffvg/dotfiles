@@ -28,7 +28,6 @@ Claude Code plugins. Each plugin root is `<name>/claude/` with agents, skills, c
 
 | Plugin | Claude | Purpose |
 |---|---|---|
-| **memory-keeper** | agents, skills, hooks, MCP (SSE) | Long-lived daemon (port 7420): SQLite queue, async insight extraction |
 | **work-manager** (`wm`) | agents (5), commands, hooks, statusline | Work phase management: research → spec → implement → verify → done |
 | **self-improvement** | skill, Stop hook | Captures behavioral rules from corrections into CLAUDE.local.md |
 | **common** | shared rules, language/tooling skills, prompt & model utilities | Shared plugin pool |
@@ -38,15 +37,6 @@ Claude Code plugins. Each plugin root is `<name>/claude/` with agents, skills, c
 Each skill: `<name>/SKILL.md` with YAML frontmatter + markdown instructions. Some include `references/` docs or helper scripts.
 
 **Categories:** work phases (8), context management (6), Go tooling (5), shell/code (4), productivity (7), devops (2).
-
-### Memory-Keeper Daemon
-
-Runs on `localhost:7420`. Owns SQLite DB, queue drain loop, stats, pino logger.
-
-- Claude Code connects via SSE (`type: sse` in mcp.json)
-- REST API for enqueue/stats (`/api/enqueue`, `/api/stats`, `/api/health-banner`)
-- LLM classification via OpenRouter/Gemma
-- Auto-starts from `ensure-daemon.sh` SessionStart hook
 
 ### WM Flow
 
