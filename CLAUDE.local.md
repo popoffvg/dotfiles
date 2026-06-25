@@ -2,13 +2,62 @@
 
 ## Self-improvement
 
-- **Diagnosing "agent/plugin not available": check what's *enabled*, not what exists on disk.** Read `~/.claude/settings.json` `enabledPlugins` + `installed_plugins.json` `installPath` to find the *active* cache dir, then inspect *that* dir's `agents/`. Don't assume the cache dir name matches the source dir name. Mistake made: inspected the disabled `work-manager@local-plugins` cache (agents named `work-implementer`) and concluded the `implementer` agent "doesn't exist", when the enabled plugin was `wm@local-plugins` and the source defines `implementer`. Verify the enabled→cache→agents chain before asserting an agent is missing.
-- **Plugin source-path mismatch breaks agent loading silently.** A marketplace.json `"source": "./X"` that doesn't resolve to a real dir/symlink yields an empty cache and zero agents, with no error. When wm/work-manager agents won't load, check that `harness/claude/plugins/local-plugins/.claude-plugin/marketplace.json` `source` matches an existing sibling symlink.
-- **Autonomous explore/research flows: don't add user-confirmation gates.** Default to proceeding without confirmation when a downstream loop (e.g. the explore grill loop) already backstops wrong choices. Mistake made: designed explore Phase 1 (find entry point) to confirm the discovered entry-point set with the user; the user overruled — "move forward without confirmation." Surface the chosen set in a log line, don't block on approval.
-- **Don't create real commits just to verify behavior.** Testing a commit-triggered hook (or similar) by making an actual commit — especially on the default branch, unprompted — violates the branch-first / commit-only-when-asked convention. Verify by invoking the hook/script directly, in a throwaway worktree/branch, or ask first. Mistake made: committed to main to test a post-commit hook; user had to request a soft-reset.
-- **When new functionality supersedes old, remove the old — don't keep it as a "fallback."** Adding a replacement while leaving the superseded thing in place creates redundancy the user then has to ask you to delete. If a new component fully covers an old one's purpose, delete the old one (and its coupled partners) and rewire references in the same change, unless the user explicitly says to keep it. Mistake made: built a replacement flow but kept the superseded skills as a fallback; user had to say "remove it entirely."
-- **Match the scope the user stated — don't silently narrow to a subsection.** When asked to build or improve something for X, deliver it for all of X; don't scope to one part of X unless told to. Mistake made: asked to improve the whole file, scoped the work to a single section; user had to correct the scope.
-- <when="a client/server flow fails and you're inferring which side is at fault"> Probe the live endpoint to localize the fault before reading source or editing. For gRPC: `grpcurl -plaintext -import-path <root> -proto <file> -d '{}' localhost:<port> <Service/Method>` (build an include-root with symlinks if reflection is auth-gated). The server response settles client-vs-server immediately. Mistake made: traced source statically and started toward a code edit; the user said "use grpc curl … for checking what side is failed" — the probe showed the server returned an empty `sso: {}`, pinning it to a stale backend binary, not the client.
-- <when="desktop SSO/runtime behaves inconsistently with the committed source"> Suspect stale BUILD ARTIFACTS, not the source. This repo runs compiled outputs that git does not track: the Go binary `cmd/platforma/platforma` and the pl-client `package.tgz` (consumed via desktop `pnpm.overrides` `file:…`). Reverting/switching source does NOT rebuild them, so a stale *migrated* binary or tgz silently diverges. Rebuild both from current source (`go build -o cmd/platforma/platforma ./cmd/platforma`; pl-client `pnpm run build && pnpm run do-pack`; desktop `pnpm install --no-frozen-lockfile`) before trusting runtime.
-- <when="running go build / pnpm build/pack/install under /Users/vitaliipopov/git/mil/…"> That path is NOT in the sandbox write allowlist — writes fail with "Operation not permitted (os error 1)". Run those commands with `dangerouslyDisableSandbox: true`.
-- <when="a gh API command fails with 'Could not resolve to a Repository' on a milaboratory/ org repo"> The active gh account lacks org-SSO access — don't give up. Two accounts are configured: `popoffvg` (personal, SSH push works but API token can't resolve org repos) and `vgpopov` (work, resolves milaboratory/ repos). `gh auth switch --user vgpopov`, run the API op (e.g. `gh pr create`), then `gh auth switch --user popoffvg` to restore. SSH `git push` works under either; only the gh API needs the work account.
+<task-relevant when="diagnosing a missing/unavailable agent or plugin">
+Check what's *enabled*, not what's on disk. Read `~/.claude/settings.json` `enabledPlugins` + `~/.claude/plugins/installed_plugins.json` `installPath` to find the *active* cache dir, then inspect that dir. The cache dir name need not match the source dir name. Verify the enabled→cache→agents chain before asserting something is missing.
+</task-relevant>
+
+<task-relevant when="local plugins won't load after moving or renaming a directory marketplace">
+Updating `settings.json` `extraKnownMarketplaces.<name>.source.path` is NOT enough. Claude Code's runtime `~/.claude/plugins/known_marketplaces.json` caches the old `source.path` + `installLocation` and overrides settings; a stale `~/.claude/plugins/<name>` symlink may also point at the deleted source. Fix both paths, remove the broken symlink, then `/reload-plugins` (or re-add the marketplace via `/plugin`). `installed_plugins.json` / the cache refresh on re-add.
+</task-relevant>
+
+<task-relevant when="a marketplace.json source path won't resolve">
+A `"source": "./X"` that doesn't resolve to a real dir/symlink yields an empty cache and zero agents/skills — silently, no error. Confirm the source path points at an existing plugin dir.
+</task-relevant>
+
+<task-relevant when="adding or editing a command in a lefthook hook">
+lefthook does NOT expand `{root}` inside `run:` strings — a literal `{root}/...` path fails with "No such file". lefthook runs hooks from the repo root, so use a repo-root-relative path (`bash harness/scripts/x.sh`).
+</task-relevant>
+
+<task-relevant when="an autonomous explore/research flow could add a user-confirmation gate">
+Don't gate on confirmation when a downstream loop already backstops wrong choices. Surface the chosen set in a log line; don't block on approval.
+</task-relevant>
+
+<task-relevant when="verifying a commit-triggered hook or other commit-gated behavior">
+Don't make a real commit to test it — especially not on the default branch. Invoke the hook/script directly, use a throwaway worktree/branch, or ask first.
+</task-relevant>
+
+<task-relevant when="adding functionality that supersedes something existing">
+Remove the superseded thing (and its coupled partners) and rewire references in the same change — don't leave it as a "fallback". Keep the old only if the user explicitly says so.
+</task-relevant>
+
+<task-relevant when="asked to build or improve something for X">
+Deliver it for all of X; don't silently narrow to one subsection unless told to.
+</task-relevant>
+
+<task-relevant when="documenting a module/folder/skill's structure or intent">
+Write `CLAUDE.md` in that folder, not `README.md`. Per-folder docs are CLAUDE.md here.
+</task-relevant>
+
+<task-relevant when="adding or editing a subcommand in a router skill (SKILL.md with a subcommand table)">
+Every subcommand needs its own `references/<subcommand>.md` — add the table row AND create the reference file in the same change. Don't leave the reference column as `(self)` or inline-only (except `help`, which is the SKILL itself); that's an incomplete subcommand.
+</task-relevant>
+
+<task-relevant when="applying a fix across a category of files (e.g. all *-help commands, all configs of a kind)">
+Glob the full set first, then apply to every member — don't fix only the ones already in your context. Missing one member is the common failure. Verify with a find/grep that no member was skipped.
+</task-relevant>
+
+<task-relevant when="a client/server flow fails and you're inferring which side is at fault">
+Probe the live endpoint to localize the fault before reading source or editing. For gRPC: `grpcurl -plaintext -import-path <root> -proto <file> -d '{}' localhost:<port> <Service/Method>` (build an include-root with symlinks if reflection is auth-gated). The server response settles client-vs-server immediately.
+</task-relevant>
+
+<task-relevant when="desktop SSO/runtime behaves inconsistently with the committed source">
+Suspect stale BUILD ARTIFACTS git doesn't track, not the source: the Go binary `cmd/platforma/platforma` and the pl-client `package.tgz` (desktop `pnpm.overrides` `file:…`). Reverting source does NOT rebuild them. Rebuild before trusting runtime (`go build -o cmd/platforma/platforma ./cmd/platforma`; pl-client `pnpm run build && pnpm run do-pack`; desktop `pnpm install --no-frozen-lockfile`).
+</task-relevant>
+
+<task-relevant when="running go build / pnpm build/pack/install under /Users/vitaliipopov/git/mil/…">
+That path is NOT in the sandbox write allowlist — writes fail with "Operation not permitted (os error 1)". Run with `dangerouslyDisableSandbox: true`.
+</task-relevant>
+
+<task-relevant when="a gh API command fails to resolve a milaboratory/ org repo, or git push to a popoffvg/ repo is denied">
+Two accounts: `popoffvg` (personal — SSH push works; force key with `git config core.sshCommand "ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes"` since default key selection can auth as the wrong user) and `vgpopov` (work — resolves milaboratory/ org repos). For gh API on org repos: `gh auth switch --user vgpopov`, run the op, then `gh auth switch --user popoffvg` to restore.
+</task-relevant>

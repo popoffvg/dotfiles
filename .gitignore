@@ -75,3 +75,6 @@ __pycache__/
 
 .firecrawl
 *.local.*
+
+# commit-index LMDB store (written via stow symlink; superseded by the commit-index plugin)
+harness/claude/scripts/commit-index/db/

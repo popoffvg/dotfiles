@@ -4,16 +4,6 @@
       "type": "stdio",
       "command": "${HOME}/.local/bin/fff-mcp",
       "args": []
-    },
-    "cocoindex": {
-      "type": "stdio",
-      "command": "/Users/popoffvg/.claude/scripts/ccc-mcp.sh",
-      "args": ["/Users/popoffvg/Documents/git/mil"]
-    },
-    "commit-index": {
-      "type": "stdio",
-      "command": "/Users/popoffvg/.claude/scripts/commit-index-mcp.sh",
-      "args": []
     }
   }
 }

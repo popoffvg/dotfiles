@@ -259,6 +259,14 @@
         cmd: git config --global core.hooksPath ~/.config/git/hooks
       changed_when: false
 
+    # --force: lefthook refuses to sync into a custom global core.hooksPath by
+    # default. We want its shims in the global dir alongside the hand-written hooks.
+    - name: Install lefthook hooks into global hooks path
+      ansible.builtin.command:
+        cmd: lefthook install --force
+        chdir: "{{ dotfiles_dir }}"
+      changed_when: false
+
     # --- Raycast extensions ---
     - name: Find Raycast extensions
       ansible.builtin.find:

@@ -3,7 +3,7 @@ name: work-help
 description: Show available work commands, workflow, and tips
 ---
 
-Display the following usage guide:
+Print the following usage guide verbatim. No preamble, no commentary, no tool calls — output only the markdown below.
 
 ---
 
