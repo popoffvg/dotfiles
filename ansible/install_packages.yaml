@@ -52,6 +52,7 @@
       - lazydocker
       - rtk
       - worktrunk
+      - gentleman-programming/tap/engram
       # dev
       - mise
       - go

@@ -4,6 +4,16 @@
       "type": "stdio",
       "command": "${HOME}/.local/bin/fff-mcp",
       "args": []
+    },
+    "cocoindex": {
+      "type": "stdio",
+      "command": "${HOME}/.claude/scripts/ccc-mcp.sh",
+      "args": []
+    },
+    "commit-index": {
+      "type": "stdio",
+      "command": "${HOME}/.claude/scripts/commit-index-mcp.sh",
+      "args": []
     }
   }
 }

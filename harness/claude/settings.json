@@ -325,5 +325,6 @@
   "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "enableWeakerNestedSandbox": true
+  "enableWeakerNestedSandbox": true,
+  "tui": "fullscreen"
 }
