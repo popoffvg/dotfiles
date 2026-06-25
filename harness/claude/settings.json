@@ -309,6 +309,5 @@
   "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "enableWeakerNestedSandbox": true,
-  "model": "sonnet"
+  "enableWeakerNestedSandbox": true
 }
