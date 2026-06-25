@@ -1,6 +1,6 @@
 {
   "name": "self-improvement",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Captures generalizable behavioral rules from user corrections into CLAUDE.local.md on session end (Stop hook), and maintains them with the improve-claude-local skill.",
   "author": {
     "name": "popoffvg"

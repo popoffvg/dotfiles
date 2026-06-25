@@ -37,6 +37,8 @@ Write in informative style (Ильяхов / Zinsser). Be extremely concise. Sac
 
 Use **bold** / *italic* for emphasis, one header level max
 
+**Authoring instructional docs (SKILL.md, agents, commands, references):** lead with the procedure in imperative/infinitive form. No second person ("you"). Skip background framing — no "Core problem" / "Why" / "Motivation" sections; at most one line of context, then the steps.
+
 ## Proof of Thought
 
 **MUST follow** — the user audits every claim:

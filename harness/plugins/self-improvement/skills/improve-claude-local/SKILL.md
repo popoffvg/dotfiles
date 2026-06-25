@@ -1,73 +1,85 @@
 ---
 name: improve-claude-local
 description: >
-  Improve a whole CLAUDE.local.md — the private, per-project rules captured from
-  user corrections. Wraps each conditional rule in a <task-relevant> block so it
-  only surfaces for matching work, merges duplicates, generalizes one-off facts,
-  drops stale entries, and routes raw project facts to engram. Use when the user
-  says "improve claude.local", "clean up the local rules", "claude.local is
-  bloated", or after the Stop hook has appended many rules.
+  Triage captured lessons and route each to where it belongs, then keep
+  CLAUDE.local.md sharp. Three destinations: project-agnostic lessons (code/arch
+  style, language idioms) → global ~/.claude/CLAUDE.md; concrete project facts →
+  engram (mem_save); project-scoped patterns/conventions → CLAUDE.local.md as
+  <task-relevant> blocks. Use when the user says "improve claude.local", "clean up
+  the local rules", "claude.local is bloated", or after the Stop hook has appended
+  rules.
 ---
 
-Rewrite CLAUDE.local.md so its rules stay sharp instead of diluting each other. CLAUDE.local.md holds private per-project guidance — mostly behavioral rules the Stop hook captured from user corrections (`## Self-improvement`), plus any local facts the user pinned.
+Run two steps in order: **(1) route every captured lesson to its correct home**, then **(2) keep what lands in CLAUDE.local.md sharp**. Route first, then tidy — a lesson in the wrong file is lost (too local) or noise (too broad).
 
-## Core problem
+# Step 1 — Classify and route each lesson
 
-Claude Code injects every CLAUDE.local.md with: *"this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant."*
+For every captured entry, ask two questions.
 
-The Stop hook appends a new rule each time the user corrects behavior. The file grows. Most rules match no current task, so the model treats the whole file as noise — including the rule that matters right now.
+## Q1: Is it project-agnostic?
 
-## Solution: `<task-relevant>` blocks
+Would this lesson help on a *different* codebase? Code style, architecture principles, language idioms, general workflow/tooling habits, review taste — these transfer.
 
-Wrap each conditional rule in a `<task-relevant when="...">` XML block. Same tag pattern Claude Code's own system prompt uses — an explicit relevance signal that cuts through the "may or may not be relevant" framing. The model sees every rule but attends only to the one whose `when` matches the task.
+→ **Yes → global `~/.claude/CLAUDE.md`.** Append it to the user's cross-project rules. Phrase it generally; strip this project's names/paths. This file is always-on for every project, so keep it terse and only add lessons that are genuinely transferable. Then drop it from CLAUDE.local.md.
 
-## Principles
+→ **No (specific to this repo) → Q2.**
 
-### 1. Foundational context bare, conditional rules wrapped
+Examples that go global: "prefer composition over inheritance for X-shaped problems", "name test files `*_test.go` next to source", "default to table-driven tests", "write commit subjects as `<prefix>: <why>`".
 
-Leave bare anything relevant to nearly every task in this repo — project identity, a one-line map, where things live. Wrap anything that only matters for a kind of work. Rule of thumb: relevant to 90%+ of tasks → bare; relevant to a specific task → `<task-relevant>`. Most of CLAUDE.local.md is the wrapped kind.
+## Q2: Score the project-scoped lesson 1..5
 
-### 2. One rule, one block, one condition
+Score by **abstraction / reusability within this project** — how many future tasks it shapes.
 
-Each rule gets its own block with a narrow `when`. Never group unrelated rules under one broad condition — broad conditions match everything, so they dilute nothing and the file reverts to noise.
+| Score | Nature | Destination |
+|---|---|---|
+| **1–2** | Concrete one-off fact — a path, flag, command, ID, env quirk, "X lives at Y". Answers a lookup, doesn't change behavior across tasks. | **engram** (`mem_save`). Drop from CLAUDE.local.md. |
+| **3** | Borderline. If it generalizes to a "next time do X instead of Y" rule → CLAUDE.local.md. If it's really a lookup → engram. | judgment |
+| **4–5** | A reusable **pattern / convention / style** for this project that shapes a whole class of work. | **CLAUDE.local.md** as a `<task-relevant>` block. |
+
+Score-5 examples (these belong in CLAUDE.local.md): "in repo subfolders write `CLAUDE.md`, not `README.md`"; "a `*-help` command prints its table verbatim — no preamble, no tool calls"; "a router SKILL.md gives every subcommand its own `references/<sub>.md`".
+
+Score-1 examples (these go to engram): "the staging cluster is `dev-htz-fra1`"; "`gh` needs `--user vgpopov` for org repos"; "the DB dump script is `mise run dump-db`".
+
+## Routing summary
 
 ```
-<task-relevant when="diagnosing a missing agent or plugin">
-Check what's *enabled* (settings.json enabledPlugins + installed_plugins.json installPath), not what exists on disk. The active cache dir name need not match the source dir.
-</task-relevant>
+project-agnostic? ─yes→ ~/.claude/CLAUDE.md   (transferable rule, generalized)
+        │no
+        ▼
+score 1..5 ─1-2→ engram (mem_save)            (concrete fact)
+           ─4-5→ CLAUDE.local.md              (project pattern, as <task-relevant>)
+           ─ 3 → judgment: rule→local, fact→engram
+```
 
-<task-relevant when="an explore/research flow could add a user-confirmation gate">
-Don't gate on confirmation when a downstream loop already backstops wrong choices. Surface the choice in a log line; don't block.
+# Step 2 — Keep CLAUDE.local.md sharp
+
+Applies to everything that landed in CLAUDE.local.md (the score-4/5 patterns).
+
+## Format: `<task-relevant>` blocks
+
+Wrap each conditional rule in a `<task-relevant when="...">` block — an explicit relevance signal so the model attends to a rule only when its `when` matches the task at hand.
+
+### Principles
+
+**1. Foundational context bare, conditional rules wrapped.** Leave bare anything relevant to ~90%+ of tasks in this repo (project identity, one-line map, where things live). Wrap anything that only matters for a kind of work. Most rules are the wrapped kind.
+
+**2. One rule, one block, one condition.** Each rule gets its own block with a narrow `when`. Never group unrelated rules under one broad condition — broad conditions match everything and dilute nothing.
+
+```
+<task-relevant when="documenting a module/folder's structure or intent">
+Write CLAUDE.md in that folder, not README.md.
 </task-relevant>
 ```
 
-### 3. Generalizable rule, not a fact
+**3. Generalizable rule, not a fact.** Each surviving block states **what to do differently next time**. (If it's a raw fact, it should have gone to engram in step 1.)
 
-Each rule states **what to do differently next time** — a behavioral correction. Strip project-specific names, paths, and IDs into the `when` condition or out entirely; raw facts belong in engram (`mem_save`), not here. If an entry can't be phrased as "next time, do X instead of Y" and isn't foundational context, it's a fact — route it to engram and drop it.
+**4. Merge overlapping rules.** If one block refines another for the same trigger, merge into the sharper one. No two blocks the model weighs for the same task.
 
-### 4. Merge overlapping rules
+**5. Drop stale rules.** A rule pinned to a file/flag/workflow that no longer exists is dead weight — verify the anchor exists; delete if gone.
 
-Before keeping two rules, check if one refines the other. Two rules about the same trigger → merge into one block with the sharper condition. No two blocks the model would weigh for the same task.
+**6. Keep the `when` in the user's terms.** Describe how a *task* looks, not how the codebase looks: "when committing across multiple repos", not "when in a monorepo".
 
-### 5. Drop stale rules
+## Guards
 
-A rule pinned to a file, flag, or workflow that no longer exists is dead weight. Verify the referenced thing still exists; if not, delete the rule.
-
-### 6. Keep the `when` in the user's terms
-
-Write the condition for how a *task* looks, not how the codebase looks: "when committing across multiple repos", not "when in a monorepo". The model matches `when` against the work it's about to do.
-
-## How to apply
-
-1. Read the whole CLAUDE.local.md.
-2. Separate foundational context (project identity, map) from conditional rules. Leave foundational context bare at the top.
-3. For each conditional entry: is it a behavioral correction? If it's a raw project fact, route it to engram and drop it here.
-4. Generalize each surviving rule — strip IDs/paths, phrase as "do X instead of Y."
-5. Merge entries that share a trigger.
-6. Verify referenced files/flags/workflows still exist; delete rules whose anchors are gone.
-7. Wrap each final rule in `<task-relevant when="...">` with a task-shaped condition.
-8. Write back. Keep the `## Self-improvement` header bare — it's the section anchor the Stop hook appends to.
-
-## Scope
-
-Touch only CLAUDE.local.md. Leave CLAUDE.md (the checked-in project instructions) alone — this skill improves private captured corrections, not shared onboarding context.
+- Keep the `## Self-improvement` header bare — it's the anchor the Stop hook appends to.
+- Never touch the project's *checked-in* `CLAUDE.md` — that's shared onboarding, not captured corrections.
