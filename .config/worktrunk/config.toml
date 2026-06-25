@@ -3,5 +3,3 @@ command = "CLAUDECODE= MAX_THINKING_TOKENS=0 claude -p --model=haiku --tools='' 
 
 [post-create]
 mise-trust = "mise trust"
-link-pl-mcp = "src=/Users/popoffvg/Documents/git/mil/pl/.mcp.json; if [ -f \"$src\" ] && [ ! -e .mcp.json ]; then ln -s \"$src\" .mcp.json; fi"
-link-pl-cocoindex = "src=/Users/popoffvg/Documents/git/mil/pl/.cocoindex_code; if [ -d \"$src\" ] && [ ! -e .cocoindex_code ]; then ln -s \"$src\" .cocoindex_code; fi"

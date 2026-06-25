@@ -1,1 +1,0 @@
-/Users/popoffvg/.claude/plugins/memory-keeper/agents/context-keeper.md

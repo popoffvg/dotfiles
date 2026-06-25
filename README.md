@@ -17,9 +17,9 @@ Personal dotfiles. Managed with **GNU Stow** + **mise**. Repo layout mirrors `~/
 ├── .stow-local-ignore   # exclusions for repo-root stow package
 │
 ├── harness/             # Per-harness packages (separate stow targets)
-│   ├── claude/          # → ~/.claude   (settings.json, hooks, agents, commands, scripts, skills, CLAUDE.md, RTK.md, agent-settings, plugins/local-plugins)
-│   ├── plugins/         # Shared plugin pool consumed by claude via symlinks (NOT stowed)
-│   └── scripts/         # sync-marketplace.sh — regenerates local-plugins symlinks + marketplace.json
+│   ├── claude/          # → ~/.claude   (settings.json, hooks, agents, commands, scripts, skills, CLAUDE.md, RTK.md, agent-settings)
+│   ├── plugins/         # Plugin source dirs (wm, self-improvement); NOT stowed directly
+│   └── scripts/         # sync-marketplace.sh — regenerates /.claude-plugin/marketplace.json + /plugins/ symlinks
 │
 ├── ansible/             # Package installation playbook (run in-place)
 ├── scripts/             # Misc shell scripts (not stowed)
@@ -59,4 +59,4 @@ mise run unstow
 
 ## Adding a Claude Code plugin
 
-Plugins live in `harness/plugins/<name>/claude/`. The `sync-marketplace.sh` step (run automatically by `mise run stow`) generates the marketplace entries and per-plugin symlinks under `harness/claude/plugins/local-plugins/`.
+Plugins live in `harness/plugins/<name>/claude/`. The `sync-marketplace.sh` step (run automatically by `mise run stow`) generates the marketplace entries in `/.claude-plugin/marketplace.json` and per-plugin symlinks in `/plugins/`. The marketplace is registered at `$HOME/git/dotfiles` (repo root) in `harness/claude/settings.json`.

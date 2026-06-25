@@ -1,0 +1,20 @@
+{
+  "name": "local-plugins",
+  "owner": {
+    "name": "popoffvg"
+  },
+  "plugins": [
+    {
+      "name": "self-improvement",
+      "source": "./harness/plugins/self-improvement",
+      "description": "Captures generalizable behavioral rules from user corrections into CLAUDE.local.md on session end (Stop hook), and maintains them with the improve-claude-local skill.",
+      "version": "0.2.0"
+    },
+    {
+      "name": "wm",
+      "source": "./harness/plugins/wm",
+      "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
+      "version": "2.1.0"
+    }
+  ]
+}

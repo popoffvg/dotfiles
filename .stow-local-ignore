@@ -46,6 +46,9 @@ _notes
 \.DS_Store
 Library
 
+# Claude Code marketplace (lives at repo root, not stowed to ~)
+\.claude-plugin
+
 # Misc files that shouldn't be stowed
 CLAUDE\.md
 LICENSE

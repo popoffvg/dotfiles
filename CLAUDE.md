@@ -6,8 +6,11 @@ Personal dotfiles repo managed with **GNU Stow** + **Ansible**. The repo root mi
 
 ```
 .
-├── harness/plugins/     # Claude Code plugins (TypeScript)
-├── .claude/             # Claude Code settings, agents, skills
+├── .claude-plugin/      # marketplace.json — repo-root plugin marketplace
+├── harness/plugins/     # Claude Code plugin sources (markdown only)
+├── harness/claude/      # → ~/.claude  (settings, hooks, commands, skills, scripts)
+├── harness/scripts/     # sync-marketplace.sh, bump-plugin-version.sh
+├── .claude/             # project-local Claude config + project skills (laptop-setup)
 ├── .config/             # App configs: nvim, helix, zellij, git, ghostty, atuin, direnv, nix
 ├── raycast/             # Raycast extensions (space-manager)
 ├── hammerspoon/         # macOS automation (Lua)
@@ -24,19 +27,26 @@ Personal dotfiles repo managed with **GNU Stow** + **Ansible**. The repo root mi
 
 ### Plugins (`harness/plugins/`)
 
-Claude Code plugins. Each plugin root is `<name>/claude/` with agents, skills, commands, hooks, and MCP config; shared TypeScript/skills live in `<name>/common/`.
+Each plugin directory **is** the plugin root (= `CLAUDE_PLUGIN_ROOT`) — no `claude/` wrapper, no shared `common/`, no MCP server, no build step. Plain markdown: agents, commands, hooks, skills.
 
-| Plugin | Claude | Purpose |
+| Plugin | Contents | Purpose |
 |---|---|---|
-| **work-manager** (`wm`) | agents (5), commands, hooks, statusline | Work phase management: research → spec → implement → verify → done |
+| **wm** | agents (7), commands (8), hooks, bin | Work phase management: research → spec → implement → verify → done |
 | **self-improvement** | skill, Stop hook | Captures behavioral rules from corrections into CLAUDE.local.md |
-| **common** | shared rules, language/tooling skills, prompt & model utilities | Shared plugin pool |
 
-### Skills (`skills/`)
+### Marketplace (`/.claude-plugin/marketplace.json`)
 
-Each skill: `<name>/SKILL.md` with YAML frontmatter + markdown instructions. Some include `references/` docs or helper scripts.
+`harness/scripts/sync-marketplace.sh` regenerates `/.claude-plugin/marketplace.json` from the plugin sources — one entry per plugin, `source: ./harness/plugins/<name>` pointing **directly** at the plugin dir (no symlink layer).
 
-**Categories:** work phases (8), context management (6), Go tooling (5), shell/code (4), productivity (7), devops (2).
+Claude Code registers `local-plugins` as a **directory marketplace** pointing at the repo root (`$HOME/git/dotfiles` in `settings.json` `extraKnownMarketplaces`), so it reads `.claude-plugin/marketplace.json` straight from the repo — no stow step needed for the marketplace.
+
+### Skills
+
+- **Loose `~/.claude` skills** live in `harness/claude/skills/<name>/SKILL.md` (stowed to `~/.claude/skills`).
+- **Plugin skills** live in `harness/plugins/<name>/skills/`.
+- **Project skills** (repo-scoped) live in `.claude/skills/` — e.g. `laptop-setup`.
+
+Each skill: `SKILL.md` with `name:` + `description:` frontmatter; optional `references/` docs or helper scripts.
 
 ### WM Flow
 
@@ -48,50 +58,36 @@ State tracked in `work.settings.json`. Notes in `.notes/` (worklog, plan, resear
 
 ### Plugin cache
 
-Claude Code copies marketplace plugins to `~/.claude/plugins/cache/`. **Path traversal (`../`) is blocked** — files outside the plugin root are not copied. Symlinks within the plugin directory are **not followed** during caching.
+Claude Code copies marketplace plugins to `~/.claude/plugins/cache/`. **Path traversal (`../`) is blocked** and symlinks are **not followed** during caching — that's why plugin sources are self-contained markdown under `harness/plugins/<name>/`.
 
-**Edits to `~/.claude/plugins/cache/` are wiped on next stow.** Always edit the dotfiles source at `~/Documents/git/dotfiles/harness/plugins/<name>/` and re-stow.
-
-**Workaround for shared code** (e.g., `common/` referenced by `claude/`):
-1. Place shared code in `common/` at plugin root level
-2. Create a symlink inside the claude dir: `claude/common → ../common` (relative)
-3. Reference via `${CLAUDE_PLUGIN_ROOT}/common/...` (not `../common/...`)
-4. After any source change, sync cache: `cp -r <source>/common <cache>/common`
+Always edit the source at `harness/plugins/<name>/`, then re-sync (`mise run harness:plugins:sync`) and reinstall/refresh the marketplace in Claude Code.
 
 **To bypass cache entirely** during development:
 ```bash
-claude --plugin-dir ~/.claude/plugins/local-plugins/wm
+claude --plugin-dir ~/git/dotfiles/harness/plugins/wm
 ```
 
-### MCP tool naming
+### Version bump (pre-commit)
 
-Plugin MCP tools are namespaced as `mcp__plugin_<plugin-name>_<server-name>__<tool>`. Example:
-- Server `"work"` in plugin `"wm"` → `mcp__plugin_wm_work__work_state`
-- Use these full names in agent `tools:` frontmatter
+`lefthook.yml` runs `harness/scripts/bump-plugin-version.sh` on `pre-commit`: any plugin with staged changes gets its `plugin.json` **minor** version bumped (`x.Y.z → x.(Y+1).0`), the marketplace is regenerated, and both are re-staged.
 
 ### Plugin structure
 
 ```
-harness/plugins/<name>/
-├── common/           # Shared: skills, server, FSM, types
-│   ├── skills/       # SKILL.md files (source of truth)
-│   ├── server/       # MCP server (stdio)
-│   └── *.ts          # Shared logic
-└── claude/           # Claude Code plugin root (= CLAUDE_PLUGIN_ROOT)
-    ├── .claude-plugin/plugin.json
-    ├── .mcp.json
-    ├── agents/
-    ├── hooks/
-    ├── commands/
-    └── skills → ../common/skills   # symlink
+harness/plugins/<name>/        # = CLAUDE_PLUGIN_ROOT
+├── .claude-plugin/plugin.json
+├── agents/
+├── commands/
+├── hooks/
+└── skills/
 ```
 
 ## Dev Conventions
 
-- **TypeScript** for plugins — `tsx` runtime, no `tsc` build step
-- **Stow-compatible paths** — repo structure mirrors `~/`. **Never create config files directly in `~/`** — always place them in the repo at the matching path (e.g., `.config/worktrunk/config.toml`) and run `stow -t ~ .` to symlink. If a broken symlink or real file already exists at the target, remove it first before stowing.
+- **Markdown-only plugins** — no TypeScript, no build step, no MCP servers
+- **Stow-compatible paths** — repo structure mirrors `~/`. **Never create config files directly in `~/`** — always place them in the repo at the matching path and run `stow -t ~ .` to symlink. If a broken symlink or real file already exists at the target, remove it first before stowing.
 - **Atomic changes** — one logical change per commit, codebase always valid
-- **Plugin entry** — `claude/.claude-plugin/plugin.json` manifest
+- **Plugin entry** — `<name>/.claude-plugin/plugin.json` manifest
 - **Skill entry** — `SKILL.md` with `name:`, `description:` frontmatter
 
 ## Install
@@ -99,5 +95,5 @@ harness/plugins/<name>/
 ```sh
 ansible-playbook .ansible/install_packages.yaml
 mkdir -p ~/.claude/skills
-stow -t ~ .
+mise run stow
 ```

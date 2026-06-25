@@ -1,0 +1,6 @@
+{
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-6",
+  "rewriteShortcut": "ctrl+i",
+  "hintsShortcut": "ctrl+shift+i"
+}

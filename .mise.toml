@@ -34,9 +34,9 @@ run = [
 ]
 
 [tasks."harness:plugins:sync"]
-description = "Regenerate local-plugins marketplace + plugin symlinks"
-sources = ["harness/plugins/*/claude/.claude-plugin/plugin.json"]
-outputs = ["harness/claude/plugins/local-plugins/.claude-plugin/marketplace.json"]
+description = "Regenerate local-plugins marketplace.json from harness/plugins/"
+sources = ["harness/plugins/*/.claude-plugin/plugin.json"]
+outputs = [".claude-plugin/marketplace.json"]
 run = "bash {{config_root}}/harness/scripts/sync-marketplace.sh"
 
 [settings]

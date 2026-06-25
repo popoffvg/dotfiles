@@ -179,7 +179,17 @@
       }
     ],
     "Stop": [],
-    "UserPromptSubmit": []
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $HOME/.claude/hooks/coach.mjs"
+          }
+        ]
+      }
+    ]
   },
   "statusLine": {
     "type": "command",
@@ -204,14 +214,14 @@
     "typescript-lsp@claude-plugins-official": true,
     "worktrunk@worktrunk": true,
     "wm@local-plugins": true,
-    "common@local-plugins": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "engram@engram": true,
     "understand-anything@understand-anything": true,
     "mictx-ecosystem@mictx-helper-marketplace": true,
     "mictx@mictx-helper-marketplace": true,
     "plannotator@plannotator": true,
-    "ponytail@ponytail": true
+    "ponytail@ponytail": true,
+    "commit-index@commit-index-marketplace": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -235,7 +245,7 @@
     "local-plugins": {
       "source": {
         "source": "directory",
-        "path": "$HOME/.claude/plugins/local-plugins"
+        "path": "$HOME/git/dotfiles"
       }
     },
     "wm-marketplace": {
@@ -272,6 +282,12 @@
       "source": {
         "source": "github",
         "repo": "DietrichGebert/ponytail"
+      }
+    },
+    "commit-index-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "popoffvg/commit-index"
       }
     }
   },
