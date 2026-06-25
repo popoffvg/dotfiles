@@ -3,7 +3,7 @@ name: code-help
 description: Show all /code subcommands with one-line descriptions.
 ---
 
-Display this table:
+Print the following table verbatim. No preamble, no commentary, no tool calls — output only the markdown below.
 
 ## `/code <subcommand>` — full list
 

@@ -17,6 +17,7 @@ alias brew-raw='/opt/homebrew/bin/brew'
 alias brew=nb
 alias bg=mprocs
 alias llm="claude --model sonnet -p"
+alias bg=background
 sec() {
   local cmd="$1"
 

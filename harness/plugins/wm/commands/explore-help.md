@@ -3,7 +3,7 @@ name: explore-help
 description: Show all /explore subcommands with one-line descriptions.
 ---
 
-Display this table:
+Print the following table verbatim. No preamble, no commentary, no tool calls — output only the markdown below.
 
 ## `/explore <subcommand>` — full list
 

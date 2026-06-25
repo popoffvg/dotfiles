@@ -3,7 +3,7 @@ name: test-suite-help
 description: Show all /test-suite subcommands with one-line descriptions.
 ---
 
-Display this table:
+Print the following table verbatim. No preamble, no commentary, no tool calls — output only the markdown below.
 
 ## `/test-suite <subcommand>` — full list
 
