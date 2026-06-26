@@ -42,7 +42,7 @@ ls <notes-dir>/research/ 2>/dev/null
    - User-stated assertions recorded during explore
    - Gaps flagged as open questions or unknowns
 
-3. **Write fact notes.** For each concrete finding, write a `NNN-fact-*.md` to `<notes-dir>/spec-notes/` using the fact template (`references/note-template-fact.md`). Set `source: explore` in frontmatter. Use the shared note counter (start at 001 if spec-notes/ is empty, else increment from the highest existing `NNN`).
+3. **Write fact notes.** For each concrete finding, write a `NNN-fact-*.md` to `<notes-dir>/thoughts/` using the fact template (`references/note-template-fact.md`). Set `source: explore` in frontmatter. Use the shared note counter (start at 001 if thoughts/ is empty, else increment from the highest existing `NNN`).
    - One fact note per distinct finding. Do not merge unrelated facts.
    - **Write fact notes before starting the grill loop** — they must exist so decision notes can link to them.
 
@@ -59,7 +59,7 @@ After this step, the grill loop starts with a populated fact graph — decisions
 
 Interview the user about `<notes-dir>/spec.md` until shared understanding is reached and the
 spec's **Open Questions** list is empty. Every resolved question produces an Obsidian note
-(`decision` or `fact`) in `<notes-dir>/spec-notes/`, building a traceable thought graph.
+(`decision` or `fact`) in `<notes-dir>/thoughts/`, building a traceable thought graph.
 The decision tree IS the spec — walk it branch by branch, write one note per resolution.
 
 If a question can be answered by reading the codebase, read it instead of asking.
@@ -71,7 +71,7 @@ For each question, provide your recommended answer.
 ```
 _notes/
   spec.md
-  spec-notes/
+  thoughts/
     NNN-decision-slug.md   ← one per decision
     NNN-fact-slug.md       ← one per fact
 ```
@@ -100,7 +100,7 @@ For each resolved question, execute this cycle:
 
 1. **Ask one question** — with a recommended answer and one-line reason.
 2. **User answers** — accept, choose alternative, or provide new information.
-3. **Write one note** to `<notes-dir>/spec-notes/`:
+3. **Write one note** to `<notes-dir>/thoughts/`:
    - If the resolution is a **choice** → `decision` note. Record the question, recommendation, resolution, why (alternatives + reasoning), and links to constraining facts/prior decisions.
    - If the resolution establishes a **fact** (code observation, user assertion, constraint) → `fact` note. Record what, where, evidence (verbatim), and what decisions it constrains.
    - If the user provides new information that is neither → ask: "Is this a decision you're making, or a fact you're establishing?" Then write accordingly.
@@ -130,11 +130,11 @@ For each resolved question, execute this cycle:
 
 ### 1. Back-link all notes
 
-Walk every note in `spec-notes/`:
+Walk every note in `thoughts/`:
 
 - For each `Depends on` entry in note B that points to note A, add a corresponding `Affects` entry in note A pointing back to note B.
 - Populate the `links` frontmatter YAML list on every note with ALL `[[wikilinks]]` that appear in its body. This ensures Obsidian's graph view shows every connection.
-- Verify every `[[wikilink]]` target exists as a file in `spec-notes/`. If a link target was renamed or missing, fix it.
+- Verify every `[[wikilink]]` target exists as a file in `thoughts/`. If a link target was renamed or missing, fix it.
 
 ### 2. Confirm spec.md reflects every resolution
 

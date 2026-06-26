@@ -22,7 +22,7 @@ Use `new` + `todo` separately when the spec has > 3 TODOs or requires deep desig
 ```
 /code small
   ├─ Write minimal spec.md (if no existing spec)
-  ├─ Grill loop (condensed) ─── produces spec-notes/ notes + populates spec.md
+  ├─ Grill loop (condensed) ─── produces thoughts/ notes + populates spec.md
   ├─ Compile plan (same as new exit)
   └─ Auto-write TODO body files (same format as todo)
 ```
@@ -40,7 +40,7 @@ If spec.md exists (iteration):
 ## Step 2: Condensed grill loop
 
 Same operating mode as `new` (`references/new.md`): Ask → Answer → Write note → Update spec.
-Same note format: `references/note-format.md` (decision + fact notes in `spec-notes/`).
+Same note format: `references/note-format.md` (decision + fact notes in `thoughts/`).
 
 ### Grilling scope (condensed order)
 

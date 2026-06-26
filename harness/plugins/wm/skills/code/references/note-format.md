@@ -11,7 +11,7 @@ Templates (one file per type):
 ## File naming
 
 ```
-_notes/spec-notes/
+_notes/thoughts/
   NNN-type-slug.md
 ```
 
@@ -65,12 +65,12 @@ After the grill loop closes, the agent walks all notes and back-fills:
 
 1. **`Affects`** on decision notes — for each `Depends on` reference from note B to note A, add a corresponding `Affects` entry in note A pointing to note B.
 2. **`links`** frontmatter — populate the `links` YAML list with every `[[wikilink]]` that appears in the note body so Obsidian's graph view sees them.
-3. Verify every link target exists as a file in `spec-notes/`.
+3. Verify every link target exists as a file in `thoughts/`.
 
 ## Notes directory is the audit trail
 
 - `spec.md` = the compiled plan (decisions + terms + TODO list).
-- `spec-notes/` = the traceable thought graph. Each note proves why a decision was made.
+- `thoughts/` = the traceable thought graph. Each note proves why a decision was made.
 - A reviewer can read `NNN-decision-xxx.md`, follow `Depends on` links backward to see what facts constrained it, and follow `Affects` links forward to see what downstream decisions it enabled.
 - If a decision is ever questioned, the note shows the alternatives considered and why they were rejected — the spec is self-documenting.
 - Implementation decisions (made while authoring TODO bodies) also live here as

@@ -2,14 +2,14 @@
 description: >
   Implementation decision note template. Use when authoring a TODO body and making
   choices the spec didn't decide: file naming, package structure, error handling,
-  library usage, data shape. Lives in spec-notes/ alongside decision and fact notes.
+  library usage, data shape. Lives in thoughts/ alongside decision and fact notes.
 ---
 
 # spec — implementation decision note template
 
 When writing a TODO body, you make choices the spec didn't decide: file naming, package
 structure, error handling strategy, library usage, data shape. Every such choice is an
-**implementation decision**. Write it to `<notes-dir>/spec-notes/` immediately.
+**implementation decision**. Write it to `<notes-dir>/thoughts/` immediately.
 
 ## When to write
 
@@ -50,7 +50,7 @@ todo: TODO-N
 ## File naming
 
 ```
-<notes-dir>/spec-notes/
+<notes-dir>/thoughts/
   NNN-impl-decision-slug.md
 ```
 

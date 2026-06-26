@@ -259,7 +259,7 @@ The TS pseudocode that follows describes *behavior*; the Interface sub-block def
 
 While writing a TODO body, you make choices the spec didn't decide: file naming, package
 structure, error handling strategy, library usage, data shape. Every such choice is an
-**implementation decision**. Write it to `<notes-dir>/spec-notes/` immediately — before
+**implementation decision**. Write it to `<notes-dir>/thoughts/` immediately — before
 moving to the next section.
 
 Full template, rules, and when-to-write table: [`note-template-impl-decision.md`](note-template-impl-decision.md).

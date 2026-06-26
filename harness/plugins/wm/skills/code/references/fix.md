@@ -1,32 +1,47 @@
 # code — fix
 
-Fix broken behavior. Bugs exist because a thought (decision or fact) in `spec-notes/`
-is wrong. The fix loop: find the wrong thought → mark it → write the correct one → fix the code.
+Make the code match intent. The user points at a gap — a **bug** (behavior is wrong),
+a **missing part** (behavior is absent), or an **adjustment** (behavior works but should
+change). Every gap traces to a thought in `thoughts/`: wrong, missing, or due for revision.
+The fix loop: locate the thought → mark or add it → write the correct one → fix the code.
+
+## Trigger kinds
+
+| Kind | What the user points at | Thought action |
+|---|---|---|
+| **bug** | broken behavior — output wrong, crash, regression | a thought is **wrong** → deprecate + replace |
+| **missing** | something never built — a case unhandled, a step skipped | a thought is **missing** → add new |
+| **adjust** | working behavior that should differ — new requirement, changed decision | a thought is **outdated** → deprecate + replace |
+
+`bug` and `adjust` follow the same loop (deprecate the old thought, write the replacement);
+`missing` skips the deprecation step and goes straight to a new note.
 
 ## Contract
 
 - **Thoughts are mandatory.** Every fix session starts by asking: *"Should I mark an existing
-  thought as wrong, or add a new one?"* Never skip this question.
-- **One thought per fix.** If multiple thoughts are wrong, fix them one at a time — each gets
+  thought as wrong/outdated, or add a new one?"* Never skip this question.
+- **One thought per fix.** If multiple thoughts are affected, fix them one at a time — each gets
   its own `/code fix` invocation.
-- **Fix the thought first, then the code.** A bug fixed without correcting the thought will
-  recur. A thought corrected without fixing the code is philosophy.
+- **Fix the thought first, then the code.** Code changed without correcting the thought will
+  drift back. A thought corrected without fixing the code is philosophy.
 
 ## Step 1: Analyze the cause
 
-Before touching code, identify the root cause. Answer three questions:
+Before touching code, identify what the gap traces to. Answer three questions:
 
-1. **What broke?** — the observable symptom. One sentence.
-2. **Which thought is wrong?** — the specific decision or fact note in `spec-notes/` that
-   enabled the bug. Read `spec-notes/` notes linked from the relevant TODO.
-3. **What should the thought say instead?** — the corrected version. One sentence.
+1. **What's the gap?** — the observable symptom (bug), the absent behavior (missing), or
+   the desired change (adjust). One sentence.
+2. **Which thought is involved?** — the specific decision/fact/impl-decision note in
+   `thoughts/` that's wrong, outdated, or absent. Read the notes linked from the relevant TODO.
+3. **What should the thought say instead?** — the corrected or new version. One sentence.
 
-If no existing thought explains the bug, the cause is a **missing thought** — write a new one.
+If no existing thought covers the gap (always true for **missing**, sometimes for **adjust**),
+the cause is a **missing thought** — write a new one and skip Step 2.
 
 ### Finding the wrong thought
 
 ```
-spec-notes/
+thoughts/
   NNN-decision-<slug>.md   ← decisions that shaped the code
   NNN-fact-<slug>.md       ← facts the decisions depend on
   NNN-impl-decision-*.md   ← implementation choices made during TODO writing
@@ -61,7 +76,7 @@ deprecation_reason: "<one-line reason this thought is wrong>"
 
 ## Step 3: Write the corrected thought
 
-Write a new note to `spec-notes/` using the next available counter `NNN`:
+Write a new note to `thoughts/` using the next available counter `NNN`:
 
 - If the original was a **decision** → write a new decision note (`NNN-decision-<slug>.md`).
   Template: [`note-template-decision.md`](note-template-decision.md).
@@ -101,27 +116,27 @@ Now that the thought is corrected, fix the code to match:
 Append to `<notes-dir>/worklog.md`:
 
 ```
-- YYYY-MM-DD HH:MM: [FIX] <one-line symptom>
-  - wrong thought: NNN-old-slug deprecated (reason: <reason>)
-  - corrected thought: NNN-new-slug
+- YYYY-MM-DD HH:MM: [FIX:<kind>] <one-line gap>
+  - thought: NNN-old-slug deprecated (reason: <reason>) | none (missing)
+  - corrected/new thought: NNN-new-slug
   - commit: <sha>
   - autotest: pass | fail (details)
 ```
 
-Send the user:
-1. **Bug**: one-line symptom
-2. **Wrong thought**: NNN-old-slug — deprecated (reason)
-3. **Corrected thought**: NNN-new-slug — what changed
+`<kind>` is `bug`, `missing`, or `adjust`. Send the user:
+1. **Gap**: one-line symptom / absent behavior / desired change (with kind)
+2. **Old thought**: NNN-old-slug — deprecated (reason), or *none* for a missing thought
+3. **Corrected/new thought**: NNN-new-slug — what changed or what it adds
 4. **Commit**: sha + subject
 5. **Autotest**: command + outcome
 
 ## Hard rules
 
-- Never fix code without fixing the thought. A thoughtless fix is a deferred bug.
-- Never delete a thought — deprecate it. The history of wrong decisions is as valuable as
-  the history of right ones.
-- One thought per `/code fix`. If the bug spans multiple wrong thoughts, fix them in sequence —
+- Never change code without changing the thought. A thoughtless fix is deferred drift.
+- Never delete a thought — deprecate it. The history of wrong/outdated decisions is as valuable
+  as the history of right ones.
+- One thought per `/code fix`. If the gap spans multiple thoughts, fix them in sequence —
   each invocation corrects one thought and its code.
-- Always ask: "Should I mark an existing thought as wrong, or add a new one?" before starting.
-- If no existing thought is wrong (missing thought case), skip Step 2 and go straight to
+- Always ask: "Should I mark an existing thought as wrong/outdated, or add a new one?" before starting.
+- For **missing** (and **adjust** with no existing thought), skip Step 2 and go straight to
   writing a new note.

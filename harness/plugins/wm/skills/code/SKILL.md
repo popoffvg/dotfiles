@@ -5,8 +5,9 @@ description: >
   (write spec → grill loop → produce notes → author TODO bodies). Other subcommands:
   verify (audit), revise (sync to shipped), prototype (settle a decision),
   code-map (diagram), impl (execute one TODO), tree (worktree-per-TODO: new/merge),
-  squash (analyze fixups → CLAUDE.local.md → git squash), fix (analyze cause, correct
-  thoughts, fix behavior), commit (commit-message conventions), help (this page).
+  squash (analyze fixups → CLAUDE.local.md → git squash), fix (correct a bug, missing
+  part, or implementation adjustment by fixing the thought then the code),
+  commit (commit-message conventions), help (this page).
   Invoke as /code <subcommand>.
 argument-hint: help
 ---
@@ -23,7 +24,7 @@ argument-hint: help
 
 | `/code …` | You need to… | Reference |
 |---|---|---|
-| `new` *(default)* | Full spec pipeline: write `spec.md` (if missing) → grill loop (ask→answer→note) → produce `spec-notes/` → auto-write TODO bodies. One command, end to end. | `references/new.md` · `references/note-format.md` · `references/flow.md` · `references/todo.md` |
+| `new` *(default)* | Full spec pipeline: write `spec.md` (if missing) → grill loop (ask→answer→note) → produce `thoughts/` → auto-write TODO bodies. One command, end to end. | `references/new.md` · `references/note-format.md` · `references/flow.md` · `references/todo.md` |
 | `verify` | Audit spec before implementation — completeness, per-TODO files, execution readiness, scope discipline, test honesty. Returns READY / NEEDS REVISION. | `references/verify.md` |
 | `revise` | Rewrite `spec.md` + `todos/TODO-N.md` to match what the last commit for TODO-N actually shipped. No source edits. | `references/revise.md` |
 | `prototype` | Settle an OPEN design decision by spawning the implementer to make small, visible code changes. | `references/prototype.md` |
@@ -31,7 +32,7 @@ argument-hint: help
 | `impl` | Execute one TODO — read context, replan guard, implement, autotest, commit, report. | `references/impl.md` |
 | `tree` | Worktree flow. `tree new` *(default)*: implement one TODO in its own `wt` worktree+branch, committing fixups as you go. `tree merge`: invoke `squash`, then `wt merge` back. | `references/tree.md` |
 | `squash` | Analyze the worktree's fixup commits → distill lessons into `CLAUDE.local.md` → `git` squash-merge the branch as one commit. Called by `tree merge`. | `references/squash.md` |
-| `fix` | Fix behavior — analyze root cause, mark wrong notes, write corrected thoughts, fix code. | `references/fix.md` |
+| `fix` | Close a gap — bug, missing part, or adjustment. Mark the wrong/outdated note (or add a new one), write the corrected thought, fix code. | `references/fix.md` |
 | `commit` | Git commit-message conventions (`<prefix>: <why>`) — shared by `impl`, `tree`, `fix`. | `references/commit.md` |
 | `help` | This page — list all subcommands with descriptions. | (self) |
 
@@ -44,7 +45,7 @@ research → new → verify → impl → revise (iterate)
 ```
 
 - **new** is the default. It writes `spec.md` (if missing), runs the grill loop to empty
-  Open Questions, produces `spec-notes/` thought graph, and auto-writes TODO bodies. One command
+  Open Questions, produces `thoughts/` thought graph, and auto-writes TODO bodies. One command
   replaces the old `write → new → todo` sequence.
 - **verify** is the static audit gate. A spec with open questions cannot pass verify;
   run `new` again if the audit fails.
@@ -54,7 +55,7 @@ research → new → verify → impl → revise (iterate)
 - **squash** analyzes the worktree's fixup commits, distills lessons into `CLAUDE.local.md`,
   and `git` squash-merges the branch as one commit (invoked by `tree merge`).
 - **commit** holds the shared commit-message conventions used by `impl`, `tree`, `fix`.
-- **fix** fixes broken behavior — analyze cause, correct thoughts, fix code.
+- **fix** closes a gap — a bug, a missing part, or an implementation adjustment — by correcting the thought, then the code.
 - **prototype** and **code-map** are aids invoked mid-spec.
 - **revise** runs after implementation, when what shipped diverged from the spec.
 - **help** shows this page.
@@ -62,8 +63,8 @@ research → new → verify → impl → revise (iterate)
 ## Output shape
 
 `new` and `revise` edit `<notes-dir>/spec.md` and `todos/TODO-N.md`.
-`new` produces `<notes-dir>/spec-notes/NNN-{decision,fact,impl-decision}-slug.md`
+`new` produces `<notes-dir>/thoughts/NNN-{decision,fact,impl-decision}-slug.md`
 (format: `references/note-format.md`).
 `verify` writes `<notes-dir>/spec-verify.md`.
-`fix` writes `<notes-dir>/spec-notes/NNN-*-slug.md` (corrected thoughts).
+`fix` writes `<notes-dir>/thoughts/NNN-*-slug.md` (corrected thoughts).
 All write only under `<notes-dir>/` — never touch source code.

@@ -6,6 +6,8 @@ Use perl instead of bash scripts for multiediting files.
 
 **Search**: Prefer `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob. fff is faster with frecency ranking.
 
+When a request says "do X as/like the existing Y" (mirror a pattern), find the missing parallel in the actual diff/code — don't propose new mechanisms, scope expansions, or alternative shapes. Re-read the diff before suggesting anything novel. If asked to mirror Y, copy Y's exact structure; don't substitute a "better" variant (e.g. inline vs reference).
+
 ## Coding tasks
 
 Always score task complexity from 1 to 5, where 1 is simple and 5 is complex. Show user the score before starting.
