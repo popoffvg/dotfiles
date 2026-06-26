@@ -16,10 +16,16 @@ The fix loop: locate the thought → mark or add it → write the correct one �
 `bug` and `adjust` follow the same loop (deprecate the old thought, write the replacement);
 `missing` skips the deprecation step and goes straight to a new note.
 
+**A thought can be absent.** When the gap doesn't trace to any thought change — the thought
+is already correct and only the code drifted from it (typo, off-by-one, a branch that doesn't
+match the decision it cites) — there is no thought to mark or add. Skip Steps 2–3 and go
+straight to Step 4. Report it explicitly: *"no thought change — code diverged from a correct thought."*
+
 ## Contract
 
-- **Thoughts are mandatory.** Every fix session starts by asking: *"Should I mark an existing
-  thought as wrong/outdated, or add a new one?"* Never skip this question.
+- **Start at the thought.** Every fix session starts by asking: *"Should I mark an existing
+  thought as wrong/outdated, add a new one, or is the thought already correct (code-only drift)?"*
+  Never skip this question. A correct thought needs no change — but you must rule it out first.
 - **One thought per fix.** If multiple thoughts are affected, fix them one at a time — each gets
   its own `/code fix` invocation.
 - **Fix the thought first, then the code.** Code changed without correcting the thought will
@@ -117,26 +123,30 @@ Append to `<notes-dir>/worklog.md`:
 
 ```
 - YYYY-MM-DD HH:MM: [FIX:<kind>] <one-line gap>
-  - thought: NNN-old-slug deprecated (reason: <reason>) | none (missing)
-  - corrected/new thought: NNN-new-slug
+  - thought: NNN-old-slug deprecated (reason: <reason>) | none (missing) | none (code-only drift)
+  - corrected/new thought: NNN-new-slug | none
   - commit: <sha>
   - autotest: pass | fail (details)
 ```
 
 `<kind>` is `bug`, `missing`, or `adjust`. Send the user:
 1. **Gap**: one-line symptom / absent behavior / desired change (with kind)
-2. **Old thought**: NNN-old-slug — deprecated (reason), or *none* for a missing thought
-3. **Corrected/new thought**: NNN-new-slug — what changed or what it adds
+2. **Old thought**: NNN-old-slug — deprecated (reason), or *none* (missing / code-only drift)
+3. **Corrected/new thought**: NNN-new-slug — what changed or what it adds, or *none* (code-only drift)
 4. **Commit**: sha + subject
 5. **Autotest**: command + outcome
 
 ## Hard rules
 
-- Never change code without changing the thought. A thoughtless fix is deferred drift.
+- Never change code while a thought that contradicts it stands. Either correct the thought, or
+  confirm the thought is already right and the code merely drifted from it. A code change that
+  leaves a wrong thought in place is deferred drift.
 - Never delete a thought — deprecate it. The history of wrong/outdated decisions is as valuable
   as the history of right ones.
 - One thought per `/code fix`. If the gap spans multiple thoughts, fix them in sequence —
   each invocation corrects one thought and its code.
-- Always ask: "Should I mark an existing thought as wrong/outdated, or add a new one?" before starting.
+- Always ask: "Should I mark an existing thought as wrong/outdated, add a new one, or is it
+  already correct?" before starting.
 - For **missing** (and **adjust** with no existing thought), skip Step 2 and go straight to
-  writing a new note.
+  writing a new note. When the thought is already correct (code-only drift), skip Steps 2–3
+  and go straight to Step 4.
