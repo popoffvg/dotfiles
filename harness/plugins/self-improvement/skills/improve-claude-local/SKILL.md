@@ -3,8 +3,9 @@ name: improve-claude-local
 description: >
   Triage captured lessons and route each to where it belongs, then keep
   CLAUDE.local.md sharp. Three destinations: project-agnostic lessons (code/arch
-  style, language idioms) → global ~/.claude/CLAUDE.md; concrete project facts →
-  engram (mem_save); project-scoped patterns/conventions → CLAUDE.local.md as
+  style, language idioms) → a global skill (trigger as its description) plus a pointer
+  line in ~/.claude/CLAUDE.md; concrete project facts → engram (mem_save);
+  project-scoped patterns/conventions → CLAUDE.local.md as
   <task-relevant> blocks. Use when the user says "improve claude.local", "clean up
   the local rules", "claude.local is bloated", or after the Stop hook has appended
   rules.
@@ -20,11 +21,21 @@ For every captured entry, ask two questions.
 
 Would this lesson help on a *different* codebase? Code style, architecture principles, language idioms, general workflow/tooling habits, review taste — these transfer.
 
-→ **Yes → global `~/.claude/CLAUDE.md`.** Append it to the user's cross-project rules. Phrase it generally; strip this project's names/paths. This file is always-on for every project, so keep it terse and only add lessons that are genuinely transferable. Then drop it from CLAUDE.local.md.
+→ **Yes → a global skill + a pointer in `~/.claude/CLAUDE.md`.** Don't paste the instruction into CLAUDE.md — that file is always-on for every project and stays terse. Instead:
+
+1. **Write a skill** at `harness/claude/skills/<slug>/SKILL.md` (stowed to `~/.claude/skills/`). The lesson body is the skill content; the **if/when trigger is the skill's `description`** (skills auto-load when their description matches the task). Phrase it generally; strip this project's names/paths.
+2. **Add one pointer line to `~/.claude/CLAUDE.md`** — the if/when + a reference to the skill, nothing more:
+   ```
+   <task-relevant when="<trigger>">
+   Use the `<slug>` skill.
+   </task-relevant>
+   ```
+3. If a skill already covers this trigger, extend it instead of creating a new one.
+4. Then drop the lesson from CLAUDE.local.md.
 
 → **No (specific to this repo) → Q2.**
 
-Examples that go global: "prefer composition over inheritance for X-shaped problems", "name test files `*_test.go` next to source", "default to table-driven tests", "write commit subjects as `<prefix>: <why>`".
+Examples that go global (each becomes a skill): "prefer composition over inheritance for X-shaped problems", "name test files `*_test.go` next to source", "default to table-driven tests", "write commit subjects as `<prefix>: <why>`".
 
 ## Q2: Score the project-scoped lesson 1..5
 
@@ -43,7 +54,7 @@ Score-1 examples (these go to engram): "the staging cluster is `dev-htz-fra1`"; 
 ## Routing summary
 
 ```
-project-agnostic? ─yes→ ~/.claude/CLAUDE.md   (transferable rule, generalized)
+project-agnostic? ─yes→ global skill (trigger=description) + pointer line in ~/.claude/CLAUDE.md
         │no
         ▼
 score 1..5 ─1-2→ engram (mem_save)            (concrete fact)
