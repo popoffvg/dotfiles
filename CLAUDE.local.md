@@ -2,6 +2,10 @@
 
 ## Self-improvement
 
+<task-relevant when="asked to create a spec/corpus/project (mispec cold-start)">
+"Create a spec for X" may mean skeleton-only. Run `mispec init` first, then confirm scope before authoring north-star/atoms — don't front-load foundational framing questions. The operator may want the bare scaffold and to set the north-star/scope themselves later.
+</task-relevant>
+
 <task-relevant when="diagnosing a missing/unavailable agent or plugin">
 Check what's *enabled*, not what's on disk. Read `~/.claude/settings.json` `enabledPlugins` + `~/.claude/plugins/installed_plugins.json` `installPath` to find the *active* cache dir, then inspect that dir. The cache dir name need not match the source dir name. Verify the enabled→cache→agents chain before asserting something is missing.
 </task-relevant>

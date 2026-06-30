@@ -57,6 +57,30 @@ To remove all symlinks:
 mise run unstow
 ```
 
-## Adding a Claude Code plugin
+## Claude Code plugins
 
-Plugins live in `harness/plugins/<name>/claude/`. The `sync-marketplace.sh` step (run automatically by `mise run stow`) generates the marketplace entries in `/.claude-plugin/marketplace.json` and per-plugin symlinks in `/plugins/`. The marketplace is registered at `$HOME/git/dotfiles` (repo root) in `harness/claude/settings.json`.
+Two registries, both in `harness/claude/settings.json` (stowed to `~/.claude/settings.json`):
+
+- **`extraKnownMarketplaces`** — where plugins come from. This repo's own plugins ship via the `local-plugins` directory marketplace (`source.path` = repo root, so Claude reads `/.claude-plugin/marketplace.json` directly). External plugins point at GitHub repos.
+- **`enabledPlugins`** — which plugins are on. Each entry is `"<name>@<marketplace>": true|false`.
+
+### Install a plugin
+
+```jsonc
+// harness/claude/settings.json
+"extraKnownMarketplaces": {
+  "ponytail": { "source": { "source": "github", "repo": "DietrichGebert/ponytail" } }
+},
+"enabledPlugins": {
+  "ponytail@ponytail": true,        // external plugin
+  "wm@local-plugins": true          // local plugin from this repo
+}
+```
+
+Then `mise run stow` (to symlink the edited settings) and `/reload-plugins` in Claude Code — or do both steps interactively with `/plugin`. After enabling, the first launch caches the plugin under `~/.claude/plugins/cache/`.
+
+> Local plugins are **disabled by default** in committed settings (`wm@local-plugins: false`) — flip to `true` to turn one on.
+
+### Author a local plugin (in this repo)
+
+Each plugin directory under `harness/plugins/<name>/` **is** the plugin root — markdown only (agents, commands, hooks, skills), no `claude/` wrapper, no build step. `harness/scripts/sync-marketplace.sh` (run via `mise run harness:plugins:sync`) regenerates `/.claude-plugin/marketplace.json` with one entry per plugin, `source: ./harness/plugins/<name>` pointing **directly** at the dir — no symlink layer. Edit the source, re-sync, then `/reload-plugins`.

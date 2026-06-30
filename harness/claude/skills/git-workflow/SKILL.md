@@ -63,6 +63,7 @@ Examples: `feat/k8s-health-check`, `fix/auth-token-expiry`, `chore/update-deps`
 - **Never** amend already-pushed commits — create a new commit instead
 - No "Co-Authored-By" AI lines in commits
 - No "Generated with Claude Code" footers anywhere
+- Ignore local/personal/tool-generated artifacts (scrape caches, scratch dirs, editor cruft) via `.git/info/exclude` — untracked and per-repo. Reserve the tracked `.gitignore` for ignores the whole team needs. A tool's docs may say "add to `.gitignore`"; prefer the local exclude unless the artifact is shared.
 
 ## When Things Go Wrong
 

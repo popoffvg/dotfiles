@@ -1,6 +1,7 @@
 ---
 allowed-tools: Bash, Read, Write, AskUserQuestion
 description: Analyze diff across repos, propose logical commit split, get approval, then commit (parallel per repo)
+context: fork
 model: sonnet
 ---
 

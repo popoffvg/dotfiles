@@ -213,7 +213,7 @@
     "superpowers@claude-plugins-official": false,
     "typescript-lsp@claude-plugins-official": true,
     "worktrunk@worktrunk": true,
-    "wm@local-plugins": true,
+    "wm@local-plugins": false,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "engram@engram": true,
     "understand-anything@understand-anything": true,
@@ -246,7 +246,8 @@
       "source": {
         "source": "directory",
         "path": "$HOME/git/dotfiles"
-      }
+      },
+      "autoUpdate": true
     },
     "wm-marketplace": {
       "source": {
@@ -270,7 +271,8 @@
       "source": {
         "source": "github",
         "repo": "milaboratory/mictx-helper"
-      }
+      },
+      "autoUpdate": true
     },
     "plannotator": {
       "source": {
@@ -317,6 +319,7 @@
     ]
   },
   "effortLevel": "medium",
+  "tui": "fullscreen",
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
@@ -325,6 +328,5 @@
   "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "enableWeakerNestedSandbox": true,
-  "tui": "fullscreen"
+  "enableWeakerNestedSandbox": true
 }

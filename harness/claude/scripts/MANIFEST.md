@@ -28,3 +28,5 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | rename-plan-refs.sh | Safe identifier-level plan→spec rename in given files (plan-* skill names, plan.md/plan-verify.md, /work:plan-revise, claude-plan, _notes→.notes); no blanket prose rebrand. Idempotent. Args: <file>... |
 | graphify_repo_ast_docs.py | Per-repo graphify extraction: AST(code)+semantic(docs only) via claude-cli; writes <repo>/graphify-out/graph.json |
 | read-claude-local-subrepos.sh | SessionStart hook: find every git repo (incl. worktrees) under session cwd and emit each repo's CLAUDE.local.md to stdout as context. Prunes node_modules/.venv/vendor/target/dist/build/.cache. Reads cwd from stdin JSON, arg, or $PWD. |
+| pty-capture-tui.py | Drive a TUI binary in a pty, snapshot the screen (built-in ANSI model) after each scripted keystroke. Headless, no controlling tty needed. |
+| zellij-capture-tui.py | Drive a TUI in a zellij session, dump-screen per step. Note: headless dump-screen returns empty; prefer pty-capture-tui.py. |

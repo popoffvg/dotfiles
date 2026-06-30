@@ -10,10 +10,10 @@
   "colorize_brackets": true,
   "indent_guides": {
     "coloring": "fixed",
-    "background_coloring": "disabled"
+    "background_coloring": "disabled",
   },
   "preview_tabs": {
-    "enable_keep_preview_on_code_navigation": true
+    "enable_keep_preview_on_code_navigation": true,
   },
   "language_models": {
     "openai_compatible": {
@@ -134,17 +134,16 @@
   "agent_servers": {
     "cursor": {
       "default_config_options": {
-        "model": "composer-2.5[fast=true]"
+        "fast": "false",
+        "model": "composer-2.5[fast=true]",
       },
       "favorite_config_option_values": {
-        "model": [
-          "composer-2.5[fast=true]"
-        ]
+        "model": ["composer-2.5[fast=true]"],
       },
-      "type": "registry"
+      "type": "registry",
     },
     "opencode": {
-      "type": "registry"
+      "type": "registry",
     },
     "claude-planner": {
       "type": "custom",
@@ -165,7 +164,7 @@
     "codex-acp": {
       "default_config_options": {
         "mode": "auto",
-        "model": "gpt-5.5"
+        "model": "gpt-5.5",
       },
       "type": "registry",
     },
@@ -183,8 +182,17 @@
       "model": "gemini-3.5-flash",
     },
     "tool_permissions": {
-      "default": "allow",
-      "tools": {},
+      "default": "confirm",
+      "tools": {
+        "terminal": {
+          "default": "allow",
+          "always_allow": [
+            { "pattern": "^cargo\\s+(build|test|check)" },
+            { "pattern": "^npm\\s+(install|test|run)" },
+          ],
+          "always_confirm": [{ "pattern": "sudo\\s+/" }],
+        },
+      },
     },
     "profiles": {
       "test": {
@@ -247,16 +255,16 @@
       "settings": {
         "typescript": {
           "updateImportsOnFileMove": {
-            "enabled": "always"
-          }
+            "enabled": "always",
+          },
         },
         "javascript": {
           "updateImportsOnFileMove": {
-            "enabled": "always"
-          }
-        }
+            "enabled": "always",
+          },
+        },
       },
-      "enable_lsp_tasks": true
+      "enable_lsp_tasks": true,
     },
     "gopls": {
       "binary": {
@@ -311,6 +319,9 @@
     },
     "Plain Text": {
       "language_servers": ["bookmark-language-server"],
+    },
+    "Markdown": {
+      "language_servers": ["marksman"],
     },
   },
 }

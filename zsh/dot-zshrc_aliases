@@ -264,3 +264,24 @@ function y() {
 	fi
 	rm -f -- "$tmp"
 }
+
+# tw — pick a todo.sh action with fzf, pick the task too if it needs ITEM#, then run it.
+tw() {
+  local action
+  action=$(todo.sh shorthelp | grep -oE '^    [a-z]+' | tr -d ' ' \
+    | fzf --prompt 'todo> ' --height 40%) || return
+  [[ -z "$action" ]] && return 0
+  # actions that take an ITEM# as first arg → let you pick the task
+  case "$action" in
+    append|del|depri|done|move|prepend|pri|replace)
+      local line item
+      line=$(todo.sh -p ls | grep -E '^[0-9]+ ' | fzf --prompt "$action> " --height 60%) || return
+      [[ -z "$line" ]] && return 0
+      item="${line%% *}"
+      todo.sh "$action" "$item" "$@"
+      ;;
+    *)
+      todo.sh "$action" "$@"
+      ;;
+  esac
+}

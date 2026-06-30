@@ -157,4 +157,17 @@
     "show_summary": false,
     "show_command": false,
   },
+  {
+    // Reveal the real source behind a workflow-pseudocode binding (notable-if ULID or .d.ts @source).
+    // Bound to a key in keymap.json. Resolver: ~/.claude/scripts/flow-reveal.mjs.
+    "label": "TODO",
+    "command": "tw",
+    "args": [],
+    "use_new_terminal": true,
+    "allow_concurrent_runs": true,
+    "reveal_target": "center",
+    "hide": "never",
+    "show_summary": true,
+    "show_command": false,
+  },
 ]

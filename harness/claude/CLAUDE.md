@@ -61,6 +61,18 @@ Use **bold** / *italic* for emphasis, one header level max
 
 ---
 
+<task-relevant when="gathering information from the internet / web research">
+Default to direct `firecrawl` search/scrape. Do NOT launch the `deep-research` multi-agent workflow unless the user explicitly asks for deep research — it is slow and token-heavy; the user prefers direct results.
+</task-relevant>
+
+<task-relevant when="asked to create a local gitignore / ignore files locally without committing the rule">
+Use the `local-gitignore` skill.
+</task-relevant>
+
+<task-relevant when="asked to write TODOs for PR/review comments or capture review feedback as TODOs">
+Use the `inline-review-todos` skill.
+</task-relevant>
+
 ## Stop hook: revise session
 
 When the Stop hook fires with reason `revise session`: run `/improve-claude-local` to review this session and append any new non-obvious metarules to `CLAUDE.local.md` under `## Self-improvement`. If nothing new — skip silently.
