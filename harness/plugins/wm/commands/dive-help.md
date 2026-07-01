@@ -1,11 +1,11 @@
 ---
-name: explore-help
-description: Show all /explore subcommands with one-line descriptions.
+name: dive-help
+description: Show all /dive subcommands with one-line descriptions.
 ---
 
 Print the following table verbatim. No preamble, no commentary, no tool calls — output only the markdown below.
 
-## `/explore <subcommand>` — full list
+## `/dive <subcommand>` — full list
 
 | Subcommand | Does |
 |---|---|

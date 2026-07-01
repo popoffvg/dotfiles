@@ -1,0 +1,8 @@
+{
+  "name": "harness-dev",
+  "version": "0.2.0",
+  "description": "Authoring aids for building Claude Code harnesses — loops, flows, and the specs that separate them.",
+  "author": {
+    "name": "popoffvg"
+  }
+}

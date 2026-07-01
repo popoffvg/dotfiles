@@ -1,23 +1,23 @@
 ---
-name: explore
+name: dive
 description: >
   Research phase before implementation — subcommand router. Given a list of entry points, spawn one
   subagent per entry point in parallel and write refactor-oriented research artifacts into the
-  wm notes directory (`<notes-dir>/research/`). Use when the user says "explore",
+  wm notes directory (`<notes-dir>/research/`). Use when the user says "dive", "explore",
   "research these entry points", or provides a list of files/symbols to investigate before a task.
-  Invoke as `/explore <docs|workflow>` (default `docs`). `docs` writes the markdown write-ups +
+  Invoke as `/dive <docs|workflow>` (default `docs`). `docs` writes the markdown write-ups +
   question lists; `workflow` writes the typed TS pseudocode + path bindings. Render flows with
   `explore-flow-map`.
-argument-hint: [docs (default), workflow — full list /explore-help] + entry points (files, symbols, urls)
+argument-hint: [docs (default), workflow — full list /dive-help] + entry points (files, symbols, urls)
 ---
 
-# Explore — subcommand router
+# Dive — subcommand router
 
-`/explore <subcommand>`. Pick the route, read its reference, follow it. Default is `docs`. Artifacts live in `<notes-dir>/research/`.
+`/dive <subcommand>`. Pick the route, read its reference, follow it. Default is `docs`. Artifacts live in `<notes-dir>/research/`.
 
 ## Subcommands
 
-| `/explore …` | You need to… | Reference |
+| `/dive …` | You need to… | Reference |
 |---|---|---|
 | `docs` *(default)* | Write the markdown research write-ups + question lists. One `<ep-slug>.questions.md` + one `<ep-slug>.md` per entry point, graded against the 6-step chain. Convergence loop + `INDEX.md`. | `references/docs.md` |
 | `workflow` | Write the typed TS pseudocode + path bindings — `<ep-slug>.workflow.ts`, `<ep-slug>.bindings.json`, `components/*.d.ts`, `flows.json`. The navigable, reveal-in-editor layer over the `docs` artifacts. | `references/workflow.md` |

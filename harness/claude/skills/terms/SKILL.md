@@ -7,7 +7,7 @@ description: Extract domain terms from a set of text sources (skills, docs, spec
 
 Extract every domain term from the named sources, cluster synonyms, pick one canonical term per concept, and report the glossary in chat.
 
-Return four sections, in order: **glossary**, **term table**, **synonyms + removal proposals**, **rename suggestions**. Write nothing to disk unless the caller names an output file.
+Return three sections, in order: **glossary**, **synonyms + removal proposals**, **rename suggestions**. Write nothing to disk unless the caller names an output file.
 
 ## Collect sources
 
@@ -29,14 +29,12 @@ Flag a term used for two different concepts (**collision**) separately from syno
 
 ## Report
 
-**Glossary** — canonical term → definition, alphabetical. Definition states what the concept *is*, no implementation detail.
-
-**Term table** — one row per canonical term:
+**Glossary** — one row per canonical term, sorted by occurrence count (most frequent first):
 
 | Term | Definition | Sources | Occurrences |
 |------|-----------|---------|-------------|
 
-`Sources` lists the paths where it appears; `Occurrences` is the raw count across all variants.
+`Definition` states what the concept *is*, no implementation detail. `Sources` lists the paths where it appears; `Occurrences` is the raw count across all variants.
 
 **Synonyms + removal proposals** — one row per non-canonical variant:
 

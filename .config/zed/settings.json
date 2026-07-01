@@ -38,9 +38,6 @@
       },
     },
   },
-  "server_env": {
-    "NODE_EXTRA_CA_CERTS": "~/.config/ssl/combined-certs.pem",
-  },
   "show_signature_help_after_edits": true,
   "auto_signature_help": true,
   "terminal": {
@@ -324,4 +321,5 @@
       "language_servers": ["marksman"],
     },
   },
+  "relative_line_numbers": "disabled",
 }

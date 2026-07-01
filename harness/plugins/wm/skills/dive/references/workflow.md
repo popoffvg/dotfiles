@@ -1,4 +1,4 @@
-# explore · workflow route
+# dive · workflow route
 
 Write the **typed TS pseudocode + path bindings** — the machine-readable, navigable spec of each
 flow. This route is the navigation layer over the `docs` route: it reads the `.md` artifacts and

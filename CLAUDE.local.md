@@ -6,6 +6,10 @@
 "Create a spec for X" may mean skeleton-only. Run `mispec init` first, then confirm scope before authoring north-star/atoms — don't front-load foundational framing questions. The operator may want the bare scaffold and to set the north-star/scope themselves later.
 </task-relevant>
 
+<task-relevant when="an open decision surfaces during a mispec resolve/review session">
+Route it into the review-round record — a pointed note on the relevant atom's block, or a `[DECISION]` line under `## General comments` — so the operator resolves it with the same per-atom verdict pass. Don't open an `AskUserQuestion` chat prompt to settle it; the review record is the operator's decision channel.
+</task-relevant>
+
 <task-relevant when="diagnosing a missing/unavailable agent or plugin">
 Check what's *enabled*, not what's on disk. Read `~/.claude/settings.json` `enabledPlugins` + `~/.claude/plugins/installed_plugins.json` `installPath` to find the *active* cache dir, then inspect that dir. The cache dir name need not match the source dir name. Verify the enabled→cache→agents chain before asserting something is missing.
 </task-relevant>
@@ -34,6 +38,10 @@ Don't make a real commit to test it — especially not on the default branch. In
 Remove the superseded thing (and its coupled partners) and rewire references in the same change — don't leave it as a "fallback". Keep the old only if the user explicitly says so.
 </task-relevant>
 
+<task-relevant when="resolving a decision that picks among multiple scenarios/variants the operator enumerated">
+Resolving one variant does NOT supersede its siblings — keep every scenario the operator named. Choosing an approach for one context (e.g. "user_id = preserve") doesn't authorize deleting the other enumerated case; the operator often wants both kept as a contrast (before/after, option A/B). Don't mark a sibling "abandoned" unless told. This is the carve-out to the supersede-and-remove rule above: a sibling variant is not a superseded thing.
+</task-relevant>
+
 <task-relevant when="asked to build or improve something for X">
 Deliver it for all of X; don't silently narrow to one subsection unless told to.
 </task-relevant>
@@ -56,6 +64,10 @@ Probe the live endpoint to localize the fault before reading source or editing. 
 
 <task-relevant when="desktop SSO/runtime behaves inconsistently with the committed source">
 Suspect stale BUILD ARTIFACTS git doesn't track, not the source: the Go binary `cmd/platforma/platforma` and the pl-client `package.tgz` (desktop `pnpm.overrides` `file:…`). Reverting source does NOT rebuild them. Rebuild before trusting runtime (`go build -o cmd/platforma/platforma ./cmd/platforma`; pl-client `pnpm run build && pnpm run do-pack`; desktop `pnpm install --no-frozen-lockfile`).
+</task-relevant>
+
+<task-relevant when="edited a Go CLI tool under dotfiles scripts/ and the user says changes don't show / asks to rebuild">
+A local `go build` does NOT deploy. The tool runs from PATH (e.g. `~/.local/share/mise/installs/go/*/bin/<name>`), and its zshrc alias is install-if-missing (`command -v <name> >/dev/null || go install .`), so it never reinstalls once present. Run `go install .` from the tool dir to replace the PATH binary.
 </task-relevant>
 
 <task-relevant when="running go build / pnpm build/pack/install under /Users/vitaliipopov/git/mil/…">

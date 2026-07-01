@@ -1,5 +1,7 @@
 # Aliases (fish-style, edit this file to add more)
 alias brew='nb'   # nanobrew (drop-in faster brew)
+# vocab: translate clipboard RU<->EN TUI → ~/vocab.tsv. go-installs from source if missing (survives go upgrades)
+alias vocab='command -v vocab >/dev/null || (cd ~/git/dotfiles/scripts/vocab && go install .); command vocab'
 alias g='git'
 alias k='kubectl'
 alias ls='eza'

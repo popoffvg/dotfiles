@@ -213,7 +213,7 @@
     "superpowers@claude-plugins-official": false,
     "typescript-lsp@claude-plugins-official": true,
     "worktrunk@worktrunk": true,
-    "wm@local-plugins": false,
+    "wm@local-plugins": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "engram@engram": true,
     "understand-anything@understand-anything": true,

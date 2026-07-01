@@ -56,6 +56,10 @@ export PATH=$PATH:/opt/nanobrew/prefix/bin
 
 
 export EDITOR=hx
+if [[ $ZED_TERM == true ]]; then
+  export EDITOR="zed --wait"
+  export VISUAL="zed --wait"
+fi
 autoload -z edit-command-line
 function edit-command-line-trim() {
   edit-command-line

@@ -1,4 +1,4 @@
-# explore · docs route (default)
+# dive · docs route (default)
 
 Write the **markdown research artifacts + question lists**. One `.questions.md` and one `.md` per entry point. Prose write-up graded against the 6-step chain. No `.workflow.ts`, no bindings — that is the `workflow` route. 
 
@@ -127,7 +127,7 @@ One-sentence trace (step 6), entry→exit: "<entry> <verb>s <data> through <key 
 7. **Run the convergence loop** (below) until research converges.
 8. **Write** `$RESEARCH_DIR/INDEX.md` (template below).
 9. **Append worklog entry** to `<notes-dir>/worklog.md` if it exists.
-10. **Print** the research dir path. Suggest `/explore workflow` to add the navigable TS pseudocode + bindings layer.
+10. **Print** the research dir path. Suggest `/dive workflow` to add the navigable TS pseudocode + bindings layer.
 
 ## Convergence loop (autonomous)
 
@@ -235,7 +235,7 @@ Generated: <ISO date>
 | `src/server/index.ts` | server-index | [md](server-index.md) · [questions](server-index.questions.md) | HTTP request lifecycle from router to response |
 | `HandleRequest` | handle-request | [md](handle-request.md) · [questions](handle-request.questions.md) | Dispatch + middleware chain |
 
-**Workflow layer:** run `/explore workflow` to add `<ep-slug>.workflow.ts` + `flows.json` (render with `/flow-map`).
+**Workflow layer:** run `/dive workflow` to add `<ep-slug>.workflow.ts` + `flows.json` (render with `/flow-map`).
 ```
 
 If the `workflow` route already ran, add its `[workflow]` / `[flows.json]` links to the table.
