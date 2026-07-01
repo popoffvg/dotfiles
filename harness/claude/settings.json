@@ -221,7 +221,8 @@
     "mictx@mictx-helper-marketplace": true,
     "plannotator@plannotator": true,
     "ponytail@ponytail": true,
-    "commit-index@commit-index-marketplace": true
+    "commit-index@commit-index-marketplace": true,
+    "harness-dev@local-plugins": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -248,12 +249,6 @@
         "path": "$HOME/git/dotfiles"
       },
       "autoUpdate": true
-    },
-    "wm-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "popoffvg/claude-plugin-wm"
-      }
     },
     "engram": {
       "source": {

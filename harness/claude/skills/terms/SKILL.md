@@ -52,9 +52,10 @@ Rank proposals by occurrence count (highest churn saved first). Propose only; do
 | Term | Suggested | Reason |
 |------|-----------|--------|
 
-Two drivers:
+Three drivers:
 - **Vague/overloaded** → a more concrete name. `account` → `Customer` or `User` (name which concept each site means). Propose the specific term the usage actually points at, not a generic one.
 - **Looks-alike, means-different** → distinct names so the pair stops reading as the same thing. When two terms are near-homographs (`update` vs `upsert`, `owner` vs `assignee`) yet name different concepts, propose renaming one so the difference is visible at a glance.
+- **Jargon/metaphor** → plain business language. Replace coined, metaphorical, or insider terms with the everyday word for the concept: `north star` → `goal`, `atom` → `requirement`, `ubiquitous language` → `glossary`. Prefer the word a domain expert would use in a meeting over one the team invented.
 
 Do not fold these into synonyms — a rename keeps the concept, changes the word; a synonym removal drops a duplicate word for the same concept.
 

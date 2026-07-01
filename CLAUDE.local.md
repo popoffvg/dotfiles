@@ -10,6 +10,10 @@
 Route it into the review-round record — a pointed note on the relevant atom's block, or a `[DECISION]` line under `## General comments` — so the operator resolves it with the same per-atom verdict pass. Don't open an `AskUserQuestion` chat prompt to settle it; the review record is the operator's decision channel.
 </task-relevant>
 
+<task-relevant when="adding a glossary to a SKILL.md-based skill">
+Put it as `GLOSSARY.md` at the skill root, sibling to `SKILL.md`, and link it from SKILL.md — not as `references/ref-glossary.md`, even though the `ref-` taxonomy would otherwise fit.
+</task-relevant>
+
 <task-relevant when="diagnosing a missing/unavailable agent or plugin">
 Check what's *enabled*, not what's on disk. Read `~/.claude/settings.json` `enabledPlugins` + `~/.claude/plugins/installed_plugins.json` `installPath` to find the *active* cache dir, then inspect that dir. The cache dir name need not match the source dir name. Verify the enabled→cache→agents chain before asserting something is missing.
 </task-relevant>
