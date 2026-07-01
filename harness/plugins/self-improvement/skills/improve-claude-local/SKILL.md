@@ -1,29 +1,22 @@
 ---
 name: improve-claude-local
 description: >
-  Triage captured lessons and route each to where it belongs, then keep
-  CLAUDE.local.md sharp. Three destinations: project-agnostic lessons (code/arch
-  style, language idioms) → a global skill (trigger as its description) plus a pointer
-  line in ~/.claude/CLAUDE.md; concrete project facts → engram (mem_save);
-  project-scoped patterns/conventions → CLAUDE.local.md as
-  <task-relevant> blocks. Use when the user says "improve claude.local", "clean up
-  the local rules", "claude.local is bloated", or after the Stop hook has appended
-  rules.
+  Triage captured lessons and route each to where it belongs
 ---
 
 Run two steps in order: **(1) route every captured lesson to its correct home**, then **(2) keep what lands in CLAUDE.local.md sharp**. Route first, then tidy — a lesson in the wrong file is lost (too local) or noise (too broad).
 
-# Step 1 — Classify and route each lesson
+# Step 1 — Route each lesson
 
-For every captured entry, ask two questions.
+Run every captured lesson through three gates, in order. Take the first that fits.
 
-## Q1: Is it project-agnostic?
+## Gate 1 — Global? (project-agnostic)
 
 Would this lesson help on a *different* codebase? Code style, architecture principles, language idioms, general workflow/tooling habits, review taste — these transfer.
 
 → **Yes → a global skill + a pointer in `~/.claude/CLAUDE.md`.** Don't paste the instruction into CLAUDE.md — that file is always-on for every project and stays terse. Instead:
 
-1. **Write a skill** at `harness/claude/skills/<slug>/SKILL.md` (stowed to `~/.claude/skills/`). The lesson body is the skill content; the **if/when trigger is the skill's `description`** (skills auto-load when their description matches the task). Phrase it generally; strip this project's names/paths.
+1. **Write a skill** at `~/.claude/skills/<slug>/SKILL.md` (write to `~/.claude` directly — never the dotfiles `harness/` source). The lesson body is the skill content; the **if/when trigger is the skill's `description`** (skills auto-load when their description matches the task). Phrase it generally; strip this project's names/paths.
 2. **Add one pointer line to `~/.claude/CLAUDE.md`** — the if/when + a reference to the skill, nothing more:
    ```
    <task-relevant when="<trigger>">
@@ -33,34 +26,44 @@ Would this lesson help on a *different* codebase? Code style, architecture princ
 3. If a skill already covers this trigger, extend it instead of creating a new one.
 4. Then drop the lesson from CLAUDE.local.md.
 
-→ **No (specific to this repo) → Q2.**
+Examples: "prefer composition over inheritance for X-shaped problems", "name test files `*_test.go` next to source", "default to table-driven tests", "write commit subjects as `<prefix>: <why>`".
 
-Examples that go global (each becomes a skill): "prefer composition over inheritance for X-shaped problems", "name test files `*_test.go` next to source", "default to table-driven tests", "write commit subjects as `<prefix>: <why>`".
+→ **No → Gate 2.**
 
-## Q2: Score the project-scoped lesson 1..5
+## Gate 2 — Project-scoped pattern?
 
-Score by **abstraction / reusability within this project** — how many future tasks it shapes.
+A reusable **pattern / convention / style** for *this* project that shapes a whole class of work — states what to do differently next time.
 
-| Score | Nature | Destination |
-|---|---|---|
-| **1–2** | Concrete one-off fact — a path, flag, command, ID, env quirk, "X lives at Y". Answers a lookup, doesn't change behavior across tasks. | **engram** (`mem_save`). Drop from CLAUDE.local.md. |
-| **3** | Borderline. If it generalizes to a "next time do X instead of Y" rule → CLAUDE.local.md. If it's really a lookup → engram. | judgment |
-| **4–5** | A reusable **pattern / convention / style** for this project that shapes a whole class of work. | **CLAUDE.local.md** as a `<task-relevant>` block. |
+→ **Yes → the project's `CLAUDE.local.md`** as a `<task-relevant>` block (see "Which CLAUDE.local.md" below, then Step 2).
 
-Score-5 examples (these belong in CLAUDE.local.md): "in repo subfolders write `CLAUDE.md`, not `README.md`"; "a `*-help` command prints its table verbatim — no preamble, no tool calls"; "a router SKILL.md gives every subcommand its own `references/<sub>.md`".
+Examples: "in repo subfolders write `CLAUDE.md`, not `README.md`"; "a `*-help` command prints its table verbatim — no preamble, no tool calls"; "a router SKILL.md gives every subcommand its own `references/<sub>.md`".
 
-Score-1 examples (these go to engram): "the staging cluster is `dev-htz-fra1`"; "`gh` needs `--user vgpopov` for org repos"; "the DB dump script is `mise run dump-db`".
+→ **No → Gate 3.**
+
+## Gate 3 — Otherwise: memory
+
+A concrete one-off fact — a path, flag, command, ID, env quirk, "X lives at Y". Answers a lookup, doesn't shape behavior across tasks.
+
+→ **engram** (`mem_save`). Drop from CLAUDE.local.md.
+
+Examples: "the staging cluster is `dev-htz-fra1`"; "`gh` needs `--user vgpopov` for org repos"; "the DB dump script is `mise run dump-db`".
 
 ## Routing summary
 
 ```
-project-agnostic? ─yes→ global skill (trigger=description) + pointer line in ~/.claude/CLAUDE.md
+global (helps other repos)?      ─yes→ ~/.claude skill + pointer in ~/.claude/CLAUDE.md
+        │no
+project pattern (class of work)? ─yes→ project CLAUDE.local.md (<task-relevant>)
         │no
         ▼
-score 1..5 ─1-2→ engram (mem_save)            (concrete fact)
-           ─4-5→ CLAUDE.local.md              (project pattern, as <task-relevant>)
-           ─ 3 → judgment: rule→local, fact→engram
+        memory (engram mem_save)       (concrete one-off fact)
 ```
+
+## Which CLAUDE.local.md, and keep it private
+
+Project-scoped rules go in the **project's** `CLAUDE.local.md` at the repo root (`git rev-parse --show-toplevel`). Create it if missing — the project is always a git repo. Keep it out of version control via the `local-gitignore` skill (adds `CLAUDE.local.md` to `.gitignore.local`); never commit it.
+
+If the cwd is **not** a git repo, route the rule to the global `~/CLAUDE.local.md` instead.
 
 # Step 2 — Keep CLAUDE.local.md sharp
 

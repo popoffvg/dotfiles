@@ -66,13 +66,13 @@ If the user says "looks good, squash" or "merge", ask whether they want you to:
 | **3+ edits to same file** without Autotest passing | Stop. Report the blocker, show what you tried. |
 | **2 failed fix attempts** on same error | Stop. Report what you tried, what the error is, ask for guidance. |
 | **Tool permission/access error** | Stop. Ask user to fix the tool — never retry blindly. |
-| **User says "let's refactor/rethink/change the plan"** | Stop. Delegate to `planner` agent (`code` skill). Do not redesign. |
+| **User says "let's refactor/rethink/change the plan"** | Stop. Delegate to `architector` agent (`code` skill). Do not redesign. |
 
-## Route replanning to the planner
+## Route replanning to the architector
 
 If the user says "let's refactor", "rethink", "change the decision", "change the plan", or otherwise
 asks to alter the agreed design (not just fix the current TODO), do **not** redesign it yourself.
-Stop implementing and delegate to the `planner` agent (`code` skill) to revise `.notes/spec.md` +
+Stop implementing and delegate to the `architector` agent (`code` skill) to revise `.notes/spec.md` +
 `todos/TODO-N.md`. Resume implementing only against the updated TODO.
 
 ## DO NOT

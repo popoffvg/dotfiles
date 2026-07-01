@@ -27,7 +27,7 @@ invoke the agent you need; each agent follows its skill.
 
 | Agent | Role | Skill |
 |-------|------|-------|
-| `planner` | Writes `.notes/spec.md` + `todos/TODO-N.md` | `code new` |
+| `architector` | Writes `.notes/spec.md` + `todos/TODO-N.md` | `code new` |
 | `researcher` | Explores codebase, writes `.notes/research-*.md` | `dive research` |
 | `implementer` | Executes one TODO, then stops | `code impl` |
 | `implementer-subtree` | *(experimental)* One TODO in its own `wt` worktree+branch; commits, fixups, squash-merges with spec message | `code tree` |

@@ -59,11 +59,11 @@
     "use_new_terminal": true,
   },
   {
-    "label": "planner",
+    "label": "architector",
     "command": "bash",
     "args": [
       "-c",
-      "eval \"$(mise activate bash)\"; exec claude --agent planner",
+      "eval \"$(mise activate bash)\"; exec claude --agent architector",
     ],
     "hide": "on_success",
     "reveal_target": "center",

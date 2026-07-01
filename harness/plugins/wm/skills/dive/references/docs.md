@@ -223,7 +223,7 @@ Notes:
 
 ## INDEX.md
 
-Write `$RESEARCH_DIR/INDEX.md` so the planner finds each artifact at a glance:
+Write `$RESEARCH_DIR/INDEX.md` so the architector finds each artifact at a glance:
 
 ```markdown
 # Research index — <task slug>

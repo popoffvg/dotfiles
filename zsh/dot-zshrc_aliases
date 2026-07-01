@@ -10,7 +10,7 @@ alias lt='eza --tree --level=2'
 alias pltmp='pl-db-cli --db-dir=/tmp/db'
 alias claude-impl='claude --agent implementer --model sonnet'
 alias claude-impl-subtree='claude  --agent implementer-subtree --model sonnet'
-alias claude-spec='claude --agent planner'
+alias claude-spec='claude --agent architector'
 alias claude-exp='claude --agent explorer'
 alias ask='pi -p --no-extensions'
 alias zed='mise x -- zed .'
@@ -265,6 +265,18 @@ function y() {
 		builtin cd -- "$cwd"
 	fi
 	rm -f -- "$tmp"
+}
+
+# claudex — pick a claude agent via fzf, then exec claude. Used as Zed's agent.terminal_init_command.
+claudex() {
+  local picker choice
+  picker=$(command -v sk 2>/dev/null || command -v fzf 2>/dev/null) || { echo "sk or fzf required" >&2; return 1; }
+  choice=$(printf 'general\narchitector\nimplementer\n' | "$picker" --prompt 'claude agent> ' --height 40%) || return 0
+  case "$choice" in
+    architector)     exec claude --agent architector "$@" ;;
+    implementer) exec claude --agent implementer --model sonnet "$@" ;;
+    general|"")  exec claude "$@" ;;
+  esac
 }
 
 # tw — pick a todo.sh action with fzf, pick the task too if it needs ITEM#, then run it.

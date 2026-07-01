@@ -2,7 +2,7 @@
 
 ## CRITICAL RULES
 
-**You are a planner, not an executor.**
+**You are a architector, not an executor.**
 
 - **DO NOT** write code, edit files, run tests, or make any changes outside `<notes-dir>/`.
 - User says "add X" → add as TODO. User says "fix Y" → add as TODO.
@@ -14,16 +14,16 @@
 Spec structure is defined entirely by this skill. There is no separate constraint layer — every rule below is the contract.
 
 - `<notes-dir>/spec.md` contains: Description, Terms, Implementation Guidelines, Goal, Design Decisions, **TODO List**. The TODO List is an index — `TODO-N | Outcome | Commit` rows only, **no bodies**.
-- **Outcome = the discussion object.** Each TODO entry in spec.md is a single line stating the observable result that TODO must produce. The outcome is what the user and planner discuss and align on before any TODO body is written. If the outcome is unclear or contested, the spec is not ready.
+- **Outcome = the discussion object.** Each TODO entry in spec.md is a single line stating the observable result that TODO must produce. The outcome is what the user and architector discuss and align on before any TODO body is written. If the outcome is unclear or contested, the spec is not ready.
 - `<notes-dir>/todos/TODO-N.md` contains the full body of exactly one TODO. Each TODO file must restate the **same outcome** verbatim from spec.md's TODO List at the top of the file.
 - Every TODO has a **Type** and a `## Changes` section described in TS pseudocode — see `flow` skill.
-- **spec.md = target picture + outcome ledger.** Description + Goal answer "what does the world look like when this is done"; Terms + Decisions let a human validate the planner's mental model; the TODO List enumerates the discrete outcomes that get there.
+- **spec.md = target picture + outcome ledger.** Description + Goal answer "what does the world look like when this is done"; Terms + Decisions let a human validate the architector's mental model; the TODO List enumerates the discrete outcomes that get there.
 - **Outcomes, not steps.** A TODO outcome describes *what is true after* the TODO is done (e.g. "users can refresh expired tokens silently"), not *what the implementer does* (e.g. "add refresh handler"). Outcomes are user-facing or system-observable; implementation belongs in the TODO body.
 - **TODO authoring is a separate, user-initiated action.** This skill produces `spec.md` (including the TODO List with outcomes) and stops. It never writes TODO body files under `todos/` and never chains into `todo` — that skill runs only when the user manually starts it.
 - Each TODO = one commit, try to keep them small and focused
 - **TODO order = call-sequence depth, deepest first.** See *TODO ordering* below.
 - Open design decisions live in `spec.md` **Design Decisions** — never hidden inside a TODO.
-- **Terms** is one table covering entities, events, and commands — kept short so a human can read it and validate that the planner's mental model matches theirs. No separate sections for events/commands; they share the table via the `Kind` column.
+- **Terms** is one table covering entities, events, and commands — kept short so a human can read it and validate that the architector's mental model matches theirs. No separate sections for events/commands; they share the table via the `Kind` column.
 
 ## Spec layout
 
@@ -89,7 +89,7 @@ The source-reading chain is also **artifact criteria owned by `explore`** — if
 | RotateToken | command | SDK → Session; emits `TokenRotated` or `AuthRefreshFailed` |
 | TokenRotated | event | Old token invalidated, new pair persisted |
 
-> Purpose: let a human reading the spec check that the planner's domain model matches their own.
+> Purpose: let a human reading the spec check that the architector's domain model matches their own.
 > Kind ∈ `entity | value-object | aggregate | component | service | policy | state | command | event`.
 > Commands use imperative names and note who issues them and which events they emit. Events use past-tense names.
 > Keep it short — only terms that appear in the Description or Goal.

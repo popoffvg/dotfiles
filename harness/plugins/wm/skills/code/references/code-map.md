@@ -1,7 +1,7 @@
 # spec — code-map
 
 A code map is a single-file D2 diagram rendered to SVG that lives next to
-`<notes-dir>/spec.md` and lets the user sanity-check the planner's mental
+`<notes-dir>/spec.md` and lets the user sanity-check the architector's mental
 model of the codebase.
 
 Two variants:

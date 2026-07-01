@@ -2,6 +2,14 @@
 
 ## Self-improvement
 
+<task-relevant when="authoring a skill/command/agent that runs in arbitrary project contexts (not the dotfiles repo)">
+Reference the deployed `~/.claude/...` runtime paths, not the `harness/...` stow-source paths — the source path is meaningless when cwd isn't the dotfiles repo. The stow source is where you *edit* the file; the skill's *instructions* must point at `~/.claude`.
+</task-relevant>
+
+<task-relevant when="the user asks to allow/scope a permission for a specific plugin's behavior">
+Plugins CANNOT declare `allow`/`deny` permissions — no `permissions` field in `plugin.json`; a plugin-shipped `settings.json` supports only `agent` + `subagentStatusLine` (verified vs code.claude.com docs). Ship the permission as a **PreToolUse hook** in the plugin that emits `{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"allow",...}}` for the matching tool+path, else `exit 0` to defer. See `harness/plugins/self-improvement/hooks/allow-self-improve-writes.sh`. Don't default to the shared global `harness/claude/settings.json`.
+</task-relevant>
+
 <task-relevant when="asked to create a spec/corpus/project (mispec cold-start)">
 "Create a spec for X" may mean skeleton-only. Run `mispec init` first, then confirm scope before authoring north-star/atoms — don't front-load foundational framing questions. The operator may want the bare scaffold and to set the north-star/scope themselves later.
 </task-relevant>
@@ -72,6 +80,10 @@ Suspect stale BUILD ARTIFACTS git doesn't track, not the source: the Go binary `
 
 <task-relevant when="edited a Go CLI tool under dotfiles scripts/ and the user says changes don't show / asks to rebuild">
 A local `go build` does NOT deploy. The tool runs from PATH (e.g. `~/.local/share/mise/installs/go/*/bin/<name>`), and its zshrc alias is install-if-missing (`command -v <name> >/dev/null || go install .`), so it never reinstalls once present. Run `go install .` from the tool dir to replace the PATH binary.
+</task-relevant>
+
+<task-relevant when="refreshing platforma-desktop-app deps after rebuilding a platforma tgz (pl-client etc.)">
+To pick up rebuilt `file:../platforma/lib/**/package.tgz` overrides, run `pnpm install --lockfile-only --no-frozen-lockfile` (no package name arg — a bare `pnpm install <pkg>` triggers `ERR_PNPM_ADDING_TO_ROOT`). It refreshes the content-hash lock entries WITHOUT running the `postinstall` electron step. A plain `pnpm install` runs postinstall, which crashes with "Electron failed to install correctly" when `node_modules/.pnpm/electron@*/node_modules/electron/path.txt` is missing (dist present, path.txt gone). Fix that separately: `node <that electron dir>/install.js` regenerates path.txt. tgz keyed by content hash, not version — no `package.json` version string changes.
 </task-relevant>
 
 <task-relevant when="running go build / pnpm build/pack/install under /Users/vitaliipopov/git/mil/…">

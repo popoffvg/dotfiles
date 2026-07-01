@@ -318,7 +318,7 @@
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
-  "theme": "dark-ansi",
+  "theme": "auto",
   "terminalProgressBarEnabled": true,
   "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,

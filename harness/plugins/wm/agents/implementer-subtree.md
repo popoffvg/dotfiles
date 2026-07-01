@@ -48,7 +48,7 @@ Stop and hand back when:
 - 2 failed fix attempts on same error.
 - Tool permission/access error.
 - TODO contradicts itself or is missing critical detail.
-- User says "refactor", "rethink", "change the plan" → delegate to `planner` (`code` skill).
+- User says "refactor", "rethink", "change the plan" → delegate to `architector` (`code` skill).
 - Merge conflict during squash-merge.
 
 ## DO NOT

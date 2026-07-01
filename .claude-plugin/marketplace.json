@@ -14,13 +14,13 @@
       "name": "self-improvement",
       "source": "./harness/plugins/self-improvement",
       "description": "Captures generalizable behavioral rules from user corrections into CLAUDE.local.md on session end (Stop hook), and maintains them with the improve-claude-local skill.",
-      "version": "0.4.0"
+      "version": "0.5.0"
     },
     {
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.7.0"
+      "version": "2.8.0"
     }
   ]
 }
