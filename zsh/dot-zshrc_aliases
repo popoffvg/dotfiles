@@ -1,5 +1,12 @@
 # Aliases (fish-style, edit this file to add more)
-alias brew='nb'   # nanobrew (drop-in faster brew)
+# nanobrew for package ops; real brew keeps introspection working (--prefix/shellenv/config),
+# else plugins that run `$(brew --prefix)` get nb's help text (nb exits 0 on unknown cmds → poisons $fpath).
+brew() {
+  case "$1" in
+    -*|shellenv|config|tap|commands|home) command brew "$@" ;;
+    *) nb "$@" ;;
+  esac
+}
 # vocab: translate clipboard RU<->EN TUI → ~/vocab.tsv. go-installs from source if missing (survives go upgrades)
 alias vocab='command -v vocab >/dev/null || (cd ~/git/dotfiles/scripts/vocab && go install .); command vocab'
 alias g='git'
@@ -15,7 +22,6 @@ alias claude-exp='claude --agent explorer'
 alias ask='pi -p --no-extensions'
 alias zed='mise x -- zed .'
 alias brew-raw='/opt/homebrew/bin/brew'
-alias brew=nb
 alias bg=mprocs
 alias llm="claude --model sonnet -p"
 alias bg=background
@@ -272,10 +278,11 @@ claudex() {
   local picker choice
   picker=$(command -v sk 2>/dev/null || command -v fzf 2>/dev/null) || { echo "sk or fzf required" >&2; return 1; }
   choice=$(printf 'general\narchitector\nimplementer\n' | "$picker" --prompt 'claude agent> ' --height 40%) || return 0
+  # No exec: if claude exits (e.g. agent not found) the shell survives instead of the terminal closing.
   case "$choice" in
-    architector)     exec claude --agent architector "$@" ;;
-    implementer) exec claude --agent implementer --model sonnet "$@" ;;
-    general|"")  exec claude "$@" ;;
+    architector) claude --agent wm:architector "$@" ;;
+    implementer) claude --agent wm:implementer --model sonnet "$@" ;;
+    general|"")  claude "$@" ;;
   esac
 }
 

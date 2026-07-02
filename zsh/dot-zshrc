@@ -5,7 +5,7 @@ if [[ -x /opt/nanobrew/prefix/bin/nb ]]; then
   export PATH="$BREW_PREFIX/bin:$PATH"
 elif [[ -x /opt/homebrew/bin/brew ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
-  export BREW_PREFIX="$(brew --prefix)"
+  export BREW_PREFIX="$(command brew --prefix)"  # 'command' bypasses the brew=nb alias on re-source
 fi
 
 # Extra completions from brew
@@ -94,9 +94,6 @@ esac
 # pnpm end
 
 export PATH="$HOME/.local/bin:$PATH"
-
-
-source /Users/vitaliipopov/.config/broot/launcher/bash/br
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/Users/vitaliipopov/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/vitaliipopov/Downloads/google-cloud-sdk/path.zsh.inc'; fi

@@ -2,6 +2,10 @@
 
 ## Self-improvement
 
+<task-relevant when="a tracker skill (task-code-context, task-authoring, ticket) is invoked but the prompt targets local files ('fill section in files', points at a scratchpad path)">
+Deliver by editing the local files, not the tracker. These skills default to an outward tracker write (Notion/Jira) — but 'in files' overrides that. Don't create/enrich tracker pages; add/fill the section in the scratchpad/spec files. Tracker writes are hard-to-reverse and outward-facing — confirm before defaulting to them.
+</task-relevant>
+
 <task-relevant when="authoring a skill/command/agent that runs in arbitrary project contexts (not the dotfiles repo)">
 Reference the deployed `~/.claude/...` runtime paths, not the `harness/...` stow-source paths — the source path is meaningless when cwd isn't the dotfiles repo. The stow source is where you *edit* the file; the skill's *instructions* must point at `~/.claude`.
 </task-relevant>

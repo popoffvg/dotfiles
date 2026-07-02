@@ -77,6 +77,10 @@ Use the `inline-review-todos` skill.
 Use the `parallel-agent-tree-guard` skill.
 </task-relevant>
 
+<task-relevant when="about to fix by reverting to a last-known-good value or swapping in an alternative value/version/model/config/dependency">
+Use the `verify-fix-premise` skill.
+</task-relevant>
+
 ## Stop hook: revise session
 
 When the Stop hook fires with reason `revise session`: run `/improve-claude-local` to review this session and append any new non-obvious metarules to `CLAUDE.local.md` under `## Self-improvement`. If nothing new — skip silently.
