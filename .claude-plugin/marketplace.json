@@ -14,7 +14,7 @@
       "name": "self-improvement",
       "source": "./harness/plugins/self-improvement",
       "description": "Captures generalizable behavioral rules from user corrections into CLAUDE.local.md on session end (Stop hook), and maintains them with the improve-claude-local skill.",
-      "version": "0.5.0"
+      "version": "0.6.0"
     },
     {
       "name": "wm",

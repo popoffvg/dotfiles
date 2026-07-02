@@ -30,9 +30,32 @@ Examples: "prefer composition over inheritance for X-shaped problems", "name tes
 
 → **No → Gate 2.**
 
-## Gate 2 — Project-scoped pattern?
+## Gate 2 — Project-scoped: action, or pattern?
 
-A reusable **pattern / convention / style** for *this* project that shapes a whole class of work — states what to do differently next time.
+Project-specific and not global. Split on **shape**: does the lesson describe *steps to run in a situation* (an action), or *a rule to honor when deciding* (a pattern)?
+
+### Gate 2a — Repeatable action (a procedure)
+
+A **checklist / sequence of steps** to execute whenever a situation recurs — a verification pass, a regeneration sequence, a deploy ritual. States *what to do*, in order, next time the trigger fires.
+
+→ **Yes → a project skill** at `<repo-root>/.claude/skills/<slug>/SKILL.md`. Mirror the global-skill move from Gate 1, at project scope:
+
+1. **Write the skill.** The procedure's steps are the body. The **situation that triggers it is the `description`** (skills auto-load when the description matches the task). Keep this project's real paths/commands — it's project-scoped, so concreteness helps.
+2. **Scope activation** with `paths:` when the trigger is "touched these files" — e.g. the LLM-config files for a post-model-change check. This makes the skill auto-fire only on relevant edits.
+3. **Invocation frontmatter** (verified vs code.claude.com/docs/en/skills.md):
+   - Default (omit both) → Claude auto-invokes on match **and** user can run `/slug`. Use for verification/checks that should fire unprompted next time.
+   - `disable-model-invocation: true` → user-only via `/slug`, never auto-fires. Use for deliberate or destructive actions (deploy, migrations) the user must trigger.
+   - `user-invocable: false` → hidden from the `/` menu, model-only.
+4. If a skill already covers this trigger, extend it instead of creating a new one.
+5. Keep it private like `CLAUDE.local.md`: add `.claude/skills/<slug>` to `.gitignore.local` via the `local-gitignore` skill. Never commit captured corrections. Then drop the lesson from CLAUDE.local.md.
+
+Example: after changing the LLM model in the API settings and shipping a mistake, the fix is a *procedure* — "when editing the LLM model/API config, verify token limits, pricing, and the model id against the claude-api skill before shipping". That's a skill (`paths:` scoped to the config files), not a bare rule.
+
+→ **No → Gate 2b.**
+
+### Gate 2b — Project pattern (a rule)
+
+A reusable **pattern / convention / style** for *this* project that shapes a whole class of work — a decision to make differently next time, with no procedure to run.
 
 → **Yes → the project's `CLAUDE.local.md`** as a `<task-relevant>` block (see "Which CLAUDE.local.md" below, then Step 2).
 
@@ -52,6 +75,8 @@ Examples: "the staging cluster is `dev-htz-fra1`"; "`gh` needs `--user vgpopov` 
 
 ```
 global (helps other repos)?      ─yes→ ~/.claude skill + pointer in ~/.claude/CLAUDE.md
+        │no
+project action (steps to run)?   ─yes→ project .claude/skills/<slug>/SKILL.md
         │no
 project pattern (class of work)? ─yes→ project CLAUDE.local.md (<task-relevant>)
         │no
