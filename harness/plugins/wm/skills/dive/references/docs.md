@@ -11,7 +11,7 @@ Stop when you don't have any blindspots left to explore.
 ## Parallel subagents — important 
 
 - All subagent calls must be in **one assistant message** to actually run in parallel.
-- Use `subagent_type: "Explore"` for read-only investigation. If an entry point needs deeper reasoning (cross-file design questions), use `general-purpose`.
+- Use `subagent_type: "explore"` with `model: "sonnet"` for read-only investigation. If an entry point needs deeper reasoning (cross-file design questions), use `general-purpose`.
 - Each subagent gets a self-contained prompt — they cannot see this conversation. Include the entry point's inputs verbatim (grill questions for `docs`; the `.md` + schema for `workflow`) and the absolute `$RESEARCH_DIR` path.
 
 ## Output
@@ -116,7 +116,7 @@ One-sentence trace (step 6), entry→exit: "<entry> <verb>s <data> through <key 
 2. **Resolve `<notes-dir>` and `$RESEARCH_DIR`** (see router "Output location"). Create `$RESEARCH_DIR` if missing.
 3. **Check for prior runs.** If `$RESEARCH_DIR/INDEX.md` exists, ask the user: *append*, *overwrite*, or *bail*. Never silently overwrite.
 4. **Generate question lists** (see "Grill phase" below): one `$RESEARCH_DIR/<ep-slug>.questions.md` per entry point. These are questions the explorer must answer — not questions for the user.
-5. **For each entry point, spawn an Explore subagent in parallel** (single message, multiple `Agent` calls). Brief each with:
+5. **For each entry point, spawn an `explore` subagent in parallel** (`subagent_type: "explore"`, `model: "sonnet"`; single message, multiple `Agent` calls). Brief each with:
    - The specific entry point
    - The output directory (`$RESEARCH_DIR`, absolute path)
    - The contents of `<ep-slug>.questions.md` — explorer answers each in a `## Grill answers` section at the bottom of the `.md`
@@ -139,7 +139,7 @@ questioning: keep probing until nothing new surfaces.
 Maintain `seen` = set of explored entry-point slugs, and `dry` = count of consecutive rounds with no
 new gap. Loop:
 
-1. **Critique every artifact against the 6-step chain.** For each `<ep-slug>.md`, spawn one read-only critic subagent (`subagent_type: "Explore"`) that returns a structured gap list. A step is a **gap** when:
+1. **Critique every artifact against the 6-step chain.** For each `<ep-slug>.md`, spawn one read-only critic subagent (`subagent_type: "explore"`, `model: "sonnet"`) that returns a structured gap list. A step is a **gap** when:
    - **Tests (2):** marked UNTESTED but tests exist, or test rows cite paths that don't exercise this path.
    - **Follow data (3):** an identity/data carrier named in the path has no row.
    - **Failure path (5):** a branch/`throw`/early-return in the path has no matching DP-N/EC-N, or a partial-failure has no rollback note.
