@@ -3,6 +3,7 @@
 **Type:** workflow
 **Depends on:** none
 **Risk / blast radius:** 3 — changes the existing `Refresh` signature on `/auth/refresh`; retest the auth middleware and every caller of `Refresh`, not just the new rotation path.
+**Thoughts:** [[003-decision-single-flight]], [[001-fact-token-ttl]]
 
 ## Outcome
 

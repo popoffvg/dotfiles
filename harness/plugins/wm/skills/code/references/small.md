@@ -14,7 +14,7 @@ TODO authoring is the separate `todo` step, gated on human review.
 |--------|-------------|-----------|
 | Scope | ≤ 3 TODOs, known scope | > 3 TODOs, scope still forming |
 | Decisions | 0-2 open questions, most decisions already clear | 3+ open questions, design exploration needed |
-| Terms | Domain terms are known | New domain model emerging |
+| GLOSSARY.md | Domain terms are known | New domain model emerging |
 | Time | 5-10 minute loop | 15-30 minute loop |
 | User says | "add a flag", "fix this handler", "small change to X" | "design the auth system", "plan the migration", "spec out notifications" |
 
@@ -32,8 +32,9 @@ TODO authoring is the separate `todo` step, gated on human review.
 
 If no `<notes-dir>/spec.md` exists:
 - Write a minimal spec.md with the status header (`Status: init`, `This spec drives:` line, phase-rules block — see `write.md` § spec.md template), Description, Goal, and a TODO List seeded from the user's request.
+- Create `<notes-dir>/GLOSSARY.md` from `references/glossary-template.md`, empty (no rows yet).
 - Skip Implementation Guidelines (derive in TODO bodies later).
-- Keep Terms, What we're NOT doing, and Design Decisions sections — they'll be filled during the loop.
+- Keep What we're NOT doing and Design Decisions sections — they'll be filled during the loop, along with GLOSSARY.md.
 
 If spec.md exists (iteration):
 - Read it, identify what needs changing, proceed to grill.
@@ -49,7 +50,7 @@ For small changes, the loop is narrower:
 
 1. **Goal check** — one question: "The goal is X. Is that right?" If the user says yes, write a fact note capturing the goal. Move on.
 2. **Open Questions** — every `- [ ]` gets resolved. For a small change, there should be ≤ 2.
-3. **Terms** — scan the TODO outcomes for domain terms. For each: is it defined? If not, propose a definition in one sentence. Write as fact note (if from code) or decision note (if needs user to choose the name).
+3. **Terms** — scan the TODO outcomes for domain terms. For each: is it defined in `GLOSSARY.md`? If not, propose a definition in one sentence and write it into `GLOSSARY.md`. Write as fact note (if from code) or decision note (if needs user to choose the name).
 4. **Spec vs code** — read the files the TODO will touch. Surface ONE contradiction if found. Skip deep audit — for ≤ 3 TODOs, the surface is small.
 5. **Design Decisions** — only if a trade-off emerges during the loop. Small changes rarely have hard-to-reverse decisions.
 
@@ -73,7 +74,7 @@ For small changes, the loop is narrower:
 Same exit as `new` (`references/new.md` § Exit contract):
 
 1. **Back-link all notes** — populate `Affects` back-links and `links` frontmatter.
-2. **Confirm spec.md** — Open Questions empty, decisions recorded, terms defined.
+2. **Confirm spec.md and GLOSSARY.md** — Open Questions empty, decisions recorded, GLOSSARY.md current.
 3. **Compile plan** — `## Plan` section with decision trail table.
 4. **Advance status** — set the header `Status:` field from `init` to `review`.
 5. **Append worklog** — one line: what was grilled, note count.

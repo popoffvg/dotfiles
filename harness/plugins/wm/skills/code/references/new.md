@@ -14,7 +14,7 @@ If `<notes-dir>/spec.md` does not exist, write a minimal spec.md first:
   fill the `This spec drives:` line with one sentence from the user's request. Keep the phase-rules block verbatim.
 - **Description** — one sentence from the user's request.
 - **Goal** — 2-3 sentences, plain language, no IDs.
-- **Terms** — an empty table with columns: Term | Kind | Description.
+- Create `<notes-dir>/GLOSSARY.md` from `references/glossary-template.md`, empty (no rows yet).
 - **Implementation Guidelines** — omit or write "Follow language defaults."
 - **What we're NOT doing** — leave empty (fill during grill if needed).
 - **Design Decisions** — leave empty.
@@ -95,7 +95,7 @@ Walk these spec.md sections depth-first. Resolve one branch fully before switchi
 2. **Design Decisions** — for each: is the Motivation sufficient? Are there missing alternatives? Does it contradict another decision?
 3. **Spec vs code** — validate stated behavior against the actual implementation. Read the files the spec touches and surface every contradiction: *"The spec says partial cancellation is allowed, but `cancelOrder` deletes the whole aggregate — which is right?"* A spec that disagrees with the code it builds on is the highest-value bug to catch here.
 4. **Goal vs TODO List** — does every TODO outcome trace to the Goal? Any Goal aspect with no TODO? Any TODO not serving the Goal (scope creep → belongs in *What we're NOT doing*)?
-5. **Terms** — any term used in Goal/Decisions but undefined, or defined but ambiguous (TTL? bounds? error semantics?)? When the user reaches for vague language, propose a precise **canonical term** and pin it in the Terms table. Flag any wording that contradicts an existing Terms-table definition.
+5. **Terms** — any term used in Goal/Decisions but undefined, or defined but ambiguous (TTL? bounds? error semantics?)? When the user reaches for vague language, propose a precise **canonical term** and write it into `GLOSSARY.md` immediately. Flag any wording that contradicts an existing GLOSSARY.md definition.
 6. **What we're NOT doing** — is each exclusion deliberate, or an unspoken assumption that should be a decision?
 
 ## Operating mode
@@ -111,7 +111,7 @@ For each resolved question, execute this cycle:
    - If the resolution establishes a **fact** (code observation, user assertion, constraint) → `fact` note. Record what, where, evidence (verbatim), and what decisions it constrains.
    - If the user provides new information that is neither → ask: "Is this a decision you're making, or a fact you're establishing?" Then write accordingly.
    - Write immediately after the user answers — do not batch. The note is the primary artifact; spec.md updates follow.
-4. **Update `spec.md` inline** — never batch edits to the end. A resolved term lands in Terms immediately; a settled choice lands in Design Decisions; a closed question is deleted from Open Questions. The spec is always current.
+4. **Update `spec.md` and `GLOSSARY.md` inline** — never batch edits to the end. A resolved term lands in `GLOSSARY.md` immediately; a settled choice lands in spec.md's Design Decisions; a closed question is deleted from Open Questions. Both files are always current.
 5. **Increment the note counter** `N` for the next note.
 
 ### Rules
@@ -120,7 +120,7 @@ For each resolved question, execute this cycle:
 - Recommend an answer for every question, with a one-line reason.
 - **Write a fact note BEFORE the decision it constrains.** When the codebase reveals a constraint (TTL, interface shape, existing behavior), write it as a fact note first, then reference it from the decision note.
 - **Reuse explore-derived facts.** If a question is answered by a fact note already written in Step 0.5, link to it instead of re-deriving. Write a new fact note only if the evidence is genuinely new.
-- **Record a Design Decision sparingly** — only when the choice is hard to reverse, surprising without context, *and* came from a genuine trade-off. Routine resolutions just update Terms or scope; don't inflate Design Decisions with them.
+- **Record a Design Decision sparingly** — only when the choice is hard to reverse, surprising without context, *and* came from a genuine trade-off. Routine resolutions just update GLOSSARY.md or scope; don't inflate Design Decisions with them.
 - Keep a **live checklist** of resolved vs unresolved decisions (echo it as you go).
 - Every 5–8 questions, summarize: assumptions, decisions made, risks, remaining open.
 - Stop only when Open Questions is empty **and** no unresolved decisions remain, or the user says stop.
@@ -128,7 +128,7 @@ For each resolved question, execute this cycle:
 ### Interview techniques
 
 - **Validate against code, don't just ask.** Before accepting a stated behavior, check the implementation. Lead with the contradiction, not the question. If the code reveals a fact, write a fact note before asking the user about the resolution.
-- **Challenge terminology.** Vague language → propose the canonical term and write it down. Keep Terms a pure glossary: entity/event/command names and meanings, no implementation detail.
+- **Challenge terminology.** Vague language → propose the canonical term and write it into `GLOSSARY.md`. Keep GLOSSARY.md a pure glossary: entity/event/command names and meanings, no implementation detail.
 - **Stress-test with concrete scenarios.** Force precision on boundaries with real edge cases: *"Two refreshes race on the same expired token — what happens?"* Boundaries and relationships surface faster from a scenario than from an abstract question.
 - **Grill one failure path, not just the happy path.** For each decision that has an error arm, ask the two leak questions: does the response differ by cause when it shouldn't (e.g. unknown-account vs wrong-password → user enumeration)? does one branch take measurably longer than another (timing side channel)? The happy path shows what the spec does; the failure path shows what it gets wrong. If sameness is required, pin it as a Design Decision so the implementer doesn't "helpfully" split the arms.
 
@@ -144,7 +144,7 @@ Walk every note in `thoughts/`:
 
 ### 2. Confirm spec.md reflects every resolution
 
-1. Each resolved decision is in **Design Decisions** (Decision oneliner / Motivation / Alternatives) or, if routine, captured in Terms / scope.
+1. Each resolved decision is in **Design Decisions** (Decision oneliner / Motivation / Alternatives) or, if routine, captured in GLOSSARY.md / scope.
 2. Newly-discovered out-of-scope items are in **What we're NOT doing**.
 3. **Open Questions is empty** — any surviving `- [ ]` line means the spec is NOT READY.
 4. **Advance status: `init` → `review`.** Set the header `Status:` field to `review` — the spec is now authored and ready for human review.
@@ -188,7 +188,7 @@ Print to the user:
 `new` ends after the plan is compiled. **Do not write `todos/TODO-N.md` files.**
 
 The spec + thought graph are now a reviewable artifact. The human reviews the spec (Goal,
-Design Decisions, Terms, TODO List outcomes, decision trail) and, when satisfied, runs
+Design Decisions, GLOSSARY.md, TODO List outcomes, decision trail) and, when satisfied, runs
 `/code todo` to author the TODO bodies. Authoring TODOs before that review is the mistake this
 gate exists to prevent — a wrong spec turns into wrong TODOs turns into wrong code.
 

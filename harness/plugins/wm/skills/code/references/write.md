@@ -13,23 +13,25 @@
 
 Spec structure is defined entirely by this skill. There is no separate constraint layer — every rule below is the contract.
 
-- `<notes-dir>/spec.md` contains: Description, Terms, Implementation Guidelines, Goal, Design Decisions, **TODO List**. The TODO List is an index — `TODO-N | Outcome | Commit` rows only, **no bodies**.
+- `<notes-dir>/spec.md` contains: Description, Implementation Guidelines, Goal, Design Decisions, **TODO List**. The TODO List is an index — `TODO-N | Outcome | Commit` rows only, **no bodies**.
+- `<notes-dir>/GLOSSARY.md` is a sibling of spec.md — the ubiquitous-language dictionary, kept current every phase. See `references/glossary-template.md`.
 - **Outcome = the discussion object.** Each TODO entry in spec.md is a single line stating the observable result that TODO must produce. The outcome is what the user and architector discuss and align on before any TODO body is written. If the outcome is unclear or contested, the spec is not ready.
 - `<notes-dir>/todos/TODO-N.md` contains the full body of exactly one TODO. Each TODO file must restate the **same outcome** verbatim from spec.md's TODO List at the top of the file.
 - Every TODO has a **Type** and a `## Changes` section described in TS pseudocode — see `flow` skill.
-- **spec.md = target picture + outcome ledger.** Description + Goal answer "what does the world look like when this is done"; Terms + Decisions let a human validate the architector's mental model; the TODO List enumerates the discrete outcomes that get there.
+- **spec.md = target picture + outcome ledger.** Description + Goal answer "what does the world look like when this is done"; GLOSSARY.md + Decisions let a human validate the architector's mental model; the TODO List enumerates the discrete outcomes that get there.
 - **Outcomes, not steps.** A TODO outcome describes *what is true after* the TODO is done (e.g. "users can refresh expired tokens silently"), not *what the implementer does* (e.g. "add refresh handler"). Outcomes are user-facing or system-observable; implementation belongs in the TODO body.
 - **TODO authoring is a separate, user-initiated action.** This skill produces `spec.md` (including the TODO List with outcomes) and stops. It never writes TODO body files under `todos/` and never chains into `todo` — that skill runs only when the user manually starts it.
 - Each TODO = one commit, try to keep them small and focused
 - **TODO order = call-sequence depth, deepest first.** See *TODO ordering* below.
 - Open design decisions live in `spec.md` **Design Decisions** — never hidden inside a TODO.
-- **Terms** is one table covering entities, events, and commands — kept short so a human can read it and validate that the architector's mental model matches theirs. No separate sections for events/commands; they share the table via the `Kind` column.
+- **GLOSSARY.md** is one table covering entities, events, and commands — kept short so a human can read it and validate that the architector's mental model matches theirs. No separate sections for events/commands; they share the table via the `Kind` column.
 
 ## Spec layout
 
 ```
 <notes-dir>/
-├── spec.md              # target picture: description, terms, guidelines, goal, decisions
+├── spec.md              # target picture: description, guidelines, goal, decisions
+├── GLOSSARY.md          # ubiquitous-language dictionary, kept current every phase
 ├── worklog.md           # timestamped action log
 └── todos/
     ├── TODO-1.md        # full instructions for one implementer pass
@@ -69,9 +71,9 @@ This is **not** a recipe for how to read — investigate in whatever order the c
 |---|---|---|---|
 | 1 | **Entry point** | Description / Goal | The exact line the request enters — route handler, command dispatch, event subscriber — not the top of the file. The chain starts here, not at line 1. |
 | 2 | **Tests** *(front gate)* | Goal + Design Decisions | The happy-path test that states the contract before any implementation, and the intent each test pins. No test on the path → mark it **UNTESTED**; intent is unverified without it, and the spec's Goal/Outcomes have nothing to respect. |
-| 3 | **Follow data** | Terms | One value's lifecycle — born, mutated, transformed, exits. The flow falls out of the data faster than from chasing call after call. |
+| 3 | **Follow data** | GLOSSARY.md | One value's lifecycle — born, mutated, transformed, exits. The flow falls out of the data faster than from chasing call after call. |
 | 4 | **Skip noise** | What we're NOT doing | What was deliberately walked past — rate limiters, audit logs, validators that don't alter the path — stated so a reader knows the gaps are intentional, not missed. |
-| 5 | **Failure path** | Terms (failure events) + Design Decisions | One failure path the spec depends on: does the response differ by cause, does it leak (different message or timing) what it shouldn't? The happy path shows what the code does; the failure path shows what it gets wrong. |
+| 5 | **Failure path** | GLOSSARY.md (failure events) + Design Decisions | One failure path the spec depends on: does the response differ by cause, does it leak (different message or timing) what it shouldn't? The happy path shows what the code does; the failure path shows what it gets wrong. |
 | 6 | **One-sentence trace** *(end gate)* | Goal (feeds TODO ordering) | Entry→exit in one line. If it can't be stated in one sentence, the flow wasn't understood — only looked at. This trace is what the call-graph sketch (TODO ordering, below) and each TODO's Outcome are built on. |
 
 The source-reading chain is also **artifact criteria owned by `explore`** — if `<notes-dir>/research/` exists, consume those artifacts (they already encode it) rather than re-deriving.
@@ -96,19 +98,7 @@ The source-reading chain is also **artifact criteria owned by `explore`** — if
 ## Description
 <what this work is about, 2–5 sentences>
 
-## Terms
-
-| Term | Kind | Notes |
-|------|------|-------|
-| RefreshToken | entity | Opaque token in Redis, TTL-bound |
-| AuthHandler | component | Serves `/auth/*` |
-| RotateToken | command | SDK → Session; emits `TokenRotated` or `AuthRefreshFailed` |
-| TokenRotated | event | Old token invalidated, new pair persisted |
-
-> Purpose: let a human reading the spec check that the architector's domain model matches their own.
-> Kind ∈ `entity | value-object | aggregate | component | service | policy | state | command | event`.
-> Commands use imperative names and note who issues them and which events they emit. Events use past-tense names.
-> Keep it short — only terms that appear in the Description or Goal.
+> Terms live in a sibling `GLOSSARY.md` (see `references/glossary-template.md`), not here. Keep it current every phase.
 
 ## Implementation Guidelines
 
@@ -171,8 +161,8 @@ Plain-language description of the user-visible outcome once this spec is done. 2
 > Outcome writing rules:
 > - Phrase as *post-condition* — what is true once done. ✅ "Expired sessions refresh silently behind the `auth.v2` flag." ❌ "Add token refresh handler."
 > - 2–5 sentences. First sentence: capability (`<actor> can <action>`). Remaining sentences: context a reader needs without opening any other file — what triggers it, what changes, what fails silently vs. loudly.
-> - No implementation nouns (file names, function names, packages). Use only Terms table vocabulary.
-> - Must use terms from the Terms table verbatim where applicable.
+> - No implementation nouns (file names, function names, packages). Use only GLOSSARY.md vocabulary.
+> - Must use terms from GLOSSARY.md verbatim where applicable.
 > - If two TODOs share an outcome, merge them. If an outcome needs "and", split it.
 > - `Commit` is the literal subject line the implementer will use (≤ 72 chars, imperative). Written here so the user sees the commit shape when reviewing outcomes.
 ```
@@ -237,26 +227,27 @@ Use the `todo` subcommand (`references/todo.md`) for writing TODO bodies.
 
 ## Spec-Readiness Checklist
 
-- [ ] `spec.md` has Description, Terms, Guidelines, Goal, Decisions, TODO List — and nothing else
+- [ ] `spec.md` has Description, Guidelines, Goal, Decisions, TODO List — and nothing else
+- [ ] `<notes-dir>/GLOSSARY.md` exists (sibling of spec.md) and is current
 - [ ] TODO List is a table of `TODO-N | Outcome | Commit` rows — no bodies, no checkboxes, no file paths
 - [ ] Every outcome is a post-condition (what is true after), not a step (what to do)
 - [ ] Every outcome is one sentence ≤ 25 words and contains no implementation nouns (filenames, function names, packages)
 - [ ] No row's outcome contains "and" that hides two outcomes — split it
 - [ ] No two rows share an outcome — merge them
-- [ ] Outcomes use terms from the Terms table verbatim where applicable
+- [ ] Outcomes use terms from GLOSSARY.md verbatim where applicable
 - [ ] TODO numbers are contiguous starting from 1 and listed in intended execution order
 - [ ] TODO List has a `Layer` column with `Ln` depth annotations; rows are sorted by ascending depth (deepest first)
 - [ ] No TODO depends on a component introduced by a later TODO; same-layer outcomes that would force a dead intermediate state are merged
 - [ ] No files were created or edited under `<notes-dir>/todos/` during this spec pass
 - [ ] Description + Goal together convey the target picture in plain language
-- [ ] Terms table covers entities, commands (imperative), and events (past tense) used in the spec
+- [ ] GLOSSARY.md covers entities, commands (imperative), and events (past tense) used in the spec
 - [ ] Format/protocol decisions live in `spec.md` Design Decisions (not deferred into TODO bodies)
 
 ## Interpreting user input
 
 | User says | You do |
 |-----------|--------|
-| "add X" / "fix Y" | Capture the intent in spec.md: update Description / Goal / Decisions / Terms as needed, **and** add or revise a row in the TODO List with the outcome. Do NOT write a TODO body file — that's the next action via `todo`. |
+| "add X" / "fix Y" | Capture the intent: update spec.md's Description / Goal / Decisions and GLOSSARY.md as needed, **and** add or revise a row in the TODO List with the outcome. Do NOT write a TODO body file — that's the next action via `todo`. |
 | "the outcome of TODO-N should be Z" | Edit row N in the TODO List. Confirm phrasing follows the outcome rules (post-condition, ≤ 25 words, no implementation nouns). |
 | "split TODO-N" / "merge TODO-N and TODO-M" | Rewrite the TODO List rows accordingly and renumber contiguously. |
 | "use approach Z" | Record in Design Decisions (spec.md) |

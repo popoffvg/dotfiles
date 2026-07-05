@@ -1,12 +1,34 @@
 # spec — verify
 
-You are an **auditor**. Validate spec quality before implementation starts.
+Adversarial spec audit before implementation. Runs in a **separate `spec-verifier` agent** (sonnet, read-only, no Write tool) — a fresh context that did not write the spec, so it reads it as an outsider would.
+
+## Launch
+
+Spawn the audit; do not run it inline:
+
+```
+Agent(subagent_type="wm:spec-verifier", prompt=
+  "[VERIFY] Audit the spec at <notes-dir>/spec.md + <notes-dir>/todos/*.md.
+   Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md → references/verify.md.
+   Return the verdict report as your final message.")
+```
+
+Pass the real `<notes-dir>`. The agent has no Write tool: it runs the mission below and **returns** the report. The caller then writes the returned report to `<notes-dir>/spec-verify.md` and appends the worklog line.
+
+## Mission — hunt three failure modes
+
+The point of the audit is not to tick boxes. It is to find what breaks the spec before code does:
+
+1. **Contradictions** — two TODOs, or a TODO and a Decision/Term/Goal, that cannot both hold. Conflicting interface signatures, a Term used two ways, a `Depends on` cycle, an Outcome that undoes an earlier Outcome, a Decision the TODOs violate.
+2. **Missing parts** — work the Goal implies but no TODO covers. Error/failure paths, teardown for every setup, a caller left unmigrated after a signature change, auth/validation on a new boundary, a persistence write with no read (or vice versa), config/flags referenced but never defined.
+3. **Edge cases** — inputs and states the Outcomes ignore. Empty/nil/zero, concurrent access, retry/idempotency, partial failure, boundary limits (TTL, size, count), first-run vs steady-state, ordering.
+
+For each finding: name the exact TODO/section, state the concrete scenario that fails, and say what edit closes it. A finding without a reproducing scenario is a style nit, not a blocker.
 
 ## Scope
 
-- Read-only for source code.
-- You may write only under `.notes/`.
-- Do **not** implement, do **not** run migrations, do **not** modify app code.
+- Read-only. The agent has no Write tool — return the report, do not write files.
+- Do **not** implement, run migrations, or modify app code.
 
 ## Inputs to review
 
@@ -18,8 +40,11 @@ You are an **auditor**. Validate spec quality before implementation starts.
 
 ## Verification checks (pass/fail)
 
+The floor beneath the mission — a spec that fails these is unfinished regardless of what the hunt found. Run them, but the findings above are what make the audit worth spawning.
+
 ### A. Spec completeness (`spec.md`)
-- [ ] Has Description, Terms, Implementation Guidelines, Goal, What we're NOT doing, Design Decisions, Open Questions, TODOs sections
+- [ ] Has Description, Implementation Guidelines, Goal, What we're NOT doing, Design Decisions, Open Questions, TODOs sections
+- [ ] `GLOSSARY.md` exists (sibling of spec.md), covers every entity/command/event used in the spec, and is current
 - [ ] **Goal** section is plain language describing user-visible outcome — no IDs, no `AC-N`, no checkboxes
 - [ ] **What we're NOT doing** is present and non-empty (explicit out-of-scope list)
 - [ ] **Open Questions is empty (hard block).** Any unchecked `- [ ]` question → result is NEEDS REVISION; route to `new` to resolve before READY
@@ -73,7 +98,7 @@ Banned skip-justifications (auto-fail when present in `Manual test: skip — <re
 
 ## Output contract
 
-Write `.notes/spec-verify.md`:
+Return this report as the final message (the caller persists it to `.notes/spec-verify.md`):
 
 ```markdown
 # Spec Verification Report
@@ -83,6 +108,15 @@ Result: READY | NEEDS REVISION
 
 ## Summary
 - <1-3 bullets>
+
+## Contradictions
+- <TODO/section pair + the scenario where both cannot hold + the edit that resolves it>
+
+## Missing parts
+- <what the Goal implies + which TODO should cover it + the edit that adds it>
+
+## Edge cases
+- <the ignored input/state + the TODO whose Outcome must handle it + how>
 
 ## Checks
 - [PASS|FAIL] <check>
@@ -94,14 +128,14 @@ Result: READY | NEEDS REVISION
 - <specific change request>
 ```
 
-Then append to `.notes/worklog.md`:
+The caller (the agent has no Write tool) then appends to `.notes/worklog.md`:
 - `- YYYY-MM-DD HH:MM: Spec verification passed (auto-transition to implement)`
   or
 - `- YYYY-MM-DD HH:MM: Spec verification failed (auto-transition to spec)`
 
 ## Transition behavior (wm active)
 
-When wm is active, **do not ask a generic follow-up question**.
+Handled by the caller after the agent returns — **do not ask a generic follow-up question**.
 Decide and transition immediately:
 
 - If **0 blocking failures** → transition to `impl`

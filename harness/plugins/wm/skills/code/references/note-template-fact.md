@@ -66,5 +66,5 @@ const (
 
 ## Constrains
 - The 15-minute window makes concurrent refresh races unlikely — complex locking is unjustified.
-- The 15-minute bound should be mentioned in the Terms table as the TTL for `Session`.
+- The 15-minute bound should be mentioned in `GLOSSARY.md` as the TTL for `Session`.
 ```

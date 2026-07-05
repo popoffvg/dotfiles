@@ -37,9 +37,9 @@ it's the broader, more useful starting picture.
 1. **Confirm variant** (package vs component). If the user said "code map"
    without qualifier, ask once via `AskUserQuestion`; otherwise just pick
    package.
-2. **Read context** — `<notes-dir>/spec.md` (Description, Terms, TODO List)
-   and any prior `<notes-dir>/research-*.md`. The Terms table is the source
-   of truth for node names.
+2. **Read context** — `<notes-dir>/spec.md` (Description, Goal, TODO List),
+   `<notes-dir>/GLOSSARY.md`, and any prior `<notes-dir>/research-*.md`.
+   `GLOSSARY.md` is the source of truth for node names.
 3. **Identify nodes** — start at the entry point and follow the call graph
    outward; don't enumerate the directory tree. Find the package/type that
    handles the request the spec is about, then add what it reaches. Skip
@@ -47,7 +47,7 @@ it's the broader, more useful starting picture.
    unless a TODO touches them — the map is the flow, not the file census.
    - Package map: every package the spec touches plus immediate neighbours
      it depends on, plus external systems (DB, IdP, message bus).
-   - Component map: every type listed in the Terms table with
+   - Component map: every type listed in `GLOSSARY.md` with
      `Kind ∈ {entity, value-object, aggregate, component, service, policy}`.
 4. **Identify edges** — for each pair of nodes, the most informative call
    or relation. Label each edge with the method / interface / event name.

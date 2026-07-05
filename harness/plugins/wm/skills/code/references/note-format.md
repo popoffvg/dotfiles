@@ -69,7 +69,7 @@ After the grill loop closes, the agent walks all notes and back-fills:
 
 ## Notes directory is the audit trail
 
-- `spec.md` = the compiled plan (decisions + terms + TODO list).
+- `spec.md` = the compiled plan (decisions + TODO list). `GLOSSARY.md` (sibling file) = the terms.
 - `thoughts/` = the traceable thought graph. Each note proves why a decision was made.
 - A reviewer can read `NNN-decision-xxx.md`, follow `Depends on` links backward to see what facts constrained it, and follow `Affects` links forward to see what downstream decisions it enabled.
 - If a decision is ever questioned, the note shows the alternatives considered and why they were rejected — the spec is self-documenting.

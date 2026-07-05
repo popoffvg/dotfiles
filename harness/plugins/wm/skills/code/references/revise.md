@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Fix the spec artifacts — `spec.md`, `todos/TODO-N.md`, and the `thoughts/` graph — when they
+Fix the spec artifacts — `spec.md`, `GLOSSARY.md`, `todos/TODO-N.md`, and the `thoughts/` graph — when they
 no longer match reality or a decision changed. Revise **changes an existing thought note or
 writes a new one** as the fix demands, then updates the spec/TODOs that depend on it. It is the
 settle action of the **review** phase: any `revise` call resets the spec header `Status` to
@@ -21,7 +21,7 @@ governs, use `fix` (which corrects the thought, then the code).
 
 ## CRITICAL RULES
 
-- **Read-only on source code.** Edits limited to `<notes-dir>/spec.md`,
+- **Read-only on source code.** Edits limited to `<notes-dir>/spec.md`, `<notes-dir>/GLOSSARY.md`,
   `<notes-dir>/todos/TODO-N.md`, `<notes-dir>/thoughts/*.md`, `<notes-dir>/worklog.md`.
 - Never reorder or renumber unrelated TODOs.
 - Never delete a TODO outcome — if it diverged, **rewrite** the outcome to describe what is now true.
@@ -33,7 +33,7 @@ governs, use `fix` (which corrects the thought, then the code).
 Identify what triggered the revise and what it touches:
 
 - **Which decision/fact changed?** Name the `thoughts/NNN-*.md` note(s) it affects, or note that a new one is needed.
-- **Which spec sections?** Description / Terms / Design Decisions / Goal / TODO List row(s).
+- **Which spec sections?** Description / Design Decisions / Goal / TODO List row(s) / `GLOSSARY.md`.
 - **Which TODO bodies?** `todos/TODO-N.md` — outcome line and/or `## Changes`.
 
 For a **post-impl divergence**, first locate the commit(s) for TODO-N (stop at first hit):
@@ -69,9 +69,13 @@ Thoughts are the source of truth the spec is compiled from — keep them correct
 
 In `<notes-dir>/spec.md`:
 
-- Update the TODO List row(s), Design Decisions, Terms as the deltas require.
+- Update the TODO List row(s) and Design Decisions as the deltas require.
 - Refresh the **Decision trail** table in `## Plan` so it still mirrors `thoughts/`.
 - **Set the header `Status:` field to `review`** — revising returns the spec to the review phase regardless of its prior status.
+
+In `<notes-dir>/GLOSSARY.md`:
+
+- Add, rename, or reword terms as the deltas require. Keep it current — revise is one of the phases responsible for this.
 
 In `<notes-dir>/todos/TODO-N.md`:
 
@@ -103,7 +107,8 @@ Then stop. The user owns the next action (re-review, continue impl, re-verify).
 - [ ] Deltas categorized (decision change / new fact / drift / outcome shift / scope creep / missed step)
 - [ ] Thought graph maintained: notes changed/added/superseded, back-links and `links` frontmatter updated, no note deleted
 - [ ] Outcome-shifting or step-dropping edits confirmed with the user
-- [ ] spec.md rows/decisions/terms updated; `## Plan` decision trail refreshed
+- [ ] spec.md rows/decisions updated; `## Plan` decision trail refreshed
+- [ ] `GLOSSARY.md` current with the deltas
 - [ ] spec.md header `Status` set to `review`
 - [ ] todos/TODO-N.md outcome restated; `## Changes` matches reality
 - [ ] worklog.md appended

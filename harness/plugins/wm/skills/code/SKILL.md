@@ -27,7 +27,7 @@ argument-hint: help
 |---|---|---|
 | `new` *(default)* | Spec pipeline: write `spec.md` (if missing) → grill loop (ask→answer→note) → produce `thoughts/` → compile plan → **stop**. Does NOT write TODO bodies — the human reviews the spec first. | `references/new.md` · `references/note-format.md` · `references/flow.md` |
 | `todo` | Author `todos/TODO-N.md` bodies from an existing `spec.md` + `thoughts/`. Run only after the human has manually reviewed the spec. | `references/todo.md` · `references/todo-template.md` · `references/flow.md` |
-| `verify` | Audit spec before implementation — completeness, per-TODO files, execution readiness, scope discipline, test honesty. Returns READY / NEEDS REVISION. | `references/verify.md` |
+| `verify` | Audit spec before implementation in a **separate `spec-verifier` agent** (sonnet, read-only) — hunts contradictions, missing parts, edge cases; also runs the completeness / test-honesty floor. Returns READY / NEEDS REVISION. | `references/verify.md` |
 | `revise` | Fix `spec.md` / `todos/TODO-N.md` and change or add a `thoughts/` note; the settle action of the review phase — resets `Status` to `review`. Notes-only, no source edits. | `references/revise.md` |
 | `prototype` | Settle an OPEN design decision by spawning the implementer to make small, visible code changes. | `references/prototype.md` |
 | `code-map` | Produce a D2 + SVG architecture map (package or component/type map) as visual aid. | `references/code-map.md` |
@@ -82,3 +82,6 @@ delivers; its phase-rules block states what each phase permits. See `references/
 `verify` writes `<notes-dir>/spec-verify.md`.
 `fix` writes `<notes-dir>/thoughts/NNN-*-slug.md` (corrected thoughts).
 All write only under `<notes-dir>/` — never touch source code.
+
+`new`, `small`, `revise`, `todo`, `impl`, and `fix` all keep `<notes-dir>/GLOSSARY.md` current —
+the ubiquitous-language dictionary, a sibling file of `spec.md` (template: `references/glossary-template.md`).

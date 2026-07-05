@@ -17,7 +17,7 @@ structure, error handling strategy, library usage, data shape. Every such choice
 |-----------|--------|
 | You chose between 2+ valid approaches for the Changes | Yes |
 | You picked a pattern the spec didn't mandate | Yes |
-| You named a file, function, type, or package not in the Terms table | Yes |
+| You named a file, function, type, or package not in `GLOSSARY.md` | Yes |
 | The decision affects how other TODOs should be written | Yes |
 | The spec's Design Decisions already cover it | No — link the TODO instead |
 

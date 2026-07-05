@@ -8,7 +8,7 @@ Run `todo` **only after a human has manually reviewed the spec.** `new` delibera
 before this step; TODO bodies are never auto-written. Before authoring:
 
 - `spec.md` exists with header **`Status: review`**, **Open Questions is empty**, and the TODO List (outcomes) is settled.
-- The human has reviewed Goal, Design Decisions, Terms, and TODO outcomes and asked for TODOs.
+- The human has reviewed Goal, Design Decisions, GLOSSARY.md, and TODO outcomes and asked for TODOs.
 
 If `Status` is `init`, Open Questions is non-empty, or no spec exists, stop and run `/code new` first. Do not
 author TODOs from an unreviewed spec — a wrong spec becomes wrong TODOs becomes wrong code.
@@ -28,7 +28,7 @@ If the implementer has to *infer* anything — a file path, a function name, a t
 5. **Pseudocode is the spec.** Use TS pseudocode per `flow`. The implementer translates; they do not invent.
 6. **No outward links.** Don't reference spec-level Goal, AC-IDs, or other TODOs except via the explicit `Depends on` field.
 7. **Pre-reads are mandatory.** Every file the implementer must understand before editing goes in `Pre-reads`. Missing pre-reads → wrong assumptions.
-8. **New terms are described, not assumed.** If the TODO uses a domain term (entity, command, event, component) that is not already in `spec.md`'s Terms table, the TODO must define it before first use *and* the term must be added to `spec.md`'s Terms table in the same planning pass. The implementer never has to guess what a name means.
+8. **New terms are described, not assumed.** If the TODO uses a domain term (entity, command, event, component) that is not already in `GLOSSARY.md`, the TODO must define it before first use *and* the term must be added to `GLOSSARY.md` in the same planning pass. The implementer never has to guess what a name means.
 9. **Interface changes are shown as a git diff.** Any modification to a public interface — function signature, method set, struct/record fields, enum variants, gRPC/HTTP/CLI surface — appears in the TODO as a unified-diff block (`-` old lines, `+` new lines). New interfaces are written out **in full** (every field, every method, every doc comment) so the implementer copies, not invents.
 
 ## File location
@@ -51,16 +51,17 @@ Order is the **verification chain first** (Type → Outcome → Terms → Change
 | 2 | `**Type:**` | inline | always | verify |
 | 3 | `**Depends on:**` | inline | always | scaffold |
 | 4 | `**Risk / blast radius:**` | inline | always | verify |
-| 5 | `Outcome` | H2 | always | verify |
-| 6 | `New terms` | H2 | only if the TODO introduces terms missing from `spec.md` Terms (see § New terms) | verify |
-| 7 | `Changes` | H2 | always | verify |
-| 8 | `Autotest` | H2 | always | verify |
-| 9 | `Files` | H2 | always | scaffold |
-| 10 | `Pre-reads (MUST read before editing)` | H2 | always | scaffold |
-| 11 | `Skills to load` | H2 | always | scaffold |
-| 12 | `Manual test` | H2 | always | scaffold |
-| 13 | `Commit` | H2 | always | scaffold |
-| 14 | `Definition of done` | H2 | always | scaffold |
+| 5 | `**Thoughts:**` | inline | always (`none` only if the spec has no thoughts) | verify |
+| 6 | `Outcome` | H2 | always | verify |
+| 7 | `New terms` | H2 | only if the TODO introduces terms missing from `GLOSSARY.md` (see § New terms) | verify |
+| 8 | `Changes` | H2 | always | verify |
+| 9 | `Autotest` | H2 | always | verify |
+| 10 | `Files` | H2 | always | scaffold |
+| 11 | `Pre-reads (MUST read before editing)` | H2 | always | scaffold |
+| 12 | `Skills to load` | H2 | always | scaffold |
+| 13 | `Manual test` | H2 | always | scaffold |
+| 14 | `Commit` | H2 | always | scaffold |
+| 15 | `Definition of done` | H2 | always | scaffold |
 
 Missing any `always` element → invalid TODO. Order is fixed; `New terms`, when present, sits between `Outcome` and `Changes`.
 
@@ -81,7 +82,7 @@ A correct TODO is self-explanatory: a human approves it by reading **five elemen
 |---|---------|--------|------|
 | 1 | Type | What kind of change — frames the rest | — |
 | 2 | Outcome | Is this the right capability? (intent, the anchor) | — |
-| 3 | New terms | Right vocabulary, consistent with `spec.md`? | grounds 2 |
+| 3 | New terms | Right vocabulary, consistent with `GLOSSARY.md`? | grounds 2 |
 | 4 | Changes | Does the behavior deliver the Outcome? | 4 fulfills 2 |
 | 5 | Autotest | Do the tests prove the Outcome? | 5 verifies 2 |
 
@@ -128,15 +129,27 @@ Rules:
 - Score ≥ 3 means existing behavior changes: the **Autotest**/**Manual test** must cover the callers, not just the new code.
 - High score is not a blocker; it is a signal to keep the TODO small and the test surface explicit. If a 5 also has a large diff, consider splitting.
 
+### Thoughts
+
+`[[wikilinks]]` to every `thoughts/NNN-*.md` note this TODO implements or is constrained by —
+the decision and fact notes from the grill loop, the same ones the spec.md `## Plan` decision
+trail lists. This is the TODO's trace back to *why*: the implementer opens them for the
+rationale, the reviewer confirms the TODO serves a recorded decision, not scope creep.
+
+- Format: `**Thoughts:** [[NNN-decision-slug]], [[NNN-fact-slug]]` — comma-separated, in note-number order.
+- List the decisions the TODO delivers **and** the facts that constrain its `## Changes`.
+- Every link must resolve to a real file in `thoughts/`. A dangling link is an invalid TODO.
+- `none` is allowed **only** when the spec has no `thoughts/` notes yet (e.g. a trivial spec that skipped the grill loop). If thoughts exist, at least one must be linked.
+
 ### Outcome
 
 **Capability statement, not an implementation summary.**
 
-Outcome answers *"what new can the system do once this TODO lands?"* in **use-case language**, using only terms already in `spec.md`'s Terms table (or this TODO's `## New terms`).
+Outcome answers *"what new can the system do once this TODO lands?"* in **use-case language**, using only terms already in `GLOSSARY.md` (or this TODO's `## New terms`).
 
 Rules:
 - Use case-style phrasing: `<actor> can <capability> [when <condition>]` or `<aggregate> emits <event> when <command> succeeds`. Present tense, active voice.
-- Refer to entities, commands, events, and actors by their Terms-table names — verbatim.
+- Refer to entities, commands, events, and actors by their GLOSSARY.md names — verbatim.
 - **No implementation vocabulary.** Banned: file paths, function/struct names, HTTP routes, package names, libraries, "add a field", "create a function", "introduce a struct", "wire up", "in `pkg/...`".
 - One or two sentences. If you need more, the TODO is too big — split.
 - Do not restate the spec-level Goal. Outcome is scoped to *this* TODO's slice of capability.
@@ -154,7 +167,7 @@ If the TODO is purely structural (e.g., a refactor that adds no capability), sta
 
 ### New terms
 
-If this TODO introduces any domain term not already in `spec.md`'s Terms table, add a `## New terms` section immediately after **Outcome** with one row per new term:
+If this TODO introduces any domain term not already in `GLOSSARY.md`, add a `## New terms` section immediately after **Outcome** with one row per new term:
 
 ```markdown
 ## New terms
@@ -166,9 +179,9 @@ If this TODO introduces any domain term not already in `spec.md`'s Terms table, 
 ```
 
 Rules:
-- Kind ∈ same set as `spec.md` Terms (`entity | value-object | aggregate | component | service | policy | state | command | event`).
-- Description is one sentence with the visible contract (TTL, bounds, error semantics) — same bar as `spec.md` Terms.
-- Every new term must also be added to `spec.md`'s Terms table in the same planning pass; the TODO copy exists so the implementer doesn't have to context-switch.
+- Kind ∈ same set as `GLOSSARY.md` (`entity | value-object | aggregate | component | service | policy | state | command | event`).
+- Description is one sentence with the visible contract (TTL, bounds, error semantics) — same bar as `GLOSSARY.md`.
+- Every new term must also be added to `GLOSSARY.md` in the same planning pass; the TODO copy exists so the implementer doesn't have to context-switch.
 - If no new terms: omit the section entirely. Do **not** write `## New terms\nnone`.
 
 ### Files
@@ -287,14 +300,14 @@ When updating an existing TODO:
 ## Anti-patterns
 
 - **Vague Outcome** — "improve auth" with no capability stated.
-- **Implementation-leaking Outcome** — "Adds `/auth/refresh` handler in `pkg/auth/handler.go`". Outcome must speak in Terms (actors, commands, events), not files or types.
+- **Implementation-leaking Outcome** — "Adds `/auth/refresh` handler in `pkg/auth/handler.go`". Outcome must speak in GLOSSARY.md terms (actors, commands, events), not files or types.
 - **Missing Pre-reads** — implementer guesses at conventions and breaks them.
 - **`Command: go test ./...`** when only one package is affected — wastes implementer's run loop.
 - **Skipped Manual test without reason** — every skip needs a one-line justification.
 - **Commit subject = "update files"** — useless; implementer copies it verbatim and the history rots.
 - **Embedding decisions in `## Changes` via `/* ... */`** — hidden decisions belong in `spec.md` Design Decisions.
 - **Bundling unrelated edits** — split into two TODOs and order them with `Depends on`.
-- **New term used without description** — implementer sees `TokenJar` and doesn't know if it's a struct, a service, or a Redis key. Add a `## New terms` row and update `spec.md` Terms.
+- **New term used without description** — implementer sees `TokenJar` and doesn't know if it's a struct, a service, or a Redis key. Add a `## New terms` row and update `GLOSSARY.md`.
 - **Interface change described in prose** — "rename Refresh to take a struct" instead of a unified-diff block; implementer must guess the exact signature.
 - **New interface stubbed with `// ...`** — every field, method, and doc comment must be written out so the implementer copies verbatim.
 
@@ -303,11 +316,12 @@ When updating an existing TODO:
 Before saving a TODO file, verify:
 
 - [ ] All `always` elements present and in order (§ Required elements); `New terms` present iff the TODO adds terms
+- [ ] **Thoughts** links every decision/fact note this TODO implements or depends on; each `[[wikilink]]` resolves to a real file in `thoughts/` (`none` only if the spec has no thoughts)
 - [ ] Every path in **Files** exists in the repo (or is marked `create`)
 - [ ] Every path in **Pre-reads** exists
 - [ ] `## Changes` is one TS snippet ≤ 40 lines, side effects + errors visible
-- [ ] **Outcome** is a capability statement in use-case language; mentions only Terms (actors, commands, events, aggregates); contains no file paths, type names, routes, or libraries
-- [ ] Every domain term used in the TODO is either in `spec.md` Terms or in a `## New terms` section in this TODO (and was added to `spec.md` Terms)
+- [ ] **Outcome** is a capability statement in use-case language; mentions only GLOSSARY.md terms (actors, commands, events, aggregates); contains no file paths, type names, routes, or libraries
+- [ ] Every domain term used in the TODO is either in `GLOSSARY.md` or in a `## New terms` section in this TODO (and was added to `GLOSSARY.md`)
 - [ ] Every modified public interface has a unified-diff block in real syntax under `## Changes`
 - [ ] Every new public interface is written out in full (all fields, methods, doc comments) under `## Changes`
 - [ ] `Autotest.Command` is a single runnable shell command

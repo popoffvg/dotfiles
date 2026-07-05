@@ -3,16 +3,17 @@
 **Type:** workflow | state machine | component | event handler | data shape change
 **Depends on:** TODO-M (must be checked off first) | none
 **Risk / blast radius:** 1–5 — <tier + why; name what must be retested. 1 = local, additive (new fn), no existing behavior touched · 3 = modifies one component, callers retested · 5 = core/common types many modules depend on. See SKILL.md § Risk / blast radius.>
+**Thoughts:** [[NNN-decision-slug]], [[NNN-fact-slug]] — <every decision/fact note in `thoughts/` this TODO implements or is constrained by; same notes as the spec.md Plan decision trail. `none` only if the spec has no thoughts yet.>
 
 <!-- ── Verification block: a human reads only down to Autotest, repo closed ── -->
 
 ## Outcome
 
-<actor> can <capability> [when <condition>]. <2–5 sentences total. First sentence is the capability. Remaining sentences give a reader without context what they need: what triggers it, what state changes, what fails and how. Use-case language only — no file paths, type names, routes, libraries. Use Terms from `spec.md` verbatim.>
+<actor> can <capability> [when <condition>]. <2–5 sentences total. First sentence is the capability. Remaining sentences give a reader without context what they need: what triggers it, what state changes, what fails and how. Use-case language only — no file paths, type names, routes, libraries. Use terms from `GLOSSARY.md` verbatim.>
 
 ## New terms
 
-<Only if the TODO introduces terms missing from `spec.md` Terms. Otherwise delete this section entirely — do not write "none". See SKILL.md § New terms.>
+<Only if the TODO introduces terms missing from `GLOSSARY.md`. Otherwise delete this section entirely — do not write "none". See SKILL.md § New terms.>
 
 | Term | Kind | Description |
 |------|------|-------------|

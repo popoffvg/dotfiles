@@ -111,8 +111,9 @@ Now that the thought is corrected, fix the code to match:
 1. Read the corrected thought and the deprecated one — understand what changed.
 2. Find the files the TODO touched (from `todos/TODO-N.md` **Files** section).
 3. Make the minimal change that aligns the code with the corrected thought.
-4. Run the Autotest from the TODO (or write a new one that proves the fix).
-5. Commit with a message referencing both notes:
+4. If the fix renames or introduces a domain term, update `<notes-dir>/GLOSSARY.md` in the same commit.
+5. Run the Autotest from the TODO (or write a new one that proves the fix).
+6. Commit with a message referencing both notes:
    ```
    fix: <subject> — corrects NNN-old-slug with NNN-new-slug
    ```
