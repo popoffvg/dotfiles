@@ -81,6 +81,14 @@ Use the `parallel-agent-tree-guard` skill.
 Use the `verify-fix-premise` skill.
 </task-relevant>
 
+<task-relevant when="removing a service/resource/role/module from infrastructure-as-code (Ansible, Terraform, k8s, docker-compose)">
+Use the `iac-decommission` skill.
+</task-relevant>
+
+<task-relevant when="authoring or editing a skill (SKILL.md) that captures a reusable lesson — make it model-invocable, not user-slash-only">
+Use the `authoring-model-invocable-skills` skill.
+</task-relevant>
+
 ## Stop hook: revise session
 
 When the Stop hook fires with reason `revise session`: run `/improve-claude-local` to review this session and append any new non-obvious metarules to `CLAUDE.local.md` under `## Self-improvement`. If nothing new — skip silently.

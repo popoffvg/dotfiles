@@ -67,7 +67,7 @@ Write `CLAUDE.md` in that folder, not `README.md`. Per-folder docs are CLAUDE.md
 </task-relevant>
 
 <task-relevant when="adding or editing a subcommand in a router skill (SKILL.md with a subcommand table)">
-Every subcommand needs its own `references/<subcommand>.md` — add the table row AND create the reference file in the same change. Don't leave the reference column as `(self)` or inline-only (except `help`, which is the SKILL itself); that's an incomplete subcommand.
+Every subcommand needs its own `references/<subcommand>.md` (reuse an existing one if it already covers the sub) — add the table row AND ensure the reference file exists in the same change. Don't leave the reference column as `(self)` or inline-only (except `help`, which is the SKILL itself); that's an incomplete subcommand. ALSO update the companion `*-help` command (`harness/plugins/<plugin>/commands/<router>-help.md`) — it holds a SECOND verbatim copy of the subcommand table that silently drifts; add the row there too, and to the SKILL's frontmatter `description` subcommand list.
 </task-relevant>
 
 <task-relevant when="applying a fix across a category of files (e.g. all *-help commands, all configs of a kind)">

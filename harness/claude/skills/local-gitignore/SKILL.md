@@ -1,6 +1,7 @@
 ---
 name: local-gitignore
 description: Use when asked to create a "local gitignore" or ignore files locally without committing the ignore rule. Create a `.gitignore.local` file at repo root and wire it via `git config core.excludesFile`, not `.git/info/exclude`.
+user-invocable: false
 ---
 
 "Local gitignore" means a committed-free ignore wired through a real file, not `.git/info/exclude`.

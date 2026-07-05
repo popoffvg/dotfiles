@@ -1,6 +1,7 @@
 ---
 name: parallel-agent-tree-guard
 description: Guard against parallel subagents straying outside their assigned files when they share one working tree. Use when fanning out multiple agents that create or edit files concurrently in the same repo/tree, before committing their combined output.
+user-invocable: false
 ---
 
 # Parallel-agent tree guard

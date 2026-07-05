@@ -10,6 +10,7 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 | Subcommand | Does |
 |---|---|
 | `new` *(default)* | Full pipeline: write spec.md (if missing) → grill loop → produce thoughts/ → auto-write TODO bodies. |
+| `todo` | Author (or rewrite) `todos/TODO-N.md` bodies from an existing spec.md + thoughts/, without rerunning `new`. |
 | `verify` | Audit a spec before implementation — READY / NEEDS REVISION. |
 | `revise` | Rewrite `spec.md` + `todos/TODO-N.md` to match what the last commit actually shipped. |
 | `prototype` | Settle an open design decision with a small, visible demonstrative diff. |

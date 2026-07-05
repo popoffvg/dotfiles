@@ -1,6 +1,7 @@
 ---
 name: inline-review-todos
 description: Place PR/code-review comments as inline TODO markers in the file each comment is on, at its line, not in a centralized list. Use when asked to "write TODOs for PR comments", capture review feedback as TODOs, or turn review threads into actionable in-file notes.
+user-invocable: false
 ---
 
 # Inline review TODOs
