@@ -70,6 +70,10 @@ Write `CLAUDE.md` in that folder, not `README.md`. Per-folder docs are CLAUDE.md
 Every subcommand needs its own `references/<subcommand>.md` (reuse an existing one if it already covers the sub) — add the table row AND ensure the reference file exists in the same change. Don't leave the reference column as `(self)` or inline-only (except `help`, which is the SKILL itself); that's an incomplete subcommand. ALSO update the companion `*-help` command (`harness/plugins/<plugin>/commands/<router>-help.md`) — it holds a SECOND verbatim copy of the subcommand table that silently drifts; add the row there too, and to the SKILL's frontmatter `description` subcommand list.
 </task-relevant>
 
+<task-relevant when="adding new behavior to a router skill — 'X is a command/subcommand that calls an agent', or wiring an agent-spawn into the flow">
+Default to a SUBCOMMAND (table row + `references/<sub>.md`), NOT a standalone `commands/<name>.md`. Router capabilities live as subcommands; a subcommand's reference may spawn a dedicated agent. Don't create a parallel command file unless the user explicitly says "command". When they say "subcommand" (or correct you to it), the deliverable is the router row + reference only.
+</task-relevant>
+
 <task-relevant when="applying a fix across a category of files (e.g. all *-help commands, all configs of a kind)">
 Glob the full set first, then apply to every member — don't fix only the ones already in your context. Missing one member is the common failure. Verify with a find/grep that no member was skipped.
 </task-relevant>
