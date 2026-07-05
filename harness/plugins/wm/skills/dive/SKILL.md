@@ -5,8 +5,9 @@ description: >
   subagent per entry point in parallel and write refactor-oriented research artifacts into the
   wm notes directory (`<notes-dir>/research/`). Use when the user says "dive", "explore",
   "research these entry points", or provides a list of files/symbols to investigate before a task.
-  Invoke as `/dive <docs|workflow>` (default `docs`). `docs` writes the markdown write-ups +
-  question lists; `workflow` writes the typed TS pseudocode + path bindings. Render flows with
+  Invoke as `/dive <docs|workflow|unknowns>` (default `docs`). `docs` writes the markdown write-ups +
+  question lists; `workflow` writes the typed TS pseudocode + path bindings; `unknowns` runs a guided
+  quadrant walk with the user to map task uncertainty before code. Render flows with
   `explore-flow-map`.
 argument-hint: [docs (default), workflow — full list /dive-help] + entry points (files, symbols, urls)
 ---
@@ -21,6 +22,7 @@ argument-hint: [docs (default), workflow — full list /dive-help] + entry point
 |---|---|---|
 | `docs` *(default)* | Write the markdown research write-ups + question lists. One `<ep-slug>.questions.md` + one `<ep-slug>.md` per entry point, graded against the 6-step chain. Convergence loop + `INDEX.md`. | `references/docs.md` |
 | `workflow` | Write the typed TS pseudocode + path bindings — `<ep-slug>.workflow.ts`, `<ep-slug>.bindings.json`, `components/*.d.ts`, `flows.json`. The navigable, reveal-in-editor layer over the `docs` artifacts. | `references/workflow.md` |
+| `unknowns` | Guided **quadrant walk** with the user — map known knowns / known unknowns / unknown knowns / unknown unknowns one stage at a time, ending with a four-quadrant map (`<slug>.unknowns.md`) in the user's hands. Use when the task is ambiguous, underspecified, or the user will "know it when they see it". | `references/unknowns.md` |
 
 ## How they combine
 

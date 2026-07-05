@@ -277,12 +277,12 @@ function y() {
 claudex() {
   local picker choice
   picker=$(command -v sk 2>/dev/null || command -v fzf 2>/dev/null) || { echo "sk or fzf required" >&2; return 1; }
-  choice=$(printf 'general\narchitector\nimplementer\n' | "$picker" --prompt 'claude agent> ' --height 40%) || return 0
+  choice=$(printf 'general\narchitector\nimplementer\nskills\n' | "$picker" --prompt 'claude agent> ' --height 40%) || return 0
   # No exec: if claude exits (e.g. agent not found) the shell survives instead of the terminal closing.
   case "$choice" in
     architector) claude --agent wm:architector "$@" ;;
     implementer) claude --agent wm:implementer --model sonnet "$@" ;;
-    skills) claude --agent plugin-dev:skill-development ;;
+    skills) claude --agent skill-builder ;;
     general|"")  claude "$@" ;;
   esac
 }
