@@ -13,7 +13,7 @@ Agent(subagent_type="wm:spec-verifier", prompt=
    Return the verdict report as your final message.")
 ```
 
-Pass the real `<notes-dir>`. The agent has no Write tool: it runs the mission below and **returns** the report. The caller then writes the returned report to `<notes-dir>/spec-verify.md` and appends the worklog line.
+Pass the real `<notes-dir>`. The agent has no Write tool: it runs the mission below and **returns** the report. The caller then writes the returned report to `<notes-dir>/spec-verify.md` and records the verdict with `jj commit` in `<notes-dir>`.
 
 ## Mission — hunt three failure modes
 
@@ -34,9 +34,8 @@ For each finding: name the exact TODO/section, state the concrete scenario that 
 
 1. `.notes/spec.md` (required) — index, Goal, decisions
 2. `.notes/todos/TODO-N.md` (required, one per TODO in the index)
-3. `.notes/worklog.md` (required)
-4. `.notes/research-*.md` (if present)
-5. Referenced source files from each TODO (read only, to validate feasibility)
+3. `.notes/research-*.md` (if present)
+4. Referenced source files from each TODO (read only, to validate feasibility)
 
 ## Verification checks (pass/fail)
 
@@ -128,10 +127,10 @@ Result: READY | NEEDS REVISION
 - <specific change request>
 ```
 
-The caller (the agent has no Write tool) then appends to `.notes/worklog.md`:
-- `- YYYY-MM-DD HH:MM: Spec verification passed (auto-transition to implement)`
+The caller (the agent has no Write tool) then runs, in `<notes-dir>`:
+- `jj commit -m "Spec verification passed (auto-transition to implement)"`
   or
-- `- YYYY-MM-DD HH:MM: Spec verification failed (auto-transition to spec)`
+- `jj commit -m "Spec verification failed (auto-transition to spec)"`
 
 ## Transition behavior (wm active)
 

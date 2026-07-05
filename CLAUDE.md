@@ -52,7 +52,7 @@ Each skill: `SKILL.md` with `name:` + `description:` frontmatter; optional `refe
 
 `/work:start` → research → spec → implement (worktree) → verify → `/work:done`
 
-State tracked in `work.settings.json`. Notes in `.notes/` (worklog, plan, research).
+State tracked in `work.settings.json`. Notes in `.notes/` — its own jj repo (history via `jj log`), git-ignored in the parent. Also holds plan + research.
 
 ## Local Plugin Development (Claude Code)
 

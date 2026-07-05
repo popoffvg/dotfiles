@@ -8,6 +8,9 @@ reviewable spec + thought graph; the human is the gate between spec and TODOs.
 
 ## Step 0: Starting state
 
+> The notes jj repo (spec history; `jj log`) is initialized automatically on session start and
+> committed on stop — see @references/jj-notes.md. No manual init or worklog here.
+
 If `<notes-dir>/spec.md` does not exist, write a minimal spec.md first:
 
 - **Header** — the status header (see `write.md` § spec.md template). Set `Status: init`, and
@@ -148,7 +151,7 @@ Walk every note in `thoughts/`:
 2. Newly-discovered out-of-scope items are in **What we're NOT doing**.
 3. **Open Questions is empty** — any surviving `- [ ]` line means the spec is NOT READY.
 4. **Advance status: `init` → `review`.** Set the header `Status:` field to `review` — the spec is now authored and ready for human review.
-5. Append a one-line entry to `<notes-dir>/worklog.md`: what was grilled, decisions added, questions closed, note count.
+5. Run `jj commit -m "<what was grilled, decisions added, questions closed, note count>"` in `<notes-dir>`.
 
 ### 3. Compile the plan
 

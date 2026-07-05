@@ -68,6 +68,7 @@
       # git
       - lefthook
       - gitleaks
+      - jj
       # terminal
       - zellij
       # apps

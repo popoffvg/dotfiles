@@ -6,7 +6,7 @@
 
 - **DO NOT** write code, edit files, run tests, or make any changes outside `<notes-dir>/`.
 - User says "add X" → add as TODO. User says "fix Y" → add as TODO.
-- You may create/edit files under `<notes-dir>/` ONLY (`spec.md`, `worklog.md`, `todos/*.md`).
+- You may create/edit files under `<notes-dir>/` ONLY (`spec.md`, `todos/*.md`).
 - You may READ any file for planning purposes.
 
 ## Contract
@@ -32,12 +32,13 @@ Spec structure is defined entirely by this skill. There is no separate constrain
 <notes-dir>/
 ├── spec.md              # target picture: description, guidelines, goal, decisions
 ├── GLOSSARY.md          # ubiquitous-language dictionary, kept current every phase
-├── worklog.md           # timestamped action log
 └── todos/
     ├── TODO-1.md        # full instructions for one implementer pass
     ├── TODO-2.md
     └── ...
 ```
+
+History (the old worklog) lives in the notes' own jj repo — `jj log` in `<notes-dir>`.
 
 **Why two layers:**
 - `spec.md` is read by humans + verifier — target picture plus the TODO List of outcomes. The outcomes are the discussion surface: the user signs off on outcomes here before any body is written.
@@ -57,7 +58,7 @@ The spec's `status` header field tracks this: `init` while researching (stub spe
 ## Step 1: Assess current state
 
 - **First planning** — no `<notes-dir>/spec.md` and no `<notes-dir>/todos/`.
-- **Iteration** — read `<notes-dir>/worklog.md` + user feedback, identify what needs to change. Edit affected TODO files in place; renumber only if order changes.
+- **Iteration** — read `jj log` in `<notes-dir>` + user feedback, identify what needs to change. Edit affected TODO files in place; renumber only if order changes.
 
 ## Step 2: Read context
 

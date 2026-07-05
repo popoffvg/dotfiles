@@ -83,5 +83,5 @@ function refresh(req: RefreshRequest): TokenPair | 401 {
 - [ ] All files in **Files** modified/created as specified
 - [ ] Autotest command passes
 - [ ] Manual test steps produce **Expected** outcomes
-- [ ] No edits outside **Files** without logging in `worklog.md`
+- [ ] No edits outside **Files** without recording it in the notes (jj snapshots on session stop)
 - [ ] Commit created with the message above

@@ -22,7 +22,8 @@ governs, use `fix` (which corrects the thought, then the code).
 ## CRITICAL RULES
 
 - **Read-only on source code.** Edits limited to `<notes-dir>/spec.md`, `<notes-dir>/GLOSSARY.md`,
-  `<notes-dir>/todos/TODO-N.md`, `<notes-dir>/thoughts/*.md`, `<notes-dir>/worklog.md`.
+  `<notes-dir>/todos/TODO-N.md`, `<notes-dir>/thoughts/*.md`, and the notes' jj history
+  (`jj commit` in `<notes-dir>`).
 - Never reorder or renumber unrelated TODOs.
 - Never delete a TODO outcome — if it diverged, **rewrite** the outcome to describe what is now true.
 - Never delete a thought note — supersede it (see Step 3).
@@ -40,7 +41,7 @@ For a **post-impl divergence**, first locate the commit(s) for TODO-N (stop at f
 
 1. User-supplied SHA / range.
 2. `git log --all --oneline --grep="TODO-N\b"`.
-3. Worklog / `impl-learnings.md` entries pinning a SHA.
+3. Notes jj history / `impl-learnings.md` entries pinning a SHA.
 4. If exactly one commit sits between the previous TODO's commit and `HEAD`, assume it — else **ask**, don't guess.
 
 Then inspect it (`git show --stat <sha>`, `git show <sha>`): files touched, symbols added/renamed, behavior added/removed, tests, what landed that wasn't planned, what was planned that didn't land.
@@ -82,9 +83,9 @@ In `<notes-dir>/todos/TODO-N.md`:
 - Restate the (possibly new) outcome verbatim at the top.
 - Rewrite `## Changes` (TS pseudocode per `flow`) to describe what is now true; update files, symbols, acceptance criteria.
 
-In `<notes-dir>/worklog.md`:
+In `<notes-dir>`:
 
-- Append one entry: `revise TODO-N` (+ `from <sha>` if post-impl) and a one-line summary of the deltas + thought notes touched.
+- Run `jj commit -m "revise TODO-N (+ from <sha> if post-impl): <one-line summary of the deltas + thought notes touched>"`.
 
 ## Step 5 — Report
 
@@ -111,5 +112,5 @@ Then stop. The user owns the next action (re-review, continue impl, re-verify).
 - [ ] `GLOSSARY.md` current with the deltas
 - [ ] spec.md header `Status` set to `review`
 - [ ] todos/TODO-N.md outcome restated; `## Changes` matches reality
-- [ ] worklog.md appended
+- [ ] jj commit created in `<notes-dir>`
 - [ ] No edits outside `<notes-dir>/`

@@ -30,6 +30,9 @@ TODO authoring is the separate `todo` step, gated on human review.
 
 ## Step 1: Starting state
 
+> The notes jj repo (spec history; `jj log`) is initialized automatically on session start and
+> committed on stop — see @references/jj-notes.md. No manual init or worklog here.
+
 If no `<notes-dir>/spec.md` exists:
 - Write a minimal spec.md with the status header (`Status: init`, `This spec drives:` line, phase-rules block — see `write.md` § spec.md template), Description, Goal, and a TODO List seeded from the user's request.
 - Create `<notes-dir>/GLOSSARY.md` from `references/glossary-template.md`, empty (no rows yet).
@@ -77,7 +80,7 @@ Same exit as `new` (`references/new.md` § Exit contract):
 2. **Confirm spec.md and GLOSSARY.md** — Open Questions empty, decisions recorded, GLOSSARY.md current.
 3. **Compile plan** — `## Plan` section with decision trail table.
 4. **Advance status** — set the header `Status:` field from `init` to `review`.
-5. **Append worklog** — one line: what was grilled, note count.
+5. **Record the note** — run `jj commit -m "<what was grilled, note count>"` in `<notes-dir>`.
 
 ## Step 4: Stop — human review gate
 

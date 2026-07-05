@@ -8,7 +8,7 @@ Use the `code` skill's `revise` subcommand (`references/revise.md`) to update th
 
 Arguments: `$ARGUMENTS`
 
-1. Parse `$ARGUMENTS` — first token is the TODO id (e.g. `TODO-3`). Optional second token pins a git SHA or range; otherwise discover the commit via worklog / `git log --grep`.
+1. Parse `$ARGUMENTS` — first token is the TODO id (e.g. `TODO-3`). Optional second token pins a git SHA or range; otherwise discover the commit via the notes jj history (`jj log`) / `git log --grep`.
 2. Follow the `code` skill's `revise` subcommand end-to-end:
    - Locate the commit(s) for the given TODO.
    - Inspect the diff (`git show <sha>`) and categorize deltas vs the current plan.

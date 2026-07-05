@@ -14,7 +14,7 @@ Execute **exactly one** TODO end-to-end, then stop and hand back.
 
 ## Rules
 
-- Log work + user intent to `<notes-dir>/worklog.md`.
+- Log work + user intent via `jj commit -m ...` in `<notes-dir>`. (The CODE commit in the parent project repo is unchanged — this is only the notes-history log.)
 - One commit per logical chunk; never batch unrelated changes; never stage unrelated files.
 - User correction after a commit → fixup, not a fold-in (see `references/commit.md`).
 - Worktree-isolated variant: `references/tree.md`.

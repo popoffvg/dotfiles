@@ -29,8 +29,7 @@ it's the broader, more useful starting picture.
   `<notes-dir>/`.
 - **Verify SVG exists and is non-empty** after rendering. If `d2` is missing
   or render fails, stop and report — don't substitute another tool.
-- Append a one-line entry to `<notes-dir>/worklog.md` describing what was
-  drawn.
+- Run `jj commit -m "<what was mapped>"` in `<notes-dir>`.
 
 ## Procedure
 

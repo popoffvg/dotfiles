@@ -120,14 +120,14 @@ Now that the thought is corrected, fix the code to match:
 
 ## Step 5: Report
 
-Append to `<notes-dir>/worklog.md`:
+Run, in `<notes-dir>`:
 
 ```
-- YYYY-MM-DD HH:MM: [FIX:<kind>] <one-line gap>
+jj commit -m "[FIX:<kind>] <one-line gap>
   - thought: NNN-old-slug deprecated (reason: <reason>) | none (missing) | none (code-only drift)
   - corrected/new thought: NNN-new-slug | none
   - commit: <sha>
-  - autotest: pass | fail (details)
+  - autotest: pass | fail (details)"
 ```
 
 `<kind>` is `bug`, `missing`, or `adjust`. Send the user:

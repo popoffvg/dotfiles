@@ -20,7 +20,7 @@
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.11.0"
+      "version": "2.12.0"
     }
   ]
 }

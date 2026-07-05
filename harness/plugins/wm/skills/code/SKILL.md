@@ -11,11 +11,21 @@ description: >
   commit (commit-message conventions), help (this page).
   Invoke as /code <subcommand>.
 argument-hint: help
+# Per-skill Stop hook: snapshot the notes jj repo when the session ends
+# (see @references/jj-notes.md). SessionStart init lives in the plugin's hooks.json.
+hooks:
+  Stop:
+    - matcher: ""
+      hooks:
+        - type: command
+          command: ${CLAUDE_PLUGIN_ROOT}/bin/notes-jj-commit.sh
+          timeout: 5000
 ---
 
 # Code — subcommand router
 
 > **Read first**: @workflow — pipeline, agents contract, notes structure, hard rules.
+> **Notes history**: @references/jj-notes.md — the notes dir is its own jj repo (SessionStart inits it, Stop commits it); spec history is `jj log`. No worklog.md.
 
 **NEVER write TODO comments in code** unless the user explicitly asks for them.
 
