@@ -43,8 +43,14 @@ Spec structure is defined entirely by this skill. There is no separate constrain
 ## Phase Flow
 
 ```
-research → spec → spec-verify → implement → spec (iterate)
+init (research)  →  review (spec + TODO)  →  impl
+                         ▲                     │
+                         └──── revise ─────────┘
 ```
+
+The spec's `status` header field tracks this: `init` while researching (stub spec),
+`review` once the spec is authored and under human review (where `todo` and `revise` run),
+`impl` while TODOs are implemented. A `revise` call always resets `status` to `review`.
 
 ## Step 1: Assess current state
 
@@ -76,6 +82,16 @@ The source-reading chain is also **artifact criteria owned by `explore`** — if
 
 ```markdown
 # Spec
+
+<!-- Header: LLM reads the first line to know what this spec delivers; `status` gates which actions are legal. Keep the phase-rules block verbatim; update only `status`. -->
+**Status:** `init`  ·  `init → review → impl`
+
+*This spec drives: <one sentence — what this work delivers, in user-facing terms>.*
+
+**Phase rules** (one per phase):
+- `init` — research phase; the spec is a stub, nothing authored yet.
+- `review` — spec + TODO outcomes are authored and under human review; `revise` settles changes here; no source edits, no TODO implementation.
+- `impl` — TODOs are implemented one commit each; any `revise` call returns `status` to `review`.
 
 ## Description
 <what this work is about, 2–5 sentences>

@@ -22,7 +22,7 @@ for manifest in "$PLUGINS_DIR"/*/.claude-plugin/plugin.json; do
   # Guard: skip if staged diff is ONLY the version field (avoid re-bumping)
   staged_diff=$(git diff --cached -- "$manifest" 2>/dev/null || true)
   if [[ -n "$staged_diff" ]]; then
-    non_version_lines=$(echo "$staged_diff" | grep '^[+-]' | grep -v '^---\|^+++' | grep -v '"version"' | wc -l)
+    non_version_lines=$(echo "$staged_diff" | grep '^[+-]' | grep -v '^---\|^+++' | grep -v '"version"' | wc -l || true)
     if [[ "$non_version_lines" -eq 0 ]]; then
       echo "bump-plugin-version: $name — skipping (only version field staged)"
       continue

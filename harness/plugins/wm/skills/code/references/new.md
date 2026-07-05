@@ -1,11 +1,17 @@
 # code — new
 
-Default subcommand. Full pipeline: write spec → grill → produce notes → write TODO bodies.
+Default subcommand. Spec pipeline: write spec → grill → produce notes → compile plan → **stop**.
+
+**Does NOT write TODO bodies.** TODO body files (`todos/TODO-N.md`) are authored only by the
+`todo` subcommand, and only after a human has manually reviewed the spec. `new` ends at a
+reviewable spec + thought graph; the human is the gate between spec and TODOs.
 
 ## Step 0: Starting state
 
 If `<notes-dir>/spec.md` does not exist, write a minimal spec.md first:
 
+- **Header** — the status header (see `write.md` § spec.md template). Set `Status: init`, and
+  fill the `This spec drives:` line with one sentence from the user's request. Keep the phase-rules block verbatim.
 - **Description** — one sentence from the user's request.
 - **Goal** — 2-3 sentences, plain language, no IDs.
 - **Terms** — an empty table with columns: Term | Kind | Description.
@@ -141,7 +147,8 @@ Walk every note in `thoughts/`:
 1. Each resolved decision is in **Design Decisions** (Decision oneliner / Motivation / Alternatives) or, if routine, captured in Terms / scope.
 2. Newly-discovered out-of-scope items are in **What we're NOT doing**.
 3. **Open Questions is empty** — any surviving `- [ ]` line means the spec is NOT READY.
-4. Append a one-line entry to `<notes-dir>/worklog.md`: what was grilled, decisions added, questions closed, note count.
+4. **Advance status: `init` → `review`.** Set the header `Status:` field to `review` — the spec is now authored and ready for human review.
+5. Append a one-line entry to `<notes-dir>/worklog.md`: what was grilled, decisions added, questions closed, note count.
 
 ### 3. Compile the plan
 
@@ -170,55 +177,19 @@ Print to the user:
 2. Note count: N decisions, M facts
 3. Decision trail table (copy from spec.md Plan section)
 4. Remaining unknowns (should be none for READY)
-5. Recommended next action (`verify` — TODO bodies are auto-written below)
+5. Recommended next action: **review the spec manually**, then run `/code todo` to author TODO bodies.
 
-> A spec with a non-empty Open Questions list cannot pass `verify`. This skill is how it gets to empty.
+> A spec with a non-empty Open Questions list is not ready for review. This skill is how it gets to empty.
 
 ---
 
-## Step 2: Auto-write TODO bodies
+## Stop here — human review gate
 
-After the grill loop closes and the plan is compiled, write TODO body files for every TODO
-in the TODO List. Follow `references/todo.md` exactly — same format, same required elements,
-same quality bar.
+`new` ends after the plan is compiled. **Do not write `todos/TODO-N.md` files.**
 
-### Writing rules
+The spec + thought graph are now a reviewable artifact. The human reviews the spec (Goal,
+Design Decisions, Terms, TODO List outcomes, decision trail) and, when satisfied, runs
+`/code todo` to author the TODO bodies. Authoring TODOs before that review is the mistake this
+gate exists to prevent — a wrong spec turns into wrong TODOs turns into wrong code.
 
-- One file per TODO: `<notes-dir>/todos/TODO-N.md`.
-- Restate the **Outcome** verbatim from spec.md's TODO List.
-- **Type** must be chosen from the standard set (workflow | state machine | component | event handler | data shape change).
-- **Depends on** is `none` unless TODOs must be ordered.
-- **Risk / blast radius** — score by reach, not effort.
-- **Changes** is TS pseudocode per `flow` (`references/flow.md`). One ` ```ts ` block, ≤ 40 lines.
-- **Autotest** — single runnable command. Derive cases from the Outcome (use `test-suite` skill).
-- **Manual test** — steps + expected, aligned 1:1. `Skip?` only with concrete reason.
-- **Commit** — prefix + subject line, ≤ 72 chars.
-- **Files** — every file touched, repo-relative, no globs.
-- **Pre-reads** — every file the implementer must read first, with reasons.
-- **Skills to load** — skill names only. If none: `none`.
-
-### Quality checklist
-
-- [ ] All `always` elements present and in order (see `todo.md` § Required elements)
-- [ ] Every path in Files exists (or is marked `create`)
-- [ ] Every path in Pre-reads exists
-- [ ] Changes is one TS snippet ≤ 40 lines, side effects + errors visible
-- [ ] Outcome is capability statement in use-case language; no file paths or type names
-- [ ] Every domain term is in spec.md Terms or in a `## New terms` section
-- [ ] Every interface change has unified-diff block
-- [ ] Autotest.Command is single runnable command
-- [ ] Manual test Steps and Expected aligned 1:1
-- [ ] Commit.Subject ≤ 72 chars, imperative
-- [ ] No vague verbs
-
-### Anti-patterns
-
-- **Skipping Pre-reads** — the implementer still needs context.
-- **Vague Autotest** — `go test ./...` when one package is affected.
-- **Skipping Manual test** with "covered by unit tests" — same banned justifications as `todo.md`.
-- **Implementing in the TODO body** — Changes is pseudocode, not real code.
-
-### Report augmentation
-
-After writing TODO bodies, append to the grill report:
-- **TODO files written** — one line per TODO: `TODO-N: <title>`
+If the review surfaces gaps, run `/code new` again (iteration) to reopen and re-grill.

@@ -1,11 +1,12 @@
 # spec — small
 
-All-in-one pipeline for small changes (≤ 3 TODOs). Runs the same grill loop as `new` to
-produce Obsidian notes + spec.md, then auto-writes TODO body files. Single command:
-no separate `write` → `new` → `todo` sequence.
+Condensed spec pipeline for small changes (≤ 3 TODOs). Runs the same grill loop as `new` to
+produce Obsidian notes + spec.md, compiles the plan, and **stops**. Like `new`, it does NOT
+write TODO bodies — the human reviews the spec, then runs `/code todo`.
 
 Use when the change fits in one or two TODOs and doesn't need a full spec phase.
-Use `new` + `todo` separately when the spec has > 3 TODOs or requires deep design exploration.
+Use `new` when the spec has > 3 TODOs or requires deep design exploration. Either way,
+TODO authoring is the separate `todo` step, gated on human review.
 
 ## When to use small vs new
 
@@ -24,13 +25,13 @@ Use `new` + `todo` separately when the spec has > 3 TODOs or requires deep desig
   ├─ Write minimal spec.md (if no existing spec)
   ├─ Grill loop (condensed) ─── produces thoughts/ notes + populates spec.md
   ├─ Compile plan (same as new exit)
-  └─ Auto-write TODO body files (same format as todo)
+  └─ Stop → human reviews spec → /code todo authors TODO bodies
 ```
 
 ## Step 1: Starting state
 
 If no `<notes-dir>/spec.md` exists:
-- Write a minimal spec.md with Description, Goal, and a TODO List seeded from the user's request.
+- Write a minimal spec.md with the status header (`Status: init`, `This spec drives:` line, phase-rules block — see `write.md` § spec.md template), Description, Goal, and a TODO List seeded from the user's request.
 - Skip Implementation Guidelines (derive in TODO bodies later).
 - Keep Terms, What we're NOT doing, and Design Decisions sections — they'll be filled during the loop.
 
@@ -74,49 +75,17 @@ Same exit as `new` (`references/new.md` § Exit contract):
 1. **Back-link all notes** — populate `Affects` back-links and `links` frontmatter.
 2. **Confirm spec.md** — Open Questions empty, decisions recorded, terms defined.
 3. **Compile plan** — `## Plan` section with decision trail table.
-4. **Append worklog** — one line: what was grilled, note count.
+4. **Advance status** — set the header `Status:` field from `init` to `review`.
+5. **Append worklog** — one line: what was grilled, note count.
 
-## Step 4: Auto-write TODO bodies
+## Step 4: Stop — human review gate
 
-This is the difference from `new`. After the plan is compiled, write TODO body files
-for every TODO in the TODO List. Follow `references/todo.md` exactly — same format,
-same required elements, same quality bar.
+`small` ends after the plan is compiled. **Do not write `todos/TODO-N.md` files** — same gate
+as `new`. The spec + thought graph are a reviewable artifact; the human reviews the spec and,
+when satisfied, runs `/code todo` to author the TODO bodies. The condensed loop does not lower
+the review bar — a small wrong spec still becomes a small wrong TODO.
 
-### Writing rules
-
-- One file per TODO: `<notes-dir>/todos/TODO-N.md`.
-- Restate the **Outcome** verbatim from spec.md's TODO List.
-- **Type** must be chosen from the standard set (workflow | state machine | component | event handler | data shape change).
-- **Depends on** is `none` unless TODOs must be ordered (same rules as `todo.md`).
-- **Risk / blast radius** — score by reach, not effort.
-- **Changes** is TS pseudocode per `flow` (`references/flow.md`). One ` ```ts ` block, ≤ 40 lines.
-- **Autotest** — single runnable command. Derive cases from the Outcome.
-- **Manual test** — steps + expected, aligned 1:1. `Skip?` only with concrete reason.
-- **Commit** — prefix + subject line, ≤ 72 chars.
-- **Files** — every file touched, repo-relative, no globs.
-- **Pre-reads** — every file the implementer must read first, with reasons.
-
-### Quality checklist (same as todo.md pre-save)
-
-- [ ] All `always` elements present and in order
-- [ ] Every path in Files exists (or is marked `create`)
-- [ ] Every path in Pre-reads exists
-- [ ] Changes is one TS snippet ≤ 40 lines
-- [ ] Outcome is capability statement in use-case language; no file paths or type names
-- [ ] Every domain term is in spec.md Terms or in a `## New terms` section
-- [ ] Every interface change has unified-diff block
-- [ ] Autotest.Command is single runnable command
-- [ ] Manual test Steps and Expected aligned 1:1
-- [ ] Commit.Subject ≤ 72 chars, imperative
-- [ ] No vague verbs
-
-### Anti-patterns for small
-
-- **Skipping Pre-reads** because "it's a small change" — the implementer still needs context.
-- **Vague Autotest** — `go test ./...` when one package is affected. Small scope means precise scope.
-- **Skipping Manual test** with "covered by unit tests" — same banned justifications as `todo.md`.
-- **Implementing in the TODO body** — the Changes section is pseudocode, not real code. Small changes tempt you to write real code. Don't.
-- **Over-grilling** — the small loop is condensed. Don't grill failure paths unless the user cares. Don't ask "what about edge case X" for edge cases that don't change the implementation.
+If the review surfaces gaps, run `/code small` again (iteration) to re-grill.
 
 ## Step 5: Report
 
@@ -124,6 +93,5 @@ Print to the user:
 
 1. **Plan summary** — 1-2 sentences (shorter than `new` report).
 2. **Note count** — N decisions, M facts.
-3. **TODO files written** — one line per TODO: `TODO-N: <title> → <note references if relevant>`.
-4. **Ready for implement?** — Yes, if the TODO files pass the quality checklist. The user can go straight to `/impl work`.
-5. **Alternatively** — the user can run `verify` before implementing, or edit TODO bodies manually.
+3. **Remaining unknowns** — should be none.
+4. **Next action** — review the spec manually, then run `/code todo` to author TODO bodies.

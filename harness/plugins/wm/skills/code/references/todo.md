@@ -1,5 +1,18 @@
 # spec — todo
 
+Authors `todos/TODO-N.md` bodies from an existing `spec.md` + `thoughts/`.
+
+## Precondition — human review gate
+
+Run `todo` **only after a human has manually reviewed the spec.** `new` deliberately stops
+before this step; TODO bodies are never auto-written. Before authoring:
+
+- `spec.md` exists with header **`Status: review`**, **Open Questions is empty**, and the TODO List (outcomes) is settled.
+- The human has reviewed Goal, Design Decisions, Terms, and TODO outcomes and asked for TODOs.
+
+If `Status` is `init`, Open Questions is non-empty, or no spec exists, stop and run `/code new` first. Do not
+author TODOs from an unreviewed spec — a wrong spec becomes wrong TODOs becomes wrong code.
+
 ## Audience
 
 **A dummy Sonnet implementer with no project context, no judgment, and no permission to improvise.**

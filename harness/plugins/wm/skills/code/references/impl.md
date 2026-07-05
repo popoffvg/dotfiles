@@ -4,7 +4,7 @@ Execute **exactly one** TODO end-to-end, then stop and hand back.
 
 ## Steps
 
-1. **Read context** — read `<notes-dir>/todos/TODO-N.md` in full, plus every file it cites. Read `@workflow` for pipeline conventions.
+1. **Read context** — read `<notes-dir>/todos/TODO-N.md` in full, plus every file it cites. Read `@workflow` for pipeline conventions. If `spec.md` header `Status` is `review`, advance it to `impl` (implementation has begun).
 2. **Replan guard** — if the TODO's assumptions no longer hold (the code moved, a dependency changed), stop and report instead of forcing the plan.
 3. **Implement** — make the change. Bug fix? Follow `references/../../red-green-refactor/SKILL.md` (Red → Green → Refactor); never skip the failing test.
 4. **Autotest** — run the TODO's `## Autotest`. Must be green before committing.
