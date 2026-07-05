@@ -282,6 +282,7 @@ claudex() {
   case "$choice" in
     architector) claude --agent wm:architector "$@" ;;
     implementer) claude --agent wm:implementer --model sonnet "$@" ;;
+    skills) claude --agent plugin-dev:skill-development ;;
     general|"")  claude "$@" ;;
   esac
 }
