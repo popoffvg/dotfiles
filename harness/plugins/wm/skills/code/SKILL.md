@@ -5,7 +5,8 @@ description: >
   (write spec → grill loop → produce notes → compile plan → stop; does NOT write TODOs).
   Other subcommands: todo (author TODO bodies after human spec review), verify (audit),
   revise (sync to shipped), prototype (settle a decision),
-  code-map (diagram), impl (execute one TODO), tree (worktree-per-TODO: new/merge),
+  code-map (diagram), diff (arch: current vs proposed / impl: branch-vs-target changes),
+  impl (execute one TODO), tree (worktree-per-TODO: new/merge),
   squash (analyze fixups → CLAUDE.local.md → git squash), fix (correct a bug, missing
   part, or implementation adjustment by fixing the thought then the code),
   commit (commit-message conventions), help (this page).
@@ -41,6 +42,7 @@ hooks:
 | `revise` | Fix `spec.md` / `todos/TODO-N.md` and change or add a `thoughts/` note; the settle action of the review phase — resets `Status` to `review`. Notes-only, no source edits. | `references/revise.md` |
 | `prototype` | Settle an OPEN design decision by spawning the implementer to make small, visible code changes. | `references/prototype.md` |
 | `code-map` | Produce a D2 + SVG architecture map (package or component/type map) as visual aid. | `references/code-map.md` |
+| `diff` | Show what changed as one self-contained HTML page (opened): before/after architecture panels + interfaces/signatures rendered as diffs. `diff arch` *(default)*: current vs proposed architecture. `diff impl`: what the branch shipped, `git diff <target>...<current-branch>`. No mermaid. | `references/diff.md` · `references/code-map.md` |
 | `impl` | Execute one TODO — read context, replan guard, implement, autotest, commit, report. | `references/impl.md` |
 | `tree` | Worktree flow. `tree new` *(default)*: implement one TODO in its own `wt` worktree+branch, committing fixups as you go. `tree merge`: invoke `squash`, then `wt merge` back. | `references/tree.md` |
 | `squash` | Analyze the worktree's fixup commits → distill lessons into `CLAUDE.local.md` → `git` squash-merge the branch as one commit. Called by `tree merge`. | `references/squash.md` |
@@ -74,6 +76,7 @@ research → new → [human reviews spec] → todo → verify → impl → revis
 - **commit** holds the shared commit-message conventions used by `impl`, `tree`, `fix`.
 - **fix** closes a gap — a bug, a missing part, or an implementation adjustment — by correcting the thought, then the code (edits source).
 - **prototype** and **code-map** are aids invoked mid-spec.
+- **diff** shows change as one opened HTML page — before/after architecture panels + signatures-as-diffs. `diff arch` maps current vs proposed architecture; `diff impl` reports what the branch shipped against its target (`git diff`). Read-only.
 - **revise** is the settle action of the review phase — fixes `spec.md` / `todos/` and changes or adds a `thoughts/` note, whether the trigger is a review-phase correction or post-impl divergence. Notes-only (use `fix` when the code must change too). Any revise resets `Status` to `review`.
 - **help** shows this page.
 

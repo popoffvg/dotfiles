@@ -307,3 +307,25 @@ tw() {
       ;;
   esac
 }
+
+# diffx — fzf-pick the local working-tree diff or an open PR, open the `lumen diff` TUI to review + annotate,
+# press `s` (Exit & send annotations to stdout) to write your feedback to a claude tmp file; print its path.
+# lumen draws the TUI to /dev/tty when stdout is captured, reserving stdout for the annotation payload.
+diffx() {
+  local choice pr out
+  print -u2 "diffx: picking…"
+  choice=$({ echo "local  (working-tree diff, no PR)"; gh pr list --limit 100; } | fzf --prompt 'diff> ' --height 40%) || return
+  [[ -z "$choice" ]] && return 0
+  print -u2 "diffx: picked '$choice' — launching lumen (quit with s to save, q to discard)…"
+  if [[ "$choice" == local* ]]; then
+    out=$(mktemp "${TMPDIR:-/tmp}/claude-diffx-local.XXXXXX")
+    lumen diff >"$out"
+  else
+    pr=$(echo "$choice" | grep -oE '[0-9]+' | head -1)   # first number on the line = PR#
+    [[ -z "$pr" ]] && return 0
+    out=$(mktemp "${TMPDIR:-/tmp}/claude-diffx-pr${pr}.XXXXXX")
+    lumen diff --pr "$pr" >"$out"
+  fi
+  print -u2 "diffx: lumen exited"
+  echo "$out"
+}

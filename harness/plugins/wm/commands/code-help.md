@@ -15,6 +15,7 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 | `revise` | Fix spec.md / todos and change or add a thoughts/ note; settles the review phase (resets Status to review). Notes-only. |
 | `prototype` | Settle an open design decision with a small, visible demonstrative diff. |
 | `code-map` | Produce a D2 + SVG architecture map (package or component/type) for the spec. |
+| `diff` | Show what changed as one self-contained HTML page (opened): before/after architecture panels + interfaces/signatures rendered as diffs. `diff arch` *(default)* — current vs proposed architecture. `diff impl` — what the branch shipped, `git diff <target>...<current-branch>`. No mermaid. |
 | `impl` | Execute one TODO — pick, read context, replan guard, implement, autotest, commit, report. |
 | `tree` | Worktree flow. `tree new` *(default)* — implement one TODO in its own `wt` worktree+branch, committing fixups as you go. `tree merge` — finish: invoke `squash`, then `wt merge` back. |
 | `squash` | Analyze a worktree's fixup commits → distill lessons into `CLAUDE.local.md` → `git` squash-merge the branch as one commit. Called by `tree merge`. |

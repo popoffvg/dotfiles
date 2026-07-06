@@ -26,6 +26,7 @@ Each subcommand in the SKILL.md table points to exactly one `references/<subcomm
 | `revise` | `references/revise.md` |
 | `prototype` | `references/prototype.md` |
 | `code-map` | `references/code-map.md` |
+| `diff` (`arch` / `impl`) | `references/diff.md` |
 | `impl` | `references/impl.md` |
 | `tree` (`new` / `merge`) | `references/tree.md` |
 | `squash` | `references/squash.md` |

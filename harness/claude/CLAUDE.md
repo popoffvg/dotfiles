@@ -81,6 +81,10 @@ Use the `parallel-agent-tree-guard` skill.
 Use the `verify-fix-premise` skill.
 </task-relevant>
 
+<task-relevant when="a plan/fix assumes a tool, CLI, binary, package, or env var is present for code that runs on a server/container/CI/deploy target (not the dev machine)">
+Use the `verify-capability-on-target-host` skill.
+</task-relevant>
+
 <task-relevant when="removing a service/resource/role/module from infrastructure-as-code (Ansible, Terraform, k8s, docker-compose)">
 Use the `iac-decommission` skill.
 </task-relevant>
@@ -95,6 +99,14 @@ Use the `phase-boundary-discipline` skill.
 
 <task-relevant when="adding a hook that should fire only during one skill, or deciding hook placement (skill frontmatter vs plugin hooks.json)">
 Use the `skill-scoped-hooks` skill.
+</task-relevant>
+
+<task-relevant when="asked to walk through / explain / visualize architectural changes (before/after modules, deps, seams, signatures)">
+Use the `arch-change-walkthrough` skill.
+</task-relevant>
+
+<task-relevant when="redirecting/piping a TUI or interactive CLI's stdout to a file, or about to caveat that such a redirect captures ANSI/garbage">
+Use the `tui-stdout-redirect` skill.
 </task-relevant>
 
 ## Stop hook: revise session
