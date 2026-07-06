@@ -38,7 +38,7 @@ Model the problem domain-first, not implementation-first:
 
 Follow @workflow for pipeline and conventions.
 Follow `${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md` — the `code` router. Use the
-`new` subcommand (`references/new.md`) for the full pipeline (write spec → grill → notes → TODO bodies).
+`new` subcommand (`commands/sub-new.md`) for the full pipeline (write spec → grill → notes → TODO bodies).
 
 Do not modify source code. Only write to `.notes/`.
 

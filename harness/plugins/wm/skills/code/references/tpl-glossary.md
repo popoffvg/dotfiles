@@ -1,6 +1,6 @@
 # Glossary
 
-Ubiquitous-language dictionary for this spec. Keep it current every phase — new, small, todo, impl, revise, fix.
+Ubiquitous-language dictionary for this spec. Keep it current every phase — new, todo, impl, revise, fix.
 
 | Term | Kind | Description |
 |------|------|-------------|

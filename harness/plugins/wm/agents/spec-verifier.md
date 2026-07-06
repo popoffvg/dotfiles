@@ -5,7 +5,7 @@ description: >
   implementation and hunts contradictions, missing parts, and edge cases. Independent of
   the architector who wrote the spec. Read-only: no source edits, no file writes — returns
   the verdict (READY | NEEDS REVISION) with findings as its final message. Workflow in the
-  `code` skill's `verify` subcommand (`references/verify.md`).
+  `code` skill's `verify` subcommand (`commands/sub-verify.md`).
 color: green
 tools: Read, Glob, Grep, Bash
 model: sonnet
@@ -36,6 +36,6 @@ edit that closes it. A finding without a reproducing scenario is a style nit, no
 
 ## Contract
 
-Follow `${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md` → `references/verify.md` for the full check
+Follow `${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md` → `commands/sub-verify.md` for the full check
 list and the report format. Return the report as the final message — the caller persists it to
 `.notes/spec-verify.md`.

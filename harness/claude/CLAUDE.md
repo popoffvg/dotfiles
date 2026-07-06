@@ -109,6 +109,10 @@ Use the `arch-change-walkthrough` skill.
 Use the `tui-stdout-redirect` skill.
 </task-relevant>
 
+<task-relevant when="a goal/loop/acceptance condition uses exhaustion phrasing — 'while there is X', 'until none remain', 'prune while there is nothing to prune', 'fix all'">
+Use the `exhaustion-condition` skill.
+</task-relevant>
+
 ## Stop hook: revise session
 
 When the Stop hook fires with reason `revise session`: run `/improve-claude-local` to review this session and append any new non-obvious metarules to `CLAUDE.local.md` under `## Self-improvement`. If nothing new — skip silently.

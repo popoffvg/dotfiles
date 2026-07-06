@@ -1,6 +1,6 @@
 # Test Strategy: <TODO-N or task name>
 
-Worked example — the canonical output shape produced by `/test-suite create` (`references/create.md`)
+Worked example — the canonical output shape produced by `/test-suite create` (`references/sub-create.md`)
 (pairwise tiering). SUT: `POST /auth/refresh` token rotation handler.
 
 ## SUT

@@ -9,8 +9,8 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 
 | Subcommand | Does |
 |---|---|
-| `new` *(default)* | Spec pipeline: write spec.md (if missing) → grill loop → produce thoughts/ → compile plan → stop. Does NOT write TODOs — human reviews the spec first. |
-| `todo` | Author `todos/TODO-N.md` bodies from an existing spec.md + thoughts/. Run only after human spec review. |
+| `new` *(default)* | Spec pipeline: write spec.md (if missing) → grill → produce thoughts/ → compile plan → stop at the gate. Does not write TODO bodies — the human reviews the spec first. |
+| `todo` | Author `todos/TODO-N.md` bodies from a reviewed spec.md + thoughts/. Runs only past the gate. |
 | `verify` | Audit a spec before implementation in a separate `spec-verifier` agent (sonnet, read-only) — hunts contradictions, missing parts, edge cases. READY / NEEDS REVISION. |
 | `revise` | Fix spec.md / todos and change or add a thoughts/ note; settles the review phase (resets Status to review). Notes-only. |
 | `prototype` | Settle an open design decision with a small, visible demonstrative diff. |

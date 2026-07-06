@@ -7,10 +7,6 @@ description: >
 
 # spec — implementation decision note template
 
-When writing a TODO body, you make choices the spec didn't decide: file naming, package
-structure, error handling strategy, library usage, data shape. Every such choice is an
-**implementation decision**. Write it to `<notes-dir>/thoughts/` immediately.
-
 ## When to write
 
 | Situation | Write? |

@@ -4,7 +4,7 @@ description: Revise spec.md and todos/TODO-N.md so they match what the last comm
 argument-hint: <TODO-N> [<sha-or-range>]
 ---
 
-Use the `code` skill's `revise` subcommand (`references/revise.md`) to update the spec to match reality.
+Use the `code` skill's `revise` subcommand (`commands/sub-revise.md`) to update the spec to match reality.
 
 Arguments: `$ARGUMENTS`
 

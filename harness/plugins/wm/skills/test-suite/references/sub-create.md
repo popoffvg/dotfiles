@@ -119,7 +119,7 @@ Use the template below. Keep it dense — one screen per tier where possible.
 
 ## Output template
 
-See the worked example: [`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md) — a full `POST /auth/refresh` strategy with Factors, Constraints, Unit/Integration/Manual tiers, and Traceability. Copy its section structure.
+See the worked example: [`examples/ex-strategy-auth-refresh.md`](../examples/ex-strategy-auth-refresh.md) — a full `POST /auth/refresh` strategy with Factors, Constraints, Unit/Integration/Manual tiers, and Traceability. Copy its section structure.
 
 ## Reducing matrix size
 

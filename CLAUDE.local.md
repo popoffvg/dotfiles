@@ -2,6 +2,10 @@
 
 ## Self-improvement
 
+<task-relevant when="creating a NEW standalone model-invocable skill in dotfiles (e.g. extracting a reference into its own skill)">
+Default to a loose `~/.claude` skill at `harness/claude/skills/<name>/SKILL.md` (stows to `~/.claude/skills`), NOT a plugin sibling skill under `harness/plugins/<plugin>/skills/`. Put it in the plugin only when the skill is plugin-coupled or the user says so. After moving, `mise run stow` to symlink it in.
+</task-relevant>
+
 <task-relevant when="a tracker skill (task-code-context, task-authoring, ticket) is invoked but the prompt targets local files ('fill section in files', points at a scratchpad path)">
 Deliver by editing the local files, not the tracker. These skills default to an outward tracker write (Notion/Jira) — but 'in files' overrides that. Don't create/enrich tracker pages; add/fill the section in the scratchpad/spec files. Tracker writes are hard-to-reverse and outward-facing — confirm before defaulting to them.
 </task-relevant>

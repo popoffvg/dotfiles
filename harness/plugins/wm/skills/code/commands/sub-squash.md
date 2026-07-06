@@ -2,6 +2,8 @@
 
 Collapse a worktree's fixup history into one clean commit, harvesting what the fixups taught. Invoked by `tree merge`; can run standalone on a branch with `--fixup` commits.
 
+Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
+
 ## Steps
 
 1. **Analyze the fixups** — list the `git commit --fixup=<sha>` commits on the branch. Each fixup records a user correction: read its diff and the commit it corrects. Ask *why* the first attempt was wrong.
@@ -13,5 +15,4 @@ Collapse a worktree's fixup history into one clean commit, harvesting what the f
 
 ## Rules
 
-- Confirm with the user before any history rewrite.
 - Lessons are behavioral rules ("next time do X instead of Y"), not raw facts — match the `CLAUDE.local.md` `<task-relevant>` format.

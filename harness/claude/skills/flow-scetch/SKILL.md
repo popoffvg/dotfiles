@@ -1,3 +1,9 @@
+---
+name: flow-scetch
+description: >
+  Use it when user ask describe the flow or write pseudocode.
+---
+
 # spec — flow
 
 TS pseudocode is the canonical way to describe what a TODO must do.
@@ -89,20 +95,7 @@ namespace Job {
 }
 ```
 
-## Checklist
-
-- [ ] `namespace <Component> { ... }` wrapper
-- [ ] One `flow(...)` entrypoint (or a before/after pair for data-shape)
-- [ ] Opens with a `// trace:` one-sentence line that matches the TODO's Outcome
-- [ ] Body is ordered by the data's lifecycle, not by call convenience
-- [ ] Every corner case is a visible branch with a terminal arm; failure arms that intentionally look identical say so
-- [ ] Every non-obvious decision has a `// see spec.md → Decisions: <name>` anchor
-- [ ] No `any`, no imports, no real file paths, no magic strings
-- [ ] ≤ 40 lines — split the TODO if larger
-
 ## Anti-patterns
 
 - Prose inside the code block
 - Hidden algorithm in `/* ... */` (lift to `spec.md` Decisions)
-- Multiple top-level functions instead of one `flow` + helpers
-- `any` or untyped string variants

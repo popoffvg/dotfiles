@@ -2,7 +2,7 @@
 
 **Type:** workflow | state machine | component | event handler | data shape change
 **Depends on:** TODO-M (must be checked off first) | none
-**Risk / blast radius:** 1–5 — <tier + why; name what must be retested. 1 = local, additive (new fn), no existing behavior touched · 3 = modifies one component, callers retested · 5 = core/common types many modules depend on. See SKILL.md § Risk / blast radius.>
+**Risk / blast radius:** 1–5 — <tier + why; name what must be retested. 1 = local, additive (new fn), no existing behavior touched · 3 = modifies one component, callers retested · 5 = core/common types many modules depend on. See todo.md § Risk / blast radius.>
 **Thoughts:** [[NNN-decision-slug]], [[NNN-fact-slug]] — <every decision/fact note in `thoughts/` this TODO implements or is constrained by; same notes as the spec.md Plan decision trail. `none` only if the spec has no thoughts yet.>
 
 <!-- ── Verification block: a human reads only down to Autotest, repo closed ── -->
@@ -13,7 +13,7 @@
 
 ## New terms
 
-<Only if the TODO introduces terms missing from `GLOSSARY.md`. Otherwise delete this section entirely — do not write "none". See SKILL.md § New terms.>
+<Only if the TODO introduces terms missing from `GLOSSARY.md`. Otherwise delete this section entirely — do not write "none". See todo.md § New terms.>
 
 | Term | Kind | Description |
 |------|------|-------------|
@@ -21,7 +21,7 @@
 
 ## Changes
 
-<If a public interface changes, an Interface sub-block goes FIRST: unified git-diff for modifications, full listing for new interfaces. See SKILL.md § Interface changes.>
+<If a public interface changes, an Interface sub-block goes FIRST: unified git-diff for modifications, full listing for new interfaces. See todo.md § Changes.>
 
 <TS pseudocode — follow `flow`. One ```ts block, ≤ 40 lines, all side effects + error paths visible. No real imports or file paths inside the snippet. Must deliver the Outcome above.>
 

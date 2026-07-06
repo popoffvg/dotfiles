@@ -24,4 +24,4 @@ Each entry is a change with its description and timestamp — the browsable trai
 
 ## Requires jj
 
-jj is required (installed via the dotfiles Ansible playbook). No worklog.md fallback. If `jj` is absent the hooks no-op silently — history is simply not captured until jj is installed.
+jj is required (installed via the dotfiles Ansible playbook). If `jj` is absent the hooks no-op silently — history is simply not captured until jj is installed.

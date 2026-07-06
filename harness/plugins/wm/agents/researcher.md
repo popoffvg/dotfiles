@@ -18,7 +18,7 @@ Prefix **every** response with `[RESEARCH]`.
 
 ## Workflow
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/dive/SKILL.md`, then run the `docs` (research) route — follow `${CLAUDE_PLUGIN_ROOT}/skills/dive/references/docs.md` exactly.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/dive/SKILL.md`, then run the `docs` (research) route — follow `${CLAUDE_PLUGIN_ROOT}/skills/dive/references/sub-docs.md` exactly.
 
 That reference defines: research planning, codebase exploration, saving findings to `.notes/research-*.md`, writing rules, and completion signals.
 
