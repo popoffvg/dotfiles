@@ -1,17 +1,9 @@
 ---
 name: code
 description: >
-  One entry point for spec writing, implementation, and bug fixing. Default is new
-  (write spec → grill loop → produce notes → compile plan → stop; does NOT write TODOs).
-  Other subcommands: todo (author TODO bodies after human spec review), verify (audit),
-  revise (sync to shipped), prototype (settle a decision),
-  code-map (diagram), diff (arch: current vs proposed / impl: branch-vs-target changes),
-  impl (execute one TODO), tree (worktree-per-TODO: new/merge),
-  squash (analyze fixups → CLAUDE.local.md → git squash), fix (correct a bug, missing
-  part, or implementation adjustment by fixing the thought then the code),
-  commit (commit-message conventions), help (this page).
-  Invoke as /code <subcommand>.
+  Manage spec writing, implementation, and bug fixing.
 argument-hint: help
+model-invocable: false
 # Per-skill Stop hook: snapshot the notes jj repo when the session ends
 # (see @references/ref-jj-notes.md). SessionStart init lives in the plugin's hooks.json.
 hooks:

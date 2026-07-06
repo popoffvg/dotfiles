@@ -4,6 +4,8 @@ Execute **exactly one** TODO end-to-end, then stop and hand back.
 
 Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 
+Always call @implementer with background: true for implementation.
+
 ## Steps
 
 1. **Read context** — read `<notes-dir>/todos/TODO-N.md` in full, plus every file it cites. Read `@workflow` for pipeline conventions. If `spec.md` header `Status` is `review`, advance it to `impl` (implementation has begun).
