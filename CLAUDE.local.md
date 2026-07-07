@@ -102,6 +102,10 @@ To pick up rebuilt `file:../platforma/lib/**/package.tgz` overrides, run `pnpm i
 That path is NOT in the sandbox write allowlist — writes fail with "Operation not permitted (os error 1)". Run with `dangerouslyDisableSandbox: true`.
 </task-relevant>
 
+<task-relevant when="authoring a command/subcommand that creates a git fixup commit (git commit --fixup)">
+Create the fixup commit only — never chain `git rebase --autosquash`. Collapsing fixups into their targets is a separate deliberate step the user triggers (`/code squash`); auto-squashing rewrites history behind their back. Keep the responsibilities split: `fix` makes the fixup, `squash` collapses it.
+</task-relevant>
+
 <task-relevant when="a gh API command fails to resolve a milaboratory/ org repo, or git push to a popoffvg/ repo is denied">
 Two accounts: `popoffvg` (personal — SSH push works; force key with `git config core.sshCommand "ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes"` since default key selection can auth as the wrong user) and `vgpopov` (work — resolves milaboratory/ org repos). For gh API on org repos: `gh auth switch --user vgpopov`, run the op, then `gh auth switch --user popoffvg` to restore.
 </task-relevant>

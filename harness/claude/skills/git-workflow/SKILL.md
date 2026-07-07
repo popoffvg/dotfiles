@@ -1,6 +1,6 @@
 ---
 name: git-workflow
-description: This skill should be used when asked about branching, committing, PRs, or the end-to-end Git development flow. Covers available commands (/smart-commit, /pr, /fix), branch naming conventions, and when to use each tool.
+description: This skill should be used when asked about branching, committing, PRs, or the end-to-end Git development flow. Covers available commands (/smart-commit, /pr, /code fix), branch naming conventions, and when to use each tool.
 ---
 
 # Git Workflow
@@ -11,7 +11,7 @@ description: This skill should be used when asked about branching, committing, P
 | --------------------------| -----------------------------------------------------------------------------------------------------------|
 | `/smart-commit`          | You have changes ready to commit — analyzes diff, proposes logical split, asks for approval, then commits |
 | `/pr`                    | Branch is ready to merge — creates a GitHub PR with purpose + changes + tests description                 |
-| `/fix`                   | You made a code change and want to fixup into the best existing local commit                              |
+| `/code fix`              | Correct a bug/missing part/adjustment — fixes the thought then the code, fixup into the best local commit  |
 | `commit-commands:commit` | Quick single commit, no split needed                                                                      |
 
 ## End-to-End Flow
@@ -76,7 +76,7 @@ Examples: `feat/k8s-health-check`, `fix/auth-token-expiry`, `chore/update-deps`
 ## Autoresearch rules
 
 **Eval checklist:**
-1. Was the correct command recommended for the situation (/smart-commit vs /pr vs /fix)?
+1. Was the correct command recommended for the situation (/smart-commit vs /pr vs /code fix)?
 2. Did branch naming follow the convention (<type>/<short-description>)?
 3. Were zero git operations performed without the user understanding what would happen?
 4. Was the end-to-end flow followed in order (branch → changes → commit → PR)?
@@ -87,6 +87,6 @@ Examples: `feat/k8s-health-check`, `fix/auth-token-expiry`, `chore/update-deps`
 - "I need to fixup a typo into a previous commit"
 
 **Can change:** command descriptions, flow documentation, branch naming examples, when-to-use guidance
-**Cannot change:** command names (/smart-commit, /pr, /fix), branch naming convention
+**Cannot change:** command names (/smart-commit, /pr, /code fix), branch naming convention
 **Min sessions before eval:** 5
 **Runs per experiment:** 3
