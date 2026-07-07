@@ -30,11 +30,13 @@ done
 diff=$(jj -R "$notes" diff -s 2>/dev/null)
 [[ -z "$diff" ]] && exit 0
 
-# Meaningful message: the changed note/spec basenames (capped), not a bare "snapshot".
+# Fallback only: phases commit intentful "<phase>: <why>" messages themselves
+# (see references/jj-notes.md). This catches work left uncommitted at session
+# end — it can't know intent, so it names the changed basenames (capped).
 # jj diff -s lines are "<op> <path>"; take the paths, basename, unique.
 names=$(echo "$diff" | awk '{print $2}' | xargs -n1 basename 2>/dev/null | sort -u)
 count=$(echo "$names" | grep -c .)
 list=$(echo "$names" | head -6 | paste -sd, - | sed 's/,/, /g')
 [[ "$count" -gt 6 ]] && list="$list, +$((count - 6)) more"
-jj -R "$notes" commit -m "notes: $list" >/dev/null 2>&1 || true
+jj -R "$notes" commit -m "session end (uncommitted): $list" >/dev/null 2>&1 || true
 exit 0

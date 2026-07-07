@@ -10,7 +10,23 @@ The notes dir (`<notes-dir>`, e.g. `.notes/`) is its **own standalone jj repo**,
 
 The `code` SKILL.md frontmatter declares a **Stop** hook (`${CLAUDE_PLUGIN_ROOT}/bin/notes-jj-commit.sh`), scoped to this skill's lifecycle. On session stop it runs `jj commit` in `<notes-dir>`, snapshotting every spec/todos/thoughts/GLOSSARY edit made during the session. No phase appends a log line by hand; the working copy is captured on stop (skipped when nothing changed).
 
-To checkpoint mid-session, run `jj commit -m "<note>"` in `<notes-dir>` explicitly — otherwise the Stop hook does it.
+To checkpoint mid-session, run `jj commit -m "<msg>"` in `<notes-dir>` explicitly — otherwise the Stop hook does it.
+
+## Message convention — say *why*, not what
+
+The message states the **phase + the main ideas of the change** — the reasoning, not a file list. jj already records which files changed; the message adds the intent.
+
+```
+<phase>: <main ideas>
+```
+
+- `writing spec: single-flight token refresh, drop concurrent-queue option`
+- `review: fold status field into notes, decline worklog fallback`
+- `revise TODO-3: split handler, error-wrap at boundary`
+
+Each phase reference gives its own message shape (`new.md`, `revise.md`, `fix.md`, …) — all follow this: lead with the phase, then the ideas.
+
+The Stop hook is the **fallback** for uncommitted leftovers only — it can't know intent, so it falls back to the changed basenames. Commit at each phase boundary with a why-message so the hook rarely fires.
 
 ## History — `jj log`
 
