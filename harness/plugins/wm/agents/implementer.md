@@ -4,6 +4,7 @@ description: >
   Implementation agent. Implements medium and complex tasks.
 model: sonnet
 color: red
+background: true
 ---
 
 # Implement Agent

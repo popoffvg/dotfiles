@@ -1,6 +1,6 @@
 {
   "name": "wm",
-  "version": "2.21.0",
+  "version": "2.22.0",
   "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
   "author": {
     "name": "popoffvg"

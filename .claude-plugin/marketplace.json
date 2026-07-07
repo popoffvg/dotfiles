@@ -11,6 +11,12 @@
       "version": "0.2.0"
     },
     {
+      "name": "hi",
+      "source": "./harness/plugins/hi",
+      "description": "Per-session prompt stack: push/pop/list/drop prompts across a session.",
+      "version": "0.2.0"
+    },
+    {
       "name": "self-improvement",
       "source": "./harness/plugins/self-improvement",
       "description": "Captures generalizable behavioral rules from user corrections into CLAUDE.local.md on session end (Stop hook), and maintains them with the improve-claude-local skill.",
@@ -20,7 +26,7 @@
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.21.0"
+      "version": "2.22.0"
     }
   ]
 }
