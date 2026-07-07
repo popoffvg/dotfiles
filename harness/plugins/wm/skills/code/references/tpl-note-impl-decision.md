@@ -23,6 +23,7 @@ description: >
 ---
 type: impl-decision
 id: "<NNN>"
+status: approved   # approved (default) | declined
 date: <ISO 8601>
 tags: [<topic>, <subtopic>]
 todo: TODO-N

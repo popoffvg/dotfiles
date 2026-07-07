@@ -42,6 +42,7 @@ description: >
 ---
 type: fact
 id: "002"
+status: approved
 date: 2026-06-18T14:30:22
 source: codebase   # codebase | explore | grill
 tags: [auth, config]

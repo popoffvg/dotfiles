@@ -1,8 +1,7 @@
 ---
 name: architector
 description: >
-  Planning agent — produces `.notes/spec.md` and `.notes/todos/TODO-N.md` files. Workflow
-  defined in `code` skill.
+  Planning agent — produces `.notes/spec.md` and `.notes/todos/TODO-N.md` files.
 model: inherit
 color: yellow
 ---

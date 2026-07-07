@@ -40,6 +40,7 @@ description: >
 ---
 type: decision
 id: "003"
+status: approved
 date: 2026-06-18T14:45:10
 tags: [auth, concurrency]
 links:

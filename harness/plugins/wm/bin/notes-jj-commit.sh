@@ -27,7 +27,14 @@ done
 
 # jj auto-snapshots the working copy on any command; skip if nothing changed
 # to avoid empty commits.
-[[ -z "$(jj -R "$notes" diff -s 2>/dev/null)" ]] && exit 0
+diff=$(jj -R "$notes" diff -s 2>/dev/null)
+[[ -z "$diff" ]] && exit 0
 
-jj -R "$notes" commit -m "session $(date '+%Y-%m-%d %H:%M'): notes snapshot" >/dev/null 2>&1 || true
+# Meaningful message: the changed note/spec basenames (capped), not a bare "snapshot".
+# jj diff -s lines are "<op> <path>"; take the paths, basename, unique.
+names=$(echo "$diff" | awk '{print $2}' | xargs -n1 basename 2>/dev/null | sort -u)
+count=$(echo "$names" | grep -c .)
+list=$(echo "$names" | head -6 | paste -sd, - | sed 's/,/, /g')
+[[ "$count" -gt 6 ]] && list="$list, +$((count - 6)) more"
+jj -R "$notes" commit -m "notes: $list" >/dev/null 2>&1 || true
 exit 0

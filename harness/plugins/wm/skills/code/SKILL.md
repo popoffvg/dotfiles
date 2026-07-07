@@ -55,4 +55,44 @@ research → new → ┃ the gate ┃ → todo → verify → impl → revise (i
 
 The gate is a human read, not a command: `new` stops at a reviewable spec; the human runs `todo` when satisfied. `tree` is the worktree-isolated `impl`; `squash` collapses a `tree` branch's fixups. `revise` settles drift notes-only; `fix` corrects thought **and** code. `prototype`, `code-map`, `diff` are mid-spec aids.
 
+<<<<<<< HEAD
 The spec contract — layout, the `Status` header (`init → review → impl`), output shape, and the gate — lives in one place: `references/ref-write.md`. This router does not restate it.
+||||||| parent of 9aa85a6 (35F69789-9B90-49C0-8D30-6954CCD964FF)
+## Spec status
+
+`spec.md` carries a header `Status` field: `init → review → impl`. `new` seeds `init` and
+advances to `review` when the spec is authored; `todo` runs only in `review`; `impl` advances to
+`impl`; `revise` resets to `review`. The header's first line tells any reader what the spec
+delivers; its phase-rules block states what each phase permits. See `references/write.md` § spec.md template.
+
+## Output shape
+
+`new` edits `<notes-dir>/spec.md` and produces `<notes-dir>/thoughts/NNN-{decision,fact,impl-decision}-slug.md`
+(format: `references/note-format.md`). It does NOT write `todos/`.
+`todo` writes `<notes-dir>/todos/TODO-N.md`. `revise` edits `<notes-dir>/spec.md` and `todos/TODO-N.md`.
+`verify` writes `<notes-dir>/spec-verify.md`.
+`fix` writes `<notes-dir>/thoughts/NNN-*-slug.md` (corrected thoughts).
+All write only under `<notes-dir>/` — never touch source code.
+
+`new`, `small`, `revise`, `todo`, `impl`, and `fix` all keep `<notes-dir>/GLOSSARY.md` current —
+the ubiquitous-language dictionary, a sibling file of `spec.md` (template: `references/glossary-template.md`).
+=======
+## Spec status
+
+`spec.md` carries a header `Status` field: `init → review → impl`. `new` seeds `init` and
+advances to `review` when the spec is authored; `todo` runs only in `review`; `impl` advances to
+`impl`; `revise` resets to `review`. The header's first line tells any reader what the spec
+delivers; its phase-rules block states what each phase permits. See `references/write.md` § spec.md template.
+
+## Output shape
+
+`new` edits `<notes-dir>/spec.md` and produces `<notes-dir>/thoughts/NNN-{decision,fact,impl-decision}-slug.md`
+(format: `references/note-format.md`). It does NOT write `todos/`.
+`todo` writes `<notes-dir>/todos/TODO-N.md`. `revise` edits `<notes-dir>/spec.md` and `todos/TODO-N.md`.
+`verify` writes `<notes-dir>/spec-verify.md`.
+`fix` writes `<notes-dir>/thoughts/NNN-*-slug.md` (corrected thoughts).
+All write only under `<notes-dir>/` — never touch source code.
+
+`new`, `revise`, `todo`, `impl`, and `fix` all keep `<notes-dir>/GLOSSARY.md` current —
+the ubiquitous-language dictionary, a sibling file of `spec.md` (template: `references/glossary-template.md`).
+>>>>>>> 9aa85a6 (35F69789-9B90-49C0-8D30-6954CCD964FF)
