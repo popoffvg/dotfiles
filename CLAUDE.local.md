@@ -2,6 +2,14 @@
 
 ## Self-improvement
 
+<task-relevant when="removing/deselecting/moving a test (or whole package) from a CI job/lane to make a gate pass, and about to claim its coverage is preserved elsewhere">
+Before asserting "another lane covers it", READ that lane's actual filter/config and confirm the test still runs there — don't assume. A test that ran in only one lane, dropped from that lane, now runs nowhere = a silently disabled test (exactly the "don't turn off tests" trap). Verify with the other job's real filter list; state "unverified" if you haven't checked.
+</task-relevant>
+
+<task-relevant when="the user refers to a file/guide/artifact they expect you to already have ('you have that', 'the guide I made', 'in scratchpad') and it's not in the obvious place">
+Search the scratchpads before asking — including OTHER sessions' dirs, not just the current one. Session scratchpads live at `/private/tmp/claude-501/<project-hash>/<session-id>/scratchpad`; a branched or prior session's artifact sits under a sibling `<session-id>`. `find /private/tmp/claude-501/<project-hash> -ipath '*scratchpad*' -iname '<keywords>'`. Don't ask for clarification on an artifact that a quick cross-session scratchpad search would surface.
+</task-relevant>
+
 <task-relevant when="creating a NEW standalone model-invocable skill in dotfiles (e.g. extracting a reference into its own skill)">
 Default to a loose `~/.claude` skill at `harness/claude/skills/<name>/SKILL.md` (stows to `~/.claude/skills`), NOT a plugin sibling skill under `harness/plugins/<plugin>/skills/`. Put it in the plugin only when the skill is plugin-coupled or the user says so. After moving, `mise run stow` to symlink it in.
 </task-relevant>
@@ -20,6 +28,10 @@ Plugins CANNOT declare `allow`/`deny` permissions — no `permissions` field in 
 
 <task-relevant when="asked to create a spec/corpus/project (mispec cold-start)">
 "Create a spec for X" may mean skeleton-only. Run `mispec init` first, then confirm scope before authoring north-star/atoms — don't front-load foundational framing questions. The operator may want the bare scaffold and to set the north-star/scope themselves later.
+</task-relevant>
+
+<task-relevant when="creating or renaming mispec atom files (A-NNNN)">
+Atom filenames embed the kind: `A-NNNN-<kind>-<slug>.md` (e.g. `A-0005-decision-decrements-via-event-log.md`), not `A-NNNN-<slug>.md`. Run `~/git/dotfiles/harness/claude/scripts/mispec-rename-kind.sh <atoms-dir> [<archive-dir> …]` to fix a batch — idempotent, uses `git mv`, skips already-kinded files and ones whose slug already equals the kind (e.g. `A-0011-goal.md`). A file moved by `mispec archive` is a plain rename (untracked at the new path), so `git mv` fails "not under version control" — use plain `mv` for those.
 </task-relevant>
 
 <task-relevant when="an open decision surfaces during a mispec resolve/review session">
@@ -108,4 +120,8 @@ Create the fixup commit only — never chain `git rebase --autosquash`. Collapsi
 
 <task-relevant when="a gh API command fails to resolve a milaboratory/ org repo, or git push to a popoffvg/ repo is denied">
 Two accounts: `popoffvg` (personal — SSH push works; force key with `git config core.sshCommand "ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes"` since default key selection can auth as the wrong user) and `vgpopov` (work — resolves milaboratory/ org repos). For gh API on org repos: `gh auth switch --user vgpopov`, run the op, then `gh auth switch --user popoffvg` to restore.
+</task-relevant>
+
+<task-relevant when="a git fetch / gh pr checkout / clone on a milaboratory org repo fails with 'Repository not found' over an SSH (git@github.com:) remote">
+The SSH key always auths as `popoffvg` (personal), which can't read milaboratory/ org repos — independent of the active gh account. `gh auth switch` does NOT help; it only affects gh's HTTPS API token, not the SSH transport git uses for the remote's `git@github.com:` URL. Fix: rewrite SSH→HTTPS for that one command so it uses gh's `vgpopov` token — `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=url.https://github.com/.insteadOf GIT_CONFIG_VALUE_0=git@github.com: gh pr checkout <url>`. Scoped, no persistent config change.
 </task-relevant>

@@ -85,6 +85,10 @@ Use the `verify-fix-premise` skill.
 Use the `verify-capability-on-target-host` skill.
 </task-relevant>
 
+<task-relevant when="debugging an OAuth2/OIDC IdP rejection (invalid_scope, invalid_client, refresh-token-required, SSO 'authentication error') against an external identity provider">
+Use the `debug-oauth-idp-errors` skill.
+</task-relevant>
+
 <task-relevant when="removing a service/resource/role/module from infrastructure-as-code (Ansible, Terraform, k8s, docker-compose)">
 Use the `iac-decommission` skill.
 </task-relevant>

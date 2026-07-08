@@ -1,0 +1,758 @@
+<title>Architecture DIFF Diagrams — a drawing guide</title>
+<style>
+  :root{
+    --bg:#fbfbfa; --panel:#ffffff; --ink:#1a1a1a; --ink-soft:#555; --line:#d9d9d6;
+    --rule:#e7e7e4; --code-bg:#f4f4f1;
+    /* semantic diff palette — hue + must always pair with icon/label */
+    --add:#1f7a44; --add-bg:#e3f4ea; --add-line:#3aa564;
+    --rem:#a32b2b; --rem-bg:#f7e4e4; --rem-line:#c85a5a;
+    --chg:#8a5a00; --chg-bg:#fbeecf; --chg-line:#cf9a2e;
+    --same:#5a6470; --same-bg:#eef0f2; --same-line:#b6bdc5;
+    --accent:#2a5db0;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --maxw:min(1180px,94vw);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#16181c; --panel:#1e2126; --ink:#e8e8e6; --ink-soft:#a0a4ab; --line:#3a3f47;
+      --rule:#2c3037; --code-bg:#24272d;
+      --add:#5cc98a; --add-bg:#123322; --add-line:#3aa564;
+      --rem:#e88a8a; --rem-bg:#3a1c1c; --rem-line:#c85a5a;
+      --chg:#e0b45c; --chg-bg:#3a2f13; --chg-line:#cf9a2e;
+      --same:#9aa3ae; --same-bg:#262a30; --same-line:#4a515b;
+      --accent:#7aa6ec;
+    }
+  }
+  :root[data-theme="light"]{color-scheme:light}
+  :root[data-theme="dark"]{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  main{max-width:var(--maxw);margin:0 auto;padding:3.2rem 1.2rem 6rem}
+  header.masthead{max-width:var(--maxw);margin:0 auto;padding:3.6rem 1.2rem 1.4rem}
+  h1{font-size:2.15rem;line-height:1.1;letter-spacing:-.02em;margin:0 0 .5rem}
+  .sub{color:var(--ink-soft);font-size:1.08rem;max-width:60ch;margin:0}
+  h2{font-size:1.02rem;text-transform:uppercase;letter-spacing:.09em;
+    margin:3.2rem 0 .3rem;padding-top:1.4rem;border-top:1px solid var(--rule)}
+  h2 .n{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.55rem}
+  .lead{color:var(--ink-soft);margin:.1rem 0 1rem;max-width:66ch}
+  p{max-width:70ch}
+  code{font-family:var(--mono);font-size:.86em;background:var(--code-bg);
+    padding:.08em .34em;border-radius:4px}
+  ul.rules{list-style:none;padding:0;margin:1rem 0}
+  ul.rules>li{position:relative;padding:.28rem 0 .28rem 1.5rem;max-width:72ch}
+  ul.rules>li::before{content:"▸";position:absolute;left:0;color:var(--accent)}
+  ul.rules>li b{font-weight:650}
+  .fig{margin:1.4rem 0;border:1px solid var(--line);border-radius:12px;
+    background:var(--panel);overflow:hidden}
+  .fig>figcaption{font-size:.82rem;color:var(--ink-soft);padding:.55rem .9rem;
+    border-top:1px solid var(--rule);background:var(--bg)}
+  .fig .body{padding:1.1rem}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .grid2>div{padding:1.1rem}
+  .grid2>div:first-child{border-right:1px solid var(--rule)}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}
+    .grid2>div:first-child{border-right:0;border-bottom:1px solid var(--rule)}}
+  .paneltag{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;padding:.12rem .5rem;border-radius:999px;margin-bottom:.7rem}
+  .tag-cur{background:var(--same-bg);color:var(--same);border:1px solid var(--same-line)}
+  .tag-new{background:var(--add-bg);color:var(--add);border:1px solid var(--add-line)}
+  .good::before,.bad::before{font-weight:700;font-size:.72rem;letter-spacing:.06em;
+    display:inline-block;padding:.1rem .45rem;border-radius:4px;margin-bottom:.6rem}
+  .good::before{content:"✓ DO";background:var(--add-bg);color:var(--add)}
+  .bad::before{content:"✗ AVOID";background:var(--rem-bg);color:var(--rem)}
+  .overflow{overflow-x:auto}
+  svg{display:block;max-width:100%;height:auto;font-family:var(--sans)}
+  svg text{fill:var(--ink)}
+  svg .soft{fill:var(--ink-soft)}
+  /* diff-token: never color alone — always shape/glyph too */
+  .tok{display:inline-flex;align-items:center;gap:.32rem;font-size:.8rem;
+    font-weight:600;padding:.12rem .5rem;border-radius:6px;border:1px solid;white-space:nowrap}
+  .tok .gl{font-family:var(--mono);font-weight:800}
+  .t-add{color:var(--add);background:var(--add-bg);border-color:var(--add-line)}
+  .t-rem{color:var(--rem);background:var(--rem-bg);border-color:var(--rem-line)}
+  .t-chg{color:var(--chg);background:var(--chg-bg);border-color:var(--chg-line)}
+  .t-same{color:var(--same);background:var(--same-bg);border-color:var(--same-line)}
+  .legend{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+  .legend .grp{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+  .legend .sep{width:1px;height:1.4rem;background:var(--rule)}
+  .diffcode{font-family:var(--mono);font-size:.84rem;line-height:1.5;border-radius:10px;
+    overflow:hidden;border:1px solid var(--line)}
+  .diffcode .row{padding:.15rem .8rem;white-space:pre;overflow-x:auto}
+  .dc-rem{background:var(--rem-bg);color:var(--rem)}
+  .dc-add{background:var(--add-bg);color:var(--add)}
+  .dc-ctx{color:var(--ink-soft)}
+  .callout{border-left:3px solid var(--accent);background:var(--code-bg);
+    padding:.5rem .85rem;border-radius:0 8px 8px 0;margin:1rem 0;font-size:.92rem;max-width:72ch}
+  .callout .did{font-family:var(--mono);font-size:.74rem;font-weight:700;color:var(--accent);
+    display:inline-block;margin-right:.4rem;padding:.05rem .35rem;border:1px solid var(--accent);border-radius:4px}
+  .checks{columns:2;column-gap:2.4rem;margin:1rem 0}
+  @media(max-width:720px){.checks{columns:1}}
+  .checks .ci{break-inside:avoid;display:flex;gap:.55rem;padding:.3rem 0;align-items:flex-start}
+  .checks .ci .bx{flex:0 0 auto;width:1.05rem;height:1.05rem;border:1.5px solid var(--line);
+    border-radius:4px;margin-top:.18rem}
+  .toc{columns:2;column-gap:2rem;font-size:.92rem;margin:1.6rem 0 0;padding:0;list-style:none}
+  @media(max-width:640px){.toc{columns:1}}
+  .toc li{padding:.12rem 0}
+  .toc a{color:var(--ink);text-decoration:none;border-bottom:1px solid transparent}
+  .toc a:hover{border-bottom-color:var(--accent);color:var(--accent)}
+  .toc .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.4rem}
+  small.note{color:var(--ink-soft)}
+  .kicker{font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);font-weight:700}
+</style>
+
+<header class="masthead">
+  <div class="kicker">Information design for hard-systems review</div>
+  <h1>The Architecture DIFF Diagram</h1>
+  <p class="sub">One picture, two panels — <b>current</b> beside <b>planned</b> — that lets a reviewer
+  answer <em>what changed, what's gone, what's new, what held, and why</em> in under 30 seconds.
+  Rules first, each proven on one running example: making a resource reference-counter asynchronous.</p>
+  <ol class="toc">
+    <li><span class="num">1</span><a href="#goal">Goal &amp; audience</a></li>
+    <li><span class="num">2</span><a href="#layout">Layout &amp; alignment</a></li>
+    <li><span class="num">3</span><a href="#encoding">Visual encoding + legend</a></li>
+    <li><span class="num">4</span><a href="#edges">Edge &amp; arrow language</a></li>
+    <li><span class="num">5</span><a href="#time">Representing time</a></li>
+    <li><span class="num">6</span><a href="#locks">Representing locks</a></li>
+    <li><span class="num">7</span><a href="#state">Concurrent shared state</a></li>
+    <li><span class="num">8</span><a href="#sigs">Signatures-as-diffs</a></li>
+    <li><span class="num">9</span><a href="#annot">Annotations &amp; rationale</a></li>
+    <li><span class="num">10</span><a href="#clutter">Clutter control</a></li>
+    <li><span class="num">11</span><a href="#checklists">Checklists</a></li>
+    <li><span class="num">12</span><a href="#html">Why HTML</a></li>
+  </ol>
+</header>
+
+<main>
+
+<!-- ============================================================= -->
+<section id="goal">
+<h2><span class="n">1</span>Goal &amp; audience</h2>
+<p class="lead">The diagram exists to be <b>reviewed</b>, not admired. Its single job: collapse the reviewer's
+reading time. Design every choice against that.</p>
+
+<ul class="rules">
+  <li>Serve the <b>reviewer</b>, not the author. The author already knows the change — the diagram is a
+  transfer, not a diary.</li>
+  <li>A reader must answer five questions from a glance: <b>what changed · what's removed · what's new ·
+  what stayed · the one load-bearing "why"</b>. If any is unanswerable, the diagram failed.</li>
+  <li><b>30-second budget.</b> Headline legible standing back from the screen; detail rewards a second read (§9).</li>
+  <li>Show the <b>seam</b>, not the system. Diagram only what the change touches plus its immediate anchors.</li>
+</ul>
+
+<figure class="fig">
+  <div class="body overflow">
+    <svg viewBox="0 0 900 150" role="img" aria-label="Five questions a reviewer answers at a glance">
+      <g font-size="13">
+        <rect x="8"  y="30" width="164" height="86" rx="9" fill="var(--same-bg)"  stroke="var(--same-line)"/>
+        <rect x="184" y="30" width="164" height="86" rx="9" fill="var(--rem-bg)"   stroke="var(--rem-line)"/>
+        <rect x="360" y="30" width="164" height="86" rx="9" fill="var(--add-bg)"   stroke="var(--add-line)"/>
+        <rect x="536" y="30" width="164" height="86" rx="9" fill="var(--chg-bg)"   stroke="var(--chg-line)"/>
+        <rect x="712" y="30" width="180" height="86" rx="9" fill="var(--panel)"    stroke="var(--accent)"/>
+        <text x="90"  y="20" text-anchor="middle" class="soft" font-size="11">UNCHANGED</text>
+        <text x="266" y="20" text-anchor="middle" class="soft" font-size="11">REMOVED</text>
+        <text x="442" y="20" text-anchor="middle" class="soft" font-size="11">NEW</text>
+        <text x="618" y="20" text-anchor="middle" class="soft" font-size="11">CHANGED</text>
+        <text x="802" y="20" text-anchor="middle" class="soft" font-size="11">WHY</text>
+        <text x="90"  y="68" text-anchor="middle" font-weight="700" fill="var(--same)">GC still</text>
+        <text x="90"  y="86" text-anchor="middle" fill="var(--same)">owns delete</text>
+        <text x="266" y="68" text-anchor="middle" font-weight="700" fill="var(--rem)">counter key</text>
+        <text x="266" y="86" text-anchor="middle" fill="var(--rem)">RMW path</text>
+        <text x="442" y="68" text-anchor="middle" font-weight="700" fill="var(--add)">append-only</text>
+        <text x="442" y="86" text-anchor="middle" fill="var(--add)">event log</text>
+        <text x="618" y="68" text-anchor="middle" font-weight="700" fill="var(--chg)">count now a</text>
+        <text x="618" y="86" text-anchor="middle" fill="var(--chg)">derived view</text>
+        <text x="802" y="68" text-anchor="middle" font-weight="700" fill="var(--accent)">kill hot-key</text>
+        <text x="802" y="86" text-anchor="middle" fill="var(--accent)">conflicts</text>
+      </g>
+    </svg>
+  </div>
+  <figcaption><b>Mockup 1.</b> The reviewer's five slots. Every element of your diagram must fall into exactly one.
+  If you can't place it, cut it.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================= -->
+<section id="layout">
+<h2><span class="n">2</span>Layout &amp; alignment discipline</h2>
+<p class="lead">The diff is done by the reader's eye, so <b>hold the geometry still</b>. Unchanged anchors keep the
+<em>same position</em> in both panels; only changed things move or recolor.</p>
+
+<ul class="rules">
+  <li><b>Two panels, shared coordinate grid.</b> The counter-write actor sits at the same x,y in CURRENT and
+  PLANNED. Movement then <em>means</em> change — it isn't noise.</li>
+  <li><b>Side-by-side</b> when panels are shorter than wide (dependency graphs); <b>stacked</b> when tall
+  (pipelines, timelines) so each panel keeps full width.</li>
+  <li>Wide/tall content scrolls inside <em>its own</em> box (<code>overflow-x:auto</code>) — the page never scrolls sideways.</li>
+  <li>Anchor with a spine: shared actors on the left, shared store on the right, in both panels.</li>
+</ul>
+
+<figure class="fig">
+  <div class="grid2">
+    <div class="good">
+      <div class="paneltag tag-cur">aligned</div>
+      <div class="overflow">
+      <svg viewBox="0 0 380 190" aria-label="Aligned before/after: only the store node changes">
+        <g font-size="12">
+          <!-- shared anchors same y in both mini-rows -->
+          <line x1="190" y1="8" x2="190" y2="182" stroke="var(--rule)" stroke-dasharray="3 4"/>
+          <text x="60" y="18" class="soft">CURRENT</text>
+          <text x="255" y="18" class="soft">PLANNED</text>
+          <!-- actor (unchanged, same y=55 both sides) -->
+          <rect x="18" y="40" width="78" height="30" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/>
+          <text x="57" y="59" text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="214" y="40" width="78" height="30" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/>
+          <text x="253" y="59" text-anchor="middle" fill="var(--same)">holder</text>
+          <!-- store: changes, SAME y=120 -->
+          <rect x="18" y="110" width="120" height="34" rx="6" fill="var(--rem-bg)" stroke="var(--rem-line)"/>
+          <text x="78" y="132" text-anchor="middle" fill="var(--rem)">counter key ✕</text>
+          <rect x="214" y="110" width="120" height="34" rx="6" fill="var(--add-bg)" stroke="var(--add-line)"/>
+          <text x="274" y="132" text-anchor="middle" fill="var(--add)">event log +</text>
+          <line x1="57" y1="70" x2="57" y2="110" stroke="var(--same)" marker-end="url(#ah2)"/>
+          <line x1="253" y1="70" x2="253" y2="110" stroke="var(--add)" marker-end="url(#ah2)"/>
+          <defs><marker id="ah2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6" fill="none" stroke="context-stroke"/></marker></defs>
+        </g>
+      </svg>
+      </div>
+      <small class="note">Holder is pinned at the same height — the eye lands on the one row that recolored.</small>
+    </div>
+    <div class="bad">
+      <div class="paneltag tag-new">reshuffled</div>
+      <div class="overflow">
+      <svg viewBox="0 0 380 190" aria-label="Anti-pattern: unchanged nodes moved between panels">
+        <g font-size="12">
+          <line x1="190" y1="8" x2="190" y2="182" stroke="var(--rule)" stroke-dasharray="3 4"/>
+          <text x="60" y="18" class="soft">CURRENT</text>
+          <text x="255" y="18" class="soft">PLANNED</text>
+          <rect x="18" y="40" width="78" height="30" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/>
+          <text x="57" y="59" text-anchor="middle" fill="var(--same)">holder</text>
+          <!-- holder MOVED down + store moved up: reader must re-find everything -->
+          <rect x="238" y="132" width="78" height="30" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/>
+          <text x="277" y="151" text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="26" y="112" width="120" height="34" rx="6" fill="var(--rem-bg)" stroke="var(--rem-line)"/>
+          <text x="86" y="134" text-anchor="middle" fill="var(--rem)">counter key ✕</text>
+          <rect x="230" y="46" width="120" height="34" rx="6" fill="var(--add-bg)" stroke="var(--add-line)"/>
+          <text x="290" y="68" text-anchor="middle" fill="var(--add)">event log +</text>
+        </g>
+      </svg>
+      </div>
+      <small class="note">Everything moved. The reader can't tell what changed from what merely drifted.</small>
+    </div>
+  </div>
+  <figcaption><b>Mockup 2.</b> Same content, two layouts. Left: unchanged nodes hold position, so the diff is
+  the recolored row. Right: nothing is trustworthy because everything relocated.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================= -->
+<section id="encoding">
+<h2><span class="n">3</span>Visual encoding &amp; the one legend</h2>
+<p class="lead">Four states, one palette, <b>never color alone</b>. Each state carries a glyph and a word so it
+survives grayscale printing and colorblind readers.</p>
+
+<ul class="rules">
+  <li>Fixed semantics: <b>added</b>=green<code>+</code>, <b>removed</b>=red<code>✕</code> (or strike),
+  <b>changed</b>=amber<code>~</code>, <b>unchanged</b>=grey (recede). Same everywhere, forever.</li>
+  <li><b>Redundant encoding.</b> Hue + glyph + label. Deuteranopia can't split red/green — the <code>+</code>/<code>✕</code> does.</li>
+  <li><b>Unchanged must recede</b>: muted grey, thin stroke. It's context, not content.</li>
+  <li><b>One legend, always visible</b>, near the panels. A diagram whose colors need memorizing is a quiz.</li>
+</ul>
+
+<figure class="fig">
+  <div class="body">
+    <div class="legend">
+      <div class="grp">
+        <span class="tok t-add"><span class="gl">+</span> Added</span>
+        <span class="tok t-rem"><span class="gl">✕</span> Removed</span>
+        <span class="tok t-chg"><span class="gl">~</span> Changed</span>
+        <span class="tok t-same"><span class="gl">=</span> Unchanged</span>
+      </div>
+      <span class="sep"></span>
+      <div class="grp" style="font-size:.8rem;color:var(--ink-soft)">
+        <span>edges: →&nbsp;control&nbsp;&nbsp; ⇒&nbsp;data&nbsp;&nbsp; ⋯▷&nbsp;depends&nbsp;&nbsp; ⟳&nbsp;derive</span>
+      </div>
+    </div>
+    <div style="margin-top:1rem" class="grid2">
+      <div class="good" style="border:0;padding:0">
+        <span class="tok t-rem"><span class="gl">✕</span> counter key</span>
+        <small class="note"> — reads correctly in grayscale.</small>
+      </div>
+      <div class="bad" style="border:0;padding:0">
+        <span style="display:inline-block;padding:.12rem .5rem;border-radius:6px;background:var(--rem-bg);color:var(--rem);font-size:.8rem;font-weight:600">counter key</span>
+        <small class="note"> — hue only; gone once printed B&amp;W.</small>
+      </div>
+    </div>
+  </div>
+  <figcaption><b>Mockup 3.</b> The canonical legend (keep it on the page) plus color-only vs redundant encoding.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================= -->
+<section id="edges">
+<h2><span class="n">4</span>Edge &amp; arrow language</h2>
+<p class="lead">Arrows carry meaning. If control flow and data flow share one arrow style, the reader guesses. Give
+each relation a distinct line.</p>
+
+<ul class="rules">
+  <li>Reserve a stroke per relation: <b>control</b> solid → · <b>data</b> thick/double ⇒ · <b>dependency</b>
+  dotted ⋯▷ · <b>derive/refresh</b> curved ⟳. Never overload one.</li>
+  <li><b>Append-only log</b> = a lane of stacked cells growing one direction; new records append at the head,
+  nothing rewrites earlier cells.</li>
+  <li><b>Materialized view</b> = a <em>derive</em> arrow (⟳) from log → value, labeled with the reducer
+  (here: <code>net = Σ incr − Σ decr</code>). The value is downstream, never a source.</li>
+  <li>Only <b>GC</b> reads the log/value here — draw that as the single consumer; don't imply holders read it.</li>
+</ul>
+
+<figure class="fig">
+  <div class="body overflow">
+    <svg viewBox="0 0 860 230" aria-label="Append-only log feeding a materialized count read only by GC">
+      <defs>
+        <marker id="ctrl" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" fill="none" stroke="context-stroke" stroke-width="1.4"/></marker>
+        <marker id="derv" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" fill="none" stroke="context-stroke" stroke-width="1.4"/></marker>
+      </defs>
+      <!-- holders append -->
+      <g font-size="12.5">
+        <rect x="14" y="30" width="96" height="26" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="62" y="47" text-anchor="middle" fill="var(--same)">holder A</text>
+        <rect x="14" y="96" width="96" height="26" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="62" y="113" text-anchor="middle" fill="var(--same)">holder B</text>
+        <rect x="14" y="162" width="96" height="26" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="62" y="179" text-anchor="middle" fill="var(--same)">holder C</text>
+        <!-- append arrows: control style, all point INTO the log head -->
+        <path d="M110,43 L196,96" fill="none" stroke="var(--add)" stroke-width="1.6" marker-end="url(#ctrl)"/>
+        <path d="M110,109 L196,109" fill="none" stroke="var(--add)" stroke-width="1.6" marker-end="url(#ctrl)"/>
+        <path d="M110,175 L196,122" fill="none" stroke="var(--add)" stroke-width="1.6" marker-end="url(#ctrl)"/>
+        <text x="150" y="150" text-anchor="middle" class="soft" font-size="10.5">append(+1/−1)</text>
+
+        <!-- the log: stacked immutable cells, append at head -->
+        <text x="200" y="24" class="soft" font-size="11">APPEND-ONLY LOG  (source of truth)</text>
+        <g>
+          <rect x="200" y="30" width="52" height="158" rx="4" fill="none" stroke="var(--add-line)"/>
+          <line x1="200" y1="70" x2="252" y2="70" stroke="var(--add-line)"/>
+          <line x1="200" y1="110" x2="252" y2="110" stroke="var(--add-line)"/>
+          <line x1="200" y1="149" x2="252" y2="149" stroke="var(--add-line)"/>
+          <text x="226" y="55"  text-anchor="middle" font-size="11" fill="var(--add)">+1</text>
+          <text x="226" y="94"  text-anchor="middle" font-size="11" fill="var(--add)">+1</text>
+          <text x="226" y="133" text-anchor="middle" font-size="11" fill="var(--add)">−1</text>
+          <text x="226" y="172" text-anchor="middle" font-size="11" fill="var(--add)">−1</text>
+          <text x="226" y="205" text-anchor="middle" class="soft" font-size="10">head ↓ grows</text>
+        </g>
+
+        <!-- derive arrow to materialized value -->
+        <path d="M252,109 C300,109 300,109 330,109" fill="none" stroke="var(--chg)" stroke-width="1.6" stroke-dasharray="1 0" marker-end="url(#derv)"/>
+        <text x="300" y="100" text-anchor="middle" fill="var(--chg)" font-size="10.5">⟳ net</text>
+        <rect x="330" y="88" width="150" height="44" rx="8" fill="var(--chg-bg)" stroke="var(--chg-line)"/>
+        <text x="405" y="106" text-anchor="middle" fill="var(--chg)" font-size="11.5" font-weight="700">count (view)</text>
+        <text x="405" y="122" text-anchor="middle" fill="var(--chg)" font-size="10">Σ+  −  Σ−  = 0</text>
+
+        <!-- only GC consumes -->
+        <path d="M480,110 L556,110" fill="none" stroke="var(--same)" stroke-width="1.4" stroke-dasharray="2 3" marker-end="url(#ctrl)"/>
+        <rect x="556" y="88" width="120" height="44" rx="8" fill="var(--panel)" stroke="var(--accent)"/>
+        <text x="616" y="106" text-anchor="middle" fill="var(--accent)" font-weight="700">GC pass</text>
+        <text x="616" y="122" text-anchor="middle" fill="var(--accent)" font-size="10">sole reader</text>
+        <text x="616" y="150" text-anchor="middle" class="soft" font-size="10">net 0 ⇒ mark deleted</text>
+
+        <!-- edge-type key -->
+        <g transform="translate(700,30)" font-size="10.5">
+          <line x1="0" y1="6" x2="26" y2="6" stroke="var(--add)" stroke-width="1.6" marker-end="url(#ctrl)"/><text x="32" y="10">control</text>
+          <line x1="0" y1="28" x2="26" y2="28" stroke="var(--chg)" stroke-width="1.6" marker-end="url(#derv)"/><text x="32" y="32">derive ⟳</text>
+          <line x1="0" y1="50" x2="26" y2="50" stroke="var(--same)" stroke-width="1.4" stroke-dasharray="2 3" marker-end="url(#ctrl)"/><text x="32" y="54">read</text>
+        </g>
+      </g>
+    </svg>
+  </div>
+  <figcaption><b>Mockup 4.</b> Holders append (they never read); the count is derived by a reducer; GC is the
+  lone consumer. Three distinct edge styles keep the roles unambiguous.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================= -->
+<section id="time">
+<h2><span class="n">5</span>Representing time</h2>
+<p class="lead">The sync world has a <b>continuous</b> truth ("zero holders ⇒ deleted, instantly"). The async world
+defines truth only at <b>slot boundaries</b>. Don't draw a discrete state as if it were continuous — that lies.</p>
+
+<ul class="rules">
+  <li><b>Continuous</b> state = a solid level line; every instant is defined.</li>
+  <li><b>Discrete/slot</b> state = sampled dots at slot edges with a dashed hold between — the value <em>between</em>
+  slots is explicitly undefined, not "still true".</li>
+  <li><b>Eventual consistency</b> = a shaded <em>delay window</em> from "became net-zero" to "observed at next slot".
+  Label the window; don't pretend the transition is instantaneous.</li>
+  <li>Mark the <b>trigger</b> for the next slot (timer ∨ log-size threshold) on the axis.</li>
+</ul>
+
+<figure class="fig">
+  <div class="grid2">
+    <div>
+      <div class="paneltag tag-cur">CURRENT · continuous</div>
+      <div class="overflow">
+      <svg viewBox="0 0 380 150" aria-label="Continuous count, deletion instant at zero">
+        <g font-size="11">
+          <line x1="30" y1="20" x2="30" y2="120" stroke="var(--line)"/>
+          <line x1="30" y1="120" x2="360" y2="120" stroke="var(--line)"/>
+          <text x="10" y="30" class="soft">n</text><text x="352" y="138" class="soft">t</text>
+          <polyline points="30,50 110,50 110,70 190,70 190,90 260,90 260,120 360,120"
+            fill="none" stroke="var(--same)" stroke-width="2"/>
+          <circle cx="260" cy="120" r="4" fill="var(--rem)"/>
+          <text x="262" y="112" fill="var(--rem)" font-size="10">n=0 ⇒ deleted, same txn</text>
+        </g>
+      </svg>
+      </div>
+      <small class="note">Truth defined at every instant. Deletion is synchronous with the drop to zero.</small>
+    </div>
+    <div>
+      <div class="paneltag tag-new">PLANNED · discrete slots</div>
+      <div class="overflow">
+      <svg viewBox="0 0 380 150" aria-label="Count defined only at slot boundaries with eventual-consistency window">
+        <g font-size="11">
+          <line x1="30" y1="20" x2="30" y2="120" stroke="var(--line)"/>
+          <line x1="30" y1="120" x2="360" y2="120" stroke="var(--line)"/>
+          <text x="10" y="30" class="soft">n</text><text x="352" y="138" class="soft">t</text>
+          <!-- slot boundaries -->
+          <g stroke="var(--chg-line)" stroke-dasharray="2 3">
+            <line x1="90"  y1="20" x2="90"  y2="120"/><line x1="180" y1="20" x2="180" y2="120"/><line x1="290" y1="20" x2="290" y2="120"/>
+          </g>
+          <text x="90"  y="16" text-anchor="middle" class="soft" font-size="9">slot k</text>
+          <text x="180" y="16" text-anchor="middle" class="soft" font-size="9">k+1</text>
+          <text x="290" y="16" text-anchor="middle" class="soft" font-size="9">k+2</text>
+          <!-- sampled values (dots) with dashed undefined holds -->
+          <circle cx="90" cy="55" r="4" fill="var(--chg)"/><circle cx="180" cy="80" r="4" fill="var(--chg)"/><circle cx="290" cy="120" r="4" fill="var(--rem)"/>
+          <path d="M90,55 L180,80" stroke="var(--chg)" stroke-dasharray="3 3" fill="none"/>
+          <path d="M180,80 L290,120" stroke="var(--chg)" stroke-dasharray="3 3" fill="none"/>
+          <!-- eventual-consistency delay window -->
+          <rect x="210" y="20" width="80" height="100" fill="var(--rem-bg)" opacity=".55"/>
+          <text x="250" y="40" text-anchor="middle" fill="var(--rem)" font-size="9">delay</text>
+          <text x="250" y="52" text-anchor="middle" fill="var(--rem)" font-size="9">window</text>
+          <text x="250" y="105" text-anchor="middle" fill="var(--rem)" font-size="8.5">net-0 → next slot</text>
+          <text x="290" y="134" text-anchor="middle" fill="var(--rem)" font-size="9">deleted @ k+2</text>
+        </g>
+      </svg>
+      </div>
+      <small class="note">Value sampled only at boundaries; between them it is undefined (dashed). The shaded
+      band is the window where net-zero is real but not yet observed.</small>
+    </div>
+  </div>
+  <figcaption><b>Mockup 5.</b> Continuous vs discrete-time truth. The dashed holds and the shaded delay window
+  keep the diagram honest about <em>when</em> the count exists.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================= -->
+<section id="locks">
+<h2><span class="n">6</span>Representing locks</h2>
+<p class="lead">The hardest thing to draw. A lock has two independent dimensions — <b>scope</b> (what it covers) and
+<b>mode</b> (how it's held). Encode them separately, then "stop-the-world" reads off the picture.</p>
+
+<ul class="rules">
+  <li><b>Scope = the box you draw the lock band around.</b> Per-resource band hugs one resource; global band
+  wraps the whole map.</li>
+  <li><b>Mode = fill.</b> Shared/read = hatched, porous (many can enter). Exclusive/write = solid, opaque
+  (one holder, everyone else waits).</li>
+  <li><b>Stop-the-world is scope × exclusive.</b> Per-resource exclusive freezes <em>one</em> resource while the rest
+  stay concurrent. Global exclusive freezes everything — reserve for the rare whole-map snapshot/compaction.</li>
+  <li>Show the <b>two-level</b> acquire order: global lock (short) guards the registry → then the per-resource
+  lock. Draw it as nesting, not two peers.</li>
+</ul>
+
+<figure class="fig">
+  <div class="body overflow">
+    <svg viewBox="0 0 860 250" aria-label="Lock scope by mode matrix and the planned per-resource stop-the-world">
+      <defs>
+        <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="6" stroke="var(--accent)" stroke-width="2" opacity=".5"/>
+        </pattern>
+      </defs>
+      <!-- 2x2 vocabulary -->
+      <text x="10" y="18" class="kicker" font-size="10">VOCABULARY — scope × mode</text>
+      <g font-size="11">
+        <!-- shared per-resource -->
+        <rect x="10" y="30" width="120" height="64" rx="8" fill="url(#hatch)" stroke="var(--accent)" stroke-dasharray="4 3"/>
+        <text x="70" y="58" text-anchor="middle" font-weight="700">per-resource</text>
+        <text x="70" y="74" text-anchor="middle" class="soft">SHARED · porous</text>
+        <!-- excl per-resource -->
+        <rect x="146" y="30" width="120" height="64" rx="8" fill="var(--rem-bg)" stroke="var(--rem-line)"/>
+        <text x="206" y="58" text-anchor="middle" font-weight="700" fill="var(--rem)">per-resource</text>
+        <text x="206" y="74" text-anchor="middle" fill="var(--rem)">EXCLUSIVE · frozen</text>
+        <!-- shared global -->
+        <rect x="290" y="30" width="120" height="64" rx="8" fill="url(#hatch)" stroke="var(--accent)" stroke-width="2"/>
+        <text x="350" y="58" text-anchor="middle" font-weight="700">global</text>
+        <text x="350" y="74" text-anchor="middle" class="soft">SHARED (registry)</text>
+        <!-- excl global -->
+        <rect x="426" y="30" width="120" height="64" rx="8" fill="var(--rem)" opacity=".85"/>
+        <text x="486" y="58" text-anchor="middle" font-weight="700" fill="#fff">global</text>
+        <text x="486" y="74" text-anchor="middle" fill="#fff">EXCLUSIVE · all-freeze</text>
+        <text x="278" y="112" text-anchor="middle" class="soft" font-size="10">fill = mode&nbsp;&nbsp;·&nbsp;&nbsp;box = scope</text>
+      </g>
+
+      <!-- the planned picture: one resource frozen, others concurrent -->
+      <text x="590" y="18" class="kicker" font-size="10">PLANNED — GC slot: freeze ONE, rest concurrent</text>
+      <g font-size="10.5" transform="translate(586,26)">
+        <!-- global registry band (shared, porous) -->
+        <rect x="0" y="4" width="262" height="150" rx="10" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+        <text x="8" y="20" fill="var(--accent)" font-size="9">global lock → registry (shared, brief)</text>
+        <!-- resource R2 exclusive (frozen) -->
+        <rect x="14" y="30" width="72" height="52" rx="8" fill="var(--rem-bg)" stroke="var(--rem-line)" stroke-width="2"/>
+        <text x="50" y="52" text-anchor="middle" fill="var(--rem)" font-weight="700">R2</text>
+        <text x="50" y="66" text-anchor="middle" fill="var(--rem)" font-size="8.5">GC excl ✕</text>
+        <!-- others shared -->
+        <rect x="96" y="30" width="72" height="52" rx="8" fill="url(#hatch)" stroke="var(--accent)" stroke-dasharray="4 3"/>
+        <text x="132" y="55" text-anchor="middle">R1 shared</text>
+        <rect x="178" y="30" width="72" height="52" rx="8" fill="url(#hatch)" stroke="var(--accent)" stroke-dasharray="4 3"/>
+        <text x="214" y="55" text-anchor="middle">R3 shared</text>
+        <text x="131" y="108" text-anchor="middle" class="soft">touches on R1,R3 proceed while R2 is stopped</text>
+        <text x="131" y="126" text-anchor="middle" class="soft" font-size="9">global-exclusive (all rows solid-red) only for whole-map snapshot</text>
+      </g>
+    </svg>
+  </div>
+  <figcaption><b>Mockup 6.</b> Left: the four lock states as a scope×mode grid. Right: the planned regime — R2
+  is exclusively held by GC (frozen) while R1/R3 stay hatched (concurrent). Per-resource stop-the-world is
+  legible because only one box turned solid.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================= -->
+<section id="state">
+<h2><span class="n">7</span>Concurrent shared state &amp; contention</h2>
+<p class="lead">The whole point of the change is <b>removing a hot spot</b>. Draw the contention so its disappearance
+is the headline.</p>
+
+<ul class="rules">
+  <li><b>Show the fan-in.</b> Many actors → one key = many converging arrows on one node. Contention is visually
+  the pile-up.</li>
+  <li>Mark the hot node: a warning ring / "conflict" badge, plus the failure mode (<code>ErrConflict</code>,
+  retry storm, sweeper panic @5000).</li>
+  <li>In PLANNED, arrows <b>fan out</b> to independent appends — no shared write target. The absence of convergence
+  <em>is</em> the fix; let the whitespace speak.</li>
+  <li>Keep both panels' actor set identical and positioned identically (§2) so only the target topology differs.</li>
+</ul>
+
+<figure class="fig">
+  <div class="grid2">
+    <div>
+      <div class="paneltag tag-cur">CURRENT · single hot key</div>
+      <div class="overflow">
+      <svg viewBox="0 0 380 210" aria-label="All holders read-modify-write one counter key: conflicts">
+        <defs><marker id="hk" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="context-stroke"/></marker></defs>
+        <g font-size="11">
+          <rect x="8"  y="16" width="70" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="43" y="32" text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="8"  y="60" width="70" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="43" y="76" text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="8"  y="104" width="70" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="43" y="120" text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="8"  y="148" width="70" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="43" y="164" text-anchor="middle" fill="var(--same)">holder</text>
+          <!-- converge on one key -->
+          <g stroke="var(--rem)" fill="none">
+            <path d="M78,28 L250,100" marker-end="url(#hk)"/>
+            <path d="M78,72 L250,104" marker-end="url(#hk)"/>
+            <path d="M78,116 L250,110" marker-end="url(#hk)"/>
+            <path d="M78,160 L250,116" marker-end="url(#hk)"/>
+          </g>
+          <circle cx="290" cy="108" r="34" fill="var(--rem-bg)" stroke="var(--rem)" stroke-width="2.5"/>
+          <text x="290" y="104" text-anchor="middle" fill="var(--rem)" font-weight="700" font-size="10">RefCounter</text>
+          <text x="290" y="118" text-anchor="middle" fill="var(--rem)" font-size="9">RMW · hot</text>
+          <text x="290" y="162" text-anchor="middle" fill="var(--rem)" font-size="9.5">⚠ ErrConflict · retry storm</text>
+          <text x="290" y="176" text-anchor="middle" fill="var(--rem)" font-size="9.5">sweeper panics @5000</text>
+        </g>
+      </svg>
+      </div>
+    </div>
+    <div>
+      <div class="paneltag tag-new">PLANNED · no shared write</div>
+      <div class="overflow">
+      <svg viewBox="0 0 380 210" aria-label="Each holder appends independently, no convergence">
+        <defs><marker id="hk2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="context-stroke"/></marker></defs>
+        <g font-size="11">
+          <rect x="8"  y="16" width="70" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="43" y="32" text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="8"  y="60" width="70" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="43" y="76" text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="8"  y="104" width="70" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="43" y="120" text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="8"  y="148" width="70" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="43" y="164" text-anchor="middle" fill="var(--same)">holder</text>
+          <!-- parallel appends, no convergence -->
+          <g stroke="var(--add)" fill="none">
+            <path d="M78,28  L250,28"  marker-end="url(#hk2)"/>
+            <path d="M78,72  L250,72"  marker-end="url(#hk2)"/>
+            <path d="M78,116 L250,116" marker-end="url(#hk2)"/>
+            <path d="M78,160 L250,160" marker-end="url(#hk2)"/>
+          </g>
+          <text x="164" y="12" text-anchor="middle" class="soft" font-size="9">append(+1/−1) — no read, no shared key</text>
+          <rect x="252" y="16" width="110" height="168" rx="8" fill="none" stroke="var(--add-line)"/>
+          <text x="307" y="34" text-anchor="middle" fill="var(--add)" font-size="10" font-weight="700">event log</text>
+          <g stroke="var(--add-line)"><line x1="252" y1="44" x2="362" y2="44"/><line x1="252" y1="72" x2="362" y2="72"/><line x1="252" y1="100" x2="362" y2="100"/><line x1="252" y1="128" x2="362" y2="128"/><line x1="252" y1="156" x2="362" y2="156"/></g>
+          <text x="307" y="196" text-anchor="middle" fill="var(--add)" font-size="9.5">✓ no hot key · no conflict</text>
+        </g>
+      </svg>
+      </div>
+    </div>
+  </div>
+  <figcaption><b>Mockup 7.</b> The change's headline. Left: four arrows pile onto one ringed hot key with its
+  failure modes named. Right: four parallel appends, no convergence — contention removed by construction.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================= -->
+<section id="sigs">
+<h2><span class="n">8</span>Signatures-as-diffs</h2>
+<p class="lead">Put the contract change in code, right beside the arch panel it explains — a red/green line diff. When
+behavior changes but the signature doesn't, <b>say so explicitly</b>; silence reads as "unchanged".</p>
+
+<ul class="rules">
+  <li>Real <code>-</code>/<code>+</code> diff lines, same green/red semantics as the diagram.</li>
+  <li>Anchor each diff to its panel node (same label) so contract ↔ topology is one glance.</li>
+  <li><b>No signature change ≠ no change.</b> Flag behavioral-only shifts with an explicit note.</li>
+</ul>
+
+<figure class="fig">
+  <div class="body">
+    <div class="diffcode" role="img" aria-label="Signature diff for the reference API">
+      <div class="row dc-ctx"> // holder-facing reference API</div>
+      <div class="row dc-rem">- func AddRef(target ResID) error      // RMW counter; may return ErrConflict</div>
+      <div class="row dc-rem">- func DropRef(target ResID) error     // RMW counter; retries on conflict</div>
+      <div class="row dc-add">+ func AddRef(target ResID) error      // append(+1) to log; no conflict path</div>
+      <div class="row dc-add">+ func DropRef(target ResID) error     // append(−1) to log; no conflict path</div>
+    </div>
+    <div class="callout" style="margin-top:.9rem">
+      <span class="did">note</span><b>Signature unchanged, behavior changed.</b> Both funcs keep their shape,
+      but <code>error</code> no longer carries <code>ErrConflict</code> and the write is now an append, not an
+      RMW. Callers that special-cased conflict retries become dead code — call that out or the reviewer misses it.
+    </div>
+    <div class="diffcode" style="margin-top:.9rem" role="img" aria-label="GC signature: count now discrete">
+      <div class="row dc-ctx"> // GC-facing</div>
+      <div class="row dc-rem">- func Count(target ResID) int                 // authoritative, continuous</div>
+      <div class="row dc-add">+ func CountAtSlot(target ResID, slot Slot) int // materialized view, discrete</div>
+    </div>
+  </div>
+  <figcaption><b>Mockup 8.</b> Two contract diffs. The first shows a behavioral-only change (flagged in the note);
+  the second a real signature change that encodes the shift to discrete time.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================= -->
+<section id="annot">
+<h2><span class="n">9</span>Annotations &amp; rationale</h2>
+<p class="lead">Tie each change to its <b>why</b> — but sparingly, and layered. Headline reads first; rationale rewards
+the second read. Reference a decision id so the diagram stays a pointer, not a spec.</p>
+
+<ul class="rules">
+  <li><b>Progressive disclosure.</b> The panel shows <em>what</em>; a small numbered callout gives <em>why</em>; the
+  decision id (<code>D-07</code>) points to the full record elsewhere.</li>
+  <li>Cap it: annotate the <b>load-bearing</b> changes only. Every node labeled = nothing emphasized.</li>
+  <li>Attach the callout to the node, not floating in a corner. Proximity is meaning.</li>
+</ul>
+
+<figure class="fig">
+  <div class="body">
+    <div class="callout"><span class="did">D-04</span>Counter key removed because a god-object holder set
+    (every workflow holds one Tengo template) serialized all writers on one key → retry storms. Append-only log
+    has no shared write target.</div>
+    <div class="callout"><span class="did">D-07</span>Count made a discrete-time materialized view: truth is
+    needed only at GC's slot, so paying for continuous authority (and its contention) buys nothing.</div>
+    <div class="callout"><span class="did">D-11</span>Per-resource exclusive lock during a GC slot (not global)
+    keeps every other resource concurrent; global exclusive kept solely for the rare whole-map snapshot.</div>
+    <p style="margin:.6rem 0 0"><small class="note">Three callouts for a change this size — not thirty. Each names
+    one decision and defers detail to its id.</small></p>
+  </div>
+  <figcaption><b>Mockup 9.</b> Rationale as short, id-anchored callouts. The diagram carries the headline; the
+  decision record carries the argument.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================= -->
+<section id="clutter">
+<h2><span class="n">10</span>Clutter control &amp; anti-patterns</h2>
+<ul class="rules">
+  <li><b>One idea per region.</b> Contention in one panel-pair, locking in another, time in a third. Don't stack
+  all three on one canvas.</li>
+  <li><b>Omit the unchanging majority.</b> Draw the seam and its anchors; a full system map buries the diff.</li>
+  <li><b>No decoration.</b> No 3D, drop shadows, gradients, skeuomorphism. They add ink, not meaning.</li>
+  <li><b>No legend-less color.</b> Covered in §3 — it's the most common failure, so it's also an anti-pattern.</li>
+  <li><b>No arrow spaghetti.</b> If lines cross more than they inform, split into two smaller diagrams.</li>
+</ul>
+
+<figure class="fig">
+  <div class="grid2">
+    <div class="bad">
+      <div class="overflow">
+      <svg viewBox="0 0 360 150" aria-label="Spaghetti: everything crossing, gradient decoration">
+        <defs><linearGradient id="grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ab"/><stop offset="1" stop-color="#468"/></linearGradient></defs>
+        <g font-size="10">
+          <rect x="20" y="20" width="60" height="26" rx="6" fill="url(#grad)"/>
+          <rect x="150" y="20" width="60" height="26" rx="6" fill="url(#grad)"/>
+          <rect x="280" y="20" width="60" height="26" rx="6" fill="url(#grad)"/>
+          <rect x="20" y="100" width="60" height="26" rx="6" fill="url(#grad)"/>
+          <rect x="150" y="100" width="60" height="26" rx="6" fill="url(#grad)"/>
+          <rect x="280" y="100" width="60" height="26" rx="6" fill="url(#grad)"/>
+          <g stroke="var(--ink-soft)" fill="none" opacity=".8">
+            <path d="M80,33 L280,113"/><path d="M80,113 L280,33"/><path d="M150,33 L280,113"/>
+            <path d="M20,113 L210,33"/><path d="M150,113 L340,33"/><path d="M80,33 L340,113"/>
+            <path d="M20,33 L210,113"/><path d="M150,33 L340,113"/>
+          </g>
+        </g>
+      </svg>
+      </div>
+      <small class="note">Gradients, every node linked to every other, no legend, no diff meaning.</small>
+    </div>
+    <div class="good">
+      <div class="overflow">
+      <svg viewBox="0 0 360 150" aria-label="Clean: one idea, flat fills, few edges">
+        <defs><marker id="cl" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="context-stroke"/></marker></defs>
+        <g font-size="11">
+          <rect x="30" y="60" width="80" height="30" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="70" y="79" text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="240" y="60" width="90" height="30" rx="6" fill="var(--add-bg)" stroke="var(--add-line)"/><text x="285" y="79" text-anchor="middle" fill="var(--add)">log +</text>
+          <path d="M110,75 L240,75" stroke="var(--add)" fill="none" marker-end="url(#cl)"/>
+          <text x="175" y="66" text-anchor="middle" class="soft" font-size="10">append</text>
+        </g>
+      </svg>
+      </div>
+      <small class="note">One relation, flat fills, legible in a second. Same information, zero noise.</small>
+    </div>
+  </div>
+  <figcaption><b>Mockup 10.</b> The two failure shapes side by side: decorative spaghetti vs one clean idea.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================= -->
+<section id="checklists">
+<h2><span class="n">11</span>Checklists</h2>
+
+<p class="lead" style="margin-bottom:.3rem"><b>Reviewer</b> — the diagram is done when I can, in one pass:</p>
+<div class="checks">
+  <div class="ci"><span class="bx"></span><span>Answer all five slots (changed/removed/new/same/why) without asking the author.</span></div>
+  <div class="ci"><span class="bx"></span><span>Name the removed hot key and its failure mode.</span></div>
+  <div class="ci"><span class="bx"></span><span>See that unchanged anchors sit in identical positions across panels.</span></div>
+  <div class="ci"><span class="bx"></span><span>Read every color's meaning from the on-page legend.</span></div>
+  <div class="ci"><span class="bx"></span><span>Tell control from data from derive from dependency edges.</span></div>
+  <div class="ci"><span class="bx"></span><span>See when the count exists (slot boundaries) vs when it's undefined.</span></div>
+  <div class="ci"><span class="bx"></span><span>Distinguish per-resource freeze from global freeze at a glance.</span></div>
+  <div class="ci"><span class="bx"></span><span>Trace each headline change to a decision id.</span></div>
+</div>
+
+<p class="lead" style="margin:1.4rem 0 .3rem"><b>Author</b> — before I ship it:</p>
+<div class="checks">
+  <div class="ci"><span class="bx"></span><span>Every element falls into exactly one of the five slots — else cut it.</span></div>
+  <div class="ci"><span class="bx"></span><span>No color without a paired glyph/label; grayscale still reads.</span></div>
+  <div class="ci"><span class="bx"></span><span>Unchanged nodes are muted and pinned in place.</span></div>
+  <div class="ci"><span class="bx"></span><span>One idea per region; no diagram carries three concepts at once.</span></div>
+  <div class="ci"><span class="bx"></span><span>Discrete-time state is dashed/sampled, never drawn continuous.</span></div>
+  <div class="ci"><span class="bx"></span><span>Lock scope = box, mode = fill; stop-the-world reads off the picture.</span></div>
+  <div class="ci"><span class="bx"></span><span>Signature diffs beside their nodes; behavior-only changes flagged.</span></div>
+  <div class="ci"><span class="bx"></span><span>Zero decoration (no 3D/gradient/shadow); legend present.</span></div>
+</div>
+</section>
+
+<!-- ============================================================= -->
+<section id="html">
+<h2><span class="n">12</span>Why HTML, and how</h2>
+<ul class="rules">
+  <li><b>Diffable &amp; reviewable in the PR</b> — the diagram lives beside the code it describes; git shows what
+  changed in the picture too.</li>
+  <li><b>Searchable</b> — labels are text, not pixels. <code>Ctrl-F "ErrConflict"</code> lands on the node.</li>
+  <li><b>Theme-able &amp; no tool lock-in</b> — <code>prefers-color-scheme</code> gives light/dark free; no binary
+  editor, no license, no export step that drifts from source.</li>
+  <li><b>Accessible</b> — real text, <code>role="img"</code> + <code>aria-label</code> on every SVG, semantic sections.</li>
+</ul>
+  <div class="callout"><b>Minimal implementation.</b> One file, CSS in a <code>&lt;style&gt;</code>, no external
+  fetch. CSS custom properties hold the diff palette (swap once, recolors everything). CSS <code>grid</code> for
+  the two panels; inline <code>&lt;svg&gt;</code> for graphs (use <code>marker</code> + <code>pattern</code> for
+  arrowheads and lock hatching — as this page does). <code>@media (prefers-color-scheme:dark)</code> plus
+  <code>:root[data-theme]</code> overrides so a host theme toggle wins both directions. Wide SVGs go in an
+  <code>overflow-x:auto</code> box so the page body never scrolls sideways.</div>
+  <p><small class="note">This guide is itself the demonstration: view source, diff it, print it, flip your OS theme.</small></p>
+</section>
+
+</main>

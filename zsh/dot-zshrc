@@ -28,6 +28,7 @@ zstyle ':completion:*' special-dirs true
 eval "$(mise activate)"
 eval "$(atuin init zsh --disable-up-arrow)"
 source <(sk --shell zsh)
+eval "$(sg completions)"
 
 # --- zinit + OMZ snippets ---
 # Loaded here (before the ~/.zshrc_* satellites) so user aliases win.
@@ -100,3 +101,6 @@ if [ -f '/Users/vitaliipopov/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . 
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/vitaliipopov/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/vitaliipopov/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+
+# Added by GitButler installer
+eval "$(but completions zsh)"

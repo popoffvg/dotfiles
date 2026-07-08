@@ -1,0 +1,450 @@
+<title>Async Resource Counter — Architecture Diff</title>
+<style>
+  :root{
+    --bg:#fbfbfa; --panel:#ffffff; --ink:#1a1a1a; --ink-soft:#555; --line:#d9d9d6;
+    --rule:#e7e7e4; --code-bg:#f4f4f1;
+    --add:#1f7a44; --add-bg:#e3f4ea; --add-line:#3aa564;
+    --rem:#a32b2b; --rem-bg:#f7e4e4; --rem-line:#c85a5a;
+    --chg:#8a5a00; --chg-bg:#fbeecf; --chg-line:#cf9a2e;
+    --same:#5a6470; --same-bg:#eef0f2; --same-line:#b6bdc5;
+    --accent:#2a5db0;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --maxw:min(1180px,94vw);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#16181c; --panel:#1e2126; --ink:#e8e8e6; --ink-soft:#a0a4ab; --line:#3a3f47;
+      --rule:#2c3037; --code-bg:#24272d;
+      --add:#5cc98a; --add-bg:#123322; --add-line:#3aa564;
+      --rem:#e88a8a; --rem-bg:#3a1c1c; --rem-line:#c85a5a;
+      --chg:#e0b45c; --chg-bg:#3a2f13; --chg-line:#cf9a2e;
+      --same:#9aa3ae; --same-bg:#262a30; --same-line:#4a515b;
+      --accent:#7aa6ec;
+    }
+  }
+  :root[data-theme="light"]{color-scheme:light}
+  :root[data-theme="dark"]{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  main{max-width:var(--maxw);margin:0 auto;padding:2.4rem 1.2rem 6rem}
+  header.masthead{max-width:var(--maxw);margin:0 auto;padding:3rem 1.2rem 1rem}
+  h1{font-size:2.05rem;line-height:1.1;letter-spacing:-.02em;margin:0 0 .5rem}
+  .sub{color:var(--ink-soft);font-size:1.06rem;max-width:64ch;margin:0}
+  .kicker{font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);font-weight:700}
+  h2{font-size:1.02rem;text-transform:uppercase;letter-spacing:.09em;
+    margin:2.8rem 0 .3rem;padding-top:1.3rem;border-top:1px solid var(--rule)}
+  h2 .n{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:.55rem}
+  .lead{color:var(--ink-soft);margin:.1rem 0 1rem;max-width:70ch}
+  code{font-family:var(--mono);font-size:.86em;background:var(--code-bg);padding:.08em .34em;border-radius:4px}
+  .fig{margin:1.2rem 0;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
+  .fig>figcaption{font-size:.82rem;color:var(--ink-soft);padding:.55rem .9rem;border-top:1px solid var(--rule);background:var(--bg)}
+  .fig .body{padding:1.1rem}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .grid2>div{padding:1.1rem}
+  .grid2>div:first-child{border-right:1px solid var(--rule)}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}
+    .grid2>div:first-child{border-right:0;border-bottom:1px solid var(--rule)}}
+  .paneltag{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;padding:.12rem .5rem;border-radius:999px;margin-bottom:.7rem}
+  .tag-cur{background:var(--same-bg);color:var(--same);border:1px solid var(--same-line)}
+  .tag-new{background:var(--add-bg);color:var(--add);border:1px solid var(--add-line)}
+  .overflow{overflow-x:auto}
+  svg{display:block;max-width:100%;height:auto;font-family:var(--sans)}
+  svg text{fill:var(--ink)}
+  svg .soft{fill:var(--ink-soft)}
+  .tok{display:inline-flex;align-items:center;gap:.32rem;font-size:.8rem;font-weight:600;
+    padding:.12rem .5rem;border-radius:6px;border:1px solid;white-space:nowrap}
+  .tok .gl{font-family:var(--mono);font-weight:800}
+  .t-add{color:var(--add);background:var(--add-bg);border-color:var(--add-line)}
+  .t-rem{color:var(--rem);background:var(--rem-bg);border-color:var(--rem-line)}
+  .t-chg{color:var(--chg);background:var(--chg-bg);border-color:var(--chg-line)}
+  .t-same{color:var(--same);background:var(--same-bg);border-color:var(--same-line)}
+  .legend{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;position:sticky;top:0;
+    background:var(--bg);padding:.7rem 0;z-index:5;border-bottom:1px solid var(--rule)}
+  .legend .grp{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+  .legend .sep{width:1px;height:1.4rem;background:var(--rule)}
+  .diffcode{font-family:var(--mono);font-size:.84rem;line-height:1.5;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .diffcode .row{padding:.15rem .8rem;white-space:pre;overflow-x:auto}
+  .dc-rem{background:var(--rem-bg);color:var(--rem)}
+  .dc-add{background:var(--add-bg);color:var(--add)}
+  .dc-ctx{color:var(--ink-soft)}
+  .callout{border-left:3px solid var(--accent);background:var(--code-bg);padding:.5rem .85rem;
+    border-radius:0 8px 8px 0;margin:.7rem 0;font-size:.92rem;max-width:74ch}
+  .callout .did{font-family:var(--mono);font-size:.74rem;font-weight:700;color:var(--accent);
+    display:inline-block;margin-right:.4rem;padding:.05rem .35rem;border:1px solid var(--accent);border-radius:4px}
+  small.note{color:var(--ink-soft)}
+</style>
+
+<header class="masthead">
+  <div class="kicker">Architecture diff · current → planned</div>
+  <h1>Async Resource Counter</h1>
+  <p class="sub">Reference counting moves from an <b>in-place counter</b> serialized on one hot key to an
+  <b>append-only log</b> reduced by GC in discrete slots. What changed, what's gone, what's new, what held — and why.</p>
+</header>
+
+<main>
+
+<!-- LEGEND (sticky, always visible) -->
+<div class="legend" role="group" aria-label="legend">
+  <div class="grp">
+    <span class="tok t-add"><span class="gl">+</span> Added</span>
+    <span class="tok t-rem"><span class="gl">✕</span> Removed</span>
+    <span class="tok t-chg"><span class="gl">~</span> Changed</span>
+    <span class="tok t-same"><span class="gl">=</span> Unchanged</span>
+  </div>
+  <span class="sep"></span>
+  <div class="grp" style="font-size:.8rem;color:var(--ink-soft)">
+    <span>edges:&nbsp; →&nbsp;control&nbsp;&nbsp; ⇒&nbsp;data&nbsp;&nbsp; ⋯▷&nbsp;depends&nbsp;&nbsp; ⟳&nbsp;derive</span>
+  </div>
+</div>
+
+<!-- FIVE SLOTS SUMMARY -->
+<section>
+<h2><span class="n">0</span>The change in five slots</h2>
+<figure class="fig">
+  <div class="body overflow">
+    <svg viewBox="0 0 920 132" role="img" aria-label="Summary: unchanged, removed, new, changed, why">
+      <g font-size="12.5">
+        <rect x="6"   y="26" width="172" height="92" rx="9" fill="var(--same-bg)" stroke="var(--same-line)"/>
+        <rect x="190" y="26" width="172" height="92" rx="9" fill="var(--rem-bg)"  stroke="var(--rem-line)"/>
+        <rect x="374" y="26" width="172" height="92" rx="9" fill="var(--add-bg)"  stroke="var(--add-line)"/>
+        <rect x="558" y="26" width="172" height="92" rx="9" fill="var(--chg-bg)"  stroke="var(--chg-line)"/>
+        <rect x="742" y="26" width="172" height="92" rx="9" fill="var(--panel)"   stroke="var(--accent)"/>
+        <text x="92"  y="18" text-anchor="middle" class="soft" font-size="11">UNCHANGED</text>
+        <text x="276" y="18" text-anchor="middle" class="soft" font-size="11">REMOVED</text>
+        <text x="460" y="18" text-anchor="middle" class="soft" font-size="11">NEW</text>
+        <text x="644" y="18" text-anchor="middle" class="soft" font-size="11">CHANGED</text>
+        <text x="828" y="18" text-anchor="middle" class="soft" font-size="11">WHY</text>
+
+        <text x="92"  y="52" text-anchor="middle" font-weight="700" fill="var(--same)">GC owns delete</text>
+        <text x="92"  y="70" text-anchor="middle" fill="var(--same)" font-size="11">directed per-edge</text>
+        <text x="92"  y="85" text-anchor="middle" fill="var(--same)" font-size="11">counter kept</text>
+        <text x="92"  y="103" text-anchor="middle" fill="var(--same)" font-size="11">sys-event engine</text>
+
+        <text x="276" y="52" text-anchor="middle" font-weight="700" fill="var(--rem)">in-place RMW of</text>
+        <text x="276" y="68" text-anchor="middle" fill="var(--rem)" font-size="11">total counter key</text>
+        <text x="276" y="88" text-anchor="middle" fill="var(--rem)" font-size="11">hot-key conflict</text>
+        <text x="276" y="103" text-anchor="middle" fill="var(--rem)" font-size="11">+ retry path</text>
+
+        <text x="460" y="52" text-anchor="middle" font-weight="700" fill="var(--add)">append-only</text>
+        <text x="460" y="68" text-anchor="middle" fill="var(--add)" font-size="11">change log</text>
+        <text x="460" y="88" text-anchor="middle" fill="var(--add)" font-size="11">per-resource GC lock</text>
+        <text x="460" y="103" text-anchor="middle" fill="var(--add)" font-size="11">whole-map snapshot</text>
+
+        <text x="644" y="52" text-anchor="middle" font-weight="700" fill="var(--chg)">count = derived</text>
+        <text x="644" y="68" text-anchor="middle" fill="var(--chg)" font-size="11">view of the log</text>
+        <text x="644" y="88" text-anchor="middle" fill="var(--chg)" font-size="11">delete is eventual</text>
+        <text x="644" y="103" text-anchor="middle" fill="var(--chg)" font-size="11">(slot boundary)</text>
+
+        <text x="828" y="52" text-anchor="middle" font-weight="700" fill="var(--accent)">kill god-object</text>
+        <text x="828" y="68" text-anchor="middle" fill="var(--accent)" font-size="11">hot-key conflicts</text>
+        <text x="828" y="88" text-anchor="middle" fill="var(--accent)" font-size="11">without losing the</text>
+        <text x="828" y="103" text-anchor="middle" fill="var(--accent)" font-size="11">delete invariant</text>
+      </g>
+    </svg>
+  </div>
+  <figcaption>Every element of the panels below falls into one of these five slots.</figcaption>
+</section>
+
+<!-- 1. WRITE PATH & CONTENTION (headline) -->
+<section>
+<h2><span class="n">1</span>Write path &amp; contention <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-soft)">— the headline</span></h2>
+<p class="lead">A "god object" (a Tengo template almost every workflow holds) makes every holder read-modify-write one
+counter key. The change replaces that shared write with an independent append.</p>
+<figure class="fig">
+  <div class="grid2">
+    <div>
+      <div class="paneltag tag-cur">current · single hot key</div>
+      <div class="overflow">
+      <svg viewBox="0 0 390 210" role="img" aria-label="All holders RMW one counter key and conflict">
+        <defs><marker id="a1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="context-stroke"/></marker></defs>
+        <g font-size="11">
+          <rect x="8" y="16"  width="72" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="44" y="32"  text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="8" y="60"  width="72" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="44" y="76"  text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="8" y="104" width="72" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="44" y="120" text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="8" y="148" width="72" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="44" y="164" text-anchor="middle" fill="var(--same)">holder</text>
+          <g stroke="var(--rem)" fill="none" stroke-width="1.4">
+            <path d="M80,28  L250,100" marker-end="url(#a1)"/>
+            <path d="M80,72  L250,104" marker-end="url(#a1)"/>
+            <path d="M80,116 L250,110" marker-end="url(#a1)"/>
+            <path d="M80,160 L250,116" marker-end="url(#a1)"/>
+          </g>
+          <circle cx="292" cy="108" r="36" fill="var(--rem-bg)" stroke="var(--rem)" stroke-width="2.5"/>
+          <text x="292" y="102" text-anchor="middle" fill="var(--rem)" font-weight="700" font-size="10">ResourceRef</text>
+          <text x="292" y="115" text-anchor="middle" fill="var(--rem)" font-weight="700" font-size="10">Counter ✕</text>
+          <text x="150" y="148" text-anchor="middle" class="soft" font-size="9.5">read-modify-write, same key</text>
+          <text x="292" y="164" text-anchor="middle" fill="var(--rem)" font-size="9.5">⚠ db.ErrConflict · retry storm</text>
+          <text x="292" y="178" text-anchor="middle" fill="var(--rem)" font-size="9.5">sweeper panics @ 5000</text>
+        </g>
+      </svg>
+      </div>
+      <small class="note">Four writers, one key. Contention is the pile-up.</small>
+    </div>
+    <div>
+      <div class="paneltag tag-new">planned · no shared write</div>
+      <div class="overflow">
+      <svg viewBox="0 0 390 210" role="img" aria-label="Each holder appends independently; no convergence">
+        <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="context-stroke"/></marker></defs>
+        <g font-size="11">
+          <rect x="8" y="16"  width="72" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="44" y="32"  text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="8" y="60"  width="72" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="44" y="76"  text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="8" y="104" width="72" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="44" y="120" text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="8" y="148" width="72" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="44" y="164" text-anchor="middle" fill="var(--same)">holder</text>
+          <g stroke="var(--add)" fill="none" stroke-width="1.6">
+            <path d="M80,28  L250,28"  marker-end="url(#a2)"/>
+            <path d="M80,72  L250,72"  marker-end="url(#a2)"/>
+            <path d="M80,116 L250,116" marker-end="url(#a2)"/>
+            <path d="M80,160 L250,160" marker-end="url(#a2)"/>
+          </g>
+          <text x="165" y="12" text-anchor="middle" class="soft" font-size="9.5">append(+1 / −1) — no read, no shared key</text>
+          <rect x="252" y="16" width="120" height="168" rx="8" fill="none" stroke="var(--add-line)"/>
+          <text x="312" y="34" text-anchor="middle" fill="var(--add)" font-size="10" font-weight="700">event log</text>
+          <g stroke="var(--add-line)"><line x1="252" y1="44" x2="372" y2="44"/><line x1="252" y1="72" x2="372" y2="72"/><line x1="252" y1="100" x2="372" y2="100"/><line x1="252" y1="128" x2="372" y2="128"/><line x1="252" y1="156" x2="372" y2="156"/></g>
+          <text x="312" y="60" text-anchor="middle" fill="var(--add)" font-size="10">+1</text>
+          <text x="312" y="88" text-anchor="middle" fill="var(--add)" font-size="10">−1</text>
+          <text x="312" y="116" text-anchor="middle" fill="var(--add)" font-size="10">+1</text>
+          <text x="312" y="144" text-anchor="middle" fill="var(--add)" font-size="10">+1</text>
+          <text x="312" y="198" text-anchor="middle" fill="var(--add)" font-size="9.5">✓ no hot key · no conflict</text>
+        </g>
+      </svg>
+      </div>
+      <small class="note">Same four holders, same positions — only the target topology changed.</small>
+    </div>
+  </div>
+  <figcaption><b>Panel 1.</b> Converging arrows on one ringed hot key (with its failure modes) become four parallel
+  appends. The removed convergence <em>is</em> the fix.</figcaption>
+</figure>
+<div class="callout"><span class="did">A-0005</span>Counter changes — increments <em>and</em> decrements — are appended
+to the system event log instead of written in place. Both directions matter: a god object takes a flood of
+increments, so logging only decrements would leave the conflict on the increment side.</div>
+</section>
+
+<!-- 2. SOURCE OF TRUTH & DERIVATION -->
+<section>
+<h2><span class="n">2</span>Source of truth &amp; who reads it</h2>
+<p class="lead">The authoritative counter disappears. The log becomes the sole source of truth; the count is a
+materialized view that <b>only GC</b> computes.</p>
+<figure class="fig">
+  <div class="grid2">
+    <div>
+      <div class="paneltag tag-cur">current · authoritative counter</div>
+      <div class="overflow">
+      <svg viewBox="0 0 390 190" role="img" aria-label="Counter is authoritative; readers read it directly">
+        <defs><marker id="b1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="context-stroke"/></marker></defs>
+        <g font-size="11">
+          <rect x="10" y="80" width="78" height="30" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="49" y="99" text-anchor="middle" fill="var(--same)">holder</text>
+          <rect x="150" y="74" width="120" height="42" rx="8" fill="var(--rem-bg)" stroke="var(--rem-line)" stroke-width="2"/>
+          <text x="210" y="92" text-anchor="middle" fill="var(--rem)" font-weight="700" font-size="10.5">counter (value)</text>
+          <text x="210" y="107" text-anchor="middle" fill="var(--rem)" font-size="9.5">authoritative ✕</text>
+          <path d="M88,95 L150,95" stroke="var(--rem)" fill="none" stroke-width="1.6" marker-end="url(#b1)"/>
+          <text x="119" y="86" text-anchor="middle" class="soft" font-size="9">RMW</text>
+          <rect x="150" y="20" width="120" height="26" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="210" y="37" text-anchor="middle" fill="var(--same)" font-size="10">readers (List/dedup)</text>
+          <path d="M210,74 L210,46" stroke="var(--same)" fill="none" stroke-width="1.4" stroke-dasharray="2 3" marker-end="url(#b1)"/>
+          <text x="286" y="60" text-anchor="middle" class="soft" font-size="9">read directly</text>
+          <rect x="150" y="146" width="120" height="26" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="210" y="163" text-anchor="middle" fill="var(--same)" font-size="10">markResourceDeleted</text>
+          <path d="M210,116 L210,146" stroke="var(--same)" fill="none" stroke-width="1.4" marker-end="url(#b1)"/>
+          <text x="292" y="134" text-anchor="middle" class="soft" font-size="9">at 0, same txn</text>
+        </g>
+      </svg>
+      </div>
+      <small class="note">The counter value is the truth; anyone reads it; zero triggers delete inline.</small>
+    </div>
+    <div>
+      <div class="paneltag tag-new">planned · log is truth, count derived</div>
+      <div class="overflow">
+      <svg viewBox="0 0 390 190" role="img" aria-label="Log is source of truth; count derived; only GC reads">
+        <defs><marker id="b2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="context-stroke"/></marker></defs>
+        <g font-size="11">
+          <rect x="10" y="80" width="78" height="30" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="49" y="99" text-anchor="middle" fill="var(--same)">holder</text>
+          <!-- log (source of truth) -->
+          <rect x="106" y="30" width="46" height="130" rx="5" fill="none" stroke="var(--add-line)"/>
+          <text x="129" y="24" text-anchor="middle" fill="var(--add)" font-size="9">log (truth)</text>
+          <g stroke="var(--add-line)"><line x1="106" y1="62" x2="152" y2="62"/><line x1="106" y1="94" x2="152" y2="94"/><line x1="106" y1="126" x2="152" y2="126"/></g>
+          <path d="M88,95 L106,95" stroke="var(--add)" fill="none" stroke-width="1.6" marker-end="url(#b2)"/>
+          <text x="97" y="86" text-anchor="middle" class="soft" font-size="8.5">append</text>
+          <!-- derive to view -->
+          <path d="M152,95 C176,95 176,95 196,95" stroke="var(--chg)" fill="none" stroke-width="1.6" marker-end="url(#b2)"/>
+          <text x="176" y="86" text-anchor="middle" fill="var(--chg)" font-size="9">⟳ net</text>
+          <rect x="196" y="74" width="104" height="42" rx="8" fill="var(--chg-bg)" stroke="var(--chg-line)"/>
+          <text x="248" y="92" text-anchor="middle" fill="var(--chg)" font-weight="700" font-size="10.5">count (view)</text>
+          <text x="248" y="107" text-anchor="middle" fill="var(--chg)" font-size="9">cache, rebuildable</text>
+          <!-- only GC reads -->
+          <rect x="196" y="146" width="104" height="26" rx="6" fill="var(--panel)" stroke="var(--accent)"/><text x="248" y="163" text-anchor="middle" fill="var(--accent)" font-size="10" font-weight="700">GC — sole reader</text>
+          <path d="M248,116 L248,146" stroke="var(--same)" fill="none" stroke-width="1.4" stroke-dasharray="2 3" marker-end="url(#b2)"/>
+          <text x="330" y="150" text-anchor="middle" class="soft" font-size="8.5">restart: snapshot</text>
+          <text x="330" y="162" text-anchor="middle" class="soft" font-size="8.5">+ replay tail</text>
+        </g>
+      </svg>
+      </div>
+      <small class="note">Holders only append; the count is derived by <code>net = Σ+ − Σ−</code>; GC alone reads it.</small>
+    </div>
+  </div>
+  <figcaption><b>Panel 2.</b> The authoritative counter (red, removed) becomes an append-only log (source of truth)
+  feeding a derived view (amber). Readers no longer touch the count — GC is the lone consumer.</figcaption>
+</figure>
+<div class="callout"><span class="did">A-0010</span>No authoritative counters: the count is a materialized view of
+the log; any persisted value is a cache, always rebuildable by replay. Durability rests on the log (persisted in
+<code>TxInfo</code>, replayed on restart).</div>
+</section>
+
+<!-- 3. TIME & DELETION -->
+<section>
+<h2><span class="n">3</span>Time &amp; deletion</h2>
+<p class="lead">Truth stops being continuous. The count is defined only at a resource's GC <b>slot boundary</b>; deletion
+becomes eventual.</p>
+<figure class="fig">
+  <div class="grid2">
+    <div>
+      <div class="paneltag tag-cur">current · continuous</div>
+      <div class="overflow">
+      <svg viewBox="0 0 380 150" role="img" aria-label="Continuous count, deletion instant at zero">
+        <g font-size="11">
+          <line x1="30" y1="20" x2="30" y2="120" stroke="var(--line)"/><line x1="30" y1="120" x2="360" y2="120" stroke="var(--line)"/>
+          <text x="12" y="30" class="soft">n</text><text x="352" y="138" class="soft">t</text>
+          <polyline points="30,50 110,50 110,70 190,70 190,90 260,90 260,120 360,120" fill="none" stroke="var(--same)" stroke-width="2"/>
+          <circle cx="260" cy="120" r="4" fill="var(--rem)"/>
+          <text x="258" y="112" text-anchor="end" fill="var(--rem)" font-size="10">n=0 ⇒ deleted, same txn</text>
+        </g>
+      </svg>
+      </div>
+      <small class="note">Defined at every instant; deletion synchronous with the drop to zero.</small>
+    </div>
+    <div>
+      <div class="paneltag tag-new">planned · discrete slots</div>
+      <div class="overflow">
+      <svg viewBox="0 0 380 150" role="img" aria-label="Count sampled at slot boundaries; eventual-consistency window">
+        <g font-size="11">
+          <line x1="30" y1="20" x2="30" y2="120" stroke="var(--line)"/><line x1="30" y1="120" x2="360" y2="120" stroke="var(--line)"/>
+          <text x="12" y="30" class="soft">n</text><text x="352" y="138" class="soft">t</text>
+          <g stroke="var(--chg-line)" stroke-dasharray="2 3"><line x1="90" y1="20" x2="90" y2="120"/><line x1="180" y1="20" x2="180" y2="120"/><line x1="290" y1="20" x2="290" y2="120"/></g>
+          <text x="90" y="16" text-anchor="middle" class="soft" font-size="9">slot k</text>
+          <text x="180" y="16" text-anchor="middle" class="soft" font-size="9">k+1</text>
+          <text x="290" y="16" text-anchor="middle" class="soft" font-size="9">k+2</text>
+          <rect x="210" y="20" width="80" height="100" fill="var(--rem-bg)" opacity=".55"/>
+          <text x="250" y="40" text-anchor="middle" fill="var(--rem)" font-size="9">delay window</text>
+          <text x="250" y="106" text-anchor="middle" fill="var(--rem)" font-size="8.5">net-0 → next slot</text>
+          <circle cx="90" cy="55" r="4" fill="var(--chg)"/><circle cx="180" cy="80" r="4" fill="var(--chg)"/><circle cx="290" cy="120" r="4" fill="var(--rem)"/>
+          <path d="M90,55 L180,80" stroke="var(--chg)" stroke-dasharray="3 3" fill="none"/>
+          <path d="M180,80 L290,120" stroke="var(--chg)" stroke-dasharray="3 3" fill="none"/>
+          <text x="290" y="134" text-anchor="middle" fill="var(--rem)" font-size="9">deleted @ k+2</text>
+        </g>
+      </svg>
+      </div>
+      <small class="note">Sampled at boundaries; undefined between (dashed). Shaded band = net-zero real but not yet observed. <code>1→0→1</code> within a slot nets to 1 — never seen deleted.</small>
+    </div>
+  </div>
+  <figcaption><b>Panel 3.</b> Continuous truth becomes discrete-slot truth. Dashed holds + the shaded delay window
+  keep the picture honest about <em>when</em> the count exists.</figcaption>
+</figure>
+<div class="callout"><span class="did">A-0009</span> · <span class="did">A-0012</span>The GC pass is one discrete tick:
+invariants hold at slot boundaries on <em>net</em> totals, not continuously. Order within a slot is irrelevant; a
+transient mid-slot zero is never observed.</div>
+</section>
+
+<!-- 4. LOCKING / SYNCHRONIZATION -->
+<section>
+<h2><span class="n">4</span>Synchronization &amp; locking</h2>
+<p class="lead">Going append-only removes the old sync point (the counter record's optimistic concurrency). It is
+replaced by a two-level lock: a global lock guards a per-resource lock registry; GC freezes <b>one</b> resource at a time.</p>
+<figure class="fig">
+  <div class="grid2">
+    <div>
+      <div class="paneltag tag-cur">current · sync point = the record</div>
+      <div class="overflow">
+      <svg viewBox="0 0 380 180" role="img" aria-label="Optimistic concurrency on the counter record serializes writers">
+        <defs><marker id="c1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="context-stroke"/></marker></defs>
+        <g font-size="11">
+          <rect x="10" y="30" width="70" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="45" y="46" text-anchor="middle" fill="var(--same)">txn A</text>
+          <rect x="10" y="120" width="70" height="24" rx="6" fill="var(--same-bg)" stroke="var(--same-line)"/><text x="45" y="136" text-anchor="middle" fill="var(--same)">txn B</text>
+          <rect x="150" y="66" width="130" height="46" rx="8" fill="var(--rem-bg)" stroke="var(--rem-line)" stroke-width="2"/>
+          <text x="215" y="84" text-anchor="middle" fill="var(--rem)" font-weight="700" font-size="10">counter record</text>
+          <text x="215" y="99" text-anchor="middle" fill="var(--rem)" font-size="9">OCC = sync point ✕</text>
+          <path d="M80,44 L150,80" stroke="var(--rem)" fill="none" stroke-width="1.4" marker-end="url(#c1)"/>
+          <path d="M80,130 L150,98" stroke="var(--rem)" fill="none" stroke-width="1.4" marker-end="url(#c1)"/>
+          <text x="215" y="140" text-anchor="middle" fill="var(--rem)" font-size="9.5">validate-at-commit → conflict → retry</text>
+          <text x="215" y="156" text-anchor="middle" class="soft" font-size="9">serialization by contention</text>
+        </g>
+      </svg>
+      </div>
+      <small class="note">The record's optimistic concurrency both serializes writers and costs the conflict.</small>
+    </div>
+    <div>
+      <div class="paneltag tag-new">planned · two-level lock</div>
+      <div class="overflow">
+      <svg viewBox="0 0 380 180" role="img" aria-label="Global lock guards registry; GC exclusive on one resource; others concurrent">
+        <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="var(--accent)" stroke-width="2" opacity=".5"/></pattern></defs>
+        <g font-size="10.5">
+          <rect x="10" y="34" width="360" height="118" rx="10" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+          <text x="18" y="28" fill="var(--accent)" font-size="9.5">① global lock → registry (shared, brief)</text>
+          <!-- R2 exclusive frozen -->
+          <rect x="26" y="58" width="90" height="70" rx="8" fill="var(--rem-bg)" stroke="var(--rem-line)" stroke-width="2"/>
+          <text x="71" y="90" text-anchor="middle" fill="var(--rem)" font-weight="700">R2</text>
+          <text x="71" y="106" text-anchor="middle" fill="var(--rem)" font-size="9">② GC excl ✕</text>
+          <!-- others shared -->
+          <rect x="134" y="58" width="90" height="70" rx="8" fill="url(#hatch)" stroke="var(--accent)" stroke-dasharray="4 3"/>
+          <text x="179" y="90" text-anchor="middle">R1</text><text x="179" y="106" text-anchor="middle" class="soft" font-size="9">touch: shared</text>
+          <rect x="242" y="58" width="90" height="70" rx="8" fill="url(#hatch)" stroke="var(--accent)" stroke-dasharray="4 3"/>
+          <text x="287" y="90" text-anchor="middle">R3</text><text x="287" y="106" text-anchor="middle" class="soft" font-size="9">touch: shared</text>
+          <text x="190" y="146" text-anchor="middle" class="soft" font-size="9">R1/R3 proceed while R2 is frozen — global freeze only for whole-map snapshot</text>
+        </g>
+      </svg>
+      </div>
+      <small class="note">Scope = box, mode = fill: R2 solid-red (GC exclusive, frozen); R1/R3 hatched (shared, concurrent).</small>
+    </div>
+  </div>
+  <figcaption><b>Panel 4.</b> The counter record's optimistic-concurrency sync point (removed) is replaced by an
+  explicit two-level lock. Per-resource stop-the-world reads off the picture — only one box turns solid.</figcaption>
+</figure>
+<div class="callout"><span class="did">A-0007</span> · <span class="did">A-0008</span>Append-only has no sync point; the
+per-resource RW lock reintroduces one. Ordinary touch takes it shared; GC takes it exclusive for that resource's
+slot. A true global freeze happens only at the rare whole-map snapshot / compaction.</div>
+</section>
+
+<!-- 5. SIGNATURES AS DIFFS -->
+<section>
+<h2><span class="n">5</span>Signatures as diffs</h2>
+<p class="lead">The behavioral contract shifts more than the shapes. No Go signatures are frozen yet (the
+<code>async-gc</code> branch has no code — evidence: overview §4), so these are <b>behavior</b> diffs, flagged as such.</p>
+<figure class="fig">
+  <div class="body">
+    <div class="diffcode" role="img" aria-label="Holder write path behavior diff">
+      <div class="row dc-ctx"> // core/transaction/link_counters.go — holder write path</div>
+      <div class="row dc-rem">- addResourceHolder / removeResourceHolder: RMW ResourceRefCounter(target)</div>
+      <div class="row dc-rem">-   removeResourceHolder: count==0 && SupportsGC → markResourceDeleted (same txn)</div>
+      <div class="row dc-rem">-   write may return db.ErrConflict → retried with backoff</div>
+      <div class="row dc-add">+ addResourceHolder / removeResourceHolder: append(+1 / −1) to the event log</div>
+      <div class="row dc-add">+   no counter write · no delete decision here · no conflict path</div>
+    </div>
+    <div class="callout" style="margin-top:.8rem"><span class="did">note</span><b>Behavior change, not just shape.</b>
+    Callers that special-cased <code>ErrConflict</code> retries on the ref path become dead code — flag it, or a
+    reviewer misses it.</div>
+    <div class="diffcode" style="margin-top:.8rem" role="img" aria-label="Count read and GC diff">
+      <div class="row dc-ctx"> // count read + GC</div>
+      <div class="row dc-rem">- Count(target): read authoritative ResourceRefCounter — continuous truth</div>
+      <div class="row dc-add">+ Count(target): materialized view = net(log since last snapshot); GC-computed, discrete</div>
+      <div class="row dc-add">+ gcPass(): under per-resource excl lock, net the log per resource → net 0 ⇒ markResourceDeleted</div>
+      <div class="row dc-add">+ snapshot(): under global excl lock, write whole-map count; truncate log tail</div>
+    </div>
+  </div>
+  <figcaption><b>Panel 5.</b> Contract diffs beside the topology. The delete decision moves out of the holder path
+  into <code>gcPass</code>; a new <code>snapshot</code> bounds replay cost.</figcaption>
+</figure>
+</section>
+
+<section>
+<h2><span class="n">6</span>What did <em>not</em> change</h2>
+<p class="lead">Guard against over-reading the diff. These anchors hold.</p>
+<ul style="max-width:74ch;color:var(--ink-soft)">
+  <li><b>GC still owns deletion</b> — it remains the single authority that marks a resource deleted; only <em>when</em> moved (slot boundary, not commit time).</li>
+  <li><b>The directed per-edge counter</b> <code>ResourceRefCounterByResource{source,target}</code> is untouched — it already spreads writes; only the single <em>total</em> key was the hot spot.</li>
+  <li><b>The system-event engine</b> is reused, not rebuilt — <code>RemoveResourceRef</code> is already an async event in its own transaction; the change makes every counter change a logged fact it consumes.</li>
+  <li><b>"Zero holders ⇒ deleted ⇒ excluded from most operations"</b> still holds — evaluated on net totals at slot boundaries instead of continuously.</li>
+</ul>
+</section>
+
+<p style="margin-top:2rem"><small class="note">Diagram drawn to the house guide (<code>arch-diff-diagram-guide.html</code>).
+Rationale ids reference the mispec atoms in <code>work/projects/async-resource-counter</code>. Flip your OS theme; it follows.</small></p>
+
+</main>

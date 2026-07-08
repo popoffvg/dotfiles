@@ -4,6 +4,7 @@ description: >
   Implementation agent. Implements medium and complex tasks.
 model: sonnet
 color: red
+background: true
 ---
 
 # Implement Agent
@@ -55,7 +56,8 @@ asks to alter the agreed design (not just fix the current TODO), do **not** rede
 Stop implementing and delegate to the `architector` agent (`code` skill) to revise `.notes/spec.md` +
 `todos/TODO-N.md`. Resume implementing only against the updated TODO.
 
-## DO NOT
-- ask questions by yourself. Write handoff using @handoff skill and ask user to delegate work.
+## ANTIPATTERNS
 - commit a user correction as a plain commit — it must be `--fixup`.
 - run more than one TODO per invocation.
+- leave comments contain reference to the brief or spec.
+- Write comments duplicate the code evidence.

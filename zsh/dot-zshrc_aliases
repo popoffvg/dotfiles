@@ -253,6 +253,28 @@ handoff-todo() {
   command zed "$wt"
 }
 
+# prx — review a PR in a throwaway worktree. Usage: prx <PR-url>
+# Creates a detached worktree, checks out the PR, opens zed --wait (blocks until
+# the window closes), then removes the worktree.
+prx() {
+  local url="$1"
+  [[ -z "$url" ]] && { echo 'Usage: prx <PR-url>'; return 1; }
+  local wt
+  wt=$(mktemp -d "${TMPDIR:-/tmp}/prx.XXXXXX") || return 1
+  git worktree add --detach "$wt" HEAD || return 1
+  # Rewrite SSH→HTTPS for the fetch so gh uses its token (work account vgpopov);
+  # the SSH key auths as the personal account, which can't read org repos.
+  if ! ( cd "$wt" && GIT_CONFIG_COUNT=1 \
+      GIT_CONFIG_KEY_0="url.https://github.com/.insteadOf" \
+      GIT_CONFIG_VALUE_0="git@github.com:" \
+      gh pr checkout "$url" ); then
+    git worktree remove --force "$wt"
+    return 1
+  fi
+  command zed --wait "$wt"
+  git worktree remove --force "$wt"
+}
+
 # escape — edit text in helix, print its raw contents on close.
 # Usage: VAR=$(escape)   or   llm "$(escape)"   (NOT `escape | llm` — claude -p
 # times out waiting on stdin while you edit; command substitution finishes first)

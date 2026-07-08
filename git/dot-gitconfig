@@ -1,5 +1,5 @@
 [interactive]
-    diffFilter = lumen diff
+    diffFilter = hunk diff
 
 [merge]
     conflictstyle = diff3

@@ -1,0 +1,5 @@
+{
+  "name": "hi",
+  "description": "Per-session prompt stack: push/pop/list/drop prompts across a session.",
+  "version": "0.3.0"
+}

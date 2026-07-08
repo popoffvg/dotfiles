@@ -1,12 +1,12 @@
 ---
-name: dedup-doc-corpus
-description: This skill should be used when the user asks to "dedup the docs", "reduce duplication across files", "these files repeat the same information", "consolidate repeated content", "the corpus duplicates topics", "map topics across files", or wants to find and remove duplicated prose across a set of markdown/docs (SKILL.md, references, commands, specs).
-user-invocable: false
+name: prune-text
+description: This skill should be used when the user asks to "dedup the docs", "prune the corpus", "remove duplicate/redundant paragraphs", "reduce duplication across files", "these files repeat the same information", "consolidate repeated content", "the corpus duplicates topics", "map topics across files", or wants to find and remove duplicated prose across a set of text files (plain prose, markdown, SKILL.md, references, commands, specs).
+user-invocable: true
 ---
 
 # Dedup a doc corpus
 
-Remove repeated prose across a set of docs without losing signal. Four steps: map → cross-reference → classify → rewire. Never cut before classifying — some duplication is load-bearing.
+Remove repeated prose across a set of text files without losing signal. Four steps: map → cross-reference → classify → rewire. Never cut before classifying — some duplication is load-bearing. Works on any prose corpus; markdown-specific signals (frontmatter, sync hooks) apply only when present.
 
 ## Step 1 — Topic map
 
