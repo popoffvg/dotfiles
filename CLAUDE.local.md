@@ -125,3 +125,11 @@ Two accounts: `popoffvg` (personal — SSH push works; force key with `git confi
 <task-relevant when="a git fetch / gh pr checkout / clone on a milaboratory org repo fails with 'Repository not found' over an SSH (git@github.com:) remote">
 The SSH key always auths as `popoffvg` (personal), which can't read milaboratory/ org repos — independent of the active gh account. `gh auth switch` does NOT help; it only affects gh's HTTPS API token, not the SSH transport git uses for the remote's `git@github.com:` URL. Fix: rewrite SSH→HTTPS for that one command so it uses gh's `vgpopov` token — `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=url.https://github.com/.insteadOf GIT_CONFIG_VALUE_0=git@github.com: gh pr checkout <url>`. Scoped, no persistent config change.
 </task-relevant>
+
+<task-relevant when="diagnosing why a Platforma block's Run button is disabled/greyed (mil/1_blocks/*), or inferring block config requirements from the UI/a screenshot">
+Read the block model's `.args()` validator in `model/src/index.ts` — its `throw new Error('X is required')` lines ARE the exact Run-enable gate, in order. Don't infer required fields from UI `required` props, placeholder text, or a screenshot: grey text in an input is a PLACEHOLDER, not a value (the field is empty until typed), and defaults set in the model `.init(() => ({...}))` (e.g. `hinge: ''`) mean a visually-empty field may already satisfy the gate. Check `.init()` defaults + `.args()` throws before telling the user what to fill. Stop piling speculative tangents when a fix "doesn't help" — open the code that gates the behavior.
+</task-relevant>
+
+<task-relevant when="asked to 'setup'/'configure' a specific Platforma block (mil/1_blocks) when its inputs depend on an upstream block's output/metadata">
+"Setup block X" = configure X's OWN args (refs it can see, fit/threshold params) and surface any missing input as a prerequisite — NOT auto-build the upstream data it depends on. If an input's option list is empty (e.g. Tite-Seq `concentrationOptions:[]` because Samples & Data `metadata:[]`), report that the upstream column must exist first and ask; don't balloon into a metadata-import/parse project unless the user confirms. Keep scope to the named block.
+</task-relevant>

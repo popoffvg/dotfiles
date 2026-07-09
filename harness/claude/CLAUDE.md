@@ -85,6 +85,22 @@ Use the `verify-fix-premise` skill.
 Use the `verify-capability-on-target-host` skill.
 </task-relevant>
 
+<task-relevant when="writing or reviewing a find-then-use flow — a lookup/find/search method and its caller (finder collects-all then scans, or caller re-fetches by key what the finder returned)">
+Use the `single-pass-find` skill.
+</task-relevant>
+
+<task-relevant when="adding a changelog fragment/entry (changie .changes/unreleased, towncrier) for a change that revises behavior from an earlier still-unreleased entry in the same branch">
+Use the `changelog-fragment-revise` skill.
+</task-relevant>
+
+<task-relevant when="copying content to the clipboard for the user (pbcopy / handing a copy-paste command or snippet)">
+Use the `clipboard-sandbox` skill.
+</task-relevant>
+
+<task-relevant when="implementing or reviewing 'log in as / bind this login to an existing user / map an external id to an internal account' auth behavior — placing identity-resolution logic relative to token minting">
+Use the `identity-bind-before-mint` skill.
+</task-relevant>
+
 <task-relevant when="debugging an OAuth2/OIDC IdP rejection (invalid_scope, invalid_client, refresh-token-required, SSO 'authentication error') against an external identity provider">
 Use the `debug-oauth-idp-errors` skill.
 </task-relevant>
@@ -115,6 +131,14 @@ Use the `tui-stdout-redirect` skill.
 
 <task-relevant when="a goal/loop/acceptance condition uses exhaustion phrasing — 'while there is X', 'until none remain', 'prune while there is nothing to prune', 'fix all'">
 Use the `exhaustion-condition` skill.
+</task-relevant>
+
+<task-relevant when="reporting a root cause / diagnosis from profiler, metrics, log, or DB-stats data (pprof, flame graph, cgroup, top, traces) — about to attribute a cause like 'goroutine leak', 'it's the cache', 'N+1', 'GC pressure'">
+Use the `measured-vs-inferred` skill.
+</task-relevant>
+
+<task-relevant when="drafting/preparing a batch of tracker tasks (Notion/Jira/Linear/GitHub issues) from findings for the user to review before creating them">
+Use the `tracker-task-drafting` skill.
 </task-relevant>
 
 ## Stop hook: revise session

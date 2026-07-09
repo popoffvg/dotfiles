@@ -30,3 +30,4 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | read-claude-local-subrepos.sh | SessionStart hook: find every git repo (incl. worktrees) under session cwd and emit each repo's CLAUDE.local.md to stdout as context. Prunes node_modules/.venv/vendor/target/dist/build/.cache. Reads cwd from stdin JSON, arg, or $PWD. |
 | pty-capture-tui.py | Drive a TUI binary in a pty, snapshot the screen (built-in ANSI model) after each scripted keystroke. Headless, no controlling tty needed. |
 | zellij-capture-tui.py | Drive a TUI in a zellij session, dump-screen per step. Note: headless dump-screen returns empty; prefer pty-capture-tui.py. |
+| pl-mcp.sh | Call a Platforma desktop MCP tool: pl-mcp.sh <tool> [json-args], PL_MCP_URL env |

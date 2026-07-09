@@ -2,63 +2,60 @@
   {
     "context": "Terminal",
     "bindings": {
-      "shift-enter": [
-        "terminal::SendText",
-        "\u001b\r"
-      ]
-    }
+      "shift-enter": ["terminal::SendText", "\u001b\r"],
+    },
   },
   {
     "context": "Editor",
     "unbind": {
-      "cmd-\"": "editor::ExpandAllDiffHunks"
-    }
+      "cmd-\"": "editor::ExpandAllDiffHunks",
+    },
   },
   {
     "context": "Editor",
     "unbind": {
-      "cmd-'": "editor::ToggleSelectedDiffHunks"
-    }
+      "cmd-'": "editor::ToggleSelectedDiffHunks",
+    },
   },
   {
     "bindings": {
-      "alt-pageup": "tab_switcher::OpenInActivePane"
-    }
+      "alt-pageup": "tab_switcher::OpenInActivePane",
+    },
   },
   {
     "context": "Editor",
-      "bindings": {
-      "cmd-shift-y": "editor::CopyFileLocation"
-    }
+    "bindings": {
+      "cmd-shift-y": "editor::CopyFileLocation",
+    },
   },
   {
     "bindings": {
-      "alt-shift-t": "terminal_panel::ToggleFocus"
-    }
+      "cmd-,": "terminal_panel::ToggleFocus",
+    },
   },
   {
     "context": "VimControl && !menu",
     "unbind": {
-      "g i": "vim::InsertAtPrevious"
-    }
+      "g i": "vim::InsertAtPrevious",
+    },
   },
   {
     "context": "VimControl && !menu",
     "bindings": {
-      "g i": "editor::GoToImplementation"
-    }
+      "g i": "editor::GoToImplementation",
+    },
   },
   {
     "context": "VimControl && !menu",
     "unbind": {
-      "g shift-i": "editor::GoToImplementation"
-    }
+      "g shift-i": "editor::GoToImplementation",
+    },
   },
   {
     "context": "VimControl && !menu",
     "unbind": {
-      "q": "vim::ToggleRecord"
-    }
+      "q": "vim::ToggleRecord",
+    },
   },
   {
     "context": "VimControl && !menu",
@@ -66,10 +63,10 @@
       "shift-b": [
         "vim::PreviousWordStart",
         {
-          "ignore_punctuation": true
-        }
-      ]
-    }
+          "ignore_punctuation": true,
+        },
+      ],
+    },
   },
   {
     "context": "VimControl && !menu",
@@ -77,140 +74,158 @@
       "shift-e": [
         "vim::NextWordEnd",
         {
-          "ignore_punctuation": true
-        }
-      ]
-    }
+          "ignore_punctuation": true,
+        },
+      ],
+    },
   },
   {
     "context": "Editor",
     "unbind": {
-      "ctrl-alt-shift-f": "editor::SelectToNextSubwordEnd"
-    }
+      "ctrl-alt-shift-f": "editor::SelectToNextSubwordEnd",
+    },
   },
   {
     "context": "Editor && vim_mode == helix_normal",
     "bindings": {
-      "b": "editor::SelectToPreviousSubwordStart"
-    }
+      "b": "editor::SelectToPreviousSubwordStart",
+    },
   },
   {
     "context": "Editor",
     "unbind": {
-      "ctrl-alt-shift-left": "editor::SelectToPreviousSubwordStart"
-    }
+      "ctrl-alt-shift-left": "editor::SelectToPreviousSubwordStart",
+    },
   },
   {
     "context": "Editor && vim_mode == helix_normal",
     "bindings": {
-      "e": "vim::NextSubwordStart"
-    }
+      "e": "vim::NextSubwordStart",
+    },
   },
   {
     "context": "VimControl && !menu",
     "bindings": {
-      "shift-b": "vim::PreviousWordStart"
-    }
-  },
-  {
-    "context": "VimControl && !menu",
-    "unbind": {
-      "b": "vim::PreviousWordStart"
-    }
-  },
-  {
-    "context": "VimControl && !menu",
-    "bindings": {
-      "shift-e": "vim::NextWordEnd"
-    }
+      "shift-b": "vim::PreviousWordStart",
+    },
   },
   {
     "context": "VimControl && !menu",
     "unbind": {
-      "e": "vim::NextWordEnd"
-    }
+      "b": "vim::PreviousWordStart",
+    },
+  },
+  {
+    "context": "VimControl && !menu",
+    "bindings": {
+      "shift-e": "vim::NextWordEnd",
+    },
+  },
+  {
+    "context": "VimControl && !menu",
+    "unbind": {
+      "e": "vim::NextWordEnd",
+    },
   },
   {
     "bindings": {
-      "] r": "editor::GoToNextReference"
-    }
+      "] r": "editor::GoToNextReference",
+    },
   },
   {
     "bindings": {
-      "[ r": "editor::GoToPreviousReference"
-    }
-  },
-  {
-    "bindings": {
-      "cmd->": "editor::ToggleFocus"
-    }
+      "[ r": "editor::GoToPreviousReference",
+    },
   },
   {
     "context": "OutlinePanel && not_editing",
     "unbind": {
-      "enter": "editor::ToggleFocus"
-    }
+      "enter": "editor::ToggleFocus",
+    },
   },
   {
     "context": "Editor",
     "bindings": {
       "cmd-alt-r": [
         "task::Spawn",
-        { "task_name": "Flow: reveal source", "reevaluate_context": true }
-      ]
-    }
+        { "task_name": "Flow: reveal source", "reevaluate_context": true },
+      ],
+    },
   },
   {
     "bindings": {
-      "cmd-<": "agent::FocusAgent"
-    }
+      "cmd-<": "agent::FocusAgent",
+    },
   },
   {
     "context": "Editor && mode == full",
     "bindings": {
-      "cmd-?": "agent::AddSelectionToThread"
-    }
+      "cmd-?": "agent::AddSelectionToThread",
+    },
   },
   {
     "context": "Editor && mode == full",
     "unbind": {
-      "cmd->": "agent::AddSelectionToThread"
-    }
+      "cmd->": "agent::AddSelectionToThread",
+    },
   },
   {
     "context": "AcpThread",
     "bindings": {
-      "cmd-?": "agent::AddSelectionToThread"
-    }
+      "cmd-?": "agent::AddSelectionToThread",
+    },
   },
   {
     "context": "AcpThread",
     "unbind": {
-      "cmd->": "agent::AddSelectionToThread"
-    }
+      "cmd->": "agent::AddSelectionToThread",
+    },
   },
   {
     "context": "Terminal",
     "bindings": {
-      "cmd-?": "agent::AddSelectionToThread"
-    }
+      "cmd-?": "agent::AddSelectionToThread",
+    },
   },
   {
     "context": "Terminal",
     "unbind": {
-      "cmd->": "agent::AddSelectionToThread"
-    }
+      "cmd->": "agent::AddSelectionToThread",
+    },
   },
   {
     "context": "Workspace",
     "bindings": {
-      "cmd-<": "agent::ToggleFocus"
-    }
+      "cmd-<": "agent::ToggleFocus",
+    },
   },
   {
     "context": "Workspace",
     "unbind": {
-      "cmd-?": "agent::ToggleFocus"
-    }
-  }
+      "cmd-?": "agent::ToggleFocus",
+    },
+  },
+  {
+    "context": "SettingsWindow",
+    "unbind": {
+      "cmd-,": "settings_editor::OpenCurrentFile",
+    },
+  },
+  {
+    "context": "!SettingsWindow",
+    "unbind": {
+      "cmd-,": "zed::OpenSettings",
+    },
+  },
+  {
+    "bindings": {
+      "cmd->": "workspace::ActivatePreviousPane",
+    },
+  },
+  {
+    "context": "(VimControl && !menu) || (!Editor && !Terminal)",
+    "unbind": {
+      "ctrl-w ctrl-shift-w": "workspace::ActivatePreviousPane",
+    },
+  },
 ]
