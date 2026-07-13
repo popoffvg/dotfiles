@@ -1,149 +1,36 @@
 ## Tools
 
-For any file search or grep use fff tools.
+- fff for all file search/grep: `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob — faster, frecency-ranked.
+- perl for multi-editing files, not bash.
 
-Use perl instead of bash scripts for multiediting files.
-
-**Search**: Prefer `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob. fff is faster with frecency ranking.
-
-When a request says "do X as/like the existing Y" (mirror a pattern), find the missing parallel in the actual diff/code — don't propose new mechanisms, scope expansions, or alternative shapes. Re-read the diff before suggesting anything novel. If asked to mirror Y, copy Y's exact structure; don't substitute a "better" variant (e.g. inline vs reference).
+When a request says "do X as/like existing Y" (mirror a pattern), find the missing parallel in the actual diff/code — don't propose new mechanisms, scope expansions, or alternative shapes. Re-read the diff first. Copy Y's exact structure; don't substitute a "better" variant (e.g. inline vs reference).
 
 ## Coding tasks
 
-Always score task complexity from 1 to 5, where 1 is simple and 5 is complex. Show user the score before starting.
+Score complexity like AdaBoost — sum weak signals into one score, then let the total pick the branch. Show the score before starting.
 
-1: is fix a few functions
-2: is write tests or 1-2 functions
-3: is implement the feature
-4: is implement the medium feature with tests
-5: is implement the large feature with tests
+```
+score = Σ signals (each true = +1):
+  +1  touches more than a few functions
+  +1  needs new tests
+  +1  adds a feature (not just a fix)
+  +1  spans multiple components / medium+ size
+  +1  large or cross-cutting change
 
-Delegate task from 3 to 5 to the implementer agent.
+total → 1  fix a few functions ────────┐
+        2  tests, or 1–2 functions ─────┤→ implement directly
+        3  a feature ───────────────────┐
+        4  medium feature + tests ──────┤→ delegate to implementer agent
+        5  large feature + tests ───────┘
+```
 
-## Memory
+## Scripts
 
-- every git repository could  contain CLAUDE.local.md, find it and read it first
-- if user get your some facts or make decision you MUST remember it using endgram MCP
-- when user correct you action and intention add the instructions to the project level CLAUDE.local.md in self-improvement section to prevent the wrong behaviour in the future
-
-## Style
-
-Write in informative style (Ильяхов / Zinsser). Be extremely concise. Sacrifice grammar for the sake of concision.
-
-- Cut every word that adds no meaning. If a sentence works without a word, delete it.
-- Kill stop-words: hedges (probably, maybe, I think), intensifiers (very, really, quite), filler (basically, actually, just), throat-clearing ("it's worth noting that", "in order to").
-- Facts over evaluations. State what is, not how good it is. No marketing ("powerful", "seamless", "robust").
-- Strong verbs, not nominalizations: "decide" not "make a decision"; active voice not passive.
-- Concrete over abstract: name the file, the number, the command — not "various", "some", "several".
-- One idea per sentence. Short sentences over long.
-
-Use **bold** / *italic* for emphasis, one header level max
-
-**Authoring instructional docs (SKILL.md, agents, commands, references):** lead with the procedure in imperative/infinitive form. No second person ("you"). Skip background framing — no "Core problem" / "Why" / "Motivation" sections; at most one line of context, then the steps.
-
-## Proof of Thought
-
-**MUST follow** — the user audits every claim:
-- Always provide proof for what you assert: file path + line number, exact tool output, command run, diff, or a direct quote
-- "I think", "it should", "probably" without evidence is not acceptable — verify or say "unverified"
-- When reporting work done: show the change, the test command, and its actual output — not a summary of intent
-- Proof correctness is the main criterion the user uses to approve your work; an unproven correct answer counts as wrong
-
----
-
-### Scripts
-
-**NEVER** embed logic as an inline bash `-c '...'` one-liner when the script has any complexity.
-→ Write reusable scripts to `~/.claude/scripts/<name>.sh` (create dir if missing)
-→ Register every script in `~/.claude/scripts/MANIFEST.md`: `| filename | description |`
-→ Before writing a new script, check MANIFEST.md — reuse or extend an existing one if purpose overlaps
-→ Scripts must be idempotent and accept args where useful; chmod +x on creation
-
----
-
-<task-relevant when="gathering information from the internet / web research">
-Default to direct `firecrawl` search/scrape. Do NOT launch the `deep-research` multi-agent workflow unless the user explicitly asks for deep research — it is slow and token-heavy; the user prefers direct results.
-</task-relevant>
-
-<task-relevant when="asked to create a local gitignore / ignore files locally without committing the rule">
-Use the `local-gitignore` skill.
-</task-relevant>
-
-<task-relevant when="asked to write TODOs for PR/review comments or capture review feedback as TODOs">
-Use the `inline-review-todos` skill.
-</task-relevant>
-
-<task-relevant when="fanning out parallel subagents that create/edit files in one shared working tree">
-Use the `parallel-agent-tree-guard` skill.
-</task-relevant>
-
-<task-relevant when="about to fix by reverting to a last-known-good value or swapping in an alternative value/version/model/config/dependency">
-Use the `verify-fix-premise` skill.
-</task-relevant>
-
-<task-relevant when="a plan/fix assumes a tool, CLI, binary, package, or env var is present for code that runs on a server/container/CI/deploy target (not the dev machine)">
-Use the `verify-capability-on-target-host` skill.
-</task-relevant>
-
-<task-relevant when="writing or reviewing a find-then-use flow — a lookup/find/search method and its caller (finder collects-all then scans, or caller re-fetches by key what the finder returned)">
-Use the `single-pass-find` skill.
-</task-relevant>
-
-<task-relevant when="adding a changelog fragment/entry (changie .changes/unreleased, towncrier) for a change that revises behavior from an earlier still-unreleased entry in the same branch">
-Use the `changelog-fragment-revise` skill.
-</task-relevant>
-
-<task-relevant when="copying content to the clipboard for the user (pbcopy / handing a copy-paste command or snippet)">
-Use the `clipboard-sandbox` skill.
-</task-relevant>
-
-<task-relevant when="implementing or reviewing 'log in as / bind this login to an existing user / map an external id to an internal account' auth behavior — placing identity-resolution logic relative to token minting">
-Use the `identity-bind-before-mint` skill.
-</task-relevant>
-
-<task-relevant when="debugging an OAuth2/OIDC IdP rejection (invalid_scope, invalid_client, refresh-token-required, SSO 'authentication error') against an external identity provider">
-Use the `debug-oauth-idp-errors` skill.
-</task-relevant>
-
-<task-relevant when="removing a service/resource/role/module from infrastructure-as-code (Ansible, Terraform, k8s, docker-compose)">
-Use the `iac-decommission` skill.
-</task-relevant>
-
-<task-relevant when="authoring or editing a skill (SKILL.md) that captures a reusable lesson — make it model-invocable, not user-slash-only">
-Use the `authoring-model-invocable-skills` skill.
-</task-relevant>
-
-<task-relevant when="designing or spec'ing a multi-phase/multi-stage pipeline with per-phase responsibilities the user named">
-Use the `phase-boundary-discipline` skill.
-</task-relevant>
-
-<task-relevant when="adding a hook that should fire only during one skill, or deciding hook placement (skill frontmatter vs plugin hooks.json)">
-Use the `skill-scoped-hooks` skill.
-</task-relevant>
-
-<task-relevant when="asked to walk through / explain / visualize architectural changes (before/after modules, deps, seams, signatures)">
-Use the `arch-change-walkthrough` skill.
-</task-relevant>
-
-<task-relevant when="redirecting/piping a TUI or interactive CLI's stdout to a file, or about to caveat that such a redirect captures ANSI/garbage">
-Use the `tui-stdout-redirect` skill.
-</task-relevant>
-
-<task-relevant when="a goal/loop/acceptance condition uses exhaustion phrasing — 'while there is X', 'until none remain', 'prune while there is nothing to prune', 'fix all'">
-Use the `exhaustion-condition` skill.
-</task-relevant>
-
-<task-relevant when="reporting a root cause / diagnosis from profiler, metrics, log, or DB-stats data (pprof, flame graph, cgroup, top, traces) — about to attribute a cause like 'goroutine leak', 'it's the cache', 'N+1', 'GC pressure'">
-Use the `measured-vs-inferred` skill.
-</task-relevant>
-
-<task-relevant when="drafting/preparing a batch of tracker tasks (Notion/Jira/Linear/GitHub issues) from findings for the user to review before creating them">
-Use the `tracker-task-drafting` skill.
-</task-relevant>
-
-## Stop hook: revise session
-
-When the Stop hook fires with reason `revise session`: run `/improve-claude-local` to review this session and append any new non-obvious metarules to `CLAUDE.local.md` under `## Self-improvement`. If nothing new — skip silently.
+**NEVER** embed complex logic as an inline bash `-c '...'` one-liner.
+→ Write reusable scripts to `~/.claude/scripts/<name>.sh` (create dir if missing).
+→ Register each in `~/.claude/scripts/MANIFEST.md`: `| filename | description |`.
+→ Before writing a new script, check MANIFEST.md — reuse or extend an overlapping one.
+→ Idempotent, accept args where useful, `chmod +x` on creation.
 
 ---
 

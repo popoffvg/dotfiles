@@ -133,3 +133,7 @@ Read the block model's `.args()` validator in `model/src/index.ts` — its `thro
 <task-relevant when="asked to 'setup'/'configure' a specific Platforma block (mil/1_blocks) when its inputs depend on an upstream block's output/metadata">
 "Setup block X" = configure X's OWN args (refs it can see, fit/threshold params) and surface any missing input as a prerequisite — NOT auto-build the upstream data it depends on. If an input's option list is empty (e.g. Tite-Seq `concentrationOptions:[]` because Samples & Data `metadata:[]`), report that the upstream column must exist first and ask; don't balloon into a metadata-import/parse project unless the user confirms. Keep scope to the named block.
 </task-relevant>
+
+<task-relevant when="pruning/rewriting a CLAUDE.md that indexes skills via <task-relevant> pointer blocks">
+A skill-pointer block is redundant ONLY if the skill is in the current discoverable-skills list — those auto-trigger via their own `description`. For a skill ABSENT from that list, the pointer is its sole trigger; dropping it silently disables the skill (same trap as a test dropped from its only CI lane). Check each skill against the available-skills list before dropping its pointer; keep the pointers for non-discoverable ones.
+</task-relevant>
