@@ -124,10 +124,7 @@
       "Read(**/.env*)"
     ],
     "defaultMode": "auto",
-    "additionalDirectories": [
-      "/private/tmp/claude-501",
-      "/tmp"
-    ]
+    "additionalDirectories": ["/private/tmp/claude-501", "/tmp"]
   },
   "hooks": {
     "PostToolUse": [
@@ -206,28 +203,13 @@
   "enabledPlugins": {
     "ast-grep@ast-grep-marketplace": true,
     "claude-md-management@claude-plugins-official": true,
-    "claude-mem@thedotmack": false,
-    "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
-    "commit-commands@claude-plugins-official": true,
-    "commit-index@commit-index-marketplace": true,
-    "context-mode@claude-context-mode": false,
     "engram@engram": true,
-    "explanatory-output-style@claude-plugins-official": false,
-    "feature-dev@claude-plugins-official": false,
-    "github@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true,
     "harness-dev@local-plugins": true,
     "mictx-ecosystem@mictx-helper-marketplace": true,
     "mictx@mictx-helper-marketplace": true,
-    "plannotator@plannotator": true,
     "plugin-dev@claude-plugins-official": true,
-    "ponytail@ponytail": true,
-    "pyright-lsp@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": true,
     "self-improvement@local-plugins": true,
-    "superpowers@claude-plugins-official": false,
-    "typescript-lsp@claude-plugins-official": true,
     "understand-anything@understand-anything": true,
     "wm@local-plugins": true,
     "worktrunk@worktrunk": true,
@@ -300,10 +282,7 @@
   "sandbox": {
     "enabled": true,
     "network": {
-      "allowedDomains": [
-        "api.github.com",
-        "github.com"
-      ]
+      "allowedDomains": ["api.github.com", "github.com"]
     },
     "filesystem": {
       "allowWrite": [
@@ -318,9 +297,7 @@
         "~/.claude/plugins"
       ]
     },
-    "allowedCommands": [
-      "gh"
-    ]
+    "allowedCommands": ["gh"]
   },
   "effortLevel": "medium",
   "tui": "fullscreen",
@@ -328,6 +305,7 @@
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "theme": "auto",
+  "editorMode": "normal",
   "terminalProgressBarEnabled": true,
   "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,

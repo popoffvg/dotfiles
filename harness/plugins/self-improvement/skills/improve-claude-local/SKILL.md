@@ -14,15 +14,9 @@ Run every captured lesson through three gates, in order. Take the first that fit
 
 Would this lesson help on a *different* codebase? Code style, architecture principles, language idioms, general workflow/tooling habits, review taste — these transfer.
 
-→ **Yes → a global skill + a pointer in `~/.claude/CLAUDE.md`.** Don't paste the instruction into CLAUDE.md — that file is always-on for every project and stays terse. Instead:
+→ **Yes → a global skill.** Don't paste the instruction into CLAUDE.md — that file is always-on for every project and stays terse. Instead:
 
 1. **Write a skill** at `~/.claude/skills/<slug>/SKILL.md` (write to `~/.claude` directly — never the dotfiles `harness/` source). The lesson body is the skill content; the **if/when trigger is the skill's `description`** (skills auto-load when their description matches the task). Phrase it generally; strip this project's names/paths.
-2. **Add one pointer line to `~/.claude/CLAUDE.md`** — the if/when + a reference to the skill, nothing more:
-   ```
-   <task-relevant when="<trigger>">
-   Use the `<slug>` skill.
-   </task-relevant>
-   ```
 3. If a skill already covers this trigger, extend it instead of creating a new one.
 4. Then drop the lesson from CLAUDE.local.md.
 
