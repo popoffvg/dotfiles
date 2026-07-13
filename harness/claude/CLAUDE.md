@@ -5,6 +5,10 @@
 
 When a request says "do X as/like existing Y" (mirror a pattern), find the missing parallel in the actual diff/code — don't propose new mechanisms, scope expansions, or alternative shapes. Re-read the diff first. Copy Y's exact structure; don't substitute a "better" variant (e.g. inline vs reference).
 
+## Specification driven development
+
+**NEVER** add the links to the specification artifacts to the codebase.
+
 ## Coding tasks
 
 Score complexity like AdaBoost — sum weak signals into one score, then let the total pick the branch. Show the score before starting.
