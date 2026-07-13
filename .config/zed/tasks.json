@@ -180,4 +180,15 @@
     "show_summary": true,
     "show_command": false,
   },
+  {
+    "label": "open file",
+    "command": "bash",
+    "args": ["-lc", "zed $(pbpaste)"],
+    "use_new_terminal": true,
+    "allow_concurrent_runs": true,
+    "reveal_target": "center",
+    "hide": "always",
+    "show_summary": false,
+    "show_command": false,
+  },
 ]

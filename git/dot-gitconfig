@@ -5,7 +5,7 @@
     conflictstyle = diff3
 [merge "mergiraf"]
     name = mergiraf
-    driver = mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P -l %L
+	driver = mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P -l %L
 [push]
     autoSetupRemote = true # create remote branch auto
 [url "git@github.com:"]
@@ -30,7 +30,8 @@
 	find = !~/branch_find.sh
 	fdiff = !~/fd.sh
     test = !git diff \"$@\"
-	ia = !git iff \"$@\" --name-only | fzf -m --ansi --preview \"git diff $@ --color=always -- {-1}\" | xargs git add
+	ia = !git status --short | fzf -m --nth 2.. --preview \"git diff HEAD --color=always -- {-1}\" | cut -c4- | xargs -r git add
+	add-interactive = !git ia
 	review = !~/local/bin/git-agent-review
 	append = town append
 	hack = town hack
