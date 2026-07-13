@@ -124,7 +124,10 @@
       "Read(**/.env*)"
     ],
     "defaultMode": "auto",
-    "additionalDirectories": ["/private/tmp/claude-501", "/tmp"]
+    "additionalDirectories": [
+      "/private/tmp/claude-501",
+      "/tmp"
+    ]
   },
   "hooks": {
     "PostToolUse": [
@@ -213,7 +216,8 @@
     "understand-anything@understand-anything": true,
     "wm@local-plugins": true,
     "worktrunk@worktrunk": true,
-    "hi@local-plugins": true
+    "hi@local-plugins": true,
+    "typescript-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -282,7 +286,10 @@
   "sandbox": {
     "enabled": true,
     "network": {
-      "allowedDomains": ["api.github.com", "github.com"]
+      "allowedDomains": [
+        "api.github.com",
+        "github.com"
+      ]
     },
     "filesystem": {
       "allowWrite": [
@@ -297,8 +304,11 @@
         "~/.claude/plugins"
       ]
     },
-    "allowedCommands": ["gh"]
+    "allowedCommands": [
+      "gh"
+    ]
   },
+  "outputStyle": "STYLE",
   "effortLevel": "medium",
   "tui": "fullscreen",
   "autoMemoryEnabled": true,
