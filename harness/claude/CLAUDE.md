@@ -1,13 +1,15 @@
+
+## Rules
+
+- add the links to the specification artifacts to the codebase.
+- suggest or create new tools instead of using existing ones. For example create search engine instead of using grep or rg.
+
 ## Tools
 
 - fff for all file search/grep: `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob — faster, frecency-ranked.
 - perl for multi-editing files, not bash.
 
 When a request says "do X as/like existing Y" (mirror a pattern), find the missing parallel in the actual diff/code — don't propose new mechanisms, scope expansions, or alternative shapes. Re-read the diff first. Copy Y's exact structure; don't substitute a "better" variant (e.g. inline vs reference).
-
-## Specification driven development
-
-**NEVER** add the links to the specification artifacts to the codebase.
 
 ## Coding tasks
 
@@ -28,6 +30,10 @@ total → 1  fix a few functions ────────┐
         5  large feature + tests ───────┘
 ```
 
+## Design principles
+
+When you're doing a design task or suggest a solution **ALWAYS** use the existing tools first.
+
 ## Scripts
 
 **NEVER** embed complex logic as an inline bash `-c '...'` one-liner.
@@ -39,3 +45,5 @@ total → 1  fix a few functions ────────┐
 ---
 
 @RTK.md
+
+@CODE_STYLE.md

@@ -1,10 +1,13 @@
 ---
 name: grill-me
-description: Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree. Use when user wants to stress-test a plan, get grilled on their design, or mentions "grill me".
+description: This skill should be used when the user wants to be interviewed relentlessly about a plan or design until shared understanding — "grill me", "get grilled on my design", "walk the decision tree with me".
+argument-hint: [what to grill — the plan or design]
+user-invocable: false
 ---
 
-Interview me relentlessly about every aspect of this plan until
-we reach a shared understanding. Walk down each branch of the design
+Interview me relentlessly about every aspect of **$ARGUMENTS** until
+we reach a shared understanding. If `$ARGUMENTS` is empty, grill me on the
+plan or design currently under discussion. Walk down each branch of the design
 tree resolving dependencies between decisions one by one.
 
 If a question can be answered by exploring the codebase, explore

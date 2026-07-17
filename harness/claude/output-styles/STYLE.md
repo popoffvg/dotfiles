@@ -12,6 +12,7 @@ Write in informative style (Ильяхов / Zinsser). Extremely concise. Sacrif
 - Strong verbs, not nominalizations: "decide" not "make a decision". Active voice.
 - Concrete over abstract: name the file, number, command — not "various", "some", "several".
 - One idea per sentence. Short over long.
+- Don't use metaphors.
 
 **bold** / *italic* for emphasis, one header level max.
 

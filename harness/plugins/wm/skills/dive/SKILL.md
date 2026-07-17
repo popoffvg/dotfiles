@@ -5,10 +5,11 @@ description: >
   subagent per entry point in parallel and write refactor-oriented research artifacts into the
   wm notes directory (`<notes-dir>/research/`). Use when the user says "dive", "explore",
   "research these entry points", or provides a list of files/symbols to investigate before a task.
-  Invoke as `/dive <docs|workflow|unknowns>` (default `docs`). `docs` writes the markdown write-ups +
+  Invoke as `/dive <docs|workflow|unknowns|explain|explain-diff>` (default `docs`). `docs` writes the markdown write-ups +
   question lists; `workflow` writes the typed TS pseudocode + path bindings; `unknowns` runs a guided
-  quadrant walk with the user to map task uncertainty before code. Render flows with
-  `explore-flow-map`.
+  quadrant walk with the user to map task uncertainty before code; `explain` draws a single-panel
+  planned-architecture HTML for quick review; `explain-diff` draws a two-panel diff comparing two
+  solutions (current vs planned, or option A vs B). Render flows with `explore-flow-map`.
 argument-hint: [docs (default), workflow — full list /dive-help] + entry points (files, symbols, urls)
 ---
 
@@ -23,6 +24,8 @@ argument-hint: [docs (default), workflow — full list /dive-help] + entry point
 | `docs` *(default)* | Write the markdown research write-ups + question lists. One `<ep-slug>.questions.md` + one `<ep-slug>.md` per entry point, graded against the 6-step chain. Convergence loop + `INDEX.md`. | `references/sub-docs.md` |
 | `workflow` | Write the typed TS pseudocode + path bindings — `<ep-slug>.workflow.ts`, `<ep-slug>.bindings.json`, `components/*.d.ts`, `flows.json`. The navigable, reveal-in-editor layer over the `docs` artifacts. | `references/sub-workflow.md` |
 | `unknowns` | Guided **quadrant walk** with the user — map known knowns / known unknowns / unknown knowns / unknown unknowns one stage at a time, ending with a four-quadrant map (`<slug>.unknowns.md`) in the user's hands. Use when the task is ambiguous, underspecified, or the user will "know it when they see it". | `references/sub-unknowns.md` |
+| `explain` | Draw a **single-panel planned architecture** as a self-contained HTML a reviewer reads in 30 seconds — the components, their edge relations, and the load-bearing decisions (tagged with decision ids). One picture of the intended design, not a before/after. Writes `<slug>.arch.html`. | `references/sub-explain.md` |
+| `explain-diff` | Draw a two-panel **architecture diff** comparing two solutions — `current` beside `planned` (or option A beside B) — as a self-contained HTML a reviewer reads in 30 seconds: what changed, removed, new, held, and the one load-bearing why. Writes `<slug>.arch-diff.html`. Use to weigh a refactor/migration or pick between two designs. | `references/sub-explain-diff.md` |
 
 ## How they combine
 

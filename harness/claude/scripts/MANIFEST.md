@@ -10,7 +10,6 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | ccc-init-worktree.sh | Initialize and index ccc for all git repos in a worktree directory |
 | ccc-mcp.sh | Launch `ccc mcp` (stdio MCP server); project resolved from $COCOINDEX_PROJECT env, else arg, else $PWD (validates it's an initialized ccc project) |
 | lsp-references-smoke.py | Drive tengo-lsp over stdio and issue a textDocument/references request for end-to-end testing |
-| build-zoom-html.py | Wrap a D2/Graphviz SVG into a zoomable HTML viewer (svg-pan-zoom CDN). Args: <svg-in> <html-out> <title> |
 | cursor-agent-hang-capture.sh | Capture lsof+sample of a hung interactive cursor-agent (agent CLI) to find what startup is blocked on |
 | strip-work-skill-prefix.sh | Strip the "work-" prefix from wm skill-name references in given files (Perl word-boundary, idempotent; avoids work-verify-gate/work-abandon/work-next-prompt) |
 | openclaw-vault-rekey.sh | Re-key openclaw-infra ansible-vault when old password lost: reconstruct vault.yml from server's rendered telepi config.env over SSH, encrypt with new random password, update Keychain, print new password for GitHub secret. Arg: REPO_DIR (default PWD) |
@@ -31,3 +30,9 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | pty-capture-tui.py | Drive a TUI binary in a pty, snapshot the screen (built-in ANSI model) after each scripted keystroke. Headless, no controlling tty needed. |
 | zellij-capture-tui.py | Drive a TUI in a zellij session, dump-screen per step. Note: headless dump-screen returns empty; prefer pty-capture-tui.py. |
 | pl-mcp.sh | Call a Platforma desktop MCP tool: pl-mcp.sh <tool> [json-args], PL_MCP_URL env |
+| zk-classify.py | Zettelkasten migration Phase 0: classify a vault's .md files into target layers (00-inbox/10-sources/20-notes/30-maps/40-journal/_attic) by pure heuristics. Dry-run — writes reviewable migration_plan.csv, moves nothing. Args: <vault-dir> [out.csv] |
+| zk-migrate.py | Zettelkasten migration P1: move files per migration_plan.csv + normalize frontmatter (id/type/status), collision-safe (dedup identical, hash-suffix differing), undo-logged to .ledger/moves.jsonl. Dry-run default; --apply. Reverse with --undo-from. |
+| zk-link-backfill.py | Zettelkasten P4: insert [[wikilinks]] from a title+alias index (0 tokens). Conservative: exact-phrase, skips code/headings/existing links, stoplist + domain/attrib exclusions. Dry-run default; --apply. |
+| zk-dedup-sources.py | Dedup 10-sources literature notes that are the SAME article: group by source url, cluster within by identical-body OR core-title (strips ` - author`/`(domain)`/hash); distinct articles sharing a url are reported, never merged. Folds dropped names into survivor aliases. Dry-run default; --apply. |
+| zk-rename-kebab.py | Align note filenames to their kebab `id` (filename==id). Folds old filename+title into aliases so [[links]] resolve. Ordering-safe two-phase rename (temp then final — never clobbers a queued file). Collision-suffixes duplicate ids. Dry-run default; --apply. |
+| zk-lint-links.py | Find/remove stale [[wikilinks]] the way Obsidian resolves (basename+id+aliases — alias-aware, unlike a filename-only check). Removal unwraps to prose ([[X\|Y]]->Y, [[X]]->X); skips code fences. Dry-run default; --apply. |

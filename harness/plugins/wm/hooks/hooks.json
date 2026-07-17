@@ -7,6 +7,11 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/bin/notes-jj-init.sh",
             "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/code-mode-session.sh",
+            "timeout": 3000
           }
         ]
       }
@@ -29,6 +34,16 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/bin/guard.sh",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/code-mode-mark.sh",
             "timeout": 3000
           }
         ]

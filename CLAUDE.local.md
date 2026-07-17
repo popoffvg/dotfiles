@@ -58,8 +58,8 @@ A `"source": "./X"` that doesn't resolve to a real dir/symlink yields an empty c
 lefthook does NOT expand `{root}` inside `run:` strings — a literal `{root}/...` path fails with "No such file". lefthook runs hooks from the repo root, so use a repo-root-relative path (`bash harness/scripts/x.sh`).
 </task-relevant>
 
-<task-relevant when="an autonomous explore/research flow could add a user-confirmation gate">
-Don't gate on confirmation when a downstream loop already backstops wrong choices. Surface the chosen set in a log line; don't block on approval.
+<task-relevant when="designing a pipeline / automation / recurring workflow, or an autonomous explore/research flow could add a user-confirmation gate">
+Default to fully autonomous — NO human-in-the-loop steps (no review gates, approval prompts, or "mark for promotion" staging). Replace human editorial judgment with deterministic autonomous criteria (corroboration thresholds, downstream lint/verify loops as backstops). Don't gate on confirmation when a downstream loop already backstops wrong choices. Surface the chosen set in a log line; don't block on approval.
 </task-relevant>
 
 <task-relevant when="verifying a commit-triggered hook or other commit-gated behavior">
@@ -136,4 +136,8 @@ Read the block model's `.args()` validator in `model/src/index.ts` — its `thro
 
 <task-relevant when="pruning/rewriting a CLAUDE.md that indexes skills via <task-relevant> pointer blocks">
 A skill-pointer block is redundant ONLY if the skill is in the current discoverable-skills list — those auto-trigger via their own `description`. For a skill ABSENT from that list, the pointer is its sole trigger; dropping it silently disables the skill (same trap as a test dropped from its only CI lane). Check each skill against the available-skills list before dropping its pointer; keep the pointers for non-discoverable ones.
+</task-relevant>
+
+<task-relevant when="a wm/self-improvement plugin hook needs shared logic (a helper script), or you're about to put a plugin's script in ~/.claude/scripts/">
+Keep the helper INSIDE the plugin at `harness/plugins/<name>/bin/` and have hooks call it via `${CLAUDE_PLUGIN_ROOT}/bin/<script>.sh` — plugins must be self-contained. The global "reusable scripts → ~/.claude/scripts/" rule does NOT override plugin self-containment; don't stow a plugin's logic to ~/.claude/scripts and call outward. For a user-level consumer that can't see `$CLAUDE_PLUGIN_ROOT` (e.g. the statusline in `harness/claude/statusline-command.sh`), reference the plugin bin by repo path `$HOME/git/dotfiles/harness/plugins/<name>/bin/...` (guard with `-x`): `local-plugins` is a **directory** marketplace at `$HOME/git/dotfiles`, so the plugin runs straight from the repo (no cache copy) and that path is stable.
 </task-relevant>

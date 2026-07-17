@@ -217,7 +217,8 @@
     "wm@local-plugins": true,
     "worktrunk@worktrunk": true,
     "hi@local-plugins": true,
-    "typescript-lsp@claude-plugins-official": true
+    "typescript-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -283,6 +284,7 @@
       }
     }
   },
+  "outputStyle": "STYLE",
   "sandbox": {
     "enabled": true,
     "network": {
@@ -308,8 +310,7 @@
       "gh"
     ]
   },
-  "outputStyle": "STYLE",
-  "effortLevel": "medium",
+  "effortLevel": "xhigh",
   "tui": "fullscreen",
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
