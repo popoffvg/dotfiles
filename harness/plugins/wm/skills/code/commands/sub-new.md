@@ -8,13 +8,16 @@ Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 
 No `<notes-dir>/spec.md` → write a minimal one (full template: `ref-write.md` § spec.md template):
 
-- **Frontmatter** — a `---` block with `status: init` and `drives:` (one sentence from the user's request). No phase-rules prose in the body — the machine lives in `ref-write.md` § Status.
+- **Frontmatter** — a `---` block with `status: init`, `branch:` (current branch, `git rev-parse --abbrev-ref HEAD`), and `drives:` (one sentence from the user's request). No phase-rules prose in the body — the machine lives in `ref-write.md` § Status.
 - **Description** — one sentence from the request. **Goal** — 2–3 plain sentences.
 - **Open Questions** — seed 1–3 from the request. **TODO List** — empty until the grill closes.
 - Create `<notes-dir>/GLOSSARY.md` from `references/tpl-glossary.md`, empty.
 - Guidelines / What we're NOT doing / Design Decisions — empty or "follow language defaults".
 
-spec.md exists → this is iteration; skip to Step 0.5.
+spec.md exists → check the frontmatter `branch` against the current branch (`ref-write.md` § Spec ownership by branch):
+
+- **Shares part** (one contains the other as a substring) → same work; this is iteration, skip to Step 0.5.
+- **No shared part** → the spec belongs to unrelated work; author a fresh minimal spec (the bullets above) with `branch` set to the current branch. The prior spec stays in the notes jj history.
 
 ## Step 0.5: Ingest explore artifacts
 

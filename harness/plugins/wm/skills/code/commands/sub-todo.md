@@ -146,6 +146,8 @@ Any domain term not in GLOSSARY.md gets a row here, immediately after Outcome, *
 ### Changes
 TS pseudocode per the `flow-scetch` skill — one snippet per TODO. Multi-file change → still one snippet describing *behavior*; **Files** maps it to paths.
 
+> On save the `format-todo` PostToolUse hook (`bin/format-todo.sh`) runs prettier over each ```ts block; unparseable pseudocode is left verbatim, ```diff sub-blocks untouched. Don't hand-align the block — write it, the hook formats it.
+
 **Interface sub-block (first, when the surface changes).** Modification → unified git-diff in the file's real language:
 
 ````markdown

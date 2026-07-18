@@ -91,6 +91,7 @@ If `<notes-dir>/research/` exists, consume those artifacts — they already enco
 ```markdown
 ---
 status: init          # init → review → impl  (phase machine + rules: ref-write.md § Status)
+branch: <git branch at init>   # the branch this spec belongs to; set once at init. See § Spec ownership by branch
 drives: <one sentence — what this work delivers, user-facing>
 ---
 
@@ -164,7 +165,17 @@ Rules:
 - spec.md ends after the ledger.
 - TODO numbers match `todos/TODO-N.md` filenames 1-to-1.
 
-## TODO ordering — layer, deepest first
+## Spec ownership by branch
+
+The frontmatter `branch` ties a spec to the work it was written for. Set it once, at init, to the
+current git branch (`git rev-parse --abbrev-ref HEAD`); never rewrite it afterward.
+
+On any `new` where `spec.md` already exists, decide iteration vs. a fresh spec by the branch match:
+
+- **Current branch shares part of `branch`** (either contains the other as a substring — e.g. meta `feat/auth-refresh` and current `feat/auth-refresh-fix`) → same work, **iterate** the existing spec.
+- **No shared part** → the notes belong to unrelated work; treat this as a **new spec** — author a fresh minimal spec and set `branch` to the current branch. The prior spec is not lost: it stays in the notes jj history (`ref-jj-notes.md`).
+
+Rationale: `.notes/` is git-ignored and travels with the working tree, so switching to an unrelated branch leaves a stale spec behind. The branch match is the signal for "is this still the same work?".
 
 Sort so each commit touches only its own **layer** and layers below it. Dependency edges point
 upward (callers depend on callees); commits land the same direction — leaf → trunk → wiring.
@@ -195,7 +206,7 @@ its own audience and bar, owned by `todo`. The user decides when the outcomes ar
 
 The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check against them.
 
-- [ ] `spec.md` opens with a `---` frontmatter block (`status`, `drives`); no `Status`/phase-rules prose in the body
+- [ ] `spec.md` opens with a `---` frontmatter block (`status`, `branch`, `drives`); no `Status`/phase-rules prose in the body
 - [ ] `spec.md` body has Description, Guidelines, Goal, What we're NOT doing, Design Decisions, Open Questions, and the ledger — nothing else
 - [ ] `GLOSSARY.md` exists (sibling), covers every entity/command/event in the spec, and is current
 - [ ] **Open Questions is empty** (hard block)

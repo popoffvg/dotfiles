@@ -48,6 +48,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/format-todo.sh",
+            "timeout": 30000
+          }
+        ]
+      }
     ]
   }
 }
