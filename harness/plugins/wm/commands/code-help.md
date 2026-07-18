@@ -12,7 +12,7 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 | `new` *(default)* | Spec pipeline: write spec.md (if missing) → grill → produce thoughts/ → compile plan → stop at the gate. Does not write TODO bodies — the human reviews the spec first. |
 | `todo` | Author `todos/TODO-N.md` bodies from a reviewed spec.md + thoughts/. Runs only past the gate. |
 | `verify` | Audit a spec before implementation in a separate `spec-verifier` agent (sonnet, read-only) — hunts contradictions, missing parts, edge cases. READY / NEEDS REVISION. |
-| `revise` | Fix spec.md / todos and change or add a thoughts/ note; settles the review phase (resets Status to review). Notes-only. |
+| `revise` | Fix spec.md / todos and change or add a thoughts/ note; settles the review phase (resets the spec `status` to review). Notes-only. |
 | `prototype` | Settle an open design decision with a small, visible demonstrative diff. |
 | `code-map` | Produce a single-panel planned-architecture HTML map (package or component/type) for the spec — via `/dive explain`. |
 | `diff` | Show what changed as one self-contained HTML page (opened): before/after architecture panels + interfaces/signatures rendered as diffs. `diff arch` *(default)* — current vs proposed architecture. `diff impl` — what the branch shipped, `git diff <target>...<current-branch>`. No mermaid. |

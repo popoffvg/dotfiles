@@ -116,7 +116,7 @@ Result: READY | NEEDS REVISION
 
 Decide and transition immediately — no generic follow-up question.
 
-- **READY** — all blocking checks pass, no critical unknowns → transition `Status` to `impl`. `jj commit -m "Spec verification passed"` in `<notes-dir>`.
+- **READY** — all blocking checks pass, no critical unknowns → transition the spec frontmatter `status` to `impl`. `jj commit -m "Spec verification passed"` in `<notes-dir>`.
 - **NEEDS REVISION** — ≥1 blocking issue or unclear dependency → stay at `review` with concise feedback. `jj commit -m "Spec verification failed"`.
 
 Use `work_transition` if available; else report the next command (`/work:implement` or `/work:spec`) plus the blocking list. Strict on blockers, concise on style nits.

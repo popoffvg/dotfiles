@@ -8,7 +8,7 @@ Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 
 No `<notes-dir>/spec.md` → write a minimal one (full template: `ref-write.md` § spec.md template):
 
-- **Header** — `Status: init`, `This spec drives:` from the user's request, phase-rules block verbatim.
+- **Frontmatter** — a `---` block with `status: init` and `drives:` (one sentence from the user's request). No phase-rules prose in the body — the machine lives in `ref-write.md` § Status.
 - **Description** — one sentence from the request. **Goal** — 2–3 plain sentences.
 - **Open Questions** — seed 1–3 from the request. **TODO List** — empty until the grill closes.
 - Create `<notes-dir>/GLOSSARY.md` from `references/tpl-glossary.md`, empty.
@@ -33,7 +33,7 @@ Run `/grill-with-docs` until Open Questions is empty. Every resolution writes on
 Back-fill `Affects` and populate `links` per `ref-note-format.md` § Back-linking.
 
 #### 2. Confirm spec.md reflects every resolution
-Each decision is in Design Decisions (or, if routine, in GLOSSARY.md / scope); new out-of-scope items in What we're NOT doing; **Open Questions empty** (any surviving `- [ ]` = NOT READY). Advance `Status: init → review`. Self-check against `ref-write.md` § Spec-Readiness Checklist.
+Each decision is in Design Decisions (or, if routine, in GLOSSARY.md / scope); new out-of-scope items in What we're NOT doing; **Open Questions empty** (any surviving `- [ ]` = NOT READY). Advance the frontmatter `status: init → review`. Self-check against `ref-write.md` § Spec-Readiness Checklist.
 
 #### 3. Compile the plan
 Write a `## Plan` at the bottom of spec.md — 3–5 sentences (one per major branch) plus the **trace** table:

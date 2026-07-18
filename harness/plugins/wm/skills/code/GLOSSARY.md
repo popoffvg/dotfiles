@@ -7,10 +7,11 @@ notes-dir `GLOSSARY.md` (template: `references/tpl-glossary.md`).
 | Word | Meaning |
 |------|---------|
 | **the gate** | The human-review checkpoint between spec and TODOs. `new` produces a reviewable spec + thought graph and **stops**; a human reads it; only then `todo` authors bodies. Authoring TODOs before the gate turns a wrong spec into wrong code — the mistake the gate exists to prevent. |
-| **thought** | A standalone note in `thoughts/` — `decision`, `fact`, or `impl-decision`. The atom of reasoning. The spec compiles from thoughts; every TODO traces back to them. Rule: fix the thought before the code, or the code drifts back. |
+| **thought** | The atom of reasoning — one recorded decision/fact with its why (concept + rules: the `thought` skill). Here it is a standalone note in `thoughts/` — `decision`, `fact`, or `impl-decision` (format: `ref-note-format.md`). The spec compiles from thoughts; every TODO traces back to them. Rule: fix the thought before the code, or the code drifts back. |
 | **target picture** | `spec.md` — what the world looks like when the work is done. Description + Goal say what is true; Decisions + GLOSSARY.md let a human validate the model; the ledger enumerates the steps there. |
 | **outcome** | A TODO's post-condition in use-case language — `<actor> can <capability>`, GLOSSARY.md terms only, no implementation nouns. The discussion object: the user aligns on outcomes at the gate before any body exists. |
 | **ledger** | The TODO List in spec.md — an index of outcomes (`Layer \| Outcome \| Commit` rows), no bodies. |
+| **status** | The lifecycle phase carried in YAML frontmatter — never body prose. Two machines: the spec's `init → review → impl` (`spec.md`) and each TODO's `todo → impl → verify → done` (`blocked` off the path). The single source is `ref-write.md` § Status. |
 | **grill** | The depth-first interview loop that drives Open Questions to empty. One question at a time, one thought per resolution, spec updated inline. |
 | **trace** | (1) The one-sentence entry→exit path — the `// trace:` line opening a `flow`, which must match the TODO's Outcome. (2) The thought graph read backward (`Depends on`) and forward (`Affects`) from a decision to its why. |
 | **layer (Ln)** | Call-sequence depth. TODOs land deepest-first: `L0` leaf (talks to the outside world) → `Lmax` wiring (`main.go`). A leaf commit compiles alone; upper layers never rewrite it. |

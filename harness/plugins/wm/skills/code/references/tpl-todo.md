@@ -1,9 +1,12 @@
-# TODO-N: <imperative title, ≤ 60 chars>
+---
+status: todo          # todo → impl → verify → done  (blocked: dep unmet / verify DEVIATES). Machine: ref-write.md § Status
+type: component       # workflow | state machine | component | event handler | data shape change
+depends_on: []        # [TODO-M, …] — each must reach status: done first. [] if none
+risk: 3               # 1–5 blast radius — retest reach, not effort. 1 = local additive · 3 = one component + callers · 5 = core types many modules depend on. See todo.md § Risk / blast radius
+thoughts: []          # [NNN-decision-slug, NNN-fact-slug] — every thought this TODO implements or is constrained by; same notes as the spec.md Plan decision trail. [] only if the spec has no thoughts yet
+---
 
-**Type:** workflow | state machine | component | event handler | data shape change
-**Depends on:** TODO-M (must be checked off first) | none
-**Risk / blast radius:** 1–5 — <tier + why; name what must be retested. 1 = local, additive (new fn), no existing behavior touched · 3 = modifies one component, callers retested · 5 = core/common types many modules depend on. See todo.md § Risk / blast radius.>
-**Thoughts:** [[NNN-decision-slug]], [[NNN-fact-slug]] — <every decision/fact note in `thoughts/` this TODO implements or is constrained by; same notes as the spec.md Plan decision trail. `none` only if the spec has no thoughts yet.>
+# TODO-N: <imperative title, ≤ 60 chars>
 
 <!-- ── Verification block: a human reads only down to Autotest, repo closed ── -->
 

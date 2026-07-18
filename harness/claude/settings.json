@@ -310,7 +310,7 @@
       "gh"
     ]
   },
-  "effortLevel": "xhigh",
+  "effortLevel": "medium",
   "tui": "fullscreen",
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,

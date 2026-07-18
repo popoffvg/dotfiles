@@ -1,6 +1,6 @@
 # spec — note format
 
-Owner of the **thought**-note format. Each grilling resolution writes one standalone Obsidian note. Three types: `decision`, `fact`, `impl-decision`. One note per resolved question; notes link via `[[wikilinks]]`.
+Owner of the code skill's **thought**-note *format*. What a thought is — the concept and its rules — lives in the `thought` skill; this file specializes it into concrete files. Each grilling resolution writes one standalone Obsidian note. Three types: `decision`, `fact`, `impl-decision`. One note per resolved question; notes link via `[[wikilinks]]`.
 
 Templates (one per type):
 - [`tpl-note-decision.md`](tpl-note-decision.md)

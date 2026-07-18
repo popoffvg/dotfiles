@@ -14,7 +14,7 @@ Prefix every response with `[PLAN]`.
 
 ALWAYS use subagent for saving context window.
 
-ALWAYS record your work and user intention in the notes (`<note folder>/spec.md`, `thoughts/`); the notes jj repo snapshots on session stop — there is no worklog.md.
+ALWAYS record your work and user intention in the notes (`<note folder>/spec.md`, `thoughts/`); the notes jj repo snapshots on session stop — there is no worklog.md. What a thought is — decision/fact, its why, the rules: the `thought` skill.
 
 ## Design in DDD style
 

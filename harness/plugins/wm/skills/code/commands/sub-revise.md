@@ -1,6 +1,6 @@
 # spec — revise
 
-`revise` settles **drift** — notes-only, resets `Status` to `review`. Use `fix` when code must change too.
+`revise` settles **drift** — notes-only, resets the spec frontmatter `status` to `review`. Use `fix` when code must change too.
 
 Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 
@@ -60,11 +60,11 @@ Thoughts are the source the spec compiles from — keep them correct, not just t
 
 - Update ledger row(s) and Design Decisions per the deltas.
 - Refresh the **Decision trail** table in `## Plan` so it mirrors `thoughts/`.
-- Set the header `Status:` to `review`.
+- Set the frontmatter `status` to `review`.
 
 `<notes-dir>/GLOSSARY.md`: add, rename, or reword terms per the deltas.
 
-`<notes-dir>/todos/TODO-N.md`: restate the (possibly new) outcome verbatim at the top; rewrite `## Changes` to describe what is now true — files, symbols, acceptance criteria.
+`<notes-dir>/todos/TODO-N.md`: restate the (possibly new) outcome verbatim at the top; rewrite `## Changes` to describe what is now true — files, symbols, acceptance criteria. If the TODO diverged and must be re-implemented, set its frontmatter `status` back to `todo`.
 
 Log to `<notes-dir>`; message: `"revise TODO-N (+ from <sha> if post-impl): <deltas + notes touched>"`.
 
@@ -91,7 +91,7 @@ Then stop. The user owns the next action (re-review, continue impl, re-verify).
 - [ ] Outcome-shifting or step-dropping edits confirmed with the user
 - [ ] spec.md rows/decisions updated; `## Plan` decision trail refreshed
 - [ ] `GLOSSARY.md` current
-- [ ] spec.md `Status` set to `review`
+- [ ] spec.md frontmatter `status` set to `review`
 - [ ] todos/TODO-N.md outcome restated; `## Changes` matches reality
 - [ ] jj commit created in `<notes-dir>`
 - [ ] No edits outside `<notes-dir>/`

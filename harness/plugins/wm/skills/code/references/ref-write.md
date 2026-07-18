@@ -1,7 +1,7 @@
 # spec — write (the contract)
 
-The single source for the spec contract: artifacts, layout, the `Status` header, **the gate**,
-TODO ordering, and readiness.
+The single source for the spec contract: artifacts, layout, the **status** metadata (spec phase
++ TODO lifecycle), **the gate**, TODO ordering, and readiness.
 Vocabulary: `../GLOSSARY.md`.
 
 ## Role
@@ -26,9 +26,12 @@ never as a code edit.
 - **thought** — one note per resolved question, linked by `[[wikilinks]]`. Format + templates: `ref-note-format.md`.
 - History lives in the notes' jj repo (`jj log`) — `ref-jj-notes.md`.
 
-## Status header + the gate
+## Status — metadata, not prose
 
-`spec.md` opens with a `Status` header tracking one phase: `init → review → impl`.
+Every `status` lives in **YAML frontmatter**, never as a body header line. `spec.md` and each
+`todos/TODO-N.md` open with a `---` block; the body below it is human prose only. Two machines:
+
+### Spec phase — `spec.md` frontmatter `status`
 
 ```
 init (research)  →  review (spec + ledger)  →  impl
@@ -38,9 +41,30 @@ init (research)  →  review (spec + ledger)  →  impl
 
 - `init` — research; spec is a stub.
 - `review` — spec + ledger authored, under human review. `todo`, `verify`, `revise` run here.
-- `impl` — TODOs implemented, one commit each. Any `revise` returns `Status` to `review`.
+- `impl` — TODOs implemented, one commit each. Any `revise` returns the spec `status` to `review`.
 
-**The gate** sits at the `review→impl` boundary. `new` produces a reviewable spec and stops; a
+Set by: `new` (`init → review`), `impl` (`review → impl`), `revise` (`→ review`).
+
+### TODO lifecycle — `todos/TODO-N.md` frontmatter `status`
+
+Forged like the spec's, one per TODO:
+
+```
+todo  →  impl  →  verify  →  done
+  ▲        │         │
+  │        └── blocked ──┘   (dep unmet, or verify DEVIATES)
+  └──────────────┘           (revise reopens a diverged TODO)
+```
+
+- `todo` — body authored past the gate; not started.
+- `impl` — the implementer is executing it (set at `impl` start once every `depends_on` TODO is `done`).
+- `verify` — committed + autotest green; awaiting the review gate (`reviewer` / `verifier`).
+- `done` — review passed; the ledger row's Commit is filled.
+- `blocked` — a `depends_on` TODO is not `done`, **or** the review returned FAIL / DEVIATES. Routes back to `impl`.
+
+Set by: `todo` (writes `todo`, or `blocked` if a dep is unmet), `impl` (`todo → impl`, then `→ verify` on green; `→ blocked` if a dep is unmet), the review gate (`verify → done` on PASS, `→ blocked` on FAIL), `revise` (`→ todo` when it reopens a diverged TODO).
+
+**The gate** sits at the spec's `review→impl` boundary. `new` produces a reviewable spec and stops; a
 human reads Goal, Decisions, GLOSSARY.md, and the ledger; only then does `todo` author bodies.
 Bodies are never auto-written — a wrong spec authored into TODOs becomes wrong code.
 
@@ -65,17 +89,12 @@ If `<notes-dir>/research/` exists, consume those artifacts — they already enco
 ## spec.md template
 
 ```markdown
+---
+status: init          # init → review → impl  (phase machine + rules: ref-write.md § Status)
+drives: <one sentence — what this work delivers, user-facing>
+---
+
 # Spec
-
-<!-- Header: the first line says what this spec delivers; `Status` gates which actions are legal. Keep the phase-rules block verbatim; update only `Status`. -->
-**Status:** `init`  ·  `init → review → impl`
-
-*This spec drives: <one sentence — what this work delivers, user-facing>.*
-
-**Phase rules:**
-- `init` — research; the spec is a stub.
-- `review` — spec + ledger authored, under human review; `revise` settles changes here; no source edits.
-- `impl` — TODOs implemented, one commit each; any `revise` returns `Status` to `review`.
 
 ## Description
 <what this work is about, 2–5 sentences>
@@ -176,7 +195,8 @@ its own audience and bar, owned by `todo`. The user decides when the outcomes ar
 
 The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check against them.
 
-- [ ] `spec.md` has Description, Guidelines, Goal, What we're NOT doing, Design Decisions, Open Questions, and the ledger — nothing else
+- [ ] `spec.md` opens with a `---` frontmatter block (`status`, `drives`); no `Status`/phase-rules prose in the body
+- [ ] `spec.md` body has Description, Guidelines, Goal, What we're NOT doing, Design Decisions, Open Questions, and the ledger — nothing else
 - [ ] `GLOSSARY.md` exists (sibling), covers every entity/command/event in the spec, and is current
 - [ ] **Open Questions is empty** (hard block)
 - [ ] The ledger is a `Layer | Outcome | Commit` table — no bodies, no checkboxes, no file paths

@@ -8,7 +8,7 @@ user-invocation: true
 
 # hunch — theories over the obvious answer
 
-Chain-of-thought solution search, modelled on the [wayfinder pattern](https://github.com/mattpocock/skills/blob/main/skills/engineering/wayfinder/SKILL.md): the unit of progress is a **decision recorded as a thought**, not a slice of build. A theory is a *hunch* — a bet on how to solve the problem. Generate several, favour the non-obvious, kill the dominated, commit one. Produce a **decision**, not the build — hand execution off after commit.
+Chain-of-thought solution search, modelled on the [wayfinder pattern](https://github.com/mattpocock/skills/blob/main/skills/engineering/wayfinder/SKILL.md): the unit of progress is a **decision recorded as a thought** ([[thought]]), not a slice of build. A theory is a *hunch* — a bet on how to solve the problem. Generate several, favour the non-obvious, kill the dominated, commit one. Produce a **decision**, not the build — hand execution off after commit.
 
 Run in-session by default: the map lives in the reply. Persist to a `hunch-<slug>.md` scratch file only when the exploration outgrows one reply or resumption is wanted.
 
@@ -35,7 +35,7 @@ Reach past the first answer by forcing a shift:
 
 ## Every decision is a thought
 
-Log each move as a numbered thought — the chain. Framing, generating, ranking, pruning, splitting, committing: one line each, decision + why. The thought log *is* the reasoning trace; a decision with no thought is not allowed.
+A thought is the atom of reasoning ([[thought]]); here it is a numbered line in the chain, not a heavyweight note. Log each move as a numbered thought — framing, generating, ranking, pruning, splitting, committing: one line each, decision + why. The thought log *is* the reasoning trace; a decision with no thought is not allowed.
 
 ## Fog of war
 

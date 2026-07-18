@@ -18,13 +18,9 @@ while :; do
     line="wm notes at $notes ($where)."
     if [[ -f "$notes/spec.md" ]]; then
       line="$line spec: $notes/spec.md."
-      # Recall the spec phase: read the `**Status:** \`x\`` header, then that phase's rule line.
-      status=$(grep -m1 '\*\*Status:\*\*' "$notes/spec.md" 2>/dev/null | grep -oE '`[a-z]+`' | head -1 | tr -d '`') || true
-      if [[ -n "${status:-}" ]]; then
-        rule=$(grep -m1 "^- \`${status}\` " "$notes/spec.md" 2>/dev/null | sed 's/^- //') || true
-        line="$line PHASE: ${status}."
-        [[ -n "${rule:-}" ]] && line="$line Rule — ${rule}"
-      fi
+      # Recall the spec phase: read the `status:` key from the YAML frontmatter block.
+      status=$(grep -m1 '^status:' "$notes/spec.md" 2>/dev/null | sed 's/^status:[[:space:]]*//' | awk '{print $1}') || true
+      [[ -n "${status:-}" ]] && line="$line PHASE: ${status}."
     fi
     [[ -d "$notes/thoughts" ]] && line="$line thoughts: $notes/thoughts/."
     [[ -d "$notes/todos" ]] && line="$line todos: $notes/todos/."

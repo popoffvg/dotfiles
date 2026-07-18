@@ -1,9 +1,12 @@
-# TODO-1: Rotate refresh tokens on /auth/refresh
+---
+status: todo
+type: workflow
+depends_on: []
+risk: 3               # changes the existing Refresh signature; retest the auth middleware and every caller of Refresh, not just the new rotation path
+thoughts: [003-decision-single-flight, 001-fact-token-ttl]
+---
 
-**Type:** workflow
-**Depends on:** none
-**Risk / blast radius:** 3 — changes the existing `Refresh` signature on `/auth/refresh`; retest the auth middleware and every caller of `Refresh`, not just the new rotation path.
-**Thoughts:** [[003-decision-single-flight]], [[001-fact-token-ttl]]
+# TODO-1: Rotate refresh tokens on /auth/refresh
 
 ## Outcome
 

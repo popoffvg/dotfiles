@@ -22,7 +22,7 @@ prove the Outcome holds, the verdict is **FAIL**, not PASS.
 ## Source of truth
 
 Read `<notes-dir>/todos/TODO-N.md` — **Outcome**, **Changes**, **Decisions**, and any cited
-thoughts. Read the real diff (`git show HEAD`, plus fixups). The verdict contract and output
+thoughts (a thought is one recorded decision/fact with its why — the `thought` skill). Read the real diff (`git show HEAD`, plus fixups). The verdict contract and output
 shape are below — this agent is self-contained.
 
 ## What to hunt
