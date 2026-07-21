@@ -2,7 +2,7 @@
 
 One entry point for spec writing, implementation, and bug fixing. Invoked as `/code <subcommand>` (default `new`).
 
-Use /skill-write for changing.
+Use the `skill-build` skill for changing.
 
 ## Structure
 

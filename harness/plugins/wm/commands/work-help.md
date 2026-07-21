@@ -39,7 +39,7 @@ invoke the agent you need; each agent follows its skill.
 
 - **workflow**: shared pipeline, agents contract, notes structure, hard rules — read first by all agents
 - **dive**: one router — `/dive <docs|workflow|research|flow-map>` (write the markdown research write-ups, the typed TS pseudocode + path bindings, document the codebase as-is, render flows.json as HTML). Plus `handoff` (standalone — compact a conversation into a handoff doc)
-- **code**: one router — `/code <new|verify|revise|prototype|code-map|impl|tree|squash|fix|help>` (write spec, grill to empty Open Questions, auto-write TODO bodies, audit, sync, prototype, diagram, implement one TODO, implement-in-`wt`-worktree + merge, distill worktree fixup lessons, fix bugs)
+- **code**: one router — `/code <new|verify|revise|quiz|prototype|code-map|impl|tree|squash|fix|help>` (write spec, grill to empty Open Questions, auto-write TODO bodies, audit, sync, prototype, diagram, implement one TODO, implement-in-`wt`-worktree + merge, distill worktree fixup lessons, fix bugs)
 - **impl-verify**: adversarial post-impl verification (the one surviving `impl-` skill). Commit conventions moved to `/code commit`; the experimental worktree-per-TODO flow now lives in `/code tree` + `/code tree merge` (`wt`-backed) with `/code squash` for fixup learning.
 - **test**: one router — `/test-suite <create|write|verify|case-design|bdd|tdd|harness|review>` (design a pairwise-tiered strategy, enumerate a scenario/coverage matrix, audit an existing set, derive cases by black-box technique, shape BDD scenarios, drive spec-before-code TDD, test a plugin harness, run the verify-phase review)
 - **review-**: `review-pr-comments`, `review-fix-comments`

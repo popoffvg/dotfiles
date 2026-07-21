@@ -35,6 +35,7 @@ Reference-type slugs in the last column: **`sub`** subcommand contract · **`ref
 | `todo` | Author `todos/TODO-N.md` bodies from a reviewed `spec.md` + `thoughts/`. Runs only past the gate. | `sub:todo.md` · `tpl:todo.md` · `skill:flow-scetch` |
 | `verify` | Audit the spec before impl in a separate read-only `spec-verifier` agent — contradictions, missing parts, edge cases, plus the completeness / test-honesty floor. Returns READY / NEEDS REVISION. | `sub:verify.md` |
 | `revise` | Settle drift in `spec.md` / `todos/` and the `thoughts/` graph; resets the spec `status` to `review`. Notes-only. | `sub:revise.md` |
+| `quiz` | Test **the human's** understanding: build a multiple-choice quiz — over the spec (`status` `init`/`review`) or the code changes (`status` `impl`) — grade the answers, report a score. Read-only; edits no artifact. | `sub:quiz.md` |
 | `prototype` | Settle an OPEN decision with the smallest visible code diff — read the diff, not a report. | `sub:prototype.md` |
 | `code-map` | Single-panel planned-architecture HTML map (package or component) as a visual aid — via `/dive explain`. | `sub:code-map.md` |
 | `diff` | Show change as one self-contained HTML page (opened): before/after arch panels + signatures-as-diffs. `diff arch` *(default)*: current vs proposed. `diff impl`: what the branch shipped. | `sub:diff.md` · `sub:code-map.md` |

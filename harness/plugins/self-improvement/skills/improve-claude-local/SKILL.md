@@ -16,7 +16,7 @@ Would this lesson help on a *different* codebase? Code style, architecture princ
 
 → **Yes → a global skill.** Don't paste the instruction into CLAUDE.md — that file is always-on for every project and stays terse. Instead:
 
-1. **Write a skill** at `~/.claude/skills/<slug>/SKILL.md` (write to `~/.claude` directly — never the dotfiles `harness/` source). The lesson body is the skill content; the **if/when trigger is the skill's `description`** (skills auto-load when their description matches the task). Phrase it generally; strip this project's names/paths.
+1. **Write a skill** at `~/.claude/skills/<slug>/SKILL.md` (write to `~/.claude` directly — never the dotfiles `harness/` source). The lesson body is the skill content; the **if/when trigger is the skill's `description`** (skills auto-load when their description matches the task). Phrase it generally; strip this project's names/paths. Stamp the origin in frontmatter (see "Origin marker" below) so [[dream]] can find autocreated skills.
 3. If a skill already covers this trigger, extend it instead of creating a new one.
 4. Then drop the lesson from CLAUDE.local.md.
 
@@ -34,14 +34,13 @@ A **checklist / sequence of steps** to execute whenever a situation recurs — a
 
 → **Yes → a project skill** at `<repo-root>/.claude/skills/<slug>/SKILL.md`. Mirror the global-skill move from Gate 1, at project scope:
 
-1. **Write the skill.** The procedure's steps are the body. The **situation that triggers it is the `description`** (skills auto-load when the description matches the task). Keep this project's real paths/commands — it's project-scoped, so concreteness helps.
+1. **Write the skill.** The procedure's steps are the body. The **situation that triggers it is the `description`** (skills auto-load when the description matches the task). Keep this project's real paths/commands — it's project-scoped, so concreteness helps. Stamp the origin in frontmatter (see "Origin marker" below).
 2. **Scope activation** with `paths:` when the trigger is "touched these files" — e.g. the LLM-config files for a post-model-change check. This makes the skill auto-fire only on relevant edits.
 3. **Invocation frontmatter** (verified vs code.claude.com/docs/en/skills.md):
    - Default (omit both) → Claude auto-invokes on match **and** user can run `/slug`. Use for verification/checks that should fire unprompted next time.
    - `disable-model-invocation: true` → user-only via `/slug`, never auto-fires. Use for deliberate or destructive actions (deploy, migrations) the user must trigger.
    - `user-invocable: false` → hidden from the `/` menu, model-only.
-4. If a skill already covers this trigger, extend it instead of creating a new one.
-5. Keep it private like `CLAUDE.local.md`: add `.claude/skills/<slug>` to `.gitignore.local` via the `local-gitignore` skill. Never commit captured corrections. Then drop the lesson from CLAUDE.local.md.
+4. Keep it private like `CLAUDE.local.md`: add `.claude/skills/<slug>` to `.gitignore.local` via the `local-gitignore` skill. Never commit captured corrections. Then drop the lesson from CLAUDE.local.md.
 
 Example: after changing the LLM model in the API settings and shipping a mistake, the fix is a *procedure* — "when editing the LLM model/API config, verify token limits, pricing, and the model id against the claude-api skill before shipping". That's a skill (`paths:` scoped to the config files), not a bare rule.
 
@@ -84,6 +83,17 @@ Project-scoped rules go in the **project's** `CLAUDE.local.md` at the repo root 
 
 If the cwd is **not** a git repo, route the rule to the global `~/CLAUDE.local.md` instead.
 
+## Origin marker
+
+Every skill this skill creates (Gate 1 global, Gate 2a project) gets an origin stamp in its frontmatter:
+
+```yaml
+metadata:
+  origin: self-improvement   # autocreated from a captured lesson
+```
+
+The marker separates autocreated skills (fine-grained, single-lesson, prime consolidation targets) from hand-authored ones. [[dream]] uses it to frame what to prune/unite/generalize and to leave hand-authored skills alone unless told otherwise. Never stamp a hand-authored skill.
+
 # Step 2 — Keep CLAUDE.local.md sharp
 
 Applies to everything that landed in CLAUDE.local.md (the score-4/5 patterns).
@@ -104,13 +114,11 @@ Write CLAUDE.md in that folder, not README.md.
 </task-relevant>
 ```
 
-**3. Generalizable rule, not a fact.** Each surviving block states **what to do differently next time**. (If it's a raw fact, it should have gone to engram in step 1.)
+**3. Merge overlapping rules.** If one block refines another for the same trigger, merge into the sharper one. No two blocks the model weighs for the same task.
 
-**4. Merge overlapping rules.** If one block refines another for the same trigger, merge into the sharper one. No two blocks the model weighs for the same task.
+**4. Drop stale rules.** A rule pinned to a file/flag/workflow that no longer exists is dead weight — verify the anchor exists; delete if gone.
 
-**5. Drop stale rules.** A rule pinned to a file/flag/workflow that no longer exists is dead weight — verify the anchor exists; delete if gone.
-
-**6. Keep the `when` in the user's terms.** Describe how a *task* looks, not how the codebase looks: "when committing across multiple repos", not "when in a monorepo".
+**5. Keep the `when` in the user's terms.** Describe how a *task* looks, not how the codebase looks: "when committing across multiple repos", not "when in a monorepo".
 
 ## Guards
 

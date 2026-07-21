@@ -1,7 +1,4 @@
----
-name: build-loop
-description: Author a loop spec — separate the loop (control) from the flow (work). Use when the user wants to "build a loop", "write a loop", "design a loop", "make X run in a loop", or turn a repeated procedure into a self-pacing loop.
----
+# Skill shape: loop (repeat a flow)
 
 Author a loop spec. Keep two layers apart: the **flow** is the work done once; the **loop** is the control that repeats it. The loop spec describes only the control — it names the flow, does not restate it.
 
@@ -41,7 +38,7 @@ State which criterion is primary and which are backstops.
 ## Operating mode
 
 - Resolve flow → state → stop, in order. Do not draft the artifact until all three hold.
-- Push every control detail out of the flow and into the loop; push every work detail out of the loop and into the flow. Mixed layers = the defect this skill exists to prevent.
+- Push every control detail out of the flow and into the loop; push every work detail out of the loop and into the flow. Mixed layers = the defect this shape exists to prevent.
 - For any state field or stop criterion the user leaves open, propose a default and mark it as an assumption.
 
 ## Output contract

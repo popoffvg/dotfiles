@@ -34,25 +34,6 @@ Write code Domain-Driven. Apply to any new module or refactor.
 - Entities emit events; handlers/side-effects subscribe. No cross-aggregate call inside a command handler — react via events.
 - One command → one aggregate → zero or more events. Keep handlers thin; logic lives on the entity.
 
-## Layering
+# DO NOT DO
 
-Organize by domain / vertical slice, never by technical kind. Forbidden: top-level `controllers/`, `services/`, `models/`, `repositories/` folders that split one feature across the tree.
-
-- One folder per bounded context / feature. It owns everything for that slice: entities, value objects, events, command handlers, repo interface + impl, DTOs, mappers.
-
-```
-orders/                  ← vertical slice, self-contained
-  order.entity           entity + invariants
-  money.vo               value objects
-  order-cancelled.event  events
-  cancel-order.command   command + handler
-  order.repository       interface + impl
-  order.dto              boundary DTO + mapper
-shipping/                ← another slice
-billing/
-shared/                  ← only cross-slice value objects / kernel
-```
-
-- Inside a slice, dependencies still point inward: entities/value objects/events depend on nothing; handlers orchestrate; repo impl and DTO mappers sit at the edge. Domain code imports no framework, no ORM, no transport.
-- Slices talk via commands and events, not by reaching into another slice's entities or repo. No cross-slice imports except `shared/`.
-- A change to one feature touches one folder.
+- **NEVER** add links to the task or docs in the code. Code comments should reveal the unclear invariants or assumptions about external systems that code itself doesn't contain.
