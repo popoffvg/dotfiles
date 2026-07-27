@@ -70,6 +70,7 @@
   },
   "git": {
     "inline_blame": {
+      "location": "status_bar",
       "show_commit_summary": true,
     },
     "hunk_style": "unstaged_hollow",

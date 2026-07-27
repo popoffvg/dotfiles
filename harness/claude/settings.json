@@ -303,15 +303,16 @@
     "enabled": true,
     "filesystem": {
       "allowWrite": [
-        "~/.kube",
         "//tmp/build",
+        "~/.claude/plugins",
+        "~/.claude/scripts",
+        "~/.config/gh",
+        "~/.kube",
         "~/.npm",
         "~/.pnpm",
-        "~/go",
-        "~/.config/gh",
-        "~/ctx",
         "~/Library/Caches/gopls",
-        "~/.claude/plugins"
+        "~/ctx",
+        "~/go"
       ]
     },
     "network": {

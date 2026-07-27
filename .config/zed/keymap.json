@@ -228,4 +228,33 @@
       "ctrl-w ctrl-shift-w": "workspace::ActivatePreviousPane",
     },
   },
+  {
+    "bindings": {
+      "alt-enter": "git::OpenFileAtHead"
+    }
+  },
+  {
+    "context": "Editor",
+    "bindings": {
+      "alt-h": "editor::SelectPreviousSyntaxNode"
+    }
+  },
+  {
+    "context": "Editor",
+    "unbind": {
+      "ctrl-cmd-up": "editor::SelectPreviousSyntaxNode"
+    }
+  },
+  {
+    "context": "Editor",
+    "bindings": {
+      "alt-l": "editor::SelectNextSyntaxNode"
+    }
+  },
+  {
+    "context": "Editor",
+    "unbind": {
+      "ctrl-cmd-down": "editor::SelectNextSyntaxNode"
+    }
+  }
 ]

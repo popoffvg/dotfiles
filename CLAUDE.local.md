@@ -98,20 +98,8 @@ Glob the full set first, then apply to every member — don't fix only the ones 
 Probe the live endpoint to localize the fault before reading source or editing. For gRPC: `grpcurl -plaintext -import-path <root> -proto <file> -d '{}' localhost:<port> <Service/Method>` (build an include-root with symlinks if reflection is auth-gated). The server response settles client-vs-server immediately.
 </task-relevant>
 
-<task-relevant when="desktop SSO/runtime behaves inconsistently with the committed source">
-Suspect stale BUILD ARTIFACTS git doesn't track, not the source: the Go binary `cmd/platforma/platforma` and the pl-client `package.tgz` (desktop `pnpm.overrides` `file:…`). Reverting source does NOT rebuild them. Rebuild before trusting runtime (`go build -o cmd/platforma/platforma ./cmd/platforma`; pl-client `pnpm run build && pnpm run do-pack`; desktop `pnpm install --no-frozen-lockfile`).
-</task-relevant>
-
 <task-relevant when="edited a Go CLI tool under dotfiles scripts/ and the user says changes don't show / asks to rebuild">
 A local `go build` does NOT deploy. The tool runs from PATH (e.g. `~/.local/share/mise/installs/go/*/bin/<name>`), and its zshrc alias is install-if-missing (`command -v <name> >/dev/null || go install .`), so it never reinstalls once present. Run `go install .` from the tool dir to replace the PATH binary.
-</task-relevant>
-
-<task-relevant when="refreshing platforma-desktop-app deps after rebuilding a platforma tgz (pl-client etc.)">
-To pick up rebuilt `file:../platforma/lib/**/package.tgz` overrides, run `pnpm install --lockfile-only --no-frozen-lockfile` (no package name arg — a bare `pnpm install <pkg>` triggers `ERR_PNPM_ADDING_TO_ROOT`). It refreshes the content-hash lock entries WITHOUT running the `postinstall` electron step. A plain `pnpm install` runs postinstall, which crashes with "Electron failed to install correctly" when `node_modules/.pnpm/electron@*/node_modules/electron/path.txt` is missing (dist present, path.txt gone). Fix that separately: `node <that electron dir>/install.js` regenerates path.txt. tgz keyed by content hash, not version — no `package.json` version string changes.
-</task-relevant>
-
-<task-relevant when="running go build / pnpm build/pack/install under /Users/vitaliipopov/git/mil/…">
-That path is NOT in the sandbox write allowlist — writes fail with "Operation not permitted (os error 1)". Run with `dangerouslyDisableSandbox: true`.
 </task-relevant>
 
 <task-relevant when="authoring a command/subcommand that creates a git fixup commit (git commit --fixup)">

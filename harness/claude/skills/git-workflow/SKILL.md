@@ -61,6 +61,7 @@ Examples: `feat/k8s-health-check`, `fix/auth-token-expiry`, `chore/update-deps`
 - **Never** `git add .` or `git add -A` — always add specific files
 - **Never** skip hooks (`--no-verify`)
 - **Never** amend already-pushed commits — create a new commit instead
+- **Before cutting a NEW branch for a commit+PR, check for an existing open PR/branch for this work** (`gh pr list`, the release PR) — if the current work already has one, commit to that branch, don't open a parallel branch+PR. Confirm the target when ambiguous.
 - No "Co-Authored-By" AI lines in commits
 - No "Generated with Claude Code" footers anywhere
 - Ignore local/personal/tool-generated artifacts (scrape caches, scratch dirs, editor cruft) via `.git/info/exclude` — untracked and per-repo. Reserve the tracked `.gitignore` for ignores the whole team needs. A tool's docs may say "add to `.gitignore`"; prefer the local exclude unless the artifact is shared.
