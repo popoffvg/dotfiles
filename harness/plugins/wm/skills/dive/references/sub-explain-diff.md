@@ -1,6 +1,8 @@
 # dive · explain-diff route
 
-Draw a **two-panel architecture diff comparing two solutions** side by side — that a reviewer reads in **30 seconds**. The common case is `current` beside `planned`; the general case is any two candidate designs (`Solution A` beside `Solution B`). The diagram is a *transfer to the reviewer*, not a diary for the author. Use to weigh a refactor/migration or pick between two designs: what changed, what's removed, what's new, what held, and the one load-bearing why.
+Draw a **two-panel architecture diff comparing two solutions** side by side — that a reader with **no prior knowledge of this project** reads in **30 seconds**. The common case is `current` beside `planned`; the general case is any two candidate designs (`Solution A` beside `Solution B`). The diagram is a *self-contained transfer*, not a diary for the author: a newcomer reads the delta without opening the code or already knowing the project's vocabulary. Use to weigh a refactor/migration or pick between two designs: what changed, what's removed, what's new, what held, and the one load-bearing why.
+
+**Explain for a stranger.** The reader knows general engineering but nothing about THIS project. So define every project term on the page at or before first use — acronyms, internal subsystem names, coined verbs, mode names — via a **glossary block** (one line per term) plus a once-in-prose expansion of each acronym; and state the **mechanism** of the delta in plain words (why the current design has the problem, how the candidate removes it), not only the box-and-arrow topology. A label the reader can't decode is noise; topology without mechanism lets a newcomer trace every arrow and still not know what changed or why.
 
 Full spec + worked mockups for every rule: [arch-diff-diagram-guide.html](arch-diff-diagram-guide.html). A complete worked instance: [example-async-resource-counter.html](example-async-resource-counter.html) — start by copying its skeleton.
 
@@ -41,4 +43,4 @@ Put the contract change as a real red/green line diff beside the panel node it e
 
 ## Done when
 
-A reviewer can, in one pass and without asking the author: answer all five slots, name the removed hot spot and its failure mode, read every colour from the on-page legend, tell the edge types apart, see when discrete state exists vs is undefined, distinguish per-resource from global freeze, and trace each headline difference to a decision id.
+A reader who has **never seen this codebase or its vocabulary** can, in one pass and without asking the author: expand every acronym and internal name from the page itself (glossary + first-use expansion), state in plain words why the current design has the problem and how the candidate removes it, answer all five slots, name the removed hot spot and its failure mode, read every colour from the on-page legend, tell the edge types apart, see when discrete state exists vs is undefined, distinguish per-resource from global freeze, and trace each headline difference to a decision id.

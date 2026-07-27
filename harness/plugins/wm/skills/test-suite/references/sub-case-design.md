@@ -291,6 +291,39 @@ Invariants survive code changes without needing per-test updates. They catch cro
 - **Integration tests**: own the full combination matrix — real components, controlled setup
 - **E2e smoke tests**: cover the 2-3 highest-risk mid-flight cases (pod eviction, concurrent deletion) where fidelity gaps are most likely
 
+## Mutator / Write-Site Coverage
+
+For a field that carries an invariant read by a guard or assertion elsewhere (`if x.IsFinal() && !x.IsCIDRecovered() { panic }`, `assert balance >= 0`, `require status in {...}`), the untested gap is rarely a *state* — it is the **one write-site that establishes the state dishonestly**. State-transition and state-combination testing enumerate states; they treat each mutator as a leaf and miss the setter that lies.
+
+### When to Apply
+
+Trigger after state-transition / state-combination design when any of these hold:
+
+1. A guard/assertion reads two-or-more fields of the same entity together (a *consistency invariant*, not a range check).
+2. The invariant is enforced at the **call sites**, not inside the setter/carrier ("caller-enforced" — a smell the research/dive phase often names explicitly).
+3. A prior fix touched *some* setters of this field but you cannot prove it touched *all* of them.
+
+### Step 1 — Enumerate every write-site (search, don't recall)
+
+Grep every mutator of each field the guard reads. For a Go setter:
+
+```text
+guard reads:  IsFinal()  &&  !IsCIDRecovered()
+              └─ writes: SetFinal / Reset            └─ writes: SetCanonicalID(_, isRecovered)
+
+grep 'SetCanonicalID(' → every call site, incl. the flag argument passed
+```
+
+List each site with the literal flag/value it passes. A hardcoded literal where sibling sites thread a variable (`SetCanonicalID(id, false)` next to `SetCanonicalID(id, isRecovered)`) is the prime suspect — it is the site that cannot represent the honest state.
+
+### Step 2 — One case per write-site
+
+Require a case that reaches each write-site and asserts the invariant is established **honestly** — not just that the happy path through the common setter works. The oracle is the guard itself: drive the field through the suspect setter, then force the condition that makes the guard fire, and assert it does *not* panic/reject when the state is legitimately reachable.
+
+### Step 3 — Prune by reachability, not by assumption
+
+Do not prune a write-site because "that path can't produce a conflicting value." That assumption is exactly what hid the bug. Prune only when the path is *physically* unreachable (dead code, compile-time-excluded), and state the reachability proof.
+
 ## Technique Selection Guide
 
 | Scenario | Recommended Technique |
@@ -303,6 +336,7 @@ Invariants survive code changes without needing per-test updates. They catch cro
 | Critical calculations | All techniques combined |
 | External component interaction | State Combination Testing |
 | Stateful operations with side effects | State Combination Testing |
+| Consistency invariant read by a guard/assert; caller-enforced; incomplete prior fix | Mutator / Write-Site Coverage |
 
 ## Integration Points
 

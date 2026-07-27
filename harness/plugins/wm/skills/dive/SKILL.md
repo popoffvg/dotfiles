@@ -1,16 +1,12 @@
 ---
 name: dive
 description: >
-  Research phase before implementation — subcommand router. Given a list of entry points, spawn one
-  subagent per entry point in parallel and write refactor-oriented research artifacts into the
-  wm notes directory (`<notes-dir>/research/`). Use when the user says "dive", "explore",
-  "research these entry points", or provides a list of files/symbols to investigate before a task.
-  Invoke as `/dive <docs|workflow|unknowns|explain|explain-diff>` (default `docs`). `docs` writes the markdown write-ups +
-  question lists; `workflow` writes the typed TS pseudocode + path bindings; `unknowns` runs a guided
-  quadrant walk with the user to map task uncertainty before code; `explain` draws a single-panel
-  planned-architecture HTML for quick review; `explain-diff` draws a two-panel diff comparing two
-  solutions (current vs planned, or option A vs B). Render flows with `explore-flow-map`.
-argument-hint: [docs (default), workflow — full list /dive-help] + entry points (files, symbols, urls)
+  Research phase before implementation — subcommand router. Given entry points (files, symbols, urls),
+  spawn one subagent per entry point in parallel and write refactor-oriented research artifacts into
+  `<notes-dir>/research/`. Use when the user says "dive", "explore", "research these entry points", or
+  provides a list of files/symbols to investigate before a task. Invoke as
+  `/dive <docs|workflow|unknowns|explain|explain-diff>` (default `docs`).
+argument-hint: "[docs (default), workflow — full list /dive-help] + entry points (files, symbols, urls)"
 ---
 
 # Dive — subcommand router
@@ -33,11 +29,7 @@ argument-hint: [docs (default), workflow — full list /dive-help] + entry point
 docs (prose + questions, 6-step chain) → workflow (TS pseudocode + bindings) → /flow-map (HTML)
 ```
 
-- **docs** is the default and the foundation: it produces the human-readable `.md` write-ups and the explorer question lists, and runs the autonomous convergence loop until research stops surfacing gaps.
-- **workflow** is the navigation layer over those `.md` artifacts: clean typed TS pseudocode where every component and notable branch reveals to its real (possibly non-TS, cross-repo) source. **Run `docs` first** — `workflow` mirrors the cited locations from each `<ep-slug>.md`.
-
-Run `docs` alone for a read-only refactor brief. Add `workflow` when the team wants to navigate the
-flows in the editor or render them with `/flow-map`.
+Run `docs` alone for a read-only refactor brief. Add `workflow` — which mirrors the cited locations from each `<ep-slug>.md`, so **run `docs` first** — when the team wants to navigate the flows in the editor or render them with `/flow-map`.
 
 ## Inputs
 
@@ -48,21 +40,16 @@ A list of entry points. Each may be:
 
 If the user provides a free-form description, use cocoindex to find relevant entry points.
 
-The user may also pass a **destination folder** inline with a `dst:<path>` token (e.g.
-`dst:docs/research/auth`). It sets `$RESEARCH_DIR` directly, overriding the resolved
-`<notes-dir>/research` (see "Output location"). A relative `dst:` resolves against the current
-working directory.
+The user may pass a **destination folder** inline with a `dst:<path>` token (see "Output location").
 
 ## Output location
 
-`<notes-dir>` is the wm notes directory for the active task (commonly `.notes/`). It
-persists with the rest of the planning context (`spec.md`, `worklog.md`, `todos/`) and ships with the
-work, instead of vanishing from `$TMPDIR`. Resolve it from the phase context:
+`<notes-dir>` is the wm notes directory for the active task, persisting with the rest of the planning context (`spec.md`, `worklog.md`, `todos/`). Resolve it:
 
 - If a wm flow is active, use its notes dir (typically `.notes/` at repo root).
-- If no flow is active, default to `./.notes/` in the current working directory and tell the user.
-- The user may override the notes dir with `--notes-dir <path>`.
-- A `dst:<path>` token in the input sets `$RESEARCH_DIR` directly and **wins over** both the resolved notes dir and `--notes-dir`. Use it to drop research outside the wm flow (e.g. into a docs folder).
+- If no flow is active, default to `./.notes/` and tell the user.
+- `--notes-dir <path>` overrides the resolved dir.
+- A `dst:<path>` token (e.g. `dst:docs/research/auth`, relative to cwd) sets `$RESEARCH_DIR` directly and **wins over** both — use it to drop research outside the wm flow.
 
 Create the research subdirectory:
 
@@ -72,9 +59,6 @@ NOTES_DIR="${NOTES_DIR:-.notes}"
 RESEARCH_DIR="${DST:-$NOTES_DIR/research}"
 mkdir -p "$RESEARCH_DIR"
 ```
-
-The previous `$TMPDIR/claude-explore/` location is deprecated.
-
 
 ## Integration with wm
 

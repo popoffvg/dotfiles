@@ -75,13 +75,22 @@
   .callout .did{font-family:var(--mono);font-size:.74rem;font-weight:700;color:var(--accent);
     display:inline-block;margin-right:.4rem;padding:.05rem .35rem;border:1px solid var(--accent);border-radius:4px}
   small.note{color:var(--ink-soft)}
+  .gloss h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);
+    font-weight:700;margin:1.1rem 0 .3rem}
+  .gterms{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:0 1.6rem;margin:0}
+  .gterms>div{padding:.3rem 0;border-bottom:1px solid var(--rule);font-size:.88rem;line-height:1.42;max-width:64ch}
+  .gterms>div>b{font-family:var(--mono);font-size:.82rem;color:var(--accent);font-weight:700;margin-right:.15rem}
+  .gterms>div>b .m{color:var(--ink-soft);font-weight:400}
 </style>
 
 <header class="masthead">
   <div class="kicker">Architecture diff · current → planned</div>
   <h1>Async Resource Counter</h1>
   <p class="sub">Reference counting moves from an <b>in-place counter</b> serialized on one hot key to an
-  <b>append-only log</b> reduced by GC in discrete slots. What changed, what's gone, what's new, what held — and why.</p>
+  <b>append-only log</b> reduced by GC in discrete slots. <em>Why:</em> every increment/decrement today does a
+  read-modify-write on the same key, so concurrent writers serialize and collide (<code>ErrConflict</code>) — the
+  new design lets writers append independently and derives the count later, removing the hot spot. What changed,
+  what's gone, what's new, what held — and why. <b>New to this design? Read the glossary below first.</b></p>
 </header>
 
 <main>
@@ -99,6 +108,24 @@
     <span>edges:&nbsp; →&nbsp;control&nbsp;&nbsp; ⇒&nbsp;data&nbsp;&nbsp; ⋯▷&nbsp;depends&nbsp;&nbsp; ⟳&nbsp;derive</span>
   </div>
 </div>
+
+<!-- GLOSSARY (read first — the diagram assumes none of it) -->
+<section class="gloss">
+<h2><span class="n">·</span>Glossary — every term on this page</h2>
+<p class="lead">Vocabulary specific to this design, defined once. Nothing in the diagram assumes prior knowledge of it.</p>
+<div class="gterms">
+  <div><b>reference count <span class="m">· refcount</span></b> A per-resource tally of how many things still point at it; when it hits zero the resource can be deleted.</div>
+  <div><b>in-place counter</b> The current design: one integer value on a single key, mutated on every increment/decrement.</div>
+  <div><b>RMW <span class="m">· read-modify-write</span></b> Read the current value, change it, write it back. Two writers doing this on one key must take turns.</div>
+  <div><b>hot key</b> A single key every writer contends on. The serialization point that this change removes.</div>
+  <div><b>ErrConflict</b> The error a writer gets when its read-modify-write races another and loses — forcing a retry.</div>
+  <div><b>append-only log</b> The new design: each change is a new immutable entry; no writer overwrites another.</div>
+  <div><b>slot</b> A discrete time window. GC reduces the log per slot; between slots the count is undefined, not zero.</div>
+  <div><b>derived view</b> The count is no longer stored — it is computed by reducing the log on read.</div>
+  <div><b>GC <span class="m">· garbage collection</span></b> The background pass that reduces the log and owns deletion once the refcount reaches zero.</div>
+  <div><b>stop-the-world</b> A freeze during which no writer may proceed. Per-resource here (one resource frozen), never global.</div>
+</div>
+</section>
 
 <!-- FIVE SLOTS SUMMARY -->
 <section>

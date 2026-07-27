@@ -8,7 +8,7 @@
       "name": "harness-dev",
       "source": "./harness/plugins/harness-dev",
       "description": "Authoring aids for building Claude Code skills — workflow, loop, and instruction shapes, and the specs behind them.",
-      "version": "0.3.0"
+      "version": "0.4.0"
     },
     {
       "name": "hi",
@@ -20,13 +20,13 @@
       "name": "self-improvement",
       "source": "./harness/plugins/self-improvement",
       "description": "Captures generalizable behavioral rules from user corrections into CLAUDE.local.md on session end (Stop hook), maintains them with the improve-claude-local skill, and consolidates the accumulated rule corpus with the dream skill.",
-      "version": "0.8.0"
+      "version": "0.9.0"
     },
     {
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.28.0"
+      "version": "2.29.0"
     }
   ]
 }

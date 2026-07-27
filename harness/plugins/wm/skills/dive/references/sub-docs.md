@@ -1,12 +1,18 @@
 # dive · docs route (default)
 
+Dive into the codebase by writing **markdown research artifacts + question lists**. Do it until stop criteria are not met.
+
+# Loop (DO UNTIL)
+
 Write the **markdown research artifacts + question lists**. One `.questions.md` and one `.md` per entry point. Prose write-up graded against the 6-step chain. No `.workflow.ts`, no bindings — that is the `workflow` route. 
 
-After one round of research, find the missing part and start another round of exploration.
+After one round find the missing part and start another round of exploration.
 
-For every round of exploration use parallel subagents to explore different entry points.
+**STOP WHEN** you don't have any open questions or branches.
 
-Stop when you don't have any blindspots left to explore.
+# Rules
+
+Use parallel subagents @codebase-analyzer to explore different entry points.
 
 ## Parallel subagents — important 
 
@@ -144,6 +150,7 @@ new gap. Loop:
    - **Follow data (3):** an identity/data carrier named in the path has no row.
    - **Failure path (5):** a branch/`throw`/early-return in the path has no matching DP-N/EC-N, or a partial-failure has no rollback note.
    - **One-sentence trace (6):** missing, or it references a step/branch absent from the body (= the body is incomplete, not the trace).
+   - **Caller-enforced invariant (exhaustive-callers rule):** whenever the artifact states an invariant is *enforced at the call sites, not in the carrier* ("caller-enforced", "any path that calls X directly breaks this", "mutable via a direct setter") — it is a **gap** unless the artifact lists **all** call sites from an actual grep, not a sample. A `§6` hotspot that names the seam but enumerates only some callers is incomplete: the unlisted caller is exactly where the next bug hides. The critic must require the full `grep '<setter>('` list and cross-check it against what the artifact cites.
 2. **Discover missed entry points.** The critic also reports **new entry points** referenced by the explored path but never explored — downstream calls, dispatched handlers, fan-out targets, error sinks. Filter against `seen` and task scope (drop out-of-scope ones; **log what was dropped** with a one-line reason).
 3. **If no fresh gaps and no new entry points:** `dry++`. Else `dry = 0`.
 4. **Stop when `dry >= 2`** (two consecutive clean rounds) or after **4 rounds total** — whichever first. Log the stop reason and any still-open gaps.

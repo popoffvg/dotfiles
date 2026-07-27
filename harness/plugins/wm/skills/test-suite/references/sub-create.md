@@ -85,7 +85,7 @@ Pairwise covers combinatorial interactions but misses some categories. **Always 
 
 - **Smoke / golden path** — the most common valid input, top of the list.
 - **Boundary values per numeric/length factor** — min-1, min, max, max+1.
-- **Known regression** — one deterministic case per previously fixed bug touching this code.
+- **Regression-shape sweep** — not just one case per previously fixed bug. Extract the *shape* the fix removed (read the fix commit message: "hardcoded X as false", "field state lied about itself", "forgot to check Y before Z"), grep that shape across the whole codebase, and add a case for **every sibling site — prioritizing the ones the fix did NOT modify.** Fixes are routinely incomplete along their own pattern; the untouched sibling is the highest-yield case in the whole set. Confirm the fix's file list (`git show --stat <sha>`) against the grep hits — every hit the commit didn't touch is a candidate defect, not a covered one.
 - **3-way interactions when known to matter** — explicit triples for things like (state × permission × flag).
 
 These are *additions*, not replacements for the pairwise matrix.
@@ -147,7 +147,7 @@ Never drop a value just to fit budget without justifying which interaction loss 
 - [ ] Every factor has 2-4 values
 - [ ] Impossible combinations listed in **Constraints**
 - [ ] Pairwise property holds: every value-pair across factors appears in ≥ 1 row of the tier where it matters
-- [ ] Smoke + boundary + regression cases appended on top of pairwise rows
+- [ ] Smoke + boundary + regression-shape-sweep cases appended on top of pairwise rows (for a fixed-bug shape: grepped for siblings, added a case per untouched site)
 - [ ] Each case is in the lowest-cost tier that can prove its oracle
 - [ ] Every case has an observable oracle (no "works"/"succeeds")
 - [ ] Tier budgets respected (unit ≤ 12, integration ≤ 6, manual ≤ 4 per TODO)

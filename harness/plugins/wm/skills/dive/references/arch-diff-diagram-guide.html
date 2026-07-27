@@ -129,15 +129,23 @@
 <!-- ============================================================= -->
 <section id="goal">
 <h2><span class="n">1</span>Goal &amp; audience</h2>
-<p class="lead">The diagram exists to be <b>reviewed</b>, not admired. Its single job: collapse the reviewer's
-reading time. Design every choice against that.</p>
+<p class="lead">The diagram exists to be <b>reviewed</b>, not admired. Its single job: collapse the reading time of
+someone who <b>does not already know this project</b>. Design every choice against that.</p>
 
 <ul class="rules">
-  <li>Serve the <b>reviewer</b>, not the author. The author already knows the change — the diagram is a
-  transfer, not a diary.</li>
+  <li>Serve the <b>reader with no prior knowledge of this project</b>, not the author. The author already knows
+  the change — the diagram is a self-contained transfer, not a diary. "Self-contained" means no external
+  <em>knowledge</em> is required, not only no external fetch.</li>
+  <li><b>Define every project term on the page, at or before first use.</b> Acronyms, internal subsystem names,
+  coined verbs, mode names — all opaque to a newcomer. Carry a <b>glossary block</b> (one line per term) and expand
+  each acronym once in prose. A label the reader can't decode is noise.</li>
+  <li><b>State the mechanism, not only the map.</b> Topology (who points at whom) does not tell a newcomer <em>how
+  the phenomenon happens</em>. Put one plain-language mechanism sentence up top — how the headline effect arises and
+  how the core flow works — that the diagram then illustrates.</li>
   <li>A reader must answer five questions from a glance: <b>what changed · what's removed · what's new ·
   what stayed · the one load-bearing "why"</b>. If any is unanswerable, the diagram failed.</li>
-  <li><b>30-second budget.</b> Headline legible standing back from the screen; detail rewards a second read (§9).</li>
+  <li><b>30-second budget.</b> Headline legible standing back from the screen; detail rewards a second read (§9).
+  The glossary + mechanism live at the top as a read-first layer; they do not compete with the 30-second headline.</li>
   <li>Show the <b>seam</b>, not the system. Diagram only what the change touches plus its immediate anchors.</li>
 </ul>
 
@@ -710,8 +718,10 @@ the second read. Reference a decision id so the diagram stays a pointer, not a s
 <section id="checklists">
 <h2><span class="n">11</span>Checklists</h2>
 
-<p class="lead" style="margin-bottom:.3rem"><b>Reviewer</b> — the diagram is done when I can, in one pass:</p>
+<p class="lead" style="margin-bottom:.3rem"><b>Reader (no prior project knowledge)</b> — the diagram is done when I can, in one pass:</p>
 <div class="checks">
+  <div class="ci"><span class="bx"></span><span>Expand every acronym and internal name from the page itself (glossary + first-use expansion).</span></div>
+  <div class="ci"><span class="bx"></span><span>State in plain words how the headline phenomenon arises and how the core flow works.</span></div>
   <div class="ci"><span class="bx"></span><span>Answer all five slots (changed/removed/new/same/why) without asking the author.</span></div>
   <div class="ci"><span class="bx"></span><span>Name the removed hot key and its failure mode.</span></div>
   <div class="ci"><span class="bx"></span><span>See that unchanged anchors sit in identical positions across panels.</span></div>
@@ -724,6 +734,8 @@ the second read. Reference a decision id so the diagram stays a pointer, not a s
 
 <p class="lead" style="margin:1.4rem 0 .3rem"><b>Author</b> — before I ship it:</p>
 <div class="checks">
+  <div class="ci"><span class="bx"></span><span>Every project term appears in the glossary; each acronym is expanded once in prose.</span></div>
+  <div class="ci"><span class="bx"></span><span>A mechanism sentence states how the phenomenon arises — not just the topology.</span></div>
   <div class="ci"><span class="bx"></span><span>Every element falls into exactly one of the five slots — else cut it.</span></div>
   <div class="ci"><span class="bx"></span><span>No color without a paired glyph/label; grayscale still reads.</span></div>
   <div class="ci"><span class="bx"></span><span>Unchanged nodes are muted and pinned in place.</span></div>

@@ -40,7 +40,6 @@ A **checklist / sequence of steps** to execute whenever a situation recurs — a
    - Default (omit both) → Claude auto-invokes on match **and** user can run `/slug`. Use for verification/checks that should fire unprompted next time.
    - `disable-model-invocation: true` → user-only via `/slug`, never auto-fires. Use for deliberate or destructive actions (deploy, migrations) the user must trigger.
    - `user-invocable: false` → hidden from the `/` menu, model-only.
-4. Keep it private like `CLAUDE.local.md`: add `.claude/skills/<slug>` to `.gitignore.local` via the `local-gitignore` skill. Never commit captured corrections. Then drop the lesson from CLAUDE.local.md.
 
 Example: after changing the LLM model in the API settings and shipping a mistake, the fix is a *procedure* — "when editing the LLM model/API config, verify token limits, pricing, and the model id against the claude-api skill before shipping". That's a skill (`paths:` scoped to the config files), not a bare rule.
 
