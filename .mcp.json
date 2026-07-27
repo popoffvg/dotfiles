@@ -4,11 +4,6 @@
       "type": "stdio",
       "command": "${HOME}/.local/bin/fff-mcp",
       "args": []
-    },
-    "commit-index": {
-      "type": "stdio",
-      "command": "${HOME}/.claude/scripts/commit-index-mcp.sh",
-      "args": []
     }
   }
 }

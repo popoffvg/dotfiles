@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(sys.argv[1] if len(sys.argv) > 1 else "/Users/popoffvg/obsidian/zcore")
 OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT.parent / "migration_plan.csv"
-SKIP_DIRS = {".trash", ".obsidian", ".git", ".firecrawl", ".cocoindex_code",
+SKIP_DIRS = {".trash", ".obsidian", ".git", ".firecrawl",
              ".stfolder", "graphify-out", "assets", "_attic", ".ledger",
              "templates", ".services"}
 

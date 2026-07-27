@@ -7,7 +7,7 @@ Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 ## Steps
 
 1. **Analyze the fixups** — list the `git commit --fixup=<sha>` commits on the branch. Each fixup records a user correction: read its diff and the commit it corrects. Ask *why* the first attempt was wrong.
-2. **Distill lessons → `CLAUDE.local.md`** — when a fixup reveals a generalizable mistake (a convention missed, a wrong assumption), capture it by invoking the **`improve-claude-local`** skill (`self-improvement` plugin), which owns the `CLAUDE.local.md` format: it wraps each lesson in a `<task-relevant when="…">` block, merges duplicates, and drops stale rules. Skip one-off typos; capture only repeatable lessons.
+2. **Distill lessons → a skill** — when a fixup reveals a generalizable mistake (a convention missed, a wrong assumption), capture it by invoking the **`capture-lesson`** skill (`self-improvement` plugin): it extends an existing skill whose trigger covers the lesson, or writes a new one. Skip one-off typos; capture only repeatable lessons.
 3. **`git` squash** — squash-merge the branch as **one** commit:
    - `git rebase --autosquash` to fold fixups into their targets, or
    - `wt merge` (squash mode) when called from `tree merge`.

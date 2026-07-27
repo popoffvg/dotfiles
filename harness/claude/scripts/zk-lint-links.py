@@ -19,7 +19,7 @@ FM = re.compile(r'^---\s*\n(.*?)\n---\s*\n?', re.S)
 WL = re.compile(r'(!?)\[\[([^\]]+)\]\]')
 FENCE = re.compile(r'^[ \t]*(```|~~~)')
 DEFAULT_LAYERS = ["00-inbox", "10-sources", "20-notes", "30-maps", "40-journal"]
-SKIP = {".git", ".jj", ".obsidian", ".trash", ".stfolder", ".cocoindex_code",
+SKIP = {".git", ".jj", ".obsidian", ".trash", ".stfolder",
         ".firecrawl", "!services", "graphify-out", ".ledger", "_attic"}
 
 

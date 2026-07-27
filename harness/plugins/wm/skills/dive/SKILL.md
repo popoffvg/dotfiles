@@ -38,7 +38,7 @@ A list of entry points. Each may be:
 - A symbol (`HandleRequest`, `userController.create`)
 - A URL or doc reference
 
-If the user provides a free-form description, use cocoindex to find relevant entry points.
+If the user provides a free-form description, use `mcp__fff__grep` / `mcp__fff__find_files` to find relevant entry points.
 
 The user may pass a **destination folder** inline with a `dst:<path>` token (see "Output location").
 

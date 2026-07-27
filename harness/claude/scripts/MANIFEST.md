@@ -8,8 +8,6 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | gen-test-fastq.sh | Generate synthetic paired-end <SAMPLE>_1/_2.sub.fastq.gz for import/sample-matcher tests |
 | atuin-to-zsh-history.sh | Convert atuin history export to zsh extended_history format for suv import |
 | pl-db-grep-kv.sh | Search RocksDB SST/WAL files for a string pattern in KV metadata |
-| ccc-init-worktree.sh | Initialize and index ccc for all git repos in a worktree directory |
-| ccc-mcp.sh | Launch `ccc mcp` (stdio MCP server); project resolved from $COCOINDEX_PROJECT env, else arg, else $PWD (validates it's an initialized ccc project) |
 | lsp-references-smoke.py | Drive tengo-lsp over stdio and issue a textDocument/references request for end-to-end testing |
 | cursor-agent-hang-capture.sh | Capture lsof+sample of a hung interactive cursor-agent (agent CLI) to find what startup is blocked on |
 | strip-work-skill-prefix.sh | Strip the "work-" prefix from wm skill-name references in given files (Perl word-boundary, idempotent; avoids work-verify-gate/work-abandon/work-next-prompt) |
@@ -21,9 +19,6 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | rename-token.sh | Literal, case-explicit token replacement across files. Args: --pair OLD:NEW [--pair ...] FILE... — distinct tokens never collide (literal, not regex); idempotent; reports residual hits. |
 | run-pl-backend-sso.sh | Run Platforma backend (pl) with SSO/OIDC auth against the Logto PoC tenant. Args: [--pl-dir DIR] [--root DIR] [--go-run] [--stub] [-- extra-pl-args]. FS primary storage (no minio); Logto values overridable via PL_SSO_* env. |
 | tengo-lsp-install-local.sh | Install locally-built tengo-lsp release over VS Code bundled binary + ~/.local/bin (+ /usr/local/bin if writable); ad-hoc codesigns on arm64. Arg: [path-to-binary]. |
-| commit-index-refresh.sh | Dump pl+platforma first-parent commits to per-commit JSON and (re)build the cocoindex commit-example index |
-| commit-index-mcp.sh | Launch the commit-example search MCP server (search_commits tool over pl+platforma commit index) |
-| commit-index-refresh-bg.sh | Fire-and-forget background launcher for commit-index refresh (used by SessionStart hook; idempotent, never blocks) |
 | rehome-spec-skills.sh | One-time wm migration: de-symlink plan-* skills from the global store into the repo as real dirs renamed spec-*, then rename plan→spec inside (frontmatter, cross-refs, spec.md, .notes, prose nouns; keeps planning/planner). Arg: [REPO_ROOT]. Overlaps regroup-work-skills.sh + rewrite-skill-refs.sh — reuse those for future renames. |
 | rename-plan-refs.sh | Safe identifier-level plan→spec rename in given files (plan-* skill names, plan.md/plan-verify.md, /work:plan-revise, claude-plan, _notes→.notes); no blanket prose rebrand. Idempotent. Args: <file>... |
 | graphify_repo_ast_docs.py | Per-repo graphify extraction: AST(code)+semantic(docs only) via claude-cli; writes <repo>/graphify-out/graph.json |
@@ -39,3 +34,4 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | zk-lint-links.py | Find/remove stale [[wikilinks]] the way Obsidian resolves (basename+id+aliases — alias-aware, unlike a filename-only check). Removal unwraps to prose ([[X\|Y]]->Y, [[X]]->X); skips code fences. Dry-run default; --apply. |
 | zcore-tags.mjs | Extract + tally tags across an Obsidian vault (frontmatter + inline). --json for downstream tooling. |
 | zcore-backfill-topic.mjs | Add curated `topic` frontmatter to Z-Core notes derived from existing tags. Dry-run by default; --apply writes. |
+| openclaw-verify-fetch.sh | Verify the deployed openclaw blogs extension fetches URLs: runs Fetcher.fetchCached over ssh with the live telepi service env, prints title/cached/chars/body-excerpt per URL. Args: <url>... |

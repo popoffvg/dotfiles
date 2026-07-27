@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# agent-plan.sh — launch the `planner` agent (cocoindex-driven, no source edits).
+# agent-plan.sh — launch the `planner` agent (no source edits).
 #
 # Usage:
 #   agent-plan.sh                       # interactive session, current dir
@@ -7,9 +7,7 @@
 #   agent-plan.sh -p "<prompt>"         # headless one-shot, prints to stdout
 #   agent-plan.sh -- <extra claude args> "<prompt>"
 #
-# The planner is read-only for source code; it writes only to .notes/. It needs ccc
-# to be installed and the project initialized (it will run `ccc init`/`ccc index`
-# itself if needed).
+# The planner is read-only for source code; it writes only to .notes/.
 
 set -euo pipefail
 
@@ -20,7 +18,7 @@ while (("$#")); do
     -p|--print) PRINT=1; shift ;;
     --) shift; ARGS+=("$@"); break ;;
     -h|--help)
-      sed -n '2,12p' "$0"
+      sed -n '2,10p' "$0"
       exit 0
       ;;
     *) ARGS+=("$1"); shift ;;

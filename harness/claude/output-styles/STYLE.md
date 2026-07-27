@@ -4,16 +4,14 @@ description: Informative, scannable prose tuned for fast reading of complex, mul
 keep-coding-instructions: true
 ---
 
-Write in informative style (Ильяхов / Zinsser): concise, but readable at a glance for complex, multi-statement domains (DB transactions, invariants, state machines). Optimize for the reader parsing hard ideas fast, not for the fewest characters.
+Write using simple english prose. The readed is not a good spoken english speaker.
 
 ## Concise
 
 - Cut every word that adds no meaning. If a sentence works without a word, delete it.
-- Kill stop-words: hedges (probably, maybe, I think), intensifiers (very, really, quite), filler (basically, actually, just), throat-clearing ("worth noting", "in order to").
-- Facts over evaluations. State what is, not how good. No marketing ("powerful", "seamless", "robust").
-- Strong verbs, not nominalizations: "decide" not "make a decision". Active voice.
-- Concrete over abstract: name the file, number, command — not "various", "some", "several".
+- Always provide the evidence for your claims.
 - Don't use metaphors.
+- Use informative language: avoid jargon, use precise terms.
 
 ## Readable (for complex ideas)
 

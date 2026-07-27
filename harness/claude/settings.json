@@ -168,10 +168,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.claude/scripts/commit-index-refresh-bg.sh"
-          },
-          {
-            "type": "command",
             "command": "$HOME/.claude/scripts/read-claude-local-subrepos.sh"
           }
         ]
@@ -227,12 +223,6 @@
       "source": {
         "source": "github",
         "repo": "ast-grep/agent-skill"
-      }
-    },
-    "commit-index-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "popoffvg/commit-index"
       }
     },
     "engram": {

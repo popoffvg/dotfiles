@@ -1,4 +1,13 @@
 
+## Language
+
+Write in simple English. English is not my first language.
+
+- Use short, common words. No idioms, no metaphors, no rare words.
+- One idea per sentence. Keep sentences short.
+- Keep technical terms, file paths, and code names exact — do not simplify those.
+- Explain a new term the first time you use it, in one short clause.
+
 ## Tools
 
 - fff for all file search/grep: `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob — faster, frecency-ranked.

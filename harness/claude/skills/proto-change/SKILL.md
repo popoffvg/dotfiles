@@ -89,7 +89,7 @@ For each downstream Go/TS package identified in Phase 1:
 - For new optional fields: existing call sites compile unchanged
 - For removed/renamed fields: every reference must be updated in this same change
 
-Use `mcp gopls go_symbol_references` (Go) and `ast-grep` / `ccc` (TS, polyglot) to find call sites.
+Use `mcp gopls go_symbol_references` (Go) and `ast-grep` / `mcp__fff__grep` (TS, polyglot) to find call sites.
 
 ### Step 3.5: Build & Test
 ```bash
@@ -112,7 +112,7 @@ Never split `.proto` from its generated artifacts across commits — intermediat
 - `buf` (lint + breaking + generate) or project codegen task
 - Edit tool for the `.proto`
 - `mcp gopls go_symbol_references` for Go consumers
-- `ast-grep` / `ccc` for cross-language reference tracking
+- `ast-grep` / `mcp__fff__grep` for cross-language reference tracking
 
 ## Final Report
 

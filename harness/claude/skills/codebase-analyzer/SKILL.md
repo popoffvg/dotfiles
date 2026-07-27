@@ -58,14 +58,14 @@ Execution rules:
 
 ## Tooling requirement
 
-Use **cocoindex** and **fff** MCP servers for code discovery and evidence collection.
-- Prefer cocoindex for semantic/code-graph discovery.
+Use the **fff** MCP server for code discovery and evidence collection.
 - Prefer fff for fast path/content lookup.
+- Use `ast-grep` for structural/AST-level discovery.
 
 ## Tool permission
 
 When executing this skill, allow only the tools required for analysis output:
-- `mcp` (must use only `cocoindex` and `fff` servers)
+- `mcp` (must use only the `fff` server)
 - `read`
 - `write` (only for `.notes/analysis-<target>.md`)
 

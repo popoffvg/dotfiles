@@ -1,7 +1,7 @@
 {
   "name": "self-improvement",
-  "version": "0.9.0",
-  "description": "Captures generalizable behavioral rules from user corrections into CLAUDE.local.md on session end (Stop hook), maintains them with the improve-claude-local skill, and consolidates the accumulated rule corpus with the dream skill.",
+  "version": "0.10.0",
+  "description": "Captures generalizable behavioral rules from user corrections on session end (Stop hook), writes each into a new or existing skill with the capture-lesson skill, and consolidates the accumulated skill corpus with the dream skill.",
   "author": {
     "name": "popoffvg"
   }

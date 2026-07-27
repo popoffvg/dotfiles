@@ -1,6 +1,6 @@
 ---
 name: to-user
-description: This skill should be used when a task produces a batch of items each needing a human decision, edit, or reply — and the output belongs in an editable file, not chat. Trigger on "write it to a file for me to edit", "list the PR comments with recommended answers", "prepare answers for me to review", "put the review threads in a file", "draft replies I can fill in", "give me a file to decide on each".
+description: This skill should be used when a task produces a batch of items each needing a human decision, edit, or reply — and the output belongs in an editable file, not chat. Trigger on "write it to a file for me to edit", "list the PR comments with recommended answers", "prepare answers for me to review", "put the review threads in a file", "draft replies I can fill in", "give me a file to decide on each". Also trigger before building an artifact, page, deck, or design when the build carries a batch of open choices (palette, typefaces, navigation model, theme, fidelity to a source file) — write the choices out as answerable blocks instead of resolving them inside the build.
 version: 0.1.0
 ---
 
@@ -11,6 +11,8 @@ Write a review file the operator edits in their own editor, one block per item. 
 ## When
 
 A batch of items each needs a per-item human verdict or reply: PR/review comments, open questions, decisions, translation strings, triage items. Chat is wrong for this — the operator wants to edit in place and answer at their pace.
+
+Open design decisions count as such a batch. Before building an artifact, page, deck, or visual design, the build carries choices the operator owns — palette, typefaces, navigation model, light/dark commit, how far to deviate from a source file. Write them as blocks and build from the answers. Two failure modes this replaces: burying the choices in the build (the operator discovers them as finished code), and listing them in chat (unanswerable at their pace, no place to edit). A design-plan step inside another skill is not an exemption — the plan's decisions still route here.
 
 ## Procedure
 
