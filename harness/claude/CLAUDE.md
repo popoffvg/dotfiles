@@ -1,9 +1,4 @@
 
-## Rules
-
-- add the links to the specification artifacts to the codebase.
-- suggest or create new tools instead of using existing ones. For example create search engine instead of using grep or rg.
-
 ## Tools
 
 - fff for all file search/grep: `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob — faster, frecency-ranked.

@@ -2,37 +2,11 @@
 
 Personal dotfiles repo managed with **GNU Stow** + **Ansible**. The repo root mirrors `~/` — stow symlinks everything into place.
 
-## Structure
-
-```
-.
-├── .claude-plugin/      # marketplace.json — repo-root plugin marketplace
-├── harness/plugins/     # Claude Code plugin sources (markdown only)
-├── harness/claude/      # → ~/.claude  (settings, hooks, commands, skills, scripts)
-├── harness/scripts/     # sync-marketplace.sh, bump-plugin-version.sh
-├── .claude/             # project-local Claude config + project skills (laptop-setup)
-├── .config/             # App configs: nvim, helix, zellij, git, ghostty, atuin, direnv, nix
-├── raycast/             # Raycast extensions (space-manager)
-├── hammerspoon/         # macOS automation (Lua)
-├── scripts/             # git-agent-review, setup helpers
-├── .ansible/            # Package installation playbook
-├── alacritty/           # Alacritty terminal config
-├── nushell/             # Nushell config
-├── tmux/                # Tmux config fragments
-├── vscode/              # VS Code settings
-└── .zshrc, .zshrc_*     # Modular zsh config (aliases, git, go, mise, etc.)
-```
-
 ## Key Subsystems
 
 ### Plugins (`harness/plugins/`)
 
 Each plugin directory **is** the plugin root (= `CLAUDE_PLUGIN_ROOT`) — no `claude/` wrapper, no shared `common/`, no MCP server, no build step. Plain markdown: agents, commands, hooks, skills.
-
-| Plugin | Contents | Purpose |
-|---|---|---|
-| **wm** | agents (7), commands (8), hooks, bin | Work phase management: research → spec → implement → verify → done |
-| **self-improvement** | skill, Stop hook | Captures behavioral rules from corrections into CLAUDE.local.md |
 
 ### Marketplace (`/.claude-plugin/marketplace.json`)
 
@@ -70,17 +44,6 @@ claude --plugin-dir ~/git/dotfiles/harness/plugins/wm
 ### Version bump (pre-commit)
 
 `lefthook.yml` runs `harness/scripts/bump-plugin-version.sh` on `pre-commit`: any plugin with staged changes gets its `plugin.json` **minor** version bumped (`x.Y.z → x.(Y+1).0`), the marketplace is regenerated, and both are re-staged.
-
-### Plugin structure
-
-```
-harness/plugins/<name>/        # = CLAUDE_PLUGIN_ROOT
-├── .claude-plugin/plugin.json
-├── agents/
-├── commands/
-├── hooks/
-└── skills/
-```
 
 ## Dev Conventions
 

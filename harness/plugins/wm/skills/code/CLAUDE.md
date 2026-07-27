@@ -4,17 +4,6 @@ One entry point for spec writing, implementation, and bug fixing. Invoked as `/c
 
 Use the `skill-build` skill for changing.
 
-## Structure
-
-```
-code/
-├── SKILL.md              # entrypoint — the subcommand router
-├── GLOSSARY.md           # the skill's leading words (the gate, thought, outcome, ledger, layer…)
-├── commands/             # sub-<subcommand>.md — one file per subcommand: the contract it follows
-├── references/           # shared refs (ref-write, ref-note-format, ref-subcommand-rules) + templates (tpl-*)
-└── examples/             # worked examples (ex-*) cited by commands/refs
-```
-
 **`SKILL.md` routes; it does not contain the procedures.** It holds the subcommand table (each row → its command file) plus the pipeline. To run a subcommand: pick the row, open its `commands/sub-<subcommand>.md`, follow it.
 
 ## Single source of truth

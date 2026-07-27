@@ -217,5 +217,9 @@
     "autoAllowBashIfSandboxed": false
   },
   "spinnerTipsEnabled": false,
-  "prefersReducedMotion": true
+  "prefersReducedMotion": true,
+  "disabledMcpjsonServers": [
+    "cocoindex",
+    "commit-index"
+  ]
 }

@@ -4,6 +4,7 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 
 | Filename | Description |
 |---|---|
+| doctor-transcript-scan.sh | Aggregate /doctor signals from the N most-recent Claude Code transcripts (default 50): MCP tool calls, skill dispatches, slash commands, per-hook timings + timeouts, and tool denials by kind. Arg: [N] |
 | gen-test-fastq.sh | Generate synthetic paired-end <SAMPLE>_1/_2.sub.fastq.gz for import/sample-matcher tests |
 | atuin-to-zsh-history.sh | Convert atuin history export to zsh extended_history format for suv import |
 | pl-db-grep-kv.sh | Search RocksDB SST/WAL files for a string pattern in KV metadata |

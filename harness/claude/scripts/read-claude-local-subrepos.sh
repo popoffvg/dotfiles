@@ -40,6 +40,9 @@ for g in "${gitentries[@]}"; do
   seen[$repo]=1
   local_md="$repo/CLAUDE.local.md"
   [ -f "$local_md" ] || continue
+  # Claude Code already loads the session repo's own CLAUDE.local.md (and every
+  # ancestor's). Re-emitting it doubles the file's cost in context.
+  case "$root/" in "$repo"/*) continue ;; esac
   if [ "$emitted" -eq 0 ]; then
     printf 'CLAUDE.local.md files found in git repos under %s:\n\n' "$root"
   fi
