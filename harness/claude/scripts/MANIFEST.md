@@ -3,6 +3,12 @@
 Reusable scripts managed by Claude. Always check here before writing a new script.
 
 | Filename | Description |
+| repos-survey.sh | Read-only survey of every git repo under a root: branch, dirty-file count, upstream, ahead/behind, HEAD. Args: `<root-dir> [out.tsv]`. Run before any bulk update. |
+| repos-update.sh | Fetch + **fast-forward-only** pull every clean repo under a root. Skips dirty trees, missing upstreams, and repos with local commits ahead; never merges or rebases. Forces HTTPS-over-SSH so gh's token authenticates. Args: `<root-dir> [out.tsv]` → per-repo status (UPDATED/UP_TO_DATE/SKIP_DIRTY/…) + new-commit counts. Needs sandbox off (SSH is intercepted). |
+| collect-range-commits.sh | Per-repo commit logs for the exact `old..new` ranges recorded by repos-update.sh — the input for incremental "what arrived since last audit" analysis. Args: `<root-dir> <update.tsv> <out-dir>`. |
+| conformance-diff.sh | Diff two block-conformance-scan.sh TSVs: per-column totals before→after with deltas, plus per-block changed cells and NEW BLOCK lines. Args: `<before.tsv> <after.tsv>`. |
+| block-conformance-scan.sh | Inventory structural conformance of Platforma blocks under a root dir (facade, block.meta, model API version V1/V3, turbo/pnpm/changeset config, root scripts, eslint, tests, CI, hygiene files). Emits one TSV row per block. Args: `<blocks-root> [out.tsv]`. |
+| collect-fix-commits.sh | Sweep every git repo under a root dir for bug-fix-looking commits since a date (keyword grep over subject+body). Writes `<out-dir>/<repo>.log` per repo and prints per-repo counts. Args: `<root-dir> <since-date> [out-dir]`. Used for cross-repo bug retrospectives. |
 |---|---|
 | doctor-transcript-scan.sh | Aggregate /doctor signals from the N most-recent Claude Code transcripts (default 50): MCP tool calls, skill dispatches, slash commands, per-hook timings + timeouts, and tool denials by kind. Arg: [N] |
 | gen-test-fastq.sh | Generate synthetic paired-end <SAMPLE>_1/_2.sub.fastq.gz for import/sample-matcher tests |

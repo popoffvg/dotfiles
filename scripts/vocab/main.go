@@ -23,10 +23,18 @@ func defaultPath() string {
 }
 
 func vocabPath() string {
-	if len(os.Args) > 1 {
+	if len(os.Args) > 1 && !isSubcommand(os.Args[1]) {
 		return os.Args[1]
 	}
 	return defaultPath()
+}
+
+func isSubcommand(arg string) bool {
+	switch arg {
+	case "add", "list", "prune", "translate":
+		return true
+	}
+	return false
 }
 
 // unknownPath is the backlog of words to learn (raw, untranslated).
@@ -73,6 +81,18 @@ func pair(text string) (string, string, error) {
 		return text, ru, err
 	}
 	return en, text, nil
+}
+
+// row builds one TSV entry. Real newlines and tabs are escaped: multiline input would
+// otherwise split a single entry across lines and shift the en/ru columns apart.
+func row(en, ru string) string {
+	return flatten(en) + "\t" + flatten(ru)
+}
+
+func flatten(s string) string {
+	s = strings.ReplaceAll(s, "\r\n", "\n")
+	s = strings.ReplaceAll(s, "\t", " ")
+	return strings.ReplaceAll(s, "\n", `\n`)
 }
 
 func appendUnique(path, row string) (bool, error) {
@@ -154,8 +174,8 @@ func translateCmd(word string) tea.Cmd {
 		if err != nil {
 			return resultMsg{err: err}
 		}
-		dup, err := appendUnique(vocabPath(), en+"\t"+ru)
-		return resultMsg{en: en, ru: ru, dup: dup, err: err}
+		added, err := appendUnique(vocabPath(), row(en, ru))
+		return resultMsg{en: en, ru: ru, dup: !added, err: err}
 	}
 }
 
@@ -250,6 +270,34 @@ func main() {
 				fmt.Printf("(dup) %s\n", w)
 			}
 		}
+		return
+	}
+
+	// translate: headless equivalent of the TUI flow — emits JSON for non-terminal callers
+	// (the Raycast extension), still appending the pair to the vocab file.
+	if len(os.Args) > 1 && os.Args[1] == "translate" {
+		text := strings.TrimSpace(strings.Join(os.Args[2:], " "))
+		if text == "" {
+			fmt.Fprintln(os.Stderr, "usage: vocab translate <text>...")
+			os.Exit(1)
+		}
+		en, ru, err := pair(text)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		added, err := appendUnique(defaultPath(), row(en, ru))
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		out, _ := json.Marshal(struct {
+			En   string `json:"en"`
+			Ru   string `json:"ru"`
+			Dup  bool   `json:"dup"`
+			Path string `json:"path"`
+		}{en, ru, !added, defaultPath()})
+		fmt.Println(string(out))
 		return
 	}
 

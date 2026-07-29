@@ -180,8 +180,7 @@
             "command": "bash '/Users/vitaliipopov/.claude/hooks/herdr-agent-state.sh' session",
             "timeout": 10
           }
-        ],
-        "matcher": "*"
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -216,7 +215,8 @@
     "understand-anything@understand-anything": true,
     "wm@local-plugins": true,
     "worktrunk@worktrunk": true,
-    "work-manager@work-manager-marketplace": true
+    "frontend-design@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
