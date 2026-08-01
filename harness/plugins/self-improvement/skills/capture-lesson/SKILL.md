@@ -2,13 +2,32 @@
 name: capture-lesson
 description: >
   Turn every captured lesson into a skill — extend an existing skill whose
-  trigger already covers it, or write a new one. Use after a user correction
-  that generalizes beyond the current task.
+  trigger already covers it, or write a new one. Use after a user correction,
+  or after the user states how they want a task done, when the lesson
+  generalizes beyond the current task.
 ---
 
 A lesson worth keeping lands in a skill — **extend an existing skill**, or **write a new one**. Never leave it as a loose rule in a config or instruction file. A lesson not worth keeping is **skipped**, not filed somewhere weaker.
 
-Run per lesson: **(1) pick the scope — or skip**, **(1b) pick the form**, **(2) find an existing skill for that trigger**, **(3) extend it or write a new skill**, **(4) record the case**.
+Run per lesson: **(0) name the source**, **(1) pick the scope — or skip**, **(1b) pick the form**, **(2) find an existing skill for that trigger**, **(3) extend it or write a new skill**, **(4) record the case**.
+
+# Step 0 — Name the source: correction, method, or decision
+
+Two kinds of user input become a lesson; the third is not a source at all.
+
+| Source | What it looks like | Outcome |
+|---|---|---|
+| **correction** | You acted, the user said it was wrong | run Step 1 |
+| **method** | The user stated how to do the task — before you acted, mid-task, or while reviewing output that was not wrong | run Step 1 |
+| **decision** | The user chose for **this** task only: picked one of the options you offered, or set a value, with no reason given that reaches past this task | not a source — no skill |
+
+A method has no failure attached, so nothing feels broken and the lesson gets dropped. Capture it anyway. Examples: "build the deck one section at a time and show me each one", "start from the outline, not the slides", "always name the source file next to the claim".
+
+Treat as a method any statement of **how**, **in what order**, **in what shape**, or **with which tool** the user wants work done — including a preference they give while approving your output.
+
+A `decision` becomes a `method` when the user gives the reason behind the pick, because the reason is what transfers to the next task. "Use option B" is a decision; "use option B — I want the source next to every claim" is a method.
+
+Step 0 names the source and nothing else. A `correction` or a `method` always continues to Step 1, which decides scope on its own terms — Step 0 never argues for `skip`. Only `decision` stops here.
 
 # Step 1 — Pick the scope
 
@@ -64,7 +83,7 @@ Extend, don't fork. A near-duplicate skill splits one trigger across two files, 
    - `user-invocable: false` → hidden from the `/` menu, model-only.
 5. **Origin marker** (below). Before finishing, re-read the frontmatter and confirm the stamp is there — an unstamped autocreated skill is invisible to [[dream]] and never gets pruned or merged.
 
-Examples — global: "prefer composition over inheritance for X-shaped problems"; "default to table-driven tests"; "write commit subjects as `<prefix>: <why>`". Project: "a `*-help` command prints its table verbatim — no preamble, no tool calls"; "a router SKILL.md gives every subcommand its own `references/<sub>.md`"; "when editing the LLM model config, verify token limits, pricing, and the model id against the claude-api skill before shipping".
+Examples — global: "prefer composition over inheritance for X-shaped problems"; "default to table-driven tests"; "write commit subjects as `<prefix>: <why>`"; from a method — "when building a deck, write the outline first and confirm it before any slide". Project: "a `*-help` command prints its table verbatim — no preamble, no tool calls"; "a router SKILL.md gives every subcommand its own `references/<sub>.md`"; "when editing the LLM model config, verify token limits, pricing, and the model id against the claude-api skill before shipping".
 
 # Step 4 — Record the case in `CASE.md`
 
@@ -78,10 +97,11 @@ The SKILL.md holds the rule stripped of its origin. `CASE.md` holds what the rul
 ## <YYYY-MM-DD> — <one-line case title>
 
 - **Repo:** <repo path, or `machine` / `none`>
-- **Task:** <what was being done when it went wrong>
-- **What I did:** <the wrong action, concretely — the command, the edit, the claim>
-- **Correction:** > <the user's words, verbatim — never paraphrased>
-- **Evidence:** <file:line, command output, or doc URL that settled it>
+- **Source:** <correction | method> — <Step 0>
+- **Task:** <what was being done when the user spoke>
+- **What I did:** <correction: the wrong action, concretely — the command, the edit, the claim | method: what I was about to do, or the default I would have used>
+- **User's words:** > <verbatim — never paraphrased>
+- **Evidence:** <file:line, command output, or doc URL that settled it — `none` for a method the user simply stated>
 - **Ambiguous?** <no — one right answer | yes — the other branch is right when …>
 - **Scope chosen:** <project:<repo> | global | machine-scoped global> — <which row of the Step 1 table, and why>
 - **Rule written:** <verdict | check> — <the one-line rule, or the new bullet added to an existing skill>
@@ -89,7 +109,7 @@ The SKILL.md holds the rule stripped of its origin. `CASE.md` holds what the rul
 
 ## Rules for `CASE.md`
 
-1. **Quote the correction verbatim.** A paraphrase loses the trade-off; the user's exact wording is the primary evidence.
+1. **Quote the user's words verbatim.** A paraphrase loses the trade-off; the user's exact wording is the primary evidence.
 2. **Append, don't edit.** A skill that fires wrong and gets re-corrected accumulates a second entry. The sequence is the record of how the rule evolved.
 3. **Name the repo even at global scope.** "This came from `~/git/pl`" is what makes the ≥2-repos test in Step 1 checkable next time.
 4. **On extend (Step 3a), append to the existing skill's `CASE.md`** — a second case in the same file is the evidence that promotes a project rule to global.
@@ -110,14 +130,17 @@ The marker separates autocreated skills (fine-grained, single-lesson, prime cons
 
 # Rules
 
-1. **A kept lesson ends as a skill.** No loose rules in instruction or config files — and no skill for a lesson that failed the teachability test (Step 1). Kept or skipped, never half-filed.
-2. **Extend before creating.** Check the existing triggers in scope first.
-3. **One lesson, one trigger.** A skill whose `description` covers unrelated situations fires on everything and sharpens nothing.
-4. **Trigger in the user's terms.** Describe how a *task* looks, not how the codebase looks: "when committing across multiple repos", not "when in a monorepo".
-5. **Drop stale anchors.** A lesson pinned to a file, flag, or workflow that no longer exists is not worth a skill — verify the anchor exists first.
-6. **Every rule carries its case.** `CASE.md` beside every `SKILL.md` this skill writes or extends (Step 4).
-7. **Ambiguous case → check, never a global verdict.** (Step 1b.)
+1. **A stated method is a lesson.** Do not wait for a correction. If the user said how they want a task done, run the same steps on it (Step 0).
+2. **A kept lesson ends as a skill.** No loose rules in instruction or config files — and no skill for a lesson that failed the teachability test (Step 1). Kept or skipped, never half-filed.
+3. **Extend before creating.** Check the existing triggers in scope first.
+4. **One lesson, one trigger.** A skill whose `description` covers unrelated situations fires on everything and sharpens nothing.
+5. **Trigger in the user's terms.** Describe how a *task* looks, not how the codebase looks: "when committing across multiple repos", not "when in a monorepo".
+6. **Drop stale anchors.** A lesson pinned to a file, flag, or workflow that no longer exists is not worth a skill — verify the anchor exists first.
+7. **Every rule carries its case.** `CASE.md` beside every `SKILL.md` this skill writes or extends (Step 4).
+8. **Ambiguous case → check, never a global verdict.** (Step 1b.)
 
 # Evals
 
-The plugin's `evals/` (`${CLAUDE_PLUGIN_ROOT}/evals/`) grades the Step 1 and Step 1b gates against labelled cases. Run `evals/run.sh` after changing either gate, and update `evals/cases.jsonl` in the same change when the gate's contract moves — a rubric left on the old contract grades against a superseded spec.
+The plugin's `evals/` (`${CLAUDE_PLUGIN_ROOT}/evals/`) grades the Step 0, Step 1, and Step 1b gates against labelled cases. Run `evals/run.sh` after changing any gate, and update `evals/cases.jsonl` in the same change when a gate's contract moves — a rubric left on the old contract grades against a superseded spec.
+
+Adding a gate section regresses the others: Step 0 first cost two `project` cases, which turned `skip`, because "is this a source at all?" leaked into Step 1. Run the whole suite after adding one and read the `-v` rationale of every flip.

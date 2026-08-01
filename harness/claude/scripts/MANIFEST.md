@@ -12,6 +12,8 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 |---|---|
 | doctor-transcript-scan.sh | Aggregate /doctor signals from the N most-recent Claude Code transcripts (default 50): MCP tool calls, skill dispatches, slash commands, per-hook timings + timeouts, and tool denials by kind. Arg: [N] |
 | gen-test-fastq.sh | Generate synthetic paired-end <SAMPLE>_1/_2.sub.fastq.gz for import/sample-matcher tests |
+| html-to-pdf.sh | Render a local HTML file to PDF with headless Chrome (finds Chrome/Chromium/Brave/Edge). Honors the page's `@media print` + `@page size`, so a slide deck needs a print block revealing every slide. Args: `<input.html> [output.pdf]`. Needs the sandbox off — Chrome writes crashpad/socket files under ~/Library. |
+| embed-image-data-uri.sh | Replace a literal marker in a text file with a base64 `data:` URI for an image — for self-contained HTML (published Artifacts, where a strict CSP blocks every external host). Args: `<target-file> <marker> <image-file>`. Idempotent: marker gone → no-op. |
 | atuin-to-zsh-history.sh | Convert atuin history export to zsh extended_history format for suv import |
 | pl-db-grep-kv.sh | Search RocksDB SST/WAL files for a string pattern in KV metadata |
 | lsp-references-smoke.py | Drive tengo-lsp over stdio and issue a textDocument/references request for end-to-end testing |
@@ -40,4 +42,5 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | zk-lint-links.py | Find/remove stale [[wikilinks]] the way Obsidian resolves (basename+id+aliases — alias-aware, unlike a filename-only check). Removal unwraps to prose ([[X\|Y]]->Y, [[X]]->X); skips code fences. Dry-run default; --apply. |
 | zcore-tags.mjs | Extract + tally tags across an Obsidian vault (frontmatter + inline). --json for downstream tooling. |
 | zcore-backfill-topic.mjs | Add curated `topic` frontmatter to Z-Core notes derived from existing tags. Dry-run by default; --apply writes. |
+| skill-trace-report.py | Report skill invocations from Claude Code transcripts (~/.claude/projects/**/*.jsonl): Skill tool calls + slash commands. --days N, --project SUB, --list, --jsonl. Read-only. |
 | openclaw-verify-fetch.sh | Verify the deployed openclaw blogs extension fetches URLs: runs Fetcher.fetchCached over ssh with the live telepi service env, prints title/cached/chars/body-excerpt per URL. Args: <url>... |

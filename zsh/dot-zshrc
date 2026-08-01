@@ -1,4 +1,5 @@
 
+
 # Package manager prefix (nanobrew or homebrew)
 if [[ -x /opt/nanobrew/prefix/bin/nb ]]; then
   export BREW_PREFIX=/opt/nanobrew/prefix

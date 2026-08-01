@@ -160,15 +160,6 @@
             "command": "$HOME/.claude/hooks/block-branch-change.sh"
           }
         ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/skill-trace.sh"
-          }
-        ]
       }
     ],
     "SessionStart": [
@@ -189,7 +180,8 @@
             "command": "bash '/Users/vitaliipopov/.claude/hooks/herdr-agent-state.sh' session",
             "timeout": 10
           }
-        ]
+        ],
+        "matcher": "*"
       }
     ],
     "UserPromptSubmit": [
@@ -224,8 +216,7 @@
     "understand-anything@understand-anything": true,
     "wm@local-plugins": true,
     "worktrunk@worktrunk": true,
-    "frontend-design@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true
+    "work-manager@work-manager-marketplace": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {

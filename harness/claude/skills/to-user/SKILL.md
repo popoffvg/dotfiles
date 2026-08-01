@@ -44,3 +44,23 @@ Open design decisions count as such a batch. Before building an artifact, page, 
 - Recommended field is a real draft, not a placeholder — the operator should be able to accept as-is.
 - Keep source anchors clickable (`file:line` or URL).
 - Extract by grepping the answer slots; never send the operator back a re-dump of the whole file.
+
+## Special case: a per-slide deck review
+
+A slide deck is a batch — one block per slide, each needing the operator's verdict on the words that
+will be projected. Use this shape, with the deck's own specializations:
+
+- **Source** is the slide's anchor in the rendered deck (`deck.html:295`), not the outline it came from.
+  The operator is approving what the audience sees.
+- **Original** is the **on-screen text only**. Speaker notes are not reproduced — say so in the header,
+  and offer to include them.
+- **Recommended** is the slide as built. The quoted text *is* the recommendation, so the block carries a
+  single empty `**Comment:**` slot instead of a separate Recommended field, and empty means accept.
+- Where the source outline and the rendered deck have drifted apart, mark that block **⚠ Divergence**
+  and give the operator numbered options. A divergence needs a decision, not a comment — silently
+  reconciling it discards their edit.
+- Note per block what was **cut to make the slide fit**, and where it went (usually the speaker notes).
+  Otherwise the operator cannot tell a deliberate cut from an omission.
+
+Slide *format* is a separate concern — see the `slides-in-reveal-markdown` skill for what the deck
+markdown itself must look like. This skill owns the review file; that one owns the deck.

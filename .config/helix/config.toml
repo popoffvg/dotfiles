@@ -6,7 +6,6 @@ shell = ["nu", "-c"]
 [editor.soft-wrap]
 enable = true
 
-# ── @agent review workflow ────────────────────────────────────────────────────
-# Space-r  →  open new zellij tab with fzf picker + helix side by side
-[keys.normal.space]
-r = ":sh zellij action new-tab --layout agent-review"
+[keys.normal]
+Cmd-s = ":write"
+Cmd-S = ":write!"

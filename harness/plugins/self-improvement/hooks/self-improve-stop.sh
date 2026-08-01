@@ -12,6 +12,6 @@ if [ "$active" = "true" ]; then
   exit 0
 fi
 
-reason='If the user corrected your behavior in a generalizable way this session, run the capture-lesson skill to write it into a new or existing skill. Otherwise stop silently — no status text.'
+reason='If this session contains a generalizable lesson, run the capture-lesson skill to write it into a new or existing skill. Two sources count: (a) the user corrected your behavior; (b) the user stated how they want a task done — the order, shape, or tool to use — even though nothing had gone wrong. Otherwise stop silently — no status text.'
 
 jq -nc --arg r "$reason" '{decision:"block", reason:$r, suppressOutput:true}'
