@@ -3,8 +3,8 @@ name: capture-lesson
 description: >
   Turn every captured lesson into a skill — extend an existing skill whose
   trigger already covers it, or write a new one. Use after a user correction,
-  or after the user states how they want a task done, when the lesson
-  generalizes beyond the current task.
+  after the user states how they want a task done, or after the user states
+  how work is done in this repo.
 ---
 
 A lesson worth keeping lands in a skill — **extend an existing skill**, or **write a new one**. Never leave it as a loose rule in a config or instruction file. A lesson not worth keeping is **skipped**, not filed somewhere weaker.
@@ -27,23 +27,42 @@ Treat as a method any statement of **how**, **in what order**, **in what shape**
 
 A `decision` becomes a `method` when the user gives the reason behind the pick, because the reason is what transfers to the next task. "Use option B" is a decision; "use option B — I want the source next to every claim" is a method.
 
+**A statement about how work is done in this repo is a method, with no reason needed** — the repo is the reason. This is where project lessons come from: ordinary instructions inside a working session, not corrections. "Run the generator before you edit the schema", "evals live at the plugin root", "we never edit the cached copy", "always stow, never write into `~/` directly". Nothing was wrong and no reason is attached, so these read like per-task decisions and get dropped. They are the most reusable lessons the session produces, because the same repo comes back every day.
+
 Step 0 names the source and nothing else. A `correction` or a `method` always continues to Step 1, which decides scope on its own terms — Step 0 never argues for `skip`. Only `decision` stops here.
 
 # Step 1 — Pick the scope
 
-Judge **how often the situation recurs**, not whether the wording sounds portable. "Would this help on a different codebase?" always answers yes, because the lesson was already abstracted before the question ran — that gate passes everything and the corpus turns global by default.
+Two tests, in this order: **subject first, teachability second**. Teachability alone passes everything — a repo rule is worth teaching a new colleague too — so running it first turns the whole corpus global.
 
-The teachability test: **would you teach this rule to a student or a new colleague?**
+## 1. Subject test — what is the rule *about*?
+
+Name the subject in one noun phrase, stripped of the story around it, then read it back.
+
+| The subject is | Scope |
+|---|---|
+| A named thing in one repo — a path, a file, a build/hook/CI config, a plugin or command it defines, its generator, its team convention | **project** |
+| Something whose correctness depends on this repo's or this deliverable's current state — the values already in that field, the constraints of this artifact — so the other branch is right elsewhere | **project** |
+| A general subject — a kind of tool, a kind of task, a habit that carries to any repo | run test 2 |
+
+Project location: `<repo-root>/.claude/skills/<slug>/SKILL.md`.
+
+A machine-wide anchor is not a repo. A notes vault, an MCP server, a CLI on `PATH` belongs to every session on this machine, so the lesson stays global — name the anchor in the body and say what to do when it is absent, so the skill degrades instead of hard-failing.
+
+Repo names *inside* a general rule do not make it project. Judge the subject, not the examples: "describe an external method in the vocabulary the user already keeps" is general even when the case names their harness.
+
+Calibration — these were all filed global and every one fails the subject test: `platforma-block-config` (one block's `model/src/index.ts` validator), `plugin-evals-at-plugin-root` (the `harness/plugins/` layout), `router-skill-subcommands` (`/code`, `/work`, `/dive`), `lefthook-no-root-placeholder` (`lefthook.yml`), `skill-file-layout` ("in the dotfiles repo"), `mispec-conventions` (one CLI's atom files). Each names a thing in one repo. Each is project.
+
+## 2. Teachability test — global, or nothing
+
+Would you teach this rule to a student or a new colleague who does **not** work on this repo, and does the situation come back?
 
 | Test | Scope | Location |
 |---|---|---|
-| Yes — it is worth teaching someone new; the situation recurs and the rule stays useful | global | `~/.claude/skills/<slug>/SKILL.md` |
-| No, but the situation is tied to **this** content — these files, this layout, this repo's tooling — and will come back here | project | `<repo-root>/.claude/skills/<slug>/SKILL.md` |
-| Neither — a one-off that will not recur and teaches nobody | **skip** — write no skill |
+| Yes — worth teaching someone new; the situation recurs and the rule stays useful | global | `~/.claude/skills/<slug>/SKILL.md` |
+| No — a one-off that will not recur and teaches nobody | **skip** — write no skill |
 
 Skip is a real outcome. A rule captured from a situation that never returns costs context on every future session and sharpens nothing.
-
-A lesson can be teachable *and* anchored to this machine — a vault path, an MCP server, a CLI on `PATH`. That is still global; name the anchor in the body and say what to do when it is absent, so the skill degrades instead of hard-failing.
 
 Write to `~/.claude` directly — never the dotfiles `harness/` source. Project root is `git rev-parse --show-toplevel`; if the cwd is not a git repo, the scope is global.
 
@@ -130,14 +149,15 @@ The marker separates autocreated skills (fine-grained, single-lesson, prime cons
 
 # Rules
 
-1. **A stated method is a lesson.** Do not wait for a correction. If the user said how they want a task done, run the same steps on it (Step 0).
-2. **A kept lesson ends as a skill.** No loose rules in instruction or config files — and no skill for a lesson that failed the teachability test (Step 1). Kept or skipped, never half-filed.
-3. **Extend before creating.** Check the existing triggers in scope first.
-4. **One lesson, one trigger.** A skill whose `description` covers unrelated situations fires on everything and sharpens nothing.
-5. **Trigger in the user's terms.** Describe how a *task* looks, not how the codebase looks: "when committing across multiple repos", not "when in a monorepo".
-6. **Drop stale anchors.** A lesson pinned to a file, flag, or workflow that no longer exists is not worth a skill — verify the anchor exists first.
-7. **Every rule carries its case.** `CASE.md` beside every `SKILL.md` this skill writes or extends (Step 4).
-8. **Ambiguous case → check, never a global verdict.** (Step 1b.)
+1. **A stated method is a lesson.** Do not wait for a correction. If the user said how they want a task done — or how this repo works — run the same steps on it (Step 0).
+2. **Subject before teachability.** A rule whose subject is a named thing in one repo is project, however teachable it sounds (Step 1).
+3. **A kept lesson ends as a skill.** No loose rules in instruction or config files — and no skill for a lesson that failed the teachability test (Step 1). Kept or skipped, never half-filed.
+4. **Extend before creating.** Check the existing triggers in scope first.
+5. **One lesson, one trigger.** A skill whose `description` covers unrelated situations fires on everything and sharpens nothing.
+6. **Trigger in the user's terms.** Describe how a *task* looks, not how the codebase looks: "when committing across multiple repos", not "when in a monorepo".
+7. **Drop stale anchors.** A lesson pinned to a file, flag, or workflow that no longer exists is not worth a skill — verify the anchor exists first.
+8. **Every rule carries its case.** `CASE.md` beside every `SKILL.md` this skill writes or extends (Step 4).
+9. **Ambiguous case → check, never a global verdict.** (Step 1b.)
 
 # Evals
 

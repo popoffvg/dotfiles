@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Stop hook (self-improvement plugin): prompt the agent once to capture a
-# generalizable behavioral rule from a user correction into a skill.
+# Stop hook (self-improvement plugin): prompt the agent once to run
+# capture-lesson. What counts as a lesson and where it lands live in the skill.
 # Breaks the Stop->respond->Stop loop via stop_hook_active.
 set -euo pipefail
 
@@ -12,6 +12,6 @@ if [ "$active" = "true" ]; then
   exit 0
 fi
 
-reason='If this session contains a generalizable lesson, run the capture-lesson skill to write it into a new or existing skill. Two sources count: (a) the user corrected your behavior; (b) the user stated how they want a task done — the order, shape, or tool to use — even though nothing had gone wrong. Otherwise stop silently — no status text.'
+reason='If the user corrected you, said how they want a task done, or said how work is done in this repo, run the capture-lesson skill — it decides what counts and where the lesson goes. Otherwise stop silently — no status text.'
 
 jq -nc --arg r "$reason" '{decision:"block", reason:$r, suppressOutput:true}'

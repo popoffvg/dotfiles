@@ -1,9 +1,25 @@
 ---
-allowed-tools: Bash, Read, Write, AskUserQuestion
+allowed-tools: Bash, Read, Write
 description: Analyze diff across repos, propose logical commit split, get approval, then commit (parallel per repo)
+argument-hint: "[apply]"
 context: fork
+background: true
 model: sonnet
 ---
+
+## Two phases
+
+This command runs as a **background fork**. A background fork cannot block for a human answer,
+so approval goes through an editable file instead of a prompt.
+
+| Invocation | Phase | Does |
+| --- | --- | --- |
+| `/smart-commit` | **propose** | Steps 0–3. Writes the proposal file, reports its path, stops. Touches no git state. |
+| `/smart-commit apply` | **apply** | Step 4. Reads the answered proposal file and commits. |
+
+If `$ARGUMENTS` is `apply`, skip to Step 4. Otherwise run Steps 0–3 and stop at Step 3.
+
+**Never** call `AskUserQuestion` — it never reaches the user from a background fork.
 
 ## Step 0: Discover git repos
 
@@ -60,39 +76,66 @@ Group hunks into **logical units** — hunks from different files (or different 
 
 ## Step 2: Propose the split
 
-Write the proposal using the Write tool to `$TMPDIR/smart-commit-proposal.md`:
+Write the proposal with the Write tool to `$TMPDIR/smart-commit-proposal.md`.
 
-```
-# Smart Commit Proposal
-# Edit this file to adjust the split. Rules:
-# - Move hunk lines between commits to reassign them
-# - Delete a commit section to merge its hunks into another
-# - Edit commit messages freely
-# - Lines starting with # are comments
-# - Do NOT change hunk identifiers (file:range)
-
-## <repo> (branch: <branch>)
-
-### Commit 1: <type>: <message>
-# Rationale: <why this is a separate commit>
-- file.go @@ <hunk header> — <short description>
-- file.go @@ <hunk header> — <short description>
-- other_file.go (whole file)
-
-### Commit 2: <type>: <message>
-# Rationale: <why>
-- file.go @@ <hunk header> — <short description>
-- test_file_test.go (whole file)
-```
-
-Then show the file path and tell the user:
-> Proposal written to `$TMPDIR/smart-commit-proposal.md`. Edit it if you want to adjust, then approve.
+One **block per proposed commit**. Every block carries Source, Original, Recommended, and an
+editable `**Answer:**` slot. An unedited `**Answer:** approve` means accept as-is.
 
 For each commit show **only a compact chunk list** — no diff content, no code snippets:
 - `file.go @@ <hunk header> — <5-word description>`
 - If whole file: `file.go (whole file)`
 - Commit message (imperative mood, ≤72 chars)
-- Rationale as a `#` comment
+
+Use conventional commit types (see list below).
+
+### Proposal file format
+
+````markdown
+# Smart Commit Proposal
+
+Edit the `**Answer:**` line of each block, then run `/smart-commit apply`.
+
+Answer values:
+- `approve`              — commit as recommended
+- `<new message>`        — commit these hunks, but with this message instead
+- `merge into <N>`       — fold these hunks into commit N of the same repo
+- `drop`                 — leave these hunks uncommitted in the working tree
+
+Do NOT change the hunk identifiers (`file @@ range`) — only the `**Answer:**` lines.
+
+---
+
+## <repo> (branch: <branch>)
+
+### 1. <type>: <message>
+
+- **Source:** `<repo>/internal/server/server.go:120` · `<repo>/internal/server/health.go:1`
+- **Original:**
+  - `internal/server/server.go @@ -120,6 +120,25 @@` — register health route
+  - `internal/server/health.go (whole file, new)`
+  - `internal/server/health_test.go (whole file, new)`
+- **Recommended:** `feat: add k8s health check endpoint` — isolated feature with its tests
+
+**Answer:** approve
+
+---
+
+### 2. <type>: <message>
+
+- **Source:** `<repo>/internal/server/server.go:45`
+- **Original:**
+  - `internal/server/server.go @@ -45,8 +45,10 @@` — nil check before closing listener
+- **Recommended:** `fix: prevent nil pointer in graceful shutdown` — unrelated bugfix in same file
+
+**Answer:** approve
+
+---
+````
+
+Repeat the `## <repo>` heading plus its blocks for every repo. Commit numbering restarts at 1
+per repo.
+
+If all changes in a repo belong in one commit, write one block and say so in its Recommended line.
 
 Use conventional commit types:
 - **feat**: New features or functionality
@@ -104,38 +147,51 @@ Use conventional commit types:
 - **perf**: Performance improvements
 - **style**: Code formatting, linting, style changes
 
-Example proposal file:
-```markdown
-## core/pl (branch: MILAB-5836)
-
-### Commit 1: feat: add k8s health check endpoint
-# Rationale: isolated feature with its tests
-- internal/server/server.go @@ -120,6 +120,25 @@ — register health route
-- internal/server/health.go (whole file, new)
-- internal/server/health_test.go (whole file, new)
-
-### Commit 2: fix: prevent nil pointer in graceful shutdown
-# Rationale: unrelated bugfix in same file
-- internal/server/server.go @@ -45,8 +45,10 @@ — nil check before closing listener
-
-## core/platforma (branch: main)
-
-### Commit 1: chore: update sdk dependency
-- packages/sdk/package.json (whole file)
-```
 
 If all changes belong in one commit per repo, say so.
 
-## Step 3: Ask for approval
+## Step 3: Hand the proposal to the user and stop
 
-Use `AskUserQuestion` to ask the user:
-- "Proposal written to `$TMPDIR/smart-commit-proposal.md`. Edit it to adjust the split, then choose:" with options: Approve / Edited (re-read file) / Abort
+Print the **resolved absolute path** (expand `$TMPDIR`, do not print the literal variable):
 
-If user chose **Edited**: re-read the proposal file, parse the updated split, and show a summary of changes before asking again.
+```bash
+echo "$TMPDIR/smart-commit-proposal.md"
+```
 
-Do NOT proceed to git commands until the user approves.
+Then end the phase with this message, filled in:
+
+> Proposal at `<absolute path>` — N commits across M repo(s).
+> Edit the `**Answer:**` lines, then run `/smart-commit apply`.
+
+**Stop here.** Do not run any git write command. The propose phase must leave the working tree
+and the repo history untouched.
 
 ## Step 4: Execute commits (worktree + patch + cherry-pick)
+
+Runs only on `/smart-commit apply`.
+
+### 4.0 Read the answers
+
+1. Read `$TMPDIR/smart-commit-proposal.md`. If it is missing, abort: "No proposal found — run `/smart-commit` first."
+2. Extract the verdicts — grep the answer slots, do not reparse the whole file:
+```bash
+grep -n '^\*\*Answer:\*\*' "$TMPDIR/smart-commit-proposal.md"
+```
+3. Map each answer back to its block by line order, and resolve it:
+
+| Answer | Effect |
+| --- | --- |
+| `approve` (or empty) | commit these hunks with the Recommended message |
+| any other free text | commit these hunks with that text as the message |
+| `merge into <N>` | append these hunks to commit N of the same repo; drop this commit |
+| `drop` | leave these hunks uncommitted in the working tree |
+
+4. Re-read the `- **Original:**` hunk lists to get the hunk identifiers for each surviving commit.
+5. If every block says `drop`, abort: "All commits dropped — nothing to do."
+6. Print the resolved plan (repo → commit number → message → hunk count) before touching git.
+
+Hunks marked `drop` are **excluded** from the reconstruction check in §4.4 — see the note there.
+
 
 Use a **git worktree** to build commits in isolation, then cherry-pick them back.
 
@@ -235,6 +291,15 @@ Recovery ladder for `git apply` failures (try in order, stop at first success):
 
 Two independent checks — both must pass before §4.5.
 
+**Dropped hunks change the baseline.** If any block answered `drop`, the commits must NOT reproduce
+the full working-tree diff. Build the expected baseline first:
+```bash
+# full diff minus the dropped hunks — this is what the commits must reconstruct
+python3 $TMPDIR/split_patches.py --exclude-dropped > "$TMPDIR/expected-$(basename $REPO).patch"
+```
+Then use `expected-*.patch` in place of `full-*.patch` in Check B, and skip Check A for any file
+that has a dropped hunk (its worktree copy legitimately differs from `$REPO`).
+
 **Check A — per-file content equivalence** (catches dropped or duplicated hunks):
 ```bash
 # Compare worktree final state against original working tree, byte-exact.
@@ -269,6 +334,7 @@ If ANY check fails: do NOT proceed to cherry-pick. Investigate, fix the splitter
 
 ```bash
 # Discard tracked working tree changes in original repo (we have them in commits now)
+# SAFE: the full pre-change diff is already saved at $TMPDIR/full-$(basename $REPO).patch
 git -C "$REPO" checkout -- .
 
 # Move aside untracked files that would conflict with cherry-pick.
@@ -291,10 +357,18 @@ git -C "$REPO" cherry-pick <commit1-sha> <commit2-sha> ...
 rm -rf "$BACKUP"
 ```
 
+If any block answered `drop`, restore those hunks to the working tree — §4.5 discarded them:
+```bash
+# dropped.patch = the hunks excluded in §4.4, written by the splitter script
+git -C "$REPO" apply --check "$TMPDIR/dropped-$(basename $REPO).patch" \
+  && git -C "$REPO" apply "$TMPDIR/dropped-$(basename $REPO).patch" \
+  || { echo "FAILED to restore dropped hunks — recover from $TMPDIR/full-$(basename $REPO).patch"; exit 1; }
+```
+
 Verify:
 ```bash
 git -C "$REPO" log --oneline -N  # N = number of new commits + a few
-git -C "$REPO" status --short    # should show only untracked files
+git -C "$REPO" status --short    # untracked files, plus dropped hunks if any were dropped
 ```
 
 ### 4.6 Cleanup
@@ -319,3 +393,6 @@ Repos are **independent** — run the full worktree workflow for different repos
 - If a hook fails: fix the issue, re-stage, create a NEW commit
 - **Never use heredoc to write patch files or Python scripts** — use Write tool instead
 - Try 2 times, if all fails: abort
+- **Never call `AskUserQuestion`** — this runs as a background fork; the question never reaches the user
+- The propose phase is read-only on git. Every git write lives in Step 4 (`apply`)
+- On abort, report the reason in the final message — a background fork has no other channel

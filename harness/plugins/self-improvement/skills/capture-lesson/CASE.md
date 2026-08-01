@@ -24,3 +24,15 @@ Cases this skill was abstracted from. Appended by Step 4; newest last.
 - **Ambiguous?** no — a method the user states is a lesson; the only judgment left is the existing scope gate.
 - **Scope chosen:** global — governs every capture run, in any repo.
 - **Rule written:** verdict — Step 0 splits the source into **correction** and **method**, both feeding the same steps; Rule 1 forbids waiting for a correction; the Stop hook names both sources.
+
+## 2026-08-01 — Teachability ran first, so repo lessons were filed global and never fired
+
+- **Repo:** `~/git/dotfiles`
+- **Source:** correction — Step 0
+- **Task:** Improving `capture-lesson` so it catches project lessons.
+- **What I did:** Step 1 led with the teachability test. A repo rule is also worth teaching a new colleague, so it passed and went global. Result on disk: 40 skills in `~/.claude/skills` stamped `origin: self-improvement`, versus 3 project skills in any repo. Six of the global ones name one repo's artifacts — `platforma-block-config` (`model/src/index.ts`), `plugin-evals-at-plugin-root` (`harness/plugins/`), `router-skill-subcommands` (`/code`, `/work`), `lefthook-no-root-placeholder` (`lefthook.yml`), `skill-file-layout` ("the dotfiles repo"), `mispec-conventions`.
+- **User's words:** > "let's imprve capture-lesson skill. It should catch project lessons better: the user instructions it's a main place for project lessons. General lessons is always about general subject." — and, on where the source list belongs: > "details of lesson should be put to the skill, not to the hook message"
+- **Evidence:** `grep -rho '"skill":"[^"]*"' ~/.claude/projects` over 50 session logs. Of the 40 autocreated global skills, exactly two were ever invoked: `authoring-model-invocable-skills` (6) and `delegate-matching-to-search-tool` (1). The project skill `openclaw-uses-plain-git` was invoked 4 times — project skills do fire; misfiled global ones do not.
+- **Ambiguous?** no — the subject of a rule is a fact about the rule, not a trade-off.
+- **Scope chosen:** global — governs every capture run, in any repo.
+- **Rule written:** verdict — Step 1 runs a **subject test before the teachability test**: a subject that is a named thing in one repo, or whose correctness depends on this repo's current state, is project; only a general subject reaches teachability. Step 0 adds the third source: a statement about how work is done in this repo is a method with no reason needed. The Stop hook keeps one sentence and defers the detail to the skill.
