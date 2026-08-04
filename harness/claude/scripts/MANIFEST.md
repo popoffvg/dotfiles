@@ -41,3 +41,4 @@ Reusable scripts managed by Claude. Always check here before writing a new scrip
 | zcore-tags.mjs | Extract + tally tags across an Obsidian vault (frontmatter + inline). --json for downstream tooling. |
 | zcore-backfill-topic.mjs | Add curated `topic` frontmatter to Z-Core notes derived from existing tags. Dry-run by default; --apply writes. |
 | openclaw-verify-fetch.sh | Verify the deployed openclaw blogs extension fetches URLs: runs Fetcher.fetchCached over ssh with the live telepi service env, prints title/cached/chars/body-excerpt per URL. Args: <url>... |
+| block-software-inventory.py | Inventory Platforma block software packages and cross-block reuse: every `block-software` entrypoint (artifact type, runenv environment, requirements file), which blocks depend on a package owned by another block, and run-environment usage by frequency. Args: `<blocks-root> [--json]`. |
