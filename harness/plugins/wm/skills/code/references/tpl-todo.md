@@ -3,7 +3,6 @@ status: todo          # todo → impl → verify → done  (blocked: dep unmet /
 type: component       # workflow | state machine | component | event handler | data shape change
 depends_on: []        # [TODO-M, …] — real edges only (they define the spec.md Plan waves); each must reach status: done first. [] if none
 risk: 3               # 1–5 blast radius — retest reach, not effort. 1 = local additive · 3 = one component + callers · 5 = core types many modules depend on. See todo.md § Risk / blast radius
-thoughts: []          # [NNN-decision-slug, NNN-fact-slug] — every thought this TODO implements or is constrained by; provenance for the ## Constraints rows. [] only if the spec has no thoughts yet
 ---
 
 # TODO-N: <imperative title, ≤ 60 chars>
@@ -24,17 +23,53 @@ thoughts: []          # [NNN-decision-slug, NNN-fact-slug] — every thought thi
 
 ## Constraints
 
-<One row per `thoughts` entry, restated in full — this is the implementer's only source for settled decisions. Omit the section entirely when `thoughts: []`. See todo.md § Constraints.>
+<One row per settled decision, restated in full — this is the implementer's only source for settled decisions. Omit the section entirely when no settled decision binds this TODO. See todo.md § Constraints.>
 
 | Constraint | From |
 |------------|------|
 | <what the code must do, one sentence — invariant or imperative, no trade-off prose> | [[NNN-decision-slug]] |
 
+## Components
+
+<The `package.Class` set this TODO touches, main part first. Exactly one row is `main`. ≤ 5 rows. New component → suffix ` (new)`. See todo.md § Components.>
+
+| Component | Part | Role |
+|-----------|------|------|
+| `<package.Class>` | main | <one sentence — this TODO's slice of its job> |
+| `<package.Class>` | supporting | <one sentence> |
+
 ## Changes
 
-<If a public interface changes, an Interface sub-block goes FIRST: unified git-diff for modifications, full listing for new interfaces. See todo.md § Changes.>
+<An ordered increment sequence — the diffs that build the commit, in apply order. One increment = the smallest diff worth approving alone. `n` contiguous from 1, ≤ 10 increments, each naming one Components row. Order deepest-first so the repo builds after each. Increment 1 creates the commit; each later approved increment is appended to it. See todo.md § Changes.>
 
-<TS pseudocode — follow `flow`. One ```ts block, ≤ 40 lines, all side effects + error paths visible. No real imports or file paths inside the snippet. Must deliver the Outcome above.>
+### 1. <imperative title> — `<package.Class>`
+
+- **Files:** `<repo-relative path>` <this increment's paths only — a subset of ## Files>
+- **Blast radius:** <predicted reach: the symbols, callers, consumers a mistake here forces you to retest. Name them — "low" is not a blast radius>
+- **Diff:**
+
+```diff
+-<old line>
++<new line>
+```
+
+<≤ 25 changed lines, real language, one block per file. New surface → all-`+`, written out in full: every field, method, doc comment. No `// ...`. Cannot build alone → add `builds: only with increment <n>`.>
+
+- **Behavior:** <only on the increment carrying the Outcome's logic, and only when the diff does not show the flow>
+
+```ts
+<TS pseudocode — follow `flow`. ≤ 40 lines, all side effects + error paths visible. No real imports or file paths inside the snippet. Must deliver the Outcome above.>
+```
+
+### 2. <imperative title> — `<package.Class>`
+
+- **Files:** `<repo-relative path>`
+- **Blast radius:** <named symbols/callers to retest>
+- **Diff:**
+
+```diff
++<new line>
+```
 
 ## Autotest
 

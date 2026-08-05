@@ -1,12 +1,13 @@
 
+## Approaching
+
+- use DRY (don't repeat yourself) as a first class principle
+
 ## Language
 
-Write in simple English. English is not my first language.
-
-- Use short, common words. No idioms, no metaphors, no rare words.
-- One idea per sentence. Keep sentences short.
-- Keep technical terms, file paths, and code names exact — do not simplify those.
-- Explain a new term the first time you use it, in one short clause.
+- use ASD-STE100
+- one paragraph per one idea, mark it **bold**. First sentence is a brief summary. After introducing the idea, explain the details.
+- never use short slug like M-01. Use meaningful names that bring the short description.
 
 ## Tools
 

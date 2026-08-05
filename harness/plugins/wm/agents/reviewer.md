@@ -25,6 +25,11 @@ Read `<notes-dir>/todos/TODO-N.md` — **Outcome**, **Constraints**, **Changes**
 thoughts (a thought is one recorded decision/fact with its why — the `thought` skill). Read the real diff (`git show HEAD`, plus fixups). The verdict contract and output
 shape are below — this agent is self-contained.
 
+`## Changes` is an ordered increment sequence; the commit is all of them appended together. Judge the
+**commit as a whole** against the Outcome, and use each increment's predicted **Blast radius** as your
+checklist: for every symbol or caller it names, confirm the diff actually migrated it. An unmigrated
+caller the blast radius predicted is a Failure, not a nit.
+
 ## What to hunt
 
 1. **Outcome not delivered** — the change does not produce the TODO's stated Outcome, or produces it only for the happy path.

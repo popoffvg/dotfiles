@@ -3,7 +3,6 @@ status: todo
 type: workflow
 depends_on: []
 risk: 3               # changes the existing Refresh signature; retest the auth middleware and every caller of Refresh, not just the new rotation path
-thoughts: [003-decision-single-flight, 001-fact-token-ttl]
 ---
 
 # TODO-1: Rotate refresh tokens on /auth/refresh
@@ -19,28 +18,92 @@ A `User` can issue `RotateToken` to exchange a valid refresh token for a new `To
 | A second refresh on the same token returns 409 — never two valid `TokenPair`s from one token | [[003-decision-single-flight]] |
 | A refresh token expires 15 minutes after issue (1 hour in dev); the new pair restarts the window | [[001-fact-token-ttl]] |
 
+## Components
+
+| Component | Part | Role |
+|-----------|------|------|
+| `pkg/auth.Handler` | main | Exchanges a valid refresh token for a new pair and invalidates the old one |
+| `pkg/auth.TokenMinter` | supporting | Mints an access/refresh pair for a user id |
+
 ## Changes
 
-**Interface change — `pkg/auth/handler.go`:**
+### 1. Add the request and pair types — `pkg/auth.Handler`
+
+- **Files:** `pkg/auth/handler.go`
+- **Blast radius:** none yet — additive types, nothing reads them until increment 3
+- **Diff:**
+
+```diff
++// RefreshRequest is the body of POST /auth/refresh.
++type RefreshRequest struct {
++	Token string `json:"token"`
++}
++
++// TokenPair is an access/refresh token pair minted together; both rotate as a unit.
++type TokenPair struct {
++	Access  string `json:"access"`
++	Refresh string `json:"refresh"`
++}
+```
+
+### 2. Return a pair from the minter — `pkg/auth.TokenMinter`
+
+- **Files:** `pkg/auth/token.go`
+- **Blast radius:** every caller of `mintTokens` — `pkg/auth/handler.go`, `pkg/auth/login.go`
+- **Diff:**
+
+```diff
+-func mintTokens(userID string) (string, error) {
+-	access, err := signAccess(userID)
+-	return access, err
++func mintTokens(userID string) (TokenPair, error) {
++	access, err := signAccess(userID)
++	if err != nil {
++		return TokenPair{}, err
++	}
++	refresh, err := signRefresh(userID)
++	if err != nil {
++		return TokenPair{}, err
++	}
++	return TokenPair{Access: access, Refresh: refresh}, nil
+ }
+```
+
+### 3. Exchange the token in the handler — `pkg/auth.Handler`
+
+- **Files:** `pkg/auth/handler.go`
+- **Blast radius:** every caller of `Refresh` — `pkg/auth/middleware.go`, `cmd/api/routes.go`; a wrong Redis key here silently logs out every session
+- **Diff:**
 
 ```diff
 -func Refresh(ctx context.Context, token string) (string, error)
 +func Refresh(ctx context.Context, req RefreshRequest) (TokenPair, error)
 ```
 
-```ts
-type RefreshRequest = { token: string }
-type TokenPair = { access: string; refresh: string }
+- **Behavior:**
 
-function refresh(req: RefreshRequest): TokenPair | 401 {
+```ts
+function refresh(req: RefreshRequest): TokenPair | 401 | 409 {
   const session = redis.get(`auth:${req.token}`)
-  if (!session || session.expiresAt < now()) return 401
+  if (!session) return 409 // already rotated — single-flight
+  if (session.expiresAt < now()) return 401
 
   const pair = mintTokens(session.userId)
   redis.del(`auth:${req.token}`)
   redis.set(`auth:${pair.refresh}`, session, TTL)
   return pair
 }
+```
+
+### 4. Widen the route to the new signature — `pkg/auth.Handler`
+
+- **Files:** `pkg/auth/handler.go`
+- **Blast radius:** `POST /auth/refresh` only — the last increment, nothing calls into it
+- **Diff:**
+
+```diff
+-	tok, err := Refresh(ctx, body.Token)
++	pair, err := Refresh(ctx, RefreshRequest{Token: body.Token})
 ```
 
 ## Autotest

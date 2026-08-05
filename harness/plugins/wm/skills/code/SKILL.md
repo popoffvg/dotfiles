@@ -39,13 +39,13 @@ Reference-type slugs in the last column: **`sub`** subcommand contract · **`ref
 | `prototype` | Settle an OPEN decision with the smallest visible code diff — read the diff, not a report. | `sub:prototype.md` |
 | `code-map` | Single-panel planned-architecture HTML map (package or component) as a visual aid — via `/dive explain`. | `sub:code-map.md` |
 | `diff` | Show change as one self-contained HTML page (opened): before/after arch panels + signatures-as-diffs. `diff arch` *(default)*: current vs proposed. `diff impl`: what the branch shipped. | `sub:diff.md` · `sub:code-map.md` |
-| `impl` | Execute one TODO — read context, replan guard, implement, autotest, commit, report. | `sub:impl.md` |
+| `impl` | Execute one TODO — read context, replan guard, apply each increment for user approval, autotest, commit, report. | `sub:impl.md` |
 | `squash` | Read the fixup trail → distill lessons into `CLAUDE.local.md` → squash-merge as one commit. Called by `tree merge`. | `sub:squash.md` |
 | `fix` | Close a gap (bug / missing / adjust) by fixing the thought, then the code. Edits source. | `sub:fix.md` |
 | `commit` | Commit-message conventions (`<prefix>: <why>`) — shared by `impl`, `tree`, `fix`. | `sub:commit.md` |
 | `help` | This page. | `self:SKILL.md` |
 
-Path by slug: `sub:` files live in `commands/`, `ref:`/`tpl:` in `references/`, `self` is this SKILL. Shared `ref` files not tied to one row: `ref:write.md` (spec contract, layout, the status metadata — spec phase + TODO lifecycle — the gate — the single source), `ref:jj-notes.md`, `ref:subcommand-rules.md` (the rules every subcommand obeys — logging, commits, glossary, source read-only, confirm destructive git). TS-pseudocode `## Changes` lives in the `flow-scetch` skill (`skill:flow-scetch`), loaded on demand. Templates: `tpl:glossary.md`, `tpl:note-{question,decision,fact,impl-decision}.md`, `tpl:todo.md`.
+Path by slug: `sub:` files live in `commands/`, `ref:`/`tpl:` in `references/`, `self` is this SKILL. Shared `ref` files not tied to one row: `ref:write.md` (spec contract, layout, the status metadata — spec phase + TODO lifecycle — the gate — the single source), `ref:jj-notes.md`, `ref:subcommand-rules.md` (the rules every subcommand obeys — logging, commits, glossary, source read-only, confirm destructive git). The TS-pseudocode form used by a `## Changes` **Behavior** snippet lives in the `flow-scetch` skill (`skill:flow-scetch`), loaded on demand. Templates: `tpl:glossary.md`, `tpl:note-{question,decision,fact,impl-decision}.md`, `tpl:todo.md`.
 
 ## Pipeline
 

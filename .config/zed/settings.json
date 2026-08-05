@@ -269,7 +269,7 @@
     },
     "gopls": {
       "binary": {
-        "path": "/Users/popoffvg/.local/share/mise/shims/gopls",
+        "path": "/Users/vitaliipopov/.local/share/mise/shims/gopls",
       },
     },
     "golangci-lint": {

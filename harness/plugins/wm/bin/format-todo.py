@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Format the ```ts/```typescript code blocks inside a todos/TODO-N.md file.
 
-Code-block-only: touches nothing but fenced TypeScript blocks — the `## Changes`
-pseudocode (sub-todo.md § Changes). Each block is run through prettier
-`--parser typescript`; a block that fails to parse (loose pseudocode) is kept
-verbatim. ```diff interface sub-blocks and all markdown are left untouched.
+Code-block-only: touches nothing but fenced TypeScript blocks — an increment's
+optional Behavior pseudocode under `## Changes` (sub-todo.md § Changes). Every such
+block in the file is run through prettier `--parser typescript`; a block that fails to
+parse (loose pseudocode) is kept verbatim. The ```diff blocks that carry each
+increment's actual change, and all markdown, are left untouched.
 
 Prettier resolution: nearest project `node_modules/.bin/prettier` (honours the
 repo's .prettierrc), else `npx --yes prettier@3`.

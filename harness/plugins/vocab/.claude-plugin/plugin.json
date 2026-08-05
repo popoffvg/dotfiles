@@ -1,0 +1,8 @@
+{
+  "name": "vocab",
+  "version": "0.2.0",
+  "description": "In-memory topic index served over MCP: one topic points at the one file that carries its truth. Starts empty each session, never written to disk. A UserPromptSubmit hook loads the tools on the first message and reminds the agent every 15 minutes to file what it read.",
+  "author": {
+    "name": "popoffvg"
+  }
+}

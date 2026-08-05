@@ -8,7 +8,19 @@ description: >
 
 A lesson worth keeping lands in a skill — **extend an existing skill**, or **write a new one**. Never leave it as a loose rule in a config or instruction file. A lesson not worth keeping is **skipped**, not filed somewhere weaker.
 
-Run per lesson: **(1) pick the scope — or skip**, **(1b) pick the form**, **(2) find an existing skill for that trigger**, **(3) extend it or write a new skill**, **(4) record the case**.
+Run per lesson: **(0) triage the session**, **(1) pick the scope — or skip**, **(1b) pick the form**, **(2) find an existing skill for that trigger**, **(3) extend it or write a new skill**, **(4) record the case**, **(5) archive the transcript**.
+
+# Step 0 — Triage the session with a subagent
+
+This step only runs when invoked directly as `/capture-lesson` on the live session — find the transcript at `~/.claude/projects/<cwd-with-slashes-as-dashes>/<session-id>.jsonl`. When [[dream]] calls this skill during its harvest step, the transcript is already archived and already known to contain a correction; skip straight to extracting candidates (dream's step 2) and go to Step 1 below.
+
+Never read the session back yourself. Launch one subagent — `Agent` tool, `subagent_type: "self-improvement:triage"` — given the plugin root and the transcript path (see `agents/triage.md`). It returns `SKIP`, or `CATCHED <archived-transcript-path>` after archiving the transcript itself. It does not extract candidates — that judgment (does this correction recur?) and the write-up (verbatim quote, wrong action, evidence) are yours to do, reading `<plugin-root>/scripts/human-turns.sh <transcript>` and the surrounding context, the same way [[dream]]'s harvest step does for already-archived transcripts.
+
+From the Stop hook, launch it with `run_in_background: true` — nothing there needs the verdict synchronously, so the user is never blocked on it. Run it with `run_in_background: false` when invoked directly as `/capture-lesson`: you need its verdict before Step 1 can proceed.
+
+The Stop hook (`hooks/self-improve-stop.sh`) also launches this subagent on every session, but only to decide whether to archive — it never runs this skill live. `SKIP` there ends the run silently; `CATCHED` there just leaves the transcript archived for a later `/dream` pass. That keeps every Stop cheap: one haiku subagent, no scope/form judgment, no skill writes, regardless of how many sessions turn out interesting.
+
+`SKIP` here ends the run: no skill, no `CASE.md`, no further archiving. Otherwise carry each surviving candidate through Steps 1–5 separately.
 
 # Step 1 — Pick the scope
 
@@ -85,6 +97,7 @@ The SKILL.md holds the rule stripped of its origin. `CASE.md` holds what the rul
 - **Ambiguous?** <no — one right answer | yes — the other branch is right when …>
 - **Scope chosen:** <project:<repo> | global | machine-scoped global> — <which row of the Step 1 table, and why>
 - **Rule written:** <verdict | check> — <the one-line rule, or the new bullet added to an existing skill>
+- **Transcript:** <path printed by Step 5>
 ```
 
 ## Rules for `CASE.md`
@@ -94,6 +107,18 @@ The SKILL.md holds the rule stripped of its origin. `CASE.md` holds what the rul
 3. **Name the repo even at global scope.** "This came from `~/git/pl`" is what makes the ≥2-repos test in Step 1 checkable next time.
 4. **On extend (Step 3a), append to the existing skill's `CASE.md`** — a second case in the same file is the evidence that promotes a project rule to global.
 5. **No `CASE.md`, no skill.** Writing the rule without its case is the failure this step exists to prevent.
+
+# Step 5 — Archive the transcript
+
+Step 0 already made an interim safety copy (slug `session`) so the transcript survives rotation while triage and this skill run. Once a lesson is kept, replace it with the final, meaningfully-named copy:
+
+```
+${CLAUDE_PLUGIN_ROOT}/scripts/archive-transcript.sh <transcript> <case-slug>
+```
+
+It writes `~/.claude/self-improvement/lessons/<date>-<slug>-<session-id>.jsonl` and prints the path — put that path in the `CASE.md` entry. Delete the interim `session`-slugged `.jsonl` from Step 0 once this final copy exists, so the archive holds one file per kept lesson.
+
+Archive only sessions that produced a kept lesson. Skipped sessions keep no permanent archive entry, so every surviving file is the full evidence behind a skill, readable after the live transcript is compacted or rotated away. `SELF_IMPROVE_LESSONS_DIR` overrides the location.
 
 [[dream]] reads `CASE.md` when judging prune/unite/generalize: two skills whose cases are the same incident are a unite candidate; a skill whose only case names a dead repo is a prune candidate; a skill with cases from several repos has earned generalization.
 
@@ -115,8 +140,9 @@ The marker separates autocreated skills (fine-grained, single-lesson, prime cons
 3. **One lesson, one trigger.** A skill whose `description` covers unrelated situations fires on everything and sharpens nothing.
 4. **Trigger in the user's terms.** Describe how a *task* looks, not how the codebase looks: "when committing across multiple repos", not "when in a monorepo".
 5. **Drop stale anchors.** A lesson pinned to a file, flag, or workflow that no longer exists is not worth a skill — verify the anchor exists first.
-6. **Every rule carries its case.** `CASE.md` beside every `SKILL.md` this skill writes or extends (Step 4).
+6. **Every rule carries its case.** `CASE.md` beside every `SKILL.md` this skill writes or extends (Step 4), and the archived transcript behind it (Step 5).
 7. **Ambiguous case → check, never a global verdict.** (Step 1b.)
+8. **Never read a transcript yourself.** Triage runs in the haiku subagent (Step 0); the main agent starts from its candidates.
 
 # Evals
 

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "vocab": {
+      "type": "stdio",
+      "command": "vocab-mcp",
+      "args": []
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "description": "Loads the vocab_* tools on the first message of a session, then reminds the agent every 15 minutes to file what it read into the topic index",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/vocab-nudge.sh\"",
+            "timeout": 2
+          }
+        ]
+      }
+    ]
+  }
+}
