@@ -1,9 +1,9 @@
 ---
 status: todo          # todo → impl → verify → done  (blocked: dep unmet / verify DEVIATES). Machine: ref-write.md § Status
 type: component       # workflow | state machine | component | event handler | data shape change
-depends_on: []        # [TODO-M, …] — each must reach status: done first. [] if none
+depends_on: []        # [TODO-M, …] — real edges only (they define the spec.md Plan waves); each must reach status: done first. [] if none
 risk: 3               # 1–5 blast radius — retest reach, not effort. 1 = local additive · 3 = one component + callers · 5 = core types many modules depend on. See todo.md § Risk / blast radius
-thoughts: []          # [NNN-decision-slug, NNN-fact-slug] — every thought this TODO implements or is constrained by; same notes as the spec.md Plan decision trail. [] only if the spec has no thoughts yet
+thoughts: []          # [NNN-decision-slug, NNN-fact-slug] — every thought this TODO implements or is constrained by; provenance for the ## Constraints rows. [] only if the spec has no thoughts yet
 ---
 
 # TODO-N: <imperative title, ≤ 60 chars>
@@ -22,6 +22,14 @@ thoughts: []          # [NNN-decision-slug, NNN-fact-slug] — every thought thi
 |------|------|-------------|
 | <Term> | <entity \| value-object \| aggregate \| component \| service \| policy \| state \| command \| event> | <one sentence with the visible contract: TTL, bounds, error semantics> |
 
+## Constraints
+
+<One row per `thoughts` entry, restated in full — this is the implementer's only source for settled decisions. Omit the section entirely when `thoughts: []`. See todo.md § Constraints.>
+
+| Constraint | From |
+|------------|------|
+| <what the code must do, one sentence — invariant or imperative, no trade-off prose> | [[NNN-decision-slug]] |
+
 ## Changes
 
 <If a public interface changes, an Interface sub-block goes FIRST: unified git-diff for modifications, full listing for new interfaces. See todo.md § Changes.>
@@ -30,12 +38,22 @@ thoughts: []          # [NNN-decision-slug, NNN-fact-slug] — every thought thi
 
 ## Autotest
 
-- **Level:** unit | integration | e2e | none
-- **Target files:** `<test file path>`
-- **Cases:** <each case proves part of the Outcome>
+<Both levels required. A level that cannot exist: `none — <concrete reason>`; an E2E deferred to another TODO names it. See todo.md § Autotest.>
+
+### Unit
+
+- **Target files:** `<test file path>` (create | modify)
+- **Cases:** <each case proves part of the Outcome or a ## Constraints row>
   - <input → expected, one sentence each>
 - **Command:** `<single runnable shell command>`
-- **Expected:** <pass criteria>
+
+### E2E
+
+- **Target files:** `<test file path>` (create | modify)
+- **Entry point:** <where the request/command enters, as a caller enters it>
+- **Cases:** <each case asserts the Outcome as an observer sees it>
+  - <input → expected, one sentence each>
+- **Command:** `<single runnable shell command>`
 
 <!-- ── Scaffolding block: for the implementer; machine-checkable, no human read ── -->
 
@@ -72,7 +90,8 @@ thoughts: []          # [NNN-decision-slug, NNN-fact-slug] — every thought thi
 ## Definition of done
 
 - [ ] All files in **Files** modified/created as specified
-- [ ] Autotest command passes
+- [ ] Every **Constraints** row holds in the shipped code
+- [ ] Both Autotest commands pass — Unit and E2E (or the level is `none` with its stated reason)
 - [ ] Manual test steps produce **Expected** outcomes
 - [ ] No edits outside **Files** without recording it in the notes (jj snapshots on session stop)
 - [ ] Commit created with the message above

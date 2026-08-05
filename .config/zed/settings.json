@@ -244,7 +244,7 @@
     "model_parameters": [],
   },
   "git_panel": {
-    "group_by": "status",
+    "group_by": "staging",
     "dock": "right",
     "tree_view": true,
   },

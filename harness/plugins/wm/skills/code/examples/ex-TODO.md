@@ -12,6 +12,13 @@ thoughts: [003-decision-single-flight, 001-fact-token-ttl]
 
 A `User` can issue `RotateToken` to exchange a valid refresh token for a new `TokenPair`. On success the `Session` emits `TokenRotated` and the prior refresh token becomes invalid immediately. If the refresh token has already been used, the `Session` is revoked and the `User` must re-authenticate.
 
+## Constraints
+
+| Constraint | From |
+|------------|------|
+| A second refresh on the same token returns 409 — never two valid `TokenPair`s from one token | [[003-decision-single-flight]] |
+| A refresh token expires 15 minutes after issue (1 hour in dev); the new pair restarts the window | [[001-fact-token-ttl]] |
+
 ## Changes
 
 **Interface change — `pkg/auth/handler.go`:**
@@ -38,20 +45,32 @@ function refresh(req: RefreshRequest): TokenPair | 401 {
 
 ## Autotest
 
-- **Level:** unit
-- **Target files:** `pkg/auth/handler_test.go`, `pkg/auth/token_test.go`
+### Unit
+
+- **Target files:** `pkg/auth/handler_test.go` (create), `pkg/auth/token_test.go` (modify)
 - **Cases:**
-  - valid refresh returns 200 + new token pair
-  - expired refresh returns 401
-  - rotation deletes old Redis key
+  - valid refresh returns a new token pair, both values different from the input
+  - refresh token past its 15-minute TTL returns 401
+  - rotation deletes the old Redis key `auth:<old>`
+  - second refresh with the same token returns 409 and mints nothing
 - **Command:** `go test ./pkg/auth/...`
-- **Expected:** all pass, no new lint warnings
+
+### E2E
+
+- **Target files:** `test/e2e/auth_refresh_test.go` (create)
+- **Entry point:** `POST /auth/refresh` on the running server, same as a real SDK client
+- **Cases:**
+  - login → refresh → the returned access token authorizes `GET /me` (200)
+  - login → refresh → refresh again with the *first* refresh token → 409, and the second pair still authorizes `GET /me`
+  - login → wait past TTL → refresh → 401 and `GET /me` with the old access token → 401
+- **Command:** `go test -tags e2e ./test/e2e/ -run TestAuthRefresh`
 
 ## Files
 
 - `pkg/auth/handler.go` — modify
 - `pkg/auth/token.go` — modify
 - `pkg/auth/handler_test.go` — create
+- `test/e2e/auth_refresh_test.go` — create
 
 ## Pre-reads (MUST read before editing)
 
@@ -84,7 +103,8 @@ function refresh(req: RefreshRequest): TokenPair | 401 {
 ## Definition of done
 
 - [ ] All files in **Files** modified/created as specified
-- [ ] Autotest command passes
+- [ ] Every **Constraints** row holds in the shipped code
+- [ ] Both Autotest commands pass — Unit and E2E
 - [ ] Manual test steps produce **Expected** outcomes
 - [ ] No edits outside **Files** without recording it in the notes (jj snapshots on session stop)
 - [ ] Commit created with the message above

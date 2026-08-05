@@ -1,6 +1,6 @@
 ---
 name: shell-modify
-description: Safe shell script modifications — pre-edit analysis of strict modes, resource cleanup patterns, portability checks, and shellcheck validation. Use for any non-trivial shell script edits (.sh, .bash). Skip for one-line fixes.
+description: Safe shell script modifications — pre-edit analysis of strict modes, resource cleanup patterns, portability checks, and shellcheck validation. Use for any non-trivial shell script edits (.sh, .bash), including a script another host launches (an app, launchd, a hook, execFile("/bin/bash")). Skip for one-line fixes.
 argument-hint: [script-path]
 ---
 
@@ -87,7 +87,11 @@ See **`references/best-practices.md` § Trap for Cleanup** and **§ Temporary Fi
 ### Execution environment
 - [ ] **Where does this run?** Local shell, CI runner, Docker container, k8s job?
 - [ ] **What's available?** Don't assume `jq`, `curl`, `realpath` exist. Use `command -v` to guard (see **`references/best-practices.md` § Check Command Existence**).
-- [ ] **Which shell version?** `bash 3.x` (macOS default) lacks associative arrays, `readarray`, `${var,,}`.
+- [ ] **Which shell version?** `bash 3.x` (macOS default) lacks associative arrays, `readarray`, `${var,,}`. It also mis-parses an apostrophe inside a here-document nested in a command substitution — see § Multi-line strings.
+- [ ] **Who launches it?** A script started by an app, launchd, a hook, or `execFile("/bin/bash", …)` runs under **that** interpreter, not your login shell. On macOS `/bin/bash` is 3.2 while `bash` on `PATH` is often 5.x, so a script can work in your terminal and fail for the caller.
+- [ ] **Which environment does it inherit?** A GUI app or launchd job has no login-shell environment. `PATH` is the known one, but `USER`, `LOGNAME`, `SHELL`, `LANG` and `TMPDIR` can all be absent, and a CLI that reads credentials by user name then reports "not logged in". Make the script self-sufficient — `export USER=${USER:-$(id -un)}` — instead of relying on the caller. Reproduce with `env -i HOME="$HOME" PATH=… /bin/bash script.sh`, which is closer to the caller than your terminal.
+
+**Diagnosing a failing child process:** the first stderr line is often an unrelated startup warning, not the cause. Report the exit code with the full stderr *and* stdout, then say which line is the actual error. Naming a warning as the cause sends the fix to the wrong file.
 
 ## PHASE 2: Make Changes
 
@@ -124,6 +128,24 @@ data | grep "pattern" | while read -r line; do ...
 data | { grep "pattern" || true; } | while read -r line; do ...
 ```
 
+### Multi-line strings
+
+```bash
+# WRONG — bash 3.2 (macOS /bin/bash) scans the $( ) body for quotes and chokes on
+# the apostrophe in "section's": "unexpected EOF while looking for matching `''"
+prompt=$(
+  cat <<'PROMPT'
+omit this section's lines entirely
+PROMPT
+)
+
+# RIGHT — no command substitution, so the here-document body is never re-scanned.
+# read -d '' returns non-zero at EOF, hence the || true under set -e
+IFS= read -r -d '' prompt <<'PROMPT' || true
+omit this section's lines entirely
+PROMPT
+```
+
 For loops, arrays, conditionals, and argument parsing patterns, see **`references/best-practices.md`**.
 
 ## PHASE 3: Static Analysis
@@ -153,9 +175,15 @@ shellcheck "$script_path"
 
 ### Syntax check (if shellcheck unavailable)
 
+Run it with the interpreter that will actually run the script — the shebang's, or the caller's when another host launches it. `bash` on `PATH` is not that interpreter.
+
 ```bash
-bash -n "$script_path"   # syntax check only, no execution
+bash -n "$script_path"        # your login shell — proves nothing about the caller's
+/bin/bash -n "$script_path"   # macOS 3.2: what an app, launchd or a hook uses
+sh -n "$script_path"          # if the shebang says #!/bin/sh
 ```
+
+Test-run it the same way: `/bin/bash script.sh …`, not `./script.sh` from an interactive shell with a different `bash` first on `PATH`.
 
 ## PHASE 4: Testing
 

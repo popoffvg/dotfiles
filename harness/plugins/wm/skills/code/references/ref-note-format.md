@@ -1,8 +1,11 @@
 # spec — note format
 
-Owner of the code skill's **thought**-note *format*. What a thought is — the concept and its rules — lives in the `thought` skill; this file specializes it into concrete files. Each grilling resolution writes one standalone Obsidian note. Three types: `decision`, `fact`, `impl-decision`. One note per resolved question; notes link via `[[wikilinks]]`.
+Owner of the code skill's **thought**-note *format*. What a thought is — the concept and its rules — lives in the `thought` skill; this file specializes it into concrete files. Four types: `question`, `decision`, `fact`, `impl-decision`. One note per question — open as a `question`, flipped in place to `decision` or `fact` when resolved; notes link via `[[wikilinks]]`.
+
+An **open question** is a thought too: it lives in `thoughts/` as `NNN-question-slug.md`, not as a checklist line in `spec.md`. `spec.md` has no Open Questions section (`ref-write.md` § spec.md template).
 
 Templates (one per type):
+- [`tpl-note-question.md`](tpl-note-question.md)
 - [`tpl-note-decision.md`](tpl-note-decision.md)
 - [`tpl-note-fact.md`](tpl-note-fact.md)
 - [`tpl-note-impl-decision.md`](tpl-note-impl-decision.md)
@@ -15,17 +18,18 @@ Templates (one per type):
 ```
 
 - `NNN` — sequential 3-digit ID, zero-padded. Matches frontmatter `id`.
-- `type` — `decision`, `fact`, or `impl-decision`.
+- `type` — `question`, `decision`, `fact`, or `impl-decision`.
 - `slug` — kebab-case, ≤ 5 words, captures the topic.
 
-Example: `001-decision-token-rotation.md`, `002-fact-token-ttl.md`.
+Example: `001-decision-token-rotation.md`, `002-fact-token-ttl.md`, `004-question-refresh-scope.md`.
 
 ## Frontmatter
 
 ```yaml
 ---
-type: decision | fact | impl-decision
+type: question | decision | fact | impl-decision
 id: "NNN"
+status: open | approved | declined   # open only on type: question; approved is the default otherwise
 date: 2026-06-18T14:30:22
 source: grill | explore | codebase   # optional
 tags: [topic, subtopic]
@@ -33,12 +37,30 @@ tags: [topic, subtopic]
 ```
 
 - `type` — drives the section structure below.
-- `id` — matches the `NNN` prefix in the filename.
-- `date` — ISO 8601, the moment the note was written.
+- `id` — matches the `NNN` prefix in the filename. Never changes, not even when the note is resolved.
+- `status` — `open` while the question is unresolved; `approved` once written as a decision/fact; `declined` when the user rejects a thought (superseded or wrong) instead of deleting it.
+- `date` — ISO 8601, the moment the note was written. On resolution, keep it and add `resolved:` with the resolution timestamp.
 - `source` — optional. `explore` for facts from explore-phase research docs; `codebase` for facts derived by reading code during the grill; `grill` (or omit) for user-stated facts.
 - `tags` — 1–3 topic tags for grouping in Obsidian graph view.
 
 ---
+
+## Question note
+
+The answer is not known yet — the question blocks the spec. Sections, rules, worked example: [`tpl-note-question.md`](tpl-note-question.md).
+
+Write one the moment a question surfaces (seeded from the request, raised by a research gap, or opened mid-grill). It is the only thought type that carries `status: open`, and the only one a READY spec must not contain.
+
+### Resolution — flip in place
+
+A resolved question stays the same note: same `id`, same `NNN`, one file per topic. Never write a second note for an answer to a question already on disk.
+
+1. Rename the file `NNN-question-slug.md` → `NNN-decision-slug.md` (the answer is a choice) or `NNN-fact-slug.md` (the answer establishes a truth). Keep `NNN` and `slug`.
+2. Set frontmatter `type:` to the new type and `status: open → approved`; add `resolved: <ISO 8601>`.
+3. Rewrite the body into that type's sections (`tpl-note-decision.md` / `tpl-note-fact.md`), keeping the original `## Question` text verbatim as the decision's Question — that is the audit trail of what was asked.
+4. Fix every `[[NNN-question-slug]]` wikilink pointing at the old name (`grep -rl` the `thoughts/` dir); a dangling link fails the back-linking check below.
+
+A question that turns out to be moot is not deleted: keep it a `question` note and set `status: declined` with a one-line reason in the body. `declined` does not block readiness; `open` does.
 
 ## Decision note
 
@@ -61,5 +83,6 @@ At loop end (any subcommand that writes or edits thoughts): for each `Depends on
 ## Notes directory is the audit trail
 
 - `thoughts/` = the traceable thought graph. Each note proves why a decision was made.
+- Open work is visible in the same graph: every `status: open` question note is an unresolved blocker. List them with `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` (exit 1 = at least one open).
 - A reviewer reads `NNN-decision-xxx.md`, follows `Depends on` backward to the facts that constrained it and `Affects` forward to what it enabled.
 - A questioned decision shows the alternatives considered and why rejected — the spec is self-documenting.

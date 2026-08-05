@@ -11,14 +11,14 @@ argument-hint: "[docs (default), workflow — full list /dive-help] + entry poin
 
 # Dive — subcommand router
 
-`/dive <subcommand>`. Pick the route, read its reference, follow it. Default is `docs`. Artifacts live in `<notes-dir>/research/`.
+`/dive <subcommand>`. Pick the route, read its reference, follow it. Default is `docs`. Artifacts live in `<notes-dir>/research/` — except the `workflow` route, which writes one folder per flow under `<notes-dir>/workflows/`.
 
 ## Subcommands
 
 | `/dive …` | You need to… | Reference |
 |---|---|---|
 | `docs` *(default)* | Write the markdown research write-ups + question lists. One `<ep-slug>.questions.md` + one `<ep-slug>.md` per entry point, graded against the 6-step chain. Convergence loop + `INDEX.md`. | `references/sub-docs.md` |
-| `workflow` | Write the typed TS pseudocode + path bindings — `<ep-slug>.workflow.ts`, `<ep-slug>.bindings.json`, `components/*.d.ts`, `flows.json`. The navigable, reveal-in-editor layer over the `docs` artifacts. | `references/sub-workflow.md` |
+| `workflow` | Write the typed TS pseudocode + path bindings into `<notes-dir>/workflows/<flow-name>/` — one folder per flow (`<ep-slug>.workflow.ts`, `<ep-slug>.bindings.json`), plus shared `components/*.d.ts`, `_flow.entities.d.ts`, `tsconfig.json` and `flows.json` at the `workflows/` root. The navigable, reveal-in-editor layer over the `docs` artifacts. | `references/sub-workflow.md` |
 | `unknowns` | Guided **quadrant walk** with the user — map known knowns / known unknowns / unknown knowns / unknown unknowns one stage at a time, ending with a four-quadrant map (`<slug>.unknowns.md`) in the user's hands. Use when the task is ambiguous, underspecified, or the user will "know it when they see it". | `references/sub-unknowns.md` |
 | `explain` | Draw a **single-panel planned architecture** as a self-contained HTML a reviewer reads in 30 seconds — the components, their edge relations, and the load-bearing decisions (tagged with decision ids). One picture of the intended design, not a before/after. Writes `<slug>.arch.html`. | `references/sub-explain.md` |
 | `explain-diff` | Draw a two-panel **architecture diff** comparing two solutions — `current` beside `planned` (or option A beside B) — as a self-contained HTML a reviewer reads in 30 seconds: what changed, removed, new, held, and the one load-bearing why. Writes `<slug>.arch-diff.html`. Use to weigh a refactor/migration or pick between two designs. | `references/sub-explain-diff.md` |
@@ -51,14 +51,23 @@ The user may pass a **destination folder** inline with a `dst:<path>` token (see
 - `--notes-dir <path>` overrides the resolved dir.
 - A `dst:<path>` token (e.g. `dst:docs/research/auth`, relative to cwd) sets `$RESEARCH_DIR` directly and **wins over** both — use it to drop research outside the wm flow.
 
-Create the research subdirectory:
+Create the output subdirectories:
 
 ```bash
 NOTES_DIR="${NOTES_DIR:-.notes}"
-# dst:<path> overrides; else <notes-dir>/research
-RESEARCH_DIR="${DST:-$NOTES_DIR/research}"
+# dst:<path> wins; else <notes-dir>/research
+RESEARCH_DIR="${DST:-$NOTES_DIR/research}"   # docs / unknowns / explain artifacts
+if [[ -n "${DST:-}" ]]; then
+  WORKFLOWS_DIR="$DST/workflows"             # workflow route — one folder per flow
+else
+  WORKFLOWS_DIR="$NOTES_DIR/workflows"
+fi
 mkdir -p "$RESEARCH_DIR"
 ```
+
+The `workflow` route writes to `$WORKFLOWS_DIR/<flow-name>/` — one folder per flow, with the shared
+typing files (`components/`, `_flow.entities.d.ts`, `tsconfig.json`) and `flows.json` at
+`$WORKFLOWS_DIR/` itself. See `references/sub-workflow.md`.
 
 ## Integration with wm
 

@@ -52,10 +52,15 @@ Each finding names the exact TODO/section, states the concrete scenario that fai
 The floor beneath the mission — a spec that fails these is unfinished regardless of the hunt.
 
 ### A. Spec readiness
-Run `ref-write.md` § Spec-Readiness Checklist against `spec.md` + `GLOSSARY.md`. **Open Questions non-empty → NEEDS REVISION** (hard block; route to `new`). This covers spec sections, the ledger shape, outcome rules, and GLOSSARY.md currency in one place.
+Run `ref-write.md` § Spec-Readiness Checklist against `spec.md` + `GLOSSARY.md` + `thoughts/`. **Any `status: open` question note → NEEDS REVISION** (hard block; route to `new`) — check with `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`. Also a hard block: a `Design Decisions` or `Open Questions` section surviving in `spec.md`, or a decision-trail table in `## Plan` — decisions belong to `thoughts/` alone. This covers spec sections, the ledger shape, outcome rules, and GLOSSARY.md currency in one place.
 
 ### B. Per-TODO completeness
-One `todos/TODO-N.md` per ledger row, contiguous. Each has every `always` element in order (`sub-todo.md` § Required elements). Spot-check: **Risk / blast radius** 1–5 with a justification (score ≥ 3 → tests cover callers); **Files** concrete paths, no globs; **Changes** one TS block ≤ 40 lines matching the Type; **Thoughts** links resolve.
+One `todos/TODO-N.md` per ledger row, contiguous. Each has every `always` element in order (`sub-todo.md` § Required elements). Spot-check: **Risk / blast radius** 1–5 with a justification (score ≥ 3 → tests cover callers); **Files** concrete paths, no globs; **Changes** one TS block ≤ 40 lines matching the Type; **Thoughts** links resolve and each has a **Constraints** row.
+
+**Self-containment (hard block).** Read one TODO with `spec.md` and `thoughts/` closed. If a constraint it obeys, a term it uses, or a test expectation is knowable only from those files, → NEEDS REVISION naming the missing restatement.
+
+### B2. Wave plan
+`## Plan` has the wave table; every ledger row appears in exactly one wave; no two TODOs in one wave share a **Files** path or a `depends_on` edge; every `depends_on` is a real edge per `ref-write.md` § Waves. A chain where each wave holds one TODO → report it as a finding (serialized spec) with the edges that look false.
 
 ### C. Execution readiness
 `Depends on` consistent and acyclic; each TODO one logical commit; destructive changes explicit and justified.
@@ -63,8 +68,12 @@ One `todos/TODO-N.md` per ledger row, contiguous. Each has every `always` elemen
 ### D. Scope discipline
 TODOs align with the current Goal — no unrelated expansion; no missing blocker TODO surfaced by referenced files.
 
-### E. Test suite filled (hard block)
-Every **Autotest** is filled — a runnable command **plus** ≥1 concrete case (input → expected), or literal `none` with a one-line justification. Empty, `TBD`, `...`, or command-without-cases → NEEDS REVISION, listing each unfilled TODO. Same for **Manual test**: filled steps+expected, or `skip — <concrete reason>`.
+### E. Test suite filled — both levels (hard block)
+Every TODO's **Autotest** carries a `Unit` **and** an `E2E` sub-block, each with a runnable command **plus** ≥1 concrete case (input → expected). Empty, `TBD`, `...`, a missing level, or command-without-cases → NEEDS REVISION, listing each unfilled TODO and level.
+
+`none` is accepted only with a concrete reason: for `Unit`, a non-behavioral change; for `E2E`, either a stated no-observable-behavior refactor or a named TODO whose e2e case covers this path (the named TODO must exist and its E2E cases must mention it). Auto-reject reasons: "covered by the unit test", "trivial", "no e2e harness" (name the missing harness — that is its own TODO), "will add later".
+
+Same for **Manual test**: filled steps+expected, or `skip — <concrete reason>`.
 
 ### F. Test honesty (hard block)
 Read **Files** per TODO and classify its surface. A file matching a category below **cannot** justify `Manual test: skip` with "covered by unit tests" or similar:

@@ -23,7 +23,7 @@ When the TODO is a bug fix (or you encounter a bug during implementation), follo
 
 ## Commit rules
 
-- Commit after green Autotest. Use `code commit` format: `<prefix>: <why>`. Spec's `## Commit` block is the primary message.
+- Commit after both Autotest levels are green (`Unit` and `E2E`). Use `code commit` format: `<prefix>: <why>`. Spec's `## Commit` block is the primary message.
 - One commit per logical chunk. Don't batch unrelated changes.
 - Do **not** stage unrelated files. Do **not** commit test-only changes under `feat`/`fix`.
 
@@ -31,7 +31,7 @@ When the TODO is a bug fix (or you encounter a bug during implementation), follo
 
 When the user reviews your work and asks for changes:
 
-1. Make the edit, re-run the Autotest.
+1. Make the edit, re-run both Autotest commands.
 2. Commit as a fixup against the commit being corrected:
    ```bash
    git commit --fixup=<sha-of-commit-this-corrects>
@@ -44,7 +44,7 @@ When the user reviews your work and asks for changes:
 
 | Trigger | Action |
 |---|---|
-| **3+ edits to same file** without Autotest passing | Stop. Report the blocker, show what you tried. |
+| **3+ edits to same file** without both Autotest levels passing | Stop. Report the blocker, show what you tried. |
 | **2 failed fix attempts** on same error | Stop. Report what you tried, what the error is, ask for guidance. |
 | **Tool permission/access error** | Stop. Ask user to fix the tool — never retry blindly. |
 | **User says "let's refactor/rethink/change the plan"** | Stop. Delegate to `architector` agent (`code` skill). Do not redesign. |

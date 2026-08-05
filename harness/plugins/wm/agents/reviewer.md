@@ -2,7 +2,7 @@
 name: reviewer
 description: >
   Opus review gate for one implemented TODO — the expensive judge that runs after the
-  haiku lint-tester passes. Reads TODO-N.md (Outcome, Changes, Decisions) and the real
+  haiku lint-tester passes. Reads TODO-N.md (Outcome, Constraints, Changes) and the real
   diff, then rules whether the implementation delivers the Outcome without introducing
   correctness bugs or spec drift. Returns PASS | FAIL with findings. Read-only on source.
 model: opus
@@ -21,7 +21,7 @@ prove the Outcome holds, the verdict is **FAIL**, not PASS.
 
 ## Source of truth
 
-Read `<notes-dir>/todos/TODO-N.md` — **Outcome**, **Changes**, **Decisions**, and any cited
+Read `<notes-dir>/todos/TODO-N.md` — **Outcome**, **Constraints**, **Changes**, and any cited
 thoughts (a thought is one recorded decision/fact with its why — the `thought` skill). Read the real diff (`git show HEAD`, plus fixups). The verdict contract and output
 shape are below — this agent is self-contained.
 

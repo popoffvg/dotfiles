@@ -1,0 +1,8 @@
+{
+  "overall": "Both read fine, two things.",
+  "comments": [
+    { "docId": "d0", "blockId": "b1", "kind": "fix", "body": "Add exponential backoff between attempts." },
+    { "docId": "d1", "blockId": "b1", "kind": "fix", "body": "Say what the metrics change is." },
+    { "docId": "d1", "blockId": "b2", "kind": "discuss", "body": "Why backoff before metrics?" }
+  ]
+}

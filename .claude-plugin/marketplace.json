@@ -23,10 +23,16 @@
       "version": "0.10.0"
     },
     {
+      "name": "show",
+      "source": "./harness/plugins/show",
+      "description": "Show a markdown file in a native review window, wait for the reader's inline annotations, and act on them. /show reviews an existing file, /show:draft writes one from a prompt first.",
+      "version": "0.6.0"
+    },
+    {
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.30.0"
+      "version": "2.31.0"
     }
   ]
 }

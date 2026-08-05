@@ -16,11 +16,12 @@ never as a code edit.
 <notes-dir>/
 ├── spec.md         # the target picture + the ledger
 ├── GLOSSARY.md     # project ubiquitous language (template: glossary-template.md)
-├── thoughts/       # NNN-{decision,fact,impl-decision}-slug.md — the thought graph
+├── thoughts/       # NNN-{question,decision,fact,impl-decision}-slug.md — the thought graph
 └── todos/          # TODO-N.md — one body per ledger row (authored by `todo`, past the gate)
 ```
 
-- **`spec.md`** is read by humans + the audit — the **target picture** plus the **ledger**. It ends at the ledger: no bodies, no checkboxes, no file paths.
+- **`spec.md`** is read by humans + the audit — the **target picture** plus the **ledger** plus the **Plan**. No bodies, no checkboxes, no file paths.
+- **Decisions and open questions are not spec sections.** Every choice, every fact, every unresolved question is a note in `thoughts/` — `spec.md` has no `Design Decisions` and no `Open Questions` section, and the Plan carries no decision-trail table. One place per thought; `spec.md` says what the world will look like, `thoughts/` says why.
 - **ledger** = the TODO List, an index of **outcomes** (`Layer | Outcome | Commit` rows). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready.
 - **`todos/TODO-N.md`** is read by a context-free Sonnet implementer — self-contained, restating its ledger outcome verbatim at the top. Owned by `todo` (`sub-todo.md`).
 - **thought** — one note per resolved question, linked by `[[wikilinks]]`. Format + templates: `ref-note-format.md`.
@@ -65,7 +66,7 @@ todo  →  impl  →  verify  →  done
 Set by: `todo` (writes `todo`, or `blocked` if a dep is unmet), `impl` (`todo → impl`, then `→ verify` on green; `→ blocked` if a dep is unmet), the review gate (`verify → done` on PASS, `→ blocked` on FAIL), `revise` (`→ todo` when it reopens a diverged TODO).
 
 **The gate** sits at the spec's `review→impl` boundary. `new` produces a reviewable spec and stops; a
-human reads Goal, Decisions, GLOSSARY.md, and the ledger; only then does `todo` author bodies.
+human reads Goal, `thoughts/`, GLOSSARY.md, the ledger, and the Plan; only then does `todo` author bodies.
 Bodies are never auto-written — a wrong spec authored into TODOs becomes wrong code.
 
 ## Reading chain — what the understanding must capture
@@ -78,10 +79,10 @@ entry to trace **without reopening the codebase**. Tests (front) and the one-sen
 | # | Element | spec.md section | Must show |
 |---|---------|-----------------|-----------|
 | 1 | **Entry point** | Description / Goal | The exact line the request enters — handler, dispatch, subscriber — not the top of the file. |
-| 2 | **Tests** *(front gate)* | Goal + Decisions | The happy-path test stating the contract, and the intent each test pins. No test on the path → mark **UNTESTED**. |
+| 2 | **Tests** *(front gate)* | Goal + `thoughts/` | The happy-path test stating the contract, and the intent each test pins. No test on the path → mark **UNTESTED**. |
 | 3 | **Follow data** | GLOSSARY.md | One value's lifecycle — born, mutated, transformed, exits. The flow falls out of the data. |
 | 4 | **Skip noise** | What we're NOT doing | What was walked past (rate limiters, audit logs) — stated so gaps read as intentional. |
-| 5 | **Failure path** | GLOSSARY.md + Decisions | One failure path the spec depends on: does the response leak cause (different message or timing)? |
+| 5 | **Failure path** | GLOSSARY.md + `thoughts/` | One failure path the spec depends on: does the response leak cause (different message or timing)? |
 | 6 | **One-sentence trace** *(end gate)* | Goal → feeds ordering | Entry→exit in one line. Can't state it in one sentence → the flow wasn't understood. |
 
 If `<notes-dir>/research/` exists, consume those artifacts — they already encode this chain (owned by `explore`) — rather than re-deriving.
@@ -128,28 +129,11 @@ Plain-language user-visible outcome once this spec is done. 2–5 sentences. No 
 
 - <out-of-scope item> — <why deferred / where it belongs>
 
-## Design Decisions
-
-> Record only hard-to-reverse, surprising, or high-cost choices. Routine picks don't belong here.
-
-### <Decision title>
-**Decision:** <what was decided, one sentence>
-**Motivation:** <the problem, constraint, or goal that forced it>
-
-> **Motivation — grill the user.** One question at a time, depth-first, until the root cause is systemic and actionable — the fix that prevents the whole class. If the next "why" repeats or goes philosophical, you've passed the root.
-
-**Alternatives:** (omit if none)
-- `<Alternative>` — rejected: <reason>
-
-## Open Questions
-
-> Unresolved decisions that block the spec. The grill loop drives this to empty. **A READY spec has zero.** One surfaces while writing → STOP and resolve it (read the code or ask) before finalizing.
-
-- [ ] <question> — <what or who resolves it>
+> Decisions live in `thoughts/` as `NNN-decision-*.md`, open questions as `NNN-question-*.md` — never as sections here. A choice made while writing this spec that has no note yet is an unrecorded thought: write the note, then continue.
 
 ## TODO List (the ledger)
 
-> Index only — outcomes, not bodies. Each row is a discussion object the user aligns on before any body is drafted. Order = execution order (deepest layer first). Bodies live in `todos/TODO-N.md`, restating the outcome verbatim.
+> Index only — outcomes, not bodies. Each row is a discussion object the user aligns on before any body is drafted. Rows are sorted deepest layer first (a legal order); the `## Plan` wave table below says what actually runs together. Bodies live in `todos/TODO-N.md`, restating the outcome verbatim.
 
 | #      | Layer            | Outcome | Commit |
 |--------|------------------|---------|--------|
@@ -159,10 +143,23 @@ Plain-language user-visible outcome once this spec is done. 2–5 sentences. No 
 | TODO-4 | L3 — wiring      | <…> | `<…>` |
 
 > Outcome rules — post-condition, ≤ 25 words, GLOSSARY.md terms only, no implementation nouns. Full rules and examples: `sub-todo.md` § Outcome. If a row hides an "and", split it; if two rows share an outcome, merge them.
+
+## Plan
+
+<target picture in 3–5 sentences, one per major branch of the work>
+
+### Waves — parallel execution
+
+| Wave | TODOs | Runs together because |
+|------|-------|-----------------------|
+| W1 | TODO-1, TODO-2 | no `depends_on` between them; **Files** sets disjoint |
+| W2 | TODO-3 | `depends_on: [TODO-1]` |
+
+> Widest wave first. The wave table is the execution order; `Ln` only proves the dependency edges are legal (§ TODO ordering and waves).
 ```
 
 Rules:
-- spec.md ends after the ledger.
+- spec.md ends after the Plan.
 - TODO numbers match `todos/TODO-N.md` filenames 1-to-1.
 
 ## Spec ownership by branch
@@ -176,6 +173,8 @@ On any `new` where `spec.md` already exists, decide iteration vs. a fresh spec b
 - **No shared part** → the notes belong to unrelated work; treat this as a **new spec** — author a fresh minimal spec and set `branch` to the current branch. The prior spec is not lost: it stays in the notes jj history (`ref-jj-notes.md`).
 
 Rationale: `.notes/` is git-ignored and travels with the working tree, so switching to an unrelated branch leaves a stale spec behind. The branch match is the signal for "is this still the same work?".
+
+## TODO ordering and waves
 
 Sort so each commit touches only its own **layer** and layers below it. Dependency edges point
 upward (callers depend on callees); commits land the same direction — leaf → trunk → wiring.
@@ -195,6 +194,23 @@ The `Ln` prefix makes the ordering invariant machine-checkable.
 
 **Reject:** ordering by "easiest first" or "most visible first" — that compiles only after every TODO lands, breaking the per-TODO commit contract.
 
+### Waves — group for maximum parallelism
+
+The layer sort gives a legal order; the **wave** grouping gives the fastest one. Two TODOs run in
+the same wave when nothing forces them apart:
+
+1. Compute the edges: TODO-B depends on TODO-A if B's **Files** include a file A creates, B calls a symbol A introduces, or B's test cannot pass until A lands. Record each edge as `depends_on` in B's frontmatter — that list, not the `Ln` order, defines the waves.
+2. `W1` = every TODO with `depends_on: []`. `Wn` = every TODO whose deps are all in earlier waves.
+3. Two TODOs in one wave must have **disjoint Files sets**. Overlapping files in one wave = two implementers editing one file; split the wave or merge the TODOs.
+4. Write the wave table into `## Plan`. Widest wave first is the goal, not an accident: prefer a split that removes an edge (e.g. add the interface in `W1`, both implementations in `W2`) over one that adds a chain.
+
+**Maximize wave width when splitting.** A chain of four TODOs each depending on the last is the
+worst shape — it serializes the whole spec. If two outcomes touch different packages, they are two
+TODOs in the same wave, even when one is small. Only a real edge from step 1 justifies a later wave.
+
+`Ln` stays: it proves each edge points downward (a TODO never precedes the TODO introducing a
+lower-layer component it uses). Waves say what can run at once; layers say the edges are legal.
+
 ## Stop at the gate
 
 `new` (and its condensed variant for ≤3 TODOs) writes the ledger and stops. It does not write
@@ -207,24 +223,26 @@ its own audience and bar, owned by `todo`. The user decides when the outcomes ar
 The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check against them.
 
 - [ ] `spec.md` opens with a `---` frontmatter block (`status`, `branch`, `drives`); no `Status`/phase-rules prose in the body
-- [ ] `spec.md` body has Description, Guidelines, Goal, What we're NOT doing, Design Decisions, Open Questions, and the ledger — nothing else
+- [ ] `spec.md` body has Description, Guidelines, Goal, What we're NOT doing, the ledger, and the Plan — nothing else. No `Design Decisions`, no `Open Questions` section, no decision-trail table
 - [ ] `GLOSSARY.md` exists (sibling), covers every entity/command/event in the spec, and is current
-- [ ] **Open Questions is empty** (hard block)
+- [ ] **No `status: open` question note in `thoughts/`** (hard block) — `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0
+- [ ] Every decision made while writing the spec has a `thoughts/NNN-decision-*.md` note
 - [ ] The ledger is a `Layer | Outcome | Commit` table — no bodies, no checkboxes, no file paths
+- [ ] `## Plan` carries the wave table; every TODO appears in exactly one wave; TODOs sharing a wave have disjoint **Files** sets and no `depends_on` between them
 - [ ] Every outcome is a post-condition (what is true after), ≤ 25 words, no implementation nouns, GLOSSARY.md terms verbatim
 - [ ] No outcome hides two behind "and"; no two rows share an outcome
 - [ ] Rows are contiguous from 1, sorted by ascending `Ln` depth; no TODO depends on a component a later TODO introduces
 - [ ] Nothing was written under `todos/` during this spec pass
 - [ ] Description + Goal convey the target picture in plain language
-- [ ] Format/protocol decisions live in Design Decisions, not deferred into bodies
+- [ ] Format/protocol decisions have a `thoughts/NNN-decision-*.md` note, not deferred into bodies
 
 ## Interpreting user input
 
 | User says | You do |
 |-----------|--------|
-| "add X" / "fix Y" | Update Description / Goal / Decisions + GLOSSARY.md, **and** add or revise a ledger row. No body file — that's `todo`. |
+| "add X" / "fix Y" | Update Description / Goal + GLOSSARY.md, write the thought note for any choice it forces, **and** add or revise a ledger row (+ its wave). No body file — that's `todo`. |
 | "the outcome of TODO-N should be Z" | Edit row N; confirm it follows the outcome rules. |
-| "split TODO-N" / "merge N and M" | Rewrite the rows and renumber contiguously. |
-| "use approach Z" | Record in Design Decisions. |
+| "split TODO-N" / "merge N and M" | Rewrite the rows, renumber contiguously, recompute the `## Plan` waves. |
+| "use approach Z" | Write a `thoughts/NNN-decision-*.md` note (and restate it in each affected TODO's `## Constraints`). |
 | "looks good" | Signal readiness. |
 | Option selection ("option A") | Execute immediately, don't re-ask. |

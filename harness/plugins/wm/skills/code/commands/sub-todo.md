@@ -9,13 +9,20 @@ Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 ## Precondition — past the gate
 
 Run `todo` only after a human has reviewed the spec (`ref-write.md` § the gate). `new` stops before
-this deliberately. Before authoring: `spec.md` frontmatter `status: review`, Open Questions empty, ledger
+this deliberately. Before authoring: `spec.md` frontmatter `status: review`, **no `status: open` question
+note in `thoughts/`** (`~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0), ledger
 settled, and the human has asked for TODOs. Otherwise stop and run `/code new` first.
 
 ## Audience — a context-free Sonnet implementer
 
 No project context, no judgment, no permission to improvise. If the implementer must *infer*
 anything — a path, a name, a test command, a decision — the TODO is broken. Rewrite it.
+
+**Self-contained means: the TODO alone is enough.** The implementer reads this one file and never
+opens `spec.md` or a thought note to know *what* to build. `spec.md` carries no Design Decisions to
+fall back on, so every constraint the TODO obeys is restated here in `## Constraints` — the note
+links are provenance, not required reading. Test the draft by asking: with `spec.md` and `thoughts/`
+deleted, could an implementer still write the code and both tests? If not, the TODO is not finished.
 
 ## Operating principles
 
@@ -39,7 +46,7 @@ row's outcome verbatim at the top. Resolve `<notes-dir>` from the active phase �
 A `---` frontmatter block carries the technicals (status + the four fields below); the body carries
 prose only. Exact keys and headings, this order. The template ([tpl-todo.md](../references/tpl-todo.md))
 is this list as a fillable skeleton; they stay in lock-step. The **verification chain** runs first
-(type → Outcome → Terms → Changes → Autotest), then execution scaffolding — a human reads the
+(type → Outcome → Terms → Constraints → Changes → Autotest), then execution scaffolding — a human reads the
 frontmatter + body top-down and stops after Autotest; the implementer reads on.
 
 **Frontmatter** (`---` block, before the H1) — machine fields, all always required:
@@ -59,30 +66,32 @@ frontmatter + body top-down and stops after Autotest; the implementer reads on.
 | 1 | `TODO-N: <title>` | H1 | always | — |
 | 2 | `Outcome` | H2 | always | verify |
 | 3 | `New terms` | H2 | only if the TODO adds terms missing from GLOSSARY.md | verify |
-| 4 | `Changes` | H2 | always | verify |
-| 5 | `Autotest` | H2 | always | verify |
-| 6 | `Files` | H2 | always | scaffold |
-| 7 | `Pre-reads (MUST read before editing)` | H2 | always | scaffold |
-| 8 | `Skills to load` | H2 | always | scaffold |
-| 9 | `Manual test` | H2 | always | scaffold |
-| 10 | `Commit` | H2 | always | scaffold |
-| 11 | `Definition of done` | H2 | always | scaffold |
+| 4 | `Constraints` | H2 | always when `thoughts` is non-empty | verify |
+| 5 | `Changes` | H2 | always | verify |
+| 6 | `Autotest` | H2 | always — **both** a `Unit` and an `E2E` sub-block | verify |
+| 7 | `Files` | H2 | always | scaffold |
+| 8 | `Pre-reads (MUST read before editing)` | H2 | always | scaffold |
+| 9 | `Skills to load` | H2 | always | scaffold |
+| 10 | `Manual test` | H2 | always | scaffold |
+| 11 | `Commit` | H2 | always | scaffold |
+| 12 | `Definition of done` | H2 | always | scaffold |
 
 Missing any always field/element → invalid. Worked example: [../examples/ex-TODO.md](../examples/ex-TODO.md) — match its concreteness.
 
 ## The verification chain
 
-A correct TODO is self-explanatory: a human approves it by walking five elements, repo closed.
+A correct TODO is self-explanatory: a human approves it by walking six elements, repo closed.
 
-**type → Outcome → New terms → Changes → Autotest**
+**type → Outcome → New terms → Constraints → Changes → Autotest**
 
 | Element | Verifies | Link |
 |---------|----------|------|
 | `type` (frontmatter) | what kind of change — frames the rest | — |
 | Outcome | is this the right capability? (the anchor) | — |
 | New terms | right vocabulary, consistent with GLOSSARY.md? | grounds Outcome |
+| Constraints | which settled decisions bind this slice? | bounds Outcome |
 | Changes | does the behavior deliver the Outcome? | fulfills Outcome |
-| Autotest | do the tests prove the Outcome? | verifies Outcome |
+| Autotest | do the unit **and** e2e tests prove the Outcome? | verifies Outcome |
 
 Outcome is the anchor; Changes and Autotest are checked *against* it. Consistent chain → correct
 TODO. The rest — Files, Pre-reads, Skills, Commit, Manual test, Definition of done — is execution
@@ -99,7 +108,7 @@ The TODO's lifecycle phase — `todo → impl → verify → done`, `blocked` of
 One of `workflow | state machine | component | event handler | data shape change`. Determines the `## Changes` pattern — see the `flow-scetch` skill.
 
 ### depends_on
-`[]`, or `[TODO-M]`, or several (`[TODO-2, TODO-3]`) — each must reach `status: done` first. No forward references.
+`[]`, or `[TODO-M]`, or several (`[TODO-2, TODO-3]`) — each must reach `status: done` first. No forward references. This list defines the **waves** in `spec.md` § Plan, so record only real edges (`ref-write.md` § Waves): a file this TODO's **Files** cannot touch until M creates it, a symbol M introduces, or a test that cannot pass before M lands. "Feels later" is not an edge — a false one serializes the spec.
 
 ### risk
 A 1–5 score for **reach** — the surface a regression forces you to retest, not effort. A one-line edit to a shared type is a 5; a large isolated new module is a 1.
@@ -115,7 +124,7 @@ A 1–5 score for **reach** — the surface a regression forces you to retest, n
 Format: `risk: <1-5>` in frontmatter. Score ≥ 3 → Autotest/Manual test covers the callers, not just the new code. High score signals keep-it-small, not blocked.
 
 ### thoughts
-A list of every `thoughts/NNN-*.md` this TODO implements or is constrained by — the same notes as the spec.md Plan **trace**. Frontmatter list of slugs in note-number order (`thoughts: [003-decision-single-flight, 001-fact-token-ttl]`); each resolves to a real file. `[]` only when the spec has no thoughts yet.
+A list of every `thoughts/NNN-*.md` this TODO implements or is constrained by. Frontmatter list of slugs in note-number order (`thoughts: [003-decision-single-flight, 001-fact-token-ttl]`); each resolves to a real file. `[]` only when the spec has no thoughts yet. Provenance only — the constraint itself is restated in `## Constraints`, so the implementer never opens the note.
 
 ### Outcome
 **Capability, not implementation.** Answers *"what new can the system do once this lands?"* in use-case language.
@@ -143,6 +152,25 @@ Any domain term not in GLOSSARY.md gets a row here, immediately after Outcome, *
 
 `Kind` ∈ the GLOSSARY.md set. Description is one sentence with the visible contract (TTL, bounds, error semantics). No new terms → omit the section (never write `## New terms\nnone`).
 
+### Constraints
+
+The settled decisions this slice must obey, **restated in full** — one row per `thoughts` entry. Since
+`spec.md` keeps no Design Decisions, this section is the implementer's only source for them.
+
+```markdown
+## Constraints
+
+| Constraint | From |
+|------------|------|
+| A second refresh on the same token returns 409; never two valid pairs | [[003-decision-single-flight]] |
+| Refresh tokens expire 15 minutes after issue | [[002-fact-token-ttl]] |
+```
+
+- One sentence per row, in the imperative or as an invariant — what the code must do, not what was debated. No trade-off prose, no rejected alternatives: those stay in the note.
+- Every `thoughts` slug appears in exactly one row; a slug with nothing to restate does not belong in `thoughts`.
+- A constraint the tests can check gets a matching case in **Autotest**.
+- `thoughts: []` → omit the section (never write `## Constraints\nnone`).
+
 ### Changes
 TS pseudocode per the `flow-scetch` skill — one snippet per TODO. Multi-file change → still one snippet describing *behavior*; **Files** maps it to paths.
 
@@ -159,10 +187,33 @@ TS pseudocode per the `flow-scetch` skill — one snippet per TODO. Multi-file c
 ```
 ````
 
-New interface → written out in full (every field, method, doc comment), real syntax, one block per file. No `// ...` placeholders. The pseudocode shows *behavior*; the sub-block defines the *shape*. Both required when the surface changes. A decision belongs in spec.md Design Decisions, never buried in a `## Changes` `/* ... */`.
+New interface → written out in full (every field, method, doc comment), real syntax, one block per file. No `// ...` placeholders. The pseudocode shows *behavior*; the sub-block defines the *shape*. Both required when the surface changes. A decision belongs in a `thoughts/` note (and, restated, in `## Constraints`) — never buried in a `## Changes` `/* ... */`.
 
 ### Autotest
-`Level: unit | integration | e2e | none` (`none` only for non-behavioral changes, justified in one line). `Command` is one runnable shell command — never "run the relevant tests". `Cases` are one-sentence input → expected bullets. Derive the minimal-but-covering set via `test` (pairwise tiering).
+
+**Two levels, both required: `Unit` and `E2E`.** One TODO ships the behavior *and* the proof at both
+scales — that is what makes it self-contained. Neither level is optional by default.
+
+| Level | Proves | Scope |
+|-------|--------|-------|
+| `Unit` | the changed unit behaves, in isolation | the new/edited function, type, or component; no network, no DB, no process boundary |
+| `E2E` | the **Outcome** holds through the real entry point | the request/command enters where a user or caller enters it and the observable result is asserted |
+
+Each level carries, on its own bullets:
+- **Target files** — the test file path (`create` if new).
+- **Cases** — one-sentence `input → expected` bullets; each traces to the Outcome or to a `## Constraints` row. Derive the minimal-but-covering set via `test` (pairwise tiering).
+- **Command** — one runnable shell command. Never "run the relevant tests".
+
+A level that genuinely cannot exist is written `none — <one-line concrete reason>`; the reason names
+what makes it impossible, not that it feels redundant. Auto-reject: "covered by the unit test",
+"trivial", "no e2e harness" (name the missing harness and add a TODO for it instead). A pure refactor
+with no behavior change may set `E2E: none — no observable behavior changes; unit suite pins the
+reshaped API`, but only when the Outcome itself claims no new capability.
+
+For a TODO whose Outcome is not observable end-to-end alone (a leaf in `W1` that nothing calls yet),
+the `E2E` level names the wave-mate or later TODO whose e2e test covers it: `none — observable only
+via TODO-3; its E2E case asserts this path`. That is the one shape where an e2e gap is legal, and it
+must name the TODO.
 
 ### Manual test
 Required even when Autotest covers the behavior — catches integration / UX the suite can't see. `Steps` (literal commands) and `Expected` aligned 1:1. `Skip?` defaults to `no`; to skip, `skip — reason: <specific>`. Keep only cases a test can't prove (UX feel, log shape, real third-party behavior).
@@ -185,11 +236,13 @@ Edit in place, same `N` unless order changes (then renumber and update the ledge
 
 ## Pre-save checklist
 
-- [ ] All `always` elements present and ordered; `New terms` present iff the TODO adds terms
-- [ ] **Thoughts** links resolve to real files (`none` only if the spec has none)
+- [ ] All `always` elements present and ordered; `New terms` present iff the TODO adds terms; `Constraints` present iff `thoughts` is non-empty
+- [ ] **Thoughts** links resolve to real files (`[]` only if the spec has none), and every slug has a `## Constraints` row restating what it binds
+- [ ] **Self-contained**: with `spec.md` and `thoughts/` deleted, the TODO still says what to build and what to assert
+- [ ] **Autotest** has both a `Unit` and an `E2E` sub-block, each with Target files + Cases + one runnable Command — or `none — <concrete reason>` (an `E2E: none` that defers to another TODO names it)
 - [ ] Every **Files** / **Pre-reads** path exists (or is marked `create`)
 - [ ] `## Changes` is one TS snippet ≤ 40 lines, side effects + errors visible; changed interfaces have a diff block, new ones written out in full
 - [ ] **Outcome** is a capability in GLOSSARY.md terms — no paths, types, routes, libraries
-- [ ] `Autotest.Command` is one runnable command; **Manual test** Steps/Expected aligned 1:1
+- [ ] **Manual test** Steps/Expected aligned 1:1
 - [ ] `Commit.Subject` ≤ 72 chars, imperative; no vague verbs anywhere; no spec-Goal/AC references
-- [ ] Matching ledger row exists in `spec.md`
+- [ ] Matching ledger row exists in `spec.md`, and the TODO sits in exactly one `## Plan` wave whose members' **Files** sets are disjoint from this one's

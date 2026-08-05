@@ -14,6 +14,6 @@ Always call @implementer with background: true for implementation.
 4. **Replan guard** — if the TODO's assumptions no longer hold (the code moved, a dependency changed), stop and report instead of forcing the plan.
 5. **Implement** — make the change. Bug fix? Follow `references/../../red-green-refactor/SKILL.md` (Red → Green → Refactor); never skip the failing test.
 6. **Glossary** — if the change introduces or renames a domain term, update `<notes-dir>/GLOSSARY.md` in the same commit.
-7. **Autotest** — run the TODO's `## Autotest`. Must be green before committing.
+7. **Autotest** — run **both** commands in the TODO's `## Autotest`: `Unit` and `E2E`. Both green before committing (a level written `none` is skipped with its reason quoted in the report).
 8. **Commit** — on green, commit per `sub-commit.md`. The spec's `## Commit` block is the primary message. Then advance the TODO frontmatter `status: impl → verify` and fill the ledger row's Commit. `done` is set by the review gate (`reviewer`/`verifier`) on PASS; FAIL → `blocked`.
 9. **Report** — state what shipped, the TODO's new `status`, the test command + its real output, and stop. One TODO per invocation.

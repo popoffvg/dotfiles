@@ -13,8 +13,8 @@ Read `spec.md` frontmatter `status` (spec phase `init → review → impl`). Arg
 
 | `status` (or arg) | Subject | Source of truth |
 |---|---|---|
-| `init` / `review` / `spec` | **the spec** | `spec.md` (Goal, Decisions, Terms), `GLOSSARY.md`, each TODO's Outcome, `thoughts/` |
-| `impl` / `code` | **the code changes** | the branch diff (`git diff <target>...HEAD`) + the implemented `todos/TODO-N.md` (Outcome, Changes, Decisions) |
+| `init` / `review` / `spec` | **the spec** | `spec.md` (Goal, Terms, Plan), `GLOSSARY.md`, each TODO's Outcome, `thoughts/` |
+| `impl` / `code` | **the code changes** | the branch diff (`git diff <target>...HEAD`) + the implemented `todos/TODO-N.md` (Outcome, Constraints, Changes) |
 
 No `spec.md` and no diff → nothing to quiz; say so and stop.
 

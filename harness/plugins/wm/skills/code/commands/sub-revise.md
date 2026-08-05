@@ -22,7 +22,7 @@ Rewrites the notes so they match reality: an existing thought, a new one, and th
 Name what it touches:
 
 - **Thought** — the `thoughts/NNN-*.md` note(s) affected, or that a new one is needed.
-- **Spec sections** — Description / Design Decisions / Goal / ledger row(s) / `GLOSSARY.md`.
+- **Spec sections** — Description / Goal / ledger row(s) / `## Plan` waves / `GLOSSARY.md`. Decisions are never a spec section — they are thought notes (Step 3).
 - **TODO bodies** — `todos/TODO-N.md` outcome line and/or `## Changes`.
 
 For **post-impl drift**, locate TODO-N's commit(s) first (stop at first hit):
@@ -38,12 +38,12 @@ Inspect it (`git show --stat <sha>`, `git show <sha>`): files, symbols added/ren
 
 | Category | Meaning | Action |
 |----------|---------|--------|
-| **Decision change** | A choice was made differently | Supersede the decision note (Step 3); update spec.md **Design Decisions** |
+| **Decision change** | A choice was made differently | Supersede the decision note (Step 3); restate the new constraint in every affected TODO `## Constraints` |
 | **New fact** | A constraint/observation surfaced | Write a new `fact` note (Step 3); link from the decisions it constrains |
 | **Drift** | Impl differs from spec, outcome still met | Update TODO body `## Changes` to match reality |
 | **Outcome shift** | The observable result changed | Rewrite the outcome row in spec.md AND the outcome line in TODO-N.md (verbatim match); update the thought that motivated it |
 | **Scope creep** | Extra work landed / belongs elsewhere | Move it into that TODO, or add a new ledger row in spec.md |
-| **Missed step** | Planned work didn't land | Carry forward as a new ledger row, or drop it with a Design Decision note explaining why |
+| **Missed step** | Planned work didn't land | Carry forward as a new ledger row, or drop it with a `thoughts/NNN-decision-*.md` note explaining why |
 
 ## Step 3 — Maintain the thought graph
 
@@ -58,8 +58,8 @@ Thoughts are the source the spec compiles from — keep them correct, not just t
 
 `<notes-dir>/spec.md`:
 
-- Update ledger row(s) and Design Decisions per the deltas.
-- Refresh the **Decision trail** table in `## Plan` so it mirrors `thoughts/`.
+- Update ledger row(s) per the deltas. No Design Decisions section exists — the choice lives in its thought note (Step 3).
+- Refresh the **wave** table in `## Plan`: recompute waves from the current `depends_on` edges (`ref-write.md` § Waves), keeping each wave as wide as the real edges allow.
 - Set the frontmatter `status` to `review`.
 
 `<notes-dir>/GLOSSARY.md`: add, rename, or reword terms per the deltas.
@@ -89,7 +89,7 @@ Then stop. The user owns the next action (re-review, continue impl, re-verify).
 - [ ] Deltas categorized (decision change / new fact / drift / outcome shift / scope creep / missed step)
 - [ ] Thought graph maintained: notes changed/added/superseded, back-links + `links` updated, none deleted
 - [ ] Outcome-shifting or step-dropping edits confirmed with the user
-- [ ] spec.md rows/decisions updated; `## Plan` decision trail refreshed
+- [ ] spec.md rows updated; `## Plan` wave table recomputed from `depends_on`
 - [ ] `GLOSSARY.md` current
 - [ ] spec.md frontmatter `status` set to `review`
 - [ ] todos/TODO-N.md outcome restated; `## Changes` matches reality

@@ -24,7 +24,7 @@ Each skill: `SKILL.md` with `name:` + `description:` frontmatter; optional `refe
 
 ### WM Flow
 
-`/work:start` → research → spec → implement (worktree) → verify → `/work:done`
+`/wm:work-help` → research → spec → implement (worktree) → verify → `/wm:work-finish`
 
 State tracked in `work.settings.json`. Notes in `.notes/` — its own jj repo (history via `jj log`), git-ignored in the parent. Also holds plan + research.
 
@@ -50,13 +50,11 @@ claude --plugin-dir ~/git/dotfiles/harness/plugins/wm
 - **Markdown-only plugins** — no TypeScript, no build step, no MCP servers
 - **Stow-compatible paths** — repo structure mirrors `~/`. **Never create config files directly in `~/`** — always place them in the repo at the matching path and run `stow -t ~ .` to symlink. If a broken symlink or real file already exists at the target, remove it first before stowing.
 - **Atomic changes** — one logical change per commit, codebase always valid
-- **Plugin entry** — `<name>/.claude-plugin/plugin.json` manifest
-- **Skill entry** — `SKILL.md` with `name:`, `description:` frontmatter
 
 ## Install
 
 ```sh
-ansible-playbook .ansible/install_packages.yaml
+ansible-playbook ansible/install_packages.yaml
 mkdir -p ~/.claude/skills
 mise run stow
 ```

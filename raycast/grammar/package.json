@@ -1,0 +1,76 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "grammar",
+  "title": "Grammar",
+  "description": "Check English grammar with claude -p (haiku) and collect the topic of every fix",
+  "icon": "command-icon.png",
+  "author": "popoffvg",
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "check-grammar",
+      "title": "Check Grammar",
+      "description": "Fix grammar in a multiline text and log what kind of mistake it was",
+      "mode": "view"
+    },
+    {
+      "name": "grammar-topics",
+      "title": "Grammar Fix Topics",
+      "description": "Recurring grammar mistakes collected from previous checks",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "model",
+      "type": "textfield",
+      "required": false,
+      "title": "Model",
+      "description": "Model alias passed to claude -p --model",
+      "default": "haiku"
+    },
+    {
+      "name": "scriptPath",
+      "type": "textfield",
+      "required": false,
+      "title": "Script Path",
+      "description": "grammar-check.sh that runs the check and appends to the topic log",
+      "default": "~/.claude/scripts/grammar-check.sh"
+    },
+    {
+      "name": "logPath",
+      "type": "textfield",
+      "required": false,
+      "title": "Topic Log",
+      "description": "TSV file collecting one row per fix topic",
+      "default": "~/ctx/grammar/topics.tsv"
+    },
+    {
+      "name": "prefill",
+      "type": "checkbox",
+      "required": false,
+      "title": "Prefill",
+      "label": "Prefill the form with the selected text or clipboard",
+      "default": true
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.93.2",
+    "@raycast/utils": "^1.19.1"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.11",
+    "@types/node": "22.13.14",
+    "@types/react": "19.0.12",
+    "eslint": "^9.23.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}

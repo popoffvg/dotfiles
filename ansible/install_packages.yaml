@@ -76,7 +76,6 @@
     brew_casks:
       - ghostty
       - amazon-q
-      - claude-code
       - visual-studio-code
       - obsidian
       - slack
@@ -163,6 +162,14 @@
         cmd: curl -fsSL https://raw.githubusercontent.com/dmtrKovalenko/fff/main/install-mcp.sh | bash
       args:
         creates: "{{ ansible_env.HOME }}/.local/bin/fff-mcp"
+
+    # --no-modify-path: dot-zshrc already puts ~/.cargo/bin on PATH.
+    # Needed by Zed to compile dev extensions (it adds the wasm target itself).
+    - name: Install rustup
+      ansible.builtin.shell:
+        cmd: curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y --no-modify-path
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/rustup"
 
     # --- zinit (zsh plugin manager) ---
     - name: Install zinit
