@@ -98,6 +98,8 @@ One `todos/TODO-N.md` per ledger row, contiguous. Each has every `always` elemen
 
 **Self-containment (hard block).** Read one TODO with `spec.md` and `thoughts/` closed. If a constraint it obeys, a term it uses, or a test expectation is knowable only from those files, → NEEDS REVISION naming the missing restatement.
 
+**Over-statement (hard block, the same gate in reverse).** The gate cuts both ways — it may only ever push text *in* if it can also push text *out*, or every pass grows the file. → NEEDS REVISION when a `## Constraints` row names a rule no increment in `## Changes` can violate, when spec Description/Goal/target-picture prose was copied into the body, or when the body exceeds 150 lines (name the split, not the passage to compress).
+
 ### B2. Wave plan
 `## Plan` has the wave table; every ledger row appears in exactly one wave; no two TODOs in one wave share a **Files** path or a `depends_on` edge; every `depends_on` is a real edge per `ref-write.md` § Waves. A chain where each wave holds one TODO → report it as a finding (serialized spec) with the edges that look false.
 

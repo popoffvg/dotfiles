@@ -221,9 +221,9 @@ its own audience and bar, owned by `todo`. The user decides when the outcomes ar
 The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check against them.
 
 - [ ] `spec.md` opens with a `---` frontmatter block (`status`, `branch`, `drives`); no `Status`/phase-rules prose in the body
-- [ ] `spec.md` body has Description, Goal, What we're NOT doing, Design Decisions, Open Questions, the ledger, Plan, then a `---` rule, then Implementation Guidelines — in that order, nothing else
-- [ ] `## Plan` carries the target-picture summary and a Decision trail table mirroring `thoughts/` (absent only while `status: init`)
+- [ ] `## Plan` carries the target-picture summary (absent only while `status: init`)
 - [ ] `spec.md` body has Description, Guidelines, Goal, What we're NOT doing, the ledger, and the Plan — nothing else. No `Design Decisions`, no `Open Questions` section, no decision-trail table
+- [ ] `spec.md` is ≤ 200 lines — over budget → move detail to `thoughts/` or split the spec, never shrink the ledger
 - [ ] `GLOSSARY.md` exists (sibling), covers every entity/command/event in the spec, and is current
 - [ ] `CLAUDE.md` and `RULES.md` exist in the notes dir; `RULES.md` carries the four answered knobs, no `<…>` placeholder left
 - [ ] Every superseded thought sits in `thoughts/archived/`; no live note links to an archived one
@@ -246,6 +246,6 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 | "add X" / "fix Y" | Update Description / Goal + GLOSSARY.md, write the thought note for any choice it forces, **and** add or revise a ledger row (+ its wave). No body file — that's `todo`. |
 | "the outcome of TODO-N should be Z" | Edit entry N; confirm it follows the outcome rules. |
 | "split TODO-N" / "merge N and M" | Rewrite the rows, renumber contiguously, recompute the `## Plan` waves. |
-| "use approach Z" | Write a `thoughts/NNN-decision-*.md` note (and restate it in each affected TODO's `## Constraints`). |
+| "use approach Z" | Write a `thoughts/NNN-decision-*.md` note (and restate it in the `## Constraints` of each TODO whose increments can violate it — not in every TODO the note touches). |
 | "looks good" | Signal readiness. |
 | Option selection ("option A") | Execute immediately, don't re-ask. |

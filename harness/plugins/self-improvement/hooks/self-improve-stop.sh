@@ -39,6 +39,21 @@ if [ -n "$transcript" ] && [ -f "$transcript" ]; then
   if [ "$n" -lt 2 ] && [ "$docs" -eq 0 ]; then
     exit 0
   fi
+
+  # The prefilter above is session-wide, so once a long session passes it, it
+  # passes at every single stop -- the same capture prompt re-fires for the rest
+  # of the session, each re-fire costing a full-context turn. Block at most once
+  # per human turn: remember the human-message count at the last block and stay
+  # quiet until the user has spoken again.
+  state_dir="${TMPDIR:-/tmp}"
+  key=$(basename "$transcript" .jsonl)
+  state="$state_dir/self-improve-stop-$key.human-turns"
+  last=$(cat "$state" 2>/dev/null || echo 0)
+  case "$last" in (''|*[!0-9]*) last=0 ;; esac
+  if [ "$n" -le "$last" ]; then
+    exit 0
+  fi
+  printf '%s' "$n" > "$state"
 fi
 
 reason='If the user corrected you, said how they want a task done or how work is done in this repo, or you learned something non-obvious from docs or experiments this session, run the capture-lesson skill — it decides what counts and where the lesson goes. Otherwise stop silently — no status text.'

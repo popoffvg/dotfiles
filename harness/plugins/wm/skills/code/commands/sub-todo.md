@@ -20,9 +20,19 @@ anything — a path, a name, a test command, a decision — the TODO is broken. 
 
 **Self-contained means: the TODO alone is enough.** The implementer reads this one file and never
 opens `spec.md` or a thought note to know *what* to build. `spec.md` carries no Design Decisions to
-fall back on, so every constraint the TODO obeys is restated here in `## Constraints` — the note
-links are provenance, not required reading. Test the draft by asking: with `spec.md` and `thoughts/`
-deleted, could an implementer still write the code and both tests? If not, the TODO is not finished.
+fall back on, so a constraint **an increment of this TODO can violate** is restated here in
+`## Constraints` — the note links are provenance, not required reading. Test the draft by asking:
+with `spec.md` and `thoughts/` deleted, could an implementer still write the code and both tests?
+If not, the TODO is not finished.
+
+**Self-contained is not exhaustive.** Restate the rule, never its discussion: one `## Constraints`
+row, in the words the implementer must obey. A constraint no increment of this TODO can violate is
+not restated at all — it binds another TODO, and a second copy here is a copy that drifts. The same
+holds for the spec's Description, Goal, and target picture: they are the human reviewer's context,
+not the implementer's, and they never appear in a TODO body.
+
+**Budget — a TODO body is ≤ 150 lines.** Over budget means the TODO carries more than one
+deliverable: split it into two ledger rows, never shrink the diffs or drop the Autotest to fit.
 
 ## Operating principles
 
@@ -153,8 +163,9 @@ Any domain term not in GLOSSARY.md gets a row here, immediately after Outcome, *
 
 ### Constraints
 
-The settled decisions this slice must obey, **restated in full** — one row per decision. Since
-`spec.md` keeps no Design Decisions, this section is the implementer's only source for them.
+The settled decisions **an increment of this slice can violate** — one row per decision, the rule
+only. Since `spec.md` keeps no Design Decisions, this section is the implementer's only source for
+them; it is not a mirror of `thoughts/`.
 
 ```markdown
 ## Constraints
@@ -166,7 +177,7 @@ The settled decisions this slice must obey, **restated in full** — one row per
 ```
 
 - One sentence per row, in the imperative or as an invariant — what the code must do, not what was debated. No trade-off prose, no rejected alternatives: those stay in the note.
-- Every settled decision bearing on this TODO gets exactly one row; a decision with nothing to restate does not belong here.
+- Exactly one row per decision an increment can violate; a decision no increment can violate belongs to the TODO it binds, not to this one.
 - A constraint the tests can check gets a matching case in **Autotest**.
 - No settled decision binds this slice → omit the section (never write `## Constraints\nnone`).
 
@@ -312,6 +323,8 @@ Edit in place, same `N` unless order changes (then renumber and update the ledge
 - [ ] All `always` elements present and ordered; `New terms` present iff the TODO adds terms; `Constraints` present iff a settled decision binds this TODO
 - [ ] Every `## Constraints` row's `From` link resolves to a real `thoughts/` file
 - [ ] **Self-contained**: with `spec.md` and `thoughts/` deleted, the TODO still says what to build and what to assert
+- [ ] **Not over-stated**: every `## Constraints` row names a rule an increment below can violate; no spec Description/Goal/target-picture prose was copied in
+- [ ] Body ≤ 150 lines — over budget → split the ledger row, don't compress
 - [ ] **Autotest** has both a `Unit` and an `E2E` sub-block, each with Target files + Cases + one runnable Command — or `none — <concrete reason>` (an `E2E: none` that defers to another TODO names it)
 - [ ] Every **Files** / **Pre-reads** path exists (or is marked `create`)
 - [ ] `## Components` has exactly one `main` row, ≤ 5 rows, each a `package.Class` symbol; every row maps to a **Files** path and every non-test **Files** path maps to a row

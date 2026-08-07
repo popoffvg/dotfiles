@@ -38,7 +38,7 @@ Inspect it (`git show --stat <sha>`, `git show <sha>`): files, symbols added/ren
 
 | Category | Meaning | Action |
 |----------|---------|--------|
-| **Decision change** | A choice was made differently | Supersede the decision note (Step 3); restate the new constraint in every affected TODO `## Constraints` |
+| **Decision change** | A choice was made differently | Supersede the decision note (Step 3); restate the new constraint in the `## Constraints` of each TODO whose increments can violate it, and delete the stale row wherever it no longer binds |
 | **New fact** | A constraint/observation surfaced | Write a new `fact` note (Step 3); link from the decisions it constrains |
 | **Drift** | Impl differs from spec, outcome still met | Update TODO body `## Changes` to match reality |
 | **Outcome shift** | The observable result changed | Rewrite the outcome row in spec.md AND the outcome line in TODO-N.md (verbatim match); update the thought that motivated it |

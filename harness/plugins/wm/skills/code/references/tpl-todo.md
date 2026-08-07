@@ -23,7 +23,7 @@ risk: 3               # 1–5 blast radius — retest reach, not effort. 1 = loc
 
 ## Constraints
 
-<One row per settled decision, restated in full — this is the implementer's only source for settled decisions. Omit the section entirely when no settled decision binds this TODO. See todo.md § Constraints.>
+<One row per settled decision that an increment below can violate — this is the implementer's only source for settled decisions. Restate the rule, not its discussion. Omit a decision that binds a different TODO, and omit the section entirely when none binds this one. See todo.md § Constraints.>
 
 | Constraint | From |
 |------------|------|
