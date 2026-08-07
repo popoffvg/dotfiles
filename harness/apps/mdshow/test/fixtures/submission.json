@@ -1,0 +1,7 @@
+{
+  "overall": "Close, two problems.",
+  "comments": [
+    { "blockId": "b1", "kind": "fix", "body": "Add exponential backoff between attempts." },
+    { "blockId": "b3", "kind": "discuss", "body": "Why exactly two attempts?" }
+  ]
+}

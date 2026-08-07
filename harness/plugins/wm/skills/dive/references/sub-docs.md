@@ -242,7 +242,7 @@ Generated: <ISO date>
 | `src/server/index.ts` | server-index | [md](server-index.md) · [questions](server-index.questions.md) | HTTP request lifecycle from router to response |
 | `HandleRequest` | handle-request | [md](handle-request.md) · [questions](handle-request.questions.md) | Dispatch + middleware chain |
 
-**Workflow layer:** run `/dive workflow` to add `<ep-slug>.workflow.ts` + `flows.json` (render with `/flow-map`).
+**Workflow layer:** run `/dive workflow` to add `../workflows/<ep-slug>/<ep-slug>.workflow.ts` + `../workflows/flows.json` (render with `/flow-map`).
 ```
 
 If the `workflow` route already ran, add its `[workflow]` / `[flows.json]` links to the table.

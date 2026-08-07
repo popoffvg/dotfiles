@@ -20,13 +20,25 @@
       "name": "self-improvement",
       "source": "./harness/plugins/self-improvement",
       "description": "Captures generalizable behavioral rules from user corrections on session end (Stop hook), writes each into a new or existing skill with the capture-lesson skill, and consolidates the accumulated skill corpus with the dream skill.",
-      "version": "0.12.0"
+      "version": "0.13.0"
+    },
+    {
+      "name": "show",
+      "source": "./harness/plugins/show",
+      "description": "Show a markdown file in a native review window, wait for the reader's inline annotations, and act on them. /show reviews an existing file, /show:draft writes one from a prompt first.",
+      "version": "0.7.0"
+    },
+    {
+      "name": "vocab",
+      "source": "./harness/plugins/vocab",
+      "description": "In-memory topic index served over MCP: one topic points at the one file that carries its truth. Starts empty each session, never written to disk. A UserPromptSubmit hook loads the tools on the first message and reminds the agent every 15 minutes to file what it read.",
+      "version": "0.3.0"
     },
     {
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.30.0"
+      "version": "2.33.0"
     }
   ]
 }

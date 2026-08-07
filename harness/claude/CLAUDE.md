@@ -1,12 +1,15 @@
 
+## Rules
+
+- use DRY (don't repeat yourself) as a first class principle
+- Don't your Co-Author to the commit messages
+- Don't add references to the specification to implementation
+
 ## Language
 
-Write in simple English. English is not my first language.
-
-- Use short, common words. No idioms, no metaphors, no rare words.
-- One idea per sentence. Keep sentences short.
-- Keep technical terms, file paths, and code names exact — do not simplify those.
-- Explain a new term the first time you use it, in one short clause.
+- use ASD-STE100
+- one paragraph per one idea, mark it **bold**. First sentence is a brief summary. After introducing the idea, explain the details.
+- never use short slug like M-01. Use meaningful names that bring the short description.
 
 ## Tools
 
@@ -14,25 +17,6 @@ Write in simple English. English is not my first language.
 - perl for multi-editing files, not bash.
 
 When a request says "do X as/like existing Y" (mirror a pattern), find the missing parallel in the actual diff/code — don't propose new mechanisms, scope expansions, or alternative shapes. Re-read the diff first. Copy Y's exact structure; don't substitute a "better" variant (e.g. inline vs reference).
-
-## Coding tasks
-
-Score complexity like AdaBoost — sum weak signals into one score, then let the total pick the branch. Show the score before starting.
-
-```
-score = Σ signals (each true = +1):
-  +1  touches more than a few functions
-  +1  needs new tests
-  +1  adds a feature (not just a fix)
-  +1  spans multiple components / medium+ size
-  +1  large or cross-cutting change
-
-total → 1  fix a few functions ────────┐
-        2  tests, or 1–2 functions ─────┤→ implement directly
-        3  a feature ───────────────────┐
-        4  medium feature + tests ──────┤→ delegate to implementer agent
-        5  large feature + tests ───────┘
-```
 
 ## Design principles
 
@@ -45,6 +29,16 @@ When you're doing a design task or suggest a solution **ALWAYS** use the existin
 → Register each in `~/.claude/scripts/MANIFEST.md`: `| filename | description |`.
 → Before writing a new script, check MANIFEST.md — reuse or extend an overlapping one.
 → Idempotent, accept args where useful, `chmod +x` on creation.
+
+## Opening files for the operator
+
+**Never choose an editor inline — call `~/.claude/scripts/open-file.sh [--wait] <file>...`.**
+It routes to the host the session runs in: a Zed terminal opens the file in the window
+already on screen (`zed --existing`), a herdr pane opens `$EDITOR` in a zoomed split
+under the calling pane, and anywhere else it prints the path and opens nothing. A TUI
+editor started from a Bash call has no tty and dies with EAGAIN (os error 35), so the
+host has to decide. Use `--wait` when the operator must finish editing before the
+caller reads the file back.
 
 ---
 

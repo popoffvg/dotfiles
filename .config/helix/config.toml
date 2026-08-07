@@ -1,7 +1,7 @@
 theme = "horizon-dark"
 
 [editor]
-shell = ["nu", "-c"]
+shell = ["sh", "-c"]
 
 [editor.soft-wrap]
 enable = true

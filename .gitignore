@@ -62,6 +62,9 @@ tv-*/
 # Zed prompt DB (binary, machine-local)
 .config/zed/prompts/*.mdb/
 
+# Memory-server runtime stores (binary, machine-local) — written where the agent is launched
+data/
+
 # Helix runtime (large, fetched by helix)
 .config/helix/runtime
 

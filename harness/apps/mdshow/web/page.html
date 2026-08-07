@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>__TITLE__</title>
+    <style>
+      __STYLE__
+    </style>
+  </head>
+  <body>
+    <header>
+      <select class="files" id="files" aria-label="File to review"></select>
+      <button class="mark" id="reviewed" aria-pressed="false">Mark reviewed <kbd>⌘⇧R</kbd></button>
+      <div class="actions">
+        <span class="count" id="count"></span>
+        <span class="count" id="progress"></span>
+        <button class="ghost" id="cancel">Close without feedback <kbd>esc</kbd></button>
+        <button class="primary" id="submit">Send feedback <kbd>⌘⏎</kbd></button>
+      </div>
+    </header>
+    <main>
+      <section class="doc" id="doc"></section>
+      <aside class="panel">
+        <label class="overall-label" for="overall">Overall note</label>
+        <textarea id="overall" placeholder="One note about the whole document (optional)"></textarea>
+        <div class="list-head">Comments</div>
+        <ol class="list" id="list"></ol>
+        <p class="hint">Click any block on the left to comment on it. <kbd>⌘⏎</kbd> sends every comment on every
+          file, <kbd>esc</kbd> closes. Pick the file in the header, or <kbd>⌘⌥←→</kbd>. <kbd>⌘⇧R</kbd> marks the
+          file reviewed.</p>
+      </aside>
+    </main>
+    <script>
+      window.__MDSHOW__ = __PAYLOAD__;
+    </script>
+    <script>
+      __APP__
+    </script>
+  </body>
+</html>

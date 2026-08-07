@@ -33,6 +33,21 @@ run = [
   "stow --dotfiles --target=$HOME --dir={{config_root}} --delete git",
 ]
 
+[tasks."harness:vocab:build"]
+description = "Build the vocab MCP server → ~/.local/bin/vocab-mcp"
+dir = "{{config_root}}/harness/apps/vocab"
+sources = ["harness/apps/vocab/**/*.go", "harness/apps/vocab/go.sum"]
+outputs = ["{{env.HOME}}/.local/bin/vocab-mcp"]
+run = """
+version=$(jq -r .version {{config_root}}/harness/plugins/vocab/.claude-plugin/plugin.json)
+go build -ldflags "-X main.version=$version" -o $HOME/.local/bin/vocab-mcp ./cmd/vocab-mcp
+"""
+
+[tasks."harness:vocab:test"]
+description = "Test the vocab MCP server"
+dir = "{{config_root}}/harness/apps/vocab"
+run = "go test ./... -race -count=1"
+
 [tasks."harness:plugins:sync"]
 description = "Regenerate local-plugins marketplace.json from harness/plugins/"
 sources = ["harness/plugins/*/.claude-plugin/plugin.json"]

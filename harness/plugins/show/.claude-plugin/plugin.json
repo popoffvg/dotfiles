@@ -1,0 +1,5 @@
+{
+  "name": "show",
+  "description": "Show a markdown file in a native review window, wait for the reader's inline annotations, and act on them. /show reviews an existing file, /show:draft writes one from a prompt first.",
+  "version": "0.7.0"
+}

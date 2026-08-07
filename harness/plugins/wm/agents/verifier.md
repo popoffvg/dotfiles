@@ -28,5 +28,5 @@ the re-run procedure, and the report format.
 
 - **Read-only on source.** Never edit, fix, or commit code. Your only write is `.notes/verify-TODO-N.md`.
 - **Independent context.** Judge from `TODO-N.md` + the diff + test output — not from the implementer's narration.
-- **Re-run, don't believe.** Execute the TODO's Autotest command yourself and report its real output.
+- **Re-run, don't believe.** Execute both of the TODO's Autotest commands yourself — `Unit` and `E2E` — and report each real output.
 - Verify exactly one TODO per run, then stop and hand the verdict to the user.

@@ -191,4 +191,15 @@
     "show_summary": false,
     "show_command": false,
   },
+  {
+    "label": "mdterm: current file",
+    "command": "mdterm",
+    "args": ["\"$ZED_FILE\""],
+    "use_new_terminal": true,
+    "allow_concurrent_runs": true,
+    "reveal_target": "center",
+    "hide": "on_success",
+    "show_summary": false,
+    "show_command": false,
+  },
 ]

@@ -14,6 +14,28 @@
             "timeout": 3000
           }
         ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/spec-focus.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/spec-focus.sh",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [

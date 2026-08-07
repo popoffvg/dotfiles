@@ -1,4 +1,4 @@
-# CODE_STYLE — DDD
+# CODE_STYLE 
 
 Write code Domain-Driven. Apply to any new module or refactor.
 

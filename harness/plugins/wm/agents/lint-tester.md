@@ -26,7 +26,7 @@ command + cases). Read the actual diff (`git diff` / `git show HEAD`) to see the
 
 1. **Locate changes** — from the diff and the TODO's Files, list the changed source files.
 2. **Lint** — run the project's linter over those files only (detect it: `golangci-lint run <pkgs>`, `eslint`, `ruff`, `shellcheck`, etc. — read the repo config, don't guess a tool that isn't configured).
-3. **Related tests** — run the TODO's Autotest command. Also run the tests that cover the changed files (same package/dir). Report the real command + real output.
+3. **Related tests** — run both of the TODO's Autotest commands (`Unit` and `E2E`). Also run the tests that cover the changed files (same package/dir). Report the real command + real output.
 4. **Verdict** — any lint violation or failing test → **FAIL**.
 
 ## Output contract

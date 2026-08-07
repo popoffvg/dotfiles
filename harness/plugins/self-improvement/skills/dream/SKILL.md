@@ -10,12 +10,24 @@ disable-model-invocation: true
 
 Consolidate the skill corpus that capture-lesson accumulates. That skill writes each new lesson *down* into one skill as a fine-grained piece. `dream` walks the corpus *up*: the inverse pass. Run on demand (`/dream`), not automatically.
 
-Three operations, all suggested for review before any write:
+Before consolidating, `dream` also harvests the sessions the Stop hook flagged interesting but never turned into lessons — see Step 0 below. Three consolidation operations, all suggested for review before any write:
 
 - **prune** — drop a rule whose anchor is dead (file/flag/workflow gone) or that never fires. Applies to a whole skill or a single rule inside a body.
 - **unite** — merge rules that share a trigger into the sharper one — whole skills, or bullets within one body.
 - **generalize** — lift an over-specific rule (or a cluster of near-duplicates) into one broader rule that subsumes them.
 - **move** — relocate a rule from a skill whose trigger no longer fits it to one that does (a rule bundled in the wrong skill).
+
+# Step 0 — Harvest interesting transcripts
+
+The Stop hook's triage subagent ([[capture-lesson]] `references/triage.md`) only flags a session interesting — any user correction, no recurrence judgment — and archives it under `~/.claude/self-improvement/lessons/<date>-session-<session-id>.jsonl`. The `session` slug marks it unharvested: nobody has yet judged whether the correction it contains is a real, recurring lesson. `dream` closes that loop, in batch, before consolidating:
+
+1. **List unharvested archives.** `~/.claude/self-improvement/lessons/*-session-*.jsonl` — any other slug has already been through this step.
+2. **Read the transcript's `.env.md` sidecar first.** Every archived transcript has one beside it, written by triage: the session topic and one row per git repo that was in context, with branch and origin remote. Read it before the transcript — it is a few lines, and it is where the scope decision's evidence lives. The archive outlives the working directories, so the sidecar is often the only surviving record of which repo a correction was about; never re-derive that from the cwd you are in now.
+3. **Per transcript, find and judge corrections.** Extract human prompts (`${CLAUDE_PLUGIN_ROOT}/scripts/human-turns.sh <transcript>`), mark the ones that correct behavior, read the surrounding context (`Read` with `offset`/`limit`) to see what the assistant did. Judge recurrence exactly as [[capture-lesson]] Step 1 does: would you teach this to a colleague, or is it a one-off tied to that session's specific content? A transcript with no recurring correction is harvested with nothing to show for it — delete its interim `.jsonl` **and its `.env.md`**, move to the next transcript.
+4. **Run capture-lesson on what survives.** For each correction that recurs, run [[capture-lesson]] Steps 1–5 (scope, form, find-or-write skill, `CASE.md`, archive) as if the Stop hook had run it live. Feed the sidecar's repo rows into Step 1's scope choice and into the `CASE.md` `Repo:` field. Step 5 there replaces the interim archive with the final case-slugged copy and removes the `session`-slugged one.
+5. **Report the harvest** before moving on to consolidation below — how many transcripts were unharvested, how many produced a kept lesson vs. were dropped as non-recurring, and which repos they came from (from the sidecars).
+
+Then continue to the consolidation flow, which now also sees whatever skills this step just wrote or extended.
 
 # Flow
 

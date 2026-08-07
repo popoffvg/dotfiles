@@ -22,7 +22,7 @@ Open design decisions count as such a batch. Before building an artifact, page, 
    - **Original** — the comment/question/text verbatim, quoted.
    - **Recommended** — the drafted answer or action, ready to accept or overwrite.
 3. Put an editable answer slot the operator fills: an `**Answer:**` line left blank or pre-filled with the recommendation.
-4. Tell the operator the file path and how to edit (accept the recommendation, or replace the `Answer:` line).
+4. Open the file with `~/.claude/scripts/open-file.sh <file>`, then tell the operator the path and how to edit (accept the recommendation, or replace the `Answer:` line). The script picks the host — Zed window, herdr split pane, or path only. Never call an editor directly.
 5. Extract only the answered slots — grep `^\*\*Answer:\*\*` — don't reparse the file.
 
 ## Block template

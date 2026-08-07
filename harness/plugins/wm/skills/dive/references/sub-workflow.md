@@ -10,20 +10,38 @@ points are the source of the cited locations). If no `.md` exists for an entry p
 
 ## Output
 
-Per entry point `<ep-slug>`, in `$RESEARCH_DIR/`:
+Workflow artifacts live in `$WORKFLOWS_DIR` — **not** in `$RESEARCH_DIR`. Each flow gets **its own
+folder**, named after the flow (`<ep-slug>`):
+
+```
+$WORKFLOWS_DIR/                       # <notes-dir>/workflows/
+├── _flow.entities.d.ts               # shared ambient types
+├── tsconfig.json                     # one config for every flow folder
+├── flows.json                        # aggregated flows document
+├── components/
+│   └── runner-controller.d.ts        # shared component declarations
+├── handle-request/                   # one folder per flow
+│   ├── handle-request.workflow.ts
+│   └── handle-request.bindings.json
+└── invite-user/
+    ├── invite-user.workflow.ts
+    └── invite-user.bindings.json
+```
+
+Per flow `<ep-slug>`, in `$WORKFLOWS_DIR/<ep-slug>/`:
 
 | File | Purpose |
 |---|---|
 | `<ep-slug>.workflow.ts` | Typed TS pseudocode — clean, no inline paths (schema below) |
 | `<ep-slug>.bindings.json` | ULID → real source for the notable `if` branches in the workflow |
 
-Shared across the research dir (write once, append as entry points are processed):
+Shared across all flows, at `$WORKFLOWS_DIR/` (write once, append as entry points are processed):
 
 | File | Purpose |
 |---|---|
 | `components/<name>.d.ts` | Typed declaration of each app component in pseudocode, with `@source` tag to its real (possibly non-TS) source. Powers autocomplete + reveal. |
 | `_flow.entities.d.ts` | Shared ambient types used by the workflow files (`Request`, `Response`, domain types, binding shapes) |
-| `tsconfig.json` | Includes the workflow files + `components/*.d.ts` + `_flow.entities.d.ts` so the editor's TS server offers autocomplete/diagnostics |
+| `tsconfig.json` | Includes every `<flow>/*.workflow.ts` + `components/*.d.ts` + `_flow.entities.d.ts` so the editor's TS server offers autocomplete/diagnostics |
 
 After all entry points are processed:
 
@@ -43,8 +61,9 @@ The file exports:
 2. One pseudocode function per workflow (typically one — the entry point).
 
 ```ts
-import type { Request, Response, Body } from "./_flow.entities";
-import { RunnerController } from "./components/runner-controller";
+// Shared types + components live one level up, at $WORKFLOWS_DIR/.
+import type { Request, Response, Body } from "../_flow.entities";
+import { RunnerController } from "../components/runner-controller";
 
 export const meta = {
   name: "handle-request",        // matches <ep-slug>
@@ -77,7 +96,7 @@ export function flow(req: Request): Response {
 
 Rules:
 - **Clean, typed TS.** Parses and type-checks against `components/*.d.ts` + `_flow.entities.d.ts`. No raw paths inside the code, no `/* ... */` blobs hiding logic.
-- **Components are typed symbols, not free identifiers.** Anything that maps to a real app component (e.g. `RunnerController`) is referenced via an `import` from `./components/<name>.d.ts`. This is what gives autocomplete. Declare the component in its `.d.ts` (below) the first time you use it.
+- **Components are typed symbols, not free identifiers.** Anything that maps to a real app component (e.g. `RunnerController`) is referenced via an `import` from `../components/<name>.d.ts`. This is what gives autocomplete. Declare the component in its `.d.ts` (below) the first time you use it.
 - **Imperative, top-to-bottom.** Happy + error paths in execution order. No `steps[]` graph, no `id`/`calls` indirection.
 - **All branches visible.** Every `if`, `switch`, early return, `throw`, async fan-out is shown.
 - **Notable branches carry a ULID.** A branch that maps to real branching logic gets a trailing `// <ULID>` comment (generate with `~/.claude/scripts/flow-ulid.mjs`). Map each ULID to its real source in `<ep-slug>.bindings.json`. Plain control-flow scaffolding needs no ULID — only branches worth revealing.
@@ -90,7 +109,7 @@ Rules:
 
 Two binding layers keep the `.ts` clean while every symbol and branch reveals to real source.
 
-### Component declarations — `components/<name>.d.ts`
+### Component declarations — `$WORKFLOWS_DIR/components/<name>.d.ts`
 
 One declaration file per app component referenced in pseudocode. Declares the API (for autocomplete)
 and binds each symbol to its **real source** with a `@source <path:line>` JSDoc tag. The real source
@@ -112,9 +131,10 @@ export declare class RunnerController {
 }
 ```
 
-### Notable-if bindings — `<ep-slug>.bindings.json`
+### Notable-if bindings — `<ep-slug>/<ep-slug>.bindings.json`
 
-Maps each notable-branch ULID to its real source.
+Maps each notable-branch ULID to its real source. It sits **beside its own `.workflow.ts`**, in the
+flow folder — that sibling position is how `flow-reveal.mjs` finds it.
 
 ```json
 {
@@ -130,11 +150,11 @@ that one branch.
 ### Verify + autocomplete plumbing
 
 - **Verify every citation.** Open each `@source` and each `bindings.json` `source` before writing it. Then run the lint:
-  `~/.claude/scripts/flow-reveal.mjs check <research-dir>` — fails if any ULID/`@source` points at a missing path or past-EOF line.
-- **`tsconfig.json`** in the research dir makes the editor type-check + autocomplete the workflow files:
+  `~/.claude/scripts/flow-reveal.mjs check $WORKFLOWS_DIR` — it walks the flow folders recursively and fails if any ULID/`@source` points at a missing path or past-EOF line.
+- **`tsconfig.json`** at `$WORKFLOWS_DIR/` makes the editor type-check + autocomplete every flow folder:
   ```json
   { "compilerOptions": { "noEmit": true, "checkJs": false, "module": "esnext", "moduleResolution": "bundler" },
-    "include": ["*.workflow.ts", "components/*.d.ts", "_flow.entities.d.ts"] }
+    "include": ["*/*.workflow.ts", "components/*.d.ts", "_flow.entities.d.ts"] }
   ```
 - **Reveal in the editor (Zed):** cursor on a notable-`if` line → reveal key opens its real source via the ULID; for a component, `cmd-click` jumps into its `.d.ts`, then the reveal key on that line opens the `@source`. Both run `flow-reveal.mjs reveal`. See `.config/zed/tasks.json` + `keymap.json`.
 
@@ -145,7 +165,7 @@ machine-readable, navigable spec. They must agree on the cited locations.
 ## Aggregated `flows.json`
 
 After all entry points are processed, combine their workflows into a single document at
-`$RESEARCH_DIR/flows.json` that the `explore-flow-map` skill renders as interactive HTML. Schema:
+`$WORKFLOWS_DIR/flows.json` that the `explore-flow-map` skill renders as interactive HTML. Schema:
 
 ```jsonc
 {
@@ -175,15 +195,16 @@ package of the cited file).
 
 ## Procedure
 
-1. **Resolve `<notes-dir>` and `$RESEARCH_DIR`** (router "Output location"). Require existing `<ep-slug>.md` artifacts — if missing, run `docs` first.
-2. **Pick entry points.** Default: every `<ep-slug>.md` in `$RESEARCH_DIR` without a `.workflow.ts`. User may name a subset.
-3. **For each entry point, spawn a subagent in parallel** (single message, multiple `Agent` calls). Brief each with:
-   - The `<ep-slug>.md` (the cited locations to mirror) and the absolute `$RESEARCH_DIR`
-   - **The full "Workflow TS schema" + "Path binding" sections verbatim**
+1. **Resolve `<notes-dir>`, `$RESEARCH_DIR` and `$WORKFLOWS_DIR`** (router "Output location"). Require existing `<ep-slug>.md` artifacts in `$RESEARCH_DIR` — if missing, run `docs` first.
+2. **Create the layout:** `mkdir -p "$WORKFLOWS_DIR/components"`.
+3. **Pick entry points.** Default: every `<ep-slug>.md` in `$RESEARCH_DIR` with no `$WORKFLOWS_DIR/<ep-slug>/` folder. User may name a subset.
+4. **For each entry point, spawn a subagent in parallel** (single message, multiple `Agent` calls). Brief each with:
+   - The `<ep-slug>.md` (the cited locations to mirror) and the absolute `$WORKFLOWS_DIR`
+   - **The full "Output" + "Workflow TS schema" + "Path binding" sections verbatim**
    - "Verify every `@source` and every `bindings.json` `source` by reading the file — do not guess. Prefer absolute paths."
-   - "Emit `<ep-slug>.workflow.ts` + `<ep-slug>.bindings.json`, and append any new component to `components/<name>.d.ts`."
-4. **Wait for all subagents.** Write/refresh `_flow.entities.d.ts` and `tsconfig.json`.
-5. **Lint:** run `~/.claude/scripts/flow-reveal.mjs check $RESEARCH_DIR`. Fix any missing/past-EOF citation before continuing.
-6. **Aggregate** all per-entry workflows into `$RESEARCH_DIR/flows.json`. Deduplicate packages by `id`.
-7. **Update** `$RESEARCH_DIR/INDEX.md` — add `[workflow]` links and the `flows.json` line.
-8. **Print** the research dir path and suggest `/flow-map` against `$RESEARCH_DIR/flows.json` for an interactive HTML view.
+   - "Create `$WORKFLOWS_DIR/<ep-slug>/` and emit `<ep-slug>.workflow.ts` + `<ep-slug>.bindings.json` inside it. Append any new component to `$WORKFLOWS_DIR/components/<name>.d.ts` — shared, one level up. Import shared types and components with `../`."
+5. **Wait for all subagents.** Write/refresh `$WORKFLOWS_DIR/_flow.entities.d.ts` and `$WORKFLOWS_DIR/tsconfig.json`.
+6. **Lint:** run `~/.claude/scripts/flow-reveal.mjs check $WORKFLOWS_DIR`. Fix any missing/past-EOF citation before continuing.
+7. **Aggregate** all per-flow workflows into `$WORKFLOWS_DIR/flows.json`. Deduplicate packages by `id`.
+8. **Update** `$RESEARCH_DIR/INDEX.md` — add `[workflow]` links pointing at `../workflows/<ep-slug>/<ep-slug>.workflow.ts` and the `flows.json` line.
+9. **Print** the workflows dir path and suggest `/flow-map` against `$WORKFLOWS_DIR/flows.json` for an interactive HTML view.

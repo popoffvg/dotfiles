@@ -9,8 +9,8 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 
 | Subcommand | Does |
 |---|---|
-| `new` *(default)* | Spec pipeline: write spec.md (if missing) → grill → produce thoughts/ → compile plan → stop at the gate. Does not write TODO bodies — the human reviews the spec first. |
-| `todo` | Author `todos/TODO-N.md` bodies from a reviewed spec.md + thoughts/. Runs only past the gate. |
+| `new` *(default)* | Spec pipeline: init the corpus (CLAUDE.md, RULES.md — asks the four rule questions), write spec.md (if missing) → grill until no open question note is left in thoughts/ → compile the plan with its wave table → stop at the gate. Does not write TODO bodies — the human reviews the spec first. |
+| `todo` | Author self-contained `todos/TODO-N.md` bodies (restated Constraints, Unit + E2E tests) from a reviewed spec.md + thoughts/. Runs only past the gate. |
 | `verify` | Audit a spec before implementation in a separate `spec-verifier` agent (sonnet, read-only) — hunts contradictions, missing parts, edge cases. READY / NEEDS REVISION. |
 | `revise` | Fix spec.md / todos and change or add a thoughts/ note; settles the review phase (resets the spec `status` to review). Notes-only. |
 | `quiz` | Test the human's understanding — build a multiple-choice quiz over the spec (`status` init/review) or the code changes (`status` impl), grade the answers, report a score. Read-only; edits no artifact. |

@@ -7,6 +7,13 @@
 // custom settings, run the `open default settings` command
 // from the command palette or from `Zed` application menu.
 {
+  "markdown_preview_font_family": ".SystemUIFont",
+  "markdown_preview_code_font_family": ".ZedMono",
+  "tabs": {
+    "show_diagnostics": "errors"
+  },
+  "show_wrap_guides": true,
+  "reduce_motion": "on",
   "colorize_brackets": true,
   "indent_guides": {
     "coloring": "fixed",
@@ -49,18 +56,15 @@
     "font_family": "FiraMono Nerd Font",
     "show_count_badge": false,
   },
-  "theme": {
-    "mode": "dark",
-    "light": "One Light",
-    "dark": "Catppuccin Macchiato",
-  },
+  "theme": "Catppuccin Macchiato",
   "code_lens": "off",
   "proxy": "",
   "telemetry": {
     "diagnostics": true,
     "metrics": true,
   },
-  "restore_on_startup": "empty_tab",
+  "restore_on_startup": "none",
+  "when_closing_with_no_tabs": "keep_window_open",
   "enable_language_server": true,
   "which_key": {
     "enabled": true,
@@ -89,11 +93,7 @@
     "enabled": true,
   },
   "ui_font_fallbacks": ["FiraCode Nerd Font Mono"],
-  "icon_theme": {
-    "mode": "dark",
-    "light": "Catppuccin Latte",
-    "dark": "Catppuccin Macchiato",
-  },
+  "icon_theme": "Catppuccin Macchiato",
   "title_bar": {
     "show_branch_status_icon": true,
   },
@@ -124,9 +124,19 @@
     },
     "auto_reveal_entries": false,
     "dock": "right",
+    "starts_open": false,
   },
   "collaboration_panel": {
     "dock": "right",
+    "starts_open": false,
+  },
+  "chat_panel": {
+    "dock": "right",
+    "starts_open": false,
+  },
+  "notification_panel": {
+    "dock": "right",
+    "starts_open": false,
   },
   "helix_mode": true,
   "agent_servers": {
@@ -244,7 +254,7 @@
     "model_parameters": [],
   },
   "git_panel": {
-    "group_by": "status",
+    "group_by": "staging",
     "dock": "right",
     "tree_view": true,
   },
@@ -269,7 +279,7 @@
     },
     "gopls": {
       "binary": {
-        "path": "/Users/popoffvg/.local/share/mise/shims/gopls",
+        "path": "/Users/vitaliipopov/.local/share/mise/shims/gopls",
       },
     },
     "golangci-lint": {
@@ -322,6 +332,10 @@
       "language_servers": ["bookmark-language-server"],
     },
     "Markdown": {
+      "indent_guides": {
+        "coloring": "fixed",
+        "enabled": true
+      },
       "language_servers": ["marksman"],
     },
   },
