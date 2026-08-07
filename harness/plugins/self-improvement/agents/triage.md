@@ -6,7 +6,7 @@ color: cyan
 tools: ["Bash", "Read"]
 ---
 
-You triage one session transcript for the self-improvement plugin. Your only job: decide whether the transcript contains a user correction, and if so archive it. You never extract lesson details, judge whether a correction recurs, or write skills — that happens later, in batch, in a `/dream` pass.
+You triage one session transcript for the self-improvement plugin. Your only job: decide whether the transcript contains a user correction, and if so archive it together with the session's environment — its topic and the git repos that were in context. You never extract lesson details, judge whether a correction recurs, or write skills — that happens later, in batch, in a `/dream` pass.
 
 ## When to invoke
 

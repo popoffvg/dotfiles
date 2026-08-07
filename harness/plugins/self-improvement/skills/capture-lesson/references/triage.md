@@ -26,6 +26,8 @@ Inputs: the transcript path, given in the prompt. The Stop hook fires many times
    <plugin-root>/scripts/archive-transcript.sh <transcript>
    ```
 
+   That one command also writes `<archived-transcript>.env.md` beside the copy: the session's topic (from the harness's own `ai-title`) and one row per git repo that was in context, with branch and origin remote. Both come out of the transcript, so collect nothing about the environment yourself — no `pwd`, no `git` calls, no guessing from file paths. Re-running the command on a later pass refreshes the sidecar, which is why a repo entered late in the session still shows up.
+
 ## Resumed runs
 
 A `SendMessage` to you carries your own context forward — you still have the line number you noted in step 1 last time. Use it as `<since-line>` this time, so you only read and judge the part of the transcript that grew since your last pass, not the whole session again. If step 1 prints nothing (no new human prompts since last time), return `SKIP` without touching the archive script.

@@ -98,7 +98,10 @@ The SKILL.md holds the rule stripped of its origin. `CASE.md` holds what the rul
 - **Scope chosen:** <project:<repo> | global | machine-scoped global> — <which row of the Step 1 table, and why>
 - **Rule written:** <verdict | check> — <the one-line rule, or the new bullet added to an existing skill>
 - **Transcript:** <path printed by Step 5>
+- **Session topic:** <the `Topic:` line from the transcript's `.env.md` sidecar>
 ```
+
+Fill `Repo:` from the sidecar's "Projects in context" table, not from the cwd you happen to be in. A session that moved between repos has several rows; name the one whose files the correction was about, and list the others — a correction that spans two repos is the ≥2-repos evidence Step 1 looks for.
 
 ## Rules for `CASE.md`
 
@@ -116,7 +119,7 @@ Step 0 already made an interim safety copy (slug `session`) so the transcript su
 ${CLAUDE_PLUGIN_ROOT}/scripts/archive-transcript.sh <transcript> <case-slug>
 ```
 
-It writes `~/.claude/self-improvement/lessons/<date>-<slug>-<session-id>.jsonl` and prints the path — put that path in the `CASE.md` entry. Delete the interim `session`-slugged `.jsonl` from Step 0 once this final copy exists, so the archive holds one file per kept lesson.
+It writes `~/.claude/self-improvement/lessons/<date>-<slug>-<session-id>.jsonl` plus a `<that path>.env.md` sidecar (session topic, and one row per git repo that was in context with its branch and origin remote), and prints the transcript path — put that path in the `CASE.md` entry. Delete the interim `session`-slugged `.jsonl` **and its `.env.md`** from Step 0 once this final copy exists, so the archive holds one pair of files per kept lesson.
 
 Archive only sessions that produced a kept lesson. Skipped sessions keep no permanent archive entry, so every surviving file is the full evidence behind a skill, readable after the live transcript is compacted or rotated away. `SELF_IMPROVE_LESSONS_DIR` overrides the location.
 

@@ -57,6 +57,7 @@
       - mise
       - go
       - nodejs
+      - bun
       - neovim
       - helix
       - kubectl
@@ -107,6 +108,7 @@
       - helix
       - starship.toml
       - atuin
+      - yazi
 
   tasks:
     # --- nanobrew (nb) ---
@@ -151,6 +153,15 @@
         cmd: npm install -g git-split-diffs
       changed_when: false
 
+    # Local memory server for coding agents. Listens on 3111 (REST), 3112
+    # (streams), 3113 (viewer); pulls its own pinned iii-engine binary into
+    # ~/.agentmemory/bin on first run. Stays zero-LLM unless an LLM provider
+    # key is present in the environment or ~/.agentmemory/.env.
+    - name: Install agentmemory globally via npm
+      ansible.builtin.shell:
+        cmd: npm install -g @agentmemory/agentmemory
+      changed_when: false
+
     - name: Install television
       ansible.builtin.shell:
         cmd: curl -fsSL https://alexpasmantier.github.io/television/install.sh | bash
@@ -170,6 +181,13 @@
         cmd: curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y --no-modify-path
       args:
         creates: "{{ ansible_env.HOME }}/.cargo/bin/rustup"
+
+    # No brew formula; crates.io only.
+    - name: Install mdterm (terminal markdown viewer)
+      ansible.builtin.shell:
+        cmd: "{{ ansible_env.HOME }}/.cargo/bin/cargo install mdterm"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/mdterm"
 
     # --- zinit (zsh plugin manager) ---
     - name: Install zinit

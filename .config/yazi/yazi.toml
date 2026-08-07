@@ -1,0 +1,13 @@
+#:schema https://yazi-rs.github.io/schemas/yazi.json
+
+[opener]
+# block = true: mdterm is a full-screen TUI, it needs yazi to release the terminal.
+mdterm = [
+	{ run = 'mdterm %s', desc = "mdterm", block = true, for = "unix" },
+]
+
+[open]
+# prepend: must win over the built-in `text/*` -> edit rule.
+prepend_rules = [
+	{ url = "*.{md,markdown}", use = [ "mdterm", "edit", "reveal" ] },
+]

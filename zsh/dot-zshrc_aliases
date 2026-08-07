@@ -295,18 +295,38 @@ function y() {
 	rm -f -- "$tmp"
 }
 
-# claudex — pick a claude agent via fzf, then exec claude. Used as Zed's agent.terminal_init_command.
+# claudex — launch claude. Subcommands: `claudex pick` opens fzf agent picker.
+# Default (no subcommand): starts general claude.
+# Runs claude in the current terminal. herdr is started by hand, not from here.
 claudex() {
+  local subcmd=$1
+  if [[ "$subcmd" == "pick" ]]; then
+    shift
+    _claudex_pick "$@"
+    return
+  fi
+  _claudex_run general "$@"
+}
+
+# _claudex_pick — fzf agent picker, then run the chosen agent.
+_claudex_pick() {
   local picker choice
   picker=$(command -v sk 2>/dev/null || command -v fzf 2>/dev/null) || { echo "sk or fzf required" >&2; return 1; }
   choice=$(printf 'general\narchitector\nimplementer\nskills\n' | "$picker" --prompt 'claude agent> ' --height 40%) || return 0
-  # No exec: if claude exits (e.g. agent not found) the shell survives instead of the terminal closing.
+  _claudex_run "${choice:-general}" "$@"
+}
+
+# _claudex_run <agent-choice> [claude-args…] — build claude's arguments and run it.
+_claudex_run() {
+  local choice=$1; shift
+  local -a args
   case "$choice" in
-    architector) claude --agent wm:architector "$@" ;;
-    implementer) claude --agent wm:implementer --model sonnet "$@" ;;
-    skills) claude --agent skill-builder ;;
-    general|"")  claude "$@" ;;
+    architector) args=(--agent wm:architector "$@") ;;
+    implementer) args=(--agent wm:implementer --model sonnet "$@") ;;
+    skills) args=(--agent skill-builder) ;;
+    general|"")  args=("$@") ;;
   esac
+  claude "${args[@]}"
 }
 
 # tw — pick a todo.sh action with fzf, pick the task too if it needs ITEM#, then run it.

@@ -6,6 +6,9 @@
   },
   "permissions": {
     "allow": [
+      "Bash(~/.claude/scripts/lumen-pane.sh:*)",
+      "Bash(~/.claude/scripts/open-file.sh:*)",
+      "Bash(herdr:*)",
       "Bash(git:*)",
       "Bash(npm:*)",
       "Grep",
@@ -129,6 +132,46 @@
       "/tmp"
     ]
   },
+  "model": "opus[1m]",
+  "skillOverrides": {
+    "act-local-github-actions-testing": "off",
+    "ast-grep": "off",
+    "cmux-subagent": "off",
+    "debug-oauth-idp-errors": "off",
+    "doc-examples-must-lint": "off",
+    "domain-modeling": "off",
+    "draft": "off",
+    "find-skills": "off",
+    "gh-test": "off",
+    "git-workflow": "off",
+    "go-debug": "off",
+    "go-logger-analyzer": "off",
+    "go-modify": "off",
+    "go-test-debug": "off",
+    "go-understanding": "off",
+    "grill-with-docs": "off",
+    "grilling": "off",
+    "help-command": "off",
+    "hunch": "off",
+    "idea": "off",
+    "inline-review-todos": "off",
+    "mise": "off",
+    "parallel-agent-tree-guard": "off",
+    "plannotator-compound": "off",
+    "prune-text": "off",
+    "quint-spec": "off",
+    "reask-in-prose": "off",
+    "reflection-completeness-test": "off",
+    "revert-only-your-own-edits": "off",
+    "single-pass-find": "off",
+    "tmux-subagent": "off",
+    "todo-fix": "off",
+    "tracker-task-drafting": "off",
+    "typed-edge-ordering": "off",
+    "verify-source-at-pinned-ref": "off",
+    "working-tree-removal-is-intent": "off",
+    "writing-github-actions": "off"
+  },
   "hooks": {
     "PostToolUse": [
       {
@@ -137,6 +180,10 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/bash-tool-bypass-notify.sh"
+          },
+          {
+            "type": "command",
+            "command": "bunx github:nitsanavni/bash-history-mcp hook"
           }
         ]
       }
@@ -200,6 +247,7 @@
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
+    "agentmemory@agentmemory": true,
     "ast-grep@ast-grep-marketplace": false,
     "claude-md-management@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": false,
@@ -217,9 +265,16 @@
     "wm@local-plugins": true,
     "worktrunk@worktrunk": true,
     "frontend-design@claude-plugins-official": false,
-    "gopls-lsp@claude-plugins-official": true
+    "gopls-lsp@claude-plugins-official": true,
+    "vocab@local-plugins": true
   },
   "extraKnownMarketplaces": {
+    "agentmemory": {
+      "source": {
+        "source": "github",
+        "repo": "rohitg00/agentmemory"
+      }
+    },
     "ast-grep-marketplace": {
       "source": {
         "source": "github",
@@ -301,7 +356,14 @@
       ]
     },
     "allowedCommands": [
-      "gh"
+      "gh",
+      "herdr",
+      "lumen",
+      "lumen-pane.sh",
+      "~/.claude/scripts/lumen-pane.sh",
+      "open-file.sh",
+      "~/.claude/scripts/open-file.sh",
+      "zed"
     ]
   },
   "effortLevel": "medium",
@@ -315,45 +377,5 @@
   "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "enableWeakerNestedSandbox": true,
-  "model": "opus[1m]",
-  "skillOverrides": {
-    "act-local-github-actions-testing": "off",
-    "ast-grep": "off",
-    "cmux-subagent": "off",
-    "debug-oauth-idp-errors": "off",
-    "doc-examples-must-lint": "off",
-    "domain-modeling": "off",
-    "draft": "off",
-    "find-skills": "off",
-    "gh-test": "off",
-    "git-workflow": "off",
-    "go-debug": "off",
-    "go-logger-analyzer": "off",
-    "go-modify": "off",
-    "go-test-debug": "off",
-    "go-understanding": "off",
-    "grill-with-docs": "off",
-    "grilling": "off",
-    "help-command": "off",
-    "hunch": "off",
-    "idea": "off",
-    "inline-review-todos": "off",
-    "mise": "off",
-    "parallel-agent-tree-guard": "off",
-    "plannotator-compound": "off",
-    "prune-text": "off",
-    "quint-spec": "off",
-    "reask-in-prose": "off",
-    "reflection-completeness-test": "off",
-    "revert-only-your-own-edits": "off",
-    "single-pass-find": "off",
-    "tmux-subagent": "off",
-    "todo-fix": "off",
-    "tracker-task-drafting": "off",
-    "typed-edge-ordering": "off",
-    "verify-source-at-pinned-ref": "off",
-    "working-tree-removal-is-intent": "off",
-    "writing-github-actions": "off"
-  }
+  "enableWeakerNestedSandbox": true
 }

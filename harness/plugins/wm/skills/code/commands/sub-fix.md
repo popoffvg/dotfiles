@@ -60,6 +60,7 @@ deprecation_reason: "<one-line reason this thought is wrong>"
 
 - Keep the original content — the history is the audit trail.
 - `deprecated_by` points to the replacement (filled after Step 3).
+- **Move the deprecated file to `thoughts/archived/`** once Step 3 writes the replacement (`ref-note-format.md` § Superseding). Filename unchanged; the `NNN` counter is never reused. Repoint every live wikilink at the replacement.
 - Commit in `<notes-dir>`: `fix: deprecated NNN-<type>-<slug>`.
 
 ## Step 3: Write the corrected thought

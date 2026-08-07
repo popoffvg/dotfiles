@@ -9,7 +9,6 @@ Write using simple english prose. The readed is not a good spoken english speake
 ## Concise
 
 - Cut every word that adds no meaning. If a sentence works without a word, delete it.
-- Always provide the evidence for your claims.
 - Don't use metaphors.
 - Use informative language: avoid jargon, use precise terms.
 

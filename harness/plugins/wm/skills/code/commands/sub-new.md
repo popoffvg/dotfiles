@@ -12,7 +12,10 @@ No `<notes-dir>/spec.md` → write a minimal one (full template: `ref-write.md` 
 - **Description** — one sentence from the request. **Goal** — 2–3 plain sentences.
 - **Open questions** — seed 1–3 as `thoughts/NNN-question-*.md` notes (`status: open`, template `tpl-note-question.md`). They live in the thought graph, not in `spec.md`; the spec has no Open Questions section. **TODO List** — empty until the grill closes.
 - Create `<notes-dir>/GLOSSARY.md` from `references/tpl-glossary.md`, empty.
+- Create `<notes-dir>/CLAUDE.md` from `references/tpl-notes-claude.md` — the corpus guide any agent entering the folder reads. Copy the template's fenced block verbatim, not its header.
 - Guidelines / What we're NOT doing — empty or "follow language defaults". No `Design Decisions` and no `Open Questions` section: both live in `thoughts/` (`ref-write.md` § Artifacts).
+
+Both files are written **once**. If `CLAUDE.md` or `RULES.md` already exists, leave it — the user owns it after init.
 
 spec.md exists → check the frontmatter `branch` against the current branch (`ref-write.md` § Spec ownership by branch):
 
@@ -25,6 +28,23 @@ Run every time. Check `<notes-dir>/research/`:
 
 - Empty or missing → skip to Step 1.
 - Present → read `INDEX.md` first (else every `.md`). For each concrete finding — observed code behavior, user assertion, flagged gap — write one `NNN-fact-*.md` thought (`source: explore`, template `tpl-note-fact.md`, shared counter from 001). One fact per finding; **before the grill starts**, so decisions can link them. Write each research gap as one `NNN-question-*.md` thought (`source: explore`, `status: open`, template `tpl-note-question.md`) — same directory, same counter. Print: `Ingested explore artifacts: N fact notes, M question notes.`
+
+## Step 0.6: Set the rules
+
+Runs once, only when `<notes-dir>/RULES.md` is missing. Skip it entirely when the file exists.
+
+Ask the four init questions from `references/tpl-rules.md` § Init questions in **one**
+`AskUserQuestion` batch — approval depth during `impl`, which questions reach the human during the
+grill, test timing, and who commits. Do not assume an answer: this is the one place the user sets
+the interaction contract. A skipped question takes the first (default) option.
+
+Write the answers into `<notes-dir>/RULES.md` using the template's copy block: fill the Answers
+table with the four settings and expand each `<…>` in the per-step table. No placeholder may
+survive. Then print: `RULES.md written — <the four settings, one line>.`
+
+Every later subcommand reads `RULES.md` first and obeys it over its own defaults. It never lowers
+a hard gate: the human still reads the spec at the `review→impl` gate, and destructive git actions
+are still confirmed.
 
 ## Step 1: Grill
 

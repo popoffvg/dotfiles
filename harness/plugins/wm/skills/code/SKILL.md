@@ -31,7 +31,7 @@ Reference-type slugs in the last column: **`sub`** subcommand contract · **`ref
 
 | `/code …` | You need to… | Reference |
 |---|---|---|
-| `new` *(default)* | Spec pipeline: write `spec.md` (if missing) → grill until no open question note is left in `thoughts/` → compile the plan with its **wave** table → **stop at the gate**. Does not write TODO bodies. | `sub:new.md` · `ref:note-format.md` · `skill:flow-scetch` |
+| `new` *(default)* | Spec pipeline: init the corpus (`CLAUDE.md`, `RULES.md` — ask the four rule questions), write `spec.md` (if missing) → grill until no open question note is left in `thoughts/` → compile the plan with its **wave** table → **stop at the gate**. Does not write TODO bodies. | `sub:new.md` · `ref:note-format.md` · `tpl:notes-claude.md` · `tpl:rules.md` · `skill:flow-scetch` |
 | `todo` | Author self-contained `todos/TODO-N.md` bodies (restated Constraints, Unit **and** E2E tests) from a reviewed `spec.md` + `thoughts/`. Runs only past the gate. | `sub:todo.md` · `tpl:todo.md` · `skill:flow-scetch` |
 | `verify` | Audit the spec before impl in a separate read-only `spec-verifier` agent — contradictions, missing parts, edge cases, plus the completeness / test-honesty floor. Returns READY / NEEDS REVISION. | `sub:verify.md` |
 | `revise` | Settle drift in `spec.md` / `todos/` and the `thoughts/` graph; resets the spec `status` to `review`. Notes-only. | `sub:revise.md` |
@@ -45,7 +45,7 @@ Reference-type slugs in the last column: **`sub`** subcommand contract · **`ref
 | `commit` | Commit-message conventions (`<prefix>: <why>`) — shared by `impl`, `tree`, `fix`. | `sub:commit.md` |
 | `help` | This page. | `self:SKILL.md` |
 
-Path by slug: `sub:` files live in `commands/`, `ref:`/`tpl:` in `references/`, `self` is this SKILL. Shared `ref` files not tied to one row: `ref:write.md` (spec contract, layout, the status metadata — spec phase + TODO lifecycle — the gate — the single source), `ref:jj-notes.md`, `ref:subcommand-rules.md` (the rules every subcommand obeys — logging, commits, glossary, source read-only, confirm destructive git). The TS-pseudocode form used by a `## Changes` **Behavior** snippet lives in the `flow-scetch` skill (`skill:flow-scetch`), loaded on demand. Templates: `tpl:glossary.md`, `tpl:note-{question,decision,fact,impl-decision}.md`, `tpl:todo.md`.
+Path by slug: `sub:` files live in `commands/`, `ref:`/`tpl:` in `references/`, `self` is this SKILL. Shared `ref` files not tied to one row: `ref:write.md` (spec contract, layout, the status metadata — spec phase + TODO lifecycle — the gate — the single source), `ref:jj-notes.md`, `ref:subcommand-rules.md` (the rules every subcommand obeys — obey `RULES.md`, archive superseded thoughts, logging, commits, glossary, source read-only, confirm destructive git). The TS-pseudocode form used by a `## Changes` **Behavior** snippet lives in the `flow-scetch` skill (`skill:flow-scetch`), loaded on demand. Templates: `tpl:glossary.md`, `tpl:notes-claude.md` (the notes-dir `CLAUDE.md`), `tpl:rules.md` (the notes-dir `RULES.md` + its four init questions), `tpl:note-{question,decision,fact,impl-decision}.md`, `tpl:todo.md`.
 
 ## Pipeline
 

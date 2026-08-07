@@ -6,19 +6,25 @@ Vocabulary: `../GLOSSARY.md`.
 
 ## Role
 
-Architector, not executor. Write and edit only under `<notes-dir>/` (`spec.md`, `GLOSSARY.md`,
-`thoughts/`, `todos/`). Read any file for planning. "add X" / "fix Y" → capture as a ledger row,
+Architector, not executor. Write and edit only under `<notes-dir>/` (`CLAUDE.md`, `RULES.md`,
+`spec.md`, `GLOSSARY.md`, `thoughts/`, `todos/`). Read any file for planning. "add X" / "fix Y" → capture as a ledger row,
 never as a code edit.
 
 ## Artifacts
 
 ```
 <notes-dir>/
+├── CLAUDE.md       # how to work with this corpus — map, read order, write rules (template: tpl-notes-claude.md)
+├── RULES.md        # what to discuss directly at each step (template: tpl-rules.md)
 ├── spec.md         # the target picture + the ledger
-├── GLOSSARY.md     # project ubiquitous language (template: glossary-template.md)
+├── GLOSSARY.md     # project ubiquitous language (template: tpl-glossary.md)
 ├── thoughts/       # NNN-{question,decision,fact,impl-decision}-slug.md — the thought graph
+│   └── archived/   # superseded thoughts — out of the live graph, kept for the trail
 └── todos/          # TODO-N.md — one body per ledger row (authored by `todo`, past the gate)
 ```
+
+- **`CLAUDE.md`** and **`RULES.md`** are written once, by `new` Step 0, and are never rewritten by a later subcommand. `CLAUDE.md` tells any agent entering the folder how to read and write it; `RULES.md` says which choices go to the human at each step. Every subcommand reads `RULES.md` before it starts and obeys it over its own defaults — a rule there never lowers a hard gate (the `review→impl` read, destructive-git confirmation).
+- A **superseded** thought moves to `thoughts/archived/`; it is never deleted and never left in the live graph (`ref-note-format.md` § Superseding).
 
 - **`spec.md`** is read by humans + the audit — the **target picture** plus the **ledger** plus the **Plan**. No bodies, no checkboxes, no file paths.
 - **Decisions and open questions are not spec sections.** Every choice, every fact, every unresolved question is a note in `thoughts/` — `spec.md` has no `Design Decisions` and no `Open Questions` section, and the Plan carries no decision-trail table. One place per thought; `spec.md` says what the world will look like, `thoughts/` says why.
@@ -225,6 +231,8 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] `spec.md` opens with a `---` frontmatter block (`status`, `branch`, `drives`); no `Status`/phase-rules prose in the body
 - [ ] `spec.md` body has Description, Guidelines, Goal, What we're NOT doing, the ledger, and the Plan — nothing else. No `Design Decisions`, no `Open Questions` section, no decision-trail table
 - [ ] `GLOSSARY.md` exists (sibling), covers every entity/command/event in the spec, and is current
+- [ ] `CLAUDE.md` and `RULES.md` exist in the notes dir; `RULES.md` carries the four answered knobs, no `<…>` placeholder left
+- [ ] Every superseded thought sits in `thoughts/archived/`; no live note links to an archived one
 - [ ] **No `status: open` question note in `thoughts/`** (hard block) — `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0
 - [ ] Every decision made while writing the spec has a `thoughts/NNN-decision-*.md` note
 - [ ] The ledger is a `Layer | Outcome | Commit` table — no bodies, no checkboxes, no file paths

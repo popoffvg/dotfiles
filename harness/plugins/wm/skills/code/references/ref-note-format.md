@@ -15,6 +15,8 @@ Templates (one per type):
 ```
 <notes-dir>/thoughts/
   NNN-type-slug.md
+  archived/
+    NNN-type-slug.md   # superseded — kept for the trail, out of the live graph
 ```
 
 - `NNN` — sequential 3-digit ID, zero-padded. Matches frontmatter `id`.
@@ -61,6 +63,29 @@ A resolved question stays the same note: same `id`, same `NNN`, one file per top
 4. Fix every `[[NNN-question-slug]]` wikilink pointing at the old name (`grep -rl` the `thoughts/` dir); a dangling link fails the back-linking check below.
 
 A question that turns out to be moot is not deleted: keep it a `question` note and set `status: declined` with a one-line reason in the body. `declined` does not block readiness; `open` does.
+
+## Superseding — move to `thoughts/archived/`
+
+A reversed thought is superseded, never deleted, and never left in the live graph. Three steps,
+in this order:
+
+1. Write the replacement note at the next counter (`NNN`+1), matching template.
+2. In the old note, set frontmatter `status: declined`, add `superseded_by: "<new NNN>"`, and put
+   `Superseded by [[NNN-type-slug]]` as the first body line under the title.
+3. **Move the old file to `<notes-dir>/thoughts/archived/`** — `mkdir -p` it on first use. Keep
+   the filename unchanged; the `NNN` counter is never reused.
+
+Then re-link (§ Back-linking): repoint every `[[old-note]]` wikilink in a live note at the
+replacement. A live note must not depend on an archived one — that is a dangling dependency, and
+it fails the back-linking check.
+
+Why a folder and not a flag: the live graph is what the reader and the audit walk. An archived
+note stays readable and stays in the jj history, but stops competing with the thought that
+replaced it. `wm-open-questions.sh` scans `thoughts/` at `-maxdepth 1`, so an archived note never
+blocks the gate.
+
+Archived notes are read only when auditing history — `jj -R <notes-dir> log` shows when each one
+was replaced.
 
 ## Decision note
 

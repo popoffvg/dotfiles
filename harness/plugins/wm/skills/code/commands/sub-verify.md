@@ -20,30 +20,67 @@ listing the failures and **stop**. No point paying an agent to notice an empty f
 
 All pass → fan out **one `spec-verifier` per TODO** plus one cross-TODO agent, in a single message (wall-clock = slowest TODO, not the sum).
 
+**Every verify agent runs on sonnet.** Pass `model="sonnet"` on each call — never opus, never haiku, never the caller's model. Sonnet is also the `spec-verifier` frontmatter default; the explicit argument keeps the pin if that default moves.
+
 Per-TODO:
 ```
-Agent(subagent_type="wm:spec-verifier", prompt=
+Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
   "[VERIFY TODO-N] Hunt contradictions / missing-parts / edge-cases in <notes-dir>/todos/TODO-N.md.
    Read only that TODO + its Files (source). Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md § Mission.
-   Return findings as your final message.")
+   Run the claim pass first and return the claim table with your findings.")
 ```
 
-Cross-TODO (reads `spec.md` + each TODO's ledger row + Outcome + Depends on — not full bodies):
+Cross-TODO — the contradiction agent. It reads `spec.md`, the Decisions in `thoughts/`, and from **every** TODO: the ledger row, Outcome, Depends on, `## Files`, and the signatures in `## Changes`. Headers alone hide the conflicts: two TODOs give one function two signatures inside their diffs, not in their outcomes.
 ```
-Agent(subagent_type="wm:spec-verifier", prompt=
-  "[VERIFY CROSS] Read <notes-dir>/spec.md + every TODO's row, Outcome, Depends on.
-   Hunt global contradictions and Depends-on cycles. Follow …/verify.md § Mission. Return findings.")
+Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
+  "[VERIFY CROSS] Read <notes-dir>/spec.md, thoughts/ decisions, and every TODO's row, Outcome,
+   Depends on, Files, and the signatures in its Changes diffs.
+   Run the claim pass over the whole set — pairwise, not per-TODO. Report every collision plus
+   Depends-on cycles. Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md § Mission.
+   Return the claim table with your findings.")
 ```
 
 The agents have no Write tool — they **return** findings. The caller merges returned findings + Phase 0 results into the report and writes `<notes-dir>/spec-verify.md`.
 
 ## Mission — hunt three failure modes (Phase 1)
 
-Find what breaks the spec before code does:
+Find what breaks the spec before code does. **Contradictions come first** — they are the only failure mode that makes two correct implementations impossible at once, so the claim pass below runs before any missing-part or edge-case reading.
 
-1. **Contradictions** — two TODOs, or a TODO and a Decision/Term/Goal, that can't both hold: conflicting signatures, a term used two ways, a `Depends on` cycle, an outcome that undoes an earlier one, a Decision the TODOs violate.
-2. **Missing parts** — work the Goal implies but no TODO covers: error paths, teardown for every setup, a caller left unmigrated after a signature change, auth/validation on a new boundary, a persistence write with no read, config referenced but never defined.
-3. **Edge cases** — inputs and states the outcomes ignore: empty/nil/zero, concurrent access, retry/idempotency, partial failure, boundary limits (TTL, size, count), first-run vs steady-state, ordering.
+### 1. Contradictions — run the claim pass
+
+Do not scan for contradictions by reading and hoping. Extract, then collide.
+
+**Step 1 — extract claims.** Read the TODO (per-TODO agent) or the whole set (cross agent) and write one row per claim. A claim is any statement the implementation must honour:
+
+| Kind | Where it hides | Example claim |
+|---|---|---|
+| Signature | `## Changes` diffs, **Behavior** TS block | `loadSpec(dir: string): Spec` |
+| Term meaning | Outcome, Constraints, GLOSSARY row | `"wave" = a set of TODOs with no shared Files` |
+| File ownership | `## Files`, increment **Files** | `TODO-3 rewrites src/gate.ts` |
+| Order | `Depends on`, wave table, increment `n` | `TODO-5 lands after TODO-2` |
+| State transition | Outcome, **Blast radius** | `status moves review → impl` |
+| Decision | `thoughts/` decision notes, Constraints | `no new dependency in the plugin dir` |
+
+**Step 2 — collide pairwise.** Compare every claim against every other claim of the same kind. A collision is two claims that cannot both hold:
+
+- same symbol, two signatures (or one call site passing the other TODO's arity)
+- same term, two meanings — the sharpest signal that the spec was written in two sittings
+- same file owned by two TODOs in one wave
+- an order claim whose edge reverses another, or closes a `Depends on` cycle
+- a state transition whose start state an earlier Outcome already consumed
+- a Decision that a TODO's diff violates
+
+**Step 3 — report the collision, not the suspicion.** Each contradiction names both sides with `TODO-N § section` and quotes the two conflicting lines verbatim. Then state which one the rest of the spec supports, and the edit to the loser.
+
+**Step 4 — report the pass itself.** The `## Contradictions` section is never left blank. With no collision, write `none — N claims extracted, M pairs checked` so the reader can tell a clean spec from a skipped hunt.
+
+### 2. Missing parts
+
+Work the Goal implies but no TODO covers: error paths, teardown for every setup, a caller left unmigrated after a signature change, auth/validation on a new boundary, a persistence write with no read, config referenced but never defined.
+
+### 3. Edge cases
+
+Inputs and states the outcomes ignore: empty/nil/zero, concurrent access, retry/idempotency, partial failure, boundary limits (TTL, size, count), first-run vs steady-state, ordering.
 
 Each finding names the exact TODO/section, states the concrete scenario that fails, and the edit that closes it. A finding without a reproducing scenario is a nit, not a blocker.
 
@@ -108,7 +145,8 @@ Result: READY | NEEDS REVISION
 - <1-3 bullets>
 
 ## Contradictions
-- <TODO/section pair + the scenario where both can't hold + the resolving edit>
+Claim pass: <N> claims extracted, <M> pairs checked.
+- <TODO-A § section vs TODO-B § section — the two quoted lines + which side the spec supports + the edit to the loser>
 
 ## Missing parts
 - <what the Goal implies + which TODO should cover it + the edit>
@@ -128,6 +166,6 @@ Result: READY | NEEDS REVISION
 Decide and transition immediately — no generic follow-up question.
 
 - **READY** — all blocking checks pass, no critical unknowns → transition the spec frontmatter `status` to `impl`. `jj commit -m "Spec verification passed"` in `<notes-dir>`.
-- **NEEDS REVISION** — ≥1 blocking issue or unclear dependency → stay at `review` with concise feedback. `jj commit -m "Spec verification failed"`.
+- **NEEDS REVISION** — ≥1 blocking issue or unclear dependency → stay at `review` with concise feedback. `jj commit -m "Spec verification failed"`. **Any collision from the claim pass is blocking** — two live claims mean the implementer must guess, and a guess is not a spec.
 
 Use `work_transition` if available; else report the next command (`/work:implement` or `/work:spec`) plus the blocking list. Strict on blockers, concise on style nits.

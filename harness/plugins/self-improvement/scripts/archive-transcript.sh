@@ -16,7 +16,14 @@
 # to a full copy whenever that assumption doesn't hold (no dest yet, or dest
 # is not a byte-for-byte prefix of source — e.g. a rotated/compacted
 # transcript), so a stale or divergent dest never silently stays wrong.
+#
+# Each copy gets a `<dest>.env.md` sidecar from session-env.sh: the session's
+# topic and the git repos that were in context. It is rewritten on every call
+# because both grow as the session does — a repo entered late would be missing
+# from a sidecar written on the first correction.
 set -euo pipefail
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 archive_dir=${SELF_IMPROVE_LESSONS_DIR:-$HOME/.claude/self-improvement/lessons}
 
@@ -54,5 +61,7 @@ if [ "$dest_size" -gt 0 ] && [ "$src_size" -ge "$dest_size" ] \
 else
   cp "$transcript" "$dest"
 fi
+
+"$script_dir/session-env.sh" "$transcript" > "$dest.env.md"
 
 printf '%s\n' "$dest"
