@@ -181,6 +181,19 @@
     "show_command": false,
   },
   {
+    "label": "worktree: mise trust",
+    "command": "bash",
+    "args": [
+      "-lc",
+      "command -v mise >/dev/null 2>&1 || exit 0\ncd \"$ZED_WORKTREE_ROOT\"\n[ -f .mise.toml ] || [ -f mise.toml ] || [ -f .config/mise/config.toml ] || exit 0\nmise trust",
+    ],
+    "hooks": ["create_worktree"],
+    "reveal": "no_focus",
+    "hide": "on_success",
+    "show_summary": false,
+    "show_command": false,
+  },
+  {
     "label": "open file",
     "command": "bash",
     "args": ["-lc", "zed $(pbpaste)"],

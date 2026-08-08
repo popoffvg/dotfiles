@@ -5,11 +5,14 @@ Commit-message conventions, shared by `impl`, `tree`, and `fix`.
 ## Format
 
 ```
-<prefix>: <why>
+<prefix>: <subject>
+
+<body>
 ```
 
 - **prefix** — `feat`, `fix`, `refactor`, `docs`, `test`, `chore` (conventional-commits set).
-- **why** — the reason/outcome, not a file list. The spec's `## Commit` block is the primary message when present.
+- **subject** — one short imperative line, ≤ 72 chars. What the commit does, not a file list.
+- **body** — why the commit exists: the problem or constraint that forced it, and what breaks without it. Separated from the subject by a blank line, wrapped at 72 chars. The spec ledger entry's `Commit` (subject) and `Why` (body) are the primary message when present.
 
 ## Rules
 

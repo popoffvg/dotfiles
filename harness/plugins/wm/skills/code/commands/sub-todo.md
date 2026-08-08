@@ -39,8 +39,8 @@ deleted, could an implementer still write the code and both tests? If not, the T
 
 ## File location
 
-`<notes-dir>/todos/TODO-N.md`, `N` 1-indexed and contiguous, one file per ledger row. Restate that
-row's outcome verbatim at the top. Resolve `<notes-dir>` from the active phase — never hardcode `.notes/`.
+`<notes-dir>/todos/TODO-N.md`, `N` 1-indexed and contiguous, one file per ledger entry. Restate that
+that entry's outcome verbatim at the top. Resolve `<notes-dir>` from the active phase — never hardcode `.notes/`.
 
 ## Required elements — in order
 
@@ -292,7 +292,7 @@ must name the TODO.
 Required even when Autotest covers the behavior — catches integration / UX the suite can't see. `Steps` (literal commands) and `Expected` aligned 1:1. `Skip?` defaults to `no`; to skip, `skip — reason: <specific>`. Keep only cases a test can't prove (UX feel, log shape, real third-party behavior).
 
 ### Commit
-`Prefix` from the standard set; `Subject` the exact line the implementer commits (≤ 72 chars, imperative, no period). Full conventions: `sub-commit.md`.
+`Prefix` from the standard set; `Subject` the exact line the implementer commits (≤ 72 chars, imperative, no period); `Description` the commit body — why the commit exists, copied from the ledger entry's `Why`. Full conventions: `sub-commit.md`.
 
 ### Definition of done
 Checklist the implementer ticks before advancing `status` to `verify` and filling the ledger's Commit: Files, Autotest, Manual test, scope discipline, Commit subject. Add items only for unusual post-conditions (e.g. "migration applied on staging").

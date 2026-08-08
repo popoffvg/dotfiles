@@ -36,3 +36,51 @@ Cases this skill was abstracted from. Appended by Step 4; newest last.
 - **Ambiguous?** no — the subject of a rule is a fact about the rule, not a trade-off.
 - **Scope chosen:** global — governs every capture run, in any repo.
 - **Rule written:** verdict — Step 1 runs a **subject test before the teachability test**: a subject that is a named thing in one repo, or whose correctness depends on this repo's current state, is project; only a general subject reaches teachability. Step 0 adds the third source: a statement about how work is done in this repo is a method with no reason needed. The Stop hook keeps one sentence and defers the detail to the skill.
+
+## 2026-08-01 — The method definition matched every task spec, and the hook taxed every session
+
+- **Repo:** `~/git/dotfiles`
+- **Source:** method — Step 0
+- **Task:** Same session as the entry above; the user asked to challenge the skill's approach.
+- **What I did:** (The skill did.) Step 0 counted as a method "any statement of how, in what order, in what shape, or with which tool the user wants work done" and never argued for skip — so a plain task spec cleared Step 0, and the only skip exit was Step 1's "teaches nobody" row, which a teachable-sounding spec passes. The Stop hook returned `decision:"block"` on every session, including one-prompt lookups.
+- **User's words:** > "read capture lesson skill and challenge the instruction and approch. I want prompring less that why and need lessons"
+- **Evidence:** 40 skills stamped `origin: self-improvement` in `~/.claude/skills`; 2 ever invoked across 50 session logs. Old `self-improve-stop.sh` had no condition besides `stop_hook_active`.
+- **Ambiguous?** no — a rule that changes no behavior has no value at any scope.
+- **Scope chosen:** global — governs every capture run.
+- **Rule written:** verdict — Step 0 gains the bar "would you have acted differently without this statement?": task spec → no lesson, matches-default → no lesson, override → continue; corrections clear it by definition. The hook gains a deterministic prefilter: fewer than 2 user text messages → stop silently.
+
+## 2026-08-01 — Capture only listened to the user; what the agent dug out of docs was never a source
+
+- **Repo:** `~/git/dotfiles`
+- **Source:** method — Step 0
+- **Task:** Same session; the user extended the skill's scope after the bar change.
+- **What I did:** (The skill did.) Step 0's table had three rows, all user input — correction, method, decision. A session where the agent read documentation and found its own assumption wrong produced no capture, because no user statement existed to run the steps on. The doc detour then repeats in the next session.
+- **User's words:** > "self improvement also is worth if agent read the docs"
+- **Evidence:** Step 0 table before the change: "Two kinds of user input become a lesson; the third is not a source at all" — every row keyed on the user. The hook prefilter added earlier the same day would even suppress the prompt for a one-message research session.
+- **Ambiguous?** no — a discovery that contradicted the default assumption is a lesson by the same logic as a correction; only the bar differs.
+- **Scope chosen:** global — governs every capture run.
+- **Rule written:** verdict — Step 0 gains a fourth source, **discovery**: docs/experiment findings that contradicted the default assumption or took real digging. Its bar: one-obvious-lookup or version-pinned trivia → skip. The hook prefilter also prompts when the transcript shows web/doc tool calls, so single-message research sessions stay capturable.
+
+## 2026-08-01 — The bar read "changes no behavior" as "already captured", turning duplicates into skips
+
+- **Repo:** `~/git/dotfiles`
+- **Source:** discovery — Step 0 (the eval suite demonstrated it; no user statement involved)
+- **Task:** Same session; validating the bar + discovery changes with the eval suite.
+- **What I did:** (The skill did.) The bar's wording — "a rule that changes no behavior only costs context; no lesson" — let a reader conclude that a lesson an existing skill already covers changes nothing and is therefore `skip`. The suite dropped to 24/34; six scope flips carried rationales of the form "duplicate of `<installed-skill>`, already filed". In production the same reading would make Step 2 (extend) unreachable: every repeat of a captured situation would skip instead of appending the case that promotes a project rule to global.
+- **User's words:** > none — evidence is the graders' rationale text in the eval output
+- **Evidence:** `tasks/be7ok63u0.output` lines 26, 34: "Duplicate of existing verify-live-structure-not-code-constants skill; already filed", "Duplicates isolate-fault-before-fixing already captured". After the fix, the same duplicate-aware rationales answer with the correct scope (`bbqk5ow39.output` line 24: "already-filed lesson keeps original scope").
+- **Ambiguous?** no — dedup is Step 2's job (extend); the bar judges value, not novelty.
+- **Scope chosen:** global — governs every capture run.
+- **Rule written:** verdict — "Novelty is not the bar": an already-covered lesson clears the bar and extends the existing skill; `skip` is for lessons without value, never for lessons already filed. Companion rule: when the user's words triggered the capture, the source stays `correction`/`method` even if docs settled the fix.
+
+## 2026-08-02 — The capture reported itself at length; the skill never said how to finish
+
+- **Repo:** `~/git/dotfiles`
+- **Source:** correction — Step 0
+- **Task:** A capture run that ended a long workflow session; the skill wrote `return-a-summary-not-the-dataset`.
+- **What I did:** Ended the run with a full report — the headline, a four-row table of every gate decision (Step 0 source, bar, Step 1 subject, Step 1b form, Step 2), then three paragraphs on why the lesson was worth keeping and what I almost missed. The skill had steps 0–4 and stopped at "record the case"; nothing said what to put in the reply, so the default verbose summary filled the gap.
+- **User's words:** > "iprove lesso-cpature skill, it produce to big report, it should silently finish or write a one sentence recap with skill description."
+- **Evidence:** The report the user pasted back — a headline line, a 5-row gate table, and 3 explanatory paragraphs, for a step that ran on a Stop hook after the session's real work. Every fact in it already sits in this `CASE.md`.
+- **Ambiguous?** no — the capture is bookkeeping the user did not ask for; its output size should match.
+- **Scope chosen:** global — governs every capture run.
+- **Rule written:** verdict — Step 5: nothing captured → say nothing; skills written → one sentence each (slug + what the skill is for), then stop. Explicit never-print list: gate decisions, gate tables, file paths, `CASE.md` content, worth-keeping rationale. Rule 10 in the rules list.

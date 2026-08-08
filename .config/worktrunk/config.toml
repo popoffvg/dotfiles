@@ -3,3 +3,5 @@ command = "CLAUDECODE= MAX_THINKING_TOKENS=0 claude -p --model=haiku --tools='' 
 
 [post-create]
 mise-trust = "mise trust"
+# Open a new worktree in Zed; skipped when zed is missing or the session is remote
+zed = "command -v zed >/dev/null && [ -z \"$SSH_CONNECTION\" ] && zed \"{{ worktree_path }}\" || true"

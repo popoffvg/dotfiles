@@ -42,7 +42,7 @@ Inspect it (`git show --stat <sha>`, `git show <sha>`): files, symbols added/ren
 | **New fact** | A constraint/observation surfaced | Write a new `fact` note (Step 3); link from the decisions it constrains |
 | **Drift** | Impl differs from spec, outcome still met | Update TODO body `## Changes` to match reality |
 | **Outcome shift** | The observable result changed | Rewrite the outcome row in spec.md AND the outcome line in TODO-N.md (verbatim match); update the thought that motivated it |
-| **Scope creep** | Extra work landed / belongs elsewhere | Move it into that TODO, or add a new ledger row in spec.md |
+| **Scope creep** | Extra work landed / belongs elsewhere | Move it into that TODO, or add a new ledger entry in spec.md |
 | **Missed step** | Planned work didn't land | Carry forward as a new ledger row, or drop it with a `thoughts/NNN-decision-*.md` note explaining why |
 
 ## Step 3 — Maintain the thought graph
@@ -77,7 +77,7 @@ Revised <TODO-N | spec section>  [from <sha> "<subject>"]
   outcome:  <unchanged | rewritten>
   spec:     <sections updated>
   todos:    <files / sections updated>
-  spinoffs: <new ledger rows, if any>
+  spinoffs: <new ledger entries, if any>
 ```
 
 Then stop. The user owns the next action (re-review, continue impl, re-verify).

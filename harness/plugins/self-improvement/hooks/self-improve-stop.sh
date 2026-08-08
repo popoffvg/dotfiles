@@ -17,38 +17,30 @@ if [ "$active" = "true" ]; then
   exit 0
 fi
 
+# Deterministic prefilter: a correction needs the user reacting to the agent's
+# work, so it takes at least 2 user text messages. A discovery instead leaves a
+# doc-reading trace (web/docs tool calls). Sessions with neither almost never
+# hold a lesson -- skip the capture prompt instead of spending a turn.
 transcript=$(printf '%s' "$input" | jq -r '.transcript_path // ""')
-
-# No transcript to triage -> nothing to judge, stop silently.
-if [ -z "$transcript" ] || [ ! -f "$transcript" ]; then
-  exit 0
+if [ -n "$transcript" ] && [ -f "$transcript" ]; then
+  n=$(jq -s '[ .[]
+        | select(.type == "user" and ((.isMeta // false) | not))
+        | .message.content
+        | if type == "string" then 1 else ([.[]? | select(.type == "text")] | length) end
+        | select(. > 0) ] | length' "$transcript" 2>/dev/null || echo 2)
+  case "$n" in (''|*[!0-9]*) n=2 ;; esac
+  docs=$(jq -s '[ .[]
+        | select(.type == "assistant")
+        | .message.content[]?
+        | select(.type == "tool_use")
+        | .name
+        | select(test("WebFetch|WebSearch|firecrawl"; "i")) ] | length' "$transcript" 2>/dev/null || echo 1)
+  case "$docs" in (''|*[!0-9]*) docs=1 ;; esac
+  if [ "$n" -lt 2 ] && [ "$docs" -eq 0 ]; then
+    exit 0
+  fi
 fi
 
-# CLAUDE_PLUGIN_ROOT is not guaranteed in the hook process; derive it.
-plugin_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-
-# Stop fires on every turn, so re-launching a fresh subagent each time is
-# wasteful — reuse the same one across the session via its stable name.
-session_id=$(basename "$transcript" .jsonl)
-agent_name="triage-${session_id}"
-
-# Stop can fire many times back-to-back with no human input between them: the
-# block below ends in a SendMessage, the triage agent answers or goes idle, and
-# that round-trip is itself another turn -> another Stop. A time-based debounce
-# does not break that cycle, it only paces it, because the cycle needs no human.
-# Gate on new human input instead: a correction can only appear in a turn the
-# person typed, and `.origin.kind == "human"` is absent from SendMessage
-# traffic, idle notifications and tool results (see scripts/human-turns.sh).
-seen_file="/tmp/self-improve-triage-${session_id}.human-turns"
-human_turns=$(jq -r 'select(.type == "user" and .origin.kind == "human") | 1' \
-  "$transcript" 2>/dev/null | wc -l | tr -d ' ')
-seen=0
-[ -f "$seen_file" ] && seen=$(cat "$seen_file" 2>/dev/null || echo 0)
-if [ "$human_turns" -le "$seen" ]; then
-  exit 0
-fi
-printf '%s' "$human_turns" > "$seen_file"
-
-reason="SendMessage to \"$agent_name\" with summary \"re-check transcript for a new correction\" (SendMessage rejects a string message without a summary) and message giving plugin root $plugin_root, transcript $transcript, and the instruction to re-check for a new correction; if that agent doesn't exist yet, launch it instead via Agent tool with subagent_type \"self-improvement:triage\", name \"$agent_name\", run_in_background true, same plugin root/transcript. Then stop silently — no waiting, no report, no capture-lesson."
+reason='If the user corrected you, said how they want a task done or how work is done in this repo, or you learned something non-obvious from docs or experiments this session, run the capture-lesson skill — it decides what counts and where the lesson goes. Otherwise stop silently — no status text.'
 
 jq -nc --arg r "$reason" '{decision:"block", reason:$r, suppressOutput:true}'

@@ -58,7 +58,7 @@ Evidence in the reproduction: $anchors"
   [ -n "$utterance" ] && case_block="$case_block
 What the user said, verbatim: $utterance"
 
-  prompt="You are applying the three gates below to one captured lesson, in order: Step 0 names the source, then Step 1 and Step 1b judge the lesson. Apply them literally. Step 0 only names the source — a correction or a method goes on to Step 1, which decides scope on its own terms; only a decision means no skill.
+  prompt="You are applying the three gates below to one captured lesson, in order: Step 0 names the source and applies the bar, then Step 1 and Step 1b judge the lesson. Apply them literally. A correction, or a method/discovery that clears its bar, goes on to Step 1, which decides scope on its own terms. A decision, or a method/discovery that fails the bar, means no skill — scope \"skip\".
 
 $source_gate
 
@@ -68,16 +68,22 @@ $gate
 $case_block
 --- END CASE ---
 
+Judge the lesson as of the moment it was captured — BEFORE any skill existed for it. \"skip\" means the lesson deserved no skill at all; whether something similar was ever filed anywhere is irrelevant to every answer.
+
 Reply with one line of JSON and nothing else:
-{\"source\":\"correction|method|decision\",\"scope\":\"global|project|skip\",\"form\":\"verdict|check\",\"why\":\"<12 words>\"}
+{\"source\":\"correction|method|discovery|decision\",\"scope\":\"global|project|skip\",\"form\":\"verdict|check\",\"why\":\"<12 words>\"}
 Use \"global\" for a machine-anchored lesson (it is stored at global scope).
 Use \"skip\" when the lesson should not become a skill at all; then set form to \"verdict\"."
 
   # Neutral cwd + no user settings: the graded model must not inherit this
   # machine's hooks, plugins, skills, or MCP servers — the self-improvement Stop
   # hook otherwise answers instead of the model and every case returns empty.
+  # --disable-slash-commands: keep the judge blind to this machine's installed
+  # skills -- most cases exist there as real skills, and a judge that sees them
+  # answers "already filed" instead of judging the capture-time decision.
   raw="$(cd "${TMPDIR:-/tmp}" && claude -p --model "$model" \
-    --setting-sources project --strict-mcp-config "$prompt" 2>/dev/null)"
+    --setting-sources project --strict-mcp-config \
+    --disable-slash-commands "$prompt" 2>/dev/null)"
   got="$(grep -o '{.*}' <<<"$raw" | tail -1)"
   got_scope="$(jq -r '.scope // "?"' <<<"$got" 2>/dev/null || echo '?')"
   got_form="$(jq -r '.form  // "?"' <<<"$got" 2>/dev/null || echo '?')"

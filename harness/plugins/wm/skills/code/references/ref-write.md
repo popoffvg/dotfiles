@@ -28,7 +28,7 @@ never as a code edit.
 
 - **`spec.md`** is read by humans + the audit — the **target picture** plus the **ledger** plus the **Plan**. No bodies, no checkboxes, no file paths.
 - **Decisions and open questions are not spec sections.** Every choice, every fact, every unresolved question is a note in `thoughts/` — `spec.md` has no `Design Decisions` and no `Open Questions` section, and the Plan carries no decision-trail table. One place per thought; `spec.md` says what the world will look like, `thoughts/` says why.
-- **ledger** = the TODO List, an index of **outcomes** (`Layer | Outcome | Commit` rows). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready.
+- **ledger** = the TODO List, an index of **outcomes** (one `#### TODO-N` entry each, with `Layer` / `Outcome` / `Commit` lines). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready.
 - **`todos/TODO-N.md`** is read by a context-free Sonnet implementer — self-contained, restating its ledger outcome verbatim at the top. Owned by `todo` (`sub-todo.md`).
 - **thought** — one note per resolved question, linked by `[[wikilinks]]`. Format + templates: `ref-note-format.md`.
 - History lives in the notes' jj repo (`jj log`) — `ref-jj-notes.md`.
@@ -66,7 +66,7 @@ todo  →  impl  →  verify  →  done
 - `todo` — body authored past the gate; not started.
 - `impl` — the implementer is executing it (set at `impl` start once every `depends_on` TODO is `done`).
 - `verify` — committed + autotest green; awaiting the review gate (`reviewer` / `verifier`).
-- `done` — review passed; the ledger row's Commit is filled.
+- `done` — review passed; the ledger entry's Commit is filled.
 - `blocked` — a `depends_on` TODO is not `done`, **or** the review returned FAIL / DEVIATES. Routes back to `impl`.
 
 Set by: `todo` (writes `todo`, or `blocked` if a dep is unmet), `impl` (`todo → impl`, then `→ verify` on green; `→ blocked` if a dep is unmet), the review gate (`verify → done` on PASS, `→ blocked` on FAIL), `revise` (`→ todo` when it reopens a diverged TODO).
@@ -95,6 +95,13 @@ If `<notes-dir>/research/` exists, consume those artifacts — they already enco
 
 ## spec.md template
 
+Two parts, split by a `---` rule and nothing else — no heading names the split.
+
+- **Above the rule** — for the human: Description, Goal, What we're NOT doing, Design Decisions, Open Questions, and the ledger. Everything the reviewer reads at the gate to judge whether the target picture is right — the ledger included, since the outcomes are the discussion object the user aligns on.
+- **Below the rule** — for the code agent: Implementation Guidelines. Patterns and reference files an implementer follows; nothing a human has to agree with.
+
+A section belongs above the rule if a human must verify it, below if only an agent consumes it.
+
 ```markdown
 ---
 status: init          # init → review → impl  (phase machine + rules: ref-write.md § Status)
@@ -108,20 +115,6 @@ drives: <one sentence — what this work delivers, user-facing>
 <what this work is about, 2–5 sentences>
 
 > Terms live in the sibling `GLOSSARY.md` (template: `references/tpl-glossary.md`), current every phase.
-
-## Implementation Guidelines
-
-### Skills
-- `go-modify` — Go file edits
-- `commit` — commit conventions
-
-### Coding Patterns
-- <pattern from the codebase, e.g. "handlers return structured errors via `pkg/errors.Wrap`">
-
-### References
-- `<path/to/example.go>` — reference for <pattern>
-
-> If none: "No project-specific guidelines — follow language defaults."
 
 ## Goal
 
@@ -141,12 +134,11 @@ Plain-language user-visible outcome once this spec is done. 2–5 sentences. No 
 
 > Index only — outcomes, not bodies. Each row is a discussion object the user aligns on before any body is drafted. Rows are sorted deepest layer first (a legal order); the `## Plan` wave table below says what actually runs together. Bodies live in `todos/TODO-N.md`, restating the outcome verbatim.
 
-| #      | Layer            | Outcome | Commit |
-|--------|------------------|---------|--------|
-| TODO-1 | L0 — leaf        | <observable result after this TODO, user/system-facing> | `<commit subject, ≤ 72 chars, imperative>` |
-| TODO-2 | L1 — domain pkg  | <…> | `<…>` |
-| TODO-3 | L2 — handler     | <…> | `<…>` |
-| TODO-4 | L3 — wiring      | <…> | `<…>` |
+#### TODO-1
+**Layer:** L0 — leaf
+**Outcome:** <observable result after this TODO, user/system-facing>
+**Commit:** `<commit subject, ≤ 72 chars, imperative>`
+**Why:** <commit body — the problem or constraint that forced this commit, and what breaks without it>
 
 > Outcome rules — post-condition, ≤ 25 words, GLOSSARY.md terms only, no implementation nouns. Full rules and examples: `sub-todo.md` § Outcome. If a row hides an "and", split it; if two rows share an outcome, merge them.
 
@@ -229,17 +221,20 @@ its own audience and bar, owned by `todo`. The user decides when the outcomes ar
 The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check against them.
 
 - [ ] `spec.md` opens with a `---` frontmatter block (`status`, `branch`, `drives`); no `Status`/phase-rules prose in the body
+- [ ] `spec.md` body has Description, Goal, What we're NOT doing, Design Decisions, Open Questions, the ledger, Plan, then a `---` rule, then Implementation Guidelines — in that order, nothing else
+- [ ] `## Plan` carries the target-picture summary and a Decision trail table mirroring `thoughts/` (absent only while `status: init`)
 - [ ] `spec.md` body has Description, Guidelines, Goal, What we're NOT doing, the ledger, and the Plan — nothing else. No `Design Decisions`, no `Open Questions` section, no decision-trail table
 - [ ] `GLOSSARY.md` exists (sibling), covers every entity/command/event in the spec, and is current
 - [ ] `CLAUDE.md` and `RULES.md` exist in the notes dir; `RULES.md` carries the four answered knobs, no `<…>` placeholder left
 - [ ] Every superseded thought sits in `thoughts/archived/`; no live note links to an archived one
 - [ ] **No `status: open` question note in `thoughts/`** (hard block) — `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0
 - [ ] Every decision made while writing the spec has a `thoughts/NNN-decision-*.md` note
-- [ ] The ledger is a `Layer | Outcome | Commit` table — no bodies, no checkboxes, no file paths
+- [ ] The ledger is a list of `#### TODO-N` entries, each with `**Layer:**` / `**Outcome:**` / `**Commit:**` / `**Why:**` lines — no bodies, no checkboxes, no file paths
+- [ ] Every `Commit` is a ≤ 72-char imperative subject and every `Why` states the reason the commit exists
 - [ ] `## Plan` carries the wave table; every TODO appears in exactly one wave; TODOs sharing a wave have disjoint **Files** sets and no `depends_on` between them
 - [ ] Every outcome is a post-condition (what is true after), ≤ 25 words, no implementation nouns, GLOSSARY.md terms verbatim
-- [ ] No outcome hides two behind "and"; no two rows share an outcome
-- [ ] Rows are contiguous from 1, sorted by ascending `Ln` depth; no TODO depends on a component a later TODO introduces
+- [ ] No outcome hides two behind "and"; no two entries share an outcome
+- [ ] Entries are contiguous from 1, sorted by ascending `Ln` depth; no TODO depends on a component a later TODO introduces
 - [ ] Nothing was written under `todos/` during this spec pass
 - [ ] Description + Goal convey the target picture in plain language
 - [ ] Format/protocol decisions have a `thoughts/NNN-decision-*.md` note, not deferred into bodies
@@ -249,7 +244,7 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 | User says | You do |
 |-----------|--------|
 | "add X" / "fix Y" | Update Description / Goal + GLOSSARY.md, write the thought note for any choice it forces, **and** add or revise a ledger row (+ its wave). No body file — that's `todo`. |
-| "the outcome of TODO-N should be Z" | Edit row N; confirm it follows the outcome rules. |
+| "the outcome of TODO-N should be Z" | Edit entry N; confirm it follows the outcome rules. |
 | "split TODO-N" / "merge N and M" | Rewrite the rows, renumber contiguously, recompute the `## Plan` waves. |
 | "use approach Z" | Write a `thoughts/NNN-decision-*.md` note (and restate it in each affected TODO's `## Constraints`). |
 | "looks good" | Signal readiness. |
