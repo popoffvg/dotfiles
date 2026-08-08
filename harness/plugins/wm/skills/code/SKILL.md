@@ -40,6 +40,7 @@ Reference-type slugs in the last column: **`sub`** subcommand contract · **`ref
 | `code-map` | Single-panel planned-architecture HTML map (package or component) as a visual aid — via `/dive explain`. | `sub:code-map.md` |
 | `diff` | Show change as one self-contained HTML page (opened): before/after arch panels + signatures-as-diffs. `diff arch` *(default)*: current vs proposed. `diff impl`: what the branch shipped. | `sub:diff.md` · `sub:code-map.md` |
 | `impl` | Execute one TODO — read context, replan guard, apply each increment for user approval, autotest, commit, report. | `sub:impl.md` |
+| `auto` | Unattended run of the whole ledger: arm the `/goal` Stop hook → per TODO (read `LESSONS.md` → impl → `reviewer` gate → `tester` gate → append `LESSONS.md`) → deploy → verify E2E. No per-increment approval. | `sub:auto.md` · `sub:impl.md` · `skill:carry-review-findings-in-a-lessons-file` |
 | `squash` | Read the fixup trail → distill lessons into `CLAUDE.local.md` → squash-merge as one commit. Called by `tree merge`. | `sub:squash.md` |
 | `fix` | Close a gap (bug / missing / adjust) by fixing the thought, then the code. Edits source. | `sub:fix.md` |
 | `commit` | Commit-message conventions (`<prefix>: <why>`) — shared by `impl`, `tree`, `fix`. | `sub:commit.md` |
@@ -54,6 +55,6 @@ research → new → ┃ the gate ┃ → todo → verify → impl → revise (i
                  ┗ human review ┛
 ```
 
-The gate is a human read, not a command: `new` stops at a reviewable spec; the human runs `todo` when satisfied. `tree` is the worktree-isolated `impl`; `squash` collapses a `tree` branch's fixups. `revise` settles drift notes-only; `fix` corrects thought **and** code. `prototype`, `code-map`, `diff` are mid-spec aids.
+The gate is a human read, not a command: `new` stops at a reviewable spec; the human runs `todo` when satisfied. `auto` is `impl` looped over the whole ledger with the gates replacing the human, then deploy + E2E. `tree` is the worktree-isolated `impl`; `squash` collapses a `tree` branch's fixups. `revise` settles drift notes-only; `fix` corrects thought **and** code. `prototype`, `code-map`, `diff` are mid-spec aids.
 
 The spec contract — layout, the `status` metadata (spec phase `init → review → impl`; TODO lifecycle `todo → impl → verify → done`, both in YAML frontmatter), output shape, and the gate — lives in one place: `references/ref-write.md`. This router does not restate it.
