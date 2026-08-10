@@ -97,26 +97,31 @@ if [[ -n $existing ]]; then
 	# zoom --on also focuses, so one call both raises and fills the window.
 	herdr pane zoom "$existing" --on >/dev/null
 	printf 'already open — focused %s in pane %s\n' "$label" "$existing"
-	exit 0
+	# --wait re-attaches to the viewer already on screen: a caller whose wait died
+	# (killed shell, lost session) must be able to collect the annotations without
+	# the user reopening the diff. The annotation file is left untouched — the
+	# running lumen still holds it open as its stdout.
+	[[ $wait_for_exit -eq 1 ]] || exit 0
+	root=$existing
+else
+	: >"$out"
+
+	created=$(herdr pane split "$caller" --direction down --cwd "$PWD" --focus)
+	root=$(printf '%s' "$created" | jq -er '.result.pane.pane_id') || {
+		printf 'herdr pane split returned no pane id:\n%s\n' "$created" >&2
+		exit 1
+	}
+	herdr pane rename "$root" "$label" >/dev/null
+	herdr pane zoom "$root" --on >/dev/null
+
+	# exec replaces the shell: quitting lumen ends the pane and the split collapses
+	# back to the caller. Without exec the shell prompt would keep the pane open.
+	cmd=$(printf '%q ' lumen diff "$@")
+	herdr pane run "$root" "exec ${cmd% }> $(printf '%q' "$out")" >/dev/null
+
+	printf 'opened %s in pane %s under %s\n' "$label" "$root" "$caller"
+	printf 'annotations: %s\n' "$out"
 fi
-
-: >"$out"
-
-created=$(herdr pane split "$caller" --direction down --cwd "$PWD" --focus)
-root=$(printf '%s' "$created" | jq -er '.result.pane.pane_id') || {
-	printf 'herdr pane split returned no pane id:\n%s\n' "$created" >&2
-	exit 1
-}
-herdr pane rename "$root" "$label" >/dev/null
-herdr pane zoom "$root" --on >/dev/null
-
-# exec replaces the shell: quitting lumen ends the pane and the split collapses
-# back to the caller. Without exec the shell prompt would keep the pane open.
-cmd=$(printf '%q ' lumen diff "$@")
-herdr pane run "$root" "exec ${cmd% }> $(printf '%q' "$out")" >/dev/null
-
-printf 'opened %s in pane %s under %s\n' "$label" "$root" "$caller"
-printf 'annotations: %s\n' "$out"
 
 [[ $wait_for_exit -eq 1 ]] || exit 0
 

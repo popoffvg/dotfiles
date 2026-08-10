@@ -44,6 +44,10 @@ Ignore `thoughts/archived/` unless you are auditing history. Those notes are sup
   `Open Questions` — both live in `thoughts/`.
 - **The ledger holds outcomes, not bodies.** No file paths, no checkboxes in `spec.md`.
 - **Every new term goes in `GLOSSARY.md`** in the same edit that introduces it.
+- **Spec scaffolding stays out of the code.** No TODO number, step number, wave, layer number, or
+  file name from this corpus in source, identifiers, comments, or commit bodies. Name the work by
+  its domain term: step 3 "calculate liabilities" becomes `calculateLiabilities` — never `step3`
+  or "next step 4". If the step has no domain name, add one to `GLOSSARY.md` first.
 - **Ask what `RULES.md` says to ask.** Do not decide alone what that file marks as human-owned.
 
 ## Status

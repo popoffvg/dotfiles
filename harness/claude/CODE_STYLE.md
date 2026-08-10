@@ -1,7 +1,5 @@
 # CODE_STYLE 
 
-Write code Domain-Driven. Apply to any new module or refactor.
-
 ## Align language
 
 - One term per concept across code, tests, docs, commits. No synonyms (`user`/`account`/`member` → pick one).
