@@ -1,0 +1,18 @@
+[workspace]
+members = ["server"]
+resolver = "2"
+
+# The Zed extension lives at the root of the app so that `zed: install dev extension`
+# pointed at this directory finds extension.toml beside the crate it must compile.
+[package]
+name = "md-comment-extension"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+zed_extension_api = "0.7"

@@ -1,0 +1,14 @@
+id = "md-comment"
+name = "Markdown Comment"
+version = "0.1.0"
+schema_version = 1
+description = "Review comments on markdown lines, kept outside the file"
+repository = "https://github.com/popoffvg/dotfiles"
+authors = ["Vitalii Popov"]
+
+[lib]
+kind = "Rust"
+
+[language_servers.md-comment-language-server]
+name = "Markdown Comment Language Server"
+languages = ["Markdown"]

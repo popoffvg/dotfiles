@@ -57,6 +57,14 @@
     "show_count_badge": false,
   },
   "theme": "Catppuccin Macchiato",
+  // md-comment publishes each markdown comment as a Hint diagnostic, so inline
+  // diagnostics are what put the comment text at the end of its line.
+  "diagnostics": {
+    "inline": {
+      "enabled": true,
+      "max_severity": "hint",
+    },
+  },
   "code_lens": "off",
   "proxy": "",
   "telemetry": {
@@ -336,7 +344,11 @@
         "coloring": "fixed",
         "enabled": true
       },
-      "language_servers": ["marksman"],
+      "language_servers": ["marksman", "md-comment-language-server"],
+      "inlay_hints": {
+        "enabled": true,
+        "show_other_hints": true,
+      },
     },
   },
   "relative_line_numbers": "disabled",

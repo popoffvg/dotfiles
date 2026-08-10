@@ -1,7 +1,7 @@
 {
   "name": "harness-dev",
-  "version": "0.4.0",
-  "description": "Authoring aids for building Claude Code skills — workflow, loop, and instruction shapes, and the specs behind them.",
+  "version": "0.5.0",
+  "description": "Authoring aids for the Claude Code harness — skill shapes (workflow, loop, instruction, router) and repo bootstrap (README, CLAUDE.md, deploy and adr skills, settings).",
   "author": {
     "name": "popoffvg"
   }

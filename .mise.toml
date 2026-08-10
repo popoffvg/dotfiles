@@ -48,6 +48,23 @@ description = "Test the vocab MCP server"
 dir = "{{config_root}}/harness/apps/vocab"
 run = "go test ./... -race -count=1"
 
+[tasks."harness:md-comment:build"]
+description = "Build the md-comment language server → ~/.local/bin/md-comment-lsp"
+dir = "{{config_root}}/harness/apps/md-comment"
+sources = ["server/**/*.rs", "server/Cargo.toml"]
+outputs = ["{{env.HOME}}/.local/bin/md-comment-lsp"]
+run = """
+cargo build --release -p md-comment-server
+# install replaces through a temp file + rename. Copying onto the live binary
+# invalidates its signature and macOS then SIGKILLs it.
+install -m 755 target/release/md-comment-lsp $HOME/.local/bin/md-comment-lsp
+"""
+
+[tasks."harness:md-comment:test"]
+description = "Test the md-comment language server"
+dir = "{{config_root}}/harness/apps/md-comment"
+run = "cargo test -p md-comment-server"
+
 [tasks."harness:plugins:sync"]
 description = "Regenerate local-plugins marketplace.json from harness/plugins/"
 sources = ["harness/plugins/*/.claude-plugin/plugin.json"]
