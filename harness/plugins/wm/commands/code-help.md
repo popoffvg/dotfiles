@@ -14,6 +14,7 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 | `verify` | Audit a spec before implementation in a separate `spec-verifier` agent (sonnet, read-only) — hunts contradictions, missing parts, edge cases. READY / NEEDS REVISION. |
 | `revise` | Fix spec.md / todos and change or add a thoughts/ note; settles the review phase (resets the spec `status` to review). Notes-only. |
 | `quiz` | Test the human's understanding — build a multiple-choice quiz over the spec (`status` init/review) or the code changes (`status` impl), grade the answers, report a score. Read-only; edits no artifact. |
+| `teach` | Teach the human this codebase step by step, across sessions. Stateful workspace `<notes-dir>/teach/` — MISSION.md, numbered HTML lessons, reference cheat sheets, learning records that set the level for the next session. Subject follows `status`: the code the change lands in (init/review) or the branch diff (impl); `/code teach <path-or-symbol>` targets one unit. Read-only over source. |
 | `prototype` | Settle an open design decision with a small, visible demonstrative diff. |
 | `code-map` | Produce a single-panel planned-architecture HTML map (package or component/type) for the spec — via `/dive explain`. |
 | `diff` | Show what changed as one self-contained HTML page (opened): before/after architecture panels + interfaces/signatures rendered as diffs. `diff arch` *(default)* — current vs proposed architecture. `diff impl` — what the branch shipped, `git diff <target>...<current-branch>`. No mermaid. |
