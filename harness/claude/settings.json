@@ -186,6 +186,15 @@
             "command": "bunx github:nitsanavni/bash-history-mcp hook"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/verify-commit-contents.sh"
+          }
+        ]
       }
     ],
     "PreCompact": [],
@@ -214,6 +223,15 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/skill-trace.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/guard-uncommitted-loss.sh"
           }
         ]
       }
@@ -246,6 +264,17 @@
           {
             "type": "command",
             "command": "node $HOME/.claude/hooks/coach.mjs"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $HOME/.claude/hooks/claim-check.mjs"
           }
         ]
       }

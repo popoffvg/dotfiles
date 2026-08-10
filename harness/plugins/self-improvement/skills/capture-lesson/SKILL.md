@@ -9,7 +9,7 @@ description: >
 
 A lesson worth keeping lands in a skill — never as a loose rule in a config or instruction file. A lesson not worth keeping is **skipped**, not filed somewhere weaker.
 
-Run per lesson: **(0) name the source**, **(1) pick the scope — or skip**, **(1b) pick the form**, **(2) find an existing skill for that trigger**, **(3) extend it or write a new skill**, **(4) record the case**, **(5) report in one sentence or stay silent**.
+Run per lesson: **(0) name the source**, **(1) pick the scope — or skip**, **(1a) pick the container**, **(1b) pick the form**, **(2) find an existing skill for that trigger**, **(3) extend it or write a new skill**, **(4) record the case**, **(5) report in one sentence or stay silent**.
 
 # Step 0 — Name the source: correction, method, discovery, or decision
 
@@ -73,6 +73,30 @@ A lesson can be teachable *and* anchored to this machine — a vault path, an MC
 Write to `~/.claude` directly — never the dotfiles `harness/` source. Project root is `git rev-parse --show-toplevel`; if the cwd is not a git repo, the scope is global.
 
 For a global skill, phrase the lesson generally and strip this project's names and paths. For a project skill, keep the real paths and commands — concreteness helps at project scope.
+
+# Step 1a — Pick the container: a skill is the last resort
+
+**Name the trigger, then pick the cheapest container that fires on it.** A skill's `description`
+is resident in every session and fires only when the model notices it. A lesson whose trigger is
+a command, a path, or a committable file gets a container that fires with certainty and costs no
+resident context.
+
+| The trigger is | Container | Where |
+|---|---|---|
+| A shell command shape | `PreToolUse` hook, matcher `Bash` — block with the reason, or allow when the state is safe | `harness/claude/hooks/` + `settings.json` |
+| A command's aftermath | `PostToolUse` hook — put the real evidence into context | same |
+| Touching certain files | a skill with `paths:` frontmatter, so it loads only on those edits | the skill itself |
+| The shape of a committed file | a `pre-commit` job | `lefthook.yml` |
+| Always true, no trigger | the output style or `CLAUDE.md` | `harness/claude/` |
+| One project's fact, no rule attached | `mem_save` | engram |
+| How a *request* should be read | a skill | Step 2 |
+
+Only the last row earns a skill. Prefer extending an existing hook over adding one: a second
+matcher in a hook that already parses `git` subcommands is cheaper than a new file.
+
+A hook needs a test before it is wired. Feed it a synthetic payload for the case it must catch
+**and** for the neighbouring case it must not, and confirm both exit codes. A hook that blocks a
+legitimate command is worse than the lesson it encodes.
 
 # Step 1b — Pick the form: verdict or check
 

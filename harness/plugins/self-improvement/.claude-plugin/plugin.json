@@ -1,6 +1,6 @@
 {
   "name": "self-improvement",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Captures generalizable behavioral rules from user corrections on session end (Stop hook), writes each into a new or existing skill with the capture-lesson skill, and consolidates the accumulated skill corpus with the dream skill.",
   "author": {
     "name": "popoffvg"

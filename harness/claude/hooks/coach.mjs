@@ -8,41 +8,17 @@
 //   strict — block only when score ≤ MIN_SCORE
 //   block  — block on any flagged prompt
 
-import { readFileSync, mkdirSync, appendFileSync, writeFileSync, existsSync } from "fs";
-import { join } from "path";
 import { fileURLToPath } from "url";
-import { homedir, tmpdir } from "os";
-import { spawnSync } from "child_process";
+import { makeHookIO, wrap } from "./lib/hook-io.mjs";
 
-const CFG_PATH = join(homedir(), ".claude", "prompt-coach.json");
-const LOG_DIR = join(homedir(), ".claude", "debug");
-const LOG_FILE = join(LOG_DIR, "prompt-coach.log");
-const STATE_DIR = join(tmpdir(), "prompt-coach");
-const LAST_FILE = join(STATE_DIR, "last.json");
-
-const DEFAULT_CFG = {
+const io = makeHookIO("prompt-coach", {
   mode: "warn",          // off | async | warn | strict | block
   minScore: 10,          // /25, below this counts as "bad" for strict/block
   budgetMs: 1500,        // hard ceiling on analyzer wall time
   minPromptChars: 20,    // skip very short prompts
   model: "claude-haiku-4-5",
-};
-
-function log(msg) {
-  try {
-    mkdirSync(LOG_DIR, { recursive: true });
-    appendFileSync(LOG_FILE, `${new Date().toISOString()} ${msg}\n`);
-  } catch {}
-}
-
-function loadCfg() {
-  try {
-    if (existsSync(CFG_PATH)) {
-      return { ...DEFAULT_CFG, ...JSON.parse(readFileSync(CFG_PATH, "utf8")) };
-    }
-  } catch (e) { log(`cfg parse err: ${e.message}`); }
-  return DEFAULT_CFG;
-}
+});
+const { log, loadCfg, writeLast } = io;
 
 // Cheap regex pre-filter. Returns issues without LLM call.
 // Returns null if nothing suspicious → skip LLM entirely.
@@ -82,37 +58,14 @@ function format(critique) {
   return lines.join("\n");
 }
 
-function wrap(s, w) {
-  const out = []; let line = "";
-  for (const word of s.split(/\s+/)) {
-    if ((line + " " + word).length > w) { out.push(line); line = word; }
-    else line = line ? line + " " + word : word;
-  }
-  if (line) out.push(line);
-  return out;
-}
-
 // Call Haiku via `claude -p` for a structured critique. Synchronous, time-boxed.
 function callLLM(prompt, cfg, rubric) {
-  const sys = `You are a prompt-quality reviewer. Apply the rubric below to the user's prompt. Output ONLY valid JSON matching the schema. No prose.\n\n${rubric}`;
-  const user = `Prompt to review:\n---\n${prompt}\n---`;
-  const args = ["-p", "--output-format", "json", "--model", cfg.model, "--system-prompt", sys, user];
-  const res = spawnSync("claude", args, { timeout: cfg.budgetMs, encoding: "utf8" });
-  if (res.status !== 0 || !res.stdout) { log(`llm err: status=${res.status} stderr=${res.stderr?.slice(0, 200)}`); return null; }
-  try {
-    const outer = JSON.parse(res.stdout);
-    const text = outer.result || outer.text || res.stdout;
-    const m = text.match(/\{[\s\S]*\}/);
-    if (!m) return null;
-    return JSON.parse(m[0]);
-  } catch (e) { log(`llm parse err: ${e.message}`); return null; }
-}
-
-function writeLast(payload) {
-  try {
-    mkdirSync(STATE_DIR, { recursive: true });
-    writeFileSync(LAST_FILE, JSON.stringify(payload, null, 2));
-  } catch (e) { log(`writeLast err: ${e.message}`); }
+  return io.callLLM({
+    system: `You are a prompt-quality reviewer. Apply the rubric below to the user's prompt. Output ONLY valid JSON matching the schema. No prose.\n\n${rubric}`,
+    user: `Prompt to review:\n---\n${prompt}\n---`,
+    model: cfg.model,
+    budgetMs: cfg.budgetMs,
+  });
 }
 
 async function main() {
@@ -137,9 +90,8 @@ async function main() {
 
   let critique = null;
   if (cfg.mode !== "async") {
-    const rubricPath = join(fileURLToPath(new URL(".", import.meta.url)), "coach-rubric.md");
-    let rubric = "";
-    try { rubric = readFileSync(rubricPath, "utf8"); } catch {}
+    const hookDir = fileURLToPath(new URL(".", import.meta.url));
+    const rubric = io.readRubric(hookDir, "coach-rubric.md");
     if (rubric) critique = callLLM(prompt, cfg, rubric);
   }
 
