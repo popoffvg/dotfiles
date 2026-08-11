@@ -9,24 +9,50 @@ use md_comment::wire::{Change, Position, Range, RESET_CANCEL, RESET_CONFIRM};
 use md_comment::{uri_to_path, Effect, Session};
 use serde_json::{json, Value};
 
+const USAGE: &str = "\
+md-comment-lsp — line comments kept outside the file.
+
+With no argument it speaks LSP over stdio and is started by the Zed extension.
+The subcommands write the same store from a shell, for Claude to place comments:
+
+  comment <file>:<line> <text>   attach a comment, replacing the one on that line
+  drop <file>:<line>             remove the comment on that line
+  list                           print every comment in the export format
+
+A running server picks the change up through its watch on the store.";
+
 fn main() -> Result<(), Box<dyn Error>> {
-    // The server speaks LSP over stdio. Answer the two flags a human is likely to try,
-    // so a hand-run binary explains itself instead of failing on an empty channel.
-    if let Some(flag) = std::env::args().nth(1) {
-        match flag.as_str() {
-            "--version" | "-V" => {
-                println!("md-comment-lsp {}", env!("CARGO_PKG_VERSION"));
-                return Ok(());
+    let arguments: Vec<String> = std::env::args().skip(1).collect();
+    if let Some(first) = arguments.first() {
+        let rest = &arguments[1..];
+        let answered = match first.as_str() {
+            "--version" | "-V" => Some(Ok(format!("md-comment-lsp {}", env!("CARGO_PKG_VERSION")))),
+            "--help" | "-h" | "help" => Some(Ok(USAGE.to_string())),
+            "comment" => Some(match rest {
+                [target, text @ ..] if !text.is_empty() => {
+                    md_comment::cli::comment(target, &text.join(" "))
+                        .map(|placed| format!("commented {placed}"))
+                }
+                _ => Err("usage: md-comment-lsp comment <file>:<line> <text>".to_string()),
+            }),
+            "drop" => Some(match rest {
+                [target] => md_comment::cli::drop_comment(target),
+                _ => Err("usage: md-comment-lsp drop <file>:<line>".to_string()),
+            }),
+            "list" => Some(md_comment::cli::list()),
+            _ => None,
+        };
+        if let Some(answer) = answered {
+            match answer {
+                Ok(text) => {
+                    println!("{}", text.trim_end());
+                    return Ok(());
+                }
+                Err(reason) => {
+                    eprintln!("md-comment-lsp: {reason}");
+                    std::process::exit(1);
+                }
             }
-            "--help" | "-h" => {
-                println!(
-                    "md-comment-lsp {} — a language server for markdown comments.\n\
-                     It speaks LSP over stdio and is started by the Zed extension, not by hand.",
-                    env!("CARGO_PKG_VERSION")
-                );
-                return Ok(());
-            }
-            _ => {}
         }
     }
 
@@ -215,8 +241,17 @@ impl Server {
                 self.session.did_close(&uri(&params));
                 Vec::new()
             }
-            // The watch fires on any change to the input file, open in an editor or not.
-            "workspace/didChangeWatchedFiles" => self.session.drain_input(),
+            // One watch covers the input file and the store, so the notification does not
+            // say which moved. Both are cheap to re-read, so both are read.
+            //
+            // The store is read first. A drain leaves its comment in memory and persists
+            // it only when the effects run, so reloading afterwards would read the file
+            // as it stood before the drain and throw that comment away.
+            "workspace/didChangeWatchedFiles" => {
+                let mut effects = self.session.reload_store();
+                effects.extend(self.session.drain_input());
+                effects
+            }
             _ => Vec::new(),
         };
         self.perform(effects);
@@ -252,7 +287,7 @@ impl Server {
                 Effect::ShowMessage { error, text } => self.show(error, text),
                 Effect::AskResetConfirmation { prompt } => self.ask_reset(prompt),
                 Effect::OpenInput { contents } => self.open_input(contents),
-                Effect::WatchInput => self.watch_input(),
+                Effect::WatchFiles => self.watch_files(),
                 Effect::PublishDiagnostics => self.publish_diagnostics(),
                 Effect::OpenList { contents } => self.open_list(contents),
             }
@@ -297,23 +332,29 @@ impl Server {
         self.trace.write(&format!("open input {}", path.display()));
     }
 
-    /// Ask the client to watch the input file. Without this the server only learns of a
-    /// save when the file happens to be an open buffer the client reports.
-    fn watch_input(&mut self) {
+    /// Ask the client to watch the input file and the store. Without this the server only
+    /// learns of a write when the file happens to be an open buffer the client reports —
+    /// and the `comment` subcommand writes the store with no editor involved at all.
+    fn watch_files(&mut self) {
         let id = self.request_id();
-        let glob = self.session.input_path().to_string_lossy().to_string();
+        let globs = [self.session.input_path(), self.session.store_path()]
+            .map(|path| path.to_string_lossy().to_string());
+        let watchers: Vec<Value> = globs
+            .iter()
+            .map(|glob| json!({ "globPattern": glob }))
+            .collect();
         self.send(Message::Request(Request {
             id,
             method: "client/registerCapability".to_string(),
             params: json!({
                 "registrations": [{
-                    "id": "md-comment-input",
+                    "id": "md-comment-files",
                     "method": "workspace/didChangeWatchedFiles",
-                    "registerOptions": { "watchers": [{ "globPattern": glob }] }
+                    "registerOptions": { "watchers": watchers }
                 }]
             }),
         }));
-        self.trace.write(&format!("watch {glob}"));
+        self.trace.write(&format!("watch {}", globs.join(" ")));
     }
 
     /// Ask the client, then act on the answer. Messages that arrive meanwhile are

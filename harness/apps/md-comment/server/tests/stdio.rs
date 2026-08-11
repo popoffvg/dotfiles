@@ -273,3 +273,86 @@ fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
     );
     assert_eq!(published["params"]["diagnostics"][0]["severity"], json!(4));
 }
+
+/// The path Claude uses: a `comment` subcommand process writes the store while the server
+/// runs, and the watch notification makes the server publish it.
+#[test]
+fn a_comment_written_by_the_subcommand_reaches_the_editor() {
+    let root = std::env::temp_dir().join(format!("md-comment-agent-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    // A git directory, so the subcommand resolves the same root the server was given.
+    std::fs::create_dir_all(root.join(".git")).unwrap();
+    let target = root.join("src").join("main.rs");
+    let text = "fn main() {\n    let x = 1;\n}\n";
+    std::fs::write(&target, text).unwrap();
+    let uri = format!("file://{}", target.display());
+
+    let mut server = Server::start();
+    server.send(json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "capabilities": {},
+            "workspaceFolders": [{ "uri": format!("file://{}", root.display()), "name": "root" }]
+        }
+    }));
+    server.response(1);
+    server.send(json!({ "jsonrpc": "2.0", "method": "initialized", "params": {} }));
+    server.send(json!({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": { "textDocument": {
+            "uri": uri, "languageId": "rust", "version": 1, "text": text
+        }}
+    }));
+    server.wait_for("client/registerCapability");
+
+    let written = Command::new(env!("CARGO_BIN_EXE_md-comment-lsp"))
+        .args(["comment", "src/main.rs:2", "x is never reassigned"])
+        .current_dir(&root)
+        .output()
+        .expect("the subcommand runs");
+    assert!(
+        written.status.success(),
+        "{}",
+        String::from_utf8_lossy(&written.stderr)
+    );
+
+    let store = root.join(".tmp").join("md-comment.json");
+    server.send(json!({
+        "jsonrpc": "2.0",
+        "method": "workspace/didChangeWatchedFiles",
+        "params": { "changes": [{ "uri": format!("file://{}", store.display()), "type": 2 }] }
+    }));
+
+    // A round trip proves the notification was processed before the assertions below.
+    server.send(json!({
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "textDocument/inlayHint",
+        "params": {
+            "textDocument": { "uri": uri },
+            "range": { "start": { "line": 0, "character": 0 }, "end": { "line": 5, "character": 0 } }
+        }
+    }));
+    let hints = server.response(2);
+    assert_eq!(hints["result"].as_array().unwrap().len(), 1);
+
+    let published = server
+        .notifications
+        .iter()
+        .rfind(|message| message["method"] == "textDocument/publishDiagnostics")
+        .expect("the server republishes after the store changes");
+    assert_eq!(published["params"]["uri"], json!(uri));
+    assert_eq!(
+        published["params"]["diagnostics"][0]["message"],
+        json!("🤖 x is never reassigned")
+    );
+    assert_eq!(published["params"]["diagnostics"][0]["severity"], json!(4));
+    assert_eq!(
+        published["params"]["diagnostics"][0]["range"]["start"]["line"],
+        json!(1)
+    );
+}

@@ -35,6 +35,8 @@ caller the blast radius predicted is a Failure, not a nit.
 1. **Outcome not delivered** — the change does not produce the TODO's stated Outcome, or produces it only for the happy path.
 2. **Correctness bugs** — off-by-one, nil/empty/zero, error paths swallowed, wrong boundary, race on a new shared value, a caller left unmigrated after a signature change.
 3. **Spec drift** — the implementation violates a Decision, redefines a Term, or expands scope beyond the TODO.
+4. **A fact duplicated between a table and its reader** — apply the table-diff and identity-branch tests from `CODE_STYLE.md`. A parallel array of ids beside a declaration table, a default the reader merges in, a field the reader injects on every row, or a branch keyed on one item's identity: each leaves one fact in two places, and the two can disagree. A Failure when the diff shows both sides edited for one change; a Nit when only the shape is at risk.
+5. **A comment that restates its code** — apply the deletion test from `CODE_STYLE.md`: delete the comment, read the code, name the fact lost. No fact lost, the comment goes. Judge the whole diff, not a fixed window: a doc block paraphrasing a function name three lines below it is the common case, and the `comment-check` hook cannot see that far. A half-restatement keeps its reason clause and loses the rest.
 
 Each finding names the exact file:line, the concrete scenario that fails, and the edit that
 closes it. A finding without a reproducing scenario is a nit — list it under Nits, not Failures.

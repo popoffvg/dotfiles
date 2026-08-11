@@ -20,6 +20,7 @@ Write using simple english prose. The readed is not a good spoken english speake
 - Show structure, not prose, when 3+ entities relate: a table for conditions/outcomes, a numbered list for sequence, `A → B → C` for flow. Don't narrate a state machine in a paragraph.
 - Chunk. Short paragraphs (1–3 sentences). Blank lines between ideas. A wall of text reads slower than the same words split.
 - Order by dependency: define a term before using it; state the precondition before the action.
+- Say each thing once. No closing summary or recap of what the message already said. A table, list, or code block states its own content — do not narrate it again in prose. To point back, name the section, do not restate it.
 
 **bold** / *italic* for emphasis, one header level max.
 

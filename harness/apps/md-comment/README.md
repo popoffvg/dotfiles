@@ -1,6 +1,6 @@
 # md-comment
 
-Review comments on markdown lines in Zed, kept out of the file. A code action hands you a
+Review comments on lines of any file in Zed, kept out of the file. A code action hands you a
 small input file, you type the comment and save, the comment shows at the end of the line as
 an inlay hint and a Hint diagnostic, and `/md-comment` hands the collected comments to
 Claude.
@@ -25,13 +25,21 @@ After editing `src/lib.rs`, run `zed: rebuild dev extension` — plain
 `zed: reload extensions` does not recompile. After editing the server, re-run the mise
 build task.
 
-**Either way, finish with `editor: restart language server` on a markdown file.** A rebuild
+Zed's `extension.toml` has no wildcard for languages, so the server attaches only to the
+names in its `languages` array. Regenerate that array from the languages installed on this
+machine after installing a language extension:
+
+```sh
+mise run harness:md-comment:languages   # then `zed: rebuild dev extension`
+```
+
+**Either way, finish with `editor: restart language server` on a served file.** A rebuild
 stops the running server and does not start a new one, so the hints and code actions simply
 vanish until you restart it — which reads exactly like a crash. The Zed log shows
 `stopping language server md-comment-language-server` with no matching
 `starting language server process`.
 
-The stowed `.config/zed/settings.json` already carries the two keys the feature needs:
+The stowed `.config/zed/settings.json` already carries the keys the feature needs:
 
 ```json
 "Markdown": {
@@ -41,7 +49,10 @@ The stowed `.config/zed/settings.json` already carries the two keys the feature 
 ```
 
 Without `show_other_hints` the hints are hidden — Zed files a kind-less hint under
-"other hints", and that flag is off in the global block.
+"other hints", and that flag is off in the global block. Only Markdown carries that
+override, so **in every other language the inlay hint does not show and the diagnostic is
+the only display.** Turning the flag on globally would also surface every other language
+server's kind-less hints, which is why it stays per-language.
 
 Comments are also published as `Hint` diagnostics, which is the more dependable display:
 they appear in the diagnostics panel with jump-to whatever the hint settings say. The

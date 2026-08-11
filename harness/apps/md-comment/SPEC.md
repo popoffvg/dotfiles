@@ -1,52 +1,58 @@
 # md-comment — implementation spec
 
-**Goal:** the operator writes review comments on markdown lines in Zed without changing the file, and `/md-comment` hands those comments to Claude in lumen annotation format.
+**Goal:** review comments on lines of any file in Zed without changing the file, written from both sides — the operator through a code action, Claude through the `comment` subcommand — with `/md-comment` handing the operator's comments to Claude in lumen annotation format.
 
 ## Mental model
 
 **A code action hands over an input file.** Zed exposes no LSP request that opens a text box, and a code action's command reaches only the language server, never an editor action. What a server can do is create a file through `workspace/applyEdit` — and a create carrying a text edit makes the client put that file in front of the operator. So `add comment` writes a one-line header naming the target into `.tmp/md-comment-input.md`; the operator types under it and saves.
 
-**A watch turns the save into a notification.** The server registers `workspace/didChangeWatchedFiles` on the input file through `client/registerCapability`, so it learns of the save whether or not the file is an open buffer. The watch only reports changes while the server lives, so the server also drains the input file at startup — a comment typed before a crash is not lost.
+**A watch turns a write into a notification.** The server registers `workspace/didChangeWatchedFiles` on the input file and on the store through `client/registerCapability`, so it learns of a write whether or not the file is an open buffer. The watch only reports changes while the server lives, so the server also drains the input file at startup — a comment typed before a crash is not lost.
 
-**The comments live beside the file, never in it.** The server keeps one JSON store per Zed project under `.tmp/`. Nothing the server does writes into the markdown buffer.
+**The comments live beside the file, never in it.** The server keeps one JSON store per Zed project under `.tmp/`. Nothing the server does writes into the commented buffer.
 
 **Two displays carry the comments, and code actions change them.** An inlay hint sits at the end of each commented line, and the same comment is published as a `Hint` diagnostic over that line — the diagnostic is the dependable one, because it reaches the diagnostics panel whatever the hint settings say, and it renders inline when inline diagnostics are on. Zed drops the `command` field of hint label parts, so neither display can be clicked; add, edit, delete, list, copy and reset are all code actions.
 
 **Claude reads an exported file, not the store.** The `copy comments` action writes lumen-format markdown to `.tmp/md-comment.md`. The `/md-comment` command reads that file and treats each block as a task on that file and line.
 
+**Claude writes through the same binary, with no editor involved.** `md-comment-lsp comment <file>:<line> <text>` loads the store, upserts an `agent` comment, and saves. The running server holds a watch on the store as well as on the input file, so it takes the write up and republishes without a restart. The watch reports no path, so the server reads the store first and drains the input second — draining first would leave its comment unpersisted and the reload would then read the file as it stood before and throw that comment away.
+
+**The author shows in the text, not the severity.** Zed filters diagnostics by severity alone — there is no filter by `source` or by language server — so `Hint` is the one band free of real language-server traffic and both authors have to share it. An `agent` comment therefore carries `🤖` in front of its diagnostic message and `(from Claude)` on its export heading.
+
 The whole cycle:
 
 ```
-code action ──► .tmp/md-comment-input.md ──► save ──► watch ──► store (.tmp/md-comment.json)
-                              │
-                              ├─► inlayHint   ──► 💬 hint at end of line
-                              ├─► diagnostics ──► panel entry + inline text
-                              ├─► codeAction  ──► edit / delete / list / copy / reset
-                              ├─► list        ──► .tmp/md-comment-list.md (opened)
-                              └─► copy        ──► .tmp/md-comment.md ──► /md-comment ──► Claude
+code action ──► .tmp/md-comment-input.md ──► save ──┐
+                                                    ├─► watch ──► store (.tmp/md-comment.json)
+Claude ──► md-comment-lsp comment <file>:<line> ────┘                     │
+                                                                          │
+     ┌────────────────────────────────────────────────────────────────────┘
+     ├─► inlayHint   ──► 💬 hint at end of line (Markdown only)
+     ├─► diagnostics ──► panel entry + inline text, 🤖 for a Claude comment
+     ├─► codeAction  ──► edit / delete / list / copy / reset
+     ├─► list        ──► .tmp/md-comment-list.md (opened)
+     └─► copy        ──► .tmp/md-comment.md ──► /md-comment ──► Claude
 ```
 
 ## Not in scope
 
 - More than one comment per line. `add comment` on a commented line replaces that comment.
-- Replies, threads, resolve state, authorship, timestamps.
+- Replies, threads, resolve state, timestamps. Authorship exists, but only as `human` or `agent` on a comment.
 - Comments in git. The store and the export are gitignored.
-- Any language but Markdown.
 - Clipboard access. A language server cannot write the system clipboard.
-- Reading store changes made by another process. The server owns the store file while it runs; it does not watch it.
 - Publishing to the Zed extension marketplace. The extension stays a dev extension.
 - The rename overlay as the input. It worked (a zero-width `prepareRename` range opens the box empty), but writing through a file keeps every gesture in one menu and allows a multi-line comment.
 - Tasks as a comment-writing path. A language server cannot contribute a task (that channel is one vendor's `experimental.runnables`, gated by a settings key only that adapter reads), and a task template has no input or prompt field, so a task can only collect text by prompting inside a terminal.
 
 ## Invariants
 
-1. The server never edits a commented markdown file. Its only writes are the store file, the export file, the input file, and one `.gitignore` line.
+1. The server never edits a commented file. Its only writes are the store file, the export file, the input file, and one `.gitignore` line.
 2. At most one comment exists per (file, line).
 3. A comment disappears only through `delete comment` or `reset comments`. Every other path keeps it, marked orphaned when its anchor is lost.
 4. Store paths are workspace-root-relative with `/` separators.
 5. Store and export line numbers are 1-based, matching lumen. LSP wire positions are 0-based; conversion happens at the protocol edge only.
 6. The store file is replaced atomically: write `md-comment.json.tmp`, then rename over the target.
-7. The server answers for markdown files only, and never for a file inside `<root>/.tmp/`.
+7. The server answers for every file type, and never for a file inside `<root>/.tmp/`.
+8. A comment carries an author, `human` or `agent`. Both publish at `Hint` severity, because Zed filters diagnostics by severity and never by source.
 
 ## API anchors
 
@@ -56,10 +62,10 @@ code action ──► .tmp/md-comment-input.md ──► save ──► watch �
 
 ```toml
 id = "md-comment"
-name = "Markdown Comment"
+name = "Line Comment"
 version = "0.1.0"
 schema_version = 1
-description = "Review comments on markdown lines, kept outside the file"
+description = "Review comments on lines of any file, kept outside the file"
 repository = "https://github.com/popoffvg/dotfiles"
 authors = ["Vitalii Popov"]
 
@@ -67,8 +73,8 @@ authors = ["Vitalii Popov"]
 kind = "Rust"
 
 [language_servers.md-comment-language-server]
-name = "Markdown Comment Language Server"
-languages = ["Markdown"]
+name = "Line Comment Language Server"
+languages = ["C", "C++", "CSS", …]   # generated, see below
 ```
 
 `src/lib.rs` implements one method:
@@ -114,7 +120,7 @@ The extension must not carry the binary — Zed's extension policy forbids it, a
 | `didOpen` | Reconcile every comment of that file by hash. |
 | `didChange` | Shift or refresh anchors from the change ranges. |
 | `didSave` | Drain the input file when that is what was saved, else persist the store. |
-| `workspace/didChangeWatchedFiles` | Drain the input file. |
+| `workspace/didChangeWatchedFiles` | Reload the store, then drain the input file, in that order. |
 
 ### Diagnostic shape
 
@@ -125,7 +131,7 @@ The extension must not carry the binary — Zed's extension policy forbids it, a
     "range": { "start": { "line": 11, "character": 0 }, "end": { "line": 11, "character": 42 } },
     "severity": 4,
     "source": "md-comment",
-    "message": "needs a source"
+    "message": "needs a source"        // 🤖-prefixed for an agent comment
   }]
 }
 ```
@@ -144,6 +150,18 @@ Severity 4 is `Hint`, the quietest level, and the range covers the whole anchore
 ```
 
 `character` is the UTF-16 length of the anchored line, putting the hint at the end of the line. The label is `💬 ` plus the text truncated to 40 characters with a trailing `…`; an orphaned comment uses `💬? `. The hint carries **no `kind`**, which is why `Markdown.inlay_hints.show_other_hints` must be true — Zed treats a missing kind as the `None` bucket and gates it on that flag.
+
+### Subcommands
+
+The binary answers these before it opens the LSP channel, so Claude writes comments from a shell.
+
+| Subcommand | Effect |
+|---|---|
+| `comment <file>:<line> <text>` | Upsert an `agent` comment, hashing the line as it reads on disk, then save the store. |
+| `drop <file>:<line>` | Remove that comment. Reports when there was none. |
+| `list` | Print the whole store in the export format. |
+
+The root is the nearest ancestor of the target holding `.git`, else the current directory — it has to match the root the server derived from `initialize`, or the two read different stores.
 
 ### Commands
 
@@ -166,7 +184,7 @@ All three return `null`; none returns a workspace edit.
   "version": 1,
   "files": {
     "docs/spec.md": [
-      { "line": 12, "hash": "9f2b1c4e7a05d381", "text": "needs a source", "orphaned": false }
+      { "line": 12, "hash": "9f2b1c4e7a05d381", "text": "needs a source", "orphaned": false, "author": "human" }
     ]
   }
 }
@@ -191,7 +209,7 @@ Parsing takes the first line containing the marker, splits the target on its **l
 `<root>/.tmp/md-comment.md`, byte-faithful to lumen's `format_annotations_for_export`:
 
 ```
-# markdown comments
+# line comments
 
 **docs/spec.md** line 12 (RIGHT)
 
@@ -204,7 +222,7 @@ needs a source
 this contradicts the spec
 ```
 
-Rules: header line, then one block per comment joined by `---` on its own line, blank lines exactly as shown, `(RIGHT)` always (the working file is lumen's new side), `(orphaned)` appended only for a lost anchor, output `trim_end`ed with one trailing newline. Blocks are ordered by path then line. An empty store writes only the header.
+Rules: header line, then one block per comment joined by `---` on its own line, blank lines exactly as shown, `(RIGHT)` always (the working file is lumen's new side), `(orphaned)` appended only for a lost anchor, `(from Claude)` appended for an `agent` comment so `/md-comment` skips its own output, output `trim_end`ed with one trailing newline. Blocks are ordered by path then line. An empty store writes only the header.
 
 ## Details
 
@@ -242,7 +260,9 @@ Rules: header line, then one block per comment joined by `---` on its own line, 
 
 ### Self-filtering
 
-**The server sees every markdown buffer in the project, so it filters itself.** Zed attaches a language server per language, with no per-file scoping. The server answers only for paths whose extension is `.md` or `.markdown`, and never for paths under `<root>/.tmp/`. Every other document returns `null` or an empty list.
+**The server sees every buffer in the project, so it filters itself.** Zed attaches a language server per language, with no per-file scoping. A comment is a line annotation and no part of it depends on the language, so every file type is served — only paths under `<root>/.tmp/` are refused, which keeps a comment off the server's own input file, store and export. Every refused document returns `null` or an empty list.
+
+**Zed has no wildcard for languages.** `[language_servers.md-comment-language-server] languages` in `extension.toml` has to name each language, so `harness/scripts/sync-md-comment-languages.py` regenerates the array from the languages installed on the machine. Re-run it after installing a language extension.
 
 ### Crate layout
 

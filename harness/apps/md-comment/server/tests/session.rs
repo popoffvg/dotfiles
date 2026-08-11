@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use md_comment::store::{Comment, Store};
+use md_comment::store::{Author, Comment, Store};
 use md_comment::wire::{
     Change, Position, Range, COMMAND_ADD, COMMAND_COPY, COMMAND_DELETE, COMMAND_LIST,
     COMMAND_RESET, SEVERITY_HINT,
@@ -28,7 +28,7 @@ fn open(text: &str) -> (Session, PathBuf, String) {
     // Startup asks the client to watch the input file, then states the diagnostics.
     assert_eq!(
         effects,
-        vec![Effect::WatchInput, Effect::PublishDiagnostics]
+        vec![Effect::WatchFiles, Effect::PublishDiagnostics]
     );
     session.did_open(&uri, text.to_string());
     (session, root, uri)
@@ -368,7 +368,7 @@ fn a_leftover_input_file_is_taken_at_startup() {
     assert_eq!(
         effects,
         vec![
-            Effect::WatchInput,
+            Effect::WatchFiles,
             Effect::PersistStore,
             Effect::RefreshInlayHints,
             Effect::PublishDiagnostics,
@@ -416,7 +416,7 @@ fn the_export_matches_lumen_format_byte_for_byte() {
 
     assert_eq!(
         session.export_text(),
-        "# markdown comments\n\
+        "# line comments\n\
          \n\
          **docs/plan.md** line 3 (RIGHT) (orphaned)\n\
          \n\
@@ -431,9 +431,26 @@ fn the_export_matches_lumen_format_byte_for_byte() {
 }
 
 #[test]
+fn the_export_names_the_author_so_claude_skips_its_own_comments() {
+    let (mut session, _root, uri) = open("## Design\n## Plan\n");
+    add(&mut session, &uri, 0, "needs a source");
+    session.upsert_comment("docs/spec.md", 2, "unreachable".to_string(), Author::Agent);
+
+    let export = session.export_text();
+    assert!(
+        export.contains("**docs/spec.md** line 1 (RIGHT)\n"),
+        "{export}"
+    );
+    assert!(
+        export.contains("**docs/spec.md** line 2 (RIGHT) (from Claude)\n"),
+        "{export}"
+    );
+}
+
+#[test]
 fn an_empty_store_exports_the_header_only() {
     let (session, _root, _uri) = open("a\n");
-    assert_eq!(session.export_text(), "# markdown comments\n");
+    assert_eq!(session.export_text(), "# line comments\n");
 }
 
 #[test]
@@ -570,7 +587,7 @@ fn a_store_written_by_an_earlier_run_loads_unchanged() {
     let (reloaded, effects) = Session::new(root.clone());
     assert_eq!(
         effects,
-        vec![Effect::WatchInput, Effect::PublishDiagnostics]
+        vec![Effect::WatchFiles, Effect::PublishDiagnostics]
     );
     assert_eq!(
         reloaded.store().comments("docs/spec.md"),
@@ -599,22 +616,37 @@ fn an_unsupported_store_version_starts_empty_and_reports_it() {
 }
 
 #[test]
-fn other_files_are_not_served() {
+fn every_file_type_is_served() {
     let root = root();
     let (session, _effects) = Session::new(root.clone());
 
-    assert!(session
-        .key(&md_comment::path_to_uri(&root.join("notes.txt")))
-        .is_none());
-    assert!(session
-        .key(&md_comment::path_to_uri(
-            &root.join(".tmp").join("md-comment.md")
-        ))
-        .is_none());
-    assert_eq!(
-        session.key(&md_comment::path_to_uri(&root.join("docs").join("a.md"))),
-        Some("docs/a.md".to_string())
-    );
+    for (path, key) in [
+        ("notes.txt", "notes.txt"),
+        ("docs/a.md", "docs/a.md"),
+        ("src/main.rs", "src/main.rs"),
+        ("Makefile", "Makefile"),
+    ] {
+        assert_eq!(
+            session.key(&md_comment::path_to_uri(&root.join(path))),
+            Some(key.to_string()),
+            "{path} should be served"
+        );
+    }
+}
+
+#[test]
+fn the_servers_own_scratch_files_are_not_served() {
+    let root = root();
+    let (session, _effects) = Session::new(root.clone());
+
+    for name in ["md-comment.md", "md-comment.json", "md-comment-input.md"] {
+        assert!(
+            session
+                .key(&md_comment::path_to_uri(&root.join(".tmp").join(name)))
+                .is_none(),
+            ".tmp/{name} should not be served"
+        );
+    }
 }
 
 #[test]
@@ -630,6 +662,57 @@ fn a_file_outside_the_root_keeps_its_absolute_path() {
 }
 
 #[test]
+fn an_agent_comment_is_marked_in_the_diagnostic_and_the_human_one_is_not() {
+    let (mut session, _root, uri) = open("## Design\n## Plan\n");
+    add(&mut session, &uri, 0, "needs a source");
+    session.upsert_comment("docs/spec.md", 2, "unreachable".to_string(), Author::Agent);
+
+    let payload = session
+        .diagnostics()
+        .into_iter()
+        .find(|payload| payload.uri == uri)
+        .expect("the commented file is published");
+    assert_eq!(payload.diagnostics[0].message, "needs a source");
+    assert_eq!(payload.diagnostics[1].message, "🤖 unreachable");
+    // One severity for both authors — Zed filters diagnostics by severity alone.
+    assert!(payload
+        .diagnostics
+        .iter()
+        .all(|d| d.severity == SEVERITY_HINT));
+}
+
+#[test]
+fn a_store_written_from_outside_is_taken_up_on_the_watch() {
+    let (mut session, root, uri) = open("## Design\n");
+    add(&mut session, &uri, 0, "from the editor");
+
+    // What the `comment` subcommand does: a second session on the same root, writing the
+    // store while the first one holds it open.
+    let (mut writer, _effects) = Session::new(root);
+    writer.upsert_comment("docs/spec.md", 1, "from Claude".to_string(), Author::Agent);
+    writer.persist().unwrap();
+
+    let effects = session.reload_store();
+    assert_eq!(
+        effects,
+        vec![Effect::RefreshInlayHints, Effect::PublishDiagnostics]
+    );
+    assert_eq!(comment(&session, 0).text, "from Claude");
+    assert_eq!(comment(&session, 0).author, Author::Agent);
+}
+
+#[test]
+fn reloading_an_unchanged_store_asks_for_no_work() {
+    let (mut session, _root, uri) = open("## Design\n");
+    add(&mut session, &uri, 0, "needs a source");
+    session.persist().unwrap();
+
+    // The server's own persist fires the same watch. Reading back what was just written
+    // has to be silent, or every keystroke would republish.
+    assert!(session.reload_store().is_empty());
+}
+
+#[test]
 fn store_upsert_keeps_one_comment_per_line_sorted() {
     let mut store = Store::default();
     for line in [5usize, 2, 5] {
@@ -640,6 +723,7 @@ fn store_upsert_keeps_one_comment_per_line_sorted() {
                 hash: "h".to_string(),
                 text: format!("line {line}"),
                 orphaned: false,
+                author: Author::Human,
             },
         );
     }

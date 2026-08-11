@@ -1,8 +1,9 @@
 # code — impl
 
 Execute **exactly one** TODO end-to-end, then stop and hand back. One TODO ships one deliverable as
-one commit, built increment by increment — the user approves each increment's diff before it is
-appended to that commit (`sub-todo.md` § Changes).
+one commit plus its fixups, built increment by increment — the user approves each increment's diff
+before it is appended to that commit (`sub-todo.md` § Changes). `squash` collapses the fixups back
+into the one commit.
 
 Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 
@@ -22,7 +23,7 @@ time and bring its diff back here for approval, or apply small increments direct
    1. **Apply** that increment's diff, and nothing outside its **Files**.
    2. **Show** the user the real `git diff` of what landed, next to the increment's predicted **Blast radius**. Say when the real diff exceeds the predicted radius — that is the signal the plan is wrong.
    3. **Wait for approval.** Approved → continue. Rejected → stop, report which increment was rejected and why, set `status: blocked`; apply nothing after it.
-   4. **Append to the commit** — increment 1 creates the commit (`## Commit` message); every later approved increment is appended to that same commit with `git commit --amend --no-edit`. One TODO stays one commit.
+   4. **Append to the commit** — increment 1 creates the commit (`## Commit` message); every later approved increment is appended to that same commit with `git commit --amend --no-edit`. Exception: an increment that exists **because the user rejected or corrected a shown diff** is a user correction — commit it per `sub-commit.md` § Fixups, never amend it away.
 
    Never batch increments into one approval, and never re-order them: the sequence is deepest-first so the repo builds after each. Bug fix? Follow `references/../../red-green-refactor/SKILL.md` (Red → Green → Refactor); never skip the failing test — the failing test is its own first increment.
 6. **Glossary** — if the change introduces or renames a domain term, update `<notes-dir>/GLOSSARY.md` in the same commit.

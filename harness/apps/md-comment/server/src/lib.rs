@@ -1,6 +1,7 @@
 //! Comment session: every behaviour of the server, with no transport and no event loop.
 
 pub mod anchor;
+pub mod cli;
 pub mod export;
 pub mod input;
 pub mod store;
@@ -14,7 +15,7 @@ use std::path::{Path, PathBuf};
 use serde_json::{json, Value};
 
 use crate::input::Target;
-use crate::store::{Comment, LoadError, Store};
+use crate::store::{Author, Comment, LoadError, Store};
 use crate::wire::{
     Change, CodeAction, Command, Diagnostic, InlayHint, MarkupContent, Position,
     PublishDiagnostics, Range, CODE_ACTION_KIND, COMMAND_ADD, COMMAND_COPY, COMMAND_DELETE,
@@ -26,6 +27,10 @@ pub const HINT_WIDTH: usize = 40;
 
 const HINT_MARK: &str = "💬 ";
 const HINT_MARK_ORPHANED: &str = "💬? ";
+
+/// Claude's comments carry this in front of their text. Human and agent comments share
+/// one severity, so the message is the only place the author can show.
+const AGENT_MARK: &str = "🤖 ";
 
 /// Work for the caller to perform after a request is answered.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -44,8 +49,9 @@ pub enum Effect {
     OpenInput {
         contents: String,
     },
-    /// Ask the client to watch the input file, so a save is noticed without an open buffer.
-    WatchInput,
+    /// Ask the client to watch the input file and the store, so a write by the operator
+    /// or by the `comment` subcommand is noticed without an open buffer.
+    WatchFiles,
     /// Push one Hint diagnostic per comment, so the comments show inline and in the
     /// editor's diagnostics list even when inlay hints are switched off.
     PublishDiagnostics,
@@ -94,7 +100,7 @@ impl Session {
             published: HashSet::new(),
         };
         let mut effects = effects;
-        effects.push(Effect::WatchInput);
+        effects.push(Effect::WatchFiles);
         // A save the previous run never saw — the watch only reports changes while the
         // server lives, so anything left in the input file is picked up here instead.
         effects.extend(session.drain_input());
@@ -108,6 +114,10 @@ impl Session {
 
     pub fn store(&self) -> &Store {
         &self.store
+    }
+
+    pub fn store_mut(&mut self) -> &mut Store {
+        &mut self.store
     }
 
     pub fn store_path(&self) -> PathBuf {
@@ -145,23 +155,46 @@ impl Session {
             return Vec::new();
         }
 
-        let document = self.text_of(&target.file);
-        let lines = anchor::lines(&document);
-        let anchored = target.line.saturating_sub(1);
-        self.store.upsert(
-            &target.file,
-            Comment {
-                line: target.line.max(1),
-                hash: anchor::line_hash(lines.get(anchored).copied().unwrap_or("")),
-                text: body,
-                orphaned: false,
-            },
-        );
+        self.upsert_comment(&target.file, target.line, body, Author::Human);
         vec![
             Effect::PersistStore,
             Effect::RefreshInlayHints,
             Effect::PublishDiagnostics,
         ]
+    }
+
+    /// Take up the store as it stands on disk, when something outside this server wrote
+    /// it — the `comment` subcommand, or another editor window on the same root.
+    ///
+    /// The server's own `persist` triggers the same watch. Reloading what was just
+    /// written costs one read and changes nothing, which is why no write marker is kept.
+    pub fn reload_store(&mut self) -> Vec<Effect> {
+        let Ok(store) = Store::load(&self.store_path()) else {
+            return Vec::new();
+        };
+        if store.files == self.store.files {
+            return Vec::new();
+        }
+        self.store = store;
+        vec![Effect::RefreshInlayHints, Effect::PublishDiagnostics]
+    }
+
+    /// Store one comment against a line, keeping the anchor hash of that line as it reads
+    /// now. Used by the `comment` subcommand and by the input file alike.
+    pub fn upsert_comment(&mut self, key: &str, line: usize, text: String, author: Author) {
+        let document = self.text_of(key);
+        let lines = anchor::lines(&document);
+        let line = line.max(1);
+        self.store.upsert(
+            key,
+            Comment {
+                line,
+                hash: anchor::line_hash(lines.get(line - 1).copied().unwrap_or("")),
+                text,
+                orphaned: false,
+                author,
+            },
+        );
     }
 
     /// The text of a target, from its open buffer when there is one, else from disk.
@@ -211,11 +244,7 @@ impl Session {
                         },
                         severity: SEVERITY_HINT,
                         source: DIAGNOSTIC_SOURCE,
-                        message: if comment.orphaned {
-                            format!("{} (orphaned)", comment.text)
-                        } else {
-                            comment.text.clone()
-                        },
+                        message: message_of(comment),
                     }
                 })
                 .collect();
@@ -279,15 +308,12 @@ impl Session {
     }
 
     /// The store key for a document this server serves, or `None` when it does not.
+    ///
+    /// Every file type is served — a comment is a line annotation, and nothing about it
+    /// depends on the language. Only the server's own scratch files under `.tmp/` are
+    /// refused, so a comment never lands on the input file or the export.
     pub fn key(&self, uri: &str) -> Option<String> {
         let path = uri_to_path(uri)?;
-        let extension = path
-            .extension()
-            .and_then(|e| e.to_str())
-            .map(str::to_ascii_lowercase);
-        if !matches!(extension.as_deref(), Some("md") | Some("markdown")) {
-            return None;
-        }
         let relative = path.strip_prefix(&self.root).ok();
         if let Some(relative) = relative {
             if relative.starts_with(".tmp") {
@@ -611,6 +637,20 @@ impl Session {
             Effect::RefreshInlayHints,
             Effect::PublishDiagnostics,
         ]
+    }
+}
+
+/// What a comment reads as on the line: the author's mark, the text, and the orphan note
+/// when its anchor is gone.
+fn message_of(comment: &Comment) -> String {
+    let mark = match comment.author {
+        Author::Agent => AGENT_MARK,
+        Author::Human => "",
+    };
+    if comment.orphaned {
+        format!("{mark}{} (orphaned)", comment.text)
+    } else {
+        format!("{mark}{}", comment.text)
     }
 }
 

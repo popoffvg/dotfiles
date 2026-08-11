@@ -195,6 +195,15 @@
             "command": "$HOME/.claude/hooks/verify-commit-contents.sh"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $HOME/.claude/hooks/comment-check.mjs"
+          }
+        ]
       }
     ],
     "PreCompact": [],
@@ -275,6 +284,10 @@
           {
             "type": "command",
             "command": "node $HOME/.claude/hooks/claim-check.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node $HOME/.claude/hooks/dry-check.mjs"
           }
         ]
       }
@@ -296,7 +309,6 @@
     "mictx@mictx-helper-marketplace": true,
     "plugin-dev@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": false,
-    "self-improvement@local-plugins": true,
     "show@local-plugins": true,
     "typescript-lsp@claude-plugins-official": false,
     "understand-anything@understand-anything": true,
@@ -304,7 +316,8 @@
     "worktrunk@worktrunk": true,
     "frontend-design@claude-plugins-official": false,
     "gopls-lsp@claude-plugins-official": true,
-    "vocab@local-plugins": true
+    "vocab@local-plugins": true,
+    "self-improvement@local-plugins": true
   },
   "extraKnownMarketplaces": {
     "agentmemory": {

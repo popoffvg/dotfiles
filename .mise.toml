@@ -65,6 +65,10 @@ description = "Test the md-comment language server"
 dir = "{{config_root}}/harness/apps/md-comment"
 run = "cargo test -p md-comment-server"
 
+[tasks."harness:md-comment:languages"]
+description = "Regenerate md-comment's extension.toml language list from the installed Zed languages"
+run = "{{config_root}}/harness/scripts/sync-md-comment-languages.py"
+
 [tasks."harness:plugins:sync"]
 description = "Regenerate local-plugins marketplace.json from harness/plugins/"
 sources = ["harness/plugins/*/.claude-plugin/plugin.json"]

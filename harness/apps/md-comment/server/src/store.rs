@@ -9,6 +9,19 @@ use serde::{Deserialize, Serialize};
 
 pub const STORE_VERSION: u32 = 1;
 
+/// Who wrote a comment. Both authors share the `Hint` severity, because Zed filters
+/// diagnostics by severity alone — the author only ever shows in the message text.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Author {
+    /// Written in the editor through the input file. The default keeps stores written
+    /// before the field existed loadable.
+    #[default]
+    Human,
+    /// Written by Claude through the `comment` subcommand.
+    Agent,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Comment {
     /// 1-based line in the file, matching the export format.
@@ -17,6 +30,8 @@ pub struct Comment {
     pub text: String,
     #[serde(default)]
     pub orphaned: bool,
+    #[serde(default)]
+    pub author: Author,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

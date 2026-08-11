@@ -270,8 +270,9 @@ function refresh(req: RefreshRequest): TokenPair | 401 { ... }
 
 **How the increments reach the commit** (executed by `sub-impl.md`, stated here so the human knows
 what an approval buys): increment 1 creates the commit; each later approved increment is appended to
-that same commit (`git commit --amend --no-edit`). The final message is `## Commit`. A rejected
-increment stops the TODO — nothing after it is applied.
+that same commit (`git commit --amend --no-edit`), except an increment that corrects a diff the
+human rejected — that one lands as a fixup (`sub-commit.md` § Fixups). The final message is
+`## Commit`. A rejected increment stops the TODO — nothing after it is applied.
 
 ### Autotest
 

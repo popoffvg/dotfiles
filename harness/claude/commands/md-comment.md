@@ -1,10 +1,26 @@
 ---
+<<<<<<< Updated upstream
 allowed-tools: Read, Edit, Write, Skill, AskUserQuestion, Bash(ls:*), Bash(~/.claude/scripts/md-comment-find-anchor.py:*), Bash(~/.claude/scripts/md-comment-store.py:*)
 description: Export the markdown comments from the md-comment store, act on them, then clear them
+||||||| Stash base
+allowed-tools: Read, Bash(ls:*), Bash(~/.claude/scripts/md-comment-find-anchor.py:*)
+description: Read the markdown comments exported from Zed, then act on them
+=======
+allowed-tools: Read, Bash(ls:*), Bash(~/.claude/scripts/md-comment-find-anchor.py:*)
+description: Read the line comments exported from Zed, then act on them
+>>>>>>> Stashed changes
 ---
 
+<<<<<<< Updated upstream
 Write the export first, so the comments are the ones the store holds right now rather than
 whatever Zed's `copy comments` last left behind:
+||||||| Stash base
+Read `.tmp/md-comment.md` from the workspace root. A missing file, or one holding only the
+`# markdown comments` header, means no comments — say so in one line and stop.
+=======
+Read `.tmp/md-comment.md` from the workspace root. A missing file, or one holding only the
+`# line comments` header, means no comments — say so in one line and stop.
+>>>>>>> Stashed changes
 
 ```
 ~/.claude/scripts/md-comment-store.py export

@@ -60,4 +60,4 @@ Stop implementing and delegate to the `architector` agent (`code` skill) to revi
 - commit a user correction as a plain commit — it must be `--fixup`.
 - run more than one TODO per invocation.
 - leave comments contain reference to the brief or spec.
-- Write comments duplicate the code evidence.
+- write a comment that fails the deletion test in `CODE_STYLE.md`.
