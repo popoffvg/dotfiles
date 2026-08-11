@@ -31,7 +31,7 @@ not restated at all — it binds another TODO, and a second copy here is a copy 
 holds for the spec's Description, Goal, and target picture: they are the human reviewer's context,
 not the implementer's, and they never appear in a TODO body.
 
-**Budget — a TODO body is ≤ 150 lines.** Over budget means the TODO carries more than one
+**Budget — a TODO body is ≤ 512 lines.** Over budget means the TODO carries more than one
 deliverable: split it into two ledger rows, never shrink the diffs or drop the Autotest to fit.
 
 ## Operating principles
@@ -324,7 +324,7 @@ Edit in place, same `N` unless order changes (then renumber and update the ledge
 - [ ] Every `## Constraints` row's `From` link resolves to a real `thoughts/` file
 - [ ] **Self-contained**: with `spec.md` and `thoughts/` deleted, the TODO still says what to build and what to assert
 - [ ] **Not over-stated**: every `## Constraints` row names a rule an increment below can violate; no spec Description/Goal/target-picture prose was copied in
-- [ ] Body ≤ 150 lines — over budget → split the ledger row, don't compress
+- [ ] Body ≤ 512 lines — over budget → split the ledger row, don't compress
 - [ ] **Autotest** has both a `Unit` and an `E2E` sub-block, each with Target files + Cases + one runnable Command — or `none — <concrete reason>` (an `E2E: none` that defers to another TODO names it)
 - [ ] Every **Files** / **Pre-reads** path exists (or is marked `create`)
 - [ ] `## Components` has exactly one `main` row, ≤ 5 rows, each a `package.Class` symbol; every row maps to a **Files** path and every non-test **Files** path maps to a row

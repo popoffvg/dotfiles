@@ -68,6 +68,8 @@ The teachability test: **would you teach this rule to a student or a new colleag
 
 Skip is a real outcome: a rule captured from a situation that never returns costs context on every future session and sharpens nothing.
 
+When the session was archived by triage (`references/triage.md`), the archive's `global/` or `project/` subdir is that subagent's guess from the user's wording alone. Judge scope here on the table above and overrule the subdir when it disagrees — the subdir routes the transcript, it does not decide the skill.
+
 A lesson can be teachable *and* anchored to this machine — a vault path, an MCP server, a CLI on `PATH`. That is still global; name the anchor in the body and say what to do when it is absent, so the skill degrades instead of hard-failing.
 
 Write to `~/.claude` directly — never the dotfiles `harness/` source. Project root is `git rev-parse --show-toplevel`; if the cwd is not a git repo, the scope is global.
@@ -148,7 +150,7 @@ Every skill this skill touches — new or extended — gets a sibling `CASE.md` 
 - **Ambiguous?** <no — one right answer | yes — the other branch is right when …>
 - **Scope chosen:** <project:<repo> | global | machine-scoped global> — <which row of the Step 1 table, and why>
 - **Rule written:** <verdict | check> — <the one-line rule, or the new bullet added to an existing skill>
-- **Transcript:** <the archived `.jsonl` path — printed by `${CLAUDE_PLUGIN_ROOT}/scripts/archive-transcript.sh`, or already known when [[dream]] calls this skill>
+- **Transcript:** <the archived `.jsonl` path — printed by `${CLAUDE_PLUGIN_ROOT}/scripts/archive-transcript.sh <transcript> <global|project>`, or already known when [[dream]] calls this skill>
 - **Session topic:** <the `Topic:` line from the transcript's `.env.md` sidecar>
 ```
 
@@ -158,6 +160,7 @@ Fill `Repo:` from the sidecar's "Projects in context" table, not from the cwd yo
 
 1. **Name the repo even at global scope.** "This came from `~/git/pl`" is what makes [[dream]]'s ≥2-repos generalization test checkable next time.
 2. **On extend (Step 3a), append to the existing skill's `CASE.md`** — a second case in the same file is the evidence that promotes a project rule to global.
+3. **Archive the transcript under the Step 1 scope** — `global` or `project`, the same word Step 1 chose. A skipped lesson archives nothing: the transcript is only worth keeping when a rule came out of it.
 
 # Step 5 — Report in one sentence, or say nothing
 

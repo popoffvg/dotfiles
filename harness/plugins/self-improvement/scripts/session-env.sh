@@ -31,15 +31,18 @@ if [ ! -f "$transcript" ]; then
   exit 1
 fi
 
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
 session_id=$(basename "$transcript" .jsonl)
 
-# One jq pass for every scalar. Piping jq into `head`/`tail` instead would
-# close jq's stdout early, and SIGPIPE plus `set -o pipefail` aborts the script
-# with no output.
-IFS=$'\t' read -r topic first_ts last_ts human_prompts < <(jq -rs '
-  [.[] | select(.type == "ai-title") | .aiTitle] as $titles
-  | [.[] | select(.timestamp) | .timestamp] as $stamps
-  | [($titles | last) // "", ($stamps | first) // "", ($stamps | last) // "",
+topic=$("$script_dir/session-title.sh" "$transcript")
+
+# One jq pass for every remaining scalar. Piping jq into `head`/`tail` instead
+# would close jq's stdout early, and SIGPIPE plus `set -o pipefail` aborts the
+# script with no output.
+IFS=$'\t' read -r first_ts last_ts human_prompts < <(jq -rs '
+  [.[] | select(.timestamp) | .timestamp] as $stamps
+  | [($stamps | first) // "", ($stamps | last) // "",
      ([.[] | select(.type == "user" and .origin.kind == "human")] | length)]
   | @tsv
 ' "$transcript")

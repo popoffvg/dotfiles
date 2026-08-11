@@ -1,21 +1,27 @@
 #!/usr/bin/env bash
 # Copy a session transcript into the lessons archive and print the destination.
 #
-# Called twice per kept lesson: once by the triage subagent (slug "session",
-# an interim safety copy so the transcript survives rotation before anyone
-# judges it) and once by capture-lesson, run from dream's harvest step, once
-# the lesson is kept (the real case-slug, replacing the interim copy).
-# Sessions that turn out not to recur get no permanent copy. The archive
-# lives outside the dotfiles repo and is never committed.
+# The archive is keyed on scope, decided once on the first pass:
+#   lessons/global/   a correction to behaviour that transfers past this repo
+#   lessons/project/  a method or convention tied to the repos in context
+# Sessions with neither get no copy at all. The archive lives outside the
+# dotfiles repo and is never committed.
 #
-# The triage subagent is resumed across a session, not relaunched, so it
-# calls this on the same "session"-slugged dest path every time it sees a new
-# correction — the source transcript only ever grows (append-only JSONL). If
-# the dest already exists and is a prefix of the source (the normal case),
-# append just the new tail instead of re-copying the whole file. Falls back
-# to a full copy whenever that assumption doesn't hold (no dest yet, or dest
-# is not a byte-for-byte prefix of source — e.g. a rotated/compacted
-# transcript), so a stale or divergent dest never silently stays wrong.
+# Two callers, two shapes:
+#   new session      the Stop hook's triage classifies it and passes the scope.
+#   archived session the Stop hook re-syncs it with no scope and no model call;
+#                    find-archive.sh locates the existing copy, so the scope
+#                    picked on the first pass is never re-judged.
+#
+# The source transcript only ever grows (append-only JSONL). If the dest already
+# exists and is a prefix of the source (the normal case), append just the new
+# tail instead of re-copying the whole file. Falls back to a full copy whenever
+# that assumption doesn't hold (no dest yet, or dest is not a byte-for-byte
+# prefix of source — e.g. a rotated/compacted transcript), so a stale or
+# divergent dest never silently stays wrong.
+#
+# The filename slug comes from the session's own ai-title, so no caller has to
+# invent one and re-syncs cannot drift onto a second name.
 #
 # Each copy gets a `<dest>.env.md` sidecar from session-env.sh: the session's
 # topic and the git repos that were in context. It is rewritten on every call
@@ -28,12 +34,13 @@ script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 archive_dir=${SELF_IMPROVE_LESSONS_DIR:-$HOME/.claude/self-improvement/lessons}
 
 if [ $# -lt 1 ] || [ $# -gt 2 ]; then
-  printf 'usage: %s <transcript.jsonl> [slug]\n' "$(basename "$0")" >&2
+  printf 'usage: %s <transcript.jsonl> [global|project]\n' "$(basename "$0")" >&2
+  printf '  scope is required for a session that is not archived yet\n' >&2
   exit 2
 fi
 
 transcript=$1
-slug=${2:-session}
+scope=${2:-}
 
 if [ ! -f "$transcript" ]; then
   printf 'no transcript at %s\n' "$transcript" >&2
@@ -41,12 +48,28 @@ if [ ! -f "$transcript" ]; then
 fi
 
 # Keep the filename safe and stable: lowercase, only letters/digits/dashes.
-slug=$(printf '%s' "$slug" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9-' '-' | sed -e 's/-\{2,\}/-/g' -e 's/^-//' -e 's/-$//')
-[ -n "$slug" ] || slug=session
+slugify() {
+  printf '%s' "$1" \
+    | tr '[:upper:]' '[:lower:]' \
+    | tr -c 'a-z0-9-' '-' \
+    | sed -e 's/-\{2,\}/-/g' -e 's/^-//' -e 's/-$//'
+}
 
-mkdir -p "$archive_dir"
-
-dest="$archive_dir/$(date +%F)-$slug-$(basename "$transcript")"
+if dest=$("$script_dir/find-archive.sh" "$transcript" 2>/dev/null); then
+  : # re-sync into the copy this session already has, whatever its scope
+else
+  case "$scope" in
+    global|project) ;;
+    *)
+      printf 'scope must be global or project for a new archive\n' >&2
+      exit 2
+      ;;
+  esac
+  slug=$(slugify "$("$script_dir/session-title.sh" "$transcript")")
+  [ -n "$slug" ] || slug=session
+  mkdir -p "$archive_dir/$scope"
+  dest="$archive_dir/$scope/$(date +%F)-$slug-$(basename "$transcript")"
+fi
 
 dest_size=0
 if [ -f "$dest" ]; then
