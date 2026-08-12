@@ -43,6 +43,8 @@ zinit snippet OMZP::git                      # 150+ git aliases (gst, gco, gp, .
 zinit snippet OMZP::brew                     # Homebrew completions
 zinit snippet OMZP::eza                      # eza aliases + completions
 # dropped: OMZL::async_prompt (starship owns the prompt), OMZP::direnv (hooked in .zshrc_aliases)
+# deja: do not also zinit-light it — that double-sources init.zsh and
+# recurses _deja_line_init into FUNCNEST. Loaded once at the bottom.
 
 # Use Apple clang for CGO (nanobrew LLVM lacks macOS SDK sysroot)
 export CC=/usr/bin/clang
@@ -105,3 +107,12 @@ if [ -f '/Users/vitaliipopov/Downloads/google-cloud-sdk/completion.zsh.inc' ]; t
 
 # Added by GitButler installer
 eval "$(but completions zsh)"
+
+if [[ -r "$HOME/.local/share/deja/init.zsh" ]]; then source "$HOME/.local/share/deja/init.zsh"; else eval "$(deja init zsh)"; fi
+
+# cd<Tab> → yazi. Replaces deja-cycle (Tab) so deja's precmd bindkey still hits us.
+if (( ${+widgets[deja-cycle]} )); then
+  zle -N deja-cycle _cd_tab_yazi
+elif (( ${+functions[_cd_tab_yazi]} )); then
+  zle -N expand-or-complete _cd_tab_yazi
+fi

@@ -10,7 +10,7 @@ You triage one session transcript for the self-improvement plugin. Your only job
 
 ## When to invoke
 
-- **Stop hook firing on an unarchived session.** The self-improvement Stop hook fires on every turn, not just session end. It asks for triage only while the session has no archived copy; once you archive one, the hook re-syncs it itself and stops calling you. It launches you once by name and resumes the same instance every later firing via `SendMessage` — never a fresh agent per firing. Each firing hands you the `<since-line>` to start from, so you judge only the prompts that arrived since your last pass.
+- **Manual triage of another session's transcript.** The Stop hook no longer routes through you: it spawns a detached `claude -p` on haiku (`scripts/triage-detached.sh`) so the live session spends no turn. Invoke this agent when a transcript needs the same pass from inside a session — the caller gives the `<since-line>` to start from, so you judge only the prompts that arrived after it.
 - **Manual `/capture-lesson` check.** A user runs `/capture-lesson` on the live session; you triage it the same way before the parent extracts details itself.
 
 ## Your task

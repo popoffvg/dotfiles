@@ -295,6 +295,22 @@ function y() {
 	rm -f -- "$tmp"
 }
 
+# cd<Tab> → y (yazi). Wired onto Tab after deja loads (see dot-zshrc).
+_cd_tab_yazi() {
+	if [[ "$BUFFER" == "cd" || "$BUFFER" == "cd " ]]; then
+		BUFFER=
+		zle -I
+		y
+		zle reset-prompt
+		return 0
+	fi
+	if (( ${+functions[_deja_widget_cycle]} )); then
+		_deja_widget_cycle "$@"
+	else
+		zle .expand-or-complete "$@"
+	fi
+}
+
 # claudex — launch claude. Subcommands: `claudex pick` opens fzf agent picker.
 # Default (no subcommand): starts general claude.
 # Runs claude in the current terminal. herdr is started by hand, not from here.

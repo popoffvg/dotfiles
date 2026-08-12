@@ -6,25 +6,25 @@
 #                       session was judged interesting on an earlier pass; the
 #                       transcript only grows, so keeping the archive current is
 #                       a byte-append, not a judgment. No subagent, no turn.
-#   not archived yet -> block once, so the agent classifies the human prompts
-#                       that arrived since the last pass: global behaviour,
-#                       project scope, or neither. Only the first two get a copy.
+#   not archived yet -> spawn a detached `claude -p` on haiku to classify the
+#                       human prompts that arrived since the last pass: global
+#                       behaviour, project scope, or neither. Only the first two
+#                       get a copy. That pass only classifies and archives — it
+#                       never writes a skill. Extraction happens later, in
+#                       batch, in a /dream pass.
 #
-# Breaks the Stop->respond->Stop loop via stop_hook_active.
+# Neither branch blocks, so this hook costs the calling session no turn and no
+# tokens. The user hears about a pass only when it catches something, as a
+# desktop notification from the detached process.
 set -euo pipefail
+
+# Inside the detached triage session, whose own Stop would spawn another one.
+[ -n "${SELF_IMPROVE_TRIAGE:-}" ] && exit 0
 
 plugin_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 state_dir=${SELF_IMPROVE_STATE_DIR:-$HOME/.claude/self-improvement/state}
 
-input=$(cat)
-active=$(printf '%s' "$input" | jq -r '.stop_hook_active // false')
-
-# Already continuing because of this hook -> let the agent stop.
-if [ "$active" = "true" ]; then
-  exit 0
-fi
-
-transcript=$(printf '%s' "$input" | jq -r '.transcript_path // ""')
+transcript=$(jq -r '.transcript_path // ""')
 if [ -z "$transcript" ] || [ ! -f "$transcript" ]; then
   exit 0
 fi
@@ -52,6 +52,11 @@ case "$new_last" in (''|*[!0-9]*) exit 0 ;; esac
 mkdir -p "$state_dir"
 printf '%s' "$new_last" > "$state"
 
-reason="This session is not archived yet. Run the capture-lesson skill on the human prompts after transcript line $last — it classifies them and archives the session under the scope it picks. Otherwise stop silently — no status text."
-
-jq -nc --arg r "$reason" '{decision:"block", reason:$r, suppressOutput:true}'
+# nohup + background, because macOS has no setsid. The pass takes tens of
+# seconds and the turn must not wait on it. All three fds are redirected: an
+# inherited stdout would be read back as this hook's output, and an inherited
+# stdin would steal the hook's payload.
+nohup "$plugin_root/scripts/triage-detached.sh" "$transcript" "$last" \
+  </dev/null >/dev/null 2>&1 &
+disown 2>/dev/null || true
+exit 0
