@@ -10,12 +10,12 @@
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
 # fzf key bindings: Ctrl+T files, Alt+C cd (no Ctrl+R — atuin owns it)
-[[ -f "$BREW_PREFIX/opt/fzf/shell/key-bindings.zsh" ]] && \
-  source "$BREW_PREFIX/opt/fzf/shell/key-bindings.zsh"
+# [[ -f "$BREW_PREFIX/opt/fzf/shell/key-bindings.zsh" ]] && \
+#   source "$BREW_PREFIX/opt/fzf/shell/key-bindings.zsh"
 # fzf just bound ^R to its own history widget — re-assert atuin on Ctrl+R
-bindkey -M emacs '^R' atuin-search
-bindkey -M viins '^R' atuin-search-viins
-bindkey -M vicmd '^R' atuin-search
+# bindkey -M emacs '^R' atuin-search
+# bindkey -M viins '^R' atuin-search-viins
+# bindkey -M vicmd '^R' atuin-search
 
 # Completion style
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'

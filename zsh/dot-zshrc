@@ -26,10 +26,7 @@ autoload -Uz add-zsh-hook
 autoload -Uz compinit && compinit -i
 zstyle ':completion:*' special-dirs true
 
-eval "$(mise activate)"
-eval "$(atuin init zsh --disable-up-arrow)"
-source <(sk --shell zsh)
-eval "$(sg completions)"
+
 
 # --- zinit + OMZ snippets ---
 # Loaded here (before the ~/.zshrc_* satellites) so user aliases win.
@@ -45,7 +42,14 @@ zinit snippet OMZP::eza                      # eza aliases + completions
 # dropped: OMZL::async_prompt (starship owns the prompt), OMZP::direnv (hooked in .zshrc_aliases)
 # deja: do not also zinit-light it — that double-sources init.zsh and
 # recurses _deja_line_init into FUNCNEST. Loaded once at the bottom.
+zinit ice from"gh-r" as"program"
+zinit light overflowy/zhist
 
+eval "$(mise activate)"
+# eval "$(atuin init zsh --disable-up-arrow)"
+eval "$(zhist init -no-arrow-binds)"
+source <(sk --shell zsh)
+eval "$(sg completions)"
 # Use Apple clang for CGO (nanobrew LLVM lacks macOS SDK sysroot)
 export CC=/usr/bin/clang
 
@@ -116,3 +120,4 @@ if (( ${+widgets[deja-cycle]} )); then
 elif (( ${+functions[_cd_tab_yazi]} )); then
   zle -N expand-or-complete _cd_tab_yazi
 fi
+
