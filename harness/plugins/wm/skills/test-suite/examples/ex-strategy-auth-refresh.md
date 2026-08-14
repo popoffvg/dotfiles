@@ -1,57 +1,115 @@
-# Test Strategy: <TODO-N or task name>
+# `POST /auth/refresh` — test set
 
-Worked example — the canonical output shape produced by `/test-suite create` (`references/sub-create.md`)
-(pairwise tiering). SUT: `POST /auth/refresh` token rotation handler.
+Worked example — the output shape every `/test-suite` subcommand produces. The contract is
+[`references/ref-readable-output.md`](../references/ref-readable-output.md); this file shows it
+applied to one handler. Copy the section order, the heading style, and the variant line format.
 
-## SUT
-<one sentence>
+Note what is *absent*: there is no factor table, no pairwise matrix, and no `U-PAIR-1`. The
+pairwise run over token × session × concurrency happened in scratch and produced these cases;
+what it pruned is recorded in **Not covered**, in words.
 
-## Factors
+## The function
 
-| ID | Factor | Values | Notes |
-|----|--------|--------|-------|
-| F1 | input.token | valid / expired / malformed | — |
-| F2 | session in redis | present / absent | — |
-| F3 | concurrent refresh | single / 2-parallel | only matters with F1=valid |
+```text
+refresh(request) -> tokens | rejection
 
-## Constraints
-- F3=2-parallel only with F1=valid (concurrency is meaningful only for valid input).
-- F1=malformed implies short-circuit before F2 is read — collapse those rows.
+  in      token       the refresh token the client sends
+          session     the stored session that token points at
+  reads   redis       the session store, keyed by token id
+  returns tokens      a fresh access + refresh pair
+          rejection   an HTTP status and a reason, no body
+  writes  redis       deletes the key of the old token, stores the new one
+```
 
-## Unit cases (pairwise + mandatory)
+Source: `pkg/auth/handler.go`, `RefreshHandler.ServeHTTP`.
 
-| ID | F1 | F2 | F3 | Tier-specific | Oracle | Priority |
-|----|----|----|----|---------------|--------|----------|
-| U-SMOKE-1 | valid | present | single | — | returns `{access, refresh}`; old key deleted from mock redis | P0 |
-| U-PAIR-1 | expired | present | single | — | returns 401; mock redis untouched | P0 |
-| U-PAIR-2 | malformed | — | — | — | returns 400; never calls redis | P0 |
-| U-BOUND-1 | valid (token len=max) | present | single | — | returns `{access, refresh}` | P1 |
-| U-REGR-1 | valid | absent | single | regression for #1234 | returns 401 (not 500) | P0 |
+## Rotation replaces the pair and forgets the old token
 
-**Command:** `go test ./pkg/auth/...`
+A valid token with a live session is the only input that writes. The handler returns a fresh
+access + refresh pair and deletes the key the old token pointed at, so the same token replayed a
+second later finds nothing. This is the behaviour the whole endpoint exists for, and the delete
+is the half that a partial implementation forgets.
 
-## Integration cases
+**rotation-issues-a-new-pair** *(unit)* — normal token, live session → the response body carries
+both tokens and the old key is gone from the mock store.
 
-| ID | F1 | F2 | F3 | Oracle | Priority |
-|----|----|----|----|--------|----------|
-| I-SMOKE-1 | valid | present | single | 200 + new pair; row gone from real Redis | P0 |
-| I-PAIR-1 | valid | present | 2-parallel | exactly one 200, exactly one 401; only one new row in Redis | P0 |
-| I-PAIR-2 | expired | present | single | 401; Redis key untouched | P1 |
+**rotation-survives-a-max-length-token** *(unit)* — token at the longest accepted length → the
+same pair and the same delete. Boundary value: the length check is where an off-by-one sits.
 
-**Command:** `go test -tags=integration ./pkg/auth/...`
+**rotation-elects-one-winner-under-parallel-calls** *(integration)* — two requests carrying the
+same token at once → exactly one 200 and one 401, and real Redis holds exactly one new key.
 
-## Manual cases
+**rotation-is-invisible-to-a-signed-in-user** *(manual)* — sign in, wait for the access token to
+expire, then trigger any API call → the network panel shows 401 → `/refresh` → the retried call
+returns 200, and the page never flickers or asks for the password.
 
-| ID | Scenario | Steps | Expected | Priority |
-|----|----------|-------|----------|----------|
-| M-1 | Refresh in browser session | 1. log in; 2. wait until access expires; 3. trigger an API call | network shows 401 → /refresh → retried call returns 200; no visible glitch | P0 |
-| M-2 | Log shape on rotation | tail server logs while triggering U-SMOKE-1 | one `auth.refresh.rotated` event with `{user_id, old_kid, new_kid}` | P1 |
+## An expired token is rejected and the store is left alone
 
-## Traceability
+Expiry is checked against the token's own claim before the session is looked up. The caller gets
+401, and no key is written or deleted — an expired token must not be able to disturb a session
+that is still valid on another device.
+
+**expired-token-is-rejected** *(unit)* — token past its expiry, session present → 401 and the
+mock store records no call.
+
+**expired-token-leaves-the-real-key-alone** *(integration)* — same input against real Redis →
+401 and the key still holds its original value.
+
+## A malformed token is rejected before the store is read
+
+A token that does not parse short-circuits with 400. The store is never reached, so a flood of
+garbage tokens cannot become load on Redis.
+
+**malformed-token-never-reaches-redis** *(unit)* — token that fails to parse → 400, and the
+store mock asserts zero calls.
+
+## A missing session is a rejection, not a crash
+
+A token that parses and has not expired can still point at a session that is gone — revoked,
+evicted, or lost to a flush. The handler answers 401. It answered 500 before the fix for #1234,
+which turned an ordinary sign-out into a paging alert.
+
+**missing-session-is-401-not-500** *(unit)* — valid token, session absent → 401, and no panic in
+the recovered handler.
+
+## The rotation is legible in the logs
+
+An operator tracing a session needs to join the old key to the new one. One event per rotation
+carries both, and a rotation that emits nothing is indistinguishable from a rotation that never
+happened.
+
+**rotation-emits-one-join-event** *(manual)* — tail the server log while running
+`rotation-issues-a-new-pair` → exactly one `auth.refresh.rotated` event carrying
+`{user_id, old_kid, new_kid}`.
+
+## How it runs
+
+- unit — `go test ./pkg/auth/...`
+- integration — `go test -tags=integration ./pkg/auth/...`
+- manual — a reviewer follows the two manual variants above before merge
+
+## Coverage
 
 | Requirement | Cases |
-|-------------|-------|
-| Expired token rejected | U-PAIR-1, I-PAIR-2 |
-| Old refresh key invalidated on rotation | U-SMOKE-1, I-SMOKE-1, M-2 |
-| Concurrent refresh is safe | I-PAIR-1 |
-| Malformed input never touches Redis | U-PAIR-2 |
+|---|---|
+| A valid refresh returns a new pair | rotation-issues-a-new-pair, rotation-is-invisible-to-a-signed-in-user |
+| The old refresh key is invalidated | rotation-issues-a-new-pair, rotation-emits-one-join-event |
+| An expired token is rejected | expired-token-is-rejected, expired-token-leaves-the-real-key-alone |
+| Malformed input never touches Redis | malformed-token-never-reaches-redis |
+| Concurrent refresh is safe | rotation-elects-one-winner-under-parallel-calls |
+| A lost session is a client error | missing-session-is-401-not-500 |
+
+## Not covered
+
+- Concurrency with an expired or malformed token — parallelism only changes the outcome on the
+  path that writes, so both collapse into the single-request rejection cases.
+- Session state under a malformed token — the parse failure short-circuits first, so the session
+  value cannot reach a branch.
+- Redis unreachable — accepted risk here; the store outage path is owned by the session-store
+  test set, not by this handler.
+
+## Open questions
+
+- Does the 401 for a missing session need to differ from the 401 for an expired token? The two
+  cases assert the same status today and would both pass a wrong implementation that swapped
+  the branches.

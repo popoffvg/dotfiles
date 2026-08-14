@@ -5,12 +5,6 @@
 - Don't your Co-Author to the commit messages
 - Don't add references to the specification to implementation
 
-## Language
-
-- use ASD-STE100
-- one paragraph per one idea, mark it **bold**. First sentence is a brief summary. After introducing the idea, explain the details.
-- never use short slug like M-01. Use meaningful names that bring the short description.
-
 ## Tools
 
 - fff for all file search/grep: `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob — faster, frecency-ranked.

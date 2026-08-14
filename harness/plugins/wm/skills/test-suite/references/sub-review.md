@@ -15,6 +15,11 @@ Present a compact summary:
 3. **Test results** — pass/fail summary from the last test run
 4. **Open issues** — anything incomplete or uncertain
 
+Report every case by its name, the same string the test set and the test function use —
+`expired-token-is-rejected`, never `U-PAIR-1`. The user is deciding whether to approve, so a line
+they have to look up is a line they will skip. Group the failures under the behaviour they break,
+not under the file they live in.
+
 ## Step 2: Wait for user feedback
 
 The user may:

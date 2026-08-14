@@ -1,0 +1,26 @@
+#:schema https://yazi-rs.github.io/schemas/keymap.json
+
+# Two keys for one palette: a terminal without the Kitty keyboard protocol
+# reports Ctrl-Shift-P as plain Ctrl-P, and one with it reports <C-S-p>.
+[[mgr.prepend_keymap]]
+on = "<C-S-p>"
+run = "plugin palette"
+desc = "Command palette"
+
+[[mgr.prepend_keymap]]
+on = "<C-p>"
+run = "plugin palette"
+desc = "Command palette"
+
+[[mgr.prepend_keymap]]
+on = "e"
+# block: $EDITOR is a full-screen TUI, it needs yazi to release the terminal.
+run = 'shell --block -- $EDITOR "$@"'
+desc = "Open in $EDITOR"
+
+# min-preview toggles the preview between width 0 and the configured `ratio`,
+# so one key both hides and restores it.
+[[mgr.prepend_keymap]]
+on = "T"
+run = "plugin toggle-pane min-preview"
+desc = "Show or hide the preview pane"

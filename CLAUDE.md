@@ -16,6 +16,26 @@ A plugin may register an MCP server via `.mcp.json`, but only by **binary name**
 
 Claude Code registers `local-plugins` as a **directory marketplace** pointing at the repo root (`$HOME/git/dotfiles` in `settings.json` `extraKnownMarketplaces`), so it reads `.claude-plugin/marketplace.json` straight from the repo — no stow step needed for the marketplace.
 
+### Router skill + worker skills
+
+A user-invocable skill with many subcommands splits into one **router** and several **worker** skills. The router holds the subcommand table, the pipeline, and the shared taxonomy. Each worker holds the procedures for one kind of work and is `user-invocable: false`, so the user reaches it only through the router.
+
+**The router owns routing and vocabulary, never a procedure.** Its `SKILL.md` is the table plus the pipeline; its `GLOSSARY.md` is the leading words every worker uses verbatim; its `references/` holds only what cuts across all workers. A procedure that is neither routing nor shared vocabulary belongs in a worker.
+
+**Split workers by the kind of work, not by pipeline stage.** `wm/skills/` is the worked example: `code` routes, `arch` designs (the spec corpus and the component taxonomy), `impl` writes source and git history, `teach` builds and measures the human's understanding. A reader who knows the kind of work knows the skill.
+
+**Cite across skills with the owning skill's prefix** — `arch:ref-write.md`, `impl:sub-commit.md`, `teach:sub-quiz.md`, and `code:<file>` pointing back at the router. The prefix says which skill to open; a bare filename always means a file in the citing skill.
+
+Worker skills need `user-invocable: false` in their frontmatter. That is the key that hides a skill from the slash-command list while leaving the model free to load it by name; `model-invocable: false` is its opposite and belongs on the router, which the user runs and the model does not.
+
+### Subcommand rosters
+
+A router skill (`code`, `dive`, `test-suite`, `work`, …) keeps its subcommand roster in **two** places: the table in its `SKILL.md`, and the matching `harness/plugins/<plugin>/commands/<skill>-help.md`, which prints that table verbatim.
+
+**Any change to a roster lands in both files in the same commit.** Adding, removing, or renaming a subcommand, and any edit to a subcommand's one-line description, is incomplete until `<skill>-help.md` says the same thing. The help command is what the user reads before choosing; a roster that disagrees with it sends the user to a subcommand that no longer exists.
+
+The two tables carry different columns — `SKILL.md` adds the reference column pointing at the command file, `<skill>-help.md` does not. Mirror the rows and the descriptions, not the columns.
+
 ### Skills
 
 - **Loose `~/.claude` skills** live in `harness/claude/skills/<name>/SKILL.md` (stowed to `~/.claude/skills`).

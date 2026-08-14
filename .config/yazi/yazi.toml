@@ -11,3 +11,12 @@ mdterm = [
 prepend_rules = [
 	{ url = "*.{md,markdown}", use = [ "mdterm", "edit", "reveal" ] },
 ]
+
+[plugin]
+# Same renderer in the preview pane as the opener, via piper (`ya pkg` dep).
+# piper runs the command under `sh -c` and gives it $1 = file path, $w/$h = pane
+# size, $t = light|dark from the terminal. mdterm sees a pipe instead of a tty,
+# so it prints the ANSI body once and exits instead of starting its TUI.
+prepend_previewers = [
+	{ url = "*.{md,markdown}", run = 'piper -- mdterm -T "$t" -w "$w" "$1"' },
+]

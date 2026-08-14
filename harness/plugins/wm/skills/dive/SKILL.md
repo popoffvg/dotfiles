@@ -17,7 +17,7 @@ argument-hint: "[docs (default), workflow — full list /dive-help] + entry poin
 
 | `/dive …` | You need to… | Reference |
 |---|---|---|
-| `docs` *(default)* | Write the markdown research write-ups + question lists. One `<ep-slug>.questions.md` + one `<ep-slug>.md` per entry point, graded against the 6-step chain. Convergence loop + `INDEX.md`. | `references/sub-docs.md` |
+| `docs` *(default)* | Write the markdown research write-ups + question lists. One `<ep-slug>.questions.md` + one `<ep-slug>.md` per entry point, graded against the 6-step chain. Convergence loop + `INDEX.md`. | `dive-docs:SKILL.md` |
 | `workflow` | Write the typed TS pseudocode + path bindings into `<notes-dir>/workflows/<flow-name>/` — one folder per flow (`<ep-slug>.workflow.ts`, `<ep-slug>.bindings.json`), plus shared `components/*.d.ts`, `_flow.entities.d.ts`, `tsconfig.json` and `flows.json` at the `workflows/` root. The navigable, reveal-in-editor layer over the `docs` artifacts. | `references/sub-workflow.md` |
 | `unknowns` | Guided **quadrant walk** with the user — map known knowns / known unknowns / unknown knowns / unknown unknowns one stage at a time, ending with a four-quadrant map (`<slug>.unknowns.md`) in the user's hands. Use when the task is ambiguous, underspecified, or the user will "know it when they see it". | `references/sub-unknowns.md` |
 | `explain` | Draw a **single-panel planned architecture** as a self-contained HTML a reviewer reads in 30 seconds — the components, their edge relations, and the load-bearing decisions (tagged with decision ids). One picture of the intended design, not a before/after. Writes `<slug>.arch.html`. | `references/sub-explain.md` |
@@ -41,6 +41,16 @@ A list of entry points. Each may be:
 If the user provides a free-form description, use `mcp__fff__grep` / `mcp__fff__find_files` to find relevant entry points.
 
 The user may pass a **destination folder** inline with a `dst:<path>` token (see "Output location").
+
+## Parallel subagents
+
+Every route that fans out over entry points spawns its subagents the same way. This section is the one home for the rule — a route's procedure says *spawn the fan-out* and points here.
+
+- **Put all `Agent` calls in one assistant message.** Calls in separate messages run serially, not in parallel.
+- **Use `subagent_type: "Explore"` with `model: "sonnet"`.** Every default fan-out here is read-only investigation, which sonnet does at a fraction of the cost. Switch to `general-purpose` only for an entry point that needs cross-file design reasoning, and keep `model: "sonnet"` unless the reasoning itself is the hard part.
+- **Give each subagent a self-contained prompt.** A subagent cannot see this conversation. Include the entry point's inputs verbatim — for `workflow`, the `<ep-slug>.md` plus the schema — and the absolute output path.
+
+**The `docs` route uses named agents instead.** `explorer` and `explore-critic` both carry `model: sonnet` in their own frontmatter, and both read their contract from a file. Spawn them by name, pass no model, and paste no contract. The one-message rule still applies. See `dive-docs:SKILL.md`.
 
 ## Output location
 

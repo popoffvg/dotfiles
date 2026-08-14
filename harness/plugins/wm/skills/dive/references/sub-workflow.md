@@ -198,7 +198,7 @@ package of the cited file).
 1. **Resolve `<notes-dir>`, `$RESEARCH_DIR` and `$WORKFLOWS_DIR`** (router "Output location"). Require existing `<ep-slug>.md` artifacts in `$RESEARCH_DIR` — if missing, run `docs` first.
 2. **Create the layout:** `mkdir -p "$WORKFLOWS_DIR/components"`.
 3. **Pick entry points.** Default: every `<ep-slug>.md` in `$RESEARCH_DIR` with no `$WORKFLOWS_DIR/<ep-slug>/` folder. User may name a subset.
-4. **For each entry point, spawn a subagent in parallel** (single message, multiple `Agent` calls). Brief each with:
+4. **For each entry point, spawn a subagent in parallel** — see `dive:SKILL.md` § Parallel subagents for the type, the model, and the one-message rule. Brief each with:
    - The `<ep-slug>.md` (the cited locations to mirror) and the absolute `$WORKFLOWS_DIR`
    - **The full "Output" + "Workflow TS schema" + "Path binding" sections verbatim**
    - "Verify every `@source` and every `bindings.json` `source` by reading the file — do not guess. Prefer absolute paths."

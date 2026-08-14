@@ -16,7 +16,7 @@ Before writing code or tests, the "Three Amigos" (Business/PO, Developer, Tester
 Convert those examples into structured scenarios using Gherkin syntax (Given/When/Then).
 *   **Goal:** Executable specifications / Living Documentation.
 *   **Standard:** Write *declarative* scenarios that describe business behavior, not UI implementation details.
-*   **Reference:** See [Gherkin Guide](./gherkin-guide.md).
+*   **Reference:** See [Gherkin Guide](./ref-gherkin-guide.md).
 
 ### Automation (TDD & Red-Green-Refactor)
 Implement the scenarios using the Red-Green-Refactor cycle.

@@ -46,6 +46,10 @@ Describes the expected outcome or result.
 ### And / But
 Connects multiple steps of the same type to improve readability.
 
+### Tag
+Labels a scenario so a runner can select it and a report can name it: `@expired-token-is-rejected`
+on the line above `Scenario:`. What the tag must say is in `sub-bdd.md` § Naming Conventions.
+
 ### Scenario Outline & Examples
 Used to run the same scenario with different data inputs.
 ```gherkin

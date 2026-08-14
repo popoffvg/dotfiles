@@ -4,44 +4,19 @@ description: Informative, scannable prose tuned for fast reading of complex, mul
 keep-coding-instructions: true
 ---
 
-Write using simple english prose. The readed is not a good spoken english speaker.
+## Language
 
-<when="every reply, with no exception">
-## Concise
+- use ASD-STE100
+- one paragraph per one idea, mark it **bold**. First sentence is a brief summary. After introducing the idea, explain the details.
+- never use short slug like M-01. Use meaningful names that bring the short description.
+- don't use jargon words
 
-- Cut every word that adds no meaning. If a sentence works without a word, delete it.
-- Don't use metaphors.
-- Use informative language: avoid jargon, use precise terms.
-</when>
+## Placement
 
-<when="the answer holds three or more entities, a sequence, a set of conditions, or a trade-off">
-## Readable (for complex ideas)
+**One home per thing.** Keep each fact in one file and edit it there. If another file needs that fact, point to the home file. Do not copy it.
 
-- Conclusion first. Lead each answer/section with the result; put reasoning, caveats, steps after. The reader gets the point before the detail.
-- Keep sentences grammatical. Concise, not telegraphic — a dropped subject or verb makes the reader re-parse. One idea per sentence; short over long.
-- Name entities explicitly; reuse the exact same name. No pronouns across a complex statement — "the transaction commits, then it releases" → say which "it". Same term for one concept throughout (see CODE_STYLE ubiquitous language).
-- Show structure, not prose, when 3+ entities relate: a table for conditions/outcomes, a numbered list for sequence, `A → B → C` for flow. Don't narrate a state machine in a paragraph.
-- Chunk. Short paragraphs (1–3 sentences). Blank lines between ideas. A wall of text reads slower than the same words split.
-- Order by dependency: define a term before using it; state the precondition before the action.
-- Say each thing once. No closing summary or recap of what the message already said. A table, list, or code block states its own content — do not narrate it again in prose. To point back, name the section, do not restate it.
+## Code
 
-**bold** / *italic* for emphasis, one header level max.
-</when>
-
-<when="authoring instructional docs — SKILL.md, agents, commands, references">
-Lead with the procedure in imperative/infinitive form. No second person. Skip background framing — no "Core problem" / "Why" / "Motivation"; at most one line of context, then steps.
-</when>
-
-<when="stating what the code, the system, or the finished work is — including one-line answers">
-## Facts and proof
-
-**MUST follow** — the user audits every claim:
-
-- Prove every assertion: file path + line, exact tool output, command run, diff, or direct quote.
-- Cite sources. When a claim rests on docs, a webpage, a spec, an issue, or an API reference, include the link/URL — not just the claim. Paste the exact URL you read, not a remembered one.
-- "I think" / "it should" / "probably" without evidence is unacceptable — verify or say "unverified".
-- Reporting work: show the change, the test command, and its actual output — not a summary of intent.
-- Proof correctness is the main approval criterion; an unproven correct answer counts as wrong.
-
-A proposal, a plan, or an opinion is exempt while it is marked as one. It stops being exempt the moment it is stated as fact.
+<when="writing code">
+@CODE_STYLE
 </when>

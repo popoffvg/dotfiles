@@ -1,45 +1,44 @@
-# Behavior-Driven Development (BDD) + TDD
+# TDD — drive the code from the cases
 
-This skill provides a comprehensive guide to applying Behavior-Driven Development principles to your coding tasks. BDD is not just about tools; it's a methodology for shared understanding and high-quality implementation.
+Behaviour first, code second. This subcommand takes a test set that already exists — the big
+cases from `sub-create.md` or `sub-write.md` — and turns it into working code one failing test at
+a time.
 
-## How to Use This Skill
+## The loop
 
-When the user asks for a feature, bug fix, or refactor, apply the following mindset:
+**Discovery** clarifies what the system should do, in examples rather than adjectives. **Formulation**
+writes those examples as scenarios: Given the state, When the event, Then the observable. See
+[`ref-gherkin-guide.md`](ref-gherkin-guide.md) for the syntax and the file layout, and
+[`ref-bdd-best-practices.md`](ref-bdd-best-practices.md) for the discovery practice.
+**Automation** implements them with red, green, refactor.
 
-1.  **Understand Behavior First:** Do not start coding until you know *what* the system should do.
-2.  **Define Scenarios:** Create or ask for concrete examples (Gherkin) of the expected behavior.
-3.  **Drive Implementation with Tests:** Use the Red-Green-Refactor cycle.
+- **Red** — write the failing test for one variant, and watch it fail for the reason you expect.
+- **Green** — write the least code that passes it.
+- **Refactor** — clean up with the test still green.
 
-## Core Concepts
+## The iron law
 
-### 1. The BDD Cycle
-The process flows from requirements to code:
-*   **Discovery:** Clarify requirements through examples (The "Three Amigos").
-*   **Formulation:** Write these examples as specific scenarios (Given/When/Then).
-*   **Automation:** Implement using TDD.
+> No production code is written without a failing test first.
 
-See [BDD Best Practices](./bdd-best-practices.md) for a detailed guide.
+Code written before its test costs three things. You never learn whether the test can fail, so a
+false positive can sit there for years. Your test is shaped by the implementation you already
+wrote, so it asserts what the code does rather than what the behaviour requires. And you have
+written legacy code on day one — code whose specification exists only in someone's memory.
 
-### 2. Writing Scenarios (Gherkin)
-Scenarios are your "Executable Specifications".
-*   Keep them declarative (business focus).
-*   Avoid technical jargon and UI details.
-*   One behavior per scenario.
-*   **Store in .feature files, NOT as code comments** - this makes them executable and accessible to non-technical stakeholders.
+## Order the work by big case
 
-See [Cucumber Gherkin Guide](./gherkin-guide.md) for syntax and storage structure.
+Take the big cases in the order the reader would care about, and finish one before starting the
+next. Inside a case, the smoke variant goes first, then the boundaries, then the failures. A
+half-finished big case is worse than an untouched one: the heading claims a behaviour is covered
+while its edge variants are still missing.
 
-### 3. Red-Green-Refactor (TDD)
-The engine of implementation:
-1.  **RED:** Write a failing test for the scenario (or a unit thereof).
-2.  **GREEN:** Write the minimal code to pass the test.
-3.  **REFACTOR:** Clean up the code while keeping tests passing.
+**Name the test function after the variant.** `Test_expired_token_is_rejected`, not `TestRefresh2`
+and not `TestUPair1`. The name in the code, the bold name in the `.md`, and the Gherkin tag are
+the same string, so a red test in CI names the behaviour that broke without anyone opening the
+test set.
 
-## Quick Reference: The Iron Law
+## Scenarios live in `.feature` files
 
-> **"No production code is written without a failing test first."**
-
-If you write code before the test:
-1.  You don't know if the test is capable of failing (false positives).
-2.  You are biased by your implementation.
-3.  You are writing legacy code from day one.
+Store them as files, never as code comments. A comment is invisible to the runner and to everyone
+who does not read the source, which is exactly the audience a scenario is written for. Keep them
+declarative — the business behaviour, not the UI path — and one behaviour per scenario.

@@ -1,156 +1,178 @@
-# Test Set: Pairwise Tiering Strategy
+# Create — size the test set with pairwise, ship it as big cases
 
-## What this skill produces
+Produce one artifact: a **test set** for a TODO or a task, with every case placed in the cheapest
+tier that can prove it.
 
-A single artifact: a **test strategy** with three tiered case lists.
+Pairwise is how you *derive* the set. It is not how you *present* it. The matrix stays in your
+scratch work; the document you save follows
+[`ref-readable-output.md`](ref-readable-output.md) — read that first, it is the contract this
+subcommand fills.
 
-- **Unit cases** — fast, in-process, mock external deps. Cover branch logic and pure functions.
-- **Integration cases** — real wired components (DB, queue, in-process API). Cover contracts between modules.
-- **Manual cases** — for a human reviewer. Cover what tests can't see: UX feel, latency perception, log/observability shape, real third-party behaviour.
+## The three tiers
 
-Each tier has its own pairwise matrix sized for its cost. Don't reuse the same matrix across tiers.
+- **unit** — fast, in-process, external dependencies mocked. Branch logic and pure functions.
+- **integration** — real wired components (DB, queue, in-process API). Contracts between modules.
+- **manual** — a human reviewer. What tests cannot see: how it feels, how fast it looks, what the
+  logs say, how the real third party behaves.
+
+Each tier gets its own derivation sized to its cost. Never reuse one matrix across tiers — a
+unit matrix pushed into integration produces cases that pay setup cost to prove logic that a
+mock already proved.
+
+Tier is a property of a **variant**, not a section of the document. Variants of all three tiers
+live together under the big case whose behaviour they prove.
 
 ## Where the output lives
 
-- **Per-TODO scope** — write into the `## Autotest` (unit + integration) and `## Manual test` sections of `<notes-dir>/todos/TODO-N.md`. Follow the `code` skill's `todo` subcommand for required format.
-- **Task-wide scope** — write to `<notes-dir>/test-strategy.md`, referenced from `<notes-dir>/spec.md` Implementation Guidelines.
+- **Per-TODO scope** — into the `## Autotest` (unit + integration) and `## Manual test` sections
+  of `<notes-dir>/todos/TODO-N.md`. Follow the `arch` skill's `todo` subcommand for the format.
+- **Task-wide scope** — `<notes-dir>/test-strategy.md`, referenced from `<notes-dir>/spec.md`
+  Implementation Guidelines.
 
-`<notes-dir>` is the wm notes directory for the active task (commonly `.notes/`); resolve from phase context.
-
-## Pairwise rationale
-
-Exhaustive coverage of N factors with k values each is k^N cases — explodes fast. Pairwise (all-pairs) testing guarantees every **pair of factor values** appears together in at least one case. Empirically catches ~70-90% of combinatorial defects with O(k²) cases instead of O(k^N).
-
-Use pairwise when:
-- ≥ 3 factors influence behaviour
-- Each factor has ≥ 2 meaningful values
-- Full Cartesian product would exceed the tier's budget (see budgets below)
-
-Do **not** use pairwise when:
-- Only 1-2 factors matter — just enumerate all combos.
-- The interaction you're testing is specifically 3-way (pairwise won't cover it; add explicit triples).
-- Cases are essentially independent (e.g., negative cases per input field) — enumerate per field instead.
+`<notes-dir>` is the wm notes directory for the active task (commonly `.notes/`); resolve it from
+phase context.
 
 ## Tier budgets
 
-These are soft upper bounds before you should split the TODO or push cases to a higher tier.
+Soft upper bounds on **variants**, counted across the whole document. Cross one and either split
+the TODO or push cases up a tier.
 
-| Tier | Cases per TODO | Cases per task | Cost driver |
-|------|----------------|----------------|-------------|
-| Unit | ≤ 12 | ≤ 50 | runtime budget (1-2s total) |
-| Integration | ≤ 6 | ≤ 20 | env setup + flakiness risk |
-| Manual | ≤ 4 | ≤ 10 | human attention budget |
+| Tier | Variants per TODO | Variants per task | Cost driver |
+|------|-------------------|-------------------|-------------|
+| unit | ≤ 12 | ≤ 50 | runtime budget (1-2s total) |
+| integration | ≤ 6 | ≤ 20 | env setup + flakiness risk |
+| manual | ≤ 4 | ≤ 10 | human attention budget |
 
-If pairwise output exceeds the budget, drop the lowest-priority factor or merge values (see "Reducing matrix size" below).
+The big-case budget is separate and tighter: three to seven per document, whatever the tiers add
+up to.
 
 ## Workflow
 
-### 1. State the system under test (SUT)
+### 1. Distill the system to a function
 
-One sentence. What entry point, what behaviour. Example: "`POST /auth/refresh` token rotation handler in `pkg/auth/handler.go`".
+Write the signature block described in `ref-readable-output.md` section 1 — inputs, state read,
+results, state written. Do this before enumerating anything. The input names you choose here are
+the words every case will use, so a sloppy signature costs you twice.
 
-### 2. Enumerate factors
+### 2. Enumerate factors — in scratch
 
-List every independent input or condition that can vary. Each factor becomes a column in the matrix.
+List every independent input or condition that can vary, and the values worth testing for each.
+Keep values to two to four per factor; that is the range where pairwise pays.
 
-Typical factor categories:
-- **Input shape** (valid, malformed, missing fields, oversized)
-- **State** (entity exists / absent / soft-deleted / stale)
-- **Identity / permission** (anonymous, user, admin, expired session)
-- **External dep** (available, slow, 5xx, partial)
-- **Concurrency / order** (single, concurrent, retry)
-- **Config / feature flag** (on, off, partial rollout)
-- **Environment** (linux/macos, container/native, fresh/migrated DB)
+Factor categories that recur:
 
-For each factor, list the **values** to test. Keep values to 2-4 per factor — that's where pairwise pays off.
+- **input shape** — valid, malformed, missing fields, oversized
+- **state** — entity present, absent, soft-deleted, stale
+- **identity** — anonymous, user, admin, expired session
+- **external dependency** — available, slow, 5xx, partial
+- **concurrency** — single, concurrent, retry
+- **configuration** — flag on, off, partial rollout
+- **environment** — linux/macos, container/native, fresh/migrated DB
 
-### 3. Mark constraints
+### 3. Mark constraints — in scratch
 
-Some combinations are impossible or meaningless (e.g., "anonymous user" + "admin-only endpoint" — covered by a single deny case, not the full matrix). Write them down explicitly; the pairwise generator must skip them.
+Some combinations cannot occur or cannot be reached. Write each one down with the reason; the
+generator must skip them and the reasons become the **Not covered** section of the saved
+document.
 
-### 4. Generate the pairwise matrix
+### 4. Generate the matrix — in scratch, per tier
 
-For each tier separately:
+1. List that tier's factors and values.
+2. Run a pairwise generator (PICT, allpairs, or by hand under three factors of three values).
+3. Check the property: every pair of values across two factors appears in at least one row.
 
-1. List the factors + values.
-2. Run a pairwise generator (PICT, allpairs, or by hand for small matrices).
-3. Result: a table where each row is a test case, columns are factor values.
-4. Verify every (factor-A value, factor-B value) pair appears in at least one row.
+Exhaustive coverage of N factors with k values each is k^N cases and explodes fast. Pairwise
+guarantees every value pair appears together at least once, and catches most combinatorial
+defects at O(k²).
 
-For ≤ 3 factors with ≤ 3 values each, by-hand works. Larger: use a tool.
+Skip pairwise when only one or two factors matter (enumerate all combinations), when the
+interaction you are chasing is specifically three-way (pairwise cannot see it — add the triples
+explicitly), or when the cases are independent per input field (enumerate per field).
 
-### 5. Add mandatory non-pairwise cases
+### 5. Add the cases pairwise cannot find
 
-Pairwise covers combinatorial interactions but misses some categories. **Always append:**
+Append these to the matrix output, always:
 
-- **Smoke / golden path** — the most common valid input, top of the list.
-- **Boundary values per numeric/length factor** — min-1, min, max, max+1.
-- **Regression-shape sweep** — not just one case per previously fixed bug. Extract the *shape* the fix removed (read the fix commit message: "hardcoded X as false", "field state lied about itself", "forgot to check Y before Z"), grep that shape across the whole codebase, and add a case for **every sibling site — prioritizing the ones the fix did NOT modify.** Fixes are routinely incomplete along their own pattern; the untouched sibling is the highest-yield case in the whole set. Confirm the fix's file list (`git show --stat <sha>`) against the grep hits — every hit the commit didn't touch is a candidate defect, not a covered one.
-- **3-way interactions when known to matter** — explicit triples for things like (state × permission × flag).
+- **Smoke** — the most common valid input.
+- **Boundaries** — for every numeric or length factor: min-1, min, max, max+1.
+- **Regression shape sweep** — not one case per past bug. Read the fix commit for the *shape* it
+  removed ("hardcoded X as false", "field lied about its own state", "forgot to check Y before
+  Z"), grep that shape across the codebase, and add a case for **every sibling site, starting
+  with the ones the fix did not touch**. Fixes are routinely incomplete along their own pattern,
+  and the untouched sibling is the highest-yield case in the set. Confirm with
+  `git show --stat <sha>`: every grep hit the commit missed is a candidate defect, not a covered
+  one.
+- **Three-way interactions you already suspect** — explicit triples for combinations like
+  state × permission × flag.
 
-These are *additions*, not replacements for the pairwise matrix.
-
-### 6. Assign tier per case
-
-Use this rubric:
+### 6. Assign a tier to each case
 
 | Case characteristic | Tier |
-|---------------------|------|
-| Pure logic, no I/O, runs in < 100ms | Unit |
-| Crosses ≥ 2 modules / hits a real DB or queue | Integration |
-| Requires human judgement (visual, ergonomic, "feels fast") | Manual |
-| External third-party service behaviour | Manual (or integration if recorded/replay) |
-| Observability / log shape verification | Manual unless a log-shape test exists |
+|---|---|
+| Pure logic, no I/O, under 100ms | unit |
+| Crosses two or more modules, or hits a real DB or queue | integration |
+| Needs human judgement — visual, ergonomic, "feels fast" | manual |
+| Real third-party behaviour | manual, or integration when recorded and replayed |
+| Log or observability shape | manual, unless a log-shape test exists |
 
-If a case fits multiple tiers, put it in the **lowest-cost tier** that can prove the oracle.
+A case that fits several tiers goes in the **cheapest** one that can still prove its oracle.
 
 ### 7. Write the oracle
 
-Every case ends with an explicit observable assertion. Banned: "works", "succeeds", "looks right".
+Every case ends in an observable assertion. Banned: "works", "succeeds", "looks right".
 
-Good oracles:
-- Unit: return value equals X, function called with args Y, error of type T thrown.
-- Integration: HTTP status N + body shape, DB row state S, message published on topic T.
-- Manual: described user-visible state ("loading spinner disappears within 2s; success toast shown for ≥ 1s").
+- unit — the return value equals X, the collaborator was called with Y, an error of type T was raised.
+- integration — HTTP status N with body shape B, DB row in state S, message published on topic T.
+- manual — the user-visible state, with its timing: "the spinner disappears within 2s and the
+  success toast stays up for at least 1s".
 
-### 8. Emit the strategy document
+### 8. Group the rows into big cases
 
-Use the template below. Keep it dense — one screen per tier where possible.
+This is the step that turns the matrix into a document. Read the rows and find the **behaviours**
+they cluster around — not the factors they vary. Each cluster becomes one big case with a
+sentence heading and a paragraph; each row becomes one named variant under it.
 
-## Output template
+Rows that resist grouping are the interesting ones. A row that belongs to no behaviour usually
+means the behaviour was never named in the spec, so name it and check it is intended.
 
-See the worked example: [`examples/ex-strategy-auth-refresh.md`](../examples/ex-strategy-auth-refresh.md) — a full `POST /auth/refresh` strategy with Factors, Constraints, Unit/Integration/Manual tiers, and Traceability. Copy its section structure.
+### 9. Emit the document
 
-## Reducing matrix size
+Follow the skeleton in `ref-readable-output.md` section 6. The worked example is
+[`examples/ex-strategy-auth-refresh.md`](../examples/ex-strategy-auth-refresh.md). The matrix
+does not appear in it, and must not appear in yours.
 
-If the pairwise output exceeds the tier budget:
+## Reducing the derivation
 
-1. **Merge equivalence-class values** — collapse `null`, `""`, `undefined` into "missing".
-2. **Drop the lowest-priority factor** — typically the one with smallest blast radius if wrong.
-3. **Push a factor up one tier** — e.g., test concurrency only at integration, not at unit.
-4. **Split the TODO** — if the matrix is still too big, the TODO is doing too much.
+When a tier's rows exceed its budget:
 
-Never drop a value just to fit budget without justifying which interaction loss is acceptable. Record the trade-off in **Constraints**.
+1. **Merge equivalence-class values** — collapse `null`, `""`, and `undefined` into "missing".
+2. **Drop the lowest-priority factor** — the one with the smallest blast radius if it is wrong.
+3. **Push a factor up a tier** — test concurrency at integration only, not at unit.
+4. **Split the TODO** — a matrix still too big after the first three means the TODO does too much.
+
+Never drop a value silently. Every drop lands in **Not covered** with the interaction you chose
+to lose and why that loss is acceptable.
 
 ## Anti-patterns
 
-- **One giant unit test with N assertions** — fails opaquely; one case per row.
-- **Pairwise without smoke + boundary additions** — combinatorial coverage misses common failure modes.
-- **Integration cases that duplicate unit cases** — pick the tier that already proves the oracle; don't double-test the same logic.
-- **Manual cases that a test could check** — log assertions, status codes, DB rows belong in unit/integration.
-- **Vague oracles** ("response is correct") — replace with literal shape/value/event name.
-- **Skipping constraints** — the pairwise matrix will contain impossible rows and waste budget.
+- **Sections named after tiers** — `## Unit cases` splits one behaviour across three tables. Name
+  the sections after behaviours and tag each variant with its tier.
+- **One giant unit test with N assertions** — it fails opaquely; one variant, one case.
+- **Pairwise without the smoke and boundary additions** — combinatorial coverage misses the
+  common failure modes.
+- **Integration cases that repeat unit cases** — pick the tier that already proves the oracle.
+- **Manual cases a test could check** — status codes, DB rows, and log assertions are automatable.
+- **Vague oracles** — replace "the response is correct" with the literal shape, value, or event.
+- **Skipping constraints** — the matrix fills with impossible rows and spends the budget on them.
 
 ## Pre-save checklist
 
-- [ ] SUT is one sentence
-- [ ] Every factor has 2-4 values
-- [ ] Impossible combinations listed in **Constraints**
-- [ ] Pairwise property holds: every value-pair across factors appears in ≥ 1 row of the tier where it matters
-- [ ] Smoke + boundary + regression-shape-sweep cases appended on top of pairwise rows (for a fixed-bug shape: grepped for siblings, added a case per untouched site)
-- [ ] Each case is in the lowest-cost tier that can prove its oracle
-- [ ] Every case has an observable oracle (no "works"/"succeeds")
-- [ ] Tier budgets respected (unit ≤ 12, integration ≤ 6, manual ≤ 4 per TODO)
-- [ ] Unit + integration cases have a runnable shell command
-- [ ] Traceability table maps every requirement → ≥ 1 case
-```
+Run the checklist in `ref-readable-output.md` section 7 first, then:
+
+- [ ] The pairwise property held in scratch for every tier that used it
+- [ ] Smoke, boundary, and regression-shape cases appended on top of the matrix rows
+- [ ] For a fixed-bug shape: grepped for siblings, one case per untouched site
+- [ ] Every case sits in the cheapest tier that proves its oracle
+- [ ] Tier budgets respected — unit ≤ 12, integration ≤ 6, manual ≤ 4 per TODO
+- [ ] Unit and integration tiers each have a runnable command under **How it runs**
+- [ ] Every requirement reaches at least one case in **Coverage**

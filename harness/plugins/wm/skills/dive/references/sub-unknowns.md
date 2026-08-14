@@ -17,7 +17,7 @@ Name the current quadrant as you go. Finish the stage in front of you before ope
 
 ### 1. Known knowns — open with the settled ground
 
-Scan the territory first (silent). Use parallel subagents — split the code the task touches among them — so the opening lands fast, not after a long serial read. Gather: what already exists (including half-built or reverted prior attempts), the data shapes and conventions the code enforces, anything load-bearing.
+Scan the territory first (silent). Use parallel subagents — split the code the task touches among them — so the opening lands fast, not after a long serial read. Spawn them per `dive:SKILL.md` § Parallel subagents. Gather: what already exists (including half-built or reverted prior attempts), the data shapes and conventions the code enforces, anything load-bearing.
 
 Opening reply: list the settled ground — the request as understood, facts the territory pins down (cite files), constraints and decisions already made. Distinguish locked from assumed; flag assumptions as "settled unless you say otherwise". Name the three quadrants ahead, one line each. Disclose any load-bearing finding now (don't save it for its stage). The first stage-2 question may ride along.
 

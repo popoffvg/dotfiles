@@ -1,5 +1,10 @@
 # BDD Test Design
 
+Shape the behavioural cases as Given/When/Then. The feature file is the **body** of cases the
+`.md` test set already names, so read [`ref-readable-output.md`](ref-readable-output.md) first
+and keep the two in step: one `Rule` or block of scenarios per big case, and one scenario per
+variant, tagged with that variant's name.
+
 ## Cucumber Notation
 
 Every test scenario is expressed in **Given / When / Then** steps:
@@ -145,7 +150,24 @@ assert result != nil, "job did not complete within 5s"
 |---------|-----------|---------|
 | Feature | Noun phrase describing capability | `Resource Lifecycle`, `User Authentication` |
 | Scenario | Present-tense statement of behavior | `User deletes a resource`, `Expired token is rejected` |
+| Tag | The variant name from the `.md`, kebab-case | `@expired-token-is-rejected` |
 | Step | Starts with Given/When/Then + active verb | `Given the service is running`, `When a request is sent` |
+
+**The tag carries the variant name, and the match is what joins the feature file to the `.md`.**
+A failing CI run prints the tag and nothing else, so `@running-cannot-return-to-pending` reports
+the broken behaviour where `@TS-STATE-013` reports a lookup task.
+
+---
+
+## Scenario Outline
+
+An `Examples` table is a readable way to write one behaviour with several inputs, and an
+unreadable way to dump a derivation matrix into a feature file.
+
+Use an outline when every row is the same sentence with one value changed, and the row reads on
+its own. Split into separate scenarios as soon as the rows differ in their `Then`, need different
+setup, or carry more than about three columns — at that point the outline has become the matrix
+the test set is supposed to keep out of sight.
 
 ---
 

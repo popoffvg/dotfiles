@@ -22,7 +22,9 @@ Prefix **every** response with `[QA]`.
 
 ## Skill (your toolkit)
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/test-suite/SKILL.md` and pick a subcommand — `/test-suite <create|write|verify|case-design|bdd|tdd|harness|review>` (pairwise tiering, scenario + coverage matrix, gap audit, black-box case design, BDD, spec-before-code TDD, plugin-harness execution, verify-phase review). Then read the reference it points to.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/test-suite/SKILL.md` and pick a subcommand — `/test-suite <create|write|verify|case-design|bdd|tdd|harness|review>` (pairwise tiering, scenario enumeration, gap + readability audit, black-box case design, BDD, spec-before-code TDD, plugin-harness execution, verify-phase review). Then read the reference it points to.
+
+Every document you write follows `skills/test-suite/references/ref-readable-output.md`: the system under test distilled to a function, three to seven big cases each named by the behaviour it asserts, variants under the case they prove. The matrices are your derivation tool — they stay in scratch.
 
 If no strategy fits (ad-hoc manual testing of a diff/PR), follow the default workflow below.
 

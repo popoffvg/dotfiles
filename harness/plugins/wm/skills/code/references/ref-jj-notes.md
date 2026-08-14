@@ -24,7 +24,7 @@ The message states the **phase + the main ideas of the change** — the reasonin
 - `review: fold status field into notes, decline worklog fallback`
 - `revise TODO-3: split handler, error-wrap at boundary`
 
-Each phase reference gives its own message shape (`new.md`, `revise.md`, `fix.md`, …) — all follow this: lead with the phase, then the ideas.
+Each phase reference gives its own message shape (`arch:sub-new.md`, `sub-revise.md`, `impl:sub-fix.md`, …) — all follow this: lead with the phase, then the ideas.
 
 The Stop hook is the **fallback** for uncommitted leftovers only — it can't know intent, so it falls back to the changed basenames. Commit at each phase boundary with a why-message so the hook rarely fires.
 

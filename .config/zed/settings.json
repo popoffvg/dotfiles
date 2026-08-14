@@ -79,6 +79,7 @@
     "enabled": true,
   },
   "tab_bar": {
+    "show": true,
     "show_pinned_tabs_in_separate_row": true,
   },
   "git": {
@@ -289,6 +290,10 @@
     "gopls": {
       "binary": {
         "path": "/Users/vitaliipopov/.local/share/mise/shims/gopls",
+        "arguments": [
+          "-logfile=/Users/vitaliipopov/Library/Logs/gopls-zed.log",
+          "-rpc.trace",
+        ],
       },
     },
     "golangci-lint": {

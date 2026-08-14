@@ -1,8 +1,8 @@
 # code — verify (the audit)
 
 Adversarial spec **audit** before impl, in a separate read-only `spec-verifier` agent (no Write
-tool) that did not write the spec — it reads it as an outsider. Vocabulary: `../GLOSSARY.md`.
-Readiness criteria: `ref-write.md`. TODO elements: `sub-todo.md`.
+tool) that did not write the spec — it reads it as an outsider. Vocabulary: `wm:GLOSSARY.md`.
+Readiness criteria: `arch:ref-write.md`. TODO elements: `arch:sub-todo.md`.
 
 Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 
@@ -89,10 +89,10 @@ Each finding names the exact TODO/section, states the concrete scenario that fai
 The floor beneath the mission — a spec that fails these is unfinished regardless of the hunt.
 
 ### A. Spec readiness
-Run `ref-write.md` § Spec-Readiness Checklist against `spec.md` + `GLOSSARY.md` + `thoughts/`. **Any `status: open` question note → NEEDS REVISION** (hard block; route to `new`) — check with `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`. Also a hard block: a `Design Decisions` or `Open Questions` section surviving in `spec.md`, or a decision-trail table in `## Plan` — decisions belong to `thoughts/` alone. This covers spec sections, the ledger shape, outcome rules, and GLOSSARY.md currency in one place.
+Run `arch:ref-write.md` § Spec-Readiness Checklist against `spec.md` + `GLOSSARY.md` + `thoughts/`. **Any `status: open` question note → NEEDS REVISION** (hard block; route to `new`) — check with `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`. Also a hard block: a `Design Decisions` or `Open Questions` section surviving in `spec.md`, or a decision-trail table in `## Plan` — decisions belong to `thoughts/` alone. This covers spec sections, the ledger shape, outcome rules, and GLOSSARY.md currency in one place.
 
 ### B. Per-TODO completeness
-One `todos/TODO-N.md` per ledger row, contiguous. Each has every `always` element in order (`sub-todo.md` § Required elements). Spot-check: **Risk / blast radius** 1–5 with a justification (score ≥ 3 → tests cover callers); **Files** concrete paths, no globs; **Thoughts** links resolve and each has a **Constraints** row.
+One `todos/TODO-N.md` per ledger row, contiguous. Each has every `always` element in order (`arch:sub-todo.md` § Required elements). Spot-check: **Risk / blast radius** 1–5 with a justification (score ≥ 3 → tests cover callers); **Files** concrete paths, no globs; **Thoughts** links resolve and each has a **Constraints** row.
 
 **Changes — the increment sequence.** `n` contiguous from 1, ≤ 10 increments, each naming one **Components** row. Every increment carries **Files** (a subset of `## Files`), a **Blast radius**, and a ```diff of ≤ 25 changed lines. A **Blast radius** that names no symbol or caller (`"low"`, `"minimal"`, `"none"` on a non-additive increment) → NEEDS REVISION: an unpredicted blast radius is what the increment review exists to catch. Order must be deepest-first — a caller migrated before its callee, without a `builds: only with increment <n>` marker, is a finding. Any **Behavior** snippet: one TS block ≤ 40 lines matching the Type.
 
@@ -101,7 +101,7 @@ One `todos/TODO-N.md` per ledger row, contiguous. Each has every `always` elemen
 **Over-statement (hard block, the same gate in reverse).** The gate cuts both ways — it may only ever push text *in* if it can also push text *out*, or every pass grows the file. → NEEDS REVISION when a `## Constraints` row names a rule no increment in `## Changes` can violate, when spec Description/Goal/target-picture prose was copied into the body, or when the body exceeds 512 lines (name the split, not the passage to compress).
 
 ### B2. Wave plan
-`## Plan` has the wave table; every ledger row appears in exactly one wave; no two TODOs in one wave share a **Files** path or a `depends_on` edge; every `depends_on` is a real edge per `ref-write.md` § Waves. A chain where each wave holds one TODO → report it as a finding (serialized spec) with the edges that look false.
+`## Plan` has the wave table; every ledger row appears in exactly one wave; no two TODOs in one wave share a **Files** path or a `depends_on` edge; every `depends_on` is a real edge per `arch:ref-write.md` § Waves. A chain where each wave holds one TODO → report it as a finding (serialized spec) with the edges that look false.
 
 ### C. Execution readiness
 `Depends on` consistent and acyclic; each TODO one logical commit; destructive changes explicit and justified.

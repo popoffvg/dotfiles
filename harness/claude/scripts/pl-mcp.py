@@ -2,6 +2,7 @@
 """Call a Platforma desktop MCP tool over streamable HTTP.
 
 Usage: pl-mcp.py <tool> [json-args] [--out FILE] [--jq PY_EXPR]
+       pl-mcp.py list                          — list available tools + schemas
   PL_MCP_URL must hold the /mcp endpoint. 127.0.0.1 is outside the Claude Code
   command sandbox, so callers need the sandbox off.
   --jq evaluates a python expression against `d` (the parsed text content when
@@ -60,6 +61,23 @@ def main():
     )
     session = resp.headers.get("mcp-session-id")
     post({"jsonrpc": "2.0", "method": "notifications/initialized"}, session)
+
+    if tool == "list":
+        _, body = post({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}, session)
+        texts = []
+        for payload in sse_payloads(body):
+            if "error" in payload:
+                print("ERROR:", json.dumps(payload["error"], indent=2), file=sys.stderr)
+                return 1
+            texts.append(json.dumps(payload.get("result", {}).get("tools", []), indent=1))
+        text = "\n".join(texts)
+        if out:
+            with open(out, "w") as fh:
+                fh.write(text)
+            print(f"{len(text)} chars -> {out}")
+        else:
+            print(text)
+        return 0
 
     _, body = post(
         {

@@ -1,351 +1,318 @@
-# Test Case Design Techniques
+# Case design — the techniques that find cases
 
-## When to Use This Skill
+The black-box toolbox. Each technique derives cases from a specification without reading the
+implementation, and each one produces a table.
 
-Use this skill when:
+**Every table on this page is scratch work.** You build it to find the cases; you do not save it.
+What you save is the set of big cases the table produced, in the shape
+[`ref-readable-output.md`](ref-readable-output.md) defines. A saved document that shows a
+decision table or a transition matrix has shipped the tool instead of the result.
 
-- **Test Case Design tasks** - Working on applying systematic test case design techniques including equivalence partitioning, boundary value analysis, decision tables, state transition testing, and state combination analysis
-- **Planning or design** - Need guidance on Test Case Design approaches
-- **Best practices** - Want to follow established patterns and standards
+Two things survive from the derivation into the saved document, both in words: the **technique**
+that produced each big case, and the combinations you pruned, under **Not covered**.
 
-## Overview
+## Equivalence partitioning
 
-Systematic test case design techniques ensure thorough coverage while minimizing test case count. These black-box techniques derive test cases from specifications without knowledge of internal implementation.
+Divide the input into classes where every value in a class should produce the same behaviour,
+then test one representative of each.
 
-## Equivalence Partitioning
+1. Identify the input conditions.
+2. Divide into valid and invalid partitions.
+3. Pick one representative value per partition.
+4. Write one case per partition.
 
-Divide input data into equivalent classes where any value should produce the same behavior.
-
-### Process
-
-1. Identify input conditions
-2. Divide into valid and invalid partitions
-3. Select one representative value from each partition
-4. Create test cases for each partition
-
-### Example: Age Validation (18-65)
+Worked on age validation with a valid range of 18 to 65:
 
 | Partition | Range | Representative | Expected |
-|-----------|-------|----------------|----------|
-| Invalid (below) | < 18 | 10 | Reject |
-| Valid | 18-65 | 30 | Accept |
-| Invalid (above) | > 65 | 70 | Reject |
+|---|---|---|---|
+| invalid, below | < 18 | 10 | reject |
+| valid | 18-65 | 30 | accept |
+| invalid, above | > 65 | 70 | reject |
 
-**Test Cases**:
+That table yields three cases, and they belong to two behaviours, not three:
+`an-age-inside-the-range-is-accepted` and, under a second big case,
+`an-age-below-the-minimum-is-rejected` beside `an-age-above-the-maximum-is-rejected`.
 
-- TC1: age = 10 → Reject (invalid below)
-- TC2: age = 30 → Accept (valid)
-- TC3: age = 70 → Reject (invalid above)
+With several inputs, combine the partitions systematically — valid × valid, valid × invalid,
+invalid × valid, invalid × invalid — and check that the invalid × invalid case names **which**
+input the error reports, because reporting only the first one is a common defect.
 
-### Multiple Input Partitions
+## Boundary value analysis
 
-Combine partitions systematically:
+Defects cluster at the edges of a partition, so test at the edge and one step either side.
 
-```text
-Input A: {Valid, Invalid}
-Input B: {Valid, Invalid}
+1. Take the boundaries from the equivalence partitions.
+2. Test the minimum, one below it, one above it, and the same three at the maximum.
+3. Add the special values: 0, empty, null, the maximum integer.
 
-Combinations:
-1. A-Valid, B-Valid   → Expected: Success
-2. A-Valid, B-Invalid → Expected: Error for B
-3. A-Invalid, B-Valid → Expected: Error for A
-4. A-Invalid, B-Invalid → Expected: Error for both
-```
+| Boundary | Value | Expected |
+|---|---|---|
+| below minimum | 17 | reject |
+| at minimum | 18 | accept |
+| above minimum | 19 | accept |
+| normal | 40 | accept |
+| below maximum | 64 | accept |
+| at maximum | 65 | accept |
+| above maximum | 66 | reject |
 
-## Boundary Value Analysis
+Seven rows, one behaviour. They collapse into a single big case —
+`## The accepted range is closed at both ends` — whose variants name the edge each one probes.
 
-Test at and around partition boundaries where defects commonly occur.
+## Decision table
 
-### Process
+Use it when several conditions combine into a business rule.
 
-1. Identify boundaries from equivalence partitions
-2. Test at minimum, just below, just above, and maximum
-3. Include special values (0, empty, null)
+1. Identify the conditions (the inputs).
+2. Identify the actions (the outputs).
+3. Build the table of condition combinations.
+4. Collapse rows where a condition does not change the action.
 
-### Example: Age Validation (18-65)
+Worked on a discount, with the conditions *is a member*, *order over $100*, and *has a coupon*:
 
-| Boundary | Test Values | Expected |
-|----------|-------------|----------|
-| Below minimum | 17 | Reject |
-| At minimum | 18 | Accept |
-| Above minimum | 19 | Accept |
-| Normal | 40 | Accept |
-| Below maximum | 64 | Accept |
-| At maximum | 65 | Accept |
-| Above maximum | 66 | Reject |
+| Rule | Member | Over $100 | Coupon | Member % | Bulk % | Coupon % |
+|---|---|---|---|---|---|---|
+| 1 | Y | Y | Y | X | X | X |
+| 2 | Y | Y | N | X | X | — |
+| 3 | Y | N | Y | X | — | X |
+| 4 | Y | N | N | X | — | — |
+| 5 | N | Y | Y | — | X | X |
+| 6 | N | Y | N | — | X | — |
+| 7 | N | N | Y | — | — | X |
+| 8 | N | N | N | — | — | — |
 
-**Extended Boundaries**:
+Eight rows are unreadable as a deliverable and obvious as a derivation. They ship as big cases
+named after what the reader cares about: `## Discounts stack`, `## Each discount applies alone`,
+`## An order that qualifies for nothing pays full price`.
 
-- 0 (edge case)
-- -1 (negative)
-- MAX_INT (overflow)
-- null (missing)
+## State transition
 
-## Decision Table Testing
+Use it for a system with distinct states and rules about moving between them.
 
-Test complex business rules with multiple conditions systematically.
+1. Identify the states.
+2. Identify the valid transitions.
+3. Build the transition table.
+4. Design a case per transition.
+5. Add the invalid transitions.
 
-### Process
+| Current state | Event | Next state | Valid |
+|---|---|---|---|
+| Draft | submit | Pending | yes |
+| Draft | approve | — | no |
+| Pending | approve | Approved | yes |
+| Pending | reject | Rejected | yes |
+| Approved | ship | Shipped | yes |
+| Shipped | deliver | Delivered | yes |
+| Delivered | any | — | no |
 
-1. Identify conditions (inputs)
-2. Identify actions (outputs)
-3. Create table with all condition combinations
-4. Simplify using "don't care" conditions
+**Always test the invalid transitions** — the terminal state that must refuse everything, the
+out-of-order event, and the concurrent change. The valid path is the one the implementer already
+walked.
 
-### Example: Discount Calculation
+The Mermaid diagram of this machine ships; this table does not. See `sub-write.md`.
 
-**Conditions**:
+## Pairwise
 
-- Is member? (Y/N)
-- Order > $100? (Y/N)
-- Has coupon? (Y/N)
+Most defects come from the interaction of two parameters, so covering every pair of values costs
+far less than covering every combination and finds nearly as much.
 
-| Rule | Member | Order>$100 | Coupon | Member% | Bulk% | Coupon% |
-|------|--------|------------|--------|---------|-------|---------|
-| R1 | Y | Y | Y | X | X | X |
-| R2 | Y | Y | N | X | X | - |
-| R3 | Y | N | Y | X | - | X |
-| R4 | Y | N | N | X | - | - |
-| R5 | N | Y | Y | - | X | X |
-| R6 | N | Y | N | - | X | - |
-| R7 | N | N | Y | - | - | X |
-| R8 | N | N | N | - | - | - |
+Browser compatibility over browser (Chrome, Firefox, Safari, Edge), OS (Windows, macOS, Linux),
+and version (latest, previous) is 24 full combinations and 8 to 12 pairwise cases.
 
-## State Transition Testing
+Use PICT, allpairs, or an online generator. `sub-create.md` drives this technique for tiering.
 
-Test systems with distinct states and transitions between them.
+## Error guessing
 
-### Process
-
-1. Identify states
-2. Identify valid transitions
-3. Create state transition table/diagram
-4. Design tests for each transition
-5. Include invalid transition tests
-
-### State Transition Table
-
-| Current State | Event | Next State | Valid |
-|---------------|-------|------------|-------|
-| Draft | submit | Pending | ✓ |
-| Draft | approve | - | ✗ |
-| Pending | approve | Approved | ✓ |
-| Pending | reject | Rejected | ✓ |
-| Approved | ship | Shipped | ✓ |
-| Shipped | deliver | Delivered | ✓ |
-| Delivered | * | - | ✗ |
-
-**Always test invalid transitions** — terminal states, out-of-order events, concurrent state changes.
-
-## Pairwise Testing
-
-Efficiently test combinations when full combinatorial testing is impractical.
-
-### Concept
-
-Most defects are caused by interactions between 2 parameters. Testing all pairs covers most risks with fewer tests.
-
-### Example: Browser Compatibility
-
-**Parameters**:
-
-- Browser: Chrome, Firefox, Safari, Edge
-- OS: Windows, macOS, Linux
-- Version: Latest, Previous
-
-Full combinations: 4 × 3 × 2 = 24 tests
-Pairwise coverage: 8-12 tests (covers all pairs)
-
-Use tools like PICT, AllPairs, or online generators.
-
-## Error Guessing
-
-Experience-based technique to identify likely defect areas.
-
-### Common Error Patterns
+Experience says where the defects are. Sweep the categories:
 
 | Category | Examples |
-|----------|----------|
-| **Null/Empty** | null input, empty string, empty collection |
-| **Boundaries** | off-by-one, overflow, underflow |
-| **Format** | invalid date, malformed email, wrong encoding |
-| **State** | race conditions, stale data, concurrency |
-| **Resources** | memory exhaustion, connection limits, timeouts |
-| **Security** | SQL injection, XSS, path traversal |
+|---|---|
+| null and empty | null input, empty string, empty collection |
+| boundaries | off by one, overflow, underflow |
+| format | invalid date, malformed email, wrong encoding |
+| state | race conditions, stale data, concurrency |
+| resources | memory exhausted, connection limit, timeout |
+| security | SQL injection, XSS, path traversal |
 
-### Error Guessing Checklist
+Questions to run over every input: what if it is null, empty, full of special characters, or
+longer than the maximum? What if two requests arrive at once? What if the external service
+fails, or the database connection drops? What if the number is negative, or the list has
+duplicates?
 
-- [ ] What if input is null?
-- [ ] What if input is empty?
-- [ ] What if input contains special characters?
-- [ ] What if input exceeds maximum length?
-- [ ] What if concurrent requests occur?
-- [ ] What if external service fails?
-- [ ] What if database connection drops?
-- [ ] What if input is negative?
-- [ ] What if list has duplicates?
+## State combination
 
-## State Combination Testing
+For an operation that talks to an external component — a queue, Kubernetes, storage, a database
+— the untested gap is not either state on its own. It is the **combination**: what the system
+does when internal state X meets external state Y.
 
-For operations that interact with external components (queues, K8s, storage, databases), the untested gap is not individual states but their **combinations**: what the system does when internal state X meets external state Y.
+### When to apply
 
-### When to Apply
+After equivalence, boundary, and pairwise design, run the three-question check. If any answer is
+yes, continue.
 
-Trigger this technique after completing EP/BVA/pairwise design. Run the 3-question check:
+1. Does the operation call an external component?
+2. Does it branch on state, internal or external?
+3. Is the mid-flight mutation catalog below still uncovered?
 
-1. Does this operation call an external component?
-2. Does it branch on state (internal or external)?
-3. Have I covered the mid-flight mutation catalog?
+### Step 1 — discover the state candidates
 
-If any answer is yes, proceed with the steps below.
+**Internal state**: grep for the conditionals — `switch resource.State`, `if status ==`, proto
+enum comparisons. Only the states that drive a branch matter.
 
-### Step 1 — Discover State Candidates
+**External state**: trace the external client calls in the operation — the Kubernetes client, the
+queue publish and consume, the storage get and put. For each call site, list what state that
+component can be in when the call happens.
 
-**Internal state**: grep for conditional usage — `switch resource.State`, `if status ==`, proto enum comparisons. Only states that affect branching matter.
+**Retrospective**: review past bugs whose signature was "worked in isolation, failed after
+sequence Y", and add their combinations.
 
-**External state**: trace external client calls in the operation — k8s client, queue publish/consume, storage get/put. For each call site, enumerate what state that component can be in at call time.
-
-**Retrospective**: review past bugs with the signature "worked in isolation, failed under sequence Y" — add their state combinations to the inventory.
-
-### Step 2 — Build the Combination Matrix
-
-For each operation, construct the matrix of internal × external state combinations and mark coverage:
+### Step 2 — build the combination matrix, in scratch
 
 ```text
 Operation: RunJob
 
 Internal state    | External (K8s)      | Tested?
 ------------------|---------------------|--------
-Pending           | No prior pod        | ✓
-Pending           | Stale pod exists    | ✗
-Running           | Pod running         | ✓
-Running           | Pod evicted         | ✗
-Cancelling        | Pod running         | ✗
-Cancelling        | Pod already gone    | ✗
+Pending           | No prior pod        | yes
+Pending           | Stale pod exists    | no
+Running           | Pod running         | yes
+Running           | Pod evicted         | no
+Cancelling        | Pod running         | no
+Cancelling        | Pod already gone    | no
 ```
 
-Untested cells are test candidates.
+Untested cells are the candidates.
 
-**Reducing the matrix.** This is a 2-factor product (internal × external), so pairwise does **not** apply — all-pairs of two factors *is* the full Cartesian product. The reducers for two factors are:
+**Reducing it.** This is a two-factor product, so pairwise does not apply — all pairs of two
+factors *is* the full product. The two reducers are:
 
-- **Impossibility pruning** — drop combinations that cannot physically occur. The matrix above is already pruned: a 3×3 product would have 9 cells, but `Pending + Pod running` is absent because no pod exists before the job starts. Make this pruning explicit so reviewers can challenge it.
-- **Equivalence collapse** — merge external states that drive the identical code branch into one representative cell.
+- **Impossibility pruning** — drop what cannot physically occur. The grid above is already
+  pruned: a 3 × 3 product has nine cells, and `Pending + Pod running` is missing because no pod
+  exists before the job starts. State the pruning so a reviewer can challenge it, and carry it
+  into **Not covered**.
+- **Equivalence collapse** — merge the external states that drive the identical branch into one
+  representative.
 
-Pairwise re-enters only when a **third factor** appears (operation variant, caller permission, retry count) — then apply the Pairwise technique above to the three+ factors.
+Pairwise returns as soon as a **third** factor appears — an operation variant, a caller
+permission, a retry count.
 
-### Step 3 — Set Up External State (Static Combinations)
+### Step 3 — set up the external state
 
-Use real components. Force the external component into the target state via its own API before the SUT runs:
+Use real components. Force the dependency into the target state through its own API before the
+system under test runs: create, delete, or evict pods and jobs through the Kubernetes client;
+pre-fill or drain the queue; seed or wipe the specific keys in storage.
 
-- K8s: create/delete/evict pods and jobs via the k8s client before calling the controller
-- Queue: pre-populate or drain the queue before the operation starts
-- Storage: seed or wipe specific keys in RocksDB before the test
+### Step 4 — the mid-flight mutation catalog
 
-### Step 4 — Mid-Flight Mutation Catalog
+Triage each case for reproducibility before writing it:
 
-For each case, triage reproducibility before writing the test:
+| Case | Reproducible? | Tier |
+|---|---|---|
+| Pod evicted while the job runs | yes — eviction API | integration |
+| Node fails under a running pod | hard — single-node k3s | accept as risk |
+| Job deleted externally during a watch | yes — concurrent delete client | integration |
+| Queue message re-queued on visibility timeout | yes — fake clock advance | integration |
+| Queue consumer crashes mid-message | yes — context cancel | integration |
+| Concurrent operation modifies the same resource | yes — parallel goroutines | integration |
+| Network partition to the external component | partial — fault injection wrapper | integration |
+| Lease or lock expires while held | yes — fake clock advance | integration |
+| Capacity exhausted while the operation waits | yes — reduce the quota mid-flight | integration |
+| External component restarts mid-operation | hard — timing sensitive | e2e smoke |
+| Resource deleted by a concurrent client | yes — two racing clients | integration |
+| Config change applied during the operation | depends on hot reload | e2e smoke |
 
-| # | Case | Reproducible? | Tier |
-|---|------|---------------|------|
-| 1 | Pod evicted while job runs | Yes — eviction API | integration |
-| 2 | Node failure under running pod | Hard — single-node k3s | accept-as-risk |
-| 3 | Job deleted externally during watch | Yes — concurrent delete client | integration |
-| 4 | Queue message re-queued (visibility timeout) | Yes — fake clock advance | integration |
-| 5 | Queue consumer crashes mid-message | Yes — context cancel | integration |
-| 6 | Concurrent operation modifies same resource | Yes — parallel goroutines | integration |
-| 7 | Network partition to external component | Partial — fault injection wrapper | integration |
-| 8 | Lease/lock expires while held | Yes — fake clock advance | integration |
-| 9 | Capacity exhausted while operation waits | Yes — reduce quota mid-flight | integration |
-| 10 | External component restarts mid-operation | Hard — timing sensitive | e2e smoke |
-| 11 | Resource deleted by concurrent client | Yes — two racing clients | integration |
-| 12 | Config change applied during operation | Depends on hot-reload support | e2e smoke |
+Reproducible becomes an integration case. Hard gets a cost judgement: invest when the impact is
+high, otherwise accept the risk **and write it into Not covered**. A silently skipped case reads
+as a covered one.
 
-**Triage rules:**
-- `reproducible` → write as integration test
-- `hard` → evaluate cost; if high-impact, invest; otherwise accept-as-risk with a comment
-- `accept-as-risk` → document explicitly; do not silently skip
+**Pick the injection mechanism by trigger type, and never by wall-clock sleep.** A call-boundary
+event (eviction, external delete, partition) wants an interceptor around the external client that
+fires on the Nth call or on a condition — deterministic, with no hook in production code; the
+pattern is `util/minet/nettest/RoundTripper`. A time-based event (visibility timeout, lease
+expiry) wants an injectable clock advanced by the test. Sleeping is flaky and is only the last
+resort when no clock seam exists.
 
-**Injection mechanism** — pick by trigger type, never wall-clock sleep:
+### Step 5 — assert with two oracles
 
-- **Call-boundary events** (eviction, external delete, partition): wrap the external client with an interceptor that triggers the change on the Nth call or after a condition. Deterministic, no production hooks. Pattern: `util/minet/nettest/RoundTripper`.
-- **Time-based events** (visibility timeout, lease/lock expiry): advance a fake/injectable clock — do not `sleep`. Wall-clock sleep is flaky and is only a last-resort fallback when no clock seam exists.
+**Read the state back.** After the operation, inspect everything it could have touched — the
+resource status, the queue depth, the Kubernetes job — not only the return value.
 
-### Step 5 — Assert with Two Oracles
-
-**State inspection**: after the operation completes, read back all affected state — resource status, queue depth, K8s job state — not just the return value.
-
-**Invariant assertions**: define system-level invariants that must hold regardless of state combination and assert them after every sequence:
+**Assert the invariants.** Define the system-level statements that must hold whatever the state
+combination, and check them after every sequence:
 
 ```text
-Examples:
-- A deleted resource must never appear in a list response
-- A failed job must never leave a running pod behind
-- A cancelled operation must release all acquired leases
-- A re-queued message must be processed exactly once
+A deleted resource never appears in a list response.
+A failed job never leaves a running pod behind.
+A cancelled operation releases every lease it took.
+A re-queued message is processed exactly once.
 ```
 
-Invariants survive code changes without needing per-test updates. They catch cross-cutting violations that no single operation's author thought to assert.
+Invariants survive code changes without per-test edits, and they catch the cross-cutting
+violations no single operation's author thought to assert.
 
 ### Scope
 
-- **Integration tests**: own the full combination matrix — real components, controlled setup
-- **E2e smoke tests**: cover the 2-3 highest-risk mid-flight cases (pod eviction, concurrent deletion) where fidelity gaps are most likely
+Integration tests own the full combination matrix, with real components and controlled setup.
+E2e smoke tests take the two or three highest-risk mid-flight cases — pod eviction, concurrent
+deletion — where the fidelity gap is widest.
 
-## Mutator / Write-Site Coverage
+## Mutator and write-site coverage
 
-For a field that carries an invariant read by a guard or assertion elsewhere (`if x.IsFinal() && !x.IsCIDRecovered() { panic }`, `assert balance >= 0`, `require status in {...}`), the untested gap is rarely a *state* — it is the **one write-site that establishes the state dishonestly**. State-transition and state-combination testing enumerate states; they treat each mutator as a leaf and miss the setter that lies.
+For a field carrying an invariant that a guard reads elsewhere
+(`if x.IsFinal() && !x.IsCIDRecovered() { panic }`, `assert balance >= 0`,
+`require status in {...}`), the gap is rarely a *state*. It is the **one write site that
+establishes the state dishonestly**. State-transition and state-combination design enumerate
+states and treat every mutator as a leaf, so they miss the setter that lies.
 
-### When to Apply
+### When to apply
 
-Trigger after state-transition / state-combination design when any of these hold:
+After state design, when any of these hold:
 
-1. A guard/assertion reads two-or-more fields of the same entity together (a *consistency invariant*, not a range check).
-2. The invariant is enforced at the **call sites**, not inside the setter/carrier ("caller-enforced" — a smell the research/dive phase often names explicitly).
-3. A prior fix touched *some* setters of this field but you cannot prove it touched *all* of them.
+1. A guard or assertion reads two or more fields of the same entity together — a consistency
+   invariant, not a range check.
+2. The invariant is enforced at the **call sites** rather than inside the setter. Research often
+   names this "caller-enforced", and that phrase is the trigger.
+3. An earlier fix touched *some* setters of the field and you cannot prove it touched all.
 
-### Step 1 — Enumerate every write-site (search, don't recall)
-
-Grep every mutator of each field the guard reads. For a Go setter:
+### Step 1 — enumerate every write site by searching, not by recalling
 
 ```text
 guard reads:  IsFinal()  &&  !IsCIDRecovered()
               └─ writes: SetFinal / Reset            └─ writes: SetCanonicalID(_, isRecovered)
 
-grep 'SetCanonicalID(' → every call site, incl. the flag argument passed
+grep 'SetCanonicalID(' → every call site, including the flag it passes
 ```
 
-List each site with the literal flag/value it passes. A hardcoded literal where sibling sites thread a variable (`SetCanonicalID(id, false)` next to `SetCanonicalID(id, isRecovered)`) is the prime suspect — it is the site that cannot represent the honest state.
+List each site with the literal value it passes. A hardcoded literal sitting next to siblings
+that thread a variable — `SetCanonicalID(id, false)` beside `SetCanonicalID(id, isRecovered)` —
+is the prime suspect, because it is the site that cannot represent the honest state.
 
-### Step 2 — One case per write-site
+### Step 2 — one case per write site
 
-Require a case that reaches each write-site and asserts the invariant is established **honestly** — not just that the happy path through the common setter works. The oracle is the guard itself: drive the field through the suspect setter, then force the condition that makes the guard fire, and assert it does *not* panic/reject when the state is legitimately reachable.
+Each case reaches one write site and asserts the invariant was established **honestly**. The
+oracle is the guard itself: drive the field through the suspect setter, force the condition that
+makes the guard fire, and assert it does not reject a state that is legitimately reachable.
 
-### Step 3 — Prune by reachability, not by assumption
+### Step 3 — prune by reachability, never by assumption
 
-Do not prune a write-site because "that path can't produce a conflicting value." That assumption is exactly what hid the bug. Prune only when the path is *physically* unreachable (dead code, compile-time-excluded), and state the reachability proof.
+Do not drop a write site because "that path cannot produce a conflicting value". That assumption
+is what hid the bug. Prune only when the path is *physically* unreachable — dead code, excluded
+at compile time — and write the reachability proof into **Not covered**.
 
-## Technique Selection Guide
+## Choosing a technique
 
-| Scenario | Recommended Technique |
-|----------|-----------------------|
-| Range validation | Boundary Value + Equivalence |
-| Complex business rules | Decision Table |
-| State-dependent behavior | State Transition |
-| Multi-parameter input | Pairwise |
-| Error handling | Error Guessing |
-| Critical calculations | All techniques combined |
-| External component interaction | State Combination Testing |
-| Stateful operations with side effects | State Combination Testing |
-| Consistency invariant read by a guard/assert; caller-enforced; incomplete prior fix | Mutator / Write-Site Coverage |
+| Situation | Technique |
+|---|---|
+| Range validation | boundary values + equivalence partitioning |
+| Complex business rule | decision table |
+| State-dependent behaviour | state transition |
+| Many parameters | pairwise |
+| Error handling | error guessing |
+| Critical calculation | all of them |
+| Talks to an external component | state combination |
+| Stateful operation with side effects | state combination |
+| Consistency invariant read by a guard, enforced by callers, patched once already | mutator and write-site coverage |
 
-## Integration Points
+## Where the output goes
 
-**Inputs from**:
-
-- Requirements → Test conditions
-- `create.md` → Coverage targets
-
-**Outputs to**:
-
-- `write.md` → Scenario coverage
-- `bdd.md` → BDD scenario shaping
+Cases derived here feed `sub-create.md`, which tiers them, and `sub-write.md`, which writes the
+document and the feature files. Both save the big cases and drop the tables.

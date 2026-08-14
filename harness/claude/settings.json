@@ -417,7 +417,7 @@
       "zed"
     ]
   },
-  "effortLevel": "medium",
+  "effortLevel": "high",
   "tui": "fullscreen",
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,

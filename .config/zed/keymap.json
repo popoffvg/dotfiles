@@ -256,5 +256,10 @@
     "unbind": {
       "ctrl-cmd-down": "editor::SelectNextSyntaxNode"
     }
+  },
+  {
+    "unbind": {
+      "cmd-q": "zed::Quit"
+    }
   }
 ]

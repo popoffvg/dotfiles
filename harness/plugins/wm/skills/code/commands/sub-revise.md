@@ -47,19 +47,19 @@ Inspect it (`git show --stat <sha>`, `git show <sha>`): files, symbols added/ren
 
 ## Step 3 — Maintain the thought graph
 
-Thoughts are the source the spec compiles from — keep them correct, not just the spec. Note format, filename, frontmatter, templates: `ref-note-format.md`.
+Thoughts are the source the spec compiles from — keep them correct, not just the spec. Note format, filename, frontmatter, templates: `arch:ref-note-format.md`.
 
 - **Change an existing thought** when the same decision/fact was refined: edit in place, add a one-line `Revised:` entry noting what changed and why.
 - **Write a new thought** for a genuinely new decision or fact: next counter (`NNN`+1), matching template.
-- **Supersede, don't delete** a reversed decision: write the replacement, mark the old note `Superseded by [[NNN-decision-slug]]` at the top with `status: declined`, then **move the old file to `thoughts/archived/`** (`ref-note-format.md` § Superseding). The live graph carries only current thoughts.
-- **Re-link** per `ref-note-format.md` § Back-linking (back-fill `Affects`, populate `links`, verify targets exist).
+- **Supersede, don't delete** a reversed decision: write the replacement, mark the old note `Superseded by [[NNN-decision-slug]]` at the top with `status: declined`, then **move the old file to `thoughts/archived/`** (`arch:ref-note-format.md` § Superseding). The live graph carries only current thoughts.
+- **Re-link** per `arch:ref-note-format.md` § Back-linking (back-fill `Affects`, populate `links`, verify targets exist).
 
 ## Step 4 — Apply edits + reset status
 
 `<notes-dir>/spec.md`:
 
 - Update ledger row(s) per the deltas. No Design Decisions section exists — the choice lives in its thought note (Step 3).
-- Refresh the **wave** table in `## Plan`: recompute waves from the current `depends_on` edges (`ref-write.md` § Waves), keeping each wave as wide as the real edges allow.
+- Refresh the **wave** table in `## Plan`: recompute waves from the current `depends_on` edges (`arch:ref-write.md` § Waves), keeping each wave as wide as the real edges allow.
 - Set the frontmatter `status` to `review`.
 
 `<notes-dir>/GLOSSARY.md`: add, rename, or reword terms per the deltas.

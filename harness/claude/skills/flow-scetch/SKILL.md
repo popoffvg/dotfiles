@@ -59,6 +59,20 @@ namespace Auth {
 
 ## Variants
 
+**Pick the variant from the change shape first, then from the brick.** A TODO carries both: `type`
+in its frontmatter (`behavior | state machine | data shape`) and the **Type** column of its `main`
+`## Components` row (the brick — roster in the `arch` skill).
+
+| `type` | Brick of the `main` component | Variant |
+|--------|-------------------------------|---------|
+| `state machine` | any | Transition function (below) |
+| `data shape` | any | Before/after types only (below) |
+| `behavior` | command · flow · policy · server · consumer | The `flow(...)` body — the default shape above |
+| `behavior` | service · gateway · scheduler · wiring | Interface + constructor (below) |
+
+The brick also fixes the *ordered parts* of the sketch — what a command shows, what a gateway shows.
+Those live in the `arch` skill § Common structure, not here.
+
 State machine — `flow` is the transition function:
 
 ```ts
@@ -75,7 +89,7 @@ namespace Job {
 }
 ```
 
-Component (interface + wiring) — `flow` is the constructor / wire-up:
+Interface + constructor — `flow` builds the brick and returns its interface:
 
 ```ts
 namespace SessionRepo {
@@ -90,7 +104,7 @@ namespace SessionRepo {
 }
 ```
 
-Data shape change — `flow` is omitted; show before/after types only:
+Data shape — `flow` is omitted; show before/after types only:
 
 ```ts
 namespace Job {
