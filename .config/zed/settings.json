@@ -153,7 +153,7 @@
     "cursor": {
       "default_config_options": {
         "fast": "false",
-        "model": "composer-2.5[fast=true]",
+        "model": "composer-2.5",
       },
       "favorite_config_option_values": {
         "model": ["composer-2.5[fast=true]"],

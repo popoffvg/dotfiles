@@ -20,7 +20,7 @@ hooks:
 > **Read first**: § Pipeline below — the stages and the gate. The hard rules every subcommand obeys: @references/ref-subcommand-rules.md. The notes structure and the spec contract: `arch:ref-write.md`.
 > **Map**: @../../INDEX.md — which of the five skills owns which file, and what that file owns. This router restates none of it.
 > **Vocabulary**: @../../GLOSSARY.md — the leading words (the gate, thought, open question, outcome, ledger, layer, wave, constraints, trace, drift…) every reference below runs on. Read once; the words are used verbatim everywhere.
-> **Notes history**: @references/ref-jj-notes.md — the notes-dir is its own jj repo; history is `jj log`.
+> **Notes history**: @references/ref-jj-notes.md — the notes-dir is a symlink to its own jj repo under `~/.notes`; declaring one is `bin/note-declare.sh`, history is `jj log`.
 
 `/code <subcommand>`. Pick the operation, read its reference, follow it. Default is `new`.
 

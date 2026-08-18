@@ -9,6 +9,13 @@ INPUT=$(cat)
 CWD=$(echo "$INPUT" | jq -r '.cwd // ""' 2>/dev/null) || exit 0
 [[ -z "$CWD" || ! -d "$CWD" ]] && exit 0
 
+# A declared .notes symlink follows the branch: point it at the branch store when
+# one was declared, else at the repo store. Runs before the walk-up so the line
+# below names the notes this prompt will actually use. No-op on a real .notes dir.
+# shellcheck source=notes-store.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/notes-store.sh"
+notes_reconcile "$CWD" || true
+
 dir="$CWD"
 while :; do
   if [[ -d "$dir/.notes" ]]; then

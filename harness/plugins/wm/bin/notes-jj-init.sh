@@ -27,16 +27,9 @@ done
 jj git init "$notes" >/dev/null 2>&1 || exit 0
 
 # Ignore .notes in the parent repo via a local (uncommitted) gitignore.
-root=$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null) || root=""
-if [[ -n "$root" ]]; then
-  ignore="$root/.gitignore.local"
-  grep -qxF '.notes/' "$ignore" 2>/dev/null || echo '.notes/' >>"$ignore"
-  # Wire excludesFile only if unset locally — don't clobber an existing one.
-  # ponytail: if they already point core.excludesFile elsewhere, the .notes/
-  # line above won't apply; rare, and they can add it to their own file.
-  current=$(git -C "$root" config --local core.excludesFile 2>/dev/null || true)
-  [[ -z "$current" ]] && git -C "$root" config --local core.excludesFile "$ignore" 2>/dev/null || true
-fi
+# shellcheck source=notes-store.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/notes-store.sh"
+notes_ignore "$dir"
 
-echo "wm: initialized jj repo at $notes (spec history: jj log). .notes/ ignored in parent."
+echo "wm: initialized jj repo at $notes (spec history: jj log). .notes ignored in parent."
 exit 0
