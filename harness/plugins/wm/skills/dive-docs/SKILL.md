@@ -22,13 +22,17 @@ Do it until the stop criteria are met: **stop when no open question and no unexp
 
 ## The two agents
 
-You orchestrate; the agents do the reading. Both are `model: sonnet`, and both read
-`ref-artifact.md` themselves — **never paste the artifact contract into a prompt.**
+You orchestrate; the agents do the reading. Both read `ref-artifact.md` themselves — **never paste
+the artifact contract into a prompt.**
 
 | Agent | Does | Spawned |
 |---|---|---|
-| `explorer` | Writes one `<ep-slug>.md` for one entry point. | One per entry point, first round and every gap-filling round. |
-| `explore-critic` | Grades one `<ep-slug>.md` and reports unexplored entry points. | One per artifact, each convergence round. |
+| `wm:explorer` | Writes one `<ep-slug>.md` for one entry point. | One per entry point, first round and every gap-filling round. |
+| `wm:explore-critic` | Grades one `<ep-slug>.md` and reports unexplored entry points. | One per artifact, each convergence round. |
+
+**Spawn both exactly as `dive:SKILL.md` § Parallel subagents states** — the prefixed
+`subagent_type`, `model: "sonnet"`, and the label in `name`. That is the one home for the spawn
+form, and it holds for the first round and every later round.
 
 **Put every round's `Agent` calls in one assistant message.** Calls in separate messages run
 serially, and the whole point of the fan-out is that they do not.
@@ -58,7 +62,7 @@ After all agents finish:
 2. **Resolve `<notes-dir>` and `$RESEARCH_DIR`** (see `dive:SKILL.md` "Output location"). Create `$RESEARCH_DIR` if missing.
 3. **Check for prior runs.** If `$RESEARCH_DIR/INDEX.md` exists, ask the user: *append*, *overwrite*, or *bail*. Never silently overwrite.
 4. **Generate question lists** — one `$RESEARCH_DIR/<ep-slug>.questions.md` per entry point. Follow `references/ref-grill.md`. These are questions the explorer must answer, not questions for the user.
-5. **Spawn one `explorer` per entry point, all in one message.** Give each: the entry point, the absolute `$RESEARCH_DIR`, and the contents of its `<ep-slug>.questions.md`.
+5. **Spawn one `wm:explorer` per entry point, all in one message.** Give each: the entry point, the absolute `$RESEARCH_DIR`, and the contents of its `<ep-slug>.questions.md`.
 6. **Wait for all explorers to finish.**
 7. **Run the convergence loop** — `references/ref-converge.md` — until research converges.
 8. **Write** `$RESEARCH_DIR/INDEX.md` (template below).

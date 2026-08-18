@@ -50,7 +50,17 @@ Every route that fans out over entry points spawns its subagents the same way. T
 - **Use `subagent_type: "Explore"` with `model: "sonnet"`.** Every default fan-out here is read-only investigation, which sonnet does at a fraction of the cost. Switch to `general-purpose` only for an entry point that needs cross-file design reasoning, and keep `model: "sonnet"` unless the reasoning itself is the hard part.
 - **Give each subagent a self-contained prompt.** A subagent cannot see this conversation. Include the entry point's inputs verbatim — for `workflow`, the `<ep-slug>.md` plus the schema — and the absolute output path.
 
-**The `docs` route uses named agents instead.** `explorer` and `explore-critic` both carry `model: sonnet` in their own frontmatter, and both read their contract from a file. Spawn them by name, pass no model, and paste no contract. The one-message rule still applies. See `dive-docs:SKILL.md`.
+**The `docs` route uses the two named agents of `dive-docs`.** Every call, in every round, carries all three of these:
+
+| Field | Value | Why |
+|---|---|---|
+| `subagent_type` | `"wm:explorer"` or `"wm:explore-critic"` | The plugin prefix is what resolves the definition. Without it the call falls back to a generic agent, and the agent's own `model: sonnet` never applies. |
+| `model` | `"sonnet"` | Repeat it on the call even though the definition already says sonnet. A call that omits `model` inherits the orchestrator's model, so a dropped field silently buys an opus agent. |
+| `name` | `"explorer-<ep-slug>"` or `"critic-<ep-slug>-r<round>"` | The progress label. Name the agent here — never by inventing a new `subagent_type`, which throws the definition away. |
+
+**Never invent an agent type for a `docs` fan-out.** `dive-critic`, `explorer-rotation`, and every other made-up type is an agent with no definition: no contract, no tool list, and no model of its own. Use `name` for the per-entry-point label and keep `subagent_type` at one of the two real values.
+
+**Later rounds run on sonnet too.** The gap-filling rounds and the grading rounds read code exactly as the first round does, so the three fields above stay the same in every round. Prompts and contracts: see `dive-docs:SKILL.md`.
 
 ## Output location
 
