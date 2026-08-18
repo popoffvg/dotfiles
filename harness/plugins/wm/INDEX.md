@@ -58,7 +58,7 @@ Three files at the plugin root, shared by all four skills.
 | `references/ref-note-format.md` | Thought notes, and the supersede → `thoughts/archived/` move. |
 | `references/tpl-notes-claude.md` | The notes-dir `CLAUDE.md`. |
 | `references/tpl-rules.md` | The notes-dir `RULES.md` and its four init knobs. |
-| `references/tpl-glossary.md` | The notes-dir `GLOSSARY.md` — the project's ubiquitous language, distinct from `code:GLOSSARY.md`. |
+| `references/tpl-glossary.md` | The notes-dir `GLOSSARY.md` — the project's ubiquitous language, distinct from `wm:GLOSSARY.md`. |
 | `references/tpl-note-{question,decision,fact,impl-decision}.md` | The four thought notes. |
 | `references/tpl-todo.md` | The TODO body, and the worked example of it. |
 

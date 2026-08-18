@@ -34,6 +34,28 @@ not the implementer's, and they never appear in a TODO body.
 **Budget — a TODO body is ≤ 512 lines.** Over budget means the TODO carries more than one
 deliverable: split it into two ledger rows, never shrink the diffs or drop the Autotest to fit.
 
+**Split the case, not the stack.** A capability over budget is split by *narrowing what it accepts*,
+never by *removing a layer*. Narrow it to one input, one format, one type, one path — hardcode what
+this row is not about, and name the row that widens it. Every half still reaches the real entry
+point, so every half still has a real `E2E`.
+
+Remove a layer instead and both halves stop being capabilities: neither has an entry point, both
+write `E2E: none`, and every design gap moves to the last wave — which is the one place a gap is
+most expensive to find. **The test of a split: if it turns either half's `E2E` into `none`, it is the
+wrong split.** Narrow is not the same as shallow; a thin slice through every layer is the first row,
+and later rows widen it.
+
+Which work is a row at all — and why an enabler with one consumer is increment 1 of its consumer
+rather than a row of its own — is `ref-write.md` § Merges that fall out of this rule.
+
+> **The budget is counted, not trusted.** The `budget-check` PostToolUse hook (`wm:bin/budget-check.sh`)
+> counts every budget on this page — body lines, increments, diff lines, Components rows, and
+> `spec.md` lines — each time a `todos/TODO-N.md` or `spec.md` is written, and blocks with the count
+> and the split to make. It runs after the write, because an `Edit` call cannot show the resulting
+> file. A ticked checklist row is the author grading their own file; this is the same rule counted.
+> Raising a budget is never the fix: the number is the size at which the second deliverable becomes
+> visible. Run it by hand: `python3 <plugin>/bin/budget-check.py <file>` (exit 1 = over budget).
+
 ## Operating principles
 
 1. **Concrete over abstract.** Real paths, commands, signatures. No "etc.", "as needed".
@@ -83,9 +105,8 @@ frontmatter + body top-down and stops after Commit; the implementer reads on.
 | 8 | `Commit` | H2 | always — the `Title` and `Body` of the one commit the increments build | verify |
 | 9 | `Files` | H2 | always | scaffold |
 | 10 | `Pre-reads (MUST read before editing)` | H2 | always | scaffold |
-| 11 | `Skills to load` | H2 | always | scaffold |
-| 12 | `Manual test` | H2 | always | scaffold |
-| 13 | `Definition of done` | H2 | always | scaffold |
+| 11 | `Manual test` | H2 | always | scaffold |
+| 12 | `Definition of done` | H2 | always | scaffold |
 
 Missing any always field/element → invalid. Worked example: the same [tpl-todo.md](../references/tpl-todo.md) — match its concreteness.
 
@@ -237,19 +258,45 @@ Each increment carries these bullets, in order, then its diff:
 |--------|----------|---------|
 | **Files** | always | the repo-relative paths this increment alone touches — a subset of `## Files` |
 | **Blast radius** | always | the **predicted** reach: the symbols, callers, and consumers a mistake here forces you to retest. Name them; `"low"` is not a blast radius |
-| **Diff** | always | unified git-diff in the file's real language, one ```diff block per file, ≤ 25 changed lines |
+| **Diff** | always | unified git-diff in the file's real language, one ```diff block per file, ≤ 150 changed lines. The changed **surface** only — types, fields, signatures, settings — and **no comments** |
 | **Behavior** | only on the increment carrying the Outcome's logic, and only when the diff does not show the flow | TS pseudocode per the `flow-scetch` skill, ≤ 40 lines, side effects + error paths visible |
+| **Compile floor** | only when the diff exceeds 150 lines | why 150 lines cannot compile, and what this increment stubs to stay at the floor |
 
 **Ordering — deepest first.** Order increments so the repo builds after each one: the callee before
-its caller, the type before its user, the wiring last (same rule as **layer (Ln)**). An increment that
-cannot build alone says so: `builds: only with increment <n>`.
+its caller, the type before its user, the wiring last (same rule as **layer (Ln)**).
 
-**New surface ships as an all-`+` diff written out in full** — every field, method, and doc comment,
-real syntax. No `// ...` placeholders. The implementer copies; it does not design. A decision belongs
-in a `thoughts/` note (and, restated, in `## Constraints`) — never buried in a `/* ... */`.
+**Compiling outranks the diff budget.** The repo building after every increment is the invariant; 150
+lines is a budget, and a budget yields to an invariant. When the smallest change that still compiles
+is larger than 150 lines, the increment takes the extra lines and states why in a **Compile floor**
+bullet. It never leaves the repo broken to stay under the number.
 
-**Sizing.** > 25 changed lines in one diff → split it. > 10 increments → the TODO is too big, split
-the TODO. An increment whose diff is one line is fine; small is the point.
+**The floor is a floor, not a licence.** Take only what the compiler demands: every body you can stub
+is stubbed, and each stub carries exactly one marker comment naming the increment that fills it —
+`AGENT: implement in increment <n>`, and `<n>` must be a real later increment in this TODO. Signatures
+the compiler needs are written out; logic it does not need is not. An increment over 150 lines with no
+stubs has not found its floor — it is an unsplit increment with a reason attached.
+
+Prefer the floor to a broken build: `builds: only with increment <n>` is the last resort, for the case
+where no stub can make the code compile at all.
+
+**A diff carries the surface, not the prose.** Show what a caller can see and what changes behavior:
+types, fields, method and function signatures, and settings — config keys, flags, defaults — with
+their real values. New surface is all-`+` in real syntax, and no field or signature is ever elided.
+A body appears only where the body *is* the change; the flow it implements goes in **Behavior**.
+
+**No comments in a diff, with one exception.** Not a doc comment, not an inline one, not a `// ...`
+placeholder. Two reasons: the implementer writes the comments the code needs under `CODE_STYLE.md`,
+and a comment predicted here is one the implementer would rewrite; and a *decision* that seems to need
+a comment belongs in a `thoughts/` note and, restated, in `## Constraints` — never buried in a
+`/* ... */`. The implementer copies the surface; it does not design it.
+
+The one exception is the stub marker `AGENT: implement in increment <n>` — it is not documentation, it
+is a pointer to the increment that finishes the work, and it is the only comment a diff may carry.
+
+**Sizing.** > 150 changed lines in one diff → split it, unless the increment is at its **Compile
+floor** and says so. > 10 increments → the TODO is too big, split the TODO. An increment whose diff is
+one line is fine; small is the point. Both are counted by the `budget-check` hook (§ Budget), which
+names the increment to split and accepts a declared compile floor.
 
 > On save the `format-todo` PostToolUse hook (`bin/format-todo.sh`) runs prettier over each ```ts block; unparseable pseudocode is left verbatim, ```diff blocks untouched. Don't hand-align the block — write it, the hook formats it.
 
@@ -310,10 +357,19 @@ what makes it impossible, not that it feels redundant. Auto-reject: "covered by 
 with no behavior change may set `E2E: none — no observable behavior changes; unit suite pins the
 reshaped API`, but only when the Outcome itself claims no new capability.
 
-For a TODO whose Outcome is not observable end-to-end alone (a leaf in `W1` that nothing calls yet),
-the `E2E` level names the wave-mate or later TODO whose e2e test covers it: `none — observable only
-via TODO-3; its E2E case asserts this path`. That is the one shape where an e2e gap is legal, and it
-must name the TODO.
+For a TODO whose Outcome is not observable end-to-end alone, the `E2E` level names the wave-mate or
+later TODO whose e2e test covers it: `none — observable only via TODO-3; its E2E case asserts this
+path`. That is the one shape where an e2e gap is legal, and three things bind it:
+
+- **The named TODO must exist in the ledger**, and its `## Autotest` `E2E` must carry a **case that
+  asserts this path**. A deferral to a TODO whose E2E never mentions it is not a deferral — it is an
+  untested path with a citation.
+- **Deferring to a Manual test does not count.** `Manual test` catches what no suite can see; it is
+  not the automated cover this level is claiming.
+- **The shape is rare, because most of its old users are no longer rows.** An enabler with one
+  consumer is increment 1 of that consumer (`ref-write.md` § Merges that fall out of this rule), so
+  it has no `E2E` of its own to defer. What is left is the genuinely separate row: another repo, or
+  an interface with two or more consumers.
 
 ### Commit
 
@@ -357,13 +413,15 @@ Edit in place, same `N` unless order changes (then renumber and update the ledge
 - [ ] Every `## Constraints` row's `From` link resolves to a real `thoughts/` file
 - [ ] **Self-contained**: with `spec.md` and `thoughts/` deleted, the TODO still says what to build and what to assert
 - [ ] **Not over-stated**: every `## Constraints` row names a rule an increment below can violate; no spec Description/Goal/target-picture prose was copied in
-- [ ] Body ≤ 512 lines — over budget → split the ledger row, don't compress
-- [ ] **Autotest** has both a `Unit` and an `E2E` sub-block, each with Target files + Cases + one runnable Command — or `none — <concrete reason>` (an `E2E: none` that defers to another TODO names it)
+- [ ] Body ≤ 512 lines — over budget → split the ledger row, don't compress. Counted by the `budget-check` hook (§ Budget), so a tick that disagrees with the count loses
+- [ ] **Autotest** has both a `Unit` and an `E2E` sub-block, each with Target files + Cases + one runnable Command — or `none — <concrete reason>`
+- [ ] An `E2E: none` that defers names a TODO that **exists in the ledger** and whose own `E2E` carries a case asserting this path; a deferral to a `Manual test` does not count
 - [ ] Every **Files** / **Pre-reads** path exists (or is marked `create`)
 - [ ] `## Components` has exactly one `main` row, ≤ 5 rows, each a `package.Class` symbol with a `create | modify | delete` **Touch** and a one-sentence **Role**; every row maps to a **Files** path and every non-test **Files** path maps to a row
 - [ ] Every `create` row's symbol appears as new surface in a `## Changes` diff, and every `delete` row's symbol is gone from the code the diffs leave behind — a Touch the diffs contradict is a wrong Touch
 - [ ] `## Changes` is an ordered increment sequence — `n` contiguous from 1, ≤ 10 increments, each naming one **Components** row, ordered deepest-first so the repo builds after each (or marked `builds: only with increment <n>`)
-- [ ] Every increment carries **Files** (a subset of `## Files`), a **Blast radius** that names the real symbols/callers to retest, and a ```diff of ≤ 25 changed lines — new surface written out in full, no `// ...`
+- [ ] Every increment carries **Files** (a subset of `## Files`), a **Blast radius** that names the real symbols/callers to retest, and a ```diff of ≤ 150 changed lines — the changed surface only (types, fields, signatures, settings), no field or signature elided, and **no comments of any kind**
+- [ ] Every increment leaves the repo compiling. A diff over 150 lines carries a **Compile floor** bullet *and* at least one stub marked `AGENT: implement in increment <n>` pointing at a real later increment; `builds: only with increment <n>` appears only where no stub can compile
 - [ ] Every **Components** row is named by at least one increment, and no increment names a component missing from the table
 - [ ] **Outcome** is a capability in GLOSSARY.md terms — no paths, types, routes, libraries
 - [ ] **Manual test** Steps/Expected aligned 1:1

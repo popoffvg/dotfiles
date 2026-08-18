@@ -317,7 +317,8 @@
     "frontend-design@claude-plugins-official": false,
     "gopls-lsp@claude-plugins-official": true,
     "vocab@local-plugins": true,
-    "self-improvement@local-plugins": true
+    "self-improvement@local-plugins": true,
+    "smart-commit@local-plugins": true
   },
   "extraKnownMarketplaces": {
     "agentmemory": {

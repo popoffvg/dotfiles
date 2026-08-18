@@ -9,7 +9,7 @@ description: This skill should be used when asked about branching, committing, P
 
 | Command                  | When to use                                                                                               |
 | --------------------------| -----------------------------------------------------------------------------------------------------------|
-| `/smart-commit`          | You have changes ready to commit — analyzes diff, proposes logical split, asks for approval, then commits |
+| `/smart-commit`          | You have changes ready to commit — proposes a logical split in a file you answer, then commits it         |
 | `/pr`                    | Branch is ready to merge — creates a GitHub PR with purpose + changes + tests description                 |
 | `/code fix`              | Correct a bug/missing part/adjustment — fixes the thought then the code, fixup into the best local commit  |
 | `commit-commands:commit` | Quick single commit, no split needed                                                                      |
@@ -24,7 +24,7 @@ description: This skill should be used when asked about branching, committing, P
    ... code, tests ...
 
 3. Commit
-   /smart-commit          ← propose split, approve, commit
+   /smart-commit          ← propose split, answer each block, commit
 
 4. More changes? Repeat step 3.
 

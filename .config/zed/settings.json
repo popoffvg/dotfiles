@@ -230,7 +230,7 @@
     },
     "inline_assistant_model": {
       "provider": "zed.dev",
-      "model": "gemini-3.1-pro-preview",
+      "model": "gemini-3.5-flash",
       "enable_thinking": false,
     },
     "show_turn_stats": true,

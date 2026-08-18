@@ -79,6 +79,11 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/bin/format-todo.sh",
             "timeout": 30000
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/budget-check.sh",
+            "timeout": 5000
           }
         ]
       }

@@ -29,6 +29,12 @@
       "version": "0.7.0"
     },
     {
+      "name": "smart-commit",
+      "source": "./harness/plugins/smart-commit",
+      "description": "Split the working tree of every nearby git repo into logical commits at hunk granularity. A sonnet subagent proposes the split into an editable file, the operator answers each block, a second subagent builds the commits in a throwaway worktree and cherry-picks them back.",
+      "version": "0.2.0"
+    },
+    {
       "name": "vocab",
       "source": "./harness/plugins/vocab",
       "description": "In-memory topic index served over MCP: one topic points at the one file that carries its truth. Starts empty each session, never written to disk. A UserPromptSubmit hook loads the tools on the first message and reminds the agent every 15 minutes to file what it read.",
@@ -38,7 +44,7 @@
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.40.0"
+      "version": "2.41.0"
     }
   ]
 }

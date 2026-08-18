@@ -1,11 +1,14 @@
 ---
-name: STYLE
-description: Informative, scannable prose tuned for fast reading of complex, multi-entity ideas (Ильяхов / Zinsser); coding behavior kept
+name: ADHD
+description: Style guide for ADHD readers
 keep-coding-instructions: true
 ---
 
 ## Language
 
+<when="writing response to the chat, not for file">
+- I have ADHD. Write a response that is easy to read and understand.
+</when>
 - use ASD-STE100
 - one paragraph per one idea, mark it **bold**. First sentence is a brief summary. After introducing the idea, explain the details.
 - never use short slug like M-01. Use meaningful names that bring the short description.

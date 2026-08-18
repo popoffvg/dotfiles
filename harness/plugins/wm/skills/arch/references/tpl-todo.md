@@ -10,7 +10,8 @@ risk: 3                     # changes the existing Refresh signature; retest the
 > This file is a filled TODO body. Copy it to `<notes-dir>/todos/TODO-N.md`, replace the content,
 > and delete every `>` line — each one states the rule for the block above it.
 > The H1 title is imperative, ≤ 60 chars. `N` is 1-indexed and contiguous, one file per ledger row.
-> Budget: ≤ 512 lines. Over budget means two deliverables — split the ledger row.
+> Budget: ≤ 512 lines. Over budget means two deliverables — split the ledger row. The
+> `budget-check` hook counts it on every write and blocks (`arch:sub-todo.md` § Budget).
 > Sections run in this order and no other. A human reads down to Commit with the repo closed and
 > stops there; everything below it is scaffolding for the implementer.
 
@@ -85,12 +86,10 @@ A `User` can issue `RotateToken` to exchange a valid refresh token for a new `To
 - **Diff:**
 
 ```diff
-+// RefreshRequest is the body of POST /auth/refresh.
 +type RefreshRequest struct {
 +	Token string `json:"token"`
 +}
 +
-+// TokenPair is an access/refresh token pair minted together; both rotate as a unit.
 +type TokenPair struct {
 +	Access  string `json:"access"`
 +	Refresh string `json:"refresh"`
@@ -100,9 +99,14 @@ A `User` can issue `RotateToken` to exchange a valid refresh token for a new `To
 > **Files** — this increment's paths only, a subset of `## Files`.
 > **Blast radius** — the predicted reach of a mistake: the symbols, callers, and consumers a wrong
 > edit forces you to retest. Name them; "low" is not a blast radius.
-> **Diff** — ≤ 25 changed lines, real language, one block per file. New surface is all-`+` and
-> written out in full: every field, method, and doc comment. No `// ...`. An increment that cannot
-> build alone adds `builds: only with increment <n>`.
+> **Diff** — ≤ 150 changed lines, real language, one block per file. The changed **surface** only:
+> types, fields, signatures, and settings with their real values. New surface is all-`+`, no field or
+> signature elided, and **no comments of any kind** — a decision that wants one goes in a `thoughts/`
+> note.
+> **Compiling outranks the budget.** When the smallest change that still compiles is over 150 lines,
+> take the extra lines, add a **Compile floor:** bullet saying why, and stub every body you can —
+> each stub marked `AGENT: implement in increment <n>`, the one comment a diff may carry. Only when
+> no stub can make it compile does the increment say `builds: only with increment <n>`.
 
 ### 2. Return a pair from the minter — `pkg/auth.TokenMinter`
 
@@ -241,13 +245,6 @@ idle user on a normal day, and the stolen token stays usable until it expires.
 - `pkg/redis/client.go` — Redis helpers used here
 
 > Every file the implementer must understand before editing, with the reason. None → `none — reason: <specific>`.
-
-## Skills to load
-
-- `go-modify`
-- `impl-commit`
-
-> None → `none`.
 
 ## Manual test
 

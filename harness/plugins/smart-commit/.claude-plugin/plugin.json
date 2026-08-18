@@ -1,0 +1,5 @@
+{
+  "name": "smart-commit",
+  "description": "Split the working tree of every nearby git repo into logical commits at hunk granularity. A sonnet subagent proposes the split into an editable file, the operator answers each block, a second subagent builds the commits in a throwaway worktree and cherry-picks them back.",
+  "version": "0.2.0"
+}

@@ -196,6 +196,7 @@ The `Ln` prefix makes the ordering invariant machine-checkable.
 **Merges that fall out of this rule:**
 - A type split + the call site depending on the new types = **one** TODO. Two would force a dead intermediate state where the type exists but nothing populates it.
 - Wiring that branches on one config flag = **one** TODO. The branch is mechanism, not outcome.
+- An **enabler** with exactly one consumer — a shared package, an asset, a fixture, a taxonomy — is **not its own ledger row**. It is increment 1 of the slice that consumes it, by the same rule: alone it is a dead intermediate state, it cannot state an Outcome as a capability, and its `E2E` can only be `none`. Two exceptions keep it a row: it lives in **another repo**, so it cannot share the one commit; or it has **two or more consumers**, where a `W1` interface row with its implementations in `W2` removes an edge (§ Waves step 4).
 
 **Reject:** ordering by "easiest first" or "most visible first" — that compiles only after every TODO lands, breaking the per-TODO commit contract.
 
@@ -230,7 +231,7 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] `spec.md` opens with a `---` frontmatter block (`status`, `branch`, `drives`); no `Status`/phase-rules prose in the body
 - [ ] `## Plan` carries the target-picture summary (absent only while `status: init`)
 - [ ] `spec.md` body has Description, Guidelines, Goal, What we're NOT doing, the ledger, and the Plan — nothing else. No `Design Decisions`, no `Open Questions` section, no decision-trail table
-- [ ] `spec.md` is ≤ 200 lines — over budget → move detail to `thoughts/` or split the spec, never shrink the ledger
+- [ ] `spec.md` is ≤ 200 lines — over budget → move detail to `thoughts/` or split the spec, never shrink the ledger. The `budget-check` hook counts this on every write and blocks (`arch:sub-todo.md` § Budget)
 - [ ] `GLOSSARY.md` exists (sibling), covers every entity/command/event in the spec, and is current
 - [ ] `CLAUDE.md` and `RULES.md` exist in the notes dir; `RULES.md` carries the four answered knobs, no `<…>` placeholder left
 - [ ] Every superseded thought sits in `thoughts/archived/`; no live note links to an archived one
@@ -241,6 +242,8 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] `## Plan` carries the wave table; every TODO appears in exactly one wave; TODOs sharing a wave have disjoint **Files** sets and no `depends_on` between them
 - [ ] Every outcome is a post-condition (what is true after), ≤ 25 words, no implementation nouns, GLOSSARY.md terms verbatim
 - [ ] No outcome hides two behind "and"; no two entries share an outcome
+- [ ] No row is an **enabler with one consumer** — a shared package, asset, fixture or taxonomy whose only reader is one other row belongs to that row as its increment 1 (§ Merges that fall out of this rule). It stays a row only for another repo, or for two or more consumers
+- [ ] Not every row defers its `E2E`: at least one row in the **first wave** proves a capability end-to-end, so the design gaps surface in `W1` rather than the last wave
 - [ ] Entries are contiguous from 1, sorted by ascending `Ln` depth; no TODO depends on a component a later TODO introduces
 - [ ] Nothing was written under `todos/` during this spec pass
 - [ ] Description + Goal convey the target picture in plain language

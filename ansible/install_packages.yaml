@@ -66,6 +66,7 @@
       - kind
       - k9s
       - ansible
+      - shellcheck
       # git
       - lefthook
       - gitleaks
