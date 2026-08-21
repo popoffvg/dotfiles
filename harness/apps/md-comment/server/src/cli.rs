@@ -65,21 +65,43 @@ pub fn comment(target: &str, text: &str) -> Result<String, String> {
     Ok(format!("{key}:{}", target.line))
 }
 
-/// Drop the comment on a line. Reports whether there was one.
-pub fn drop_comment(target: &str) -> Result<String, String> {
-    let target = parse_target(target)?;
-    let root = root_for(&target.file);
+/// Drop the comment on each line named. Reports every target, whether it held one or not.
+///
+/// One session for the whole batch, so the store is written once — a running server reads
+/// it back on its watch, and one write is one reload.
+pub fn drop_comments(targets: &[String]) -> Result<String, String> {
+    let first = targets
+        .first()
+        .ok_or("expected at least one <file>:<line>")?;
+    let root = root_for(&parse_target(first)?.file);
     let (mut session, _effects) = Session::new(root);
-    let uri = crate::path_to_uri(&absolute(&target.file));
-    let key = session
-        .key(&uri)
-        .ok_or_else(|| format!("{} is not a file this server serves", target.file.display()))?;
 
-    if !session.store_mut().remove(&key, target.line) {
-        return Ok(format!("no comment on {key}:{}", target.line));
+    let mut lines = Vec::new();
+    for target in targets {
+        let target = parse_target(target)?;
+        let uri = crate::path_to_uri(&absolute(&target.file));
+        let key = session
+            .key(&uri)
+            .ok_or_else(|| format!("{} is not a file this server serves", target.file.display()))?;
+        let dropped = session.store_mut().remove(&key, target.line);
+        lines.push(format!(
+            "{} {key}:{}",
+            if dropped { "dropped" } else { "no comment on" },
+            target.line
+        ));
     }
     session.persist().map_err(|error| error.to_string())?;
-    Ok(format!("dropped {key}:{}", target.line))
+    Ok(lines.join("\n"))
+}
+
+/// Drop every comment in the workspace — `reset comments`, from a shell.
+pub fn drop_all() -> Result<String, String> {
+    let root = root_for(Path::new("."));
+    let (mut session, _effects) = Session::new(root);
+    let total = session.store().total();
+    session.store_mut().clear();
+    session.persist().map_err(|error| error.to_string())?;
+    Ok(format!("dropped {total} comment(s)"))
 }
 
 /// Every comment in the store, in the export format the `/md-comment` command reads.

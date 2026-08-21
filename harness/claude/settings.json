@@ -318,7 +318,8 @@
     "gopls-lsp@claude-plugins-official": true,
     "vocab@local-plugins": true,
     "self-improvement@local-plugins": true,
-    "smart-commit@local-plugins": true
+    "smart-commit@local-plugins": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "agentmemory": {

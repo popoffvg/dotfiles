@@ -14,8 +14,9 @@ parent project. `jj -R . log` is the history.
 | `spec.md` | Target picture + the ledger (`Layer \| Outcome \| Commit`) + the Plan with its wave table | `/code new`, `/code revise` |
 | `GLOSSARY.md` | Project ubiquitous language — every term the spec uses | every phase |
 | `RULES.md` | What to raise with the human at each step, and what to decide alone | `/code new` Step 0.6 |
+| `PATTERNS.md` | Implementation patterns + reference files the increments follow — for the implementer, not the human | `/code new` Step 0, then any subcommand that finds a pattern |
 | `thoughts/` | `NNN-{question,decision,fact,impl-decision}-slug.md` — the thought graph | every phase |
-| `thoughts/archived/` | Superseded thoughts — kept for the trail, out of the live graph | `/code revise`, `/code fix` |
+| `thoughts/archived/` | Answered questions + superseded thoughts — kept for the trail, out of the live graph | a hook, on any note that stops being live |
 | `todos/` | `TODO-N.md` — one self-contained body per ledger row | `/code todo` |
 | `research/` | Explore-phase artifacts, ingested into `thoughts/` as facts | `/explore` |
 
@@ -26,17 +27,23 @@ parent project. `jj -R . log` is the history.
 3. `RULES.md` — the interaction contract for the current step.
 4. `thoughts/` — why each choice was made. Enter through a TODO's `## Constraints` links.
 5. `todos/TODO-N.md` — the body to implement. Self-contained: read it alone, implement it alone.
+6. `PATTERNS.md` — before writing code: the patterns that body's increments follow, and the files to pre-read.
 
-Ignore `thoughts/archived/` unless you are auditing history. Those notes are superseded.
+Ignore `thoughts/archived/` unless you are auditing history. Those notes were answered or superseded.
 
 ## Write rules
 
-- **One thought per topic.** A question note flips in place into a `decision` or `fact` note —
-  same `NNN`, renamed file. Never open a second note for the same topic.
-- **Supersede, never delete.** Mark the old note `Superseded by [[NNN-type-slug]]`, then move it
-  to `thoughts/archived/`. The replacement takes the next counter.
+- **A question is answered by a new note, never edited into its answer.** The answer is a
+  `decision` or `fact` note at the next `NNN`, restating the question verbatim; the question note
+  gets `status: approved` + `superseded_by:` and a hook archives it. Never open a second note
+  asking the same thing.
+- **Supersede, never delete.** Mark the old note `Superseded by [[NNN-type-slug]]` with
+  `status: declined` + `superseded_by:`; a hook moves it to `thoughts/archived/` for you. The
+  replacement takes the next counter.
 - **Decisions are not spec sections.** `spec.md` has no `Design Decisions` and no
   `Open Questions` — both live in `thoughts/`.
+- **Patterns are not spec sections.** `spec.md` mentions `@PATTERNS.md`; the patterns and the
+  reference files live there. A pattern with no example in the repo is a decision — `thoughts/`.
 - **The ledger holds outcomes, not bodies.** No file paths, no checkboxes in `spec.md`.
 - **Every new term goes in `GLOSSARY.md`** in the same edit that introduces it.
 - **Spec scaffolding stays out of the code.** No TODO number, step number, wave, layer number, or

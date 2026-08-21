@@ -1,6 +1,7 @@
 //! One end-to-end test over real stdio, proving the transport wiring.
 
 use std::io::{BufRead, BufReader, Read, Write};
+use std::path::PathBuf;
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 
 use serde_json::{json, Value};
@@ -137,8 +138,7 @@ fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
     std::fs::create_dir_all(root.join("docs")).unwrap();
     let target = root.join("docs").join("spec.md");
     std::fs::write(&target, "# Title\n## Design\n").unwrap();
-    let input = root.join(".tmp").join("md-comment-input.md");
-    let _ = std::fs::remove_file(&input);
+    let _ = std::fs::remove_dir_all(root.join(".tmp"));
     let uri = format!("file://{}", target.display());
 
     let mut server = Server::start();
@@ -224,6 +224,15 @@ fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
         changes[1]["edits"][0]["newText"],
         json!("<!-- md-comment: docs/spec.md:2 -->\n\n")
     );
+    // The file is named by the server, one per code action, and the client is told which.
+    let input = PathBuf::from(
+        changes[0]["uri"]
+            .as_str()
+            .unwrap()
+            .strip_prefix("file://")
+            .unwrap(),
+    );
+    assert!(input.starts_with(root.join(".tmp")));
     server.wait_for("client/registerCapability");
 
     // The operator types and saves; the watch tells the server.
@@ -259,7 +268,10 @@ fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
         json!({ "line": 1, "character": 9 })
     );
 
-    assert_eq!(std::fs::read_to_string(&input).unwrap(), "");
+    assert!(
+        !input.exists(),
+        "the input file goes once its comment is stored"
+    );
     assert!(root.join(".tmp").join("md-comment.json").exists());
 
     let published = server
@@ -355,4 +367,49 @@ fn a_comment_written_by_the_subcommand_reaches_the_editor() {
         published["params"]["diagnostics"][0]["range"]["start"]["line"],
         json!(1)
     );
+
+    // Dropping from the shell reaches the same live server: the comment goes and the
+    // file's diagnostics are republished empty. No language-server restart in between.
+    let dropped = Command::new(env!("CARGO_BIN_EXE_md-comment-lsp"))
+        .args(["drop", "src/main.rs:2"])
+        .current_dir(&root)
+        .output()
+        .expect("the subcommand runs");
+    assert!(
+        dropped.status.success(),
+        "{}",
+        String::from_utf8_lossy(&dropped.stderr)
+    );
+    assert_eq!(
+        String::from_utf8_lossy(&dropped.stdout).trim(),
+        "dropped src/main.rs:2"
+    );
+
+    server.send(json!({
+        "jsonrpc": "2.0",
+        "method": "workspace/didChangeWatchedFiles",
+        "params": { "changes": [{ "uri": format!("file://{}", store.display()), "type": 2 }] }
+    }));
+    server.send(json!({
+        "jsonrpc": "2.0",
+        "id": 3,
+        "method": "textDocument/inlayHint",
+        "params": {
+            "textDocument": { "uri": uri },
+            "range": { "start": { "line": 0, "character": 0 }, "end": { "line": 5, "character": 0 } }
+        }
+    }));
+    let hints = server.response(3);
+    assert!(hints["result"].as_array().unwrap().is_empty());
+
+    let published = server
+        .notifications
+        .iter()
+        .rfind(|message| message["method"] == "textDocument/publishDiagnostics")
+        .expect("the server republishes after the drop");
+    assert_eq!(published["params"]["uri"], json!(uri));
+    assert!(published["params"]["diagnostics"]
+        .as_array()
+        .unwrap()
+        .is_empty());
 }

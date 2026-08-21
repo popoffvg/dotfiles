@@ -17,7 +17,7 @@ Format-agnostic. A thought may be a heavyweight note — frontmatter, one file p
 | **decision** | is a choice — one option picked over named alternatives. |
 | **fact** | establishes a truth the decisions rest on. |
 
-A consumer may extend these — the `code` skill adds **question** (asked, not yet answered; flipped in place into a decision or fact on resolution) and **impl-decision** (a choice made while implementing). The two above are the base.
+A consumer may extend these — the `code` skill adds **question** (asked, not yet answered; answered by a *new* decision or fact thought, which retires the question) and **impl-decision** (a choice made while implementing). The two above are the base.
 
 An unanswered question is a thought too: it is recorded where the thoughts live, not in a separate checklist inside the artifact. Same graph, same links, one status field marking it open.
 

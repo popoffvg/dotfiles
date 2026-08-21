@@ -68,7 +68,9 @@ The teachability test: **would you teach this rule to a student or a new colleag
 
 Skip is a real outcome: a rule captured from a situation that never returns costs context on every future session and sharpens nothing.
 
-When the session was archived by triage (`references/triage.md`), the archive's `global/` or `project/` subdir is that subagent's guess from the user's wording alone. Judge scope here on the table above and overrule the subdir when it disagrees — the subdir routes the transcript, it does not decide the skill.
+When the session was archived by a scan (`references/score.md`), the archive's `global/` or `project/` subdir is one haiku pass's guess from the user's wording alone, and the record's `score` is how strongly it guessed. Judge scope here on the table above and overrule the subdir when it disagrees — the subdir routes the transcript, it does not decide the skill.
+
+That session may also already have a suggestion at `~/.claude/self-improvement/suggestions/<session-id>.md` (`references/suggest.md`): a verdict, a target, and the alternative it rejected, all decided against the harness inventory. Read it before searching for a target yourself — it did that search once already. Then re-judge it: it saw the user's prompts and the skill triggers, never the surrounding context, so it cannot know what the assistant actually did.
 
 A lesson can be teachable *and* anchored to this machine — a vault path, an MCP server, a CLI on `PATH`. That is still global; name the anchor in the body and say what to do when it is absent, so the skill degrades instead of hard-failing.
 

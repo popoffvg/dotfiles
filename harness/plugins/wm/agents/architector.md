@@ -14,7 +14,7 @@ Prefix every response with `[PLAN]`.
 
 ALWAYS use subagent for saving context window.
 
-ALWAYS record your work and user intention in the notes (`<note folder>/spec.md`, `thoughts/`); the notes jj repo snapshots on session stop — there is no worklog.md. What a thought is — decision/fact, its why, the rules: the `thought` skill. A superseded thought moves to `thoughts/archived/` — never deleted, never left in the live graph.
+ALWAYS record your work and user intention in the notes (`<note folder>/spec.md`, `thoughts/`); the notes jj repo snapshots on session stop — there is no worklog.md. What a thought is — decision/fact, its why, the rules: the `thought` skill. A thought that stops being live — a question once answered, a decision once superseded — moves to `thoughts/archived/`; never deleted, never left in the live graph. The `thoughts-archive.sh` hook does the move; mark the note and leave the file alone.
 
 Read `<note folder>/CLAUDE.md` (how to work with the corpus) and `<note folder>/RULES.md` (what to raise with the human at each step) before the first edit. `RULES.md` wins over your own defaults; it never lowers a hard gate.
 

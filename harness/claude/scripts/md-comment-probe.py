@@ -170,7 +170,9 @@ def main() -> int:
         header = changes[1]["edits"][0]["newText"]
         print(f"\ninput file   : {header.strip()}")
 
-        input_path = root / ".tmp" / "md-comment-input.md"
+        # One input file per code action; the server names it and tells us which.
+        input_path = Path(changes[0]["uri"].removeprefix("file://"))
+        print(f"input path   : {input_path}")
         input_path.parent.mkdir(parents=True, exist_ok=True)
         input_path.write_text(f"{header}probe comment\n")
         client.notify(
@@ -188,8 +190,7 @@ def main() -> int:
         print(f"inlay hints  : {len(hints or [])}")
         for hint in hints or []:
             print(f"  {hint['position']} {hint['label']!r}")
-        drained = input_path.read_text()
-        print(f"input drained: {drained == ''!r}")
+        print(f"input drained: {not input_path.exists()!r}")
 
         store = root / ".tmp" / "md-comment.json"
         print(f"\nstore written: {store.exists()} ({store})")

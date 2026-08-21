@@ -13,9 +13,10 @@ No `<notes-dir>/spec.md` → write a minimal one (full template: `ref-write.md` 
 - **Open questions** — seed 1–3 as `thoughts/NNN-question-*.md` notes (`status: open`, template `tpl-note-question.md`). They live in the thought graph, not in `spec.md`; the spec has no Open Questions section. **TODO List** — empty until the grill closes.
 - Create `<notes-dir>/GLOSSARY.md` from `references/tpl-glossary.md`, empty.
 - Create `<notes-dir>/CLAUDE.md` from `references/tpl-notes-claude.md` — the corpus guide any agent entering the folder reads. Copy the template's fenced block verbatim, not its header.
-- Guidelines / What we're NOT doing — empty or "follow language defaults". No `Design Decisions` and no `Open Questions` section: both live in `thoughts/` (`ref-write.md` § Artifacts).
+- Create `<notes-dir>/PATTERNS.md` from `references/tpl-patterns.md` — the implementation patterns and reference files the implementer follows. Empty or "follow language defaults" at init; `spec.md` mentions `@PATTERNS.md` and holds no pattern content.
+- What we're NOT doing — empty or "follow language defaults". No `Design Decisions` and no `Open Questions` section: both live in `thoughts/` (`ref-write.md` § Artifacts).
 
-Both files are written **once**. If `CLAUDE.md` or `RULES.md` already exists, leave it — the user owns it after init.
+`CLAUDE.md` and `RULES.md` are written **once**; if either already exists, leave it — the user owns it after init. `PATTERNS.md` is created once and stays open to extension as patterns surface.
 
 spec.md exists → check the frontmatter `branch` against the current branch (`ref-write.md` § Spec ownership by branch):
 
@@ -48,7 +49,7 @@ are still confirmed.
 
 ## Step 1: Grill
 
-Run `/grill-with-docs` until no `status: open` question note is left in `thoughts/` (list them: `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`). Every resolution **flips its question note in place** into a `decision` or `fact` note — same `id`, same file, renamed (`ref-note-format.md` § Resolution — flip in place). A new question raised mid-grill gets its own `NNN-question-*.md` note before you answer it; the decision tree **is** the spec — walk it branch by branch. A question the codebase can answer, read instead of ask.
+Run `/grill-with-docs` until no `status: open` question note is left in `thoughts/` (list them: `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`). Every resolution **writes the answer as a new `decision` or `fact` note** at the next `NNN`, restating the question verbatim, and marks the question note answered — a hook archives it, which is what drops it off the list (`ref-note-format.md` § Resolution). A new question raised mid-grill gets its own `NNN-question-*.md` note before you answer it; the decision tree **is** the spec — walk it branch by branch. A question the codebase can answer, read instead of ask.
 
 ### Exit contract
 

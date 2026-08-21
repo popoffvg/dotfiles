@@ -4,6 +4,7 @@ pub mod anchor;
 pub mod cli;
 pub mod export;
 pub mod input;
+pub mod scratch;
 pub mod store;
 pub mod trace;
 pub mod wire;
@@ -45,18 +46,20 @@ pub enum Effect {
     AskResetConfirmation {
         prompt: String,
     },
-    /// Create the input file with this content and put it in front of the operator.
+    /// Create this input file with this content and put it in front of the operator.
     OpenInput {
+        path: PathBuf,
         contents: String,
     },
-    /// Ask the client to watch the input file and the store, so a write by the operator
+    /// Ask the client to watch the input files and the store, so a write by the operator
     /// or by the `comment` subcommand is noticed without an open buffer.
     WatchFiles,
     /// Push one Hint diagnostic per comment, so the comments show inline and in the
     /// editor's diagnostics list even when inlay hints are switched off.
     PublishDiagnostics,
-    /// Write the export, then put it in front of the operator.
+    /// Write the export, then put this file in front of the operator.
     OpenList {
+        path: PathBuf,
         contents: String,
     },
 }
@@ -67,6 +70,8 @@ pub struct Session {
     documents: HashMap<String, String>,
     /// Files we last published diagnostics for, so they can be cleared when emptied.
     published: HashSet<String>,
+    /// The highest nonce this run has handed over, so a name is never handed over twice.
+    handed_over: u128,
 }
 
 impl Session {
@@ -98,6 +103,7 @@ impl Session {
             store,
             documents: HashMap::new(),
             published: HashSet::new(),
+            handed_over: 0,
         };
         let mut effects = effects;
         effects.push(Effect::WatchFiles);
@@ -128,34 +134,130 @@ impl Session {
         self.root.join(".tmp").join("md-comment.md")
     }
 
-    /// A rendered view of the export, regenerated on every `list comments`. The export
-    /// itself stays untouched, because that is the file the Claude command reads.
-    pub fn list_path(&self) -> PathBuf {
-        self.root.join(".tmp").join("md-comment-list.md")
+    pub fn tmp_dir(&self) -> PathBuf {
+        self.root.join(".tmp")
     }
 
-    pub fn input_path(&self) -> PathBuf {
-        self.root.join(".tmp").join(input::FILE_NAME)
+    /// The pattern a watch registers over one kind of hand-over.
+    pub fn scratch_glob(&self, stem: &str) -> PathBuf {
+        self.tmp_dir().join(scratch::file_glob(stem))
     }
 
-    /// Read the input file, store whatever was typed, and empty it.
+    /// Whether a path is a hand-over of this kind.
+    pub fn is_scratch_path(&self, stem: &str, path: &Path) -> bool {
+        path.parent() == Some(self.tmp_dir().as_path())
+            && path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| scratch::is_file_name(stem, name))
+    }
+
+    /// Every hand-over of this kind under `.tmp/`, in the order they were minted.
+    pub fn scratch_paths(&self, stem: &str) -> Vec<PathBuf> {
+        let Ok(entries) = std::fs::read_dir(self.tmp_dir()) else {
+            return Vec::new();
+        };
+        let mut paths: Vec<PathBuf> = entries
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| self.is_scratch_path(stem, path))
+            .collect();
+        paths.sort();
+        paths
+    }
+
+    /// A path no hand-over has used yet.
     ///
-    /// Runs on every save the watch reports and once at startup. An empty body means the
-    /// operator saved without writing, which cancels the pending comment.
+    /// The nonce only ever climbs. A free name on disk is not enough: a hand-over deletes
+    /// the file it replaces, and the editor goes on holding a buffer on that path — so a
+    /// name this run has already given out must not come back, however empty `.tmp/` is.
+    fn fresh_scratch_path(&mut self, stem: &str) -> PathBuf {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |since| since.as_millis());
+        let mut nonce = now.max(self.handed_over + 1);
+        let mut path = self.tmp_dir().join(scratch::file_name(stem, nonce));
+        // A leftover from an earlier run, whose buffer may be open in the editor too.
+        while path.exists() {
+            nonce += 1;
+            path = self.tmp_dir().join(scratch::file_name(stem, nonce));
+        }
+        self.handed_over = nonce;
+        path
+    }
+
+    /// The pattern the watch registers over the input files.
+    pub fn input_glob(&self) -> PathBuf {
+        self.scratch_glob(scratch::INPUT)
+    }
+
+    /// Whether a path is one of the input files.
+    pub fn is_input_path(&self, path: &Path) -> bool {
+        self.is_scratch_path(scratch::INPUT, path)
+    }
+
+    pub fn input_paths(&self) -> Vec<PathBuf> {
+        self.scratch_paths(scratch::INPUT)
+    }
+
+    /// A file for the next comment: clear away the ones nobody typed into, then name one
+    /// no input file has used yet.
+    pub fn take_input_path(&mut self) -> PathBuf {
+        // A file with no header is one the operator abandoned: the header only reaches
+        // disk on a save, and a save is what `drain_input` deletes the file on. Asking
+        // for a new comment says the old one is over.
+        for path in self.input_paths() {
+            let text = std::fs::read_to_string(&path).unwrap_or_default();
+            if input::parse(&text).is_none() {
+                let _ = std::fs::remove_file(&path);
+            }
+        }
+        self.fresh_scratch_path(scratch::INPUT)
+    }
+
+    pub fn list_paths(&self) -> Vec<PathBuf> {
+        self.scratch_paths(scratch::LIST)
+    }
+
+    /// A file for the next `list comments`: drop the views already handed over, then name
+    /// one no view has used yet.
+    ///
+    /// A view is a rendering of the store as it stood, so the one being written replaces
+    /// every earlier one — and the operator's editor holds a buffer on the last of them.
+    /// The export at its fixed path is untouched: nothing opens it, so nothing conflicts,
+    /// and it is the path `copy comments` promises.
+    pub fn take_list_path(&mut self) -> PathBuf {
+        for path in self.list_paths() {
+            let _ = std::fs::remove_file(&path);
+        }
+        self.fresh_scratch_path(scratch::LIST)
+    }
+
+    /// Read every input file, store what it holds, and delete it.
+    ///
+    /// Runs on every save the watch reports and once at startup. A file carrying no
+    /// header is left where it is — that is the empty file a code action just created,
+    /// before the operator typed anything. An empty body means the operator saved without
+    /// writing, which cancels the pending comment.
     pub fn drain_input(&mut self) -> Vec<Effect> {
-        let path = self.input_path();
-        let Ok(text) = std::fs::read_to_string(&path) else {
-            return Vec::new();
-        };
-        let Some((target, body)) = input::parse(&text) else {
-            return Vec::new();
-        };
-        let _ = std::fs::write(&path, "");
-        if body.is_empty() {
+        let mut stored = false;
+        for path in self.input_paths() {
+            let Ok(text) = std::fs::read_to_string(&path) else {
+                continue;
+            };
+            let Some((target, body)) = input::parse(&text) else {
+                continue;
+            };
+            let _ = std::fs::remove_file(&path);
+            if body.is_empty() {
+                continue;
+            }
+            self.upsert_comment(&target.file, target.line, body, Author::Human);
+            stored = true;
+        }
+        if !stored {
             return Vec::new();
         }
-
-        self.upsert_comment(&target.file, target.line, body, Author::Human);
         vec![
             Effect::PersistStore,
             Effect::RefreshInlayHints,
@@ -391,10 +493,13 @@ impl Session {
     }
 
     pub fn did_save(&mut self, uri: &str) -> Vec<Effect> {
-        // The input file lives under `.tmp/`, so `key` refuses it — but its save is the
+        // An input file lives under `.tmp/`, so `key` refuses it — but its save is the
         // whole point. The watch reports the same save; draining twice is harmless
-        // because the first drain empties the file.
-        if uri_to_path(uri).as_deref() == Some(self.input_path().as_path()) {
+        // because the first drain deletes the file.
+        if uri_to_path(uri)
+            .as_deref()
+            .is_some_and(|path| self.is_input_path(path))
+        {
             return self.drain_input();
         }
         match self.key(uri) {
@@ -537,15 +642,14 @@ impl Session {
                 let Some(contents) = self.input_for(uri, line) else {
                     return Vec::new();
                 };
+                let path = self.take_input_path();
+                let text = format!(
+                    "write the comment in {} and save",
+                    display_path(&self.root, &path)
+                );
                 vec![
-                    Effect::OpenInput { contents },
-                    Effect::ShowMessage {
-                        error: false,
-                        text: format!(
-                            "write the comment in {} and save",
-                            display_path(&self.root, &self.input_path())
-                        ),
-                    },
+                    Effect::OpenInput { path, contents },
+                    Effect::ShowMessage { error: false, text },
                 ]
             }
             COMMAND_LIST => {
@@ -566,6 +670,7 @@ impl Session {
                     return effects;
                 }
                 effects.push(Effect::OpenList {
+                    path: self.take_list_path(),
                     contents: self.export_text(),
                 });
                 effects

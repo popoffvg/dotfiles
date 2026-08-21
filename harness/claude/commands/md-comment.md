@@ -1,35 +1,22 @@
 ---
-<<<<<<< Updated upstream
-allowed-tools: Read, Edit, Write, Skill, AskUserQuestion, Bash(ls:*), Bash(~/.claude/scripts/md-comment-find-anchor.py:*), Bash(~/.claude/scripts/md-comment-store.py:*)
-description: Export the markdown comments from the md-comment store, act on them, then clear them
-||||||| Stash base
-allowed-tools: Read, Bash(ls:*), Bash(~/.claude/scripts/md-comment-find-anchor.py:*)
-description: Read the markdown comments exported from Zed, then act on them
-=======
-allowed-tools: Read, Bash(ls:*), Bash(~/.claude/scripts/md-comment-find-anchor.py:*)
-description: Read the line comments exported from Zed, then act on them
->>>>>>> Stashed changes
+allowed-tools: Read, Edit, Write, Skill, AskUserQuestion, Bash(md-comment-lsp:*), Bash(ls:*), Bash(~/.claude/scripts/md-comment-find-anchor.py:*)
+description: Read the line comments from the md-comment store, act on them, then drop them
 ---
 
-<<<<<<< Updated upstream
-Write the export first, so the comments are the ones the store holds right now rather than
-whatever Zed's `copy comments` last left behind:
-||||||| Stash base
-Read `.tmp/md-comment.md` from the workspace root. A missing file, or one holding only the
-`# markdown comments` header, means no comments — say so in one line and stop.
-=======
-Read `.tmp/md-comment.md` from the workspace root. A missing file, or one holding only the
-`# line comments` header, means no comments — say so in one line and stop.
->>>>>>> Stashed changes
+Read the comments the store holds right now, rather than whatever Zed's `copy comments` last
+left in the export:
 
 ```
-~/.claude/scripts/md-comment-store.py export
+md-comment-lsp list
 ```
 
-Then read `.tmp/md-comment.md`. A file holding only the `# markdown comments` header means
-no comments — say so in one line and stop.
+Output holding only the `# line comments` header means no comments — say so in one line and
+stop.
 
-Otherwise split the comments in two groups:
+A heading marked `(from Claude)` carries a comment you placed yourself. Report it, act on
+none of it — it is not a task the operator gave you.
+
+Otherwise split the operator's comments in two groups:
 
 - **Clear** — the comment plainly states what to change. Act on it now.
 - **Unclear** — the comment does not state what to change. Edit nothing for it yet; it goes
@@ -40,17 +27,15 @@ skill through the Skill tool, passing the unclear comments (`<file>:<line> — <
 per line) as its arguments. The grilling session resolves them one question at a time. When
 it reaches shared understanding, act on each resolved comment.
 
-Clear every comment you acted on out of the store, in one call, naming each one:
+Drop every comment you acted on, in one call, naming each one:
 
 ```
-~/.claude/scripts/md-comment-store.py clear <file>:<line>...
+md-comment-lsp drop <file>:<line>...
 ```
 
-That drops the comments from `.tmp/md-comment.json` and re-renders the export, so the Zed
-inlay hints and Hint diagnostics for those lines go away. Leave an unresolved comment in the
-store. Tell the operator to run `editor: restart language server` on a markdown file in the
-last line of your output, and only when at least one comment was cleared — the running
-server holds the store in memory and overwrites the file on its next comment action.
+That drops them from `.tmp/md-comment.json`, and the running language server takes the write
+up through its watch on the store — so the Zed inlay hints and Hint diagnostics for those
+lines go away on their own, with no restart. Leave an unresolved comment in the store.
 
 Then print one block per comment — clear and unclear alike — and **nothing else**:
 

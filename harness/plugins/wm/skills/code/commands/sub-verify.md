@@ -89,7 +89,7 @@ Each finding names the exact TODO/section, states the concrete scenario that fai
 The floor beneath the mission — a spec that fails these is unfinished regardless of the hunt.
 
 ### A. Spec readiness
-Run `arch:ref-write.md` § Spec-Readiness Checklist against `spec.md` + `GLOSSARY.md` + `thoughts/`. **Any `status: open` question note → NEEDS REVISION** (hard block; route to `new`) — check with `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`. Also a hard block: a `Design Decisions` or `Open Questions` section surviving in `spec.md`, or a decision-trail table in `## Plan` — decisions belong to `thoughts/` alone. This covers spec sections, the ledger shape, outcome rules, and GLOSSARY.md currency in one place.
+Run `arch:ref-write.md` § Spec-Readiness Checklist against `spec.md` + `GLOSSARY.md` + `thoughts/`. **Any `status: open` question note → NEEDS REVISION** (hard block; route to `new`) — check with `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`. Also a hard block: a `Design Decisions` or `Open Questions` section surviving in `spec.md`, or a decision-trail table in `## Plan` — decisions belong to `thoughts/` alone. Same for an `Implementation Guidelines` section or any pattern content in `spec.md` — patterns belong to `PATTERNS.md`, which the spec only mentions. This covers spec sections, the ledger shape, outcome rules, and GLOSSARY.md currency in one place.
 
 ### B. Per-TODO completeness
 One `todos/TODO-N.md` per ledger row, contiguous. Each has every `always` element in order (`arch:sub-todo.md` § Required elements). Spot-check: **Risk / blast radius** 1–5 with a justification (score ≥ 3 → tests cover callers); **Files** concrete paths, no globs; **Thoughts** links resolve and each has a **Constraints** row.

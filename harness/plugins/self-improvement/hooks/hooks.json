@@ -11,13 +11,13 @@
         ]
       }
     ],
-    "Stop": [
+    "SessionStart": [
       {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/self-improve-stop.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh"
           }
         ]
       }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Print the archived copy of a session, or exit 1 when the session has none.
 #
-# This is the "already marked interesting" test the Stop hook branches on: a
+# This is the "already archived" test score-session.sh branches on: a
 # session with a copy in the archive is re-synced with no model call, a session
 # without one is classified first.
 #
@@ -12,7 +12,10 @@
 # Both count as archived — depth 2 covers them together.
 set -euo pipefail
 
-archive_dir=${SELF_IMPROVE_LESSONS_DIR:-$HOME/.claude/self-improvement/lessons}
+# shellcheck source-path=SCRIPTDIR source=lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+
+archive_dir=$lessons_dir
 
 if [ $# -ne 1 ]; then
   printf 'usage: %s <transcript.jsonl>\n' "$(basename "$0")" >&2

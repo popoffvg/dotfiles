@@ -73,6 +73,16 @@
     ],
     "PostToolUse": [
       {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/thoughts-archive.sh",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write",
         "hooks": [
           {

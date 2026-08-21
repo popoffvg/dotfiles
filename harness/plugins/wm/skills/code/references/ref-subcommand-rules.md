@@ -8,9 +8,12 @@ to decide alone; it wins over a subcommand's own default. It never lowers a hard
 still reads the spec at the `review→impl` gate, destructive git is still confirmed. Missing file →
 use the defaults in `arch:tpl-rules.md` § Rules table, and let `new` Step 0.6 write it.
 
-## Archive superseded thoughts
-A superseded thought moves to `thoughts/archived/` — never deleted, never left in the live graph.
-See `arch:ref-note-format.md` § Superseding.
+## Archive a thought that stops being live
+A question once answered, a thought once superseded: it moves to `thoughts/archived/` — never
+deleted, never left in the live graph. **Mark it and the `thoughts-archive.sh` hook moves the file;
+never `mv` it yourself.** The mark is `status: approved` + `superseded_by:` on an answered question
+(`arch:ref-note-format.md` § Resolution) and `status: declined` + `superseded_by:` on a superseded
+thought (§ Superseding). The hook reports the live notes still linking to it — repoint them.
 
 ## Log to notes-dir
 After each step, `jj commit` in `<notes-dir>`. See `ref-jj-notes.md`.

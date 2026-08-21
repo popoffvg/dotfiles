@@ -4,15 +4,19 @@
 
 ## Mental model
 
-**A code action hands over an input file.** Zed exposes no LSP request that opens a text box, and a code action's command reaches only the language server, never an editor action. What a server can do is create a file through `workspace/applyEdit` — and a create carrying a text edit makes the client put that file in front of the operator. So `add comment` writes a one-line header naming the target into `.tmp/md-comment-input.md`; the operator types under it and saves.
+**A code action hands over an input file.** Zed exposes no LSP request that opens a text box, and a code action's command reaches only the language server, never an editor action. What a server can do is create a file through `workspace/applyEdit` — and a create carrying a text edit makes the client put that file in front of the operator. So `add comment` writes a one-line header naming the target into `.tmp/md-comment-input-<nonce>.md`; the operator types under it and saves.
 
-**A watch turns a write into a notification.** The server registers `workspace/didChangeWatchedFiles` on the input file and on the store through `client/registerCapability`, so it learns of a write whether or not the file is an open buffer. The watch only reports changes while the server lives, so the server also drains the input file at startup — a comment typed before a crash is not lost.
+**One input file per code action, gone as soon as it is read.** The editor keeps the tab of the previous comment open on its path, so a single reused path is rewritten underneath a live buffer — which the editor reports as a conflicting change on disk and answers with an overwrite prompt. A name nothing holds open cannot conflict, so every code action mints its own and `drain` deletes the file rather than emptying it. Minting also clears away the files nobody typed into, so a cancelled comment leaves nothing behind.
+
+**The nonce only climbs.** It starts as the millisecond the hand-over ran, but a hand-over deletes the file it replaces — so a free name on disk is no proof the name is unused, and the editor may still hold a buffer on it. The server therefore keeps the highest nonce it has given out and never goes back to one, whatever `.tmp/` looks like. `list comments` shares the counter, and both kinds are named and swept by the same code.
+
+**A watch turns a write into a notification.** The server registers `workspace/didChangeWatchedFiles` on the input files — as the pattern `md-comment-input-*.md`, because the names are minted after the registration — and on the store, through `client/registerCapability`, so it learns of a write whether or not the file is an open buffer. The watch only reports changes while the server lives, so the server also drains the input files at startup — a comment typed before a crash is not lost.
 
 **The comments live beside the file, never in it.** The server keeps one JSON store per Zed project under `.tmp/`. Nothing the server does writes into the commented buffer.
 
 **Two displays carry the comments, and code actions change them.** An inlay hint sits at the end of each commented line, and the same comment is published as a `Hint` diagnostic over that line — the diagnostic is the dependable one, because it reaches the diagnostics panel whatever the hint settings say, and it renders inline when inline diagnostics are on. Zed drops the `command` field of hint label parts, so neither display can be clicked; add, edit, delete, list, copy and reset are all code actions.
 
-**Claude reads an exported file, not the store.** The `copy comments` action writes lumen-format markdown to `.tmp/md-comment.md`. The `/md-comment` command reads that file and treats each block as a task on that file and line.
+**Claude reads the store through the binary, in the export format.** `md-comment-lsp list` prints every comment as lumen-format markdown, and `/md-comment` treats each block as a task on that file and line — then `md-comment-lsp drop <file>:<line>...` clears the ones it acted on. Reading the live store rather than a file means the comments are the ones the store holds now, and no second renderer exists to drift from the export. The `copy comments` action still writes `.tmp/md-comment.md` for anything else that wants the export as a file.
 
 **Claude writes through the same binary, with no editor involved.** `md-comment-lsp comment <file>:<line> <text>` loads the store, upserts an `agent` comment, and saves. The running server holds a watch on the store as well as on the input file, so it takes the write up and republishes without a restart. The watch reports no path, so the server reads the store first and drains the input second — draining first would leave its comment unpersisted and the reload would then read the file as it stood before and throw that comment away.
 
@@ -21,16 +25,17 @@
 The whole cycle:
 
 ```
-code action ──► .tmp/md-comment-input.md ──► save ──┐
-                                                    ├─► watch ──► store (.tmp/md-comment.json)
-Claude ──► md-comment-lsp comment <file>:<line> ────┘                     │
+code action ──► .tmp/md-comment-input-<nonce>.md ──► save ──┐
+                                                            ├─► watch ──► store (.tmp/md-comment.json)
+Claude ──► md-comment-lsp comment <file>:<line> ────────────┘             │
                                                                           │
      ┌────────────────────────────────────────────────────────────────────┘
      ├─► inlayHint   ──► 💬 hint at end of line (Markdown only)
      ├─► diagnostics ──► panel entry + inline text, 🤖 for a Claude comment
      ├─► codeAction  ──► edit / delete / list / copy / reset
-     ├─► list        ──► .tmp/md-comment-list.md (opened)
-     └─► copy        ──► .tmp/md-comment.md ──► /md-comment ──► Claude
+     ├─► list        ──► .tmp/md-comment-list-<nonce>.md (opened)
+     ├─► copy        ──► .tmp/md-comment.md
+     └─► md-comment-lsp list ──► /md-comment ──► Claude ──► drop
 ```
 
 ## Not in scope
@@ -45,7 +50,7 @@ Claude ──► md-comment-lsp comment <file>:<line> ────┘           
 
 ## Invariants
 
-1. The server never edits a commented file. Its only writes are the store file, the export file, the input file, and one `.gitignore` line.
+1. The server never edits a commented file. Its only writes are the store file, the export file, its hand-over files under `.tmp/`, and one `.gitignore` line.
 2. At most one comment exists per (file, line).
 3. A comment disappears only through `delete comment` or `reset comments`. Every other path keeps it, marked orphaned when its anchor is lost.
 4. Store paths are workspace-root-relative with `/` separators.
@@ -158,10 +163,13 @@ The binary answers these before it opens the LSP channel, so Claude writes comme
 | Subcommand | Effect |
 |---|---|
 | `comment <file>:<line> <text>` | Upsert an `agent` comment, hashing the line as it reads on disk, then save the store. |
-| `drop <file>:<line>` | Remove that comment. Reports when there was none. |
+| `drop <file>:<line>...` | Remove the comment on each line named. Reports every target, whether it held one or not. One session for the batch, so the store is written once and a running server reloads once. |
+| `drop --all` | Remove every comment in the workspace — `reset comments`, from a shell. |
 | `list` | Print the whole store in the export format. |
 
 The root is the nearest ancestor of the target holding `.git`, else the current directory — it has to match the root the server derived from `initialize`, or the two read different stores.
+
+**Nothing re-implements the renderer.** `list` prints `export::render`, the same function the export file is written with, so a second copy of the format cannot drift from it — an earlier Python renderer of the store dropped the `(from Claude)` marker and left Claude acting on its own comments.
 
 ### Commands
 
@@ -169,7 +177,7 @@ The root is the nearest ancestor of the target holding `.git`, else the current 
 |---|---|---|
 | `md-comment.add` | `[uri, line]` (1-based line) | Write the input file for that target through `workspace/applyEdit`, so the client shows it, and name the path in a message. Also serves `edit comment`, with the existing comment's line. |
 | `md-comment.delete` | `[uri, line]` (1-based line) | Drop that comment, persist, refresh hints. |
-| `md-comment.list` | `[]` | Re-anchor, write the export, then hand over `<root>/.tmp/md-comment-list.md` with the same content through `workspace/applyEdit`, so the client opens it. With no comments, say so and open nothing. |
+| `md-comment.list` | `[]` | Re-anchor, write the export, then hand over a fresh `<root>/.tmp/md-comment-list-<nonce>.md` with the same content through `workspace/applyEdit`, so the client opens it. The views already handed over are deleted first — each one renders the store as it stood, so the new one replaces them. With no comments, say so and open nothing. |
 | `md-comment.copy` | `[]` | Re-anchor every comment against the file as it stands, then write the export for the whole store and `window/showMessage` (Info): `"12 comments → .tmp/md-comment.md"`. |
 | `md-comment.reset` | `[]` | Ask through `window/showMessageRequest`: `"Delete 12 comments in 3 files?"` with actions `Delete` and `Cancel`. On `Delete`, clear the store, persist, refresh hints. On `Cancel` or a null reply, do nothing. |
 
@@ -194,7 +202,7 @@ All three return `null`; none returns a workspace edit.
 
 ### Input file
 
-`<root>/.tmp/md-comment-input.md`, one header line and then whatever the operator types:
+`<root>/.tmp/md-comment-input-<nonce>.md`, one header line and then whatever the operator types:
 
 ```markdown
 <!-- md-comment: docs/spec.md:12 -->
@@ -202,7 +210,9 @@ All three return `null`; none returns a workspace edit.
 needs a source
 ```
 
-Parsing takes the first line containing the marker, splits the target on its **last** colon so a path may hold colons, and treats everything after that line as the body, trimmed. A body of several lines is kept whole — the hint shows the first 40 characters, the tooltip and the export carry all of it. Draining empties the file, so a second save of the same content stores nothing. An empty body cancels the pending comment.
+Parsing takes the first line containing the marker, splits the target on its **last** colon so a path may hold colons, and treats everything after that line as the body, trimmed. A body of several lines is kept whole — the hint shows the first 40 characters, the tooltip and the export carry all of it. Draining deletes the file, so a second save of the same content stores nothing. An empty body cancels the pending comment.
+
+A file carrying no header is left alone: that is the empty file the code action just created, before the operator typed anything. Draining reads every input file present, so a save the watch reported late is still taken.
 
 ### Export file
 
@@ -254,7 +264,7 @@ Rules: header line, then one block per comment joined by `---` on its own line, 
 
 ### Taking the comment from the input file
 
-**Two events drain the input file, and the server needs both.** The registered watch reports the save whether or not the file is an open buffer, which is the reliable path. `didSave` on the input path covers the case where the client reports the save but the watch never installs — a remote project, or a `file_scan_exclusions` entry covering `.tmp/`. Draining empties the file, so whichever event arrives second finds nothing and does nothing.
+**Two events drain the input file, and the server needs both.** The registered watch reports the save whether or not the file is an open buffer, which is the reliable path. `didSave` on an input path covers the case where the client reports the save but the watch never installs — a remote project, or a `file_scan_exclusions` entry covering `.tmp/`. Draining deletes the file, so whichever event arrives second finds nothing and does nothing.
 
 **A comment is anchored when it is taken, not when it is asked for.** The hash comes from the target's text at drain time — from the open buffer when there is one, else from disk — so a comment typed against a file that has since moved on still anchors to what the operator was looking at, and the usual reconcile rules take over from there.
 
@@ -316,7 +326,7 @@ run = "cargo build --release -p md-comment-server && install -m 755 target/relea
 }
 ```
 
-**`harness/claude/commands/md-comment.md` mirrors `commands/lumen.md`.** It reads `.tmp/md-comment.md`, prints each block, treats each as a task on that file and line, and asks before changing anything the comment does not state plainly. A missing or header-only file means no comments; say so and stop.
+**`harness/claude/commands/md-comment.md` mirrors `commands/lumen.md`.** It runs `md-comment-lsp list`, prints each block, treats each as a task on that file and line, and asks before changing anything the comment does not state plainly. Header-only output means no comments; say so and stop. A block marked `(from Claude)` is its own and it acts on none of it. Every comment it acted on goes in one `md-comment-lsp drop <file>:<line>...`; the running server clears the hints through its watch on the store, with no restart.
 
 **The extension is installed once per machine.** `zed: install dev extension` pointed at `harness/apps/md-comment` — the directory holding `extension.toml`, which is why the manifest and the shim crate sit at the app root and the server sits in `server/`. After editing the shim, `zed: rebuild dev extension`. Zed compiles the WASM itself and needs `rustup` with the `wasm32-wasip2` target. The `laptop-setup` skill records both steps.
 
@@ -388,7 +398,8 @@ Answer these before writing code:
 - **store** — `<root>/.tmp/md-comment.json`, the server's own state.
 - **export** — `<root>/.tmp/md-comment.md`, lumen-format markdown written for Claude.
 - **root** — the workspace folder Zed sent at `initialize`; one store per root.
-- **input file** — `<root>/.tmp/md-comment-input.md`, where the operator types a comment. Emptied as soon as its content is stored.
-- **list** — `<root>/.tmp/md-comment-list.md`, a rendered view of the export, opened by `list comments` and regenerated each time.
-- **drain** — read the input file, store what it holds, empty it.
+- **input file** — `<root>/.tmp/md-comment-input-<nonce>.md`, where the operator types a comment. One per code action, deleted as soon as its content is stored.
+- **list** — `<root>/.tmp/md-comment-list-<nonce>.md`, a rendered view of the export, opened by `list comments`. One per run; the earlier ones are deleted when the next is handed over.
+- **hand-over** — a file the server puts in front of the operator: an input file or a list view. One path per hand-over, deleted once spent, because a reused path is one the editor still holds a buffer on.
+- **drain** — read the input files, store what they hold, delete them.
 - **shim** — the Rust-to-WASM extension whose only job is telling Zed which binary to run.

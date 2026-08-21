@@ -45,7 +45,9 @@ codebase: `pkg/auth/rotate.go` — read what the current handler puts in the new
 
 > One line per note that narrows the answer space. Omit the section when nothing narrows it.
 
-> **No answer text ever appears here.** The moment the answer exists the note stops being a
-> question: flip it in place into a decision or fact note, same `id`, file renamed
-> (`ref-note-format.md` § Resolution — flip in place).
-> **Never delete a question.** Moot → keep the note, set `status: declined`, and add one line saying why.
+> **No answer text ever appears here.** The moment the answer exists the note stops being live:
+> the answer is a *new* decision or fact note at the next `NNN`, and this note is marked
+> `status: approved` + `superseded_by:` with an `Answered by [[…]]` first body line. A hook then
+> moves it to `thoughts/archived/` (`ref-note-format.md` § Resolution).
+> **Never delete a question.** Moot → keep the note, set `status: declined`, and add one line saying why;
+> it archives the same way.

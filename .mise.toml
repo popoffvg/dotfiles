@@ -48,6 +48,21 @@ description = "Test the vocab MCP server"
 dir = "{{config_root}}/harness/apps/vocab"
 run = "go test ./... -race -count=1"
 
+[tasks."harness:self-improve:build"]
+description = "Build the session-lesson scan TUI → ~/.local/bin/self-improve"
+dir = "{{config_root}}/harness/apps/self-improve"
+sources = ["harness/apps/self-improve/**/*.go", "harness/apps/self-improve/go.sum"]
+outputs = ["{{env.HOME}}/.local/bin/self-improve"]
+run = """
+version=$(jq -r .version {{config_root}}/harness/plugins/self-improvement/.claude-plugin/plugin.json)
+go build -ldflags "-X main.version=$version" -o $HOME/.local/bin/self-improve .
+"""
+
+[tasks."harness:self-improve:test"]
+description = "Test the session-lesson scan TUI"
+dir = "{{config_root}}/harness/apps/self-improve"
+run = "go test ./... -count=1"
+
 [tasks."harness:md-comment:build"]
 description = "Build the md-comment language server → ~/.local/bin/md-comment-lsp"
 dir = "{{config_root}}/harness/apps/md-comment"

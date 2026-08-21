@@ -32,7 +32,7 @@ Reference-type slugs in the last column name the skill that owns the file: **`su
 
 | `/code …` | You need to… | Reference |
 |---|---|---|
-| `new` *(default)* | Spec pipeline: init the corpus (`CLAUDE.md`, `RULES.md` — ask the four rule questions), write `spec.md` (if missing) → grill until no open question note is left in `thoughts/` → compile the plan with its **wave** table → **stop at the gate**. Does not write TODO bodies. | `arch:sub-new.md` · `skill:flow-scetch` |
+| `new` *(default)* | Spec pipeline: init the corpus (`CLAUDE.md`, `RULES.md` — ask the four rule questions — `PATTERNS.md`), write `spec.md` (if missing) → grill until no open question note is left in `thoughts/` → compile the plan with its **wave** table → **stop at the gate**. Does not write TODO bodies. | `arch:sub-new.md` · `skill:flow-scetch` |
 | `todo` | Author self-contained `todos/TODO-N.md` bodies (restated Constraints, Unit **and** E2E tests) from a reviewed `spec.md` + `thoughts/`. Runs only past the gate. | `arch:sub-todo.md` · `skill:flow-scetch` |
 | `verify` | Audit the spec before impl in a separate read-only `spec-verifier` agent — contradictions, missing parts, edge cases, plus the completeness / test-honesty floor. Returns READY / NEEDS REVISION. | `sub:verify.md` |
 | `revise` | Settle drift in `spec.md` / `todos/` and the `thoughts/` graph; resets the spec `status` to `review`. Notes-only. | `sub:revise.md` |

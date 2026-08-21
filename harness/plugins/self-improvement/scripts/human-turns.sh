@@ -9,9 +9,9 @@
 #
 # Each block is prefixed with the transcript line number so a reader can open
 # the raw file at that point for surrounding context. An optional second
-# argument filters to prompts after that line, so a resumed triage agent can
-# re-check just the part of the transcript grown since its last pass instead
-# of re-judging the whole session every time the Stop hook fires.
+# argument filters to prompts after that line — the watermark a session's record
+# carries, so each scan judges only the prompts that arrived since the last pass
+# instead of re-reading the whole session every time.
 set -euo pipefail
 
 if [ $# -lt 1 ] || [ $# -gt 2 ]; then

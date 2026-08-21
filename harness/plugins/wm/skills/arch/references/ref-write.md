@@ -7,7 +7,7 @@ Vocabulary: `wm:GLOSSARY.md`.
 ## Role
 
 Architector, not executor. Write and edit only under `<notes-dir>/` (`CLAUDE.md`, `RULES.md`,
-`spec.md`, `GLOSSARY.md`, `thoughts/`, `todos/`). Read any file for planning. "add X" / "fix Y" → capture as a ledger row,
+`spec.md`, `GLOSSARY.md`, `PATTERNS.md`, `thoughts/`, `todos/`). Read any file for planning. "add X" / "fix Y" → capture as a ledger row,
 never as a code edit.
 
 ## Artifacts
@@ -18,19 +18,21 @@ never as a code edit.
 ├── RULES.md        # what to discuss directly at each step (template: tpl-rules.md)
 ├── spec.md         # the target picture + the ledger
 ├── GLOSSARY.md     # project ubiquitous language (template: tpl-glossary.md)
+├── PATTERNS.md     # implementation patterns + reference files the implementer follows (template: tpl-patterns.md)
 ├── thoughts/       # NNN-{question,decision,fact,impl-decision}-slug.md — the thought graph
-│   └── archived/   # superseded thoughts — out of the live graph, kept for the trail
+│   └── archived/   # answered questions + superseded thoughts — out of the live graph, kept for the trail
 └── todos/          # TODO-N.md — one body per ledger row (authored by `todo`, past the gate)
 ```
 
 - **`CLAUDE.md`** and **`RULES.md`** are written once, by `new` Step 0, and are never rewritten by a later subcommand. `CLAUDE.md` tells any agent entering the folder how to read and write it; `RULES.md` says which choices go to the human at each step. Every subcommand reads `RULES.md` before it starts and obeys it over its own defaults — a rule there never lowers a hard gate (the `review→impl` read, destructive-git confirmation).
-- A **superseded** thought moves to `thoughts/archived/`; it is never deleted and never left in the live graph (`ref-note-format.md` § Superseding).
+- A thought that stops being live moves to `thoughts/archived/` — a question once answered (`ref-note-format.md` § Resolution), a decision once superseded (§ Superseding). Never deleted, never left in the live graph; the `thoughts-archive.sh` hook performs the move.
 
 - **`spec.md`** is read by humans + the audit — the **target picture** plus the **ledger** plus the **Plan**. No bodies, no checkboxes, no file paths.
 - **Decisions and open questions are not spec sections.** Every choice, every fact, every unresolved question is a note in `thoughts/` — `spec.md` has no `Design Decisions` and no `Open Questions` section, and the Plan carries no decision-trail table. One place per thought; `spec.md` says what the world will look like, `thoughts/` says why.
-- **ledger** = the TODO List, an index of **outcomes** (one `#### TODO-N` entry each, with `Layer` / `Outcome` / `Commit` lines). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready.
+- **ledger** = the TODO List, an index of **outcomes** (one `#### TODO-N` entry each, with `Layer` / `Outcome` / `Concretely` / `Commit` lines). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready. An outcome the user cannot *read* is contested by default, which is what `Concretely` exists to prevent (§ spec.md template).
+- **`PATTERNS.md`** is read by the implementer, not the human — the patterns and reference files a TODO's increments follow. Nothing in it needs human agreement, which is why it is not a spec section: `spec.md` mentions `@PATTERNS.md` and carries none of the content.
 - **`todos/TODO-N.md`** is read by a context-free Sonnet implementer — self-contained, restating its ledger outcome verbatim at the top. Owned by `todo` (`sub-todo.md`).
-- **thought** — one note per resolved question, linked by `[[wikilinks]]`. Format + templates: `ref-note-format.md`.
+- **thought** — one note per question asked and one per answer given, linked by `[[wikilinks]]`. Format + templates: `ref-note-format.md`.
 - History lives in the notes' jj repo (`jj log`) — `code:ref-jj-notes.md`.
 
 ## Status — metadata, not prose
@@ -79,7 +81,8 @@ Bodies are never auto-written — a wrong spec authored into TODOs becomes wrong
 `Edit`/`Write` on a `spec.md`. When the new text sets `status: impl` and the sibling `thoughts/` still
 holds a `status: open` question, the hook denies the edit and prints the open questions — so
 implementation cannot start on an unanswered spec, whatever the agent believes. Answer the question
-first: flip its note into a `decision` or `fact` (same id, renamed file). The other half — the human
+first: write the answer as a new `decision` or `fact` note, which archives the question
+(`ref-note-format.md` § Resolution). The other half — the human
 actually reading the spec — no hook can check.
 
 ## Reading chain — what the understanding must capture
@@ -102,12 +105,13 @@ If `<notes-dir>/research/` exists, consume those artifacts — they already enco
 
 ## spec.md template
 
-Two parts, split by a `---` rule and nothing else — no heading names the split.
+One audience: the human at the gate. Description, Goal, What we're NOT doing, the ledger, the
+Plan — everything the reviewer reads to judge whether the target picture is right, the ledger
+included, since the outcomes are the discussion object the user aligns on.
 
-- **Above the rule** — for the human: Description, Goal, What we're NOT doing, Design Decisions, Open Questions, and the ledger. Everything the reviewer reads at the gate to judge whether the target picture is right — the ledger included, since the outcomes are the discussion object the user aligns on.
-- **Below the rule** — for the code agent: Implementation Guidelines. Patterns and reference files an implementer follows; nothing a human has to agree with.
-
-A section belongs above the rule if a human must verify it, below if only an agent consumes it.
+A section belongs here only if a human must verify it. What only an agent consumes is not a spec
+section: the implementation patterns and reference files live in the sibling `PATTERNS.md`
+(template: `tpl-patterns.md`), which the spec mentions and does not restate.
 
 ```markdown
 ---
@@ -122,6 +126,7 @@ drives: <one sentence — what this work delivers, user-facing>
 <what this work is about, 2–5 sentences>
 
 > Terms live in the sibling `GLOSSARY.md` (template: `references/tpl-glossary.md`), current every phase.
+> Implementation patterns live in the sibling `@PATTERNS.md` — the implementer reads it; this spec does not restate it.
 
 ## Goal
 
@@ -144,10 +149,31 @@ Plain-language user-visible outcome once this spec is done. 2–5 sentences. No 
 #### TODO-1
 **Layer:** L0 — leaf
 **Outcome:** <observable result after this TODO, user/system-facing>
+**Concretely:** Today <what the code does now>. This <what the work does to it>. Done when <the check that settles it>.
 **Commit:** `<commit subject, ≤ 72 chars, imperative>`
 **Why:** <commit body — the problem or constraint that forced this commit, and what breaks without it>
 
 > Outcome rules — post-condition, ≤ 25 words, GLOSSARY.md terms only, no implementation nouns. Full rules and examples: `sub-todo.md` § Outcome. If a row hides an "and", split it; if two rows share an outcome, merge them.
+
+> **`Concretely` is the plain-language twin of `Outcome`, and it is not optional.** The name avoids
+> `Changes`, which in a TODO body means the ordered increment sequence (`sub-todo.md` § Changes) — a
+> different thing entirely. `Outcome` is written
+> for *correctness* — abstract, glossary-bound, checkable against the Goal. That same discipline makes
+> it unreadable to anyone who does not already hold the design: "An objective is three named parts"
+> tells a reviewer nothing about what will happen to the repo. `Concretely` is written for
+> *comprehension*, in three fixed beats:
+>
+> - **Today …** — the current behaviour, concretely. This is the beat that makes the row legible: a
+>   reader who knows what it does now can judge whether the change is right.
+> - **This …** — what the work does to that, in a verb a non-author would use (*moves, deletes,
+>   teaches, throws away, puts the choice in the user's hands*) — never *improves, handles, wires up*.
+> - **Done when …** — the observable check. A pure refactor's is often *"output is byte-identical
+>   before and after"*; that is a real check and the strongest one such a row can have.
+>
+> Implementation nouns are **allowed here** — module and symbol names are what make "today" concrete.
+> The ban on them applies to `Outcome` only. Keep it to 2–4 sentences; longer means the row is two rows.
+> A `Concretely` that could be written without opening the repo is wrong: it is a paraphrase of
+> `Outcome`, not a description of the change.
 
 ## Plan
 
@@ -166,6 +192,32 @@ Plain-language user-visible outcome once this spec is done. 2–5 sentences. No 
 Rules:
 - spec.md ends after the Plan.
 - TODO numbers match `todos/TODO-N.md` filenames 1-to-1.
+
+## Write it for a reader who does not hold your context
+
+The gate is a human read. A spec that is correct and unreadable fails the gate for the same reason a
+wrong one does: the reviewer cannot tell whether it is right. These four rules come from real gate
+failures — each one is a place a reviewer stopped and asked "what does this mean?".
+
+- **Name a symbol in words at first use.** `α`/`β`, `w_struct`, `k`, `top-k` mean nothing to a reader
+  who has not read the atom that minted them. Write what the quantity *is* — "how well the fold
+  tolerates the edits (`α`) and how human it became (`β`), both defaulting to `1.0`, so they count
+  equally" — then use the symbol. A bullet whose meaning lives in a cited line number is a bullet the
+  reviewer will skip.
+- **Turn rationale prose into an ordered list.** Three or more reasons chained through "and … so …
+  because" is unreadable at review speed. One numbered line per step, each with its own reason, beats
+  one dense paragraph containing the same words. If the order matters, the list *shows* the order.
+- **State the parameter surface as a table when the work adds one.** `| Parameter | Default | What it
+  moves |`. Then say what is **not** added and why — an absent knob is a design decision, and a
+  reviewer cannot check a decision that was never written down.
+- **Draw the change when it is structural.** A pipeline gaining a step, a new branch, a moved
+  boundary: one mermaid diagram with the new parts marked, plus one sentence naming **what does not
+  move**. The unchanged part is the half a reviewer needs in order to bound the blast radius, and it is
+  the half prose always omits.
+
+**The test.** Hand the spec to someone who has not read `thoughts/`. Every row should let them say what
+will happen to the repo and how they would know it worked. If they cannot, the spec is not ready — and
+no amount of citation density fixes it.
 
 ## Spec ownership by branch
 
@@ -230,15 +282,18 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 
 - [ ] `spec.md` opens with a `---` frontmatter block (`status`, `branch`, `drives`); no `Status`/phase-rules prose in the body
 - [ ] `## Plan` carries the target-picture summary (absent only while `status: init`)
-- [ ] `spec.md` body has Description, Guidelines, Goal, What we're NOT doing, the ledger, and the Plan — nothing else. No `Design Decisions`, no `Open Questions` section, no decision-trail table
+- [ ] `spec.md` body has Description, Goal, What we're NOT doing, the ledger, and the Plan — nothing else. No `Design Decisions`, no `Open Questions` section, no `Implementation Guidelines`, no decision-trail table
+- [ ] Implementation patterns sit in `PATTERNS.md`; `spec.md` mentions `@PATTERNS.md` and carries no pattern content
 - [ ] `spec.md` is ≤ 200 lines — over budget → move detail to `thoughts/` or split the spec, never shrink the ledger. The `budget-check` hook counts this on every write and blocks (`arch:sub-todo.md` § Budget)
 - [ ] `GLOSSARY.md` exists (sibling), covers every entity/command/event in the spec, and is current
-- [ ] `CLAUDE.md` and `RULES.md` exist in the notes dir; `RULES.md` carries the four answered knobs, no `<…>` placeholder left
-- [ ] Every superseded thought sits in `thoughts/archived/`; no live note links to an archived one
+- [ ] `CLAUDE.md`, `RULES.md`, and `PATTERNS.md` exist in the notes dir; `RULES.md` carries the four answered knobs, no `<…>` placeholder left
+- [ ] Every answered question and superseded thought sits in `thoughts/archived/` — marked, and moved by the hook; no live note links to an archived one
 - [ ] **No `status: open` question note in `thoughts/`** (hard block) — `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0. The `guard.sh` hook re-checks this the moment an edit sets `spec.md` to `status: impl`, and denies the edit
 - [ ] Every decision made while writing the spec has a `thoughts/NNN-decision-*.md` note
-- [ ] The ledger is a list of `#### TODO-N` entries, each with `**Layer:**` / `**Outcome:**` / `**Commit:**` / `**Why:**` lines — no bodies, no checkboxes, no file paths
+- [ ] The ledger is a list of `#### TODO-N` entries, each with `**Layer:**` / `**Outcome:**` / `**Concretely:**` / `**Commit:**` / `**Why:**` lines — no bodies, no checkboxes, no file paths
 - [ ] Every `Commit` is a ≤ 72-char imperative subject and every `Why` states the reason the commit exists
+- [ ] Every `Concretely` has all three beats — **Today …** (current behaviour, concretely), **This …** (the change, in a verb a non-author would use), **Done when …** (the observable check) — and names something that required opening the repo. A `Concretely` that paraphrases its own `Outcome` is not one
+- [ ] No bare symbol (`α`, `β`, `w_struct`, `top-k`) appears without its meaning in words at first use; no parameter is added without a `| Parameter | Default | What it moves |` row and a line on what was deliberately **not** added; a structural change carries a diagram naming what does **not** move (§ Write it for a reader who does not hold your context)
 - [ ] `## Plan` carries the wave table; every TODO appears in exactly one wave; TODOs sharing a wave have disjoint **Files** sets and no `depends_on` between them
 - [ ] Every outcome is a post-condition (what is true after), ≤ 25 words, no implementation nouns, GLOSSARY.md terms verbatim
 - [ ] No outcome hides two behind "and"; no two entries share an outcome

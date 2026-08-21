@@ -80,10 +80,10 @@ Everything happens in the code-actions menu (`editor: toggle code actions`, or r
 
 | Code action | Effect |
 |---|---|
-| `add comment` (uncommented line) | opens `.tmp/md-comment-input.md` aimed at that line — type the comment under the header and **save** |
-| `edit comment: …` (commented line) | the same input file, aimed at the existing comment; saving replaces its text |
+| `add comment` (uncommented line) | opens a fresh `.tmp/md-comment-input-<nonce>.md` aimed at that line — type the comment under the header and **save** |
+| `edit comment: …` (commented line) | the same, aimed at the existing comment; saving replaces its text |
 | `delete comment: …` | drops that comment |
-| `list comments` | re-anchors, writes the export, then opens `.tmp/md-comment-list.md` — every comment in lumen format |
+| `list comments` | re-anchors, writes the export, then opens a fresh `.tmp/md-comment-list-<nonce>.md` — every comment in lumen format |
 | `copy comments` | re-anchors everything, then writes `.tmp/md-comment.md` in lumen format, without opening it |
 | `reset comments` | asks first, then clears every comment in the workspace |
 
@@ -91,18 +91,35 @@ Saving the input file with **nothing** under the header cancels the pending comm
 body may run to several lines; the hint shows the first 40 characters and the tooltip and
 the export carry all of it.
 
-The server learns of the save through a watch it registers on the input file
+The server learns of the save through a watch it registers on the input files
 (`workspace/didChangeWatchedFiles`), so the file does not need to stay open. Anything left
-in the input file when the server dies is picked up the next time it starts.
+in an input file when the server dies is picked up the next time it starts.
+
+Every code action gets an input file of its own, and the file is deleted the moment its
+comment is stored — a reused path is one the editor still holds a buffer on, and rewriting
+it underneath that buffer is what makes the editor ask whether to overwrite. `list comments`
+works the same way, and drops the views it handed over earlier. The tab of a comment already
+stored is a tab on a file that no longer exists; close it.
 
 Two displays carry the same comments: an inlay hint at the end of the line, and a `Hint`
 diagnostic over that line (panel entry, plus inline text when inline diagnostics are on).
 
-The store is `<root>/.tmp/md-comment.json`; the export is `<root>/.tmp/md-comment.md`; the
-rendered list is `<root>/.tmp/md-comment-list.md`. All three are gitignored — the server appends `.tmp/` to the root's `.gitignore` when the root
-is a git repository.
+The store is `<root>/.tmp/md-comment.json`; the export is `<root>/.tmp/md-comment.md`; a
+rendered list view is `<root>/.tmp/md-comment-list-<nonce>.md`. All of them are gitignored —
+the server appends `.tmp/` to the root's `.gitignore` when the root is a git repository.
 
-Then, in Claude: `/md-comment` reads the export and acts on each comment.
+Then, in Claude: `/md-comment` reads the store with `md-comment-lsp list`, acts on each
+comment, and clears the ones it handled with `md-comment-lsp drop <file>:<line>...` — the
+running server takes that write up through its watch, so the hints go without a restart.
+
+From a shell, the same binary writes and reads the store with no editor involved:
+
+```sh
+md-comment-lsp comment <file>:<line> <text>   # attach or replace a comment
+md-comment-lsp drop <file>:<line>...          # remove those comments
+md-comment-lsp drop --all                     # remove every comment
+md-comment-lsp list                           # print them in lumen format
+```
 
 ## Checks
 
@@ -131,7 +148,7 @@ Then in Zed, by hand:
 2. Choosing it opens the input file with a `<!-- md-comment: <file>:<line> -->` header.
 3. Type a comment, save — `💬 <text>` appears at the end of the target line.
 4. Code actions on that line now list `edit comment` and `delete comment`; delete removes the hint.
-5. `list comments` — the rendered list opens and matches lumen's format.
+5. `list comments` — the rendered view opens and matches lumen's format; running it again opens a new one and the previous file is gone.
 6. `copy comments` — the message names the path, and the file matches lumen's format.
 7. `reset comments` — the confirmation appears; `Cancel` keeps the comments, `Delete` clears them.
 8. The comment also shows in the diagnostics panel, and deleting it clears the entry.

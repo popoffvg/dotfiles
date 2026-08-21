@@ -53,7 +53,7 @@ hits="$(grep -Eic "$decision_re" "$transcript" || true)"
 next=0001
 highest="$(
   ls "$repo/docs/adr" "$repo/docs/!archived/adr" 2>/dev/null |
-    grep -Eo '^[0-9]{4}' | sort -n | tail -1
+    grep -Eo '^[0-9]{4}' | sort -n | tail -1 || true
 )"
 [ -n "$highest" ] && next="$(printf '%04d' $((10#$highest + 1)))"
 

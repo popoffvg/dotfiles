@@ -13,7 +13,7 @@ Rewrites the notes so they match reality: an existing thought, a new one, and th
 ## Guardrails
 
 - Rewrite a diverged outcome to state what is now true; never delete it.
-- Supersede a reversed thought (Step 3) and move it to `thoughts/archived/`; never delete it.
+- Supersede a reversed thought (Step 3) — mark it and the hook moves it to `thoughts/archived/`; never delete it.
 - Preserve TODO order and numbering.
 - Confirm outcome-shifting or step-dropping edits with the user first — these change the spec contract.
 
@@ -51,7 +51,7 @@ Thoughts are the source the spec compiles from — keep them correct, not just t
 
 - **Change an existing thought** when the same decision/fact was refined: edit in place, add a one-line `Revised:` entry noting what changed and why.
 - **Write a new thought** for a genuinely new decision or fact: next counter (`NNN`+1), matching template.
-- **Supersede, don't delete** a reversed decision: write the replacement, mark the old note `Superseded by [[NNN-decision-slug]]` at the top with `status: declined`, then **move the old file to `thoughts/archived/`** (`arch:ref-note-format.md` § Superseding). The live graph carries only current thoughts.
+- **Supersede, don't delete** a reversed decision: write the replacement, then mark the old note `Superseded by [[NNN-decision-slug]]` at the top with `status: declined` and `superseded_by:` (`arch:ref-note-format.md` § Superseding). The `thoughts-archive.sh` hook moves it to `thoughts/archived/` — never `mv` it yourself. The live graph carries only current thoughts.
 - **Re-link** per `arch:ref-note-format.md` § Back-linking (back-fill `Affects`, populate `links`, verify targets exist).
 
 ## Step 4 — Apply edits + reset status
@@ -88,7 +88,7 @@ Then stop. The user owns the next action (re-review, continue impl, re-verify).
 - [ ] (Post-impl) commit(s) for TODO-N located and SHA(s) recorded
 - [ ] Deltas categorized (decision change / new fact / drift / outcome shift / scope creep / missed step)
 - [ ] Thought graph maintained: notes changed/added/superseded, back-links + `links` updated, none deleted
-- [ ] Every superseded note moved to `thoughts/archived/`; no live note links to an archived one
+- [ ] Every superseded note marked (`status: declined` + `superseded_by:`) and gone from `thoughts/` — the hook moved it; no live note links to an archived one
 - [ ] Outcome-shifting or step-dropping edits confirmed with the user
 - [ ] spec.md rows updated; `## Plan` wave table recomputed from `depends_on`
 - [ ] `GLOSSARY.md` current

@@ -31,7 +31,7 @@ The report is a navigation aid. Judge from `git -C <repo> diff <files-touched>`.
 
 ### 5. Iterate on the shape
 - **Reject** → capture *why* in the question note (permanent context), pick the next candidate, re-spawn. The implementer **reverts** prior prototype edits first — never stack shapes.
-- **Accept** → flip the question note in place into `NNN-decision-*.md` (`ref-note-format.md` § Resolution — flip in place): option chosen, rationale, rejected candidates. Then body the downstream TODOs via `/code todo`. The real impl may diverge — expected.
+- **Accept** → write the answer as a new `NNN-decision-*.md` (`ref-note-format.md` § Resolution): option chosen, rationale, rejected candidates. Marking the question answered archives it. Then body the downstream TODOs via `/code todo`. The real impl may diverge — expected.
 
 ## The "valid for a prototype, broken as a contract" smell
 
@@ -46,4 +46,4 @@ Any yes → the prototype answered "is this shape expressible?" but not "is it c
 
 ## Ends
 
-After review, control returns to the user's call: the thought note to record the resolution, or `/code todo` to body the unblocked TODOs. No automatic chaining. Each pass's option, compile breaks, and verdict live in the question note (flipped to a decision note once settled); the notes jj repo snapshots them on session stop (`code:ref-jj-notes.md`).
+After review, control returns to the user's call: the thought note to record the resolution, or `/code todo` to body the unblocked TODOs. No automatic chaining. Each pass's option, compile breaks, and verdict live in the question note while it is open, and carry over into the decision note that answers it; the notes jj repo snapshots them on session stop (`code:ref-jj-notes.md`).

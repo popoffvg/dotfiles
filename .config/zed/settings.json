@@ -103,7 +103,7 @@
     "enabled": true,
   },
   "ui_font_fallbacks": ["FiraCode Nerd Font Mono"],
-  "icon_theme": "Catppuccin Macchiato",
+  "icon_theme": "Material Icon Theme",
   "title_bar": {
     "show_branch_status_icon": true,
   },
@@ -195,6 +195,9 @@
     },
   },
   "agent": {
+    "sandbox_permissions": {
+      "allow_unsandboxed": true
+    },
     "expand_terminal_card": false,
     "terminal_init_command": "claudex",
     "commit_message_model": {
@@ -238,28 +241,28 @@
     "single_file_review": true,
     "dock": "left",
     "default_model": {
-      "effort": "medium",
-      "provider": "openai",
-      "model": "gpt-5.3-codex",
+      "effort": "MEDIUM",
+      "provider": "zed.dev",
+      "model": "gemini-3.5-flash",
       "enable_thinking": true,
     },
     "favorite_models": [
       {
         "provider": "openai",
         "model": "gpt-5.3-codex",
-        "enable_thinking": true,
+        "enable_thinking": true
       },
       {
         "provider": "openai",
         "model": "gpt-5-mini",
-        "enable_thinking": false,
+        "enable_thinking": false
       },
       {
         "provider": "zed.dev",
         "model": "gemini-3.5-flash",
         "enable_thinking": true,
-        "effort": "MEDIUM",
-      },
+        "effort": "MEDIUM"
+      }
     ],
     "model_parameters": [],
   },

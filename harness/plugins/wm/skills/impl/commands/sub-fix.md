@@ -10,11 +10,11 @@ The user points at a gap — a **bug** (behavior wrong), a **missing part** (beh
 
 | Kind | What the user points at | Thought action |
 |---|---|---|
-| **bug** | broken behavior — output wrong, crash, regression | a thought is **wrong** → deprecate + replace |
+| **bug** | broken behavior — output wrong, crash, regression | a thought is **wrong** → supersede + replace |
 | **missing** | something never built — a case unhandled, a step skipped | a thought is **missing** → add new |
-| **adjust** | working behavior that should differ — new requirement, changed decision | a thought is **outdated** → deprecate + replace |
+| **adjust** | working behavior that should differ — new requirement, changed decision | a thought is **outdated** → supersede + replace |
 
-`bug` and `adjust` share the loop (deprecate old, write replacement); `missing` skips deprecation, straight to a new note.
+`bug` and `adjust` share the loop (supersede old, write replacement); `missing` skips the supersede, straight to a new note.
 
 **A thought can be absent (code-only drift).** When the gap traces to no thought change — the thought is correct and only the code diverged (typo, off-by-one, a branch that doesn't match the decision it cites) — skip Steps 2–3, go to Step 4. Report: *"no thought change — code diverged from a correct thought."*
 
@@ -46,22 +46,26 @@ Show the user: *"Found it: `003-decision-single-flight.md` is wrong because X. T
 
 ## Step 2: Mark the wrong thought
 
-On confirmation, prepend a deprecation block to the wrong note:
+On confirmation, mark the wrong note superseded — same frontmatter keys as every other supersede
+(`arch:ref-note-format.md` § Superseding), plus the reason as the first body line:
 
 ```markdown
 ---
-deprecated: true
-deprecated_by: "NNN"
-deprecation_reason: "<one-line reason this thought is wrong>"
+status: declined
+superseded_by: "NNN"
 ---
 
 # <original title>
+
+Superseded by [[NNN-type-slug]] — <one-line reason this thought is wrong>
 ```
 
-- Keep the original content — the history is the audit trail.
-- `deprecated_by` points to the replacement (filled after Step 3).
-- **Move the deprecated file to `thoughts/archived/`** once Step 3 writes the replacement (`arch:ref-note-format.md` § Superseding). Filename unchanged; the `NNN` counter is never reused. Repoint every live wikilink at the replacement.
-- Commit in `<notes-dir>`: `fix: deprecated NNN-<type>-<slug>`.
+- Keep the original content below — the history is the audit trail.
+- `superseded_by` points to the replacement (filled after Step 3).
+- **Do not move the file.** The `thoughts-archive.sh` hook takes it to `thoughts/archived/` on the
+  next tool call, filename unchanged, and prints the live notes whose wikilinks you still owe a
+  repoint at the replacement.
+- Commit in `<notes-dir>`: `fix: superseded NNN-<type>-<slug>`.
 
 ## Step 3: Write the corrected thought
 
@@ -69,7 +73,7 @@ Write a new note to `thoughts/` at the next counter `NNN`, same type as the orig
 
 Links:
 
-- **Depends on**: the deprecated note, annotated *"supersedes [[NNN-old-slug]] — <why>"*.
+- **Depends on**: the superseded note, annotated *"supersedes [[NNN-old-slug]] — <why>"*.
 - **Affects**: back-filled at loop end per `arch:ref-note-format.md` § Back-linking.
 
 Frontmatter marks it a replacement:
@@ -84,7 +88,7 @@ Commit: `fix: add NNN-<type>-<slug> as replacement for NNN-old-slug`.
 
 With the thought corrected:
 
-1. Read the corrected and deprecated notes — understand what changed.
+1. Read the corrected and superseded notes — understand what changed.
 2. Find the files from `todos/TODO-N.md` **Files**.
 3. Make the minimal change aligning code with the corrected thought.
 4. If the fix renames or introduces a domain term, update `<notes-dir>/GLOSSARY.md` in the same commit.
@@ -97,7 +101,7 @@ In `<notes-dir>`:
 
 ```
 jj commit -m "[FIX:<kind>] <one-line gap>
-  - thought: NNN-old-slug deprecated (reason: <reason>) | none (missing) | none (code-only drift)
+  - thought: NNN-old-slug superseded (reason: <reason>) | none (missing) | none (code-only drift)
   - corrected/new thought: NNN-new-slug | none
   - commit: <sha>
   - autotest: pass | fail (details)"
@@ -106,7 +110,7 @@ jj commit -m "[FIX:<kind>] <one-line gap>
 `<kind>` is `bug`, `missing`, or `adjust`. Send the user:
 
 1. **Gap**: one-line symptom / absent behavior / desired change (with kind)
-2. **Old thought**: NNN-old-slug — deprecated (reason), or *none* (missing / code-only drift)
+2. **Old thought**: NNN-old-slug — superseded (reason), or *none* (missing / code-only drift)
 3. **Corrected/new thought**: NNN-new-slug — what changed or adds, or *none* (code-only drift)
 4. **Commit**: sha + subject
 5. **Autotest**: command + outcome

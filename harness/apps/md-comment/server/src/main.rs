@@ -16,7 +16,8 @@ With no argument it speaks LSP over stdio and is started by the Zed extension.
 The subcommands write the same store from a shell, for Claude to place comments:
 
   comment <file>:<line> <text>   attach a comment, replacing the one on that line
-  drop <file>:<line>             remove the comment on that line
+  drop <file>:<line>...          remove the comment on each of those lines
+  drop --all                     remove every comment in the workspace
   list                           print every comment in the export format
 
 A running server picks the change up through its watch on the store.";
@@ -36,8 +37,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 _ => Err("usage: md-comment-lsp comment <file>:<line> <text>".to_string()),
             }),
             "drop" => Some(match rest {
-                [target] => md_comment::cli::drop_comment(target),
-                _ => Err("usage: md-comment-lsp drop <file>:<line>".to_string()),
+                [flag] if flag == "--all" => md_comment::cli::drop_all(),
+                targets if !targets.is_empty() => md_comment::cli::drop_comments(targets),
+                _ => Err("usage: md-comment-lsp drop <file>:<line>... | --all".to_string()),
             }),
             "list" => Some(md_comment::cli::list()),
             _ => None,
@@ -286,10 +288,10 @@ impl Server {
                 }
                 Effect::ShowMessage { error, text } => self.show(error, text),
                 Effect::AskResetConfirmation { prompt } => self.ask_reset(prompt),
-                Effect::OpenInput { contents } => self.open_input(contents),
+                Effect::OpenInput { path, contents } => self.open_input(path, contents),
                 Effect::WatchFiles => self.watch_files(),
                 Effect::PublishDiagnostics => self.publish_diagnostics(),
-                Effect::OpenList { contents } => self.open_list(contents),
+                Effect::OpenList { path, contents } => self.open_list(path, contents),
             }
         }
     }
@@ -297,13 +299,15 @@ impl Server {
     /// Create the input file through the client, so the client puts it in front of the
     /// operator. A create alone opens nothing — the text edit is what makes the
     /// transaction non-empty, and non-empty is what the editor shows.
-    fn open_input(&mut self, contents: String) {
-        let path = self.session.input_path();
+    ///
+    /// The path is one no earlier comment used, so nothing holds a buffer on it and the
+    /// client has nothing to reconcile.
+    fn open_input(&mut self, path: PathBuf, contents: String) {
         let uri = md_comment::path_to_uri(&path);
         if let Some(parent) = path.parent() {
             let _ = std::fs::create_dir_all(parent);
         }
-        // Start from empty so the edit below is the whole content, whatever was there.
+        // The file has to exist for the edit below to land on it.
         let _ = std::fs::write(&path, "");
 
         let id = self.request_id();
@@ -332,12 +336,15 @@ impl Server {
         self.trace.write(&format!("open input {}", path.display()));
     }
 
-    /// Ask the client to watch the input file and the store. Without this the server only
-    /// learns of a write when the file happens to be an open buffer the client reports —
-    /// and the `comment` subcommand writes the store with no editor involved at all.
+    /// Ask the client to watch the input files and the store. Without this the server
+    /// only learns of a write when the file happens to be an open buffer the client
+    /// reports — and the `comment` subcommand writes the store with no editor at all.
+    ///
+    /// The input files are watched as a pattern, because each comment gets a file of its
+    /// own and the names are minted after this registration.
     fn watch_files(&mut self) {
         let id = self.request_id();
-        let globs = [self.session.input_path(), self.session.store_path()]
+        let globs = [self.session.input_glob(), self.session.store_path()]
             .map(|path| path.to_string_lossy().to_string());
         let watchers: Vec<Value> = globs
             .iter()
@@ -409,11 +416,10 @@ impl Server {
         }
     }
 
-    /// Hand over a rendered view the same way as the input file: empty it, then let the
-    /// client apply the text, which is what makes it open the file. The export on disk is
-    /// never touched here — the Claude command reads that one.
-    fn open_list(&mut self, contents: String) {
-        let path = self.session.list_path();
+    /// Hand over a rendered view the same way as the input file: a path of its own, then
+    /// the client applies the text, which is what makes it open the file. The export on
+    /// disk is never touched here — the Claude command reads that one.
+    fn open_list(&mut self, path: PathBuf, contents: String) {
         let uri = md_comment::path_to_uri(&path);
         let id = self.request_id();
         self.send(Message::Request(Request {

@@ -1,14 +1,13 @@
 //! The input file: where the operator types a comment.
 //!
-//! A code action targets a line by writing a header into this file. The operator types
-//! the body under it and saves. The server learns of the save through a watch it
-//! registered on the path, so the file needs no editor support and no open buffer.
+//! A code action targets a line by writing a header into a file of its own — one per code
+//! action, named and swept by `scratch`. The operator types the body under it and saves.
+//! The server learns of the save through a watch it registered on the whole family of
+//! input files, so the file needs no editor support and no open buffer.
 
 /// `<!-- md-comment: docs/spec.md:12 -->`
 const MARKER: &str = "<!-- md-comment: ";
 const MARKER_END: &str = " -->";
-
-pub const FILE_NAME: &str = "md-comment-input.md";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Target {

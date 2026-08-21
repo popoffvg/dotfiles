@@ -19,8 +19,8 @@
     {
       "name": "self-improvement",
       "source": "./harness/plugins/self-improvement",
-      "description": "Captures generalizable behavioral rules from user corrections on session end (Stop hook), writes each into a new or existing skill with the capture-lesson skill, and consolidates the accumulated skill corpus with the dream skill.",
-      "version": "0.19.0"
+      "description": "Scores every Claude Code session for the lessons it holds and proposes where each one belongs in the harness: a watermarked background scan kicked by the SessionStart hook, one haiku call per dirty session, then a suggestion pass over the existing skill inventory. Browsable in the self-improve TUI. High scorers are archived for the capture-lesson skill to turn into skills and the dream skill to consolidate.",
+      "version": "0.20.0"
     },
     {
       "name": "show",
@@ -44,7 +44,7 @@
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.41.0"
+      "version": "2.42.0"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "name": "self-improvement",
-  "version": "0.19.0",
-  "description": "Captures generalizable behavioral rules from user corrections on session end (Stop hook), writes each into a new or existing skill with the capture-lesson skill, and consolidates the accumulated skill corpus with the dream skill.",
+  "version": "0.20.0",
+  "description": "Scores every Claude Code session for the lessons it holds and proposes where each one belongs in the harness: a watermarked background scan kicked by the SessionStart hook, one haiku call per dirty session, then a suggestion pass over the existing skill inventory. Browsable in the self-improve TUI. High scorers are archived for the capture-lesson skill to turn into skills and the dream skill to consolidate.",
   "author": {
     "name": "popoffvg"
   }

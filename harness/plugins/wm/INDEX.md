@@ -55,10 +55,11 @@ Three files at the plugin root, shared by all four skills.
 | `commands/sub-prototype.md` | `prototype` — settle an open decision with the smallest visible code diff. |
 | `references/ref-bricks.md` | The **brick** roster — the closed set of component types, what each owns, its metric, its common structure. Typed in every `## Components` row and every `GLOSSARY.md` `Kind`. |
 | `references/ref-write.md` | **The spec contract** — artifacts, notes-dir layout, the `status` metadata (spec phase + TODO lifecycle), the gate, TODO ordering and **waves**, the Spec-Readiness Checklist. The single source; no other file restates it. |
-| `references/ref-note-format.md` | Thought notes, and the supersede → `thoughts/archived/` move. |
+| `references/ref-note-format.md` | Thought notes; the answered-question and supersede → `thoughts/archived/` moves, both automatic. |
 | `references/tpl-notes-claude.md` | The notes-dir `CLAUDE.md`. |
 | `references/tpl-rules.md` | The notes-dir `RULES.md` and its four init knobs. |
 | `references/tpl-glossary.md` | The notes-dir `GLOSSARY.md` — the project's ubiquitous language, distinct from `wm:GLOSSARY.md`. |
+| `references/tpl-patterns.md` | The notes-dir `PATTERNS.md` — the implementation patterns and reference files the increments follow, out of `spec.md` so the spec stays human-only. |
 | `references/tpl-note-{question,decision,fact,impl-decision}.md` | The four thought notes. |
 | `references/tpl-todo.md` | The TODO body, and the worked example of it. |
 

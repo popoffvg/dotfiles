@@ -58,34 +58,37 @@ fn at(line: u32) -> Position {
 /// Write a comment the way the operator does: run the add command, fill the input file
 /// it asks for, and save. `line` is 0-based, as on the LSP wire.
 fn add(session: &mut Session, uri: &str, line: u32, text: &str) {
+    let (path, contents) = handed_over(session, uri, line);
+    write_input(&path, &format!("{contents}{text}\n"));
+    session.drain_input();
+}
+
+/// Run the add command and read back the input file it minted: its path and its header.
+fn handed_over(session: &mut Session, uri: &str, line: u32) -> (PathBuf, String) {
     let effects = session.execute_command(COMMAND_ADD, &[json!(uri), json!(line + 1)]);
-    let contents = effects
+    effects
         .iter()
         .find_map(|effect| match effect {
-            Effect::OpenInput { contents } => Some(contents.clone()),
+            Effect::OpenInput { path, contents } => Some((path.clone(), contents.clone())),
             _ => None,
         })
-        .expect("the add command hands over an input file");
-    let path = session.input_path();
+        .expect("the add command hands over an input file")
+}
+
+fn write_input(path: &PathBuf, text: &str) {
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-    std::fs::write(&path, format!("{contents}{text}\n")).unwrap();
-    session.drain_input();
+    std::fs::write(path, text).unwrap();
 }
 
 #[test]
 fn add_writes_a_comment_from_the_input_file() {
     let (mut session, _root, uri) = open("# Title\n\n## Design\n");
 
-    let effects = session.execute_command(COMMAND_ADD, &[json!(uri), json!(3)]);
-    let contents = match &effects[0] {
-        Effect::OpenInput { contents } => contents.clone(),
-        other => panic!("expected an input file, got {other:?}"),
-    };
+    let (path, contents) = handed_over(&mut session, &uri, 2);
     assert_eq!(contents, "<!-- md-comment: docs/spec.md:3 -->\n\n");
     assert!(session.store().comments("docs/spec.md").is_empty());
 
-    std::fs::create_dir_all(session.input_path().parent().unwrap()).unwrap();
-    std::fs::write(session.input_path(), format!("{contents}needs a source\n")).unwrap();
+    write_input(&path, &format!("{contents}needs a source\n"));
     let effects = session.drain_input();
 
     assert_eq!(
@@ -104,14 +107,34 @@ fn add_writes_a_comment_from_the_input_file() {
 }
 
 #[test]
-fn the_input_file_is_emptied_after_a_comment_is_taken() {
+fn the_input_file_is_removed_after_a_comment_is_taken() {
     let (mut session, _root, uri) = open("## Design\n");
     add(&mut session, &uri, 0, "needs a source");
 
-    assert_eq!(std::fs::read_to_string(session.input_path()).unwrap(), "");
+    assert!(session.input_paths().is_empty());
     // Draining again finds nothing, so a second save cannot duplicate the comment.
     assert!(session.drain_input().is_empty());
     assert_eq!(session.store().comments("docs/spec.md").len(), 1);
+}
+
+#[test]
+fn every_comment_gets_an_input_file_of_its_own() {
+    let (mut session, _root, uri) = open("## Design\n## Notes\n");
+
+    let (first, _) = handed_over(&mut session, &uri, 0);
+    // The editor holds a buffer on the file it was handed, so the next comment cannot
+    // reuse that path — a rewrite underneath the buffer is the overwrite prompt.
+    write_input(&first, "");
+    let (second, contents) = handed_over(&mut session, &uri, 1);
+    assert_ne!(first, second);
+
+    write_input(&second, &format!("{contents}second line\n"));
+    session.drain_input();
+
+    assert_eq!(comment(&session, 0).text, "second line");
+    assert_eq!(comment(&session, 0).line, 2);
+    // The file nobody typed into is gone too, so `.tmp/` does not fill up with them.
+    assert!(session.input_paths().is_empty());
 }
 
 #[test]
@@ -127,16 +150,12 @@ fn adding_on_a_commented_line_replaces_the_text() {
 #[test]
 fn saving_an_empty_body_cancels_the_comment() {
     let (mut session, _root, uri) = open("## Design\n");
-    let effects = session.execute_command(COMMAND_ADD, &[json!(uri), json!(1)]);
-    let contents = match &effects[0] {
-        Effect::OpenInput { contents } => contents.clone(),
-        other => panic!("expected an input file, got {other:?}"),
-    };
-    std::fs::create_dir_all(session.input_path().parent().unwrap()).unwrap();
-    std::fs::write(session.input_path(), contents).unwrap();
+    let (path, contents) = handed_over(&mut session, &uri, 0);
+    write_input(&path, &contents);
 
     assert!(session.drain_input().is_empty());
     assert!(session.store().comments("docs/spec.md").is_empty());
+    assert!(session.input_paths().is_empty());
 }
 
 #[test]
@@ -357,7 +376,7 @@ fn a_leftover_input_file_is_taken_at_startup() {
     std::fs::write(&target, "# Title\n## Design\n").unwrap();
     std::fs::create_dir_all(root.join(".tmp")).unwrap();
     std::fs::write(
-        root.join(".tmp").join("md-comment-input.md"),
+        root.join(".tmp").join("md-comment-input-1755769123456.md"),
         "<!-- md-comment: docs/spec.md:2 -->\n\nsurvived the crash\n",
     )
     .unwrap();
@@ -380,6 +399,7 @@ fn a_leftover_input_file_is_taken_at_startup() {
     assert_eq!(stored.line, 2);
     // Anchored against the file on disk, since no buffer was ever open.
     assert_eq!(stored.hash, md_comment::anchor::line_hash("## Design"));
+    assert!(session.input_paths().is_empty());
 }
 
 #[test]
@@ -639,7 +659,12 @@ fn the_servers_own_scratch_files_are_not_served() {
     let root = root();
     let (session, _effects) = Session::new(root.clone());
 
-    for name in ["md-comment.md", "md-comment.json", "md-comment-input.md"] {
+    for name in [
+        "md-comment.md",
+        "md-comment.json",
+        "md-comment-list.md",
+        "md-comment-input-1755769123456.md",
+    ] {
         assert!(
             session
                 .key(&md_comment::path_to_uri(&root.join(".tmp").join(name)))
@@ -802,17 +827,51 @@ fn list_writes_the_export_and_hands_over_a_view() {
 
     let effects = session.execute_command(COMMAND_LIST, &[]);
 
-    let view = effects.iter().find_map(|effect| match effect {
-        Effect::OpenList { contents } => Some(contents.clone()),
-        _ => None,
-    });
-    assert_eq!(view.as_deref(), Some(session.export_text().as_str()));
+    let (path, view) = effects
+        .iter()
+        .find_map(|effect| match effect {
+            Effect::OpenList { path, contents } => Some((path.clone(), contents.clone())),
+            _ => None,
+        })
+        .expect("list hands over a view");
+    assert_eq!(view, session.export_text());
     assert!(effects.contains(&Effect::WriteExport));
-    assert!(view.unwrap().contains("**docs/spec.md** line 1 (RIGHT)"));
+    assert!(view.contains("**docs/spec.md** line 1 (RIGHT)"));
+    assert_eq!(path.parent().unwrap(), root.join(".tmp"));
+    assert!(session.is_scratch_path(md_comment::scratch::LIST, &path));
+    // The export keeps its fixed path — that is the one the Claude command reads.
     assert_eq!(
-        session.list_path(),
-        root.join(".tmp").join("md-comment-list.md")
+        session.export_path(),
+        root.join(".tmp").join("md-comment.md")
     );
+}
+
+#[test]
+fn every_view_gets_a_file_of_its_own_and_replaces_the_last() {
+    let (mut session, _root, uri) = open("a\n");
+    add(&mut session, &uri, 0, "about a");
+
+    let handed = |session: &mut Session| -> PathBuf {
+        let effects = session.execute_command(COMMAND_LIST, &[]);
+        effects
+            .iter()
+            .find_map(|effect| match effect {
+                Effect::OpenList { path, .. } => Some(path.clone()),
+                _ => None,
+            })
+            .expect("list hands over a view")
+    };
+
+    let first = handed(&mut session);
+    // The editor holds a buffer on the view it was handed, so the next one cannot reuse
+    // that path — a rewrite underneath the buffer is the overwrite prompt.
+    write_input(&first, "the view as it stood");
+    let second = handed(&mut session);
+
+    assert_ne!(first, second);
+    // A view is the store as it stood, so the one just written replaces every earlier one.
+    assert!(!first.exists());
+    assert_eq!(session.list_paths(), Vec::<PathBuf>::new());
 }
 
 #[test]

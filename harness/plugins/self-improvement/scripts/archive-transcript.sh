@@ -8,10 +8,12 @@
 # dotfiles repo and is never committed.
 #
 # Two callers, two shapes:
-#   new session      the Stop hook's triage classifies it and passes the scope.
-#   archived session the Stop hook re-syncs it with no scope and no model call;
+#   new session      score-session.sh passed the threshold and hands the scope
+#                    its model call chose.
+#   archived session a later pass on the same session, which only re-syncs;
 #                    find-archive.sh locates the existing copy, so the scope
-#                    picked on the first pass is never re-judged.
+#                    picked on the first pass is never re-judged and a
+#                    re-scored session never forks a second copy.
 #
 # The source transcript only ever grows (append-only JSONL). If the dest already
 # exists and is a prefix of the source (the normal case), append just the new
@@ -29,9 +31,11 @@
 # from a sidecar written on the first correction.
 set -euo pipefail
 
-script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source-path=SCRIPTDIR source=lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-archive_dir=${SELF_IMPROVE_LESSONS_DIR:-$HOME/.claude/self-improvement/lessons}
+script_dir=$scripts_dir
+archive_dir=$lessons_dir
 
 if [ $# -lt 1 ] || [ $# -gt 2 ]; then
   printf 'usage: %s <transcript.jsonl> [global|project]\n' "$(basename "$0")" >&2
