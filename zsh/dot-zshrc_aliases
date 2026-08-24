@@ -333,12 +333,15 @@ _claudex_pick() {
 }
 
 # _claudex_run <agent-choice> [claude-args…] — build claude's arguments and run it.
+# Each agent also picks its output style (~/.claude/output-styles, keyed by the file's
+# frontmatter `name`). claude has no --output-style flag, so it rides in --settings JSON,
+# which merges over the settings files.
 _claudex_run() {
   local choice=$1; shift
   local -a args
   case "$choice" in
-    architector) args=(--agent wm:architector "$@") ;;
-    implementer) args=(--agent wm:implementer --model sonnet "$@") ;;
+    architector) args=(--agent wm:architector --settings '{"outputStyle":"ARCHITECT"}' "$@") ;;
+    implementer) args=(--agent wm:implementer --model sonnet --settings '{"outputStyle":"CODE"}' "$@") ;;
     skills) args=(--agent skill-builder) ;;
     general|"")  args=("$@") ;;
   esac

@@ -2,7 +2,8 @@
 name: lint-tester
 description: >
   Fast lint + related-tests gate for one implemented TODO. Reads the diff and the
-  TODO's Files + Autotest, runs the project linter over the changed files and the
+  TODO pair (Files from the agent half, Autotest from the human half), runs the project
+  linter over the changed files and the
   tests that cover them, and returns PASS | FAIL with the concrete failures.
   Read-only on source — never edits or commits. Cheap gate before the opus review.
 model: haiku
@@ -19,14 +20,15 @@ The cheap gate: catch lint violations and broken tests before the expensive opus
 
 ## Source of truth
 
-Read `<notes-dir>/todos/TODO-N.md` — its **Files** (what changed) and **Autotest** (the
-command + cases). Read the actual diff (`git diff` / `git show HEAD`) to see the changed lines.
+Read the TODO pair: `<notes-dir>/todos/TODO-N.agent.md` for **Files** (what changed) and
+`<notes-dir>/todos/TODO-N.md` for **Autotest** (the command + cases). Read the actual diff
+(`git diff` / `git show HEAD`) to see the changed lines.
 
 ## Steps
 
-1. **Locate changes** — from the diff and the TODO's Files, list the changed source files.
+1. **Locate changes** — from the diff and the agent half's **Files**, list the changed source files.
 2. **Lint** — run the project's linter over those files only (detect it: `golangci-lint run <pkgs>`, `eslint`, `ruff`, `shellcheck`, etc. — read the repo config, don't guess a tool that isn't configured).
-3. **Related tests** — run both of the TODO's Autotest commands (`Unit` and `E2E`). Also run the tests that cover the changed files (same package/dir). Report the real command + real output.
+3. **Related tests** — run both Autotest commands from the human half (`Unit` and `E2E`). Also run the tests that cover the changed files (same package/dir). Report the real command + real output.
 4. **Verdict** — any lint violation or failing test → **FAIL**.
 
 ## Output contract

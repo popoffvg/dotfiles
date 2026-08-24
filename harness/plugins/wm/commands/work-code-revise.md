@@ -1,6 +1,6 @@
 ---
 name: work-spec-revise
-description: Revise spec.md and todos/TODO-N.md so they match what the last commit related to TODO-N actually implemented.
+description: Revise spec.md and the todos/TODO-N.md + TODO-N.agent.md pair so they match what the last commit related to TODO-N actually implemented.
 argument-hint: <TODO-N> [<sha-or-range>]
 ---
 
@@ -12,7 +12,7 @@ Arguments: `$ARGUMENTS`
 2. Follow the `code` skill's `revise` subcommand end-to-end:
    - Locate the commit(s) for the given TODO.
    - Inspect the diff (`git show <sha>`) and categorize deltas vs the current plan.
-   - Update `<notes-dir>/spec.md` and `<notes-dir>/todos/TODO-N.md` so they reflect what actually shipped.
+   - Update `<notes-dir>/spec.md` and both halves of `<notes-dir>/todos/TODO-N` so they reflect what actually shipped.
    - Append a worklog line.
 3. **Do not modify source code.** Edits are limited to `<notes-dir>/`.
 4. Stop after reporting the summary. Return control to the user.

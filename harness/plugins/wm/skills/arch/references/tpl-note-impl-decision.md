@@ -2,6 +2,10 @@
 type: impl-decision
 id: "005"
 status: approved            # approved | declined
+description: >              # 1–3 sentences, the only text the thought index shows — ref-note-format.md § Frontmatter
+  SessionStore wraps every Redis error in ErrStoreUnavailable, so the auth handler branches on
+  one error type instead of importing the driver. Every later TODO touching SessionStore returns
+  that type.
 date: 2026-06-19T09:12:40
 tags: [auth, errors]
 todo: TODO-2

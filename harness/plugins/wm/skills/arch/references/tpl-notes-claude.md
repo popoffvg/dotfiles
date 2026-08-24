@@ -15,9 +15,9 @@ parent project. `jj -R . log` is the history.
 | `GLOSSARY.md` | Project ubiquitous language — every term the spec uses | every phase |
 | `RULES.md` | What to raise with the human at each step, and what to decide alone | `/code new` Step 0.6 |
 | `PATTERNS.md` | Implementation patterns + reference files the increments follow — for the implementer, not the human | `/code new` Step 0, then any subcommand that finds a pattern |
-| `thoughts/` | `NNN-{question,decision,fact,impl-decision}-slug.md` — the thought graph | every phase |
+| `thoughts/` | `NNN-{question,decision,fact,impl-decision}-slug.md` — the thought graph; every note carries a 1–3 sentence `description`, and `~/.claude/scripts/wm-thought-index.py` is the index over them | every phase |
 | `thoughts/archived/` | Answered questions + superseded thoughts — kept for the trail, out of the live graph | a hook, on any note that stops being live |
-| `todos/` | `TODO-N.md` — one self-contained body per ledger row | `/code todo` |
+| `todos/` | `TODO-N.md` + `TODO-N.agent.md` — one self-contained pair per ledger row: the human half (Outcome, Components, Autotest, Commit) and the agent half (Constraints, the increments, Files, Pre-reads) | `/code todo` |
 | `research/` | Explore-phase artifacts, ingested into `thoughts/` as facts | `/explore` |
 
 ## Read order
@@ -25,8 +25,12 @@ parent project. `jj -R . log` is the history.
 1. `spec.md` — Description, Goal, What we're NOT doing, the ledger, the Plan.
 2. `GLOSSARY.md` — the terms the spec uses. Same word, same meaning, everywhere.
 3. `RULES.md` — the interaction contract for the current step.
-4. `thoughts/` — why each choice was made. Enter through a TODO's `## Constraints` links.
-5. `todos/TODO-N.md` — the body to implement. Self-contained: read it alone, implement it alone.
+4. `thoughts/` — why each choice was made. **Never read the whole directory.** Run
+   `~/.claude/scripts/wm-thought-index.py thoughts` (add `-m <regex>` for the terms your task
+   names), read the one-to-three-sentence `description` of each note, and open only the notes that
+   bear on your task — then follow their wikilinks. A TODO's agent half links its notes directly in
+   `## Constraints`; those you open without searching.
+5. `todos/TODO-N.md` — what to build and what proves it, then `todos/TODO-N.agent.md` — how, one increment at a time. Self-contained: read the pair alone, implement it alone.
 6. `PATTERNS.md` — before writing code: the patterns that body's increments follow, and the files to pre-read.
 
 Ignore `thoughts/archived/` unless you are auditing history. Those notes were answered or superseded.
@@ -37,6 +41,9 @@ Ignore `thoughts/archived/` unless you are auditing history. Those notes were an
   `decision` or `fact` note at the next `NNN`, restating the question verbatim; the question note
   gets `status: approved` + `superseded_by:` and a hook archives it. Never open a second note
   asking the same thing.
+- **Every thought carries a `description`** — 1–3 sentences stating what it settles, in the
+  frontmatter. It is the only text the index shows, so it is what decides whether the next reader
+  opens the note at all. Write it in the same edit that creates the note.
 - **Supersede, never delete.** Mark the old note `Superseded by [[NNN-type-slug]]` with
   `status: declined` + `superseded_by:`; a hook moves it to `thoughts/archived/` for you. The
   replacement takes the next counter.
@@ -55,6 +62,7 @@ Ignore `thoughts/archived/` unless you are auditing history. Those notes were an
 ## Status
 
 `spec.md` frontmatter `status`: `init → review → impl`. Each `todos/TODO-N.md` frontmatter
-`status`: `todo → impl → verify → done`, with `blocked` as the failure branch.
+`status`: `todo → impl → verify → done`, with `blocked` as the failure branch. `TODO-N.agent.md`
+carries no frontmatter — the pair has one status.
 A `status: open` question note in `thoughts/` blocks the gate — list them with
 `~/.claude/scripts/wm-open-questions.sh thoughts`.

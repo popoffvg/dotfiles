@@ -2,23 +2,55 @@
 """Count a wm spec artifact against the budgets its skill states, and name the split.
 
 The budgets are written as prose and as checklist rows in `arch:sub-todo.md`,
-`arch:tpl-todo.md` and `arch:ref-write.md`. A checklist row is ticked by the model that
-wrote the file, so a body can pass review at three times its budget. This script is the
-same rule, counted.
+`arch:tpl-todo.md`, `arch:tpl-todo-agent.md` and `arch:ref-write.md`. A checklist row is
+ticked by the model that wrote the file, so a body can pass review at three times its
+budget. This script is the same rule, counted.
+
+One ledger row is a PAIR of files split by audience, plus a TRACE companion holding where
+each decision in the pair came from (`arch:sub-todo.md` § One ledger row, two halves and a
+trace). Each file is checked against its own budgets, and each is checked for sections that
+belong to another - a misplaced section means the split was never made.
 
 Checked, by file kind:
 
-  todos/TODO-N.md   body <= 512 lines            (arch:sub-todo.md - Budget)
-                    <= 10 increments             (arch:sub-todo.md - Sizing)
-                    each diff <= 150 changed lines, unless the increment declares a
-                    `**Compile floor:**` and stubs what it defers
-                    ## Components <= 5 rows, when the section is present
-                    ## Changes is an increment sequence at all
+  todos/TODO-N.md         human half - carries the ONE diff, in ## Surface
+                          body <= 550 lines            (arch:sub-todo.md - Budget)
+                          ## Components <= 5 rows, when the section is present
+                          each ## Surface diff <= 150 changed lines, unless that file
+                          declares a `**Compile floor:**`
+                          no agent-half section present (Constraints, Changes, Files,
+                          Pre-reads, Manual test, Definition of done)
 
-  spec.md           <= 200 lines                 (arch:ref-write.md - Spec-Readiness)
+  todos/TODO-N.agent.md   agent half - NO line budget, by design
+                          NO ```diff block anywhere - the diff is the human half's
+                          ## Surface, and an increment says what to do, not what to paste
+                          <= 10 increments             (arch:sub-todo.md - Sizing)
+                          increment numbers contiguous from 1
+                          each increment carries a **Do:** bullet
+                          no frontmatter (status lives in the human half alone)
+                          no human-half section present (Outcome, New terms,
+                          Components, Surface, Autotest, Commit)
 
-Every message names the remedy the skill states, which is always to split - never to
-compress, and never to raise the budget.
+  todos/TODO-N.trace.md   trace - NO line budget and NO row budget, by design: a row exists
+                          because a decision was made, and no number of decisions makes a
+                          TODO too big. What is counted is whether a row can be FOLLOWED.
+                          ## Trace present, and no pair section present
+                          NO ```diff block anywhere
+                          every table row fills all three columns
+                          every [[note]] origin resolves to a LIVE note in ../thoughts/;
+                          one resolving only under thoughts/archived/ is a superseded
+                          decision the TODO still obeys (arch:sub-todo.md - Trace)
+                          no frontmatter (status lives in the human half alone)
+
+  spec.md                 <= 200 lines                 (arch:ref-write.md - Spec-Readiness)
+
+Not checked here: whether a diff carries a BODY rather than a surface (a shell script, a
+function body, a fixture - `arch:sub-todo.md` § A diff carries the surface, not a body).
+That is a judgment, not a count; it is graded by `wm:evals/` and audited by `/code verify`.
+This script counts only what is countable, so every message it prints is a real overrun.
+
+Every message names the remedy the skill states, which is always to split or to move -
+never to compress, and never to raise the budget.
 
 usage: budget-check.py <file>
 Exit code: 0 within budget or not a checked file - 1 over budget - 2 unreadable.
@@ -27,24 +59,55 @@ import os
 import re
 import sys
 
-TODO_BODY_LINES = 512
+TODO_HUMAN_LINES = 550
 SPEC_LINES = 200
 MAX_INCREMENTS = 10
 MAX_DIFF_LINES = 150
 MAX_COMPONENT_ROWS = 5
 
+# Which half owns each H2. A heading found in the other half is the whole finding: the
+# author wrote one file where the contract asks for two.
+HUMAN_SECTIONS = {
+    "Outcome",
+    "New terms",
+    "Components",
+    "Surface",
+    "Autotest",
+    "Commit",
+}
+AGENT_SECTIONS = {
+    "Constraints",
+    "Changes",
+    "Files",
+    "Pre-reads",
+    "Pre-reads (MUST read before editing)",
+    "Manual test",
+    "Definition of done",
+}
+TRACE_SECTIONS = {"Trace"}
+
 H2 = re.compile(r"^## +(.+?)\s*$")
 INCREMENT = re.compile(r"^### +(\d+)\. +(.+?)\s*$")
+# A `## Surface` entry: `- `path/to/file.go`` — the bullet that owns the diff below it.
+SURFACE_FILE = re.compile(r"^\s*[-*]\s*`([^`]+)`")
 DIFF_OPEN = re.compile(r"^```diff\s*$")
 COMPILE_FLOOR = re.compile(r"^\s*[-*]\s*\*\*Compile floor:?\*\*")
-STUB_MARKER = re.compile(r"AGENT:\s*implement in increment\s+(\d+)")
+DO_BULLET = re.compile(r"^\s*[-*]\s*\*\*Do:?\*\*")
 TABLE_ROW = re.compile(r"^\|")
 TABLE_RULE = re.compile(r"^\|[\s:|-]+\|?\s*$")
+WIKILINK = re.compile(r"\[\[([^\]|]+?)\s*(?:\|[^\]]*)?\]\]")
+# A doc origin: a markdown link plus the `read <date>` that pins which version was used.
+READ_DATE = re.compile(r"\bread\s+\d{4}-\d{2}-\d{2}")
+MD_LINK = re.compile(r"\[[^\]]+\]\([^)]+\)")
+
+
+def has_frontmatter(lines):
+    return bool(lines) and lines[0].strip() == "---"
 
 
 def strip_frontmatter(lines):
     """The body is what a budget counts - the YAML block above it is not prose."""
-    if not lines or lines[0].strip() != "---":
+    if not has_frontmatter(lines):
         return lines
     for i in range(1, len(lines)):
         if lines[i].strip() == "---":
@@ -68,22 +131,36 @@ def sections(lines):
     return found
 
 
-def diff_blocks(lines):
-    """Yield (owning_increment, changed_line_count, at_compile_floor, stub_count) per ```diff.
+def misplaced(found, wrong_sections, here, there):
+    """One violation per section written into the wrong file of the row."""
+    out = []
+    for name in found:
+        if name in wrong_sections:
+            out.append(
+                f"`## {name}` belongs in the {there}, not the {here}. One ledger row is two "
+                "halves and a trace, each with its own reader: move the section to the file "
+                "that owns it and leave a link, never a copy (`arch:sub-todo.md` § Required "
+                "elements)."
+            )
+    return out
 
-    The increment is what the author has to split, so it is what the message names. An
-    increment may exceed the diff budget when the smallest change that still compiles is
-    larger than it - the repo building is an invariant, the budget is not. That case must
-    declare itself with a `**Compile floor:**` bullet, or the gate cannot tell it apart from
-    an increment nobody split. A floor with no stubs has not been found, only asserted.
+
+def diff_blocks(lines):
+    """Yield (owning_file, changed_line_count, at_compile_floor, 0) per ```diff in ## Surface.
+
+    The file is what the author has to look at, so it is what the message names. A file may
+    exceed the diff budget when the smallest surface that still compiles is larger than it -
+    the repo building is an invariant, the budget is not. That case must declare itself with
+    a `**Compile floor:**` bullet, or the gate cannot tell it apart from a diff carrying a
+    body nobody removed.
     """
-    owner = "the increment before any `### n.` heading"
+    owner = "the file named before any bullet"
     floor = False
     i = 0
     while i < len(lines):
-        m = INCREMENT.match(lines[i])
+        m = SURFACE_FILE.match(lines[i])
         if m:
-            owner = f"increment {m.group(1)} ({m.group(2)})"
+            owner = f"`{m.group(1)}`"
             floor = False
             i += 1
             continue
@@ -95,7 +172,6 @@ def diff_blocks(lines):
             i += 1
             continue
         changed = 0
-        stubs = 0
         i += 1
         while i < len(lines) and not lines[i].strip().startswith("```"):
             line = lines[i]
@@ -104,64 +180,52 @@ def diff_blocks(lines):
                 continue
             if line.startswith(("+", "-")):
                 changed += 1
-                if STUB_MARKER.search(line):
-                    stubs += 1
             i += 1
-        yield owner, changed, floor, stubs
+        yield owner, changed, floor, 0
         i += 1
 
 
-def check_todo(lines, violations):
+def increment_spans(lines):
+    """Yield (number, title, start, end) for each `### n.` block in a Changes section."""
+    marks = [(i, m) for i, m in ((i, INCREMENT.match(x)) for i, x in enumerate(lines)) if m]
+    for k, (i, m) in enumerate(marks):
+        end = marks[k + 1][0] if k + 1 < len(marks) else len(lines)
+        yield int(m.group(1)), m.group(2), i, end
+
+
+def check_todo_human(lines, violations, path):
     body = strip_frontmatter(lines)
-    if len(body) > TODO_BODY_LINES:
+    if len(body) > TODO_HUMAN_LINES:
         violations.append(
-            f"body is {len(body)} lines, budget is {TODO_BODY_LINES} "
-            f"({len(body) / TODO_BODY_LINES:.1f}x over). Over budget means the TODO carries "
-            "more than one deliverable: split it into two ledger rows (TODO-N.1, TODO-N.2). "
-            "Never shrink the diffs, drop the Autotest, or compress the prose to fit."
+            f"the human half is {len(body)} lines, budget is {TODO_HUMAN_LINES} "
+            f"({len(body) / TODO_HUMAN_LINES:.1f}x over). This budget is a ceiling, set far "
+            "above what Outcome, New terms, Components, Autotest and Commit need on a real "
+            "row - so reaching it means the ledger row carries two deliverables. Split it "
+            "(TODO-N.1, TODO-N.2). Never compress the prose to fit, and never move content "
+            "to the agent half: the halves are split by audience, not by size."
         )
 
     found = sections(body)
-    if "Changes" not in found:
-        return
+    violations.extend(
+        misplaced(found, AGENT_SECTIONS, "human half", "agent half (`TODO-N.agent.md`)")
+    )
+    violations.extend(
+        misplaced(found, TRACE_SECTIONS, "human half", "trace (`TODO-N.trace.md`)")
+    )
 
-    start, end = found["Changes"]
-    changes = body[start:end]
-    increments = [m for m in (INCREMENT.match(x) for x in changes) if m]
-
-    # A `## Changes` with no `### n.` heading is a format question, not a budget one - the
-    # `verify` audit and the pre-save checklist own it. Counting is silent where there is
-    # nothing to count, so this gate only ever reports a real overrun.
-    if not increments:
-        pass
-    elif len(increments) > MAX_INCREMENTS:
-        violations.append(
-            f"`## Changes` has {len(increments)} increments, budget is {MAX_INCREMENTS}. "
-            "The TODO is too big: split the TODO."
-        )
-    else:
-        numbers = [int(m.group(1)) for m in increments]
-        if numbers != list(range(1, len(numbers) + 1)):
+    if "Surface" in found:
+        s_start, s_end = found["Surface"]
+        for owner, changed, floor, _ in diff_blocks(body[s_start:s_end]):
+            if changed <= MAX_DIFF_LINES or floor:
+                continue
             violations.append(
-                f"increment numbers are {numbers} - they must run contiguously from 1."
-            )
-
-    for owner, changed, floor, stubs in diff_blocks(changes):
-        if changed <= MAX_DIFF_LINES:
-            continue
-        if not floor:
-            violations.append(
-                f"the diff in {owner} changes {changed} lines, budget is "
-                f"{MAX_DIFF_LINES}. Split the increment - or, if {MAX_DIFF_LINES} lines cannot "
-                "compile, cut it down to the smallest change that does and add a "
-                "`**Compile floor:**` bullet saying why."
-            )
-        elif stubs == 0:
-            violations.append(
-                f"{owner} declares a **Compile floor** at {changed} lines but stubs nothing. "
-                "A floor takes only what the compiler demands: stub every body you can and "
-                "mark each one `AGENT: implement in increment <n>`. With no stub, this is an "
-                "unsplit increment with a reason attached."
+                f"the `## Surface` diff for {owner} changes {changed} lines, budget is "
+                f"{MAX_DIFF_LINES}. First check for a body - a function body, loop, shell "
+                "script, query, or fixture is never surface, and deleting one usually takes "
+                "the file under the budget on its own (`arch:sub-todo.md` - A diff carries "
+                "the surface, not a body). If every line is real surface and the file still "
+                "cannot compile below the budget, add a `**Compile floor:**` bullet under "
+                "its diff saying why."
             )
 
     if "Components" in found:
@@ -180,7 +244,210 @@ def check_todo(lines, violations):
             )
 
 
-def check_spec(lines, violations):
+def check_todo_agent(lines, violations, path):
+    # No line budget by design: ten increments at their compile floor is a long file, and
+    # the size that matters here is the increment, not the file.
+    if has_frontmatter(lines):
+        violations.append(
+            "the agent half carries a `---` frontmatter block. The pair has one `status`, "
+            "in `TODO-N.md` - a status written twice is a status that disagrees with itself "
+            "(`arch:ref-write.md` § Status). Delete the block."
+        )
+
+    body = strip_frontmatter(lines)
+    found = sections(body)
+    violations.extend(
+        misplaced(found, HUMAN_SECTIONS, "agent half", "human half (`TODO-N.md`)")
+    )
+    violations.extend(
+        misplaced(found, TRACE_SECTIONS, "agent half", "trace (`TODO-N.trace.md`)")
+    )
+
+    diffs = sum(1 for x in body if DIFF_OPEN.match(x))
+    if diffs:
+        violations.append(
+            f"the agent half carries {diffs} ```diff block(s). It must carry none: the diff "
+            "for the whole TODO lives once, in `TODO-N.md` `## Surface`, where the human "
+            "approves it. An increment says WHAT TO DO - a **Do:** bullet in prose, naming "
+            "the work and the call sites to migrate - never what to paste. Move the surface "
+            "to `## Surface` and replace each diff with a **Do:** bullet "
+            "(`arch:sub-todo.md` - Changes)."
+        )
+
+    if "Changes" not in found:
+        violations.append(
+            "the agent half has no `## Changes`. It is the section the file exists for: an "
+            "ordered increment sequence, `n` contiguous from 1 (`arch:sub-todo.md` § Changes)."
+        )
+        return
+
+    start, end = found["Changes"]
+    changes = body[start:end]
+    increments = list(increment_spans(changes))
+
+    # A `## Changes` with no `### n.` heading is a format question, not a budget one - the
+    # `verify` audit and the pre-save checklist own it. Counting is silent where there is
+    # nothing to count, so this gate only ever reports a real overrun.
+    if not increments:
+        pass
+    elif len(increments) > MAX_INCREMENTS:
+        violations.append(
+            f"`## Changes` has {len(increments)} increments, budget is {MAX_INCREMENTS}. "
+            "This is the signal the old line count used to carry: the TODO is too big, "
+            "split the ledger row. The file itself has no line budget - do not merge "
+            "increments to get under this number."
+        )
+    else:
+        numbers = [n for n, _, _, _ in increments]
+        if numbers != list(range(1, len(numbers) + 1)):
+            violations.append(
+                f"increment numbers are {numbers} - they must run contiguously from 1."
+            )
+
+    for number, title, i_start, i_end in increments:
+        if not any(DO_BULLET.match(x) for x in changes[i_start:i_end]):
+            violations.append(
+                f"increment {number} ({title}) carries no **Do:** bullet, so it states no "
+                "work. An increment is one to four imperative sentences naming what to "
+                "write, what to migrate, and what to delete - the signature it produces is "
+                "already in `TODO-N.md` `## Surface` (`arch:sub-todo.md` - Changes)."
+            )
+
+
+def table_cells(line):
+    """The cells of one markdown table row, outer pipes dropped."""
+    parts = line.split("|")
+    if parts and not parts[0].strip():
+        parts = parts[1:]
+    if parts and not parts[-1].strip():
+        parts = parts[:-1]
+    return [p.strip() for p in parts]
+
+
+def resolve_note(thoughts, slug):
+    """Where a [[wikilink]] lands: 'live', 'archived', or 'missing'."""
+    name = slug if slug.endswith(".md") else slug + ".md"
+    if os.path.isfile(os.path.join(thoughts, name)):
+        return "live"
+    if os.path.isfile(os.path.join(thoughts, "archived", name)):
+        return "archived"
+    return "missing"
+
+
+def check_trace_origin(cell, thoughts, row_label, violations):
+    """An origin is followable or it is not: a live note, or a dated document."""
+    links = WIKILINK.findall(cell)
+    if links:
+        if thoughts is None:
+            return
+        for slug in links:
+            where = resolve_note(thoughts, slug)
+            if where == "live":
+                continue
+            if where == "archived":
+                violations.append(
+                    f"{row_label} cites `[[{slug}]]`, which is archived. The decision was "
+                    "superseded while this TODO still obeys it - repoint the row at the "
+                    "replacement note and re-check what the pair says about it "
+                    "(`code:sub-revise.md`). A live artifact never depends on an archived note."
+                )
+            else:
+                violations.append(
+                    f"{row_label} cites `[[{slug}]]`, which is no note in `thoughts/`. An "
+                    "origin nobody can open is not provenance. Write the note "
+                    "(`arch:tpl-note-impl-decision.md`) or fix the id."
+                )
+        return
+
+    if MD_LINK.search(cell):
+        if not READ_DATE.search(cell):
+            violations.append(
+                f"{row_label} cites a document with no `read <YYYY-MM-DD>` date. An external "
+                "document changes without telling anyone, so the date is what says which "
+                "version the pair was written against (`arch:sub-todo.md` - Trace)."
+            )
+        return
+
+    violations.append(
+        f"{row_label} has an Origin that is neither a `[[NNN-type-slug]]` note link nor a "
+        "document link with a section and a `read <YYYY-MM-DD>` date. Those are the only two "
+        "forms - a bare title or a remembered conversation is not an origin."
+    )
+
+
+def check_todo_trace(lines, violations, path):
+    # No line budget and no row budget by design: a row exists because a decision was made.
+    # What is counted is whether a row can be followed.
+    if has_frontmatter(lines):
+        violations.append(
+            "the trace carries a `---` frontmatter block. The row has one `status`, in "
+            "`TODO-N.md` (`arch:ref-write.md` § Status). Delete the block."
+        )
+
+    body = strip_frontmatter(lines)
+    found = sections(body)
+    violations.extend(
+        misplaced(found, HUMAN_SECTIONS, "trace", "human half (`TODO-N.md`)")
+    )
+    violations.extend(
+        misplaced(found, AGENT_SECTIONS, "trace", "agent half (`TODO-N.agent.md`)")
+    )
+
+    diffs = sum(1 for x in body if DIFF_OPEN.match(x))
+    if diffs:
+        violations.append(
+            f"the trace carries {diffs} ```diff block(s). It must carry none: the diff for the "
+            "whole TODO lives once, in `TODO-N.md` `## Surface`. The trace holds where each "
+            "decision came from, never what the code becomes."
+        )
+
+    if "Trace" not in found:
+        violations.append(
+            "the trace has no `## Trace`. It is the only section the file has: one table of "
+            "`Anchor` + `Origin` + `Why here`, one row per decision behind the pair "
+            "(`arch:sub-todo.md` § Trace)."
+        )
+        return
+
+    notes_dir = os.path.dirname(os.path.dirname(os.path.abspath(path)))
+    thoughts = os.path.join(notes_dir, "thoughts")
+    if not os.path.isdir(thoughts):
+        thoughts = None
+
+    start, end = found["Trace"]
+    rows = [
+        x for x in body[start:end] if TABLE_ROW.match(x) and not TABLE_RULE.match(x)
+    ]
+    if len(rows) < 2:
+        violations.append(
+            "`## Trace` has no rows. Every TODO carries at least an `Outcome` row naming the "
+            "decision that made it a ledger row of its own - a row with none is a slice "
+            "nobody chose (`arch:sub-todo.md` § Trace)."
+        )
+        return
+
+    anchors = []
+    for row in rows[1:]:  # rows[0] is the header
+        cells = table_cells(row)
+        if len(cells) != 3 or not all(cells):
+            violations.append(
+                f"`## Trace` row `{row.strip()[:60]}` does not fill all three columns. Every "
+                "row carries an Anchor, an Origin, and a `Why here` - a row missing the last "
+                "one is a citation, not a trace."
+            )
+            continue
+        anchor, origin, _why = cells
+        anchors.append(anchor)
+        check_trace_origin(origin, thoughts, f"`## Trace` row `{anchor}`", violations)
+
+    if not any(a.strip().strip("`").lower().startswith("outcome") for a in anchors):
+        violations.append(
+            "`## Trace` has no `Outcome` row. It is the floor: the decision that made this a "
+            "ledger row rather than part of another one (`arch:sub-todo.md` § Trace)."
+        )
+
+
+def check_spec(lines, violations, path):
     body = strip_frontmatter(lines)
     if len(body) > SPEC_LINES:
         violations.append(
@@ -194,13 +461,27 @@ def kind_of(path):
     """Only a wm notes artifact is checked - any other spec.md in the repo is not ours."""
     base = os.path.basename(path)
     d = os.path.dirname(os.path.abspath(path))
-    if os.path.basename(d) == "todos" and base.startswith("TODO-") and base.endswith(".md"):
-        return "todo"
+    if os.path.basename(d) == "todos" and base.startswith("TODO-"):
+        if base.endswith(".agent.md"):
+            return "todo-agent"
+        if base.endswith(".trace.md"):
+            return "todo-trace"
+        if base.endswith(".md"):
+            return "todo"
+        return None
     if base == "spec.md" and (
         os.path.isdir(os.path.join(d, "thoughts")) or os.path.isdir(os.path.join(d, "todos"))
     ):
         return "spec"
     return None
+
+
+CHECKS = {
+    "todo": check_todo_human,
+    "todo-agent": check_todo_agent,
+    "todo-trace": check_todo_trace,
+    "spec": check_spec,
+}
 
 
 def main():
@@ -221,10 +502,7 @@ def main():
         return 2
 
     violations = []
-    if kind == "todo":
-        check_todo(lines, violations)
-    else:
-        check_spec(lines, violations)
+    CHECKS[kind](lines, violations, path)
 
     if not violations:
         return 0

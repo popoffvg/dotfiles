@@ -36,7 +36,12 @@ No existing thought covers the gap (always for **missing**, sometimes **adjust**
 
 ### Finding the wrong thought
 
-Note layout and filenames: `arch:ref-note-format.md`. Walk the thought graph from the TODO's `## Changes`:
+Note layout and filenames: `arch:ref-note-format.md`. **Start at `TODO-N.trace.md`** — it is the row's only index of origins, and it is built for exactly this walk: find the anchor covering the gap (`Constraints: C<n>`, a `## Surface` symbol, an `Autotest` level, an increment number), and its `Origin` is the note to open. Follow that note's `Depends on` backward from there.
+
+When the trace does not name the culprit, search the metadata rather than reading the
+directory: `~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts -m '<terms of the gap>'`
+prints each note's `description`, and the descriptions say which notes could hold the wrong answer
+(`arch:ref-note-format.md` § Finding the thought for your task). Open those, not the rest.
 
 - Which fact was wrong? (e.g. "Token TTL is 15 min" but the code uses 5 min)
 - Which decision was wrong? (e.g. "Reject concurrent refreshes" but they should be queued)
@@ -82,6 +87,12 @@ Frontmatter marks it a replacement:
 replaces: "NNN-old-slug"
 ```
 
+Then **repoint the trace**: every `TODO-N.trace.md` row citing `NNN-old-slug` now cites the
+replacement, in every TODO that cites it — not only the one this fix started from. The old note is
+about to leave `thoughts/`, and a row pointing into `archived/` is a TODO obeying a decision that no
+longer stands. A gap that needed a *new* thought (the **missing** kind) earns a new row instead,
+anchored where the corrected behavior lands.
+
 Commit: `fix: add NNN-<type>-<slug> as replacement for NNN-old-slug`.
 
 ## Step 4: Fix the code
@@ -89,7 +100,7 @@ Commit: `fix: add NNN-<type>-<slug> as replacement for NNN-old-slug`.
 With the thought corrected:
 
 1. Read the corrected and superseded notes — understand what changed.
-2. Find the files from `todos/TODO-N.md` **Files**.
+2. Find the files from `todos/TODO-N.agent.md` **Files**.
 3. Make the minimal change aligning code with the corrected thought.
 4. If the fix renames or introduces a domain term, update `<notes-dir>/GLOSSARY.md` in the same commit.
 5. Run the TODO's Autotest (or write one that proves the fix).
@@ -103,6 +114,7 @@ In `<notes-dir>`:
 jj commit -m "[FIX:<kind>] <one-line gap>
   - thought: NNN-old-slug superseded (reason: <reason>) | none (missing) | none (code-only drift)
   - corrected/new thought: NNN-new-slug | none
+  - trace rows repointed: TODO-N (C2), TODO-M (Outcome) | none
   - commit: <sha>
   - autotest: pass | fail (details)"
 ```

@@ -51,17 +51,19 @@ Three files at the plugin root, shared by all four skills.
 | File | Owns |
 |---|---|
 | `commands/sub-new.md` | `new` — the grill loop and its exit contract. Stops at the gate. |
-| `commands/sub-todo.md` | `todo` — TODO elements, the verification chain, the outcome rules. |
+| `commands/sub-todo.md` | `todo` — the `TODO-N.md` + `TODO-N.agent.md` pair and its `TODO-N.trace.md` companion, and what each file holds; the wave fan-out (one fork per ledger row) and what only the caller may write; the TODO elements, the verification chain, the outcome rules, `## Surface` (the one diff, in the human half), the surface-not-a-body rule with its human-asked exception, and `## Trace` (the one home for provenance — anchors, the two origin forms, and the floor every trace meets). |
 | `commands/sub-prototype.md` | `prototype` — settle an open decision with the smallest visible code diff. |
 | `references/ref-bricks.md` | The **brick** roster — the closed set of component types, what each owns, its metric, its common structure. Typed in every `## Components` row and every `GLOSSARY.md` `Kind`. |
 | `references/ref-write.md` | **The spec contract** — artifacts, notes-dir layout, the `status` metadata (spec phase + TODO lifecycle), the gate, TODO ordering and **waves**, the Spec-Readiness Checklist. The single source; no other file restates it. |
-| `references/ref-note-format.md` | Thought notes; the answered-question and supersede → `thoughts/archived/` moves, both automatic. |
+| `references/ref-note-format.md` | Thought notes; the required `description` and how a reader finds a thought by it; the answered-question and supersede → `thoughts/archived/` moves, both automatic. |
 | `references/tpl-notes-claude.md` | The notes-dir `CLAUDE.md`. |
 | `references/tpl-rules.md` | The notes-dir `RULES.md` and its four init knobs. |
 | `references/tpl-glossary.md` | The notes-dir `GLOSSARY.md` — the project's ubiquitous language, distinct from `wm:GLOSSARY.md`. |
 | `references/tpl-patterns.md` | The notes-dir `PATTERNS.md` — the implementation patterns and reference files the increments follow, out of `spec.md` so the spec stays human-only. |
 | `references/tpl-note-{question,decision,fact,impl-decision}.md` | The four thought notes. |
-| `references/tpl-todo.md` | The TODO body, and the worked example of it. |
+| `references/tpl-todo.md` | The TODO **human half** (`TODO-N.md`) — Outcome, New terms, Components, **Surface** (the one diff), Autotest, Commit — and the worked example of it, including the plain contract block a file that is all body carries instead of a diff. |
+| `references/tpl-todo-agent.md` | The TODO **agent half** (`TODO-N.agent.md`) — Constraints (the rule and its `C<n>` id, no origin), Changes (increments as Files + Surface + Do + Blast radius, no diff), Files, Pre-reads, Manual test, Definition of done — and the worked example of it, including the `Surface: none` + Behavior shape an increment uses when the deliverable is a whole body. |
+| `references/tpl-todo-trace.md` | The TODO **trace** (`TODO-N.trace.md`) — the pair's companion and the one home for provenance: one `## Trace` row per decision behind the pair, anchored where it lands and cited to a live `thoughts/` note or a dated document, plus the worked example of both origin forms. |
 
 Every `tpl-*.md` is the finished artifact filled with real content, carrying `>` lines that state the
 rule for the block above them. Copy the file, replace the content, delete the `>` lines.
@@ -98,6 +100,18 @@ Independent of the `/code` flow, each with its own entry point.
 | `commit-message` | no | **The commit message contract** — the subject line and the three body parts: cause, goal, decision. Loaded by name before every commit written by `impl`, `auto`, `fix`, or `squash`. |
 | `pedant` | no | Attacks every name in the code and rejects the ones that read unclearly. |
 | `red-green-refactor` | no | The failing-test-first cycle a bug fix follows. Loaded by `impl:sub-impl.md`. |
+
+## Graded from outside — `evals/`
+
+| File | Owns |
+|---|---|
+| `evals/run.sh` | The runner. Extracts the graded rule blocks from `arch:sub-todo.md` at run time — § One ledger row, two halves and a trace, § Surface, § Changes, § Autotest, § Trace — so the suite always grades the current spec, never a copy of it. |
+| `evals/cases-todo.jsonl` | The labelled cases. Two axes per case: **half** (`human` / `agent` / `trace` — which of the row's three files the content belongs in; `Constraints` is agent, an origin link is trace) and **form** (`keep` / `reshape` — ships as written, or is a **body** that must become an Interface block plus a Behavior sketch). |
+| `evals/README.md` | What each axis means, which cases are deliberately hard, and the last run's score. |
+
+One `evals/` serves the whole plugin (`plugin-evals-at-plugin-root`); add `cases-<skill>.jsonl` beside
+the existing suite rather than nesting an `evals/` inside a skill. A change to a graded rule's
+*contract* — a new label, a new axis — updates the cases in the same commit.
 
 ## Outside this plugin
 

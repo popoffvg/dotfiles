@@ -64,5 +64,5 @@ Typical chain for a TODO: [`case-design`](references/sub-case-design.md) (derive
 The canonical document is [`examples/ex-strategy-auth-refresh.md`](examples/ex-strategy-auth-refresh.md) — a `POST /auth/refresh` test set
 written to the contract, with the function block, five big cases, coverage, and the prunes. Copy its section order.
 
-Per-TODO output goes into the `## Autotest` and `## Manual test` sections of `<notes-dir>/todos/TODO-N.md` (follow the `arch` skill's
-`todo` subcommand); task-wide output goes to `<notes-dir>/test-strategy.md`.
+Per-TODO output goes into `## Autotest` in `<notes-dir>/todos/TODO-N.md` and `## Manual test` in `<notes-dir>/todos/TODO-N.agent.md` (follow the `arch` skill's
+`todo` subcommand) — cases as sentences, never test source; task-wide output goes to `<notes-dir>/test-strategy.md`.

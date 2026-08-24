@@ -21,5 +21,5 @@ keep-coding-instructions: true
 ## Code
 
 <when="writing code">
-@CODE_STYLE
+Read `~/.claude/output-styles/CODE_STYLE.md` and follow it. An output style does not expand `@file` imports, so this is a pointer, not a copy.
 </when>

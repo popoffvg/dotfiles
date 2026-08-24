@@ -41,7 +41,7 @@ You receive one of:
 
 ### 1. Gather context
 
-- **TODO mode**: run `git diff HEAD~1` to see the last commit's changes. Read the TODO's **Autotest** and **Manual test** fields — these are your test specifications.
+- **TODO mode**: run `git diff HEAD~1` to see the last commit's changes. Read the TODO pair's **Autotest** (in `TODO-N.md`) and **Manual test** (in `TODO-N.agent.md`) — these are your test specifications, and they are cases in sentences, never test source: write each test from its case.
 - If given a branch/PR: read the diff (`git diff`, `gh pr diff`)
 - If no input: `git diff HEAD` + `git diff --cached` + `git status`
 - Identify changed files, new functions, modified behavior

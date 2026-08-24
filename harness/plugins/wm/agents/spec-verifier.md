@@ -1,7 +1,8 @@
 ---
 name: spec-verifier
 description: >
-  Adversarial spec auditor — reads `.notes/spec.md` + `.notes/todos/TODO-N.md` before
+  Adversarial spec auditor — reads `.notes/spec.md` + each `.notes/todos/TODO-N.md` +
+  `TODO-N.agent.md` pair and its `TODO-N.trace.md` before
   implementation and hunts contradictions, missing parts, and edge cases. Independent of
   the architector who wrote the spec. Read-only: no source edits, no file writes — returns
   the verdict (READY | NEEDS REVISION) with findings as its final message. Workflow in the

@@ -81,6 +81,6 @@ Build the waves per `ref-write.md` § Waves — group for maximum parallelism: c
 
 ## Stop at the gate
 
-`new` ends here. It does not write `todos/TODO-N.md`. The spec + thought graph are now
+`new` ends here. It writes no TODO pair — neither `todos/TODO-N.md` nor `todos/TODO-N.agent.md`. The spec + thought graph are now
 reviewable; the human reviews and runs `/code todo` when satisfied (the gate — `ref-write.md`). Review
 surfaces gaps → run `/code new` again to re-grill.

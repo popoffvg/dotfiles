@@ -54,7 +54,7 @@ When the user reviews your work and asks for changes:
 If the user says "let's refactor", "rethink", "change the decision", "change the plan", or otherwise
 asks to alter the agreed design (not just fix the current TODO), do **not** redesign it yourself.
 Stop implementing and delegate to the `architector` agent (`code` skill) to revise `.notes/spec.md` +
-`todos/TODO-N.md`. Resume implementing only against the updated TODO.
+the `todos/TODO-N.md` + `TODO-N.agent.md` pair and its `TODO-N.trace.md`. Resume implementing only against the updated TODO.
 
 ## ANTIPATTERNS
 - commit a user correction as a plain commit — it must be `--fixup`.

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# PostToolUse (Edit|Write): format the ```ts blocks in a todos/TODO-N.md after
-# it is authored/edited. Code-block-only; never blocks the write.
+# PostToolUse (Edit|Write): format the ```ts blocks in either half of a todos/TODO-N
+# pair after it is authored/edited. In practice only the agent half has any — it owns
+# `## Changes`. Code-block-only; never blocks the write.
 set -euo pipefail
 
 INPUT=$(cat)

@@ -7,13 +7,18 @@ risk: 3                     # changes the existing Refresh signature; retest the
 
 # TODO-1: Rotate refresh tokens on /auth/refresh
 
-> This file is a filled TODO body. Copy it to `<notes-dir>/todos/TODO-N.md`, replace the content,
-> and delete every `>` line — each one states the rule for the block above it.
-> The H1 title is imperative, ≤ 60 chars. `N` is 1-indexed and contiguous, one file per ledger row.
-> Budget: ≤ 512 lines. Over budget means two deliverables — split the ledger row. The
-> `budget-check` hook counts it on every write and blocks (`arch:sub-todo.md` § Budget).
-> Sections run in this order and no other. A human reads down to Commit with the repo closed and
-> stops there; everything below it is scaffolding for the implementer.
+> This file is a filled TODO body — **the human half of the pair**. Copy it to
+> `<notes-dir>/todos/TODO-N.md`, replace the content, and delete every `>` line — each one states
+> the rule for the block above it.
+> The H1 title is imperative, ≤ 60 chars. `N` is 1-indexed and contiguous, one **pair** plus its
+> **trace** per ledger row.
+> Budget: ≤ 550 lines — a ceiling on the row, not a nudge about prose. A human half that long is
+> two deliverables wearing one number; split the ledger row. The `budget-check` hook counts it on
+> every write (`arch:sub-todo.md` § Budget).
+> **The increments live in `TODO-1.agent.md`, described and never diffed** — this file holds the one
+> diff, in `## Surface`. No test-file body, and no per-increment path list, appears here.
+> Sections run in this order and no other. A human reads this file end to end with the repo closed
+> and never opens the agent file.
 
 ## Outcome
 
@@ -37,19 +42,6 @@ A `User` can issue `RotateToken` to exchange a valid refresh token for a new `To
 > `Kind` is one word from the `GLOSSARY.md` set — data or brick. The description is one sentence
 > carrying the visible contract: TTL, bounds, error semantics.
 
-## Constraints
-
-| Constraint | From |
-|------------|------|
-| A second refresh on the same token returns 409 — never two valid `TokenPair`s from one token | [[003-decision-single-flight]] |
-| A refresh token expires 15 minutes after issue (1 hour in dev); the new pair restarts the window | [[001-fact-token-ttl]] |
-
-> One row per settled decision **an increment below can violate** — this is the implementer's only
-> source for settled decisions, since `spec.md` keeps none. State the rule as an invariant or an
-> imperative; the trade-off and the rejected options stay in the note.
-> A decision no increment here can violate binds another TODO — omit it. A constraint the tests can
-> check gets a matching Autotest case. Nothing binds this slice → delete the section.
-
 ## Components
 
 | Component | Touch | Type | Part | Role |
@@ -60,30 +52,22 @@ A `User` can issue `RotateToken` to exchange a valid refresh token for a new `To
 > **Component** — `package.Class` in the project's notation, a symbol and never a bare path.
 > **Touch** — what this TODO does to the symbol: `create | modify | delete`, e.g.
 > `| pkg/auth.TokenJar | create | service | supporting | Holds one user's active refresh tokens |`.
-> It types the symbol, not the file — a created component may land in a file **Files** marks
-> `modify`. A component this TODO only reads is not touched and stays out of the table; name it in
-> **Pre-reads** instead.
+> It types the symbol, not the file — a created component may land in a file the agent file's
+> **Files** marks `modify`. A component this TODO only reads is not touched and stays out of the
+> table; it belongs in the agent file's **Pre-reads** instead.
 > **Type** — the brick: `command | service | flow | gateway | server | consumer | policy |
 > scheduler | wiring` (roster: the `arch` skill). Fits none, or fits two → the component owns more
 > than one responsibility; split it before writing this body.
 > **Part** — exactly one row is `main`, the component carrying the Outcome's behavior. Two
 > candidates → the TODO does two things.
 > **Role** — this TODO's slice of the component's job, not its full purpose.
-> ≤ 5 rows. Every row maps to at least one path in **Files**, and every non-test path in **Files**
-> belongs to a row.
+> ≤ 5 rows. This table is the map the agent file's `## Changes` walks: every row is named by at
+> least one increment there, and no increment there names a component missing from here. Each row's
+> new shape is shown in `## Surface` below.
 
-## Changes
+## Surface
 
-> An ordered increment sequence — the diffs that build the commit, in apply order. `n` contiguous
-> from 1, ≤ 10 increments, each naming one Components row and no row missing from that table.
-> Order deepest-first so the repo builds after each. Increment 1 creates the commit; each later
-> approved increment is appended to it. A rejected increment stops the TODO.
-
-### 1. Add the request and pair types — `pkg/auth.Handler`
-
-- **Files:** `pkg/auth/handler.go`
-- **Blast radius:** none yet — additive types, nothing reads them until increment 3
-- **Diff:**
+- `pkg/auth/handler.go`
 
 ```diff
 +type RefreshRequest struct {
@@ -94,89 +78,54 @@ A `User` can issue `RotateToken` to exchange a valid refresh token for a new `To
 +	Access  string `json:"access"`
 +	Refresh string `json:"refresh"`
 +}
-```
-
-> **Files** — this increment's paths only, a subset of `## Files`.
-> **Blast radius** — the predicted reach of a mistake: the symbols, callers, and consumers a wrong
-> edit forces you to retest. Name them; "low" is not a blast radius.
-> **Diff** — ≤ 150 changed lines, real language, one block per file. The changed **surface** only:
-> types, fields, signatures, and settings with their real values. New surface is all-`+`, no field or
-> signature elided, and **no comments of any kind** — a decision that wants one goes in a `thoughts/`
-> note.
-> **Compiling outranks the budget.** When the smallest change that still compiles is over 150 lines,
-> take the extra lines, add a **Compile floor:** bullet saying why, and stub every body you can —
-> each stub marked `AGENT: implement in increment <n>`, the one comment a diff may carry. Only when
-> no stub can make it compile does the increment say `builds: only with increment <n>`.
-
-### 2. Return a pair from the minter — `pkg/auth.TokenMinter`
-
-- **Files:** `pkg/auth/token.go`
-- **Blast radius:** every caller of `mintTokens` — `pkg/auth/handler.go`, `pkg/auth/login.go`
-- **Diff:**
-
-```diff
--func mintTokens(userID string) (string, error) {
--	access, err := signAccess(userID)
--	return access, err
-+func mintTokens(userID string) (TokenPair, error) {
-+	access, err := signAccess(userID)
-+	if err != nil {
-+		return TokenPair{}, err
-+	}
-+	refresh, err := signRefresh(userID)
-+	if err != nil {
-+		return TokenPair{}, err
-+	}
-+	return TokenPair{Access: access, Refresh: refresh}, nil
- }
-```
-
-### 3. Exchange the token in the handler — `pkg/auth.Handler`
-
-- **Files:** `pkg/auth/handler.go`
-- **Blast radius:** every caller of `Refresh` — `pkg/auth/middleware.go`, `cmd/api/routes.go`; a wrong Redis key here silently logs out every session
-- **Diff:**
-
-```diff
++
 -func Refresh(ctx context.Context, token string) (string, error)
 +func Refresh(ctx context.Context, req RefreshRequest) (TokenPair, error)
 ```
 
-- **Behavior:**
-
-```ts
-function refresh(req: RefreshRequest): TokenPair | 401 | 409 {
-  const session = redis.get(`auth:${req.token}`)
-  if (!session) return 409 // already rotated — single-flight
-  if (session.expiresAt < now()) return 401
-
-  const pair = mintTokens(session.userId)
-  redis.del(`auth:${req.token}`)
-  redis.set(`auth:${pair.refresh}`, session, TTL)
-  return pair
-}
-```
-
-> **Behavior** appears on the one increment carrying the Outcome's logic, and only when the diff
-> does not already show the flow. TS pseudocode following the `flow-scetch` skill: ≤ 40 lines, every
-> side effect and error path visible, no real imports or paths inside the snippet. It must deliver
-> the Outcome above. The sketch shape comes from `type` first, then the `main` component's brick.
-
-### 4. Widen the route to the new signature — `pkg/auth.Handler`
-
-- **Files:** `pkg/auth/handler.go`
-- **Blast radius:** `POST /auth/refresh` only — the last increment, nothing calls into it
-- **Diff:**
+- `pkg/auth/token.go`
 
 ```diff
--	tok, err := Refresh(ctx, body.Token)
-+	pair, err := Refresh(ctx, RefreshRequest{Token: body.Token})
+-func mintTokens(userID string) (string, error)
++func mintTokens(userID string) (TokenPair, error)
 ```
+
+- `scripts/release-check.sh` — no surface; a script is a body. Contract:
+
+```
+scripts/release-check.sh          # no args, no flags
+exit 0  → every check passed, one summary line on stdout
+exit 1  → first failed check on stderr, prefixed `FAIL: `
+```
+
+> **The whole contract change this TODO makes, in one place — and the diff the human approves.**
+> One bullet naming the file, then one ```diff for it. Every file with a surface appears; files are
+> ordered deepest-first, the same order the increments apply.
+> **Surface only** — types, fields, method and function signatures, and settings (config keys, flags,
+> defaults) with their real values. New surface is all-`+` in real syntax, no field or signature
+> elided, and **no comments of any kind**: a decision that wants one goes in a `thoughts/` note and,
+> restated, in the agent file's `## Constraints`.
+> **Never a body.** A function body, a loop, a branch chain, a shell script, a query, a regex, a
+> fixture, a table of literal expected values — none of it belongs here or anywhere in the pair. The
+> body behind each signature is the implementer's to write, from the agent file's **Behavior** sketch.
+> The rule and its test: `arch:sub-todo.md` § A diff carries the surface, not a body.
+> **A file whose whole content is a body has no surface**, so it carries a plain-fenced contract block
+> instead of a ```diff — invocation, arguments, exit codes, output — exactly as `scripts/release-check.sh`
+> does above.
+> ≤ 150 changed lines per file, unless that file cannot compile below it: then say so in a
+> `**Compile floor:**` bullet under its diff.
+> This section is what makes the gate real: a human who has read Components knows *which* symbols
+> move, and reading this knows *what they become*. It is the last thing they approve before any code
+> is written.
 
 ## Autotest
 
 > Both levels are required. A level that cannot exist says `none — <concrete reason>`; an E2E
 > deferred to another TODO names that TODO.
+> **Cases, never a test file.** This section says what is asserted and where the assertion enters —
+> it never carries the test's source. A shell script, a fixture, a table of literals, or any block
+> that *is* the test body belongs nowhere in the pair: the implementer writes it from the cases
+> (`arch:sub-todo.md` § A diff carries the surface, not a body).
 
 ### Unit
 
@@ -188,8 +137,8 @@ function refresh(req: RefreshRequest): TokenPair | 401 | 409 {
   - second refresh with the same token returns 409 and mints nothing
 - **Command:** `go test ./pkg/auth/...`
 
-> Each case proves part of the Outcome or one `## Constraints` row. One sentence each, input →
-> expected. **Command** is a single runnable shell command.
+> Each case proves part of the Outcome or one `## Constraints` row from the agent file. One sentence
+> each, input → expected. **Command** is a single runnable shell command.
 
 ### E2E
 
@@ -219,7 +168,8 @@ next legitimate refresh.
 A short expiry on the refresh token was the other option. It was rejected because it signs out an
 idle user on a normal day, and the stolen token stays usable until it expires.
 
-> The one commit every increment above appends to — the chain's last link, and the human's last read.
+> The one commit every increment in the agent file appends to — the chain's last link, and the
+> human's last read.
 > **Title** — the literal `<prefix>: <line>` the implementer commits, ≤ 72 chars, imperative, no
 > period. Prefix ∈ feat | fix | refactor | chore | docs | test.
 > **Body** — one paragraph per part, in order: cause, goal, and the decision if the commit rejected a
@@ -228,43 +178,15 @@ idle user on a normal day, and the stolen token stays usable until it expires.
 > Read it against the Outcome: the body claims a capability the Outcome does not, or the Outcome
 > names one the body cannot account for → one of the two is wrong. Fix it before any increment lands.
 
-<!-- ── Everything below is scaffolding: machine-checkable, no human read ── -->
+---
 
-## Files
+**Increments:** [TODO-1.agent.md](TODO-1.agent.md) · **Trace:** [TODO-1.trace.md](TODO-1.trace.md)
 
-- `pkg/auth/handler.go` — modify
-- `pkg/auth/token.go` — modify
-- `pkg/auth/handler_test.go` — create
-- `test/e2e/auth_refresh_test.go` — create
-
-> One line per path: create | modify | delete | rename → `<new path>`.
-
-## Pre-reads (MUST read before editing)
-
-- `pkg/auth/middleware.go` — existing token validation
-- `pkg/redis/client.go` — Redis helpers used here
-
-> Every file the implementer must understand before editing, with the reason. None → `none — reason: <specific>`.
-
-## Manual test
-
-- **Steps:**
-  1. `make run-dev`
-  2. `curl -X POST localhost:8080/auth/refresh -d '{"token":"<valid>"}'`
-  3. `curl -X POST localhost:8080/auth/refresh -d '{"token":"<expired>"}'`
-- **Expected:**
-  1. dev server starts
-  2. 200 with new `{access, refresh}` pair
-  3. 401, Redis key `auth:<old>` absent (`redis-cli get auth:<old>` → nil)
-- **Skip?** no
-
-> Steps are literal commands or actions; Expected aligns 1:1 with them. Skipping needs a specific reason.
-
-## Definition of done
-
-- [ ] All files in **Files** modified/created as specified
-- [ ] Every **Constraints** row holds in the shipped code
-- [ ] Both Autotest commands pass — Unit and E2E (or the level is `none` with its stated reason)
-- [ ] Manual test steps produce **Expected** outcomes
-- [ ] No edits outside **Files** without recording it in the notes (jj snapshots on session stop)
-- [ ] Commit created with the message above
+> The two links out of this file, and the last line in it. The agent file carries `## Constraints`,
+> `## Changes` (the increments, described — no diffs), `## Files`, `## Pre-reads`, `## Manual test`,
+> and `## Definition of done` — the implementer's half. The trace file carries one row per decision
+> behind this TODO and where that decision is written down; it is the auditor's read, and the place a
+> reviewer goes to challenge a link in the chain above rather than approve it.
+> A pair is incomplete without the agent file: a `TODO-N.md` with no `TODO-N.agent.md` cannot be
+> implemented. A pair with no `TODO-N.trace.md` is implementable and unaccountable — every decision
+> in it reads as arbitrary, and the impl-decision notes written while authoring it are unreachable.

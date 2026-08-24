@@ -204,6 +204,17 @@
             "command": "node $HOME/.claude/hooks/comment-check.mjs"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node '/Users/vitaliipopov/.claude/hooks/gitnexus/gitnexus-hook.cjs'",
+            "timeout": 10,
+            "statusMessage": "Checking GitNexus index freshness..."
+          }
+        ]
       }
     ],
     "PreCompact": [],
@@ -241,6 +252,17 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/guard-uncommitted-loss.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Grep|Glob|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node '/Users/vitaliipopov/.claude/hooks/gitnexus/gitnexus-hook.cjs'",
+            "timeout": 10,
+            "statusMessage": "Enriching with GitNexus graph context..."
           }
         ]
       }
@@ -385,7 +407,7 @@
       }
     }
   },
-  "outputStyle": "STYLE",
+  "outputStyle": "ADHD",
   "sandbox": {
     "enabled": true,
     "network": {

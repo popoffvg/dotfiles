@@ -22,9 +22,10 @@ directive, and it clears itself once it holds.
 
 ## Step 1 — load the ledger
 
-Read `<notes-dir>/spec.md` (frontmatter + ledger) and every `<notes-dir>/todos/TODO-N.md`. Build the
-work list: each TODO whose `status` is not `done`, in wave order (`arch:ref-write.md` § waves), respecting
-`depends_on`.
+Read `<notes-dir>/spec.md` (frontmatter + ledger) and every `<notes-dir>/todos/TODO-N.md` — the human
+halves carry the `status`, so they alone build the work list: each TODO whose `status` is not `done`, in
+wave order (`arch:ref-write.md` § waves), respecting `depends_on`. Each TODO's `TODO-N.agent.md` is read
+when its turn comes, not now.
 
 Create `<notes-dir>/LESSONS.md` if it is missing (shape: the `carry-review-findings-in-a-lessons-file`
 skill).
@@ -41,7 +42,7 @@ For **every** TODO in the work list, in order — not the first, not the easy on
    (its Step 5.3) does not run. Nobody is watching. Apply each increment, keep the one-commit-per-TODO
    rule, and pass the lessons entries that touch this TODO's **Files** in the @implementer brief.
 3. **The gate chain, cheapest first** — @lint-tester (lint + the covering tests), then @reviewer
-   (Outcome, correctness, drift, over the real diff and `TODO-N.md`), then @tester (does a test
+   (Outcome, correctness, drift, over the real diff and the TODO pair), then @tester (does a test
    assert the TODO's `## Autotest` contract — no → **write the test first**, and the implementer folds
    it into the commit). Any FAIL → return to 2 as a fixup commit with the findings quoted, then
    **restart the chain at the cheap gate**: a fixup can break what a later gate already cleared.

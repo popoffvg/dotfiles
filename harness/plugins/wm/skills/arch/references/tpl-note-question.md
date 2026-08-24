@@ -2,6 +2,10 @@
 type: question
 id: "004"
 status: open                # open | declined
+description: >              # 1–3 sentences, the only text the thought index shows — ref-note-format.md § Frontmatter
+  Whether a rotated refresh token inherits the scope of the token it replaces or re-reads
+  scope from the user record. Blocks the rotation-handler ledger row, which must do one or
+  the other.
 date: 2026-06-18T14:52:04
 source: explore
 tags: [auth, scope]

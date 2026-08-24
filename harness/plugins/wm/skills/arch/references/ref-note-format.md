@@ -32,6 +32,8 @@ Example: `001-decision-token-rotation.md`, `002-fact-token-ttl.md`, `004-questio
 type: question | decision | fact | impl-decision
 id: "NNN"
 status: open | approved | declined   # open only on type: question; approved is the default otherwise
+description: >                       # 1–3 sentences — what this thought settles. Required on every type
+  <the summary the index prints>
 date: 2026-06-18T14:30:22
 source: grill | explore | codebase   # optional
 tags: [topic, subtopic]
@@ -40,11 +42,44 @@ tags: [topic, subtopic]
 
 - `type` — drives the section structure below.
 - `id` — matches the `NNN` prefix in the filename. Never changes, and no `NNN` is ever reused — not even by the note that answers or supersedes this one.
+- `description` — **required on every note, every type.** 1–3 sentences summarizing what this thought
+  settles, written to be read *instead of* the body: it is the only text the index shows (§ Finding
+  the thought for your task), and a reader picks which notes to open from it alone. State the answer,
+  not the topic — "Rotated tokens copy the scope of the token they replace" is a description; "how
+  scope works on rotation" is a filename. Never a paraphrase of the title: the title names the
+  thought, the description says what it decided or established and, when it fits, why. A note whose
+  description could stand for two different answers is unfindable — the reader opens every note again.
 - `status` — `open` while a question is unresolved, and the only value that keeps a question in the live graph; `approved` on an answered question and on any decision/fact; `declined` when a thought is rejected, moot, or superseded, instead of deleting it.
 - `date` — ISO 8601, the moment the note was written. On a question, add `resolved:` with the timestamp of the answer when marking it (§ Resolution).
 - `source` — optional, on every type. `explore` for a note from an explore-phase research doc; `codebase` for one derived by reading code; `grill` (or omit) for one the user stated or chose. On a `question` it says where the question surfaced; on the `decision` or `fact` that answers it, where the **answer** came from.
 - `source: codebase` on a decision marks an **auto-discovered** choice — the code answered it, nobody was asked. The choice is as binding as any other, but it carries no human approval, so a reviewer reads those rows first. Every auto-discovered decision names the `path:line` that forced it in its `## Why`.
 - `tags` — 1–3 topic tags for grouping in Obsidian graph view.
+
+## Finding the thought for your task
+
+**Read the metadata first, then read only the notes it points at.** The graph grows past the point
+where reading every note is affordable, and an agent that opens all of them arrives with the wrong
+ones in context. The index is the entry:
+
+```bash
+~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts            # every live note: id, type, status, tags, title, description, path
+~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts -m 'token|scope'   # only the notes whose metadata mentions it
+~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts -t decision --files # paths only, for a batch read
+~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts --todo TODO-2       # the impl-decision notes of one TODO
+```
+
+The rule, in order:
+
+1. Run the index (`-m <regex>` over the terms your task names — the match runs across id, type,
+   tags, title, **and** description).
+2. Read the descriptions and pick the notes that bear on the task. A description that does not bear
+   on it is the answer "do not open this note".
+3. Open only those, in full, then follow their `Depends on` / `Affects` wikilinks — the links are
+   walked from a note you chose, never from the whole directory.
+
+`--archived` reaches into `thoughts/archived/`; leave it off unless you are auditing history.
+`--missing-description` lists the notes that break the § Frontmatter rule, so an author finds them
+before the reader does.
 
 ---
 

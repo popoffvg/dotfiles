@@ -2,6 +2,10 @@
 type: decision
 id: "003"
 status: approved            # approved | declined
+description: >              # 1–3 sentences, the only text the thought index shows — ref-note-format.md § Frontmatter
+  Two refreshes racing on the same expired token: the second one returns 409 and the caller
+  retries with the new token. Redis single-flight locking was rejected — 40 lines for under
+  0.01% of traffic.
 date: 2026-06-18T14:45:10
 source: grill               # grill | explore | codebase — codebase = auto-discovered, nobody chose it
 tags: [auth, concurrency]
