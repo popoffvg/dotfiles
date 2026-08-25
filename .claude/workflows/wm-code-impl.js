@@ -1,12 +1,12 @@
 export const meta = {
   name: 'wm-code-impl',
-  description: 'Implement one wm TODO through the implement → lint → review → test loop until every gate passes',
-  whenToUse: 'Driving /code impl deterministically: sonnet implements + commits, haiku gates lint+tests, opus gates Outcome/correctness, sonnet gates the Autotest contract; each FAIL routes back to a fixup until every gate is green. wm-code-auto calls this once per TODO.',
+  description: 'Implement one wm TODO, then run the review gate chain until every gate passes',
+  whenToUse: 'Driving /code impl deterministically: sonnet implements + commits, then the review skill\'s chain — one haiku wave (lint, comments, names) in parallel, the sonnet test gate, the opus outcome gate; each FAIL routes back to a fixup and restarts the wave. wm-code-auto calls this once per TODO.',
   phases: [
     { title: 'Implement', detail: 'wm:implementer (sonnet) writes + commits', model: 'sonnet' },
-    { title: 'Lint', detail: 'wm:lint-tester (haiku) gates lint + related tests', model: 'haiku' },
-    { title: 'Review', detail: 'wm:reviewer (opus) gates Outcome / correctness', model: 'opus' },
+    { title: 'Wave', detail: 'lint-tester + comment-critic + name-critic, in parallel', model: 'haiku' },
     { title: 'Test', detail: 'wm:tester (sonnet) gates the Autotest contract', model: 'sonnet' },
+    { title: 'Review', detail: 'wm:reviewer (opus) gates Outcome / correctness', model: 'opus' },
   ],
 }
 
@@ -78,11 +78,11 @@ function implPrompt(failures, extra) {
   )
 }
 
-// The gate chain, cheapest first. A row is one gate; the loop below reads it.
-const GATES = [
+// The gate roster: ${CLAUDE_PLUGIN_ROOT}/skills/review/references/ref-gates.md owns which gate
+// judges what and at which tier. WAVE runs as one parallel wave; SERIAL runs in order after it.
+const WAVE = [
   {
     key: 'lint',
-    phase: 'Lint',
     agentType: 'wm:lint-tester',
     prompt:
       `Lint gate for ${todoPath} (notes-dir ${notesDir}). Follow the wm:lint-tester contract: ` +
@@ -91,33 +91,54 @@ const GATES = [
       `failures verbatim, and the real commands you ran.`,
   },
   {
-    key: 'review',
-    phase: 'Review',
-    agentType: 'wm:reviewer',
+    key: 'comment',
+    agentType: 'wm:comment-critic',
     prompt:
-      `Review gate for ${todoPath} (notes-dir ${notesDir}). Lint + tests are already green — do not ` +
-      `re-litigate them. Follow the wm:reviewer contract: judge from the TODO (Outcome, Changes, ` +
-      `Decisions) + the real diff whether the Outcome is delivered without correctness bugs or spec ` +
-      `drift. Return result PASS/FAIL with failures (file:line — scenario — closing edit).`,
+      `Comment gate for the diff of ${todoPath} (notes-dir ${notesDir}) — the TODO's commit plus its ` +
+      `fixups. Follow the wm:comment-critic contract: judge every comment, doc line, and doc tag the ` +
+      `diff adds or changes. You never read the TODO pair — a comment is judged against the code ` +
+      `under it. Return result PASS/FAIL with failures (file:line — the rule — the rewrite).`,
   },
+  {
+    key: 'name',
+    agentType: 'wm:name-critic',
+    prompt:
+      `Naming gate for the diff of ${todoPath} (notes-dir ${notesDir}) — the TODO's commit plus its ` +
+      `fixups. Follow the wm:name-critic contract: run the pedant smell table over every name the ` +
+      `diff declares. You never read the TODO pair — a name is judged against its own body. ` +
+      `Return result PASS/FAIL with failures (file:line — name — smell — the bug it hides — rename).`,
+  },
+]
+const SERIAL = [
   {
     key: 'test',
     phase: 'Test',
     agentType: 'wm:tester',
     prompt:
-      `Test gate for ${todoPath} (notes-dir ${notesDir}) in TODO mode. Lint is green and the review ` +
-      `passed — the one question left: does a test actually assert this TODO's ## Autotest contract ` +
+      `Test gate for ${todoPath} (notes-dir ${notesDir}) in TODO mode. The cheap wave is green — the ` +
+      `one question left: does a test actually assert this TODO's ## Autotest contract ` +
       `(both Unit and E2E)? No test covers it → WRITE that test first, then run it, and list every ` +
       `file you wrote in wroteTests (you do not commit — the implementer folds them in). ` +
       `Return result FAIL on a red run or a contract you cannot cover, with the real commands and the ` +
       `failures verbatim; PASS when the contract is covered and green.`,
+  },
+  {
+    key: 'outcome',
+    phase: 'Review',
+    agentType: 'wm:reviewer',
+    prompt:
+      `Outcome gate for ${todoPath} (notes-dir ${notesDir}). Lint, the tests, the comments, and the ` +
+      `names are already green — do not re-litigate any of them. Follow the wm:reviewer contract: ` +
+      `judge from the TODO pair (Outcome, Surface, Constraints, Changes) + the real diff whether the ` +
+      `Outcome is delivered without correctness bugs or spec drift. Return result PASS/FAIL with ` +
+      `failures (file:line — scenario — closing edit).`,
   },
 ]
 
 // ── loop ─────────────────────────────────────────────────────────────────────
 let round = 0
 const history = []
-const fails = { lint: 0, review: 0, test: 0 }
+const fails = { lint: 0, comment: 0, name: 0, test: 0, outcome: 0 }
 
 function blocked(stage, impl) {
   return { result: 'BLOCKED', todo, stage, blocker: impl ? impl.blocker : 'implementer agent died', round, history }
@@ -132,19 +153,47 @@ while (round < MAX_ROUNDS) {
   let failed = null
   let uncommitted = null
 
-  for (const gate of GATES) {
-    phase(gate.phase)
-    const out = await agent(gate.prompt, { agentType: gate.agentType, phase: gate.phase, schema: GATE, label: `${gate.key}:r${round}` })
-    if (!out) return { result: 'ERROR', todo, stage: gate.key, round, history }
-    history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], ran: out.ran || '' })
-    if (out.result === 'FAIL') {
-      failed = { gate, out }
-      break
+  // The cheap wave: three haiku gates over the same diff, in one parallel batch. They share no
+  // state, so the wall clock is the slowest of the three instead of their sum.
+  phase('Wave')
+  const waveOut = await parallel(
+    WAVE.map((gate) => () =>
+      agent(gate.prompt, { agentType: gate.agentType, phase: 'Wave', schema: GATE, label: `${gate.key}:r${round}` }).then((out) => ({ gate, out })),
+    ),
+  )
+  const waveRuns = waveOut.filter(Boolean)
+  const waveDied = WAVE.filter((g) => !waveRuns.some((r) => r.gate.key === g.key) || !waveRuns.find((r) => r.gate.key === g.key).out)
+  if (waveDied.length > 0) return { result: 'ERROR', todo, stage: waveDied.map((g) => g.key).join('+'), round, history }
+  for (const { gate, out } of waveRuns) history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], ran: out.ran || '' })
+
+  // One fixup carries every failing wave gate's findings — three separate fixups would each
+  // invalidate the next gate's read of the diff.
+  const waveFails = waveRuns.filter(({ out }) => out.result === 'FAIL')
+  if (waveFails.length > 0) {
+    failed = {
+      gate: { key: waveFails.map(({ gate }) => gate.key).join('+') },
+      out: { failures: waveFails.flatMap(({ gate, out }) => (out.failures || []).map((f) => `[${gate.key}] ${f}`)) },
     }
-    // A gate that wrote a test left it uncommitted — fold it in, then run the chain again.
-    if ((out.wroteTests || []).length > 0) {
-      uncommitted = { gate, out }
-      break
+    for (const { gate } of waveFails) fails[gate.key] += 1
+  }
+
+  // The serious gates, in order, only once the wave is green.
+  if (!failed) {
+    for (const gate of SERIAL) {
+      phase(gate.phase)
+      const out = await agent(gate.prompt, { agentType: gate.agentType, phase: gate.phase, schema: GATE, label: `${gate.key}:r${round}` })
+      if (!out) return { result: 'ERROR', todo, stage: gate.key, round, history }
+      history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], ran: out.ran || '' })
+      if (out.result === 'FAIL') {
+        failed = { gate, out }
+        fails[gate.key] += 1
+        break
+      }
+      // A gate that wrote a test left it uncommitted — fold it in, then run the chain again.
+      if ((out.wroteTests || []).length > 0) {
+        uncommitted = { gate, out }
+        break
+      }
     }
   }
 
@@ -167,16 +216,17 @@ while (round < MAX_ROUNDS) {
     continue // a new test file can break lint → restart the chain at the cheap gate
   }
 
-  fails[failed.gate.key] += 1
+  // The budget is per gate, so a wave FAIL is measured against the worst of the gates that failed.
   const failures = failed.out.failures || []
-  log(`round ${round}: ${failed.gate.key.toUpperCase()} FAIL (${failures.length} findings, ${fails[failed.gate.key]}/${maxGateFails || '∞'}) → implementer fixup`)
+  const spent = Math.max(...failed.gate.key.split('+').map((k) => fails[k]))
+  log(`round ${round}: ${failed.gate.key.toUpperCase()} FAIL (${failures.length} findings, ${spent}/${maxGateFails || '∞'}) → implementer fixup`)
 
-  if (maxGateFails && fails[failed.gate.key] >= maxGateFails) {
+  if (maxGateFails && spent >= maxGateFails) {
     return {
       result: 'BLOCKED',
       todo,
       stage: failed.gate.key,
-      blocker: `${failed.gate.key} gate failed ${fails[failed.gate.key]} rounds; last findings: ${failures.join(' | ') || '(none reported)'}`,
+      blocker: `${failed.gate.key} gate failed ${spent} rounds; last findings: ${failures.join(' | ') || '(none reported)'}`,
       round,
       history,
     }

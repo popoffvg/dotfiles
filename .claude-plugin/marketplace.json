@@ -7,8 +7,8 @@
     {
       "name": "harness-dev",
       "source": "./harness/plugins/harness-dev",
-      "description": "Authoring aids for the Claude Code harness — skill shapes (workflow, loop, instruction, router) and repo bootstrap (README, CLAUDE.md, deploy and adr skills, settings).",
-      "version": "0.5.0"
+      "description": "Authoring aids for the Claude Code harness — skill shapes (workflow, loop, instruction, router), pruning an existing skill or doc corpus into the house style, and repo bootstrap (README, CLAUDE.md, deploy and adr skills, settings).",
+      "version": "0.6.0"
     },
     {
       "name": "hi",
@@ -20,7 +20,7 @@
       "name": "self-improvement",
       "source": "./harness/plugins/self-improvement",
       "description": "Scores every Claude Code session for the lessons it holds and proposes where each one belongs in the harness: a watermarked background scan kicked by the SessionStart hook, one haiku call per dirty session, then a suggestion pass over the existing skill inventory. Browsable in the self-improve TUI. High scorers are archived for the capture-lesson skill to turn into skills and the dream skill to consolidate.",
-      "version": "0.20.0"
+      "version": "0.21.0"
     },
     {
       "name": "show",
@@ -35,16 +35,10 @@
       "version": "0.2.0"
     },
     {
-      "name": "vocab",
-      "source": "./harness/plugins/vocab",
-      "description": "In-memory topic index served over MCP: one topic points at the one file that carries its truth. Starts empty each session, never written to disk. A UserPromptSubmit hook loads the tools on the first message and reminds the agent every 15 minutes to file what it read.",
-      "version": "0.3.0"
-    },
-    {
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.44.0"
+      "version": "2.45.0"
     }
   ]
 }

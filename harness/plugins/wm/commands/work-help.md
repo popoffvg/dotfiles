@@ -31,8 +31,12 @@ invoke the agent you need; each agent follows its skill.
 | `researcher` | Explores codebase, writes `.notes/research-*.md` | `dive research` |
 | `implementer` | Executes one TODO, then stops | `code impl` |
 | `implementer-subtree` | *(experimental)* One TODO in its own `wt` worktree+branch; commits, fixups, squash-merges with spec message | `code tree` |
+| `lint-tester` | Gate (haiku) — the repo's linter over the changed files, and the tests covering them | `review` |
+| `comment-critic` | Gate (haiku) — every comment the diff adds or changes | `review` |
+| `name-critic` | Gate (haiku) — every name the diff declares, against the `pedant` table | `review` |
+| `tester` | Gate (sonnet) — does a test assert the contract; writes it when none does | `review` · `test-suite` |
+| `reviewer` | Gate (opus) — the Outcome delivered, correctness, spec drift | `review` |
 | `verifier` | Adversarially checks one implemented TODO vs its spec, writes `.notes/verify-TODO-N.md` | `impl-verify` |
-| `tester` | Designs/executes tests, writes report | `test-suite` |
 | `codebase-analyzer` | Documents how code works | — |
 
 ### Skills (grouped by prefix)

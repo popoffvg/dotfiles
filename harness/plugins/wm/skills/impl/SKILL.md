@@ -19,10 +19,10 @@ this skill.
 
 | Operation | Does | File |
 |---|---|---|
-| `impl` | Execute one TODO — read context, replan guard, apply each increment for user approval, autotest, commit, report. | `commands/sub-impl.md` |
-| `auto` | Unattended run of the whole ledger: arm the `/goal` Stop hook → per TODO (read `LESSONS.md` → impl → `lint-tester` → `reviewer` → `tester` gates → append `LESSONS.md`) → optional deploy → verify E2E. No per-increment approval. | `commands/sub-auto.md` |
+| `impl` | Execute one TODO — read context, replan guard, apply the increments and show them for approval as the spec's `approve` key asks, autotest, commit, report. | `commands/sub-impl.md` |
+| `auto` | Unattended run of the whole ledger: arm the `/goal` Stop hook → per TODO (read `LESSONS.md` → impl → the `review:sub-todo.md` gate chain → `squash` the round's fixups → append `LESSONS.md` → `capture-lesson`) → optional deploy → verify E2E. No per-increment approval. | `commands/sub-auto.md` |
 | `fix` | Close a gap (bug / missing / adjust) by fixing the thought, then the code. | `commands/sub-fix.md` |
-| `squash` | Read the fixup trail → distill lessons into `CLAUDE.local.md` → squash-merge as one commit. Called by `tree merge`. | `commands/sub-squash.md` |
+| `squash` | Read the fixup trail → distill lessons into skills (`capture-lesson`) → squash the scope as one commit. Called by `tree merge` and by `auto` per TODO. | `commands/sub-squash.md` |
 | `commit` | When to commit and how a correction lands (fixups) — shared by `impl`, `tree`, `fix`. The message itself: the `commit-message` skill. | `commands/sub-commit.md` |
 
 ## What these five read

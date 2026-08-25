@@ -10,19 +10,19 @@ Use the `skill-build` skill for changing any skill here.
 
 ## The common layer
 
-Three files at this root are shared by all four skills. Nothing else at this level is.
+Three files at this root are shared by all five skills. Nothing else at this level is.
 
 | File | Holds |
 |---|---|
 | `INDEX.md` | The map: which skill owns which file, and what that file owns. |
-| `GLOSSARY.md` | **The leading words** — one word, one meaning, used verbatim by all four skills. A word used in two skills is defined here; a word private to one is defined there. |
+| `GLOSSARY.md` | **The leading words** — one word, one meaning, used verbatim by all five skills. A word used in two skills is defined here; a word private to one is defined there. |
 | `CLAUDE.md` | This file: how to work on the plugin. |
 
 ## Rule: the router holds routing and the shared taxonomy, nothing else
 
 `code` is the only user-invocable skill. It owns the subcommand table, the pipeline, and the two
 cross-cutting references (`ref-subcommand-rules.md`, `ref-jj-notes.md`). Every procedure belongs to
-the skill that owns the work — `arch` designs, `impl` writes source, `teach` teaches.
+the skill that owns the work — `arch` designs, `impl` writes source, `review` judges it, `teach` teaches.
 
 A procedure added to `code` that is neither routing nor shared vocabulary is in the wrong skill.
 Put it where the work lives and cite it from the table.
@@ -41,7 +41,7 @@ A `(self)` or missing reference column is incomplete.
 
 ## Rule: cite across skills with the owner's prefix
 
-`arch:`, `impl:`, `teach:`, `code:` name the skill that owns the file; `wm:` names this root. A bare
+`arch:`, `impl:`, `review:`, `teach:`, `code:` name the skill that owns the file; `wm:` names this root. A bare
 filename always means a file in the citing skill. Moving a file means updating every citation of it
 in the same change — a prefix that points at the wrong skill is a broken link that still reads as
 prose.

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # PostToolUse (Edit|Write): hold a spec artifact to the budgets its skill states.
 #
-# Matches all three files of a ledger row — `TODO-N.md`, `TODO-N.agent.md`, `TODO-N.trace.md`
-# — and spec.md. budget-check.py tells them apart and applies each one's own budgets.
+# Matches both files of a ledger row — `TODO-N.md`, `TODO-N.agent.md` — plus CONSTRAINTS.md
+# and spec.md. budget-check.py tells them apart and applies each one's own budgets.
 #
 # Why PostToolUse and not guard.sh: an Edit call carries only its new_string, so the
 # resulting line count cannot be known before the write. Here the file is on disk, so the
@@ -15,7 +15,7 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null) || 
 
 [[ -z "$FILE_PATH" ]] && exit 0
 case "$FILE_PATH" in
-  */todos/TODO-*.md | */spec.md) ;;
+  */todos/TODO-*.md | */spec.md | */CONSTRAINTS.md) ;;
   *) exit 0 ;;
 esac
 [[ -f "$FILE_PATH" ]] || exit 0

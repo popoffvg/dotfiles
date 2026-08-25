@@ -4,7 +4,9 @@ export const meta = {
   whenToUse: 'Running /code auto deterministically: read the ledger, run wm-code-impl per open TODO in wave order, carry LESSONS.md between rounds, block a stuck TODO and drop its dependents, then deploy (optional) and verify end-to-end. The gates replace the human — nothing pauses for approval.',
   phases: [
     { title: 'Ledger', detail: 'read spec.md + every todos/TODO-N.md → the work list', model: 'haiku' },
+    { title: 'Squash', detail: "fold the round's fixups into the TODO's one commit, distilling them into skills" },
     { title: 'Lessons', detail: 'append what the round taught to LESSONS.md', model: 'haiku' },
+    { title: 'Capture', detail: 'capture-lesson on what the round taught outside the fixups' },
     { title: 'Status', detail: 'verify→done | blocked, ledger row, jj commit the notes-dir', model: 'haiku' },
     { title: 'Deploy', detail: 'the project deploy task — skipped when absent or turned off', model: 'haiku' },
     { title: 'Verify', detail: "the last ledger TODO's E2E command", model: 'haiku' },
@@ -123,7 +125,21 @@ for (const item of workList) {
   }
   const outcome = round && round.result === 'PASS' ? 'done' : 'blocked'
 
-  // 2.7 — what the round taught, before the status is settled.
+  // 2.4 — one commit per TODO: the gate fixups fold back into it. A blocked round has
+  // nothing green to fold into, so it skips straight to the lessons.
+  if (outcome === 'done') {
+    phase('Squash')
+    await agent(
+      `Squash the fixup trail of ${notesDir}/todos/TODO-${item.todo}.md: follow ${PLUGIN}/skills/impl/commands/sub-squash.md, scoped to THIS TODO only.\n` +
+        `Fold every --fixup commit this round produced into the TODO's own commit (git rebase --autosquash), so the TODO leaves exactly one commit behind. ` +
+        `Touch no commit that belongs to an earlier TODO.\n` +
+        `Its distill step is where a fixup becomes a skill — invoke the capture-lesson skill on every repeatable mistake the fixups reveal, and skip the one-off typos.\n` +
+        `Gate history (JSON): ${JSON.stringify(round && round.history ? round.history : [])}`,
+      { agentType: 'wm:implementer', phase: 'Squash', label: `squash:TODO-${item.todo}` },
+    )
+  }
+
+  // 2.5 — what the round taught, before the status is settled.
   phase('Lessons')
   const scribe = await agent(
     `Append to ${lessonsFile} what implementing ${notesDir}/todos/TODO-${item.todo}.md just taught. Append only — never rewrite an existing entry.\n` +
@@ -139,7 +155,19 @@ for (const item of workList) {
   )
   if (scribe) lessons.push(...(scribe.appended || []))
 
-  // 2.8 — settle the status, then commit the notes.
+  // 2.6 — LESSONS.md holds the round for this run; a skill holds it for every future one.
+  phase('Capture')
+  await agent(
+    `Invoke the capture-lesson skill (self-improvement plugin) on what implementing ${notesDir}/todos/TODO-${item.todo}.md taught OUTSIDE its fixups — ` +
+      `a finding a gate rejected plus the command that settled it, a repo convention a gate named, a gap carried to a later TODO. ` +
+      `The fixups themselves were already captured by the squash step; do not file them twice.\n` +
+      `Follow the skill's own bar: a lesson that overrides no default is skipped, not filed.\n` +
+      `Gate history (JSON): ${JSON.stringify(round && round.history ? round.history : [])}\n` +
+      `Lines just appended to ${lessonsFile}: ${JSON.stringify(scribe ? scribe.appended || [] : [])}`,
+    { agentType: 'general-purpose', phase: 'Capture', label: `capture:TODO-${item.todo}` },
+  )
+
+  // 2.7 — settle the status, then commit the notes.
   phase('Status')
   const status = await agent(
     `Settle the bookkeeping for ${notesDir}/todos/TODO-${item.todo}.md. Touch no project source.\n` +

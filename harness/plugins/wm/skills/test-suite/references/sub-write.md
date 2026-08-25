@@ -5,7 +5,7 @@ feature files** that carry the body of every behavioural scenario.
 
 The `.md` follows [`ref-readable-output.md`](ref-readable-output.md) — read that first, it is the
 contract this subcommand fills. The worked example is
-[`examples/ex-strategy-auth-refresh.md`](../examples/ex-strategy-auth-refresh.md).
+[`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md).
 
 ## How the two artifacts divide
 

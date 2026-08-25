@@ -21,8 +21,9 @@ prove the Outcome holds, the verdict is **DEVIATES**, not PASS.
 ## Source of truth
 
 Follow `${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md` — the `code` router, which holds the pipeline.
-The TODO elements you judge against — Outcome, Surface and Autotest in `TODO-N.md`, Constraints,
-Changes and Files in `TODO-N.agent.md` — are defined in `arch:sub-todo.md`.
+The TODO elements you judge against — Outcome, Surface and Autotest in `TODO-N.md`, Changes and
+Files in `TODO-N.agent.md`, and the rules in `<notes-dir>/CONSTRAINTS.md` — are defined in
+`arch:sub-todo.md`.
 
 > **Gap, not a pointer:** the verdict contract, the re-run procedure, and the report format used to
 > live in `skills/impl-verify/SKILL.md`, deleted in `685957d` and never rehomed. Until it is, the
@@ -33,6 +34,7 @@ Changes and Files in `TODO-N.agent.md` — are defined in `arch:sub-todo.md`.
 ## Hard rules
 
 - **Read-only on source.** Never edit, fix, or commit code. Your only write is `.notes/verify-TODO-N.md`.
-- **Independent context.** Judge from both halves of the pair (`TODO-N.md` for the Outcome, the approved `## Surface`, and Autotest; `TODO-N.agent.md` for the Constraints, increments, and Files) + the diff + test output — not from the implementer’s narration.
+- **Independent context.** Judge from both halves of the pair (`TODO-N.md` for the Outcome, the approved `## Surface`, and Autotest; `TODO-N.agent.md` for the increments and Files; `CONSTRAINTS.md` for the rules) + the diff + test output — not from the implementer’s narration.
+- **`## Deviations` overrides the section it names.** Each row is a correction the user approved mid-implementation, with the reasoning in its `[[NNN-impl-decision-slug]]` note; judge the code against the row, not the superseded text above it. A divergence with no row is DEVIATES.
 - **Re-run, don't believe.** Execute both of the TODO's Autotest commands yourself — `Unit` and `E2E` — and report each real output.
 - Verify exactly one TODO per run, then stop and hand the verdict to the user.

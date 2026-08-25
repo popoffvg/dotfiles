@@ -15,11 +15,11 @@ the understanding over time and records it. A missed quiz question is an input t
 
 ```
 <notes-dir>/teach/
-├── MISSION.md            # why the human is learning this code (template: tpl-teach-mission.md)
-├── RESOURCES.md          # trusted sources — the code first, external docs second (template: tpl-teach-resources.md)
+├── MISSION.md            # why the human is learning this code (example: examples/teach-mission.md)
+├── RESOURCES.md          # trusted sources — the code first, external docs second (example: examples/teach-resources.md)
 ├── NOTES.md              # the human's teaching preferences and working notes
 ├── learning-records/     # NNNN-slug.md — what is now known, and why it changes what to teach next
-│                         #   (template: tpl-teach-learning-record.md)
+│                         #   (example: examples/teach-learning-record.md)
 ├── lessons/              # NNNN-slug.html — one lesson per file, the unit of teaching
 ├── reference/            # *.html — compressed cheat sheets the human returns to
 └── assets/               # components shared across lessons — stylesheet, quiz widget, diagram helpers
@@ -29,7 +29,7 @@ Create each directory lazily, on the first file that needs it. `MISSION.md` is t
 comes first, before any lesson.
 
 **One glossary, not two.** The workspace has no glossary of its own: the project's ubiquitous
-language lives in `<notes-dir>/GLOSSARY.md` (`arch:tpl-glossary.md`), and every lesson uses those terms
+language lives in `<notes-dir>/GLOSSARY.md` (`arch:examples/glossary.md`), and every lesson uses those terms
 verbatim. A term the human learns and can use correctly belongs there — add it in the same commit,
 per `code:ref-subcommand-rules.md` § Glossary.
 
@@ -41,7 +41,7 @@ Read `spec.md` frontmatter `status` (spec phase `init → review → impl`). Arg
 | `status` (or arg) | Subject | Source of truth |
 |---|---|---|
 | `init` / `review` | **the codebase the change lands in** | the files the ledger touches, `spec.md` (Goal, Plan), `thoughts/`, `GLOSSARY.md` |
-| `impl` / `diff` | **the change on the branch** | `git diff <target>...HEAD` + the implemented TODO pair — `TODO-N.md` (Outcome, Components, Surface) + `TODO-N.agent.md` (Constraints, Changes) |
+| `impl` / `diff` | **the change on the branch** | `git diff <target>...HEAD` + the implemented TODO pair — `TODO-N.md` (Outcome, Components, Surface) + `TODO-N.agent.md` (Changes) + `CONSTRAINTS.md` |
 | `<path-or-symbol>` | **that unit** | the file or symbol, plus its callers and callees |
 
 No `spec.md` and no diff → ask which path or symbol to teach, and stop until answered.
@@ -52,7 +52,7 @@ Every lesson traces back to the mission — the reason the human wants to hold t
 head. Ship it? Review it? Extend it next quarter? Take it over from someone leaving?
 
 `MISSION.md` missing or unclear → interview the human before writing anything else, then write it
-per `tpl-teach-mission.md`. Teaching without a mission produces lessons that cover the code and
+per `examples/teach-mission.md`. Teaching without a mission produces lessons that cover the code and
 teach nothing, because nothing decides what to leave out.
 
 A mission may shift as the human learns. Confirm the shift with the human, update `MISSION.md`, and
@@ -143,7 +143,7 @@ structure the code passes around.
 
 ## Learning records
 
-Write `learning-records/NNNN-<slug>.md` per `tpl-teach-learning-record.md` when the human
+Write `learning-records/NNNN-<slug>.md` per `examples/teach-learning-record.md` when the human
 demonstrates real understanding of something non-trivial, discloses prior knowledge, has a
 misconception corrected, or shifts the mission. Coverage is not learning — wait for evidence.
 

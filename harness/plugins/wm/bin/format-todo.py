@@ -2,14 +2,14 @@
 """Format the ```ts/```typescript code blocks inside a todos/TODO-N*.md file.
 
 In practice that is the agent half, `TODO-N.agent.md`, which owns `## Changes` and so
-every Behavior sketch; the human half and the trace have no code block to format. All
+every Behavior sketch; the human half has no code block to format. All
 three are accepted, so the hook needs no knowledge of the split.
 
 Code-block-only: touches nothing but fenced TypeScript blocks — an increment's
 Behavior pseudocode under `## Changes` (sub-todo.md § Changes). Every such block in the
 file is run through prettier `--parser typescript`; a block that fails to parse (loose
-pseudocode) is kept verbatim. The ```diff blocks carrying each increment's changed
-surface, the plain-fenced Interface blocks, and all markdown are left untouched.
+pseudocode) is kept verbatim. The human half's one ```diff under `## Surface`, the
+plain-fenced Interface blocks, and all markdown are left untouched.
 
 Prettier resolution: nearest project `node_modules/.bin/prettier` (honours the
 repo's .prettierrc), else `npx --yes prettier@3`.

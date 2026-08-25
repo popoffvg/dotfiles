@@ -305,7 +305,7 @@ package is the default member, so Zed's build never tries to compile the server 
 
 ### Wiring
 
-**`.mise.toml` gains a build task modelled on `harness:vocab:build`:**
+**`.mise.toml` gains a build task modelled on `harness:self-improve:build`:**
 
 ```toml
 [tasks."harness:md-comment:build"]

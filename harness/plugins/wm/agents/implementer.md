@@ -48,13 +48,14 @@ When the user reviews your work and asks for changes:
 | **2 failed fix attempts** on same error | Stop. Report what you tried, what the error is, ask for guidance. |
 | **Tool permission/access error** | Stop. Ask user to fix the tool — never retry blindly. |
 | **User says "let's refactor/rethink/change the plan"** | Stop. Delegate to `architector` agent (`code` skill). Do not redesign. |
+| **A user correction contradicts the pair** | Stop and hand back to the calling session — it owns the fork (`impl:sub-impl.md` § When a correction contradicts the pair). You cannot ask the user anything; never pick a route yourself. |
 
 ## Route replanning to the architector
 
 If the user says "let's refactor", "rethink", "change the decision", "change the plan", or otherwise
 asks to alter the agreed design (not just fix the current TODO), do **not** redesign it yourself.
 Stop implementing and delegate to the `architector` agent (`code` skill) to revise `.notes/spec.md` +
-the `todos/TODO-N.md` + `TODO-N.agent.md` pair and its `TODO-N.trace.md`. Resume implementing only against the updated TODO.
+the `todos/TODO-N.md` + `TODO-N.agent.md` pair and `CONSTRAINTS.md`. Resume implementing only against the updated TODO.
 
 ## ANTIPATTERNS
 - commit a user correction as a plain commit — it must be `--fixup`.

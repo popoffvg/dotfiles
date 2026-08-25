@@ -58,9 +58,8 @@ elif [[ -x "$oq" ]]; then
 fi
 
 # TODO ledger: count each lifecycle state and remember the first file per state.
-# One ledger row is three files — TODO-N.md carries the status; TODO-N.agent.md carries the
-# increments and TODO-N.trace.md the decision origins, neither with frontmatter. Count the
-# human halves only, or every row counts three times.
+# One ledger row is two files — TODO-N.md carries the status; TODO-N.agent.md carries the
+# increments and has no frontmatter. Count the human halves only, or every row counts twice.
 declare -A count=() first=()
 total=0
 if [[ -d "$notes/todos" ]]; then
@@ -70,7 +69,7 @@ if [[ -d "$notes/todos" ]]; then
     total=$((total + 1))
     count[$st]=$((${count[$st]:-0} + 1))
     [[ -n "${first[$st]:-}" ]] || first[$st]="$f"
-  done < <(find "$notes/todos" -maxdepth 1 -name 'TODO-*.md' ! -name '*.agent.md' ! -name '*.trace.md' -type f | sort -V)
+  done < <(find "$notes/todos" -maxdepth 1 -name 'TODO-*.md' ! -name '*.agent.md' -type f | sort -V)
 fi
 
 # The TODO to focus on, most-urgent state first.
@@ -126,7 +125,7 @@ if ((total > 0)); then
   echo "TODO ledger: $total total —${ledger}"
   [[ -n "$cur" ]] && echo "current TODO: $(basename "${cur%.md}") ($cur_state) — $cur"
 else
-  echo "TODO ledger: no todos/TODO-N.md + TODO-N.agent.md + TODO-N.trace.md rows yet"
+  echo "TODO ledger: no todos/TODO-N.md + TODO-N.agent.md rows yet"
 fi
 echo "NEXT: $next"
 echo "Read the /code skill (wm:code) and the files named above rather than trusting recalled state."

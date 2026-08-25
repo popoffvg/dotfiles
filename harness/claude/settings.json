@@ -157,7 +157,7 @@
     "mise": "off",
     "parallel-agent-tree-guard": "off",
     "plannotator-compound": "off",
-    "prune-text": "off",
+    "harness-dev:prune-text": "off",
     "quint-spec": "off",
     "reask-in-prose": "off",
     "reflection-completeness-test": "off",
@@ -337,7 +337,6 @@
     "worktrunk@worktrunk": true,
     "frontend-design@claude-plugins-official": false,
     "gopls-lsp@claude-plugins-official": true,
-    "vocab@local-plugins": true,
     "self-improvement@local-plugins": true,
     "smart-commit@local-plugins": true,
     "rust-analyzer-lsp@claude-plugins-official": true

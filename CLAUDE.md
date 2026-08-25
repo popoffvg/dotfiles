@@ -8,7 +8,7 @@ Personal dotfiles repo managed with **GNU Stow** + **Ansible**. The repo root mi
 
 Each plugin directory **is** the plugin root (= `CLAUDE_PLUGIN_ROOT`) — no `claude/` wrapper, no shared `common/`, no build step inside the plugin. Plain markdown: agents, commands, hooks, skills.
 
-A plugin may register an MCP server via `.mcp.json`, but only by **binary name** — the compiled source lives in `harness/apps/<name>/` and is built to `~/.local/bin` by its own mise task. Never a build step inside the plugin dir: the plugin cache copies files without following symlinks, so the plugin must stay self-contained markdown + config. See `harness/plugins/vocab` (server source at `harness/apps/vocab`, built by `mise run harness:vocab:build`).
+A plugin may register an MCP server via `.mcp.json`, but only by **binary name** — the compiled source lives in `harness/apps/<name>/` and is built to `~/.local/bin` by its own mise task. Never a build step inside the plugin dir: the plugin cache copies files without following symlinks, so the plugin must stay self-contained markdown + config.
 
 The same split covers a plugin's companion CLI or TUI, which is not an MCP server and is never named in the plugin at all — the user runs it from a terminal. See `harness/apps/self-improve` (built by `mise run harness:self-improve:build`), the TUI over the `self-improvement` plugin's session scan: the algorithm stays in the plugin's shell scripts and the TUI shells out to them, so the viewer cannot drift from what a scan actually does.
 

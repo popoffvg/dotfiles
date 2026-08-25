@@ -139,7 +139,7 @@ means the behaviour was never named in the spec, so name it and check it is inte
 ### 9. Emit the document
 
 Follow the skeleton in `ref-readable-output.md` section 6. The worked example is
-[`examples/ex-strategy-auth-refresh.md`](../examples/ex-strategy-auth-refresh.md). The matrix
+[`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md). The matrix
 does not appear in it, and must not appear in yours.
 
 ## Reducing the derivation

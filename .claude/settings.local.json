@@ -212,14 +212,17 @@
     "cocoindex",
     "commit-index"
   ],
+  "disabledMcpjsonServers": [
+    "cocoindex",
+    "commit-index"
+  ],
   "sandbox": {
     "enabled": false,
     "autoAllowBashIfSandboxed": false
   },
   "spinnerTipsEnabled": false,
   "prefersReducedMotion": true,
-  "disabledMcpjsonServers": [
-    "cocoindex",
-    "commit-index"
-  ]
+  "skillOverrides": {
+    "prune-text": "on"
+  }
 }

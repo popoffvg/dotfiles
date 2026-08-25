@@ -128,7 +128,7 @@ Extend, don't fork. A near-duplicate skill splits one trigger across two files, 
 # Step 3b — Write a new skill
 
 1. **Body** = the lesson: what to do, and the failure it prevents.
-2. **`description`** = the if/when trigger, and the load-bearing field. [[authoring-model-invocable-skills]] owns how to write one and which invocation frontmatter to set; follow it instead of re-deriving the rules here.
+2. **`description`** = the if/when trigger, and the load-bearing field. `skill-build:references/foundations.md` § Frontmatter and invocation owns how to write one and which invocation frontmatter to set; follow it instead of re-deriving the rules here.
 3. **One lesson, one trigger.** A `description` covering unrelated situations fires on everything and sharpens nothing. Split rather than widen.
 4. **Verify the anchor exists first.** A lesson pinned to a file, flag, or workflow that is already gone is not worth a skill.
 5. **`paths:`** — scope activation when the trigger is "touched these files" (e.g. an LLM-config check on the config files). The skill then auto-fires only on relevant edits.

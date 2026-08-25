@@ -5,10 +5,10 @@ Owner of the code skill's **thought**-note *format*. What a thought is — the c
 An **open question** is a thought too: it lives in `thoughts/` as `NNN-question-slug.md`, not as a checklist line in `spec.md`. `spec.md` has no Open Questions section (`ref-write.md` § spec.md template).
 
 Templates (one per type):
-- [`tpl-note-question.md`](tpl-note-question.md)
-- [`tpl-note-decision.md`](tpl-note-decision.md)
-- [`tpl-note-fact.md`](tpl-note-fact.md)
-- [`tpl-note-impl-decision.md`](tpl-note-impl-decision.md)
+- [`examples/note-question.md`](../examples/note-question.md)
+- [`examples/note-decision.md`](../examples/note-decision.md)
+- [`examples/note-fact.md`](../examples/note-fact.md)
+- [`examples/note-impl-decision.md`](../examples/note-impl-decision.md)
 
 ## File naming
 
@@ -85,7 +85,7 @@ before the reader does.
 
 ## Question note
 
-The answer is not known yet — the question blocks the spec. Sections, rules, worked example: [`tpl-note-question.md`](tpl-note-question.md).
+The answer is not known yet — the question blocks the spec. Sections, rules, worked example: [`examples/note-question.md`](../examples/note-question.md).
 
 Write one the moment a question surfaces (seeded from the request, raised by a research gap, or opened mid-grill). It is the only thought type that carries `status: open`, and the only one a READY spec must not contain.
 
@@ -99,7 +99,7 @@ into its own answer. Three steps, in this order:
    answer is a choice, `NNN-fact-slug.md` when it establishes a truth. Keep the question's `slug`;
    the `NNN` is a fresh one. Set `source` to what resolved it (`codebase` when the answer was read
    out of the code, `grill` when the user answered) and `date` to now. Body per that type's
-   template (`tpl-note-decision.md` / `tpl-note-fact.md`), and **restate the question's `## Question`
+   example (`examples/note-decision.md` / `examples/note-fact.md`), and **restate the question's `## Question`
    text verbatim** — that is the audit trail of what was asked, and it is why no live note ever has
    to reach back into `archived/`.
 2. In the question note, set `status: approved` (it was answered), add `superseded_by: "<new NNN>"`,
@@ -131,7 +131,7 @@ A question that turns out to be moot has no answer note: keep it a `question`, s
 A reversed thought is superseded, never deleted, and never left in the live graph. Two steps,
 in this order:
 
-1. Write the replacement note at the next counter (`NNN`+1), matching template.
+1. Write the replacement note at the next counter (`NNN`+1), matching example.
 2. In the old note, set frontmatter `status: declined`, add `superseded_by: "<new NNN>"`, and put
    `Superseded by [[NNN-type-slug]]` as the first body line under the title.
 
@@ -158,15 +158,15 @@ was replaced.
 
 ## Decision note
 
-The answer IS a choice. Sections, rules, worked example: [`tpl-note-decision.md`](tpl-note-decision.md).
+The answer IS a choice. Sections, rules, worked example: [`examples/note-decision.md`](../examples/note-decision.md).
 
 ## Fact note
 
-The answer establishes a truth. Sections, rules, worked example: [`tpl-note-fact.md`](tpl-note-fact.md).
+The answer establishes a truth. Sections, rules, worked example: [`examples/note-fact.md`](../examples/note-fact.md).
 
 ## Implementation decision note
 
-An implementation choice made while authoring a TODO body. Same directory, shared counter. Sections, rules, when-to-write table: [`tpl-note-impl-decision.md`](tpl-note-impl-decision.md).
+An implementation choice made while authoring a TODO body. Same directory, shared counter. Sections, rules, when-to-write table: [`examples/note-impl-decision.md`](../examples/note-impl-decision.md).
 
 ---
 

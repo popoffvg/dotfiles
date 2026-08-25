@@ -6,7 +6,14 @@ The contract every `/code` subcommand obeys.
 Read `<notes-dir>/RULES.md` before the first step. It says what to raise with the human and what
 to decide alone; it wins over a subcommand's own default. It never lowers a hard gate — the human
 still reads the spec at the `review→impl` gate, destructive git is still confirmed. Missing file →
-use the defaults in `arch:tpl-rules.md` § Rules table, and let `new` Step 0.6 write it.
+use the defaults in `arch:examples/rules.md` § Rules table, and let `new` Step 0.6 write it.
+
+## Obey CONSTRAINTS.md
+Read `<notes-dir>/CONSTRAINTS.md` before writing or judging any code. It is short — one row per
+settled decision an increment can violate — and it is the **one** home for those rules: no TODO
+copies a row, and no subcommand restates one. A decision that changes is edited there, once. Why a
+rule exists is not in the file: run the `trace` skill when a rule has to be argued with rather than
+obeyed.
 
 ## Archive a thought that stops being live
 A question once answered, a thought once superseded: it moves to `thoughts/archived/` — never
@@ -23,7 +30,7 @@ One-commit-per-chunk, fixups on correction: `impl:sub-commit.md`. The message it
 the cause / goal / decision body — is the `commit-message` skill; load it before writing one.
 
 ## Glossary
-New or renamed terms → update `GLOSSARY.md` in the same commit. Table shape: `arch:tpl-glossary.md`.
+New or renamed terms → update `GLOSSARY.md` in the same commit. Table shape: `arch:examples/glossary.md`.
 
 ## Source is read-only
 Read-only over project source; write only under `<notes-dir>`. See `arch:ref-write.md`.

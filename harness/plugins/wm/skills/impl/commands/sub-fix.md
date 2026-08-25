@@ -36,10 +36,14 @@ No existing thought covers the gap (always for **missing**, sometimes **adjust**
 
 ### Finding the wrong thought
 
-Note layout and filenames: `arch:ref-note-format.md`. **Start at `TODO-N.trace.md`** — it is the row's only index of origins, and it is built for exactly this walk: find the anchor covering the gap (`Constraints: C<n>`, a `## Surface` symbol, an `Autotest` level, an increment number), and its `Origin` is the note to open. Follow that note's `Depends on` backward from there.
+Note layout and filenames: `arch:ref-note-format.md`. **Run the `trace` skill** — quote the artifact
+the gap sits in (a `CONSTRAINTS.md` rule, a `## Surface` symbol, an `Autotest` level, an increment)
+and ask what settled it. It searches `thoughts/` in a subagent and returns the chain plus a verdict:
+`live` names the note to correct, `superseded` names the drift, `unrecorded` means the choice was
+made in code and never written down, which is itself the cause.
 
-When the trace does not name the culprit, search the metadata rather than reading the
-directory: `~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts -m '<terms of the gap>'`
+Search by hand only when the trace comes back `unrecorded` and you want to widen it:
+`~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts -m '<terms of the gap>'`
 prints each note's `description`, and the descriptions say which notes could hold the wrong answer
 (`arch:ref-note-format.md` § Finding the thought for your task). Open those, not the rest.
 
@@ -87,11 +91,11 @@ Frontmatter marks it a replacement:
 replaces: "NNN-old-slug"
 ```
 
-Then **repoint the trace**: every `TODO-N.trace.md` row citing `NNN-old-slug` now cites the
-replacement, in every TODO that cites it — not only the one this fix started from. The old note is
-about to leave `thoughts/`, and a row pointing into `archived/` is a TODO obeying a decision that no
-longer stands. A gap that needed a *new* thought (the **missing** kind) earns a new row instead,
-anchored where the corrected behavior lands.
+Then **repoint the rule**: every `CONSTRAINTS.md` row whose `Origin` is `NNN-old-slug` now cites the
+replacement, and its rule text is rewritten to what the new note settled. The old note is about to
+leave `thoughts/`, and a row pointing into `archived/` is a corpus obeying a decision that no longer
+stands. A gap that needed a *new* thought (the **missing** kind) earns a new `CONSTRAINTS.md` row
+instead, when an increment can violate what it settled.
 
 Commit: `fix: add NNN-<type>-<slug> as replacement for NNN-old-slug`.
 
@@ -114,7 +118,7 @@ In `<notes-dir>`:
 jj commit -m "[FIX:<kind>] <one-line gap>
   - thought: NNN-old-slug superseded (reason: <reason>) | none (missing) | none (code-only drift)
   - corrected/new thought: NNN-new-slug | none
-  - trace rows repointed: TODO-N (C2), TODO-M (Outcome) | none
+  - CONSTRAINTS.md rows repointed: R2, R7 | none
   - commit: <sha>
   - autotest: pass | fail (details)"
 ```

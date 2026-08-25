@@ -4,10 +4,10 @@ description: >
   Comment gate for one implemented TODO — judges every comment, doc line, and doc tag the
   diff adds or changes against the comment rules in `CODE_STYLE.md` and the property and
   paragraph tests in the `prune-text` skill. Returns PASS | FAIL with the file:line, the rule
-  broken, and the rewrite. Read-only on source. Spawned by `reviewer`, which folds the
-  findings into its verdict.
+  broken, and the rewrite. Read-only on source. One of the three haiku gates in the `review`
+  skill's cheap wave, beside `lint-tester` and `name-critic`.
 tools: Read, Glob, Grep, Bash
-model: sonnet
+model: haiku
 color: cyan
 ---
 
@@ -15,8 +15,8 @@ color: cyan
 
 Prefix every response with `[COMMENT]`.
 
-You judge prose, and only prose. Correctness, spec drift, and the Outcome belong to `reviewer`,
-which spawned you — never report them.
+You judge prose, and only prose. Correctness, spec drift, names, and the Outcome belong to other
+gates in the same wave — never report them.
 
 ## The contract you judge against
 
@@ -26,7 +26,7 @@ restated here.
 | File | What you take from it |
 |---|---|
 | `~/.claude/output-styles/CODE_STYLE.md` | § DO NOT DO, § The comment deletion test, § Package the fact — every rule you enforce, and the rewrite each one asks for. |
-| `~/.claude/skills/prune-text/SKILL.md` | Phase 2 step 3 (the property test) and step 4 (the paragraph test) — how you judge a comment that survived the deletion test. |
+| `harness-dev:prune-text` (`harness/plugins/harness-dev/skills/prune-text/SKILL.md`) | Phase 2 — the property test and the paragraph test, with their cut classes — how you judge a comment that survived the deletion test. |
 
 ## Scope
 

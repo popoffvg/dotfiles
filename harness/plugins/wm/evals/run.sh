@@ -2,7 +2,8 @@
 # Grade the TODO-pair gates from arch:sub-todo.md against labelled cases.
 #
 # Two axes per case, both decided by the same rules a `todo` author applies:
-#   half  — human | agent | trace : which of the row's three files this content belongs in
+#   half  — human | agent | corpus : which file this content belongs in — a half of the pair,
+#           or the corpus outside it (CONSTRAINTS.md / thoughts/)
 #   form  — keep   | reshape : does it ship as written, or is it a BODY that must be
 #           reshaped into an Interface block + a Behavior sketch (or into case sentences)
 #
@@ -41,17 +42,17 @@ done
 
 # The five rule blocks under test, verbatim from the skill. § Surface carries the
 # surface-not-a-body rule as a nested #### heading, so extracting to `### Changes` gets both.
-pair_rule="$(awk '/^## One ledger row, two halves and a trace$/{p=1} /^## Precondition/{p=0} p' "$skill")"
+pair_rule="$(awk '/^## One ledger row, two halves$/{p=1} /^## Precondition/{p=0} p' "$skill")"
 surface_rule="$(awk '/^### Surface$/{p=1} /^### Changes$/{p=0} p' "$skill")"
 changes_rule="$(awk '/^### Changes$/{p=1} /^### Autotest$/{p=0} p' "$skill")"
 autotest_rule="$(awk '/^### Autotest$/{p=1} /^### Commit$/{p=0} p' "$skill")"
-trace_rule="$(awk '/^### Trace$/{p=1} /^## Implementation decisions$/{p=0} p' "$skill")"
+rules_rule="$(awk '/^### Constraints$/{p=1} /^### Components$/{p=0} p' "$skill")"
 
-[ -n "$pair_rule" ]     || { echo "could not extract § One ledger row, two halves and a trace from $skill" >&2; exit 2; }
+[ -n "$pair_rule" ]     || { echo "could not extract § One ledger row, two halves from $skill" >&2; exit 2; }
 [ -n "$surface_rule" ]  || { echo "could not extract § Surface from $skill" >&2; exit 2; }
 [ -n "$changes_rule" ]  || { echo "could not extract § Changes from $skill" >&2; exit 2; }
 [ -n "$autotest_rule" ] || { echo "could not extract § Autotest from $skill" >&2; exit 2; }
-[ -n "$trace_rule" ]    || { echo "could not extract § Trace from $skill" >&2; exit 2; }
+[ -n "$rules_rule" ]    || { echo "could not extract § Constraints from $skill" >&2; exit 2; }
 
 pass=0; fail=0; half_ok=0; form_ok=0; total=0
 
@@ -65,9 +66,9 @@ while IFS= read -r line; do
   want_half="$(jq -r .half <<<"$line")"
   want_form="$(jq -r .form <<<"$line")"
 
-  prompt="You are authoring a wm TODO. One ledger row compiles to THREE files — a PAIR plus a TRACE —
-and every block of content has exactly one correct home and one correct form. Apply the rules below
-literally.
+  prompt="You are authoring a wm TODO. One ledger row compiles to a PAIR of files, and the rules that
+pair obeys live outside it in the corpus. Every block of content has exactly one correct home and one
+correct form. Apply the rules below literally.
 
 $pair_rule
 
@@ -77,7 +78,7 @@ $changes_rule
 
 $autotest_rule
 
-$trace_rule
+$rules_rule
 
 --- CANDIDATE ---
 The author wants to put this into the TODO. What they say it is: $intent
@@ -87,16 +88,17 @@ $candidate
 
 Answer two questions about this candidate.
 
-1. \"half\": which of the row's three files does this content belong in?
+1. \"half\": which file does this content belong in?
    \"human\" = TODO-N.md (Outcome, New terms, Components, Surface, Autotest, Commit).
              Surface is the ONE diff in the pair, so any fenced diff, or a file-contract
              block for a file that has no surface, is human.
-   \"agent\" = TODO-N.agent.md (Constraints, Changes, Files, Pre-reads, Manual test, Definition of
+   \"agent\" = TODO-N.agent.md (the Constraints pointer, Changes, Files, Pre-reads, Manual test, Definition of
              done). Changes holds the increments as Files + Surface + Do + Blast radius prose, and
-             carries no diff at all. A Constraints row is the RULE alone, with a C<n> id.
-   \"trace\" = TODO-N.trace.md (Trace). WHERE a decision came from — a row anchored on a part of the
-             pair, cited to a [[thoughts/ note]] or a dated external document, plus one sentence on
-             why this TODO is bound by it. Every origin link belongs here and nowhere else.
+             carries no diff at all. Constraints is a POINTER at CONSTRAINTS.md and never a rule.
+   \"corpus\" = outside the pair. CONSTRAINTS.md when it is a settled rule an increment can
+             violate — the rule plus an R<n> id plus its origin. thoughts/ when it is a REASON:
+             why a choice was made, what lost, what a reviewer would argue with. No file under
+             todos/ ever carries a rule table or an origin link.
 
 2. \"form\": does it ship as written, or must it be reshaped?
    \"keep\"    = it is already the right form for its section: a changed surface as a diff, a
@@ -114,7 +116,7 @@ being long or badly written. Values that a caller can see — enum members, conf
 struct fields, interface methods, exit codes — are surface, not bodies.
 
 Reply with one line of JSON and nothing else:
-{\"half\":\"human|agent|trace\",\"form\":\"keep|reshape\",\"why\":\"<12 words>\"}"
+{\"half\":\"human|agent|corpus\",\"form\":\"keep|reshape\",\"why\":\"<12 words>\"}"
 
   # Neutral cwd + no user settings: the graded model must not inherit this machine's
   # hooks, plugins, skills, or MCP servers.

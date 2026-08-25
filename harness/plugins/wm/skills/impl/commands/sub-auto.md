@@ -1,7 +1,7 @@
 # code — auto
 
-Drive the whole ledger unattended: every open TODO through implement → lint → review → test, then
-deploy, then verify end-to-end. One invocation, no per-increment approval — the three gates replace
+Drive the whole ledger unattended: every open TODO through implement → the `review` gate chain, then
+deploy, then verify end-to-end. One invocation, no per-increment approval — the gates replace
 the human.
 
 Deterministic driver: the `wm-code-auto` workflow (`.claude/workflows/wm-code-auto.js`), which calls
@@ -38,22 +38,29 @@ For **every** TODO in the work list, in order — not the first, not the easy on
 
 1. **Read `<notes-dir>/LESSONS.md` in full.** Mandatory, every round, before any edit. It carries what
    the earlier rounds already cost.
-2. **Implement one TODO** — follow `sub-impl.md`, with one change: the per-increment approval loop
-   (its Step 5.3) does not run. Nobody is watching. Apply each increment, keep the one-commit-per-TODO
+2. **Implement one TODO** — follow `sub-impl.md`, with one change: it runs as `approve: none`
+   (its § Approval) whatever the spec's key says. Nobody is watching. Apply each increment, keep the one-commit-per-TODO
    rule, and pass the lessons entries that touch this TODO's **Files** in the @implementer brief.
-3. **The gate chain, cheapest first** — @lint-tester (lint + the covering tests), then @reviewer
-   (Outcome, correctness, drift, over the real diff and the TODO pair), then @tester (does a test
-   assert the TODO's `## Autotest` contract — no → **write the test first**, and the implementer folds
-   it into the commit). Any FAIL → return to 2 as a fixup commit with the findings quoted, then
-   **restart the chain at the cheap gate**: a fixup can break what a later gate already cleared.
-4. **Append to `<notes-dir>/LESSONS.md`** — what this round taught: findings that were real, findings
+3. **The gate chain** — follow `review:sub-todo.md`: one haiku wave (lint, comments, names) in
+   parallel, then the test gate, then the opus outcome gate. Any FAIL → return to 2 as a fixup commit
+   with the findings quoted, and the chain restarts at the wave. That file owns the gates, their
+   tiers, and the budget; this step owns nothing but the call.
+4. **Squash this round's fixups** — follow `sub-squash.md`, scoped to this TODO: fold every `--fixup`
+   commit the gate chain produced into the TODO's own commit (`git rebase --autosquash`), so the TODO
+   leaves exactly one commit behind. Its distill step is where a fixup becomes a skill.
+5. **Append to `<notes-dir>/LESSONS.md`** — what this round taught: findings that were real, findings
    rejected plus the command that settled them, gaps carried to a later TODO, process facts. Group by
    when the lesson bites, not by which gate produced it.
-5. **Advance the status** — `verify → done` on every gate green. Commit the notes-dir (`code:ref-jj-notes.md`).
+6. **Capture what the round taught outside the fixups** — invoke the `capture-lesson` skill
+   (`self-improvement` plugin) on every lesson that produced no fixup: a finding a gate rejected and the
+   command that settled it, a repo convention the reviewer named, a gap carried forward. `LESSONS.md`
+   holds them for this run; a skill holds them for every future one.
+7. **Advance the status** — `verify → done` on every gate green. Commit the notes-dir (`code:ref-jj-notes.md`).
 
-Three failed rounds on one gate → set that TODO `status: blocked`, record the blocker in
-`LESSONS.md`, and continue with the next TODO that no blocked TODO blocks. Never abandon the
-remaining work list because one TODO is stuck.
+A gate that exhausts its budget (`review:ref-gates.md` § The gate budget) blocks the TODO: record the
+blocker in `LESSONS.md` and continue with the next TODO that no blocked TODO blocks. A blocked round
+**skips the squash** — its fixups have nothing green to fold into — and still runs 5 and 6. Never
+abandon the remaining work list because one TODO is stuck.
 
 ## Step 3 — deploy (optional)
 

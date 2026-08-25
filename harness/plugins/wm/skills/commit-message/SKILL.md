@@ -79,5 +79,5 @@ When to commit, how to split, and what a user correction lands as: `impl:sub-com
 `## Commit` block carries `Title` and `Body`, both approved by the human as the last link of the
 verification chain, and the ledger row's `Why` is the Cause and Goal in compressed form. The
 Decision part comes from the `decision` and `impl-decision` notes the TODO obeys. Shapes:
-`arch:tpl-todo.md`. When no TODO exists — a `fix`, a hot patch, a one-off — read the diff and the
+`arch:examples/todo.md`. When no TODO exists — a `fix`, a hot patch, a one-off — read the diff and the
 conversation that asked for it, and write the three parts from there.

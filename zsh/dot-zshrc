@@ -25,6 +25,20 @@ unset secret
 autoload -Uz add-zsh-hook
 autoload -Uz compinit && compinit -i
 zstyle ':completion:*' special-dirs true
+# Tab opens a menu the arrow keys walk, instead of printing a list and dropping
+# you back on the prompt with nothing selected.
+zmodload zsh/complist
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+# Without these two, a list taller than the screen makes zsh stop and ask "do you
+# wish to see all 290 possibilities (184 lines)?". Setting them replaces that
+# question with a scrollable page you walk with the arrow keys.
+zstyle ':completion:*' list-prompt '%S-- %p -- arrows scroll, q quits --%s'
+zstyle ':completion:*' select-prompt '%S-- %p --%s'
+setopt LIST_PACKED
 
 
 
@@ -114,12 +128,30 @@ if [ -f '/Users/vitaliipopov/Downloads/google-cloud-sdk/completion.zsh.inc' ]; t
 # Added by GitButler installer
 eval "$(but completions zsh)"
 
+# On the prompt, Tab and Shift+Tab both drive deja. Tab is deja's own default
+# key; Shift+Tab is added after the source, where deja's per-prompt re-bind of
+# its own keys will leave it alone. With no ghost showing, deja's cycle falls
+# through to whatever ^I held when it loaded — the completion widget.
 if [[ -r "$HOME/.local/share/deja/init.zsh" ]]; then source "$HOME/.local/share/deja/init.zsh"; else eval "$(deja init zsh)"; fi
+bindkey '^[[Z' deja-cycle
 
-# cd<Tab> → yazi. Replaces deja-cycle (Tab) so deja's precmd bindkey still hits us.
-if (( ${+widgets[deja-cycle]} )); then
-  zle -N deja-cycle _cd_tab_yazi
-elif (( ${+functions[_cd_tab_yazi]} )); then
-  zle -N expand-or-complete _cd_tab_yazi
+# Down opens completion, and must be bound to the completion widget itself, not
+# to a wrapper: zsh silently completes nothing when the widget on the key is
+# user-defined. Costs the old next-history-line; atuin owns history anyway.
+bindkey '^[[B' expand-or-complete
+# Inside an open menu the arrows move the selection. Tab and Shift+Tab step
+# forward and back through the matches — complist leaves ^I on complete-word
+# there, which does not move the highlight at all.
+bindkey -M menuselect '^I' menu-complete
+bindkey -M menuselect '^[[Z' reverse-menu-complete
+
+# yazi used to hang off cd<Tab>, but Tab can no longer share: zsh refuses to run
+# the completion widget from inside a user-defined widget — it completes nothing,
+# silently — so anything bound to Tab must be the completion widget itself. It
+# moved to Ctrl+O, displacing accept-line-and-down-history.
+if (( ${+functions[_yazi_jump]} )); then
+  DEJA_IGNORE_WIDGETS+=(yazi-jump)
+  zle -N yazi-jump _yazi_jump
+  bindkey '^O' yazi-jump
 fi
 

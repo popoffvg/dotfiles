@@ -8,15 +8,16 @@ Obeys the shared subcommand rules — see `code:ref-subcommand-rules.md`.
 
 No `<notes-dir>/spec.md` → write a minimal one (full template: `ref-write.md` § spec.md template):
 
-- **Frontmatter** — a `---` block with `status: init`, `branch:` (current branch, `git rev-parse --abbrev-ref HEAD`), and `drives:` (one sentence from the user's request). No phase-rules prose in the body — the machine lives in `ref-write.md` § Status.
+- **Frontmatter** — a `---` block with `status: init`, `approve: increment` (the default; Step 0.6 replaces it with the user's answer — `ref-write.md` § Approval), `branch:` (current branch, `git rev-parse --abbrev-ref HEAD`), and `drives:` (one sentence from the user's request). No phase-rules prose in the body — the machine lives in `ref-write.md` § Status.
 - **Description** — one sentence from the request. **Goal** — 2–3 plain sentences.
-- **Open questions** — seed 1–3 as `thoughts/NNN-question-*.md` notes (`status: open`, template `tpl-note-question.md`). They live in the thought graph, not in `spec.md`; the spec has no Open Questions section. **TODO List** — empty until the grill closes.
-- Create `<notes-dir>/GLOSSARY.md` from `references/tpl-glossary.md`, empty.
-- Create `<notes-dir>/CLAUDE.md` from `references/tpl-notes-claude.md` — the corpus guide any agent entering the folder reads. Copy the template's fenced block verbatim, not its header.
-- Create `<notes-dir>/PATTERNS.md` from `references/tpl-patterns.md` — the implementation patterns and reference files the implementer follows. Empty or "follow language defaults" at init; `spec.md` mentions `@PATTERNS.md` and holds no pattern content.
+- **Open questions** — seed 1–3 as `thoughts/NNN-question-*.md` notes (`status: open`, example `examples/note-question.md`). They live in the thought graph, not in `spec.md`; the spec has no Open Questions section. **TODO List** — empty until the grill closes.
+- Create `<notes-dir>/GLOSSARY.md` from `examples/glossary.md`, empty.
+- Create `<notes-dir>/CONSTRAINTS.md` from `examples/constraints.md`, empty — the header and the table header, no rows. Rows are appended as decisions settle, by the grill and by `todo`; every TODO's agent half points here (`sub-todo.md` § Constraints).
+- Create `<notes-dir>/CLAUDE.md` from `examples/notes-claude.md` — the corpus guide any agent entering the folder reads. Copy the example's fenced block verbatim, not its header.
+- Create `<notes-dir>/PATTERNS.md` from `examples/patterns.md` — the implementation patterns and reference files the implementer follows. Empty or "follow language defaults" at init; `spec.md` mentions `@PATTERNS.md` and holds no pattern content.
 - What we're NOT doing — empty or "follow language defaults". No `Design Decisions` and no `Open Questions` section: both live in `thoughts/` (`ref-write.md` § Artifacts).
 
-`CLAUDE.md` and `RULES.md` are written **once**; if either already exists, leave it — the user owns it after init. `PATTERNS.md` is created once and stays open to extension as patterns surface.
+`CLAUDE.md` and `RULES.md` are written **once**; if either already exists, leave it — the user owns it after init. `PATTERNS.md` and `CONSTRAINTS.md` are created once and stay open to extension — patterns as they surface, constraints as decisions settle. Neither is ever rewritten from the example after init.
 
 spec.md exists → check the frontmatter `branch` against the current branch (`ref-write.md` § Spec ownership by branch):
 
@@ -28,20 +29,28 @@ spec.md exists → check the frontmatter `branch` against the current branch (`r
 Run every time. Check `<notes-dir>/research/`:
 
 - Empty or missing → skip to Step 1.
-- Present → read `INDEX.md` first (else every `.md`). For each concrete finding — observed code behavior, user assertion, flagged gap — write one `NNN-fact-*.md` thought (`source: explore`, template `tpl-note-fact.md`, shared counter from 001). One fact per finding; **before the grill starts**, so decisions can link them. Write each research gap as one `NNN-question-*.md` thought (`source: explore`, `status: open`, template `tpl-note-question.md`) — same directory, same counter. Print: `Ingested explore artifacts: N fact notes, M question notes.`
+- Present → read `INDEX.md` first (else every `.md`). For each concrete finding — observed code behavior, user assertion, flagged gap — write one `NNN-fact-*.md` thought (`source: explore`, example `examples/note-fact.md`, shared counter from 001). One fact per finding; **before the grill starts**, so decisions can link them. Write each research gap as one `NNN-question-*.md` thought (`source: explore`, `status: open`, example `examples/note-question.md`) — same directory, same counter. Print: `Ingested explore artifacts: N fact notes, M question notes.`
 
 ## Step 0.6: Set the rules
 
 Runs once, only when `<notes-dir>/RULES.md` is missing. Skip it entirely when the file exists.
 
-Ask the four init questions from `references/tpl-rules.md` § Init questions in **one**
-`AskUserQuestion` batch — approval depth during `impl`, which questions reach the human during the
-grill, test timing, and who commits. Do not assume an answer: this is the one place the user sets
-the interaction contract. A skipped question takes the first (default) option.
+Ask **four** questions in **one** `AskUserQuestion` batch — approval depth during `impl`, plus the
+three init knobs from `examples/rules.md` (which questions reach the human during the grill, test
+timing, and who commits). Do not assume an answer: this is the one place the user sets the
+interaction contract. A skipped question takes the first (default) option.
 
-Write the answers into `<notes-dir>/RULES.md` using the template's copy block: fill the Answers
-table with the four settings and expand each `<…>` in the per-step table. No placeholder may
-survive. Then print: `RULES.md written — <the four settings, one line>.`
+The four answers land in **two** files, each in its one home:
+
+- **Approval depth** — *each increment* / *once per TODO* / *autonomous* — is the `spec.md`
+  frontmatter `approve` key, written as `increment` / `todo` / `none` (`ref-write.md` § Approval).
+  Replace the `increment` default Step 0 wrote. It is spec metadata, not a rule, because `impl`
+  branches on the value rather than raising a choice with the human.
+- **The other three** go into `<notes-dir>/RULES.md` using the example's copy block: fill the
+  Answers table with the three settings and expand each `<…>` in the per-step table. No placeholder
+  may survive.
+
+Then print: `RULES.md written — <the three settings, one line>. Approval: <approve value>.`
 
 Every later subcommand reads `RULES.md` first and obeys it over its own defaults. It never lowers
 a hard gate: the human still reads the spec at the `review→impl` gate, and destructive git actions
@@ -57,10 +66,10 @@ Run `/grill-with-docs` until no `status: open` question note is left in `thought
 Back-fill `Affects` and populate `links` per `ref-note-format.md` § Back-linking.
 
 #### 2. Confirm spec.md reflects every resolution
-Every decision is a `thoughts/NNN-decision-*.md` note — **not** a spec section (`spec.md` has no Design Decisions); routine picks land in GLOSSARY.md / scope instead; new out-of-scope items in What we're NOT doing. **No `status: open` question note left** (`~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0; any open one = NOT READY). Advance the frontmatter `status: init → review`. Self-check against `ref-write.md` § Spec-Readiness Checklist.
+Every decision is a `thoughts/NNN-decision-*.md` note — **not** a spec section (`spec.md` has no Design Decisions); a decision an increment can violate also gets one `CONSTRAINTS.md` row citing that note (`sub-todo.md` § Constraints); routine picks land in GLOSSARY.md / scope instead; new out-of-scope items in What we're NOT doing. **No `status: open` question note left** (`~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0; any open one = NOT READY). Advance the frontmatter `status: init → review`. Self-check against `ref-write.md` § Spec-Readiness Checklist.
 
 #### 3. Compile the plan
-Write a `## Plan` at the bottom of spec.md — 3–5 sentences (one per major branch) plus the **wave** table. No decision-trail table: the graph lives in `thoughts/`, and the reader enters it through each TODO's `## Constraints` rows.
+Write a `## Plan` at the bottom of spec.md — 3–5 sentences (one per major branch) plus the **wave** table. No decision-trail table: the graph lives in `thoughts/`, the rules it settled are `CONSTRAINTS.md`, and a reader who wants the reasoning behind either runs the `trace` skill.
 
 ```markdown
 ## Plan
@@ -81,6 +90,6 @@ Build the waves per `ref-write.md` § Waves — group for maximum parallelism: c
 
 ## Stop at the gate
 
-`new` ends here. It writes none of a row's three files — neither `todos/TODO-N.md`, nor `todos/TODO-N.agent.md`, nor `todos/TODO-N.trace.md`. The spec + thought graph are now
+`new` ends here. It writes neither half of a row — not `todos/TODO-N.md`, not `todos/TODO-N.agent.md`. The spec + thought graph are now
 reviewable; the human reviews and runs `/code todo` when satisfied (the gate — `ref-write.md`). Review
 surfaces gaps → run `/code new` again to re-grill.

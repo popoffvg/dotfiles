@@ -2,20 +2,19 @@
 """Count a wm spec artifact against the budgets its skill states, and name the split.
 
 The budgets are written as prose and as checklist rows in `arch:sub-todo.md`,
-`arch:tpl-todo.md`, `arch:tpl-todo-agent.md` and `arch:ref-write.md`. A checklist row is
+`arch:examples/todo.md`, `arch:examples/todo-agent.md` and `arch:ref-write.md`. A checklist row is
 ticked by the model that wrote the file, so a body can pass review at three times its
 budget. This script is the same rule, counted.
 
-One ledger row is a PAIR of files split by audience, plus a TRACE companion holding where
-each decision in the pair came from (`arch:sub-todo.md` § One ledger row, two halves and a
-trace). Each file is checked against its own budgets, and each is checked for sections that
-belong to another - a misplaced section means the split was never made.
+One ledger row is a PAIR of files split by audience (`arch:sub-todo.md` § One ledger row,
+two halves). The rules both halves obey live outside the pair, in one corpus file,
+CONSTRAINTS.md. Each file is checked against its own budgets, and each is checked for
+sections that belong to another - a misplaced section means the split was never made.
 
 Checked, by file kind:
 
   todos/TODO-N.md         human half - carries the ONE diff, in ## Surface
                           body <= 550 lines            (arch:sub-todo.md - Budget)
-                          ## Components <= 5 rows, when the section is present
                           each ## Surface diff <= 150 changed lines, unless that file
                           declares a `**Compile floor:**`
                           no agent-half section present (Constraints, Changes, Files,
@@ -30,17 +29,19 @@ Checked, by file kind:
                           no frontmatter (status lives in the human half alone)
                           no human-half section present (Outcome, New terms,
                           Components, Surface, Autotest, Commit)
+                          ## Constraints holds the CONSTRAINTS.md pointer, never a rule
+                          table - a rule copied here is the second copy that drifts
 
-  todos/TODO-N.trace.md   trace - NO line budget and NO row budget, by design: a row exists
-                          because a decision was made, and no number of decisions makes a
-                          TODO too big. What is counted is whether a row can be FOLLOWED.
-                          ## Trace present, and no pair section present
-                          NO ```diff block anywhere
-                          every table row fills all three columns
-                          every [[note]] origin resolves to a LIVE note in ../thoughts/;
+  CONSTRAINTS.md          the corpus rules - NO line budget and NO row budget, by design: a
+                          row exists because a decision was made, and no number of decisions
+                          makes a corpus too big. What is counted is whether a row can be
+                          FOLLOWED.
+                          one table, every row filling all three columns
+                          ids R<n>, 1-indexed, contiguous, unique
+                          every [[note]] origin resolves to a LIVE note in thoughts/;
                           one resolving only under thoughts/archived/ is a superseded
-                          decision the TODO still obeys (arch:sub-todo.md - Trace)
-                          no frontmatter (status lives in the human half alone)
+                          decision the corpus still obeys (arch:sub-todo.md - Constraints)
+                          NO ```diff block anywhere, no frontmatter
 
   spec.md                 <= 200 lines                 (arch:ref-write.md - Spec-Readiness)
 
@@ -63,7 +64,6 @@ TODO_HUMAN_LINES = 550
 SPEC_LINES = 200
 MAX_INCREMENTS = 10
 MAX_DIFF_LINES = 150
-MAX_COMPONENT_ROWS = 5
 
 # Which half owns each H2. A heading found in the other half is the whole finding: the
 # author wrote one file where the contract asks for two.
@@ -74,6 +74,7 @@ HUMAN_SECTIONS = {
     "Surface",
     "Autotest",
     "Commit",
+    "Deviations",
 }
 AGENT_SECTIONS = {
     "Constraints",
@@ -84,7 +85,7 @@ AGENT_SECTIONS = {
     "Manual test",
     "Definition of done",
 }
-TRACE_SECTIONS = {"Trace"}
+RULE_ID = re.compile(r"^`?R(\d+)`?$")
 
 H2 = re.compile(r"^## +(.+?)\s*$")
 INCREMENT = re.compile(r"^### +(\d+)\. +(.+?)\s*$")
@@ -209,10 +210,6 @@ def check_todo_human(lines, violations, path):
     violations.extend(
         misplaced(found, AGENT_SECTIONS, "human half", "agent half (`TODO-N.agent.md`)")
     )
-    violations.extend(
-        misplaced(found, TRACE_SECTIONS, "human half", "trace (`TODO-N.trace.md`)")
-    )
-
     if "Surface" in found:
         s_start, s_end = found["Surface"]
         for owner, changed, floor, _ in diff_blocks(body[s_start:s_end]):
@@ -226,21 +223,6 @@ def check_todo_human(lines, violations, path):
                 "the surface, not a body). If every line is real surface and the file still "
                 "cannot compile below the budget, add a `**Compile floor:**` bullet under "
                 "its diff saying why."
-            )
-
-    if "Components" in found:
-        c_start, c_end = found["Components"]
-        rows = [
-            x
-            for x in body[c_start:c_end]
-            if TABLE_ROW.match(x) and not TABLE_RULE.match(x)
-        ]
-        # the header row is not a component
-        if len(rows) - 1 > MAX_COMPONENT_ROWS:
-            violations.append(
-                f"`## Components` has {len(rows) - 1} rows, budget is "
-                f"{MAX_COMPONENT_ROWS}. A component that fits no brick owns more than one "
-                "responsibility: split it."
             )
 
 
@@ -259,9 +241,21 @@ def check_todo_agent(lines, violations, path):
     violations.extend(
         misplaced(found, HUMAN_SECTIONS, "agent half", "human half (`TODO-N.md`)")
     )
-    violations.extend(
-        misplaced(found, TRACE_SECTIONS, "agent half", "trace (`TODO-N.trace.md`)")
-    )
+    if "Constraints" in found:
+        c_start, c_end = found["Constraints"]
+        rules = [
+            x
+            for x in body[c_start:c_end]
+            if TABLE_ROW.match(x) and not TABLE_RULE.match(x)
+        ]
+        if rules:
+            violations.append(
+                f"the agent half's `## Constraints` carries a table of {len(rules) - 1} rule "
+                "row(s). "
+                "It holds the pointer and nothing else: `Obey [CONSTRAINTS.md]"
+                "(../CONSTRAINTS.md) - every row.` The rules live once, in that file, so a "
+                "decision that changes is edited once (`arch:sub-todo.md` - Constraints)."
+            )
 
     diffs = sum(1 for x in body if DIFF_OPEN.match(x))
     if diffs:
@@ -334,7 +328,7 @@ def resolve_note(thoughts, slug):
     return "missing"
 
 
-def check_trace_origin(cell, thoughts, row_label, violations):
+def check_origin(cell, thoughts, row_label, violations):
     """An origin is followable or it is not: a live note, or a dated document."""
     links = WIKILINK.findall(cell)
     if links:
@@ -347,15 +341,15 @@ def check_trace_origin(cell, thoughts, row_label, violations):
             if where == "archived":
                 violations.append(
                     f"{row_label} cites `[[{slug}]]`, which is archived. The decision was "
-                    "superseded while this TODO still obeys it - repoint the row at the "
-                    "replacement note and re-check what the pair says about it "
+                    "superseded while the corpus still obeys it - repoint the row at the "
+                    "replacement note and rewrite the rule it states "
                     "(`code:sub-revise.md`). A live artifact never depends on an archived note."
                 )
             else:
                 violations.append(
                     f"{row_label} cites `[[{slug}]]`, which is no note in `thoughts/`. An "
                     "origin nobody can open is not provenance. Write the note "
-                    "(`arch:tpl-note-impl-decision.md`) or fix the id."
+                    "(`arch:examples/note-impl-decision.md`) or fix the id."
                 )
         return
 
@@ -364,7 +358,7 @@ def check_trace_origin(cell, thoughts, row_label, violations):
             violations.append(
                 f"{row_label} cites a document with no `read <YYYY-MM-DD>` date. An external "
                 "document changes without telling anyone, so the date is what says which "
-                "version the pair was written against (`arch:sub-todo.md` - Trace)."
+                "version the rule was written against (`arch:sub-todo.md` - Constraints)."
             )
         return
 
@@ -375,75 +369,69 @@ def check_trace_origin(cell, thoughts, row_label, violations):
     )
 
 
-def check_todo_trace(lines, violations, path):
+def check_constraints(lines, violations, path):
     # No line budget and no row budget by design: a row exists because a decision was made.
     # What is counted is whether a row can be followed.
     if has_frontmatter(lines):
         violations.append(
-            "the trace carries a `---` frontmatter block. The row has one `status`, in "
-            "`TODO-N.md` (`arch:ref-write.md` § Status). Delete the block."
+            "CONSTRAINTS.md carries a `---` frontmatter block. It holds rules, not state - "
+            "no `status`, no dates, nothing a reader has to reconcile with the spec. "
+            "Delete the block."
         )
 
     body = strip_frontmatter(lines)
     found = sections(body)
     violations.extend(
-        misplaced(found, HUMAN_SECTIONS, "trace", "human half (`TODO-N.md`)")
+        misplaced(found, HUMAN_SECTIONS, "CONSTRAINTS.md", "human half (`TODO-N.md`)")
     )
     violations.extend(
-        misplaced(found, AGENT_SECTIONS, "trace", "agent half (`TODO-N.agent.md`)")
+        misplaced(found, AGENT_SECTIONS, "CONSTRAINTS.md", "agent half (`TODO-N.agent.md`)")
     )
 
     diffs = sum(1 for x in body if DIFF_OPEN.match(x))
     if diffs:
         violations.append(
-            f"the trace carries {diffs} ```diff block(s). It must carry none: the diff for the "
-            "whole TODO lives once, in `TODO-N.md` `## Surface`. The trace holds where each "
-            "decision came from, never what the code becomes."
+            f"CONSTRAINTS.md carries {diffs} ```diff block(s). It must carry none: a rule is "
+            "one sentence saying what the code must do. The diff for a TODO lives once, in "
+            "`TODO-N.md` `## Surface`."
         )
 
-    if "Trace" not in found:
-        violations.append(
-            "the trace has no `## Trace`. It is the only section the file has: one table of "
-            "`Anchor` + `Origin` + `Why here`, one row per decision behind the pair "
-            "(`arch:sub-todo.md` § Trace)."
-        )
-        return
-
-    notes_dir = os.path.dirname(os.path.dirname(os.path.abspath(path)))
+    notes_dir = os.path.dirname(os.path.abspath(path))
     thoughts = os.path.join(notes_dir, "thoughts")
     if not os.path.isdir(thoughts):
         thoughts = None
 
-    start, end = found["Trace"]
-    rows = [
-        x for x in body[start:end] if TABLE_ROW.match(x) and not TABLE_RULE.match(x)
-    ]
+    rows = [x for x in body if TABLE_ROW.match(x) and not TABLE_RULE.match(x)]
     if len(rows) < 2:
-        violations.append(
-            "`## Trace` has no rows. Every TODO carries at least an `Outcome` row naming the "
-            "decision that made it a ledger row of its own - a row with none is a slice "
-            "nobody chose (`arch:sub-todo.md` § Trace)."
-        )
+        # An empty file is legal: `new` Step 0 creates it before any decision has settled.
         return
 
-    anchors = []
+    seen = []
     for row in rows[1:]:  # rows[0] is the header
         cells = table_cells(row)
         if len(cells) != 3 or not all(cells):
             violations.append(
-                f"`## Trace` row `{row.strip()[:60]}` does not fill all three columns. Every "
-                "row carries an Anchor, an Origin, and a `Why here` - a row missing the last "
-                "one is a citation, not a trace."
+                f"CONSTRAINTS.md row `{row.strip()[:60]}` does not fill all three columns. "
+                "Every row carries an id, the rule, and an Origin - a row missing the last "
+                "one is a rule nobody can argue with (`arch:sub-todo.md` - Constraints)."
             )
             continue
-        anchor, origin, _why = cells
-        anchors.append(anchor)
-        check_trace_origin(origin, thoughts, f"`## Trace` row `{anchor}`", violations)
+        rid, _rule, origin = cells
+        m = RULE_ID.match(rid.strip())
+        if not m:
+            violations.append(
+                f"CONSTRAINTS.md row `{rid}` has no `R<n>` id. Ids are what a review, a "
+                "revise, and a `trace` verdict name a rule by."
+            )
+        else:
+            seen.append(int(m.group(1)))
+        check_origin(origin, thoughts, f"CONSTRAINTS.md row `{rid}`", violations)
 
-    if not any(a.strip().strip("`").lower().startswith("outcome") for a in anchors):
+    if seen and seen != list(range(1, len(seen) + 1)):
         violations.append(
-            "`## Trace` has no `Outcome` row. It is the floor: the decision that made this a "
-            "ledger row rather than part of another one (`arch:sub-todo.md` § Trace)."
+            f"CONSTRAINTS.md ids are {seen}, expected 1..{len(seen)} in order. Ids are "
+            "1-indexed, contiguous, and APPEND-ONLY: renumbering silently repoints every "
+            "reader at a different rule (`arch:sub-todo.md` - Constraints)."
         )
 
 
@@ -464,11 +452,13 @@ def kind_of(path):
     if os.path.basename(d) == "todos" and base.startswith("TODO-"):
         if base.endswith(".agent.md"):
             return "todo-agent"
-        if base.endswith(".trace.md"):
-            return "todo-trace"
         if base.endswith(".md"):
             return "todo"
         return None
+    if base == "CONSTRAINTS.md" and (
+        os.path.isdir(os.path.join(d, "thoughts")) or os.path.isdir(os.path.join(d, "todos"))
+    ):
+        return "constraints"
     if base == "spec.md" and (
         os.path.isdir(os.path.join(d, "thoughts")) or os.path.isdir(os.path.join(d, "todos"))
     ):
@@ -479,7 +469,7 @@ def kind_of(path):
 CHECKS = {
     "todo": check_todo_human,
     "todo-agent": check_todo_agent,
-    "todo-trace": check_todo_trace,
+    "constraints": check_constraints,
     "spec": check_spec,
 }
 

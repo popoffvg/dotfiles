@@ -5,10 +5,12 @@
 Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 
 Rewrites the notes so they match reality: an existing thought, a new one, and the `spec.md` /
-`GLOSSARY.md` / `todos/TODO-N.md` + `TODO-N.agent.md` + `TODO-N.trace.md` that depend on it. Two triggers:
+`GLOSSARY.md` / `CONSTRAINTS.md` / `todos/TODO-N.md` + `TODO-N.agent.md` that depend on it. Two triggers:
 
 1. **Review-phase correction** — a decision changed, a term sharpened, an outcome is wrong while the human reviews.
 2. **Post-impl drift** — a TODO shipped code that differs from its body (files, extra refactor, renamed symbols, dropped step). Rewrite the notes to match what shipped so the target picture stays faithful.
+
+A `## Deviations` table in `todos/TODO-N.md` is post-impl drift the implementer already wrote down: each row names the section it contradicts, what shipped, and the `impl-decision` note behind it (`impl:sub-impl.md` § When a correction contradicts the pair). Start Step 1 there — the deltas are listed for you.
 
 ## Guardrails
 
@@ -23,7 +25,7 @@ Name what it touches:
 
 - **Thought** — the `thoughts/NNN-*.md` note(s) affected, or that a new one is needed.
 - **Spec sections** — Description / Goal / ledger row(s) / `## Plan` waves / `GLOSSARY.md`. Decisions are never a spec section — they are thought notes (Step 3).
-- **TODO bodies** — the pair: the `todos/TODO-N.md` outcome line and `## Surface`, and/or the `TODO-N.agent.md` `## Changes` increments. Whatever moves in the pair, the matching `TODO-N.trace.md` row moves with it: a superseded note is repointed at its replacement, a renumbered `C<n>` or a deleted symbol leaves a stale anchor, and a delta with a reason of its own earns a new row.
+- **TODO bodies** — the pair: the `todos/TODO-N.md` outcome line and `## Surface`, and/or the `TODO-N.agent.md` `## Changes` increments. A rule the pair now breaks is not edited in the pair: the `CONSTRAINTS.md` row is rewritten once, and every TODO obeying it follows.
 
 For **post-impl drift**, locate TODO-N's commit(s) first (stop at first hit):
 
@@ -38,7 +40,7 @@ Inspect it (`git show --stat <sha>`, `git show <sha>`): files, symbols added/ren
 
 | Category | Meaning | Action |
 |----------|---------|--------|
-| **Decision change** | A choice was made differently | Supersede the decision note (Step 3); restate the new constraint in the `## Constraints` of each TODO whose increments can violate it, delete the stale row wherever it no longer binds, and repoint every `TODO-N.trace.md` row citing the superseded note at its replacement — a trace citing an archived note is what makes the drift visible next time |
+| **Decision change** | A choice was made differently | Supersede the decision note (Step 3), then edit the one `CONSTRAINTS.md` row it produced: rewrite the rule and repoint its `Origin` at the replacement note. One row, no matter how many TODOs obey it. A rule that no longer binds anything is deleted from the file, not left with a dead origin |
 | **New fact** | A constraint/observation surfaced | Write a new `fact` note (Step 3); link from the decisions it constrains |
 | **Drift** | Impl differs from spec, outcome still met | Update `TODO-N.md` `## Surface` to the shipped signatures and `TODO-N.agent.md` `## Changes` to what was actually done |
 | **Outcome shift** | The observable result changed | Rewrite the outcome row in spec.md AND the outcome line in TODO-N.md (verbatim match); update the thought that motivated it |
@@ -50,7 +52,7 @@ Inspect it (`git show --stat <sha>`, `git show <sha>`): files, symbols added/ren
 Thoughts are the source the spec compiles from — keep them correct, not just the spec. Note format, filename, frontmatter, templates: `arch:ref-note-format.md`.
 
 - **Change an existing thought** when the same decision/fact was refined: edit in place, add a one-line `Revised:` entry noting what changed and why.
-- **Write a new thought** for a genuinely new decision or fact: next counter (`NNN`+1), matching template.
+- **Write a new thought** for a genuinely new decision or fact: next counter (`NNN`+1), matching example.
 - **Supersede, don't delete** a reversed decision: write the replacement, then mark the old note `Superseded by [[NNN-decision-slug]]` at the top with `status: declined` and `superseded_by:` (`arch:ref-note-format.md` § Superseding). The `thoughts-archive.sh` hook moves it to `thoughts/archived/` — never `mv` it yourself. The live graph carries only current thoughts.
 - **Re-link** per `arch:ref-note-format.md` § Back-linking (back-fill `Affects`, populate `links`, verify targets exist).
 
@@ -66,7 +68,9 @@ Thoughts are the source the spec compiles from — keep them correct, not just t
 
 `<notes-dir>/todos/TODO-N.md`: restate the (possibly new) outcome verbatim at the top, and update `## Components` and `## Autotest` to the symbols and cases that are now true. `<notes-dir>/todos/TODO-N.agent.md`: rewrite `## Changes` and `## Files` to describe what is now true, still as **Do** prose and still with no diff. The shipped signatures go in the human half's `## Surface`; never paste a shipped body into either half (`arch:sub-todo.md` § A diff carries the surface, not a body). If the TODO diverged and must be re-implemented, set its frontmatter `status` back to `todo`.
 
-`<notes-dir>/todos/TODO-N.trace.md`: repoint every row whose note was superseded, drop every anchor whose target no longer exists in the pair, and add a row for each delta that was itself a decision — including the note this revise just wrote. A trace left untouched by a revise is a trace that now explains a TODO nobody has.
+`<notes-dir>/todos/TODO-N.md` `## Deviations`: fold every row into the section it names — the shipped shape becomes the approved shape — then delete the whole section. Its `impl-decision` notes stay live in `thoughts/`, where the `trace` skill still finds them; the table exists only while the pair still says something else.
+
+`<notes-dir>/CONSTRAINTS.md`: rewrite every rule whose decision changed and repoint its `Origin` at the replacement note; delete every row that no longer binds any increment; append one row for each delta that was itself a decision an increment can violate — including the note this revise just wrote. One row per rule, corpus-wide: a rule is never edited in a TODO, because no TODO holds one.
 
 Log to `<notes-dir>`; message: `"revise TODO-N (+ from <sha> if post-impl): <deltas + notes touched>"`.
 
@@ -79,7 +83,8 @@ Revised <TODO-N | spec section>  [from <sha> "<subject>"]
   outcome:  <unchanged | rewritten>
   spec:     <sections updated>
   todos:    <files / sections updated>
-  trace:    <rows repointed | added | dropped>
+  deviations: <rows folded in and section deleted | none>
+  rules:    <CONSTRAINTS.md rows repointed | added | dropped>
   spinoffs: <new ledger entries, if any>
 ```
 
@@ -97,6 +102,7 @@ Then stop. The user owns the next action (re-review, continue impl, re-verify).
 - [ ] `GLOSSARY.md` current
 - [ ] spec.md frontmatter `status` set to `review`
 - [ ] todos/TODO-N.md outcome, Components, Surface, and Autotest restated to the shipped signatures; TODO-N.agent.md `## Changes` + `## Files` match reality, still diff-free and carrying no shipped body
-- [ ] TODO-N.trace.md rows repointed at the replacement notes, stale anchors dropped, and a row added for each decision this revise made — no origin resolving only under `thoughts/archived/`
+- [ ] Every `## Deviations` row folded into the section it names, and the section deleted
+- [ ] CONSTRAINTS.md rows repointed at the replacement notes, rows that bind nothing deleted, and a row added for each decision this revise made — no `Origin` resolving only under `thoughts/archived/`
 - [ ] jj commit created in `<notes-dir>`
 - [ ] No edits outside `<notes-dir>/`
