@@ -60,4 +60,4 @@ the `todos/TODO-N.md` + `TODO-N.agent.md` pair and its `TODO-N.trace.md`. Resume
 - commit a user correction as a plain commit — it must be `--fixup`.
 - run more than one TODO per invocation.
 - leave comments contain reference to the brief or spec.
-- write a comment that fails the deletion test in `CODE_STYLE.md`.
+- write a comment that fails the deletion test, or breaks a § Package the fact rule, in `CODE_STYLE.md`.

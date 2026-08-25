@@ -10,9 +10,9 @@
 
 **Design:** [TODO-1.md](TODO-1.md) · **Increments:** [TODO-1.agent.md](TODO-1.agent.md)
 
-> The two links back, and the first line in this file. This half cites the other two by anchor and
-> never restates them: the pair says what the code becomes, this file says which decision put it
-> there and where that decision is written down.
+> The two links back, and the first line in this file. This file cites the pair by anchor and never
+> restates it: the pair says what the code becomes, this file says which decision put it there and
+> where that decision is written down.
 
 ## Trace
 

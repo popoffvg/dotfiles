@@ -42,14 +42,16 @@ zinit snippet OMZP::eza                      # eza aliases + completions
 # dropped: OMZL::async_prompt (starship owns the prompt), OMZP::direnv (hooked in .zshrc_aliases)
 # deja: do not also zinit-light it — that double-sources init.zsh and
 # recurses _deja_line_init into FUNCNEST. Loaded once at the bottom.
-zinit ice from"gh-r" as"program"
-zinit light overflowy/zhist
 
 eval "$(mise activate)"
-# eval "$(atuin init zsh --disable-up-arrow)"
-eval "$(zhist init -no-arrow-binds)"
+eval "$(atuin init zsh --disable-up-arrow)"
 source <(sk --shell zsh)
 eval "$(sg completions)"
+
+# Argument completion for the ~1000 CLIs carapace knows, most of which ship no
+# zsh completion of their own. Registers via compdef, so it has to follow the
+# compinit call above.
+source <(carapace _carapace zsh)
 # Use Apple clang for CGO (nanobrew LLVM lacks macOS SDK sysroot)
 export CC=/usr/bin/clang
 

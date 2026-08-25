@@ -12,6 +12,7 @@
       - zsh-syntax-highlighting
       - fzf
       - fzf-tab
+      - carapace
       - atuin
       - starship
       - direnv

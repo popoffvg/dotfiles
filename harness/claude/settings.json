@@ -132,7 +132,6 @@
       "/tmp"
     ]
   },
-  "model": "opus[1m]",
   "skillOverrides": {
     "act-local-github-actions-testing": "off",
     "ast-grep": "off",
@@ -441,7 +440,7 @@
       "zed"
     ]
   },
-  "effortLevel": "high",
+  "effortLevel": "medium",
   "tui": "fullscreen",
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,

@@ -2,6 +2,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -48,26 +50,77 @@ func pbpaste() string {
 	return strings.TrimSpace(string(out))
 }
 
+// translateSuites offers only AEAD suites, dropping the CBC and RSA-key-exchange suites Go
+// offers by default. Google's edge blocks Go's default cipher list: it then answers every
+// request with 429 and an HTML page, whatever the user agent says.
+var translateSuites = []uint16{
+	tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+	tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+	tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+	tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+	tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
+	tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+}
+
+// translateClient speaks HTTP/1.1 only. Google's edge blocks Go's HTTP/2 client the same way
+// it blocks the default cipher list.
+var translateClient = &http.Client{
+	Timeout: 10 * time.Second,
+	Transport: &http.Transport{
+		ForceAttemptHTTP2: false,
+		TLSNextProto:      map[string]func(string, *tls.Conn) http.RoundTripper{},
+		TLSClientConfig:   &tls.Config{CipherSuites: translateSuites},
+	},
+}
+
 // translate returns (translated text, detected source lang) via Google's free endpoint.
 func translate(text, tl string) (string, string, error) {
 	u := "https://translate.googleapis.com/translate_a/single?" + url.Values{
 		"client": {"gtx"}, "sl": {"auto"}, "tl": {tl}, "dt": {"t"}, "q": {text},
 	}.Encode()
-	resp, err := http.Get(u)
+	resp, err := translateClient.Get(u)
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("translate request failed: %w", err)
 	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return "", "", fmt.Errorf("translate endpoint refused the request: HTTP %d", resp.StatusCode)
+	}
+	return parseTranslation(body)
+}
+
+// parseTranslation reads the endpoint's nested array. Element 0 holds the segments, each
+// segment opening with its translated text. Element 2 holds the detected source language.
+func parseTranslation(body []byte) (string, string, error) {
 	var data []any
 	if err := json.Unmarshal(body, &data); err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("translate response is not JSON: %w", err)
+	}
+	if len(data) < 3 {
+		return "", "", fmt.Errorf("translate response carries no segments and no language")
+	}
+	segments, ok := data[0].([]any)
+	if !ok {
+		return "", "", fmt.Errorf("translate response segments are not a list")
 	}
 	var b strings.Builder
-	for _, seg := range data[0].([]any) {
-		b.WriteString(seg.([]any)[0].(string))
+	for _, seg := range segments {
+		parts, ok := seg.([]any)
+		if !ok || len(parts) == 0 {
+			return "", "", fmt.Errorf("translate response segment is empty")
+		}
+		text, ok := parts[0].(string)
+		if !ok {
+			return "", "", fmt.Errorf("translate response segment holds no text")
+		}
+		b.WriteString(text)
 	}
-	return b.String(), data[2].(string), nil
+	src, ok := data[2].(string)
+	if !ok {
+		return "", "", fmt.Errorf("translate response holds no source language")
+	}
+	return b.String(), src, nil
 }
 
 // pair returns (en, ru) regardless of input language.

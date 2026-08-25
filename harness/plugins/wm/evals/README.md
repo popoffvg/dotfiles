@@ -6,17 +6,20 @@ second skill needs grading.
 
 Gates under test — two axes, both applied to one block of candidate content:
 
-- **`half`** → `human` | `agent` : which half of the pair the content belongs in. `human` is
-  `TODO-N.md` (Outcome, New terms, Components, **Surface**, Autotest, Commit); `agent` is
-  `TODO-N.agent.md` (Constraints, Changes, Files, Pre-reads, Manual test, Definition of done).
-  **Every diff is human** — `## Surface` is the one diff in the pair, and the agent half carries none.
+- **`half`** → `human` | `agent` | `trace` : which of the row's three files the content belongs in.
+  `human` is `TODO-N.md` (Outcome, New terms, Components, **Surface**, Autotest, Commit); `agent` is
+  `TODO-N.agent.md` (Constraints, Changes, Files, Pre-reads, Manual test, Definition of done);
+  `trace` is `TODO-N.trace.md` (Trace — where each decision came from).
+  **Every diff is human** — `## Surface` is the one diff in the pair, and neither companion carries
+  one. **Every origin link is trace** — a `[[note]]` or a dated document cited as the reason for
+  something in the pair belongs there and nowhere else.
 - **`form`** → `keep` | `reshape` : does it ship as written, or is it a **body** — content that *is*
   the implementation — that must be replaced by an Interface block plus a Behavior sketch, or by case
   sentences.
 
-The runner extracts four rule blocks verbatim from the skill at run time (§ One ledger row, two
-files; § Surface, which nests the surface-not-a-body rule; § Changes; § Autotest), so the eval always
-grades the current spec. Change a rule → re-run;
+The runner extracts five rule blocks verbatim from the skill at run time (§ One ledger row, two
+halves and a trace; § Surface, which nests the surface-not-a-body rule; § Changes; § Autotest;
+§ Trace), so the eval always grades the current spec. Change a rule → re-run;
 change a rule's *contract* (new label, new axis) → update `cases-todo.jsonl` in the same commit.
 
 ## Run
@@ -44,8 +47,10 @@ Needs `claude` and `jq` on `PATH`. Exit 0 = accuracy ≥ threshold.
 | `form` | yes | gold label: `keep` or `reshape` |
 | `note` | — | why that label, and what the case is guarding |
 
-26 cases, all four quadrants: 12 `human`/`keep`, 6 `agent`/`keep`, 7 `human`/`reshape`,
-1 `agent`/`reshape`. The distribution leans human because the diff lives there now.
+29 cases: 12 `human`/`keep`, 6 `agent`/`keep`, 3 `trace`/`keep`, 7 `human`/`reshape`,
+1 `agent`/`reshape`. The distribution leans human because the diff lives there now. No
+`trace`/`reshape` case exists yet — the `form` axis asks whether content is a **body**, and a trace
+row is an anchor plus a citation, which has no body shape to take.
 
 **`sapiens-e2e-script` is the case this suite exists for.** It is real — a 45-line bash E2E check
 pasted verbatim into a TODO's `## Changes` diff, which is what prompted the surface-not-a-body rule.
@@ -75,11 +80,22 @@ The hard cases are the ones that *look* like the wrong label:
   a shell *command someone types* is not.
 - `constraints-table` — the one section whose half is counter-intuitive. It reads like design, so it
   looks human-half, but a constraint is a decision *an increment can violate*, so it lives beside the
-  increments in the agent half.
+  increments in the agent half. It carries the rule and a `C<n>` id alone; the origin that used to
+  sit in its `From` column is now a trace row.
+- `constraints-table` vs `trace-outcome-rationale` — **the counter-intuitive pair, in both
+  directions.** A settled decision stated as a rule is agent-half even though it reads like design;
+  a reason for the Outcome is trace even though it is *about* the human half. What decides it is
+  whether an increment can violate the line, not which section it discusses.
 
 ## Last run
 
-2026-08-21, `MODEL=sonnet`, two axes, 26 cases, after the diff moved to `## Surface` in the human
+Not re-run since the trace companion landed. The three `trace` cases and the reshaped
+`constraints-table` candidate have never been graded — run `./run.sh` before trusting the score
+below, which was measured against the two-file contract.
+
+### 2026-08-21 — the two-file contract
+
+`MODEL=sonnet`, two axes, 26 cases, after the diff moved to `## Surface` in the human
 half: **26/26 joint** (half 26/26, form 26/26), accuracy **1.00**.
 
 Both new guard pairs held on the first run — `body-requested-marker` vs `go-function-body`, and
