@@ -11,6 +11,7 @@ export const meta = {
     { title: 'Deploy', detail: 'the project deploy task — skipped when absent or turned off', model: 'haiku' },
     { title: 'Verify', detail: "the last ledger TODO's E2E command", model: 'haiku' },
     { title: 'Fix', detail: 'sub-fix.md on a red deploy or a red E2E', model: 'sonnet' },
+    { title: 'Reconcile', detail: 'read every TODO status back off disk so the report matches the notes', model: 'haiku' },
   ],
 }
 
@@ -68,6 +69,26 @@ const STATUS = {
     commit: { type: 'string', description: 'the sha written into the ledger row' },
   },
 }
+const TRUTH = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['statuses'],
+  properties: {
+    statuses: {
+      type: 'array',
+      description: 'one row per TODO read back from its frontmatter on disk',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['todo', 'status'],
+        properties: {
+          todo: { type: 'string', description: 'the bare N of todos/TODO-N.md' },
+          status: { type: 'string', description: 'the frontmatter status verbatim' },
+        },
+      },
+    },
+  },
+}
 const RUN = {
   type: 'object',
   additionalProperties: false,
@@ -91,7 +112,13 @@ const ledger = await agent(
     `Carry each one's depends_on as the bare TODO numbers.\n` +
     `3. Return e2eCommand: the E2E command from the ## Autotest of the LAST TODO in the ledger (the literal string "none" if that level is written none), and e2eTodo.\n` +
     `4. Return deployTask: the project's deploy command if one is configured (read ${notesDir}/CLAUDE.md, then mise tasks / Makefile / package.json scripts — do not invent one), else null.\n` +
-    `5. Create ${lessonsFile} if it is missing — an empty file with the heading "# Lessons" and nothing else — and set lessonsCreated.`,
+    `5. Create ${lessonsFile} if it is missing and set lessonsCreated. Do NOT leave it empty — the first TODO ` +
+    `runs against whatever this file says, so an empty file guarantees the first round learns the environment the ` +
+    `hard way. Seed it with an "## Environment" section stating how this repo must be built and tested, read off ` +
+    `the repo's own pins: the runtime version and where it is pinned (.mise.toml, .nvmrc, engines), the command ` +
+    `runner that supplies it (e.g. "run node through 'mise exec --' — the system node is a different version"), ` +
+    `and the exact lint and test commands the CI workflow runs. Mark that section "applies to every TODO". ` +
+    `State only what the pin files and CI config actually say — do not guess.`,
   { agentType: 'general-purpose', model: 'haiku', phase: 'Ledger', schema: LEDGER, label: 'ledger' },
 )
 if (!ledger) return { result: 'ERROR', stage: 'ledger' }
@@ -153,7 +180,10 @@ for (const item of workList) {
       `Return the lines you appended, verbatim.`,
     { agentType: 'general-purpose', model: 'haiku', phase: 'Lessons', schema: SCRIBE, label: `lessons:TODO-${item.todo}` },
   )
+  // A scribe can die (a classifier refusal killed the one for a blocked TODO in the motivating run).
+  // Say so — a lost lesson that nobody hears about is how the next round repeats this round's mistake.
   if (scribe) lessons.push(...(scribe.appended || []))
+  else log(`TODO-${item.todo}: the lessons scribe returned nothing — this round taught ${lessonsFile} nothing`)
 
   // 2.6 — LESSONS.md holds the round for this run; a skill holds it for every future one.
   phase('Capture')
@@ -259,6 +289,41 @@ while (true) {
   break
 }
 
+// ── step 4.5 · reconcile the report against the notes on disk ────────────────
+// The tail's fix rounds run wm:implementer, which can finish a TODO the loop already recorded as
+// blocked — that is exactly what happened to TODO-1 in the run that motivated this step: it shipped
+// during a fix round while the returned report still called it blocked, and a reader who trusts the
+// report re-runs work that is already done. The frontmatter on disk is the ground truth, so read it
+// back before reporting instead of trusting a list built earlier in the run.
+phase('Reconcile')
+const truth = await agent(
+  `Report the frontmatter status of each of these TODO files, nothing else. Change no files, run no tests.\n` +
+    workList.map((t) => `- ${notesDir}/todos/TODO-${t.todo}.md`).join('\n') +
+    `\nFor each, return its bare TODO number and the status string exactly as its frontmatter says.`,
+  { agentType: 'general-purpose', model: 'haiku', phase: 'Reconcile', schema: TRUTH, label: 'reconcile' },
+)
+
+const corrections = []
+if (truth && Array.isArray(truth.statuses)) {
+  const onDisk = new Map(truth.statuses.map((s) => [String(s.todo), String(s.status || '').toLowerCase()]))
+  const move = (from, to, want) => {
+    for (let i = from.length - 1; i >= 0; i -= 1) {
+      const entry = from[i]
+      const actual = onDisk.get(String(entry.todo))
+      if (actual === undefined) continue
+      const isDone = actual === 'done'
+      if (isDone !== want) continue
+      from.splice(i, 1)
+      to.push(entry)
+      corrections.push(`TODO-${entry.todo}: reported ${want ? 'not done' : 'done'}, notes say ${actual}`)
+    }
+  }
+  move(blocked, done, true) // recorded blocked, finished later by a fix round
+  move(skipped, done, true) // recorded skipped, but its notes say it landed
+  move(done, blocked, false) // recorded done, but its notes never reached done
+}
+if (corrections.length) log(`reconciled against the notes: ${corrections.join(' · ')}`)
+
 // ── step 5 · the report ──────────────────────────────────────────────────────
 log(`done: ${done.length} · blocked: ${blocked.length} · skipped: ${skipped.length} · deploy: ${tail.deploy && tail.deploy.skipped ? `skipped (${tail.deploy.skipped})` : tail.deploy && tail.deploy.result} · e2e: ${tail.verify && tail.verify.skipped ? `skipped (${tail.verify.skipped})` : tail.verify && tail.verify.result}`)
 
@@ -270,5 +335,6 @@ return {
   deploy: tail.deploy,
   verify: tail.verify,
   lessons,
+  reconciled: corrections,
   stopped: tailStop,
 }

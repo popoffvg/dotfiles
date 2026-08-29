@@ -55,13 +55,38 @@ const IMPL = {
 
 // ── prompts ────────────────────────────────────────────────────────────────
 const PLUGIN = '${CLAUDE_PLUGIN_ROOT}'
+// Two entries are obeyed for different reasons. A CODE lesson is about the files this TODO edits,
+// so it applies only when the Files overlap. An ENVIRONMENT lesson — which runtime, which command
+// runner, how the suite is invoked — applies to EVERY TODO regardless of Files, because it is about
+// the machine, not the change. Scoping both by Files hides the environment ones from every round
+// that needs them, which is how a known "use the pinned Node" lesson still let a TODO fail three
+// rounds on that exact Node.
 const lessonsClause = lessonsFile
-  ? `FIRST read ${lessonsFile} in full — every round, before any edit — and obey every entry whose Files overlap this TODO's Files. `
+  ? `FIRST read ${lessonsFile} in full — every round, before any command or edit. Obey every entry ` +
+    `whose Files overlap this TODO's Files, AND every entry about the environment or toolchain ` +
+    `(which runtime or version to use, which command runner wraps it, how to invoke the suite or ` +
+    `the linter) — those apply to every TODO whatever its Files say. `
   : ''
+
+// Nobody is watching this run, so the blast radius of a "just bootstrap it" reflex is unbounded.
+// A setup task is written for a fresh machine: it provisions credentials and writes to stores that
+// are global to the user, not scoped to this checkout or worktree. One such command regenerated a
+// keychain vault password and made an encrypted file unreadable for every checkout on the machine,
+// with the old password unrecoverable. A missing environment is a BLOCKER to report, never a thing
+// to install.
+const safetyClause =
+  `SAFETY, because this run is unattended: never run a project bootstrap, setup, provisioning or ` +
+  `credential command — anything like "<runner> run setup", "make setup", a bootstrap/install script, ` +
+  `or a command that writes a keychain, credential store, dotenv or secret, or that generates or ` +
+  `rotates a key. These are global to the machine and destroy state other checkouts depend on, often ` +
+  `irreversibly. If a command fails because the environment is missing something, return ` +
+  `status:"blocked" naming exactly what is missing and the command you would have needed — let a ` +
+  `human install it. Never put a secret value in anything you return. `
 
 function implPrompt(failures, extra) {
   const base =
     lessonsClause +
+    safetyClause +
     `Implement exactly one TODO: ${todoPath} (notes-dir ${notesDir}). ` +
     `Follow ${PLUGIN}/skills/impl/commands/sub-impl.md steps 1-4, 6, 7 (read context, dependency gate, ` +
     `replan guard, every increment in order, glossary, autotest) with one change: the per-increment ` +
@@ -80,11 +105,16 @@ function implPrompt(failures, extra) {
 
 // The gate roster: ${CLAUDE_PLUGIN_ROOT}/skills/review/references/ref-gates.md owns which gate
 // judges what and at which tier. WAVE runs as one parallel wave; SERIAL runs in order after it.
+// Every gate carries the lessons clause: the gates are the agents that actually RUN the linter and
+// the suite, so an environment lesson that reaches only the implementer cannot change the command
+// that fails.
 const WAVE = [
   {
     key: 'lint',
     agentType: 'wm:lint-tester',
     prompt:
+      lessonsClause +
+      safetyClause +
       `Lint gate for ${todoPath} (notes-dir ${notesDir}). Follow the wm:lint-tester contract: ` +
       `from the diff + the TODO's Files, lint the changed files with the repo's configured linter, ` +
       `run the TODO's Autotest and the tests covering the changed files. Return result PASS/FAIL, ` +
@@ -94,6 +124,8 @@ const WAVE = [
     key: 'comment',
     agentType: 'wm:comment-critic',
     prompt:
+      lessonsClause +
+      safetyClause +
       `Comment gate for the diff of ${todoPath} (notes-dir ${notesDir}) — the TODO's commit plus its ` +
       `fixups. Follow the wm:comment-critic contract: judge every comment, doc line, and doc tag the ` +
       `diff adds or changes. You never read the TODO pair — a comment is judged against the code ` +
@@ -103,6 +135,8 @@ const WAVE = [
     key: 'name',
     agentType: 'wm:name-critic',
     prompt:
+      lessonsClause +
+      safetyClause +
       `Naming gate for the diff of ${todoPath} (notes-dir ${notesDir}) — the TODO's commit plus its ` +
       `fixups. Follow the wm:name-critic contract: run the pedant smell table over every name the ` +
       `diff declares. You never read the TODO pair — a name is judged against its own body. ` +
@@ -115,6 +149,8 @@ const SERIAL = [
     phase: 'Test',
     agentType: 'wm:tester',
     prompt:
+      lessonsClause +
+      safetyClause +
       `Test gate for ${todoPath} (notes-dir ${notesDir}) in TODO mode. The cheap wave is green — the ` +
       `one question left: does a test actually assert this TODO's ## Autotest contract ` +
       `(both Unit and E2E)? No test covers it → WRITE that test first, then run it, and list every ` +
@@ -127,6 +163,8 @@ const SERIAL = [
     phase: 'Review',
     agentType: 'wm:reviewer',
     prompt:
+      lessonsClause +
+      safetyClause +
       `Outcome gate for ${todoPath} (notes-dir ${notesDir}). Lint, the tests, the comments, and the ` +
       `names are already green — do not re-litigate any of them. Follow the wm:reviewer contract: ` +
       `judge from the TODO pair (Outcome, Surface, Constraints, Changes) + the real diff whether the ` +
