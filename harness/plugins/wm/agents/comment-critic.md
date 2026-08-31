@@ -3,7 +3,7 @@ name: comment-critic
 description: >
   Comment gate for one implemented TODO — judges every comment, doc line, and doc tag the
   diff adds or changes against the comment rules in `CODE_STYLE.md` and the property and
-  paragraph tests in the `prune-text` skill. Returns PASS | FAIL with the file:line, the rule
+  block tests in the `prune-text` skill. Returns PASS | FAIL with the file:line, the rule
   broken, and the rewrite. Read-only on source. One of the three haiku gates in the `review`
   skill's cheap wave, beside `lint-tester` and `name-critic`.
 tools: Read, Glob, Grep, Bash

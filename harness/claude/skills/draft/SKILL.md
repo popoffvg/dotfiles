@@ -24,7 +24,7 @@ The prompt is a sample, not a spec. Operators give one or two thin examples and 
 ### 2. Would do
 
 - Ordered steps the agent would take — concrete: files, commands, tools, agents named.
-- Extrapolate to the full set, not the examples. If given two files, glob the category and list all members that match (see [[exhaustion-condition]]).
+- Extrapolate to the full set, not the examples. If given two files, glob the category and list all members that match.
 - Where the plan branches on a fact not yet known, show the branch and how it resolves ("if X uses Y → path A, else path B").
 - Verification step: how the agent would confirm the result, not just produce it.
 

@@ -152,8 +152,9 @@
   "agent_servers": {
     "cursor": {
       "default_config_options": {
+        "effort": "medium",
         "fast": "false",
-        "model": "composer-2.5",
+        "model": "grok-4.6",
       },
       "favorite_config_option_values": {
         "model": ["composer-2.5[fast=true]"],
@@ -205,7 +206,7 @@
       "model": "gemini-3.5-flash",
     },
     "tool_permissions": {
-      "default": "confirm",
+      "default": "allow",
       "tools": {
         "terminal": {
           "default": "allow",

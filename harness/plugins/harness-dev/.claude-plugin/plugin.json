@@ -1,6 +1,6 @@
 {
   "name": "harness-dev",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Authoring aids for the Claude Code harness — skill shapes (workflow, loop, instruction, router), pruning an existing skill or doc corpus into the house style, and repo bootstrap (README, CLAUDE.md, deploy and adr skills, settings).",
   "author": {
     "name": "popoffvg"

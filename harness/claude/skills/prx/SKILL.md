@@ -1,69 +1,91 @@
 ---
 name: prx
-description: This skill should be used when the user runs "/prx", "/prx <pr-url>", or "/prx post" — to collect the user's review comments against a diff and post them as an inline GitHub PR review. Trigger on "collect my PR comments", "start collecting comments", "post my comments to the PR", "send the review comments".
-version: 0.1.0
+description: This skill should be used when the user runs "/prx", "/prx <pr-url>", or "/prx post" — to turn spoken review remarks into notes on the exact lines of a live hunk review session, so the user submits them as one GitHub PR review with `S`. Trigger on "collect my PR comments", "start collecting comments", "note that on line N", "put my comments in the review".
+version: 0.2.0
 ---
 
-# prx — collect diff comments, post as a PR review
+# prx — turn spoken remarks into notes on a live review
 
-Collect the user's review comments against a diff over one or more turns, then post them all as a single inline GitHub PR review.
+The user talks; prx writes each remark onto the line it is about, inside the hunk
+session they are looking at. They press `S` and hunk-gh-review posts every note
+as one GitHub review.
 
-State lives in one file: `~/.claude/prx/comments.md`. One active collection at a time. `/prx` (start) resets it; `/prx post` reads it, posts, then clears it.
+**prx never calls the GitHub API.** Posting belongs to the `S` key. That keeps one
+comment store (the live session) and one posting path, so a note cannot exist in a
+file the user cannot see, and nothing reaches GitHub without them.
+
+## Before anything: a session must be live
+
+```bash
+hunk session list --json
+```
+
+No session → the user has nothing open. Tell them to run
+`/pr-review <pr-number>`, which builds the PR worktree and opens hunk in it, then
+stop. Do not open the TUI yourself.
+
+One session → it auto-resolves. Several → pick by `--repo <worktree-path>`.
 
 ## Subcommands
 
-Parse the argument after `/prx`:
-
 | Argument | Action |
 |---|---|
-| *(empty)* | **start** — begin/resume collecting comments |
-| a URL (`https://github.com/.../pull/N`) | **start + remember** — same as start, store the PR URL |
-| `post` | **post** — submit collected comments as a PR review |
+| *(empty)* | **start** — check the session and read its structure |
+| a PR URL or number | **start** — same, and say which PR the session targets |
+| `post` | **flush** — apply any pending remarks, then hand over to `S` |
 
-### start (`/prx` or `/prx <url>`)
+### start
 
-1. Ensure `~/.claude/prx/` exists.
-2. If a URL was given, or the file has no `PR:` line, write/overwrite the header:
-   ```
-   PR: <url or "(unset)">
+1. Run the session check above.
+2. Read the structure: `hunk session review --repo <path> --json`. Add
+   `--include-patch` only for files you must read as raw diff text.
+3. Tell the user: give remarks as `file:line — what is wrong`. You will place each
+   one; they press `S` when done.
 
-   ```
-   A bare `/prx` with an existing file **keeps** accumulated comments (resume). A `/prx <url>` updates the `PR:` line without dropping comments.
-3. Show the diff to review:
-   - PR URL known → `gh pr diff <url>` (org repos: see `references/posting.md` for auth).
-   - else → `git diff` (working tree) — confirm with the user which diff they mean if ambiguous.
-4. Tell the user: give comments referencing `file:line`, e.g. *"foo.go:42 — this leaks the handle"*. Then run `/prx post` when done.
+### collect
 
-### collect (during conversation, after start)
+Hold the remarks of one turn, then land them in **one** batch:
 
-Each time the user gives a review comment, append one line to `~/.claude/prx/comments.md`:
-
-```
-- <path>:<line> [<SIDE>] — <body>
+```bash
+printf '%s' "$json" | hunk session comment apply --repo <path> --stdin
 ```
 
-- `<path>` — repo-relative file path, exactly as it appears in the diff.
-- `<line>` — line number in the **new** file (RIGHT side). For a comment on a deleted line, use the old line number and mark `[LEFT]`.
-- `[<SIDE>]` — optional, default `RIGHT`; only write `[LEFT]` for removed-line comments.
-- `<body>` — the comment text.
+Each item needs `filePath`, `summary`, and exactly one target — `newLine` for a
+line in the new file, `oldLine` for a removed line. hunk-gh-review maps `newLine`
+to `RIGHT` and `oldLine` to `LEFT` when it submits.
 
-A comment with no clear line (a file-level or PR-level note) → append as `- <path> — <body>` (no line) or `- (general) — <body>`.
+The full `comment apply` payload, `navigate`, and the error messages are in the
+bundled skill — read it before the first call:
 
-Confirm each append briefly (one line). Do not post yet.
+```bash
+cat "$(hunk skill path)"
+```
 
-### post (`/prx post`)
+Confirm each placed note in one line: `<file>:<line> — <summary>`. Nothing more.
 
-1. Read `~/.claude/prx/comments.md`. If no comments → tell the user, stop.
-2. Resolve the PR: use the `PR:` line. If unset/`(unset)` → **ask the user for the PR URL** before doing anything else.
-3. Post all comments as **one inline review**. Use the GitHub MCP review flow (create pending review → add each comment → submit). Full mechanics, the head-SHA step, LEFT/RIGHT/general handling, org-repo auth, and the `gh` CLI fallback are in `references/posting.md`.
-4. Report: review URL, count posted, and any comments that fell back to general (line not in diff).
-5. On success, clear the file (reset to an empty header) so the next `/prx` starts fresh.
+A remark with no line is not a note. Hold it for the review body and say so.
 
-## Notes
+### post
 
-- Inline comments only attach to lines **present in the PR diff**. A `file:line` outside the diff → post it as a general review comment and say so in the report.
-- Keep the review as a single submission, not one comment per API call visible separately — batch via the pending review.
+prx does not post. On `/prx post`:
 
-## Additional Resources
+1. Apply anything still pending.
+2. List what is in the session: `hunk session comment list --repo <path> --json`.
+3. Print the count and tell the user to press `S`, pick Comment / Approve /
+   Request changes, and add the body — including any line-less remarks you held.
 
-- **`references/posting.md`** — GitHub review API mechanics, head-SHA lookup, MCP vs `gh` CLI, milaboratory org auth switch, error fallbacks.
+## Rules
+
+- A note only survives if its line is in the PR's head diff. hunk rejects the whole
+  review if any position is stale, so re-read the structure after a force-push.
+- `comment list --type user` is the user's own notes; without `--type` you get the
+  legacy live-agent view. Use `--type all` to see both before reporting a count.
+- The TUI is the user's. Never run `hunk diff`, `hunk show`, or `hunk patch`.
+
+## Where it fits
+
+- `/pr-review` — builds the worktree and opens the session prx writes into.
+- `hunk-review` skill — the same `comment apply` batch for findings a review gate
+  produced instead of the user.
+- `github-two-accounts` skill — when a `gh` call under this flow fails on a
+  `milaboratory/` repo.

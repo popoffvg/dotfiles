@@ -9,6 +9,7 @@
       "Bash(~/.claude/scripts/lumen-pane.sh:*)",
       "Bash(~/.claude/scripts/open-file.sh:*)",
       "Bash(herdr:*)",
+      "Bash(hunk:*)",
       "Bash(git:*)",
       "Bash(npm:*)",
       "Grep",
@@ -36,8 +37,6 @@
       "Bash(kubectl config:*)",
       "Bash(act --help)",
       "Bash(gh auth:*)",
-      "Bash(kubectl delete:*)",
-      "Bash(helm uninstall:*)",
       "Bash(k3d image:*)",
       "Bash(k3d registry:*)",
       "Bash(k3d cluster:*)",
@@ -91,15 +90,11 @@
       "mcp__firecrawl__firecrawl_map",
       "mcp__plugin_wm_work__work_start",
       "Bash(ssh dev-htz-fra1 *)",
-      "Read(//Users/popoffvg/.ssh/**)",
       "Bash(ssh dev-htz-fra1.infra.platforma.bio 'cat /etc/rancher/k3s/registries.yaml 2>/dev/null || echo \"FILE NOT FOUND\"')",
       "Bash(ssh -o IdentitiesOnly=yes -i ~/.ssh/milab root@dev-htz-fra1.infra.platforma.bio 'cat /etc/rancher/k3s/registries.yaml 2>/dev/null || echo \"FILE NOT FOUND\"')",
       "Bash(ssh -o IdentitiesOnly=yes -i ~/.ssh/milab root@dev-htz-fra1.infra.platforma.bio 'ls /etc/docker/certs.d/ 2>/dev/null || echo \"DIR NOT FOUND\"')",
       "Bash(ssh -o IdentitiesOnly=yes -i ~/.ssh/milab root@dev-htz-fra1.infra.platforma.bio 'which docker && docker info --format \"{{.Driver}}\" 2>/dev/null || echo \"no docker\"')",
-      "Bash(ssh -o IdentitiesOnly=yes -i ~/.ssh/milab root@dev-htz-fra1.infra.platforma.bio 'mkdir -p /etc/rancher/k3s/certs')",
-      "Bash(ssh -o *)",
       "Bash(openssl x509 *)",
-      "Bash(python3 -c ' *)",
       "Bash(helm upgrade *)",
       "Bash(grep -E \"\\\\.\\(yaml|yml|md\\)$\")",
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); cs=d['spec'].get\\('containers',[]\\)+d['spec'].get\\('initContainers',[]\\); [print\\(f\\\\\"{c['name']}: {c['image']}\\\\\"\\) for c in cs]\")",
@@ -203,17 +198,6 @@
             "command": "node $HOME/.claude/hooks/comment-check.mjs"
           }
         ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node '/Users/vitaliipopov/.claude/hooks/gitnexus/gitnexus-hook.cjs'",
-            "timeout": 10,
-            "statusMessage": "Checking GitNexus index freshness..."
-          }
-        ]
       }
     ],
     "PreCompact": [],
@@ -253,17 +237,6 @@
             "command": "$HOME/.claude/hooks/guard-uncommitted-loss.sh"
           }
         ]
-      },
-      {
-        "matcher": "Grep|Glob|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node '/Users/vitaliipopov/.claude/hooks/gitnexus/gitnexus-hook.cjs'",
-            "timeout": 10,
-            "statusMessage": "Enriching with GitNexus graph context..."
-          }
-        ]
       }
     ],
     "SessionStart": [
@@ -281,7 +254,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash '/Users/vitaliipopov/.claude/hooks/herdr-agent-state.sh' session",
+            "command": "bash $HOME/.claude/hooks/herdr-agent-state.sh session",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '/Users/popoffvg/.claude/hooks/herdr-agent-state.sh' session",
             "timeout": 10
           }
         ]
@@ -294,6 +277,16 @@
           {
             "type": "command",
             "command": "node $HOME/.claude/hooks/coach.mjs"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $HOME/.claude/hooks/herdr-auto-title.py",
+            "timeout": 10
           }
         ]
       }
@@ -339,7 +332,8 @@
     "gopls-lsp@claude-plugins-official": true,
     "self-improvement@local-plugins": true,
     "smart-commit@local-plugins": true,
-    "rust-analyzer-lsp@claude-plugins-official": true
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "codemap@codelens": true
   },
   "extraKnownMarketplaces": {
     "agentmemory": {
@@ -403,6 +397,12 @@
         "source": "github",
         "repo": "max-sixty/worktrunk"
       }
+    },
+    "codelens": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/popoffvg/Documents/git/codelens"
+      }
     }
   },
   "outputStyle": "ADHD",
@@ -431,6 +431,7 @@
     "allowedCommands": [
       "gh",
       "herdr",
+      "hunk",
       "lumen",
       "lumen-pane.sh",
       "~/.claude/scripts/lumen-pane.sh",
@@ -450,5 +451,39 @@
   "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
+  "autoMode": {
+    "soft_deny": [
+      "$defaults",
+      "Bash(gh workflow run deploy.yml*) in openclaw-infra — manual full-playbook dispatch to the production host",
+      "Bash(git push*) directly to main in openclaw-infra outside the documented PR flow"
+    ],
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Primary use of Claude Code**: software development",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: Private (popoffvg/openclaw-infra, confirmed via gh)",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: Ansible Vault — secrets live only in ansible/inventory/group_vars/openclaw/vault.yml, encrypted; edited via `mise run vault:edit`; CI password from GitHub secret ANSIBLE_VAULT_PASSWORD, local password from macOS Keychain",
+      "**Default / protected branches**: Default branch main; Protected branches: none listed via gh (rulesets not queryable here — do not assume unprotected)",
+      "**CI/CD deploy targets**: GitHub Actions self-hosted runner on the production Hetzner server (vpopov.dev / 89.167.108.228); a merge to main auto-deploys via .github/workflows/deploy.yml; single environment `production`, no staging tier, no approval gate",
+      "**Network posture**: None configured",
+      "**Source control**: The trusted repo (popoffvg/openclaw-infra) and its origin remote (github.com:popoffvg/openclaw-infra.git) only — no additional orgs configured",
+      "**Trusted internal domains**: vpopov.dev (the openclaw production host)",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: openclaw production host reached as `ssh openclaw` (user deploy, port 2222, key ~/.ssh/hetzner-openclaw), IP 89.167.108.228; systemd user units telepi, piscord, blog-run on that host",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: ansible/inventory/group_vars/openclaw/vault.yml (ansible-vault encrypted secrets) — restrict to those with the Vault password (Keychain locally / ANSIBLE_VAULT_PASSWORD in CI); ~/.ssh/hetzner-openclaw and ~/.ssh/id_ed25519 private keys",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: the openclaw production host (vpopov.dev / 89.167.108.228, ssh alias `openclaw`) and its `production` GitHub Actions environment; any namespace/host carrying prod or production as a whole word/segment",
+      "**Protected deployment namespaces / environments**: the GitHub Actions `production` environment for openclaw-infra deploys",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; ansible roles governing the production Hetzner host; anything named prod/production as a whole word or segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development / infrastructure-as-code for the openclaw-infra repo",
+      "**Trusted repo**: /Users/popoffvg/Documents/git/openclaw-infra (origin github.com:popoffvg/openclaw-infra.git), private — confidential material (secrets, vault contents) still requires the Vault password / cleared audience regardless of repo privacy",
+      "**Org-specific CLIs**: mise (task runner: lint, test, check, deploy, deploy:full, vault:edit), ansible-playbook, gh",
+      "routine under harness/extensions/ prefix: adding files there requires a matching ansible deploy-loop entry (per repo skill), not a blanket permission"
+    ]
+  },
   "enableWeakerNestedSandbox": true
 }

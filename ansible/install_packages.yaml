@@ -7,7 +7,7 @@
     nb: /opt/nanobrew/prefix/bin/nb
     brew_packages:
       # shell
-      - zsh-autosuggestions
+      - Giammarco-Ferranti/deja/deja
       - zsh-completions
       - zsh-syntax-highlighting
       - fzf
@@ -134,6 +134,14 @@
       register: nb_pkg
       changed_when: "'Already installed' not in nb_pkg.stdout"
 
+    # One-shot history load. The db is the skip marker; later shells only
+    # append as commands run. zshrc already sources ~/.local/share/deja/init.zsh.
+    - name: Import zsh history into deja
+      ansible.builtin.command:
+        cmd: "{{ nb | dirname }}/deja import"
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/share/deja/deja.db"
+
     # Casks install in one command: nanobrew continues past individual
     # failures, and warm casks exit 1 with "refusing to overwrite".
     - name: Install casks
@@ -154,6 +162,22 @@
       ansible.builtin.shell:
         cmd: npm install -g git-split-diffs
       changed_when: false
+
+    # Terminal diff viewer. The npm package is named hunkdiff; the binary is
+    # `hunk`. The gh-review extension needs hunk >= 0.19 for its pane and
+    # keyboard-mode APIs, so this must stay on latest.
+    - name: Install hunk globally via npm
+      ansible.builtin.shell:
+        cmd: npm install -g hunkdiff@latest
+      changed_when: false
+
+    # Turns hunk notes into one atomic GitHub PR review (T threads, c note,
+    # S submit). --yes because the install asks for confirmation on a terminal.
+    - name: Install the hunk-gh-review extension
+      ansible.builtin.shell:
+        cmd: hunk extension install phl28/hunk-gh-review --yes
+      args:
+        creates: "{{ ansible_env.HOME }}/.config/hunk/extensions/installed/hunk-gh-review"
 
     # Local memory server for coding agents. Listens on 3111 (REST), 3112
     # (streams), 3113 (viewer); pulls its own pinned iii-engine binary into

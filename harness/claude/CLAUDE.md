@@ -5,6 +5,12 @@
 - Don't your Co-Author to the commit messages
 - Don't add references to the specification to implementation
 
+<when="a conclusion is about to rest on nothing-found — no process in `ps`, no grep hit, an empty query, a subagent's 'no precedent here'">
+- **A negative finding needs a positive control.** Run the same query against a
+  neighbour you know exists. A query that cannot see anything answers exactly
+  like a query about something that is gone.
+</when>
+
 ## Tools
 
 - fff for all file search/grep: `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob — faster, frecency-ranked.

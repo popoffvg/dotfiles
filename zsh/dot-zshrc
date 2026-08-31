@@ -25,19 +25,17 @@ unset secret
 autoload -Uz add-zsh-hook
 autoload -Uz compinit && compinit -i
 zstyle ':completion:*' special-dirs true
-# Tab opens a menu the arrow keys walk, instead of printing a list and dropping
-# you back on the prompt with nothing selected.
-zmodload zsh/complist
-zstyle ':completion:*' menu select
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' group-name ''
-zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
-# Without these two, a list taller than the screen makes zsh stop and ask "do you
-# wish to see all 290 possibilities (184 lines)?". Setting them replaces that
-# question with a scrollable page you walk with the arrow keys.
-zstyle ':completion:*' list-prompt '%S-- %p -- arrows scroll, q quits --%s'
-zstyle ':completion:*' select-prompt '%S-- %p --%s'
+# No color escapes: fzf-tab ignores them. '[%d]' is what enables group headers.
+zstyle ':completion:*:descriptions' format '[%d]'
+# Fish-style help column: option lists include the description after `--`.
+zstyle ':completion:*' verbose yes
+zstyle ':completion:*:options' description yes
+zstyle ':completion:*:options' auto-description '%d'
+# fzf-tab needs the native menu off so it can capture the unambiguous prefix.
+zstyle ':completion:*' menu no
 setopt LIST_PACKED
 
 
@@ -69,8 +67,9 @@ source <(carapace _carapace zsh)
 # Use Apple clang for CGO (nanobrew LLVM lacks macOS SDK sysroot)
 export CC=/usr/bin/clang
 
-# Corp TLS: combined cert bundle (system + corp proxy certs)
-export NODE_EXTRA_CA_CERTS="$HOME/.config/ssl/combined-certs.pem"
+# Corp TLS: combined cert bundle (system + corp proxy certs). Only on a machine
+# that has one - Node prints a warning on every start if the file is missing.
+[[ -r "$HOME/.config/ssl/combined-certs.pem" ]] && export NODE_EXTRA_CA_CERTS="$HOME/.config/ssl/combined-certs.pem"
 
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:$HOME/.cargo/bin
@@ -128,22 +127,59 @@ if [ -f '/Users/vitaliipopov/Downloads/google-cloud-sdk/completion.zsh.inc' ]; t
 # Added by GitButler installer
 eval "$(but completions zsh)"
 
+# carapace's git completer is not captured by fzf-tab (empty picker). Native
+# _git is. `g` has no completer of its own; carapace looks up $words[1] as `g`
+# and returns nothing. Point both at _git after carapace and after `alias g=git`.
+compdef _git git
+compdef g=git
+zstyle ':completion:*:git-checkout:*' sort false
+
+# fzf-tab after every completer (carapace, gcloud, but) and before deja, which
+# wraps widgets. It steals Tab; deja reclaims it below. Down is rebound to
+# fzf-tab-complete after deja so the picker is the extra key, not deja's.
+_fzf_tab=
+for _fzf_tab_prefix in ${BREW_PREFIX:-} /opt/homebrew /opt/nanobrew/prefix; do
+  [[ -r "$_fzf_tab_prefix/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh" ]] && {
+    _fzf_tab="$_fzf_tab_prefix/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh"
+    break
+  }
+done
+if [[ -n "$_fzf_tab" ]]; then
+  source "$_fzf_tab"
+  zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+fi
+unset _fzf_tab _fzf_tab_prefix
+
 # On the prompt, Tab and Shift+Tab both drive deja. Tab is deja's own default
 # key; Shift+Tab is added after the source, where deja's per-prompt re-bind of
 # its own keys will leave it alone. With no ghost showing, deja's cycle falls
 # through to whatever ^I held when it loaded — the completion widget.
 if [[ -r "$HOME/.local/share/deja/init.zsh" ]]; then source "$HOME/.local/share/deja/init.zsh"; else eval "$(deja init zsh)"; fi
 bindkey '^[[Z' deja-cycle
+# deja wraps every user widget at source time, then we ignore these so precmd
+# will not wrap them again. Restore the unwrapped fzf-tab widgets or Down is a
+# deja-modify wrapper and the picker stays empty.
+if (( ${+widgets[fzf-tab-complete]} )); then
+  DEJA_IGNORE_WIDGETS+=(fzf-tab-complete fzf-tab-dummy fzf-tab-debug)
+  local _dj_prefix="${DEJA_ORIGINAL_WIDGET_PREFIX:-deja-orig-}" _dj_w _dj_orig
+  for _dj_w in fzf-tab-complete fzf-tab-dummy fzf-tab-debug; do
+    for _dj_orig in ${(k)widgets[(I)${_dj_prefix}*-${_dj_w}]}; do
+      zle -A "$_dj_orig" "$_dj_w"
+    done
+  done
+  unset _dj_prefix _dj_w _dj_orig
+fi
 
-# Down opens completion, and must be bound to the completion widget itself, not
-# to a wrapper: zsh silently completes nothing when the widget on the key is
-# user-defined. Costs the old next-history-line; atuin owns history anyway.
-bindkey '^[[B' expand-or-complete
-# Inside an open menu the arrows move the selection. Tab and Shift+Tab step
-# forward and back through the matches — complist leaves ^I on complete-word
-# there, which does not move the highlight at all.
-bindkey -M menuselect '^I' menu-complete
-bindkey -M menuselect '^[[Z' reverse-menu-complete
+# Down opens fzf-tab (fuzzy list + descriptions). fzf-tab-complete is a user
+# widget that calls the orig completion widget internally, so it is allowed
+# to complete — unlike a homegrown wrapper around expand-or-complete.
+if (( ${+widgets[fzf-tab-complete]} )); then
+  bindkey '^[[B' fzf-tab-complete
+  bindkey '^[OB' fzf-tab-complete
+else
+  bindkey '^[[B' expand-or-complete
+  bindkey '^[OB' expand-or-complete
+fi
 
 # yazi used to hang off cd<Tab>, but Tab can no longer share: zsh refuses to run
 # the completion widget from inside a user-defined widget — it completes nothing,

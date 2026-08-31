@@ -8,7 +8,7 @@
       "name": "harness-dev",
       "source": "./harness/plugins/harness-dev",
       "description": "Authoring aids for the Claude Code harness — skill shapes (workflow, loop, instruction, router), pruning an existing skill or doc corpus into the house style, and repo bootstrap (README, CLAUDE.md, deploy and adr skills, settings).",
-      "version": "0.6.0"
+      "version": "0.7.0"
     },
     {
       "name": "hi",
@@ -38,7 +38,7 @@
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.45.0"
+      "version": "2.46.0"
     }
   ]
 }

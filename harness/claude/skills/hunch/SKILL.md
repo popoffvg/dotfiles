@@ -31,7 +31,7 @@ Steps 1–5 diverge (Complex); step 6 converges (Complicated). Do not converge e
 3. **Suspend judgment (the hard rule).** **No pruning in this phase.** Quantity over quality; wild is welcome; build on and recombine others' probes. Deferring judgment is the rule brainstorming cannot give up — it is why divergence and convergence are separate phases here, not one funnel.
 4. **Sense (safe-to-fail).** For each probe define the **cheap test** and the **signal** that says it is emerging — what you would observe if it is working. Run what you can now. Read the field, do not argue it. *Safe-to-fail, not fail-safe*: a probe is allowed to die cheaply.
 5. **Amplify / dampen.** Feed the probes showing signal (spawn variants, recombine, deepen); dampen the rest — **dampen ≠ kill-with-reason**. Keep the whole board; a dampened probe can revive when the field shifts. Loop 2–5 while the board is still producing genuinely new probes.
-6. **Converge — once the field is knowable.** The board is dry and sensing has revealed **what actually constrains the outcome**: the field has moved Complex → Complicated. *Now* name that constraint, rank the surviving probes by their effect on it (see [Converging](#converging)), present survivors and the reason each lost for one round of [[grilling]]-style critique, then commit one — recording why it won over the runner-up. Stop. Execution is a separate step the user triggers.
+6. **Converge — once the field is knowable.** The board is dry and sensing has revealed **what actually constrains the outcome**: the field has moved Complex → Complicated. *Now* name that constraint, rank the surviving probes by their effect on it (see [Converging](#converging)), present survivors and the reason each lost for one round of adversarial critique, then commit one — recording why it won over the runner-up. Stop. Execution is a separate step the user triggers.
 
 ## TRIZ engine — counterintuition by refusing the tradeoff
 
@@ -60,7 +60,7 @@ Only after emergence (step 6), never before. The transition is legitimate becaus
 - **Name the constraint** the probes revealed — the single binding limit between the surviving probes and the goal that has now come into focus.
 - **Rank survivors lexicographically** — effect on the constraint first; cost / risk / reversibility only to break ties. A cheap probe that barely moves the constraint loses to a costly one that breaks it.
 - **Kill with a reason, now** — in this phase pruning *is* allowed and each kill cites what sank it. (Contrast the divergent phase, where you only dampen.)
-- **Critique, then commit one.** One [[grilling]]-style exchange over survivors and kills; it may revive a probe or challenge the constraint. Then commit — record the winner and why it beat the runner-up. Note which constraint becomes binding next; that is the next hunch.
+- **Critique, then commit one.** One adversarial exchange over survivors and kills; it may revive a probe or challenge the constraint. Then commit — record the winner and why it beat the runner-up. Note which constraint becomes binding next; that is the next hunch.
 
 ## Every move is a thought
 

@@ -54,7 +54,7 @@ Check the repo for the signal before deciding: a pre-commit sync hook, a CLAUDE.
 
 # Phase 2 — Cut inside the file
 
-One file at a time. **Split → lift → property test → paragraph test.**
+One file at a time. **Split → lift → property test → block test.**
 
 **Split.** Every paragraph, list item, and table row becomes one row of `props-<slug>.md`:
 
@@ -72,7 +72,7 @@ Dispatch `prune-mapper` in mode `props`, one per file, all at once; it returns a
 | **Implied** | A surrounding step, the tool, or the file's own leading rule already forces it. |
 | **Cache** | The environment owns it — `package.json`, the config, `--help`, the directory layout. A doc restating a cheap lookup only goes stale. Cache the unwritten convention and the gotcha no config confesses, never the one-command lookup. |
 
-**The paragraph test — delete the whole paragraph; what breaks?** One surviving property is not enough to keep its wrapper. Answer with the reader's next action, not the paragraph's topic:
+**The block test — delete the whole block; what breaks?** A block is a paragraph, a list, a table, or a section under one header. One surviving property is not enough to keep its wrapper, and a table nobody acts on or a list whose items all restate each other fails the same way one paragraph does. Answer with the reader's next action, not the block's topic:
 
 | Cut class | Signal |
 |---|---|
@@ -109,4 +109,4 @@ Re-order by dependency once reshaping stops: a precondition must still precede i
 - **Dispatch `prune-blind-reader`, one per pruned file, and answer every guess it reports.** Each guess is an over-cut: restore the cut line, or state why the guess is acceptable. Its Shape, Stopping, and Trigger answers grade the phase 3 reshape — a file it reads as the wrong shape, or a description it would not fire on, failed the reshape and goes back through it.
 - Confirm `cuts.md` holds every cut with its class. A cut with no class is unreviewable.
 - Report files touched with one line each, the script's line-count table, and the blind reader's surviving guesses.
-- **When the file drives an automated decision — an eval, a gate, an agent — run that grader before and after.** Reasoning about "default" does not tell you which cuts were wrong. First measure the grader's own noise: repeat identical runs, and if they spread wider than one paragraph's effect, the grader cannot validate that cut. Restore the original text and report the cut as unmeasurable rather than claiming a cause you did not measure ([[dont-game-the-metric]] Failure 4).
+- **When the file drives an automated decision — an eval, a gate, an agent — run that grader before and after.** Reasoning about "default" does not tell you which cuts were wrong. First measure the grader's own noise: repeat identical runs, and if they spread wider than one paragraph's effect, the grader cannot validate that cut. Restore the original text and report the cut as unmeasurable rather than claiming a cause you did not measure.

@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>tldraw live</title>
+<link rel="stylesheet" href="https://esm.sh/tldraw@5.3.2/tldraw.css">
+<style>
+  html, body, #root { margin: 0; height: 100%; }
+  #status {
+    position: fixed; bottom: 8px; left: 8px; z-index: 1000;
+    font: 12px ui-monospace, monospace; padding: 4px 8px; border-radius: 4px;
+    background: rgba(0,0,0,.75); color: #fff; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="status">starting</div>
+
+<script type="module">
+import React from 'https://esm.sh/react@18.3.1'
+import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client'
+import {
+  Tldraw, createShapeId, getSnapshot, loadSnapshot, toRichText,
+} from 'https://esm.sh/tldraw@5.3.2?deps=react@18.3.1,react-dom@18.3.1'
+
+const statusBox = document.getElementById('status')
+const say = (text) => { statusBox.textContent = text }
+
+/** Build the diagram from a seed file: plain boxes and arrows, no tldraw types. */
+function drawSeed(editor, seed) {
+  const idOf = new Map()
+  const shapes = (seed.boxes ?? []).map((box) => {
+    const id = createShapeId()
+    idOf.set(box.id, id)
+    return {
+      id, type: 'geo', x: box.x, y: box.y,
+      props: {
+        geo: 'rectangle', w: box.w, h: box.h,
+        color: box.color ?? 'black', fill: 'none', size: 's', font: 'mono',
+        align: 'start', verticalAlign: 'start',
+        richText: toRichText(box.text ?? ''),
+      },
+    }
+  })
+  editor.createShapes(shapes)
+
+  for (const arrow of seed.arrows ?? []) {
+    const fromId = idOf.get(arrow.from)
+    const toId = idOf.get(arrow.to)
+    if (!fromId || !toId) continue
+    const arrowId = createShapeId()
+    editor.createShapes([{
+      id: arrowId, type: 'arrow',
+      props: {
+        size: 's', font: 'mono', color: arrow.color ?? 'grey',
+        richText: toRichText(arrow.text ?? ''),
+      },
+    }])
+    const anchor = { normalizedAnchor: { x: 0.5, y: 0.5 }, isPrecise: false, isExact: false }
+    editor.createBindings([
+      { fromId: arrowId, toId: fromId, type: 'arrow', props: { terminal: 'start', ...anchor } },
+      { fromId: arrowId, toId: toId, type: 'arrow', props: { terminal: 'end', ...anchor } },
+    ])
+  }
+}
+
+async function handleMount(editor) {
+  window.editor = editor
+
+  const response = await fetch('/doc')
+  if (response.status === 200) {
+    loadSnapshot(editor.store, await response.json())
+    say('loaded from disk')
+  } else {
+    const seedResponse = await fetch('/seed')
+    if (seedResponse.status === 200) {
+      drawSeed(editor, await seedResponse.json())
+      say('built from seed')
+    } else {
+      say('empty document')
+    }
+  }
+  editor.zoomToFit()
+  editor.setCurrentTool('select')
+
+  let timer = null
+  let saving = false
+  const save = async () => {
+    if (saving) return
+    saving = true
+    try {
+      const body = JSON.stringify(getSnapshot(editor.store))
+      const result = await fetch('/doc', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body,
+      })
+      say(result.ok ? `saved ${new Date().toLocaleTimeString()}` : `save failed ${result.status}`)
+    } catch (error) {
+      say(`save failed: ${error.message}`)
+    } finally {
+      saving = false
+    }
+  }
+
+  editor.store.listen(() => {
+    say('editing…')
+    clearTimeout(timer)
+    timer = setTimeout(save, 700)
+  }, { scope: 'document', source: 'user' })
+
+  await save()
+}
+
+createRoot(document.getElementById('root')).render(
+  React.createElement(Tldraw, { onMount: handleMount })
+)
+</script>
+</body>
+</html>
