@@ -263,8 +263,6 @@ upward (callers depend on callees); commits land the same direction — leaf →
 3. Group outcomes into commits per layer; sort the ledger by ascending depth.
 4. A TODO never precedes the TODO introducing a lower-layer component it depends on. If it must, merge them.
 
-The `Ln` prefix makes the ordering invariant machine-checkable.
-
 **Why deepest first:** a leaf commit compiles and tests in isolation (no stubs); upper layers never rewrite when a leaf detail changes; the diff reads in narrative order (new thing → what uses it → how it starts up); reverting the topmost TODO still compiles.
 
 **Merges that fall out of this rule:**
@@ -306,7 +304,7 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] `## Plan` carries the target-picture summary (absent only while `status: init`)
 - [ ] `spec.md` body has Description, Goal, What we're NOT doing, the ledger, and the Plan — nothing else. No `Design Decisions`, no `Open Questions` section, no `Implementation Guidelines`, no decision-trail table
 - [ ] Implementation patterns sit in `PATTERNS.md`; `spec.md` mentions `@PATTERNS.md` and carries no pattern content
-- [ ] `spec.md` is ≤ 200 lines — over budget → move detail to `thoughts/` or split the spec, never shrink the ledger. The `budget-check` hook counts this on every write and blocks (`arch:sub-todo.md` § Budget)
+- [ ] `spec.md` is ≤ 200 lines — over budget → move detail to `thoughts/` or split the spec, never shrink the ledger. The `budget-check` hook warns on every write and `code:sub-verify.md` Phase 0 fails on it (`arch:sub-todo.md` § Budget)
 - [ ] `GLOSSARY.md` exists (sibling), covers every entity/command/event in the spec, and is current
 - [ ] `CLAUDE.md`, `RULES.md`, `CONSTRAINTS.md`, and `PATTERNS.md` exist in the notes dir; `RULES.md` carries the three answered knobs, no `<…>` placeholder left
 - [ ] Every `CONSTRAINTS.md` row carries an `R<n>` id, the rule alone, and an `Origin` that resolves to a **live** note in `thoughts/` or a document with its section and read date

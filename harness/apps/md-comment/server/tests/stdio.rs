@@ -3,6 +3,7 @@
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::PathBuf;
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
+use std::time::{Duration, Instant};
 
 use serde_json::{json, Value};
 
@@ -19,6 +20,8 @@ struct Server {
 impl Server {
     fn start() -> Server {
         let mut child = Command::new(env!("CARGO_BIN_EXE_md-comment-lsp"))
+            // Keep the test runs out of the diagnostic log a person reads.
+            .env("MD_COMMENT_LOG", "off")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
@@ -115,6 +118,18 @@ impl Server {
             }
         }
         panic!("the server never sent {method}");
+    }
+
+    /// Poll until the process is gone, so a hang fails the test instead of stalling it.
+    fn exited_within(&mut self, limit: Duration) -> bool {
+        let deadline = Instant::now() + limit;
+        while Instant::now() < deadline {
+            if matches!(self.child.try_wait(), Ok(Some(_))) {
+                return true;
+            }
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        false
     }
 
     fn asked_for(&self, method: &str) -> Option<&Value> {
@@ -412,4 +427,21 @@ fn a_comment_written_by_the_subcommand_reaches_the_editor() {
         .as_array()
         .unwrap()
         .is_empty());
+}
+
+/// Zed sends `shutdown` first on a server it spawned and then abandoned, which is what it
+/// does to every server of an extension that failed to load. The process must end there:
+/// waiting on the `initialize` that never comes leaks one live process per spawn.
+#[test]
+fn a_shutdown_before_initialize_ends_the_process() {
+    let mut server = Server::start();
+    server.send(json!({ "jsonrpc": "2.0", "id": 1, "method": "shutdown", "params": null }));
+
+    let answer = server.response(1);
+    assert_eq!(answer["error"]["code"], json!(-32002));
+
+    assert!(
+        server.exited_within(Duration::from_secs(5)),
+        "the server still runs after a shutdown that arrived before initialize"
+    );
 }

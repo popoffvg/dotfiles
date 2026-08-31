@@ -3,7 +3,7 @@
 use std::error::Error;
 use std::path::PathBuf;
 
-use lsp_server::{Connection, Message, Notification, Request, RequestId, Response};
+use lsp_server::{Connection, ErrorCode, Message, Notification, Request, RequestId, Response};
 use md_comment::trace::Trace;
 use md_comment::wire::{Change, Position, Range, RESET_CANCEL, RESET_CONFIRM};
 use md_comment::{uri_to_path, Effect, Session};
@@ -59,7 +59,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let (connection, io_threads) = Connection::stdio();
-    let (id, params) = connection.initialize_start()?;
+
+    // The trace opens before the handshake, so a server the client spawns and never
+    // initializes still says so in the log.
+    let mut trace = Trace::open();
+    trace.write("spawn");
+
+    let Some((id, params)) = await_initialize(&connection, &mut trace) else {
+        return Ok(());
+    };
     let root = workspace_root(&params);
 
     connection.initialize_finish(
@@ -87,7 +95,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         }),
     )?;
 
-    let mut trace = Trace::open();
     trace.write(&format!("start root={}", root.display()));
 
     let (session, effects) = Session::new(root);
@@ -101,6 +108,48 @@ fn main() -> Result<(), Box<dyn Error>> {
     server.run();
     io_threads.join()?;
     Ok(())
+}
+
+/// Wait for `initialize`, and answer every other request with `ServerNotInitialized`.
+///
+/// Returns None when the client gave up on the handshake, so the caller exits instead of
+/// waiting forever. `Connection::initialize_start` answers a pre-initialize `shutdown` and
+/// then keeps waiting, which leaks one live process per spawn. Zed spawns and abandons a
+/// server whenever its extension fails to load.
+fn await_initialize(connection: &Connection, trace: &mut Trace) -> Option<(RequestId, Value)> {
+    loop {
+        match connection.receiver.recv() {
+            Ok(Message::Request(request)) if request.method == "initialize" => {
+                return Some((request.id, request.params));
+            }
+            Ok(Message::Request(request)) => {
+                let method = request.method.clone();
+                trace.write(&format!("before initialize request {method}"));
+                let response = Response::new_err(
+                    request.id,
+                    ErrorCode::ServerNotInitialized as i32,
+                    format!("md-comment expected initialize, got {method}"),
+                );
+                let _ = connection.sender.send(Message::Response(response));
+                if method == "shutdown" {
+                    trace.write("exit before initialize");
+                    return None;
+                }
+            }
+            Ok(Message::Notification(notification)) => {
+                trace.write(&format!("before initialize notify {}", notification.method));
+                if notification.method == "exit" {
+                    trace.write("exit before initialize");
+                    return None;
+                }
+            }
+            Ok(Message::Response(_)) => {}
+            Err(_) => {
+                trace.write("disconnected before initialize");
+                return None;
+            }
+        }
+    }
 }
 
 /// `workspaceFolders[0]`, then `rootUri`, then `rootPath`; a temporary directory otherwise.

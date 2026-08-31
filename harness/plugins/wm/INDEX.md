@@ -56,6 +56,7 @@ Three files at the plugin root, shared by all five skills.
 | `commands/sub-prototype.md` | `prototype` — settle an open decision with the smallest visible code diff. |
 | `references/ref-bricks.md` | The **brick** roster — the closed set of component types, what each owns, its metric, its common structure. Typed in every `## Components` row and every `GLOSSARY.md` `Kind`. |
 | `references/ref-write.md` | **The spec contract** — artifacts, notes-dir layout, the `status` metadata (spec phase + TODO lifecycle), the `approve` metadata (how much of `impl` the human reviews), the gate, TODO ordering and **waves**, the Spec-Readiness Checklist. The single source; no other file restates it. |
+| `references/ref-todo-sections.md` | What goes inside each heading of the pair — one entry per section, frontmatter keys first: `status`, `type`, `depends_on`, `risk`, Outcome, New terms, Constraints (the pointer, and the `CONSTRAINTS.md` row it points at), Components, Surface with the surface-not-a-body rule, Changes, Autotest, Commit, Deviations, Manual test, Definition of done. Split out of `sub-todo.md` so the wave caller does not load it. |
 | `references/ref-note-format.md` | Thought notes; the required `description` and how a reader finds a thought by it; the answered-question and supersede → `thoughts/archived/` moves, both automatic. |
 | `examples/notes-claude.md` | The notes-dir `CLAUDE.md`. |
 | `examples/rules.md` | The notes-dir `RULES.md` and its three init knobs — approval depth is not one of them; it is the `spec.md` `approve` key. |

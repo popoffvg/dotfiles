@@ -1,8 +1,9 @@
 # TODO-1 — increments
 
 > A filled `<notes-dir>/todos/TODO-N.agent.md` — the **agent half** of the pair. Copy the section
-> order and the shape of each increment; the rules that govern them are `arch:sub-todo.md`
-> § Section rules, and the element list and order are its § Required elements.
+> order and the shape of each increment; the rules that govern them are
+> `arch:ref-todo-sections.md`, and the element list and order are `arch:sub-todo.md`
+> § Required elements.
 
 **Design:** [TODO-1.md](TODO-1.md) — Outcome, Components, **Surface** (the diff), Autotest, Commit.
 

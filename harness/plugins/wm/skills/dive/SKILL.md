@@ -38,7 +38,9 @@ A list of entry points. Each may be:
 - A symbol (`HandleRequest`, `userController.create`)
 - A URL or doc reference
 
-If the user provides a free-form description, use `mcp__fff__grep` / `mcp__fff__find_files` to find relevant entry points.
+If the user provides a free-form description, find the entry points with the **code graph tool** (gitnexus — see the `## Tools` section of the global `CLAUDE.md`): `mcp__gitnexus__query` turns a concept into the execution flows that carry it, and `context` gives one symbol's full reference set. Fall back to `mcp__fff__grep` / `mcp__fff__find_files` when the repo has no index, or when you are matching literal text rather than structure.
+
+Once the entry points are fixed, use `impact` to check whether the list is complete — a caller the graph reports and the list omits is a missing entry point. Give each subagent the graph facts for its entry point in the prompt, so it does not re-derive them.
 
 The user may pass a **destination folder** inline with a `dst:<path>` token (see "Output location").
 

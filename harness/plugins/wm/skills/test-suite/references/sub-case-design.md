@@ -3,126 +3,54 @@
 The black-box toolbox. Each technique derives cases from a specification without reading the
 implementation, and each one produces a table.
 
+**In:** one operation, feature, or TODO outcome, named by the caller. **Out:** its set of big
+cases, handed to `sub-create.md` for tiering and `sub-write.md` for the document. **Done when**
+every row of § Choosing a technique that matches your subject has been run, and every case the run
+produced is either in the set or written into **Not covered** with the reason. A technique skipped
+silently reads as a technique that found nothing.
+
 **Every table on this page is scratch work.** You build it to find the cases; you do not save it.
 What you save is the set of big cases the table produced, in the shape
-[`ref-readable-output.md`](ref-readable-output.md) defines. A saved document that shows a
-decision table or a transition matrix has shipped the tool instead of the result.
+[`ref-readable-output.md`](ref-readable-output.md) defines. A saved document that shows a decision
+table or a transition matrix has shipped the tool instead of the result. Two things survive the
+derivation, both in words: the **technique** that produced each big case, and the combinations you
+pruned, under **Not covered**.
 
-Two things survive from the derivation into the saved document, both in words: the **technique**
-that produced each big case, and the combinations you pruned, under **Not covered**.
+The collapse is the work. Boundary analysis of a closed range 18–65 yields seven rows — below,
+at, and above each edge, plus one normal value — and those seven rows are **one** behaviour:
+`## The accepted range is closed at both ends`, whose variants name the edge each one probes.
+Ship seven cases and the reader learns nothing the name did not already say.
 
-## Equivalence partitioning
+## The four derivations
 
-Divide the input into classes where every value in a class should produce the same behaviour,
-then test one representative of each.
+Each one is standard practice; what is not standard is what it collapses into.
 
-1. Identify the input conditions.
-2. Divide into valid and invalid partitions.
-3. Pick one representative value per partition.
-4. Write one case per partition.
-
-Worked on age validation with a valid range of 18 to 65:
-
-| Partition | Range | Representative | Expected |
-|---|---|---|---|
-| invalid, below | < 18 | 10 | reject |
-| valid | 18-65 | 30 | accept |
-| invalid, above | > 65 | 70 | reject |
-
-That table yields three cases, and they belong to two behaviours, not three:
-`an-age-inside-the-range-is-accepted` and, under a second big case,
-`an-age-below-the-minimum-is-rejected` beside `an-age-above-the-maximum-is-rejected`.
-
-With several inputs, combine the partitions systematically — valid × valid, valid × invalid,
-invalid × valid, invalid × invalid — and check that the invalid × invalid case names **which**
-input the error reports, because reporting only the first one is a common defect.
-
-## Boundary value analysis
-
-Defects cluster at the edges of a partition, so test at the edge and one step either side.
-
-1. Take the boundaries from the equivalence partitions.
-2. Test the minimum, one below it, one above it, and the same three at the maximum.
-3. Add the special values: 0, empty, null, the maximum integer.
-
-| Boundary | Value | Expected |
+| Technique | Derive | Collapses into |
 |---|---|---|
-| below minimum | 17 | reject |
-| at minimum | 18 | accept |
-| above minimum | 19 | accept |
-| normal | 40 | accept |
-| below maximum | 64 | accept |
-| at maximum | 65 | accept |
-| above maximum | 66 | reject |
+| **Equivalence partitioning** | one representative per class of input that behaves alike | one big case per *behaviour*, not per partition — a valid class and its two invalid neighbours are two behaviours, not three |
+| **Boundary values** | the edge and one step either side, plus 0, empty, null, and the maximum integer | one big case per closed range, variants named for the edge |
+| **Decision table** | every combination of the conditions, then collapse rows where a condition does not change the action | big cases named after what the reader cares about — `## Discounts stack`, `## Each discount applies alone`, `## An order that qualifies for nothing pays full price` |
+| **State transition** | one case per valid transition, **plus every invalid one** — the terminal state that must refuse everything, the out-of-order event, the concurrent change | one big case per rule about movement. The Mermaid diagram of the machine ships (`sub-write.md`); the transition table does not |
 
-Seven rows, one behaviour. They collapse into a single big case —
-`## The accepted range is closed at both ends` — whose variants name the edge each one probes.
+**With several inputs, combine the partitions systematically** — valid × valid, valid × invalid,
+invalid × valid, invalid × invalid — and check that the invalid × invalid case names **which**
+input the error reports. Reporting only the first one is a common defect.
 
-## Decision table
-
-Use it when several conditions combine into a business rule.
-
-1. Identify the conditions (the inputs).
-2. Identify the actions (the outputs).
-3. Build the table of condition combinations.
-4. Collapse rows where a condition does not change the action.
-
-Worked on a discount, with the conditions *is a member*, *order over $100*, and *has a coupon*:
-
-| Rule | Member | Over $100 | Coupon | Member % | Bulk % | Coupon % |
-|---|---|---|---|---|---|---|
-| 1 | Y | Y | Y | X | X | X |
-| 2 | Y | Y | N | X | X | — |
-| 3 | Y | N | Y | X | — | X |
-| 4 | Y | N | N | X | — | — |
-| 5 | N | Y | Y | — | X | X |
-| 6 | N | Y | N | — | X | — |
-| 7 | N | N | Y | — | — | X |
-| 8 | N | N | N | — | — | — |
-
-Eight rows are unreadable as a deliverable and obvious as a derivation. They ship as big cases
-named after what the reader cares about: `## Discounts stack`, `## Each discount applies alone`,
-`## An order that qualifies for nothing pays full price`.
-
-## State transition
-
-Use it for a system with distinct states and rules about moving between them.
-
-1. Identify the states.
-2. Identify the valid transitions.
-3. Build the transition table.
-4. Design a case per transition.
-5. Add the invalid transitions.
-
-| Current state | Event | Next state | Valid |
-|---|---|---|---|
-| Draft | submit | Pending | yes |
-| Draft | approve | — | no |
-| Pending | approve | Approved | yes |
-| Pending | reject | Rejected | yes |
-| Approved | ship | Shipped | yes |
-| Shipped | deliver | Delivered | yes |
-| Delivered | any | — | no |
-
-**Always test the invalid transitions** — the terminal state that must refuse everything, the
-out-of-order event, and the concurrent change. The valid path is the one the implementer already
-walked.
-
-The Mermaid diagram of this machine ships; this table does not. See `sub-write.md`.
+**The valid path is the one the implementer already walked.** Every technique above earns its
+keep on the branch nobody ran.
 
 ## Pairwise
 
 Most defects come from the interaction of two parameters, so covering every pair of values costs
-far less than covering every combination and finds nearly as much.
-
-Browser compatibility over browser (Chrome, Firefox, Safari, Edge), OS (Windows, macOS, Linux),
-and version (latest, previous) is 24 full combinations and 8 to 12 pairwise cases.
+far less than covering every combination and finds nearly as much. Browser compatibility over
+browser (Chrome, Firefox, Safari, Edge), OS (Windows, macOS, Linux), and version (latest,
+previous) is 24 full combinations and 8 to 12 pairwise cases.
 
 Use PICT, allpairs, or an online generator. `sub-create.md` drives this technique for tiering.
 
 ## Error guessing
 
-Experience says where the defects are. Sweep the categories:
+Experience says where the defects are. Sweep the categories over every input:
 
 | Category | Examples |
 |---|---|
@@ -133,10 +61,8 @@ Experience says where the defects are. Sweep the categories:
 | resources | memory exhausted, connection limit, timeout |
 | security | SQL injection, XSS, path traversal |
 
-Questions to run over every input: what if it is null, empty, full of special characters, or
-longer than the maximum? What if two requests arrive at once? What if the external service
-fails, or the database connection drops? What if the number is negative, or the list has
-duplicates?
+Then the ones no per-input sweep reaches: two requests arriving at once, the external service
+failing, the database connection dropping.
 
 ## State combination
 

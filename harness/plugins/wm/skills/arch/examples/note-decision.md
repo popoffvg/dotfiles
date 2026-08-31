@@ -7,7 +7,7 @@ description: >              # 1–3 sentences, the only text the thought index s
   retries with the new token. Redis single-flight locking was rejected — 40 lines for under
   0.01% of traffic.
 date: 2026-06-18T14:45:10
-source: grill               # grill | explore | codebase — codebase = auto-discovered, nobody chose it
+source: human               # human | auto — auto = nobody was asked, nobody chose it
 tags: [auth, concurrency]
 links:
   - "[[002-fact-token-ttl]]"
@@ -44,7 +44,7 @@ The 15-minute TTL in [[002-fact-token-ttl]] makes the race rare, so option C's c
 > **Why** is the core of the note — a decision without it is unresolved, not recorded.
 > Chosen from alternatives → one row per alternative with the reason it lost.
 > Forced by constraints → list the constraints and show how they leave one option.
-> Auto-discovered (`source: codebase`) → name the `path:line` that forced the choice and say what
+> Auto-discovered (`source: auto`) → name the `path:line` (or the research doc) that forced the choice and say what
 > the code does there. Nobody was asked, so the code IS the reason; the reviewer reads these first.
 
 ## Depends on

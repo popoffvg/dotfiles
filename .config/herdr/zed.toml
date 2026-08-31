@@ -1,0 +1,54 @@
+# herdr config for the Zed agent-thread terminal.
+# Selected by HERDR_CONFIG_PATH in ~/.claude/scripts/herdr-zed.sh; it replaces
+# config.toml whole, so every key this pane needs lives here.
+#
+# The pane is small and already framed by Zed, so herdr draws as little chrome
+# as it can. Its footer/status bar has no config key and stays visible.
+
+onboarding = false
+
+[ui]
+# No side pane: collapsed at launch, and collapsed means zero width, not a rail.
+sidebar_start_collapsed = true
+sidebar_collapsed_mode = "hidden"
+
+# No tab row until a second tab exists. prefix+c still makes one.
+hide_tab_bar_when_single_tab = true
+
+# Keybindings the `annotate` plugin (plannotator/herdr-annotate) requires.
+# herdr has no config include, so this block is copied into both config.toml
+# and zed.toml. Edit here first, then mirror it into both.
+#
+# Note: prefix+o overrides herdr's default open_notification_target.
+
+# Terminal annotations
+[[keys.command]]
+key = "prefix+a"
+type = "plugin_action"
+command = "annotate.capture"
+description = "annotate text"
+
+[[keys.command]]
+key = "prefix+shift+a"
+type = "plugin_action"
+command = "annotate.copy-context"
+description = "copy annotations as context"
+
+[[keys.command]]
+key = "prefix+m"
+type = "plugin_action"
+command = "annotate.manage"
+description = "manage annotations"
+
+# Document review (plannotator-tui)
+[[keys.command]]
+key = "prefix+o"
+type = "plugin_action"
+command = "annotate.open"
+description = "review documents in this folder"
+
+[[keys.command]]
+key = "prefix+shift+o"
+type = "plugin_action"
+command = "annotate.last"
+description = "review the agent's last reply"

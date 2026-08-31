@@ -1,22 +1,29 @@
 export const meta = {
   name: 'wm-code-impl',
-  description: 'Implement one wm TODO, then run the review gate chain until every gate passes',
-  whenToUse: 'Driving /code impl deterministically: sonnet implements + commits, then the review skill\'s chain — one haiku wave (lint, comments, names) in parallel, the sonnet test gate, the opus outcome gate; each FAIL routes back to a fixup and restarts the wave. wm-code-auto calls this once per TODO.',
+  description: 'Run the review gate chain until every gate passes — over one wm TODO it implements first, or over a diff no TODO pair covers',
+  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — one parallel checks batch (lint, comments, names, and the opus outcome gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks. wm-code-auto calls this once per TODO.",
   phases: [
-    { title: 'Implement', detail: 'wm:implementer (sonnet) writes + commits', model: 'sonnet' },
-    { title: 'Wave', detail: 'lint-tester + comment-critic + name-critic, in parallel', model: 'haiku' },
+    { title: 'Intent', detail: 'diff mode only — resolve the range and derive the intent sentence', model: 'haiku' },
+    { title: 'Implement', detail: 'wm:implementer (sonnet) writes + commits, and fixes every gate finding', model: 'sonnet' },
+    { title: 'Checks', detail: 'lint-tester + comment-critic + name-critic + reviewer, in parallel', model: 'haiku + opus' },
     { title: 'Test', detail: 'wm:tester (sonnet) gates the Autotest contract', model: 'sonnet' },
-    { title: 'Review', detail: 'wm:reviewer (opus) gates Outcome / correctness', model: 'opus' },
   ],
 }
 
-// ── args: { todo: <N>, notesDir?: ".notes", lessonsFile?, maxGateFails? } ─────
+// ── args ─────────────────────────────────────────────────────────────────────
+// todo mode: { todo: <N>, notesDir?: ".notes", lessonsFile?, maxGateFails? }
+// diff mode: { mode: "diff", range?: "HEAD", intent?, notesDir?, lessonsFile?, maxGateFails? }
 const notesDir = (args && args.notesDir) || '.notes'
 const todo = args && args.todo
-if (todo === undefined || todo === null) {
-  throw new Error('Pass args { todo: <N>, notesDir?: ".notes" } — which TODO to implement')
+const mode = (args && args.mode) || (todo === undefined || todo === null ? 'diff' : 'todo')
+if (mode === 'todo' && (todo === undefined || todo === null)) {
+  throw new Error('todo mode needs args { todo: <N> } — which TODO to implement. Pass { mode: "diff" } to gate a diff instead.')
 }
-const todoPath = `${notesDir}/todos/TODO-${todo}.md`
+const todoPath = mode === 'todo' ? `${notesDir}/todos/TODO-${todo}.md` : null
+
+// review:sub-diff.md step 1 — the caller names the range; nothing named means the working tree.
+const range = (args && args.range) || 'HEAD'
+let intent = (args && args.intent) || null
 
 // Set by wm-code-auto to the lessons file every round must read before it edits.
 const lessonsFile = (args && args.lessonsFile) || null
@@ -52,8 +59,18 @@ const IMPL = {
     blocker: { type: 'string', description: 'set only when blocked: what was tried + why stopped' },
   },
 }
+const INTENT = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['range', 'intent', 'empty'],
+  properties: {
+    range: { type: 'string', description: 'the resolved revision range, verbatim' },
+    intent: { type: 'string', description: 'one sentence: what this change is for' },
+    empty: { type: 'boolean', description: 'true when the range holds no change' },
+  },
+}
 
-// ── prompts ────────────────────────────────────────────────────────────────
+// ── the subject of every prompt ──────────────────────────────────────────────
 const PLUGIN = '${CLAUDE_PLUGIN_ROOT}'
 // Two entries are obeyed for different reasons. A CODE lesson is about the files this TODO edits,
 // so it applies only when the Files overlap. An ENVIRONMENT lesson — which runtime, which command
@@ -179,48 +196,75 @@ const history = []
 const fails = { lint: 0, comment: 0, name: 0, test: 0, outcome: 0 }
 
 function blocked(stage, impl) {
-  return { result: 'BLOCKED', todo, stage, blocker: impl ? impl.blocker : 'implementer agent died', round, history }
+  return { result: 'BLOCKED', mode, todo, stage, blocker: impl ? impl.blocker : 'implementer agent died', round, history, compact: compactAsked }
 }
 
-phase('Implement')
-let impl = await agent(implPrompt(), { agentType: 'wm:implementer', phase: 'Implement', schema: IMPL, label: `impl:TODO-${todo}` })
-if (!impl || impl.status === 'blocked') return blocked('initial', impl)
+let impl = null
+if (mode === 'todo') {
+  phase('Implement')
+  impl = await agent(implPrompt(), { agentType: 'wm:implementer', phase: 'Implement', schema: IMPL, label: `impl:TODO-${todo}` })
+  if (!impl || impl.status === 'blocked') return blocked('initial', impl)
+} else {
+  // review:sub-diff.md steps 1-2 — resolve the range and derive the intent, because the
+  // outcome gate has nothing approved to judge against without them.
+  phase('Intent')
+  const resolved = await agent(
+    `Resolve a review target and report it. Change no file, commit nothing.\n` +
+      `1. Resolve "${range}" into one revision range per review:sub-diff.md step 1 — nothing named means the ` +
+      `uncommitted working tree (git diff HEAD), "last" means git show HEAD, a branch means that branch against ` +
+      `its merge base with the default branch, a sha or range means exactly that, a PR url or number means gh pr diff.\n` +
+      `2. Set empty:true when that range holds no change.\n` +
+      (intent
+        ? `3. The intent is already given — return it verbatim: ${intent}\n`
+        : `3. Derive the intent: one sentence saying what this change is for, from the commit messages in the range.\n`),
+    { agentType: 'general-purpose', model: 'haiku', phase: 'Intent', schema: INTENT, label: 'intent' },
+  )
+  if (!resolved) return { result: 'ERROR', mode, stage: 'intent', round, history, compact: compactAsked }
+  if (resolved.empty) {
+    log(`range ${resolved.range} is empty — reporting it as empty, never as a green run`)
+    return { result: 'EMPTY', mode, range: resolved.range, round, history, compact: compactAsked }
+  }
+  intent = resolved.intent
+  log(`range ${resolved.range} — intent: ${intent}`)
+}
 
 while (round < MAX_ROUNDS) {
   round++
   let failed = null
   let uncommitted = null
 
-  // The cheap wave: three haiku gates over the same diff, in one parallel batch. They share no
-  // state, so the wall clock is the slowest of the three instead of their sum.
-  phase('Wave')
-  const waveOut = await parallel(
-    WAVE.map((gate) => () =>
-      agent(gate.prompt, { agentType: gate.agentType, phase: 'Wave', schema: GATE, label: `${gate.key}:r${round}` }).then((out) => ({ gate, out })),
+  // The checks: four gates over the same diff, in one parallel batch. They share no state, so the
+  // wall clock is the slowest of the four instead of their sum.
+  phase('Checks')
+  askCompact()
+  const CHECKS = checks()
+  const checksOut = await parallel(
+    CHECKS.map((gate) => () =>
+      agent(gate.prompt, { agentType: gate.agentType, phase: 'Checks', schema: GATE, label: `${gate.key}:r${round}` }).then((out) => ({ gate, out })),
     ),
   )
-  const waveRuns = waveOut.filter(Boolean)
-  const waveDied = WAVE.filter((g) => !waveRuns.some((r) => r.gate.key === g.key) || !waveRuns.find((r) => r.gate.key === g.key).out)
-  if (waveDied.length > 0) return { result: 'ERROR', todo, stage: waveDied.map((g) => g.key).join('+'), round, history }
-  for (const { gate, out } of waveRuns) history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], ran: out.ran || '' })
+  const checksRuns = checksOut.filter(Boolean)
+  const checksDied = CHECKS.filter((g) => !checksRuns.some((r) => r.gate.key === g.key) || !checksRuns.find((r) => r.gate.key === g.key).out)
+  if (checksDied.length > 0) return { result: 'ERROR', mode, todo, stage: checksDied.map((g) => g.key).join('+'), round, history, compact: compactAsked }
+  for (const { gate, out } of checksRuns) history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], ran: out.ran || '' })
 
-  // One fixup carries every failing wave gate's findings — three separate fixups would each
-  // invalidate the next gate's read of the diff.
-  const waveFails = waveRuns.filter(({ out }) => out.result === 'FAIL')
-  if (waveFails.length > 0) {
+  // One fixup carries every failing check's findings — separate fixups would each invalidate the
+  // next gate's read of the diff.
+  const checksFails = checksRuns.filter(({ out }) => out.result === 'FAIL')
+  if (checksFails.length > 0) {
     failed = {
-      gate: { key: waveFails.map(({ gate }) => gate.key).join('+') },
-      out: { failures: waveFails.flatMap(({ gate, out }) => (out.failures || []).map((f) => `[${gate.key}] ${f}`)) },
+      gate: { key: checksFails.map(({ gate }) => gate.key).join('+') },
+      out: { failures: checksFails.flatMap(({ gate, out }) => (out.failures || []).map((f) => `[${gate.key}] ${f}`)) },
     }
-    for (const { gate } of waveFails) fails[gate.key] += 1
+    for (const { gate } of checksFails) fails[gate.key] += 1
   }
 
-  // The serious gates, in order, only once the wave is green.
+  // The serial gates, in order, only once the checks are green.
   if (!failed) {
-    for (const gate of SERIAL) {
+    for (const gate of serial()) {
       phase(gate.phase)
       const out = await agent(gate.prompt, { agentType: gate.agentType, phase: gate.phase, schema: GATE, label: `${gate.key}:r${round}` })
-      if (!out) return { result: 'ERROR', todo, stage: gate.key, round, history }
+      if (!out) return { result: 'ERROR', mode, todo, stage: gate.key, round, history, compact: compactAsked }
       history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], ran: out.ran || '' })
       if (out.result === 'FAIL') {
         failed = { gate, out }
@@ -236,8 +280,8 @@ while (round < MAX_ROUNDS) {
   }
 
   if (!failed && !uncommitted) {
-    log(`TODO-${todo} green on every gate after ${round} round(s)`)
-    return { result: 'PASS', todo, round, summary: impl.summary, history }
+    log(`${mode === 'todo' ? `TODO-${todo}` : range} green on every gate after ${round} round(s)`)
+    return { result: 'PASS', mode, todo, range: mode === 'diff' ? range : undefined, intent, round, summary: impl ? impl.summary : undefined, history, compact: compactAsked }
   }
 
   if (uncommitted) {
@@ -247,14 +291,14 @@ while (round < MAX_ROUNDS) {
     impl = await agent(
       implPrompt(null, `The ${uncommitted.gate.key} gate wrote these test files and left them uncommitted:\n` +
         files.map((f) => `- ${f}`).join('\n') +
-        `\nFold them into the TODO's commit (git commit --amend, or a fixup if the commit was already corrected once). Change nothing else.`),
+        `\nFold them into the commit under review (git commit --amend, or a fixup if the commit was already corrected once). Change nothing else.`),
       { agentType: 'wm:implementer', phase: 'Implement', schema: IMPL, label: `commit-tests:r${round}` },
     )
     if (!impl || impl.status === 'blocked') return blocked('commit-tests', impl)
     continue // a new test file can break lint → restart the chain at the cheap gate
   }
 
-  // The budget is per gate, so a wave FAIL is measured against the worst of the gates that failed.
+  // The budget is per gate, so a checks FAIL is measured against the worst of the gates that failed.
   const failures = failed.out.failures || []
   const spent = Math.max(...failed.gate.key.split('+').map((k) => fails[k]))
   log(`round ${round}: ${failed.gate.key.toUpperCase()} FAIL (${failures.length} findings, ${spent}/${maxGateFails || '∞'}) → implementer fixup`)
@@ -262,11 +306,13 @@ while (round < MAX_ROUNDS) {
   if (maxGateFails && spent >= maxGateFails) {
     return {
       result: 'BLOCKED',
+      mode,
       todo,
       stage: failed.gate.key,
       blocker: `${failed.gate.key} gate failed ${spent} rounds; last findings: ${failures.join(' | ') || '(none reported)'}`,
       round,
       history,
+      compact: compactAsked,
     }
   }
 
@@ -276,5 +322,5 @@ while (round < MAX_ROUNDS) {
   // A fixup can break what an earlier gate already cleared → restart the chain, never resume.
 }
 
-log(`TODO-${todo}: hit MAX_ROUNDS=${MAX_ROUNDS} without every gate green — stopping (backstop, not a silent truncation)`)
-return { result: 'MAX_ROUNDS', todo, round, history }
+log(`${mode === 'todo' ? `TODO-${todo}` : range}: hit MAX_ROUNDS=${MAX_ROUNDS} without every gate green — stopping (backstop, not a silent truncation)`)
+return { result: 'MAX_ROUNDS', mode, todo, round, history, compact: compactAsked }

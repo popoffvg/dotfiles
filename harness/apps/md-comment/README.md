@@ -25,6 +25,21 @@ After editing `src/lib.rs`, run `zed: rebuild dev extension` — plain
 `zed: reload extensions` does not recompile. After editing the server, re-run the mise
 build task.
 
+**Rebuild only from a Zed started in a shell.** Zed compiles the extension with the `rustc`
+on its own process PATH, and a Zed started from the dock inherits the launchd PATH
+(`/usr/bin:/bin:/usr/sbin:/sbin`), which has no `~/.cargo/bin`. The rebuild then fails and
+takes the whole extension down with it — no server attaches, so every code action, hint and
+diagnostic goes. The Zed log names it:
+
+```
+ERROR failed to compile Rust extension: failed to run rustc: No such file or directory (os error 2)
+```
+
+Read the PATH Zed actually has with `ps -Eww -p $(pgrep -f MacOS/zed | head -1) | tr ' ' '\n' | grep ^PATH=`.
+To recover, quit Zed and start it again from a terminal. A restart alone is enough to get
+the comments back — Zed loads the `extension.wasm` already on disk and does not recompile
+on startup.
+
 Zed's `extension.toml` has no wildcard for languages, so the server attaches only to the
 names in its `languages` array. Regenerate that array from the languages installed on this
 machine after installing a language extension:

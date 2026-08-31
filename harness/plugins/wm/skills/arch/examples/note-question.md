@@ -7,7 +7,7 @@ description: >              # 1–3 sentences, the only text the thought index s
   scope from the user record. Blocks the rotation-handler ledger row, which must do one or
   the other.
 date: 2026-06-18T14:52:04
-source: explore
+source: auto
 tags: [auth, scope]
 ---
 

@@ -149,7 +149,7 @@ After writing the report, summarize:
 
 - **Never modify source code** — you are read-only on product code
 - Only write to `.notes/` directory
-- If you cannot determine expected behavior, use `AskUserQuestion` — don't guess
+- If you cannot determine expected behavior, use `AskUserQuestion` — don't guess. Put the context in the question itself (`${CLAUDE_PLUGIN_ROOT}/skills/code/references/ref-subcommand-rules.md` § Ask a question the human can answer without opening a file).
 - Be specific in steps — "click the button" is bad, "POST /api/users with body `{name: "test"}` and expect 201" is good
 - Prioritize P0/P1 cases — don't waste time on P3 if core paths are untested
 - If tests fail, report the failure clearly — don't retry silently

@@ -8,8 +8,8 @@ risk: 3                     # changes the existing Refresh signature; retest the
 # TODO-1: Rotate refresh tokens on /auth/refresh
 
 > A filled `<notes-dir>/todos/TODO-N.md` — **the human half of the pair**. Copy the section order and
-> the shape of each one; the rules that govern them are `arch:sub-todo.md` § Section rules, and the
-> element list and order are its § Required elements.
+> the shape of each one; the rules that govern them are `arch:ref-todo-sections.md`, and the
+> element list and order are `arch:sub-todo.md` § Required elements.
 > This TODO adds no term missing from `GLOSSARY.md`, so it carries no `## New terms` section.
 > `## Deviations` is shown filled, as `impl` leaves it — a file written by `todo` has no such section.
 

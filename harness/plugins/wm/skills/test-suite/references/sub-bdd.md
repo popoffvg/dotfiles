@@ -233,16 +233,15 @@ Put it first in the `.feature` file and mark it in the strategy doc.
 
 ---
 
-## Anti-patterns
+## Scenario hygiene
 
-| Don't | Do instead |
-|-------|-----------|
-| `sleep(500ms)` to wait for async | Subscribe to event or poll with timeout |
-| Hardcoded identifiers like `"test-item"` | Generate unique random names per scenario |
-| Assertions without messages | Always explain the invariant |
-| Missing cleanup | Teardown every created resource, even on failure |
-| One giant scenario covering many behaviors | One scenario per behavior |
-| Testing implementation details | Test observable outcomes only |
-| Sharing state between scenarios | Each scenario sets up its own preconditions |
-| Gherkin in a Markdown file | Write a `.feature` file in `<notes-dir>/features/` |
-| Bare `"""` for shell docstrings | Annotate with `"""sh` |
+- **Wait on an event, or poll with a timeout.** A `sleep(500ms)` passes on a fast machine and
+  flakes on a loaded one.
+- **Generate a unique random name per scenario.** A hardcoded `"test-item"` collides the moment
+  two scenarios run at once.
+- **Tear down every resource the scenario created, even when it failed.** A leaked resource is
+  the next scenario's mystery failure.
+- **Assert observable outcomes only** — what a user or a caller can see, never an internal call
+  or a private field.
+- **Each scenario sets up its own preconditions**, so any one of them runs alone.
+- **Annotate a shell docstring `"""sh`**, never bare `"""`.

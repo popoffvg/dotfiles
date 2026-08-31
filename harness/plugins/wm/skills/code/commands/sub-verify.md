@@ -16,6 +16,14 @@ The caller runs the pass/fail checks (below) directly — field inspection over 
 `todos/*.md`, no adversarial reasoning. Any fail → write the report `Result: NEEDS REVISION`
 listing the failures and **stop**. No point paying an agent to notice an empty field.
 
+**Count the corpus first: `<plugin>/bin/budget-sweep.sh <notes-dir>` — exit 1 is a hard block.** It
+runs `budget-check.py` over `spec.md`, `CONSTRAINTS.md`, and both halves of every ledger row, and
+prints each overrun with the split to make. This is where every countable rule below is *enforced* —
+the budgets, the misplaced sections, the unfollowable `CONSTRAINTS.md` row (`arch:sub-todo.md`
+§ Budget lists them). The write-time hook counts one file and only warns, because a pair is written
+over several calls; here the pair is finished, so a count that still fails is real. List each
+overrun under `## Checks` and take the remedy the message names — never a raised budget.
+
 ### Phase 1 — adversarial hunt (parallel agents)
 
 All pass → fan out **one `spec-verifier` per TODO** plus one cross-TODO agent, in a single message (wall-clock = slowest TODO, not the sum).
@@ -96,7 +104,7 @@ Two files per ledger row, contiguous: `todos/TODO-N.md` (the human half) and `to
 
 Spot-check the human half: **risk** 1–5 with a justification (score ≥ 3 → tests cover callers); `## Components` has exactly one `main`; `## Surface` covers every Components symbol and no others, one ```diff per file, ≤ 150 changed lines each or a declared **Compile floor**. Spot-check the agent half: **Files** concrete paths, no globs; `## Constraints` is the fixed pointer line at `CONSTRAINTS.md` and carries no rule text, no id list, and no table.
 
-**The rules file.** `CONSTRAINTS.md` holds every settled decision an increment can violate, one row each, and no TODO holds one. Every row carries an `R<n>` id (contiguous, never renumbered), the rule alone, and an `Origin` that resolves: a `[[NNN-type-slug]]` to a **live** note in `thoughts/`, or a document with a section and a `read <YYYY-MM-DD>` date. **A note that resolves only under `thoughts/archived/` is a hard block** — the decision was superseded while the corpus still obeys it, so the pairs built on it may be wrong; route to `revise`. A rule no increment in any TODO can violate is a finding in the other direction: it is a fact, and it belongs in `thoughts/`. `python3 <plugin>/bin/budget-check.py <notes-dir>/CONSTRAINTS.md` reports the mechanical half of this; whether a rule still binds anything is the audit's.
+**The rules file.** `CONSTRAINTS.md` holds every settled decision an increment can violate, one row each, and no TODO holds one. Every row carries an `R<n>` id (contiguous, never renumbered), the rule alone, and an `Origin` that resolves: a `[[NNN-type-slug]]` to a **live** note in `thoughts/`, or a document with a section and a `read <YYYY-MM-DD>` date. **A note that resolves only under `thoughts/archived/` is a hard block** — the decision was superseded while the corpus still obeys it, so the pairs built on it may be wrong; route to `revise`. A rule no increment in any TODO can violate is a finding in the other direction: it is a fact, and it belongs in `thoughts/`. The sweep above reports the mechanical half of this; whether a rule still binds anything is the audit's.
 
 **Changes — the increment sequence** (agent half). `n` contiguous from 1, ≤ 10 increments, each naming one row of the human half's **Components** table, and every row there named by at least one increment. Every increment carries **Files** (a subset of `## Files`), a **Surface** bullet naming the symbols it lands (or `none`), a **Do** of one to four imperative sentences, and a **Blast radius** — and **no diff**, per `arch:sub-todo.md` § Changes. Two findings live here: a **Do** carrying code or a pasted signature (the signature belongs to § Surface alone), and a signature that changes in § Surface whose call sites appear in no increment's **Do** — the second is a caller that will be left broken, and § Surface cannot show it. A **Blast radius** that names no symbol or caller (`"low"`, `"minimal"`, `"none"` on a non-additive increment) → NEEDS REVISION: an unpredicted blast radius is what the increment review exists to catch. Order must be deepest-first — a caller migrated before its callee, without a `builds: only with increment <n>` marker, is a finding. Any **Behavior** snippet: one TS block ≤ 40 lines matching the Type.
 
@@ -104,7 +112,7 @@ Spot-check the human half: **risk** 1–5 with a justification (score ≥ 3 → 
 
 **Self-containment (hard block).** Read one TODO with `spec.md` and `thoughts/` closed, `CONSTRAINTS.md` open. If a term it uses or a test expectation is knowable only from the closed files, → NEEDS REVISION naming the missing restatement.
 
-**Over-statement (hard block, the same gate in reverse).** The gate cuts both ways — it may only ever push text *in* if it can also push text *out*, or every pass grows the file. → NEEDS REVISION when a rule was copied out of `CONSTRAINTS.md` into a TODO, when spec Description/Goal/target-picture prose was copied into the human half, when `## Surface` carries a symbol no Components row claims, or when that half exceeds 550 lines (name the cut, not the passage to compress — and never a move into the agent half, which has no line budget to absorb it). Get every budget count in one call: `python3 <plugin>/bin/budget-check.py <file>` — exit 1 lists each overrun with its split (`arch:sub-todo.md` § Budget).
+**Over-statement (hard block, the same gate in reverse).** The gate cuts both ways — it may only ever push text *in* if it can also push text *out*, or every pass grows the file. → NEEDS REVISION when a rule was copied out of `CONSTRAINTS.md` into a TODO, when spec Description/Goal/target-picture prose was copied into the human half, when `## Surface` carries a symbol no Components row claims, or when that half exceeds 550 lines (name the cut, not the passage to compress — and never a move into the agent half, which has no line budget to absorb it). The sweep above already counted those 550 lines; what is left here is the judgment (`arch:sub-todo.md` § Budget).
 
 ### B2. Wave plan
 `## Plan` has the wave table; every ledger row appears in exactly one wave; no two TODOs in one wave share a **Files** path or a `depends_on` edge; every `depends_on` is a real edge per `arch:ref-write.md` § Waves. A chain where each wave holds one TODO → report it as a finding (serialized spec) with the edges that look false.

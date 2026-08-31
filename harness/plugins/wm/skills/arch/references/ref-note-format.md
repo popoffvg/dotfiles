@@ -35,7 +35,7 @@ status: open | approved | declined   # open only on type: question; approved is 
 description: >                       # 1–3 sentences — what this thought settles. Required on every type
   <the summary the index prints>
 date: 2026-06-18T14:30:22
-source: grill | explore | codebase   # optional
+source: auto | human                  # optional
 tags: [topic, subtopic]
 ---
 ```
@@ -51,8 +51,8 @@ tags: [topic, subtopic]
   description could stand for two different answers is unfindable — the reader opens every note again.
 - `status` — `open` while a question is unresolved, and the only value that keeps a question in the live graph; `approved` on an answered question and on any decision/fact; `declined` when a thought is rejected, moot, or superseded, instead of deleting it.
 - `date` — ISO 8601, the moment the note was written. On a question, add `resolved:` with the timestamp of the answer when marking it (§ Resolution).
-- `source` — optional, on every type. `explore` for a note from an explore-phase research doc; `codebase` for one derived by reading code; `grill` (or omit) for one the user stated or chose. On a `question` it says where the question surfaced; on the `decision` or `fact` that answers it, where the **answer** came from.
-- `source: codebase` on a decision marks an **auto-discovered** choice — the code answered it, nobody was asked. The choice is as binding as any other, but it carries no human approval, so a reviewer reads those rows first. Every auto-discovered decision names the `path:line` that forced it in its `## Why`.
+- `source` — optional, on every type. `human` when the user stated or chose it; `auto` when nobody was asked — the answer came out of a research doc or out of the code. On a `question` it says where the question surfaced; on the `decision` or `fact` that answers it, where the **answer** came from.
+- `source: auto` on a decision marks an **auto-discovered** choice — the research or the code answered it, nobody was asked. The choice is as binding as any other, but it carries no human approval, so a reviewer reads those rows first. Every `auto` decision names what forced it in its `## Why` — the `path:line` in the code, or the research doc.
 - `tags` — 1–3 topic tags for grouping in Obsidian graph view.
 
 ## Finding the thought for your task
@@ -97,9 +97,9 @@ into its own answer. Three steps, in this order:
 
 1. Write the answer as a new note at the next counter (`NNN`+1) — `NNN-decision-slug.md` when the
    answer is a choice, `NNN-fact-slug.md` when it establishes a truth. Keep the question's `slug`;
-   the `NNN` is a fresh one. Set `source` to what resolved it (`codebase` when the answer was read
-   out of the code, `grill` when the user answered) and `date` to now. Body per that type's
-   example (`examples/note-decision.md` / `examples/note-fact.md`), and **restate the question's `## Question`
+   the `NNN` is a fresh one. Set `source` to what resolved it (`auto` when the answer was
+   read out of the code or a research doc, `human` when the user answered) and `date` to now.
+   Body per that type's example (`examples/note-decision.md` / `examples/note-fact.md`), and **restate the question's `## Question`
    text verbatim** — that is the audit trail of what was asked, and it is why no live note ever has
    to reach back into `archived/`.
 2. In the question note, set `status: approved` (it was answered), add `superseded_by: "<new NNN>"`,
@@ -174,9 +174,8 @@ An implementation choice made while authoring a TODO body. Same directory, share
 
 At loop end (any subcommand that writes or edits thoughts): for each `Depends on` from note B → note A, add `Affects` in A → B. Populate each note's `links` frontmatter with every `[[wikilink]]` in its body. Verify every target file exists in `thoughts/`.
 
-## Notes directory is the audit trail
+## Open work lives in the same graph
 
-- `thoughts/` = the traceable thought graph. Each note proves why a decision was made.
-- Open work is visible in the same graph: every `status: open` question note is an unresolved blocker. List them with `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` (exit 1 = at least one open).
-- A reviewer reads `NNN-decision-xxx.md`, follows `Depends on` backward to the facts that constrained it and `Affects` forward to what it enabled.
-- A questioned decision shows the alternatives considered and why rejected — the spec is self-documenting.
+Every `status: open` question note is an unresolved blocker, and the graph is where they are
+counted. List them with `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` — exit 1
+means at least one is open, which is the hard block on spec readiness.

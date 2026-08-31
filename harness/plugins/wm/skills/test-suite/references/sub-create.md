@@ -3,10 +3,12 @@
 Produce one artifact: a **test set** for a TODO or a task, with every case placed in the cheapest
 tier that can prove it.
 
+**Open [`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md) first** — it is
+the artifact this subcommand produces. Note what is *not* in it: no matrix, no tier-named sections.
+
 Pairwise is how you *derive* the set. It is not how you *present* it. The matrix stays in your
 scratch work; the document you save follows
-[`ref-readable-output.md`](ref-readable-output.md) — read that first, it is the contract this
-subcommand fills.
+[`ref-readable-output.md`](ref-readable-output.md) — the contract this subcommand fills.
 
 ## The three tiers
 
@@ -120,7 +122,7 @@ A case that fits several tiers goes in the **cheapest** one that can still prove
 
 ### 7. Write the oracle
 
-Every case ends in an observable assertion. Banned: "works", "succeeds", "looks right".
+Every case ends in an observable assertion — the literal shape, value, or event:
 
 - unit — the return value equals X, the collaborator was called with Y, an error of type T was raised.
 - integration — HTTP status N with body shape B, DB row in state S, message published on topic T.
@@ -131,16 +133,17 @@ Every case ends in an observable assertion. Banned: "works", "succeeds", "looks 
 
 This is the step that turns the matrix into a document. Read the rows and find the **behaviours**
 they cluster around — not the factors they vary. Each cluster becomes one big case with a
-sentence heading and a paragraph; each row becomes one named variant under it.
+sentence heading and a paragraph; each row becomes one named variant under it — **one variant,
+one case**, so a failure names the behaviour that broke instead of failing opaquely inside a test
+carrying a dozen assertions.
 
 Rows that resist grouping are the interesting ones. A row that belongs to no behaviour usually
 means the behaviour was never named in the spec, so name it and check it is intended.
 
 ### 9. Emit the document
 
-Follow the skeleton in `ref-readable-output.md` section 6. The worked example is
-[`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md). The matrix
-does not appear in it, and must not appear in yours.
+Follow the skeleton in `ref-readable-output.md` section 6, shaped like the worked example you
+opened at the start.
 
 ## Reducing the derivation
 
@@ -154,18 +157,6 @@ When a tier's rows exceed its budget:
 Never drop a value silently. Every drop lands in **Not covered** with the interaction you chose
 to lose and why that loss is acceptable.
 
-## Anti-patterns
-
-- **Sections named after tiers** — `## Unit cases` splits one behaviour across three tables. Name
-  the sections after behaviours and tag each variant with its tier.
-- **One giant unit test with N assertions** — it fails opaquely; one variant, one case.
-- **Pairwise without the smoke and boundary additions** — combinatorial coverage misses the
-  common failure modes.
-- **Integration cases that repeat unit cases** — pick the tier that already proves the oracle.
-- **Manual cases a test could check** — status codes, DB rows, and log assertions are automatable.
-- **Vague oracles** — replace "the response is correct" with the literal shape, value, or event.
-- **Skipping constraints** — the matrix fills with impossible rows and spends the budget on them.
-
 ## Pre-save checklist
 
 Run the checklist in `ref-readable-output.md` section 7 first, then:
@@ -173,7 +164,6 @@ Run the checklist in `ref-readable-output.md` section 7 first, then:
 - [ ] The pairwise property held in scratch for every tier that used it
 - [ ] Smoke, boundary, and regression-shape cases appended on top of the matrix rows
 - [ ] For a fixed-bug shape: grepped for siblings, one case per untouched site
-- [ ] Every case sits in the cheapest tier that proves its oracle
-- [ ] Tier budgets respected — unit ≤ 12, integration ≤ 6, manual ≤ 4 per TODO
+- [ ] Every case sits in the cheapest tier that proves its oracle, and each tier is inside its budget
 - [ ] Unit and integration tiers each have a runnable command under **How it runs**
 - [ ] Every requirement reaches at least one case in **Coverage**

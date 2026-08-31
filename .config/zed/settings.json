@@ -111,7 +111,7 @@
   "edit_predictions": {
     "provider": "zed",
   },
-  "diff_view_style": "unified",
+  "diff_view_style": "split",
   "cli_default_open_behavior": "new_window",
   "project_panel": {
     "sticky_scroll": false,
@@ -196,11 +196,15 @@
     },
   },
   "agent": {
+    "expand_edit_card": false,
+    "play_sound_when_agent_done": "when_hidden",
+    "notify_when_agent_waiting": "all_screens",
+    "enable_feedback": false,
     "sandbox_permissions": {
       "allow_unsandboxed": true
     },
     "expand_terminal_card": false,
-    "terminal_init_command": "claudex",
+    "terminal_init_command": "~/.claude/scripts/herdr-zed.sh",
     "commit_message_model": {
       "provider": "zed.dev",
       "model": "gemini-3.5-flash",
@@ -238,7 +242,7 @@
       "enable_thinking": false,
     },
     "show_turn_stats": true,
-    "thinking_display": "always_collapsed",
+    "thinking_display": "auto",
     "single_file_review": true,
     "dock": "left",
     "default_model": {
@@ -336,7 +340,7 @@
       },
     },
     "Go": {
-      "language_servers": ["gopls", "golangci-lint"],
+      "language_servers": ["gopls", "golangci-lint", "md-comment-language-server"],
       "show_completion_documentation": true,
       "colorize_brackets": true,
 

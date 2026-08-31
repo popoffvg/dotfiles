@@ -25,8 +25,9 @@ The `code` skill routes here; it holds no design procedure of its own.
 
 ## References and examples
 
-`references/` holds the rules: the spec contract (`ref-write.md`), the thought-note format
-(`ref-note-format.md`), and the **brick** roster (`ref-bricks.md`).
+`references/` holds the rules: the spec contract (`ref-write.md`), the TODO section rules
+(`ref-todo-sections.md`), the thought-note format (`ref-note-format.md`), and the **brick** roster
+(`ref-bricks.md`).
 
 `examples/` holds one file per corpus artifact — two for a TODO: `examples/todo.md` for the human
 half and `examples/todo-agent.md` for the agent half. The rules both halves obey are one corpus

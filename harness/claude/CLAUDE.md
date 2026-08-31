@@ -4,6 +4,7 @@
 - use DRY (don't repeat yourself) as a first class principle
 - Don't your Co-Author to the commit messages
 - Don't add references to the specification to implementation
+- Don't write comments for code if user does not ask it directly. The code should be self-explanatory
 
 <when="a conclusion is about to rest on nothing-found — no process in `ps`, no grep hit, an empty query, a subagent's 'no precedent here'">
 - **A negative finding needs a positive control.** Run the same query against a
@@ -15,8 +16,16 @@
 
 - fff for all file search/grep: `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob — faster, frecency-ranked.
 - perl for multi-editing files, not bash.
+- **gitnexus is the code graph tool.** Every repo under `~/git/mil` is indexed. Ask the graph before you grep when the question is about structure, not text: `mcp__gitnexus__query` (execution flows for a concept), `context` (every reference to a symbol), `impact` (what breaks if I change this), `trace` (how does A reach B), `explain` / `pdg_query` (data and control dependence). grep finds a string; the graph finds callers, callees, and blast radius. Read the `gitnexus-guide` skill for the full tool list and the graph schema, `gitnexus-cli` to index a new repo.
 
 When a request says "do X as/like existing Y" (mirror a pattern), find the missing parallel in the actual diff/code — don't propose new mechanisms, scope expansions, or alternative shapes. Re-read the diff first. Copy Y's exact structure; don't substitute a "better" variant (e.g. inline vs reference).
+
+## Long commands
+
+**Run every test, build, lint, install, or dev-server command in the background** (`Bash` with
+`run_in_background: true`), never in the foreground. A foreground run hides its output until it
+exits; a background run streams into a task the user can open and watch. Read the `bg-build-and-test`
+skill for what stays in the foreground and how to wait for the exit.
 
 ## Design principles
 

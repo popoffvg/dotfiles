@@ -303,6 +303,18 @@ _yazi_jump() {
 	zle reset-prompt
 }
 
+# Down opens completion, except on a bare `cd`, where it opens yazi instead.
+# yazi already lands the shell in the directory it exits from, so the `cd` that
+# called it has nothing left to run — the line is cleared before the jump.
+_down_complete_or_yazi() {
+	if [[ "${BUFFER// /}" == cd && $CURSOR == $#BUFFER ]]; then
+		BUFFER=
+		_yazi_jump
+	else
+		zle expand-or-complete
+	fi
+}
+
 # claudex — launch claude. Subcommands: `claudex pick` opens fzf agent picker.
 # Default (no subcommand): starts general claude.
 # Runs claude in the current terminal. herdr is started by hand, not from here.

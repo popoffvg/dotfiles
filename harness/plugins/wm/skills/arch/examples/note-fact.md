@@ -7,7 +7,7 @@ description: >              # 1–3 sentences, the only text the thought index s
   two constants in pkg/auth/config.go. The short window is what makes concurrent-refresh
   locking unjustified.
 date: 2026-06-18T14:30:22
-source: codebase            # codebase | explore | grill
+source: auto                # auto | human
 tags: [auth, config]
 ---
 

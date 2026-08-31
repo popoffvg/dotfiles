@@ -1,24 +1,23 @@
 #!/usr/bin/env bash
-# Call a Platforma desktop MCP tool. Usage: pl-mcp.sh <tool> [json-args]
+# Call the Platforma desktop MCP endpoint over plain HTTP JSON-RPC.
+# Usage: pl-mcp.sh <method> [json-params]
+#   pl-mcp.sh tools/list
+#   pl-mcp.sh tools/call '{"name":"list_projects","arguments":{}}'
 set -euo pipefail
-U="${PL_MCP_URL:?set PL_MCP_URL}"
-TOOL="${1:?tool name}"; ARGS="${2:-{}}"
-hdr=(-H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream')
-init=$(curl -sS -D- -m 30 -X POST "$U" "${hdr[@]}" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"cc","version":"0"}}}')
-SID=$(printf '%s' "$init" | grep -i '^mcp-session-id:' | awk '{print $2}' | tr -d '\r')
-curl -sS -m 30 -X POST "$U" "${hdr[@]}" -H "mcp-session-id: $SID" \
-  -d '{"jsonrpc":"2.0","method":"notifications/initialized"}' >/dev/null
-curl -sS -m 600 -X POST "$U" "${hdr[@]}" -H "mcp-session-id: $SID" \
-  -d "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"$TOOL\",\"arguments\":$ARGS}}" \
-| python3 -c '
-import sys,json
-for line in sys.stdin:
-    line=line.strip()
-    if not line.startswith("data:"): continue
-    try: d=json.loads(line[5:].strip())
-    except: continue
-    if "error" in d: print("ERROR:",json.dumps(d["error"],indent=2)); sys.exit(1)
-    if "result" in d:
-        for c in d["result"].get("content",[]): print(c.get("text", json.dumps(c)))
-'
+URL="${PL_MCP_URL:-$(python3 - <<'PY'
+import json,glob,os
+for p in [os.path.expanduser("~/git/mil/tasks/MILAB-6679-developability-designer/.mcp.json")]:
+    if os.path.exists(p):
+        print(json.load(open(p))["mcpServers"]["pl"]["url"]); break
+PY
+)}"
+METHOD="$1"; PARAMS="${2:-{\}}"
+HDRS=(-H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream')
+SID=$(curl -sS -D - -o /dev/null "${HDRS[@]}" -X POST "$URL" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"cli","version":"1"}}}' \
+  | tr -d '\r' | awk -F': ' 'tolower($1)=="mcp-session-id"{print $2}')
+[ -n "$SID" ] && HDRS+=(-H "Mcp-Session-Id: $SID")
+curl -sS "${HDRS[@]}" -X POST "$URL" -d '{"jsonrpc":"2.0","method":"notifications/initialized"}' >/dev/null || true
+curl -sS "${HDRS[@]}" -X POST "$URL" \
+  -d "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"$METHOD\",\"params\":$PARAMS}" \
+  | sed -n 's/^data: //p;/^{/p' | tail -n +1

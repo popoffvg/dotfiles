@@ -29,7 +29,7 @@ spec.md exists → check the frontmatter `branch` against the current branch (`r
 Run every time. Check `<notes-dir>/research/`:
 
 - Empty or missing → skip to Step 1.
-- Present → read `INDEX.md` first (else every `.md`). For each concrete finding — observed code behavior, user assertion, flagged gap — write one `NNN-fact-*.md` thought (`source: explore`, example `examples/note-fact.md`, shared counter from 001). One fact per finding; **before the grill starts**, so decisions can link them. Write each research gap as one `NNN-question-*.md` thought (`source: explore`, `status: open`, example `examples/note-question.md`) — same directory, same counter. Print: `Ingested explore artifacts: N fact notes, M question notes.`
+- Present → read `INDEX.md` first (else every `.md`). For each concrete finding — observed code behavior, user assertion, flagged gap — write one `NNN-fact-*.md` thought (`source: auto`, example `examples/note-fact.md`, shared counter from 001). One fact per finding; **before the grill starts**, so decisions can link them. Write each research gap as one `NNN-question-*.md` thought (`source: auto`, `status: open`, example `examples/note-question.md`) — same directory, same counter. Print: `Ingested explore artifacts: N fact notes, M question notes.`
 
 ## Step 0.6: Set the rules
 

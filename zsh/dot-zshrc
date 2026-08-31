@@ -58,7 +58,7 @@ zinit snippet OMZP::eza                      # eza aliases + completions
 eval "$(mise activate)"
 eval "$(atuin init zsh --disable-up-arrow)"
 source <(sk --shell zsh)
-eval "$(sg completions)"
+eval "$(sg completions zsh)"
 
 # Argument completion for the ~1000 CLIs carapace knows, most of which ship no
 # zsh completion of their own. Registers via compdef, so it has to follow the
@@ -177,17 +177,37 @@ if (( ${+widgets[fzf-tab-complete]} )); then
   bindkey '^[[B' fzf-tab-complete
   bindkey '^[OB' fzf-tab-complete
 else
+  # Down opens completion. Costs the old next-history-line; atuin owns history
+  # anyway. A user-defined widget on this key completes nothing until deja is told
+  # to leave it alone — see the yazi block below, which rebinds the key.
   bindkey '^[[B' expand-or-complete
   bindkey '^[OB' expand-or-complete
 fi
 
-# yazi used to hang off cd<Tab>, but Tab can no longer share: zsh refuses to run
-# the completion widget from inside a user-defined widget — it completes nothing,
-# silently — so anything bound to Tab must be the completion widget itself. It
-# moved to Ctrl+O, displacing accept-line-and-down-history.
+# Inside an open menu the arrows move the selection. Tab and Shift+Tab step
+# forward and back through the matches — complist leaves ^I on complete-word
+# there, which does not move the highlight at all.
+#
+# complist owns the menuselect keymap and loads itself only when a menu first
+# opens. Without this load the keymap does not exist yet and both binds fail.
+zmodload zsh/complist
+bindkey -M menuselect '^I' menu-complete
+bindkey -M menuselect '^[[Z' reverse-menu-complete
+
+# yazi answers on Ctrl+O anywhere, and on Down when the line holds nothing but
+# `cd` — the completion a bare `cd` would open lists the same directories yazi
+# browses. Tab cannot share: deja owns it, and the key it re-binds every prompt
+# must be the completion widget itself.
+#
+# Both widgets go in DEJA_IGNORE_WIDGETS. deja wraps every widget in the table
+# on every precmd, and its wrapper is what makes a user-defined widget on Down
+# complete nothing.
 if (( ${+functions[_yazi_jump]} )); then
-  DEJA_IGNORE_WIDGETS+=(yazi-jump)
+  DEJA_IGNORE_WIDGETS+=(yazi-jump down-complete-or-yazi)
   zle -N yazi-jump _yazi_jump
   bindkey '^O' yazi-jump
+
+  zle -N down-complete-or-yazi _down_complete_or_yazi
+  bindkey '^[[B' down-complete-or-yazi
 fi
 

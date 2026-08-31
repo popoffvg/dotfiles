@@ -297,10 +297,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node $HOME/.claude/hooks/claim-check.mjs"
-          },
-          {
-            "type": "command",
             "command": "node $HOME/.claude/hooks/dry-check.mjs"
           }
         ]
@@ -333,7 +329,9 @@
     "self-improvement@local-plugins": true,
     "smart-commit@local-plugins": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
-    "codemap@codelens": true
+    "codemap@codelens": true,
+    "codelens@codelens": true,
+    "plannotator@plannotator": true
   },
   "extraKnownMarketplaces": {
     "agentmemory": {
@@ -401,7 +399,7 @@
     "codelens": {
       "source": {
         "source": "directory",
-        "path": "/Users/popoffvg/Documents/git/codelens"
+        "path": "/Users/vitaliipopov/git/codelens"
       }
     }
   },
@@ -442,7 +440,7 @@
   },
   "effortLevel": "medium",
   "tui": "fullscreen",
-  "autoMemoryEnabled": true,
+  "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "theme": "auto",

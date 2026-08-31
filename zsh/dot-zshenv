@@ -1,0 +1,14 @@
+# Runs before /etc/zshrc, the first file to load a module.
+#
+# The nanobrew zsh binary keeps the paths it was built with, and they name the
+# homebrew Cellar. Nothing is there, so every `zmodload` fails (terminfo in
+# /etc/zshrc, complist for the menuselect keymap) and every `autoload` fails
+# (compinit, add-zsh-hook, is-at-least). Point both searches at the prefix that
+# owns this binary.
+for _zsh_prefix in /opt/nanobrew/prefix /opt/homebrew; do
+  [[ -d $_zsh_prefix/lib/zsh ]] || continue
+  [[ -d ${module_path[1]}/zsh ]] || module_path=($_zsh_prefix/lib)
+  [[ -d ${fpath[-1]} ]] || fpath[-1]=$_zsh_prefix/share/zsh/functions
+  break
+done
+unset _zsh_prefix
