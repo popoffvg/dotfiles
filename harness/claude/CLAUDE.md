@@ -13,7 +13,7 @@
 - Don't add your Co-Author to the commit messages
 - Don't add references to the specification to implementation
 - Don't write comments for code if user does not ask it directly. The code should be self-explanatory
-- Don't add line break to the md files or to the user response
+- Don't add line break inside one paragraph to the md files or to the user response
 
 ## Tools
 
