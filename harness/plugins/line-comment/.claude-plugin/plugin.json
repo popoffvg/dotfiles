@@ -1,0 +1,8 @@
+{
+  "name": "line-comment",
+  "description": "Review comments on lines of any file, kept outside the file. Zed writes them through the line-comment language server; /line-comment:act reads the store and does the work, /line-comment:write places comments, /line-comment:unresolved reports what is still open, /line-comment:prune throws comments away.",
+  "version": "0.2.0",
+  "author": {
+    "name": "popoffvg"
+  }
+}

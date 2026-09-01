@@ -44,4 +44,4 @@ above it. The two TODO examples carry only the artifact: their rules live in `co
 which is the one place a rule about a TODO section is written.
 
 `ref-bricks.md` adds the metric and the common structure of each brick. Naming and module home for
-every piece stay in `CODE_STYLE.md` § Domain module layout.
+every piece stay in the `searchable-names` skill.

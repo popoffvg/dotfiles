@@ -7,7 +7,7 @@ A component that fits no brick owns more than one responsibility — split it be
 code. A component that fits two bricks is the same fault.
 
 Naming and home — which module a piece lives in, what it may import, what it may not be called —
-are owned by `CODE_STYLE.md` § Domain module layout. This skill adds the two things that file does
+are owned by the `searchable-names` skill. This skill adds the two things that skill does
 not carry: the **metric** and the **common structure**.
 
 ## Roster
@@ -313,7 +313,7 @@ namespace Main {
 ## What is not a brick
 
 - **Entity, aggregate, value object, event, state** — data with invariants, not a responsibility
-  that runs. Their names and homes are in `CODE_STYLE.md` § Domain module layout. A glossary term is
+  that runs. Their names and homes are in the `searchable-names` skill. A glossary term is
   one of these **or** a brick, never both.
 - **DTO** — data at a boundary. It belongs to the gateway or server that converts it, and never
   crosses into a command, flow, or policy.

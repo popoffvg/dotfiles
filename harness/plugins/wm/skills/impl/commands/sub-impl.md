@@ -2,8 +2,8 @@
 
 Execute **exactly one** TODO end-to-end, then stop and hand back. One TODO ships one deliverable as
 one commit plus its fixups, built increment by increment (`arch:sub-todo.md` § Changes). How much of
-it the user approves — each increment's diff, the TODO's diff once, or nothing — is the `spec.md`
-frontmatter `approve` key (`arch:ref-write.md` § Approval). `squash` collapses the fixups back into
+it the user approves — each increment's diff, the TODO's diff once, or nothing — is the `approve` key,
+read off `TODO-N.md` and off `spec.md` behind it (`arch:ref-write.md` § Approval). `squash` collapses the fixups back into
 the one commit.
 
 Obeys the shared subcommand rules — see `code:ref-subcommand-rules.md`.
@@ -16,7 +16,7 @@ bring its diff back here for approval, or apply small increments directly.
 
 ## Steps
 
-1. **Read context, staged — never the whole citation list up front.** Read **both halves of the pair** in full: `<notes-dir>/todos/TODO-N.md` (frontmatter, Outcome, Components, **Surface** — the exact shape every changed symbol must end up with — Autotest, Commit) and `<notes-dir>/todos/TODO-N.agent.md` (the increments, Files, Pre-reads — the order to do the work in). Read `<notes-dir>/CONSTRAINTS.md` in full too: it is short, and it is where every rule the code must satisfy lives. Keep § Surface open throughout: it is the one diff, and every increment lands part of it. The pair plus that file is self-contained; together they alone say what to build. **Leave `thoughts/` closed** — it holds why each rule was chosen, never a requirement, and reading it spends context on notes the work does not need. The `trace` skill opens it when a decision turns out to be wrong. Of the files they cite, read only what the increment you are about to apply needs — that increment's **Files**, and the **Pre-reads** those files name. Every later increment's pre-reads are read in step 5, when you reach it. A TODO's Pre-reads list can span many files in several repos; reading all of them before increment 1 spends the whole session's context on files increment 1 never touches. The hard rules every subcommand obeys: `code:ref-subcommand-rules.md`. Read the spec frontmatter too: `approve` says how much of step 5 the user sees (`increment` / `todo` / `none`; a missing key is `increment`), and if `status` is `review`, advance it to `impl` (implementation has begun).
+1. **Read context, staged — never the whole citation list up front.** Read **both halves of the pair** in full: `<notes-dir>/todos/TODO-N.md` (frontmatter, Outcome, Components, **Surface** — the exact shape every changed symbol must end up with — Autotest, Commit) and `<notes-dir>/todos/TODO-N.agent.md` (the increments, Files, Pre-reads — the order to do the work in). Read `<notes-dir>/CONSTRAINTS.md` in full too: it is short, and it is where every rule the code must satisfy lives. Keep § Surface open throughout: it is the one diff, and every increment lands part of it. The pair plus that file is self-contained; together they alone say what to build. **Leave `thoughts/` closed** — it holds why each rule was chosen, never a requirement, and reading it spends context on notes the work does not need. The `trace` skill opens it when a decision turns out to be wrong. Of the files they cite, read only what the increment you are about to apply needs — that increment's **Files**, and the **Pre-reads** those files name. Every later increment's pre-reads are read in step 5, when you reach it. A TODO's Pre-reads list can span many files in several repos; reading all of them before increment 1 spends the whole session's context on files increment 1 never touches. The hard rules every subcommand obeys: `code:ref-subcommand-rules.md`. Read the `approve` key too — it says how much of step 5 the user sees (`increment` / `todo` / `none`): `TODO-N.md` wins, and its `inherit` (or a missing key) falls back to `spec.md`, whose own missing key is `increment`. Read the spec frontmatter while you are there: if `status` is `review`, advance it to `impl` (implementation has begun).
 2. **Dependency gate** — if any `depends_on` TODO is not yet `status: done`, set this TODO's `status: blocked`, report, and stop. Never implement past an unmet dependency.
 3. **Start** — set the TODO frontmatter `status: todo → impl`.
 4. **Replan guard** — if the TODO's assumptions no longer hold (the code moved, a dependency changed), stop and report instead of forcing the plan.
@@ -30,23 +30,24 @@ bring its diff back here for approval, or apply small increments directly.
 6. **Glossary** — if the change introduces or renames a domain term, update `<notes-dir>/GLOSSARY.md` in the same commit.
 7. **Autotest** — run **both** commands in `TODO-N.md` `## Autotest`: `Unit` and `E2E`. Both green before committing (a level written `none` is skipped with its reason quoted in the report). The Cases are sentences, not test source — write each test from its case.
 8. **Finalize the commit** — the commit already exists, built by step 5. On green, make its message match the `commit-message` skill (`TODO-N.md` `## Commit` is the primary message) and fold in any test/glossary edits with `git commit --amend`. Then advance the TODO frontmatter `status: impl → verify` and fill the ledger row's Commit. `done` is set by the `review:sub-todo.md` chain on PASS; FAIL → `blocked`.
-9. **Report** — state what shipped, the `approve` loop you ran and how many increments were approved under it, the TODO's new `status`, the test command + its real output, and stop. One TODO per invocation.
+9. **Report** — state what shipped, the `approve` loop you ran, which level set it, and how many increments were approved under it, the TODO's new `status`, the test command + its real output, and stop. One TODO per invocation.
 
 ## Approval — what step 5 shows
 
-The spec's `approve` key (`arch:ref-write.md` § Approval) picks one of three loops. A missing key is
-`increment`.
+The `approve` key (`arch:ref-write.md` § Approval) picks one of three loops. **Resolve it before
+step 5**: read `TODO-N.md` frontmatter first, and fall back to `spec.md` only when the TODO says
+`inherit` or carries no key at all. A `spec.md` with no key is `increment`.
 
 | `approve` | Step 5.2 + 5.3 | What replaces them |
 |---|---|---|
-| `increment` *(default)* | run for every increment | — |
+| `increment` | run for every increment | — |
 | `todo` | do not run per increment | After the last increment, show one `git diff` of the whole TODO next to the **Blast radius** of every increment in it, and wait once. Rejected → name the increment the user rejects, `status: blocked`, and stop — the commit stays as it is until `revise` or a fixup settles it. |
 | `none` | do not run | Nothing. Go straight to step 6; the `review:sub-todo.md` chain is the only review. |
 
 Two things hold at every setting: the commit is still built increment by increment (step 5.4), and a
 correction the user does make still routes through § When a correction contradicts the pair. A
-setting the user did not ask for is never assumed — read the key, and say which loop you are running
-in the step 9 report.
+setting the user did not ask for is never assumed — read both keys, and say in the step 9 report which
+loop you ran and which level set it.
 
 ## When a correction contradicts the pair
 

@@ -253,26 +253,65 @@ handoff-todo() {
   command zed "$wt"
 }
 
-# prx — review a PR in a throwaway worktree. Usage: prx <PR-url>
-# Creates a detached worktree, checks out the PR, opens zed --wait (blocks until
-# the window closes), then removes the worktree.
+# prx — review a PR in hunk, in a throwaway worktree. Usage: prx <PR-url|PR-number>
+# Fetches the PR base and head, opens `hunk diff base...head` (blocks until you
+# quit hunk), then removes the worktree and the refs it fetched.
+#
+# The fetch goes straight to an authenticated HTTPS URL, not through `origin` or
+# `gh pr checkout`. Two reasons: SSH auths as the personal account, which cannot
+# read org repos, and the global url."git@github.com:".insteadOf rule turns every
+# github.com HTTPS URL back into SSH. Credentials in front of the host make the
+# URL match no insteadOf rule, so nothing rewrites it. The token is visible in
+# `ps` for the length of the fetch.
+#
+# hunk owns the review: `c` notes a line, `S` submits. The `prx` skill writes
+# notes into this same session with `hunk session comment apply`.
 prx() {
-  local url="$1"
-  [[ -z "$url" ]] && { echo 'Usage: prx <PR-url>'; return 1; }
+  emulate -L zsh -o extended_glob
+  local arg="$1" nwo num
+  [[ -z "$arg" ]] && { echo 'Usage: prx <PR-url|PR-number>'; return 1; }
+
+  if [[ "$arg" == (#b)http(|s)://github.com/([^/]##/[^/]##)/pull/([0-9]##)(|/*) ]]; then
+    nwo="${match[2]}"; num="${match[3]}"
+  elif [[ "$arg" == [0-9]## ]]; then
+    nwo=$(gh repo view --json nameWithOwner --jq .nameWithOwner) || return 1
+    num="$arg"
+  else
+    echo "prx: not a PR url or number: $arg"; return 1
+  fi
+
+  git rev-parse --git-dir >/dev/null 2>&1 || {
+    echo 'prx: run it inside a git repo — the worktree branches off the local one'
+    return 1
+  }
+
+  local base token
+  base=$(gh pr view "$num" -R "$nwo" --json baseRefName --jq .baseRefName) || return 1
+  token=$(gh auth token) || return 1
+
+  local head_ref="refs/prx/$num/head" base_ref="refs/prx/$num/base"
   local wt
   wt=$(mktemp -d "${TMPDIR:-/tmp}/prx.XXXXXX") || return 1
   git worktree add --detach "$wt" HEAD || return 1
-  # Rewrite SSH→HTTPS for the fetch so gh uses its token (work account vgpopov);
-  # the SSH key auths as the personal account, which can't read org repos.
-  if ! ( cd "$wt" && GIT_CONFIG_COUNT=1 \
-      GIT_CONFIG_KEY_0="url.https://github.com/.insteadOf" \
-      GIT_CONFIG_VALUE_0="git@github.com:" \
-      gh pr checkout "$url" ); then
-    git worktree remove --force "$wt"
+
+  if ! git -C "$wt" fetch --no-tags --force \
+        "https://x-access-token:${token}@github.com/${nwo}.git" \
+        "pull/${num}/head:$head_ref" "refs/heads/${base}:$base_ref" ||
+     ! git -C "$wt" checkout --detach "$head_ref"; then
+    _prx_drop "$wt" "$head_ref" "$base_ref"
     return 1
   fi
-  command zed --wait "$wt"
-  git worktree remove --force "$wt"
+
+  echo "prx: ${nwo}#${num} onto ${base} — $(git -C "$wt" log --oneline -1)"
+  ( cd "$wt" && command hunk diff "$base_ref...HEAD" )
+  _prx_drop "$wt" "$head_ref" "$base_ref"
+}
+
+# Undo one prx run: the worktree and the two refs its fetch wrote.
+_prx_drop() {
+  git worktree remove --force "$1"
+  git update-ref -d "$2"
+  git update-ref -d "$3"
 }
 
 # escape — edit text in helix, print its raw contents on close.

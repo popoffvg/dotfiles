@@ -58,7 +58,7 @@
     "show_count_badge": false,
   },
   "theme": "Catppuccin Macchiato",
-  // md-comment publishes each markdown comment as a Hint diagnostic, so inline
+  // line-comment publishes each line comment as a Hint diagnostic, so inline
   // diagnostics are what put the comment text at the end of its line.
   "diagnostics": {
     "inline": {
@@ -340,7 +340,7 @@
       },
     },
     "Go": {
-      "language_servers": ["gopls", "golangci-lint", "md-comment-language-server"],
+      "language_servers": ["gopls", "golangci-lint", "line-comment-language-server"],
       "show_completion_documentation": true,
       "colorize_brackets": true,
 
@@ -358,7 +358,7 @@
         "coloring": "fixed",
         "enabled": true
       },
-      "language_servers": ["marksman", "md-comment-language-server"],
+      "language_servers": ["marksman", "line-comment-language-server"],
       "inlay_hints": {
         "enabled": true,
         "show_other_hints": true,

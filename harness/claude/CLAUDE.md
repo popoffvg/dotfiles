@@ -1,16 +1,19 @@
 
 ## Rules
 
-- use DRY (don't repeat yourself) as a first class principle
-- Don't your Co-Author to the commit messages
-- Don't add references to the specification to implementation
-- Don't write comments for code if user does not ask it directly. The code should be self-explanatory
 
 <when="a conclusion is about to rest on nothing-found — no process in `ps`, no grep hit, an empty query, a subagent's 'no precedent here'">
 - **A negative finding needs a positive control.** Run the same query against a
   neighbour you know exists. A query that cannot see anything answers exactly
   like a query about something that is gone.
 </when>
+
+## DO NOT DO
+
+- Don't add your Co-Author to the commit messages
+- Don't add references to the specification to implementation
+- Don't write comments for code if user does not ask it directly. The code should be self-explanatory
+- Don't add line break to the md files or to the user response
 
 ## Tools
 
@@ -52,5 +55,3 @@ caller reads the file back.
 ---
 
 @RTK.md
-
-@CODE_STYLE.md

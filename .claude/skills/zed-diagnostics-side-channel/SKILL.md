@@ -1,6 +1,6 @@
 ---
 name: zed-diagnostics-side-channel
-description: Use when designing or extending a language server that pushes non-error information into Zed — agent comments, review notes, annotations, status — or when choosing a diagnostic severity so the extra output does not drown the real language server. Trigger on "LSP that shows comments inline", "publish annotations as diagnostics", "filter out my server's diagnostics", "hide these from the problems panel", or work on harness/apps/md-comment.
+description: Use when designing or extending a language server that pushes non-error information into Zed — agent comments, review notes, annotations, status — or when choosing a diagnostic severity so the extra output does not drown the real language server. Trigger on "LSP that shows comments inline", "publish annotations as diagnostics", "filter out my server's diagnostics", "hide these from the problems panel", or work on harness/apps/line-comment.
 user-invocable: false
 metadata:
   origin: self-improvement
@@ -63,7 +63,7 @@ zed-industries/zed. Everything else arrives as an installed extension, so the se
 machine and grows whenever the user installs one. Read the installed names from
 `~/Library/Application Support/Zed/extensions/installed/*/languages/*/config.toml` (or
 `$XDG_DATA_HOME/zed/…` on Linux), union them with the built-ins, and rewrite the array.
-`harness/scripts/sync-md-comment-languages.py` does exactly this; re-run it after installing a
+`harness/scripts/sync-line-comment-languages.py` does exactly this; re-run it after installing a
 language extension, then `zed: rebuild dev extension`.
 
 Do not go looking for the language list under `crates/languages/src/` — that directory holds
@@ -71,7 +71,7 @@ only the ~16 adapter `.rs` files, not the language configs.
 
 ## The server already exists
 
-`harness/apps/md-comment` publishes stored comments as `Hint` diagnostics plus inlay hints,
-with a JSON store at `<root>/.tmp/md-comment.json` and re-anchoring in `server/src/anchor.rs`.
+`harness/apps/line-comment` publishes stored comments as `Hint` diagnostics plus inlay hints,
+with a JSON store at `<root>/.tmp/line-comment.json` and re-anchoring in `server/src/anchor.rs`.
 Extend it rather than adding a second server — a second server on the same file competes for
 the same `Hint` band with no way to filter one out.

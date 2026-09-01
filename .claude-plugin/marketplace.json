@@ -17,6 +17,12 @@
       "version": "0.3.0"
     },
     {
+      "name": "line-comment",
+      "source": "./harness/plugins/line-comment",
+      "description": "Review comments on lines of any file, kept outside the file. Zed writes them through the line-comment language server; /line-comment:act reads the store and does the work, /line-comment:write places comments, /line-comment:unresolved reports what is still open, /line-comment:prune throws comments away.",
+      "version": "0.2.0"
+    },
+    {
       "name": "self-improvement",
       "source": "./harness/plugins/self-improvement",
       "description": "Scores every Claude Code session for the lessons it holds and proposes where each one belongs in the harness: a watermarked background scan kicked by the SessionStart hook, one haiku call per dirty session, then a suggestion pass over the existing skill inventory. Browsable in the self-improve TUI. High scorers are archived for the capture-lesson skill to turn into skills and the dream skill to consolidate.",
@@ -38,7 +44,7 @@
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.47.0"
+      "version": "2.48.0"
     }
   ]
 }

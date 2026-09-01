@@ -20,9 +20,9 @@ file the user cannot see, and nothing reaches GitHub without them.
 hunk session list --json
 ```
 
-No session → the user has nothing open. Tell them to run
-`/pr-review <pr-number>`, which builds the PR worktree and opens hunk in it, then
-stop. Do not open the TUI yourself.
+No session → the user has nothing open. Tell them to run `prx <pr-url|number>`
+in their terminal — the shell function builds the throwaway PR worktree and opens
+hunk in it — then stop. Do not open the TUI yourself.
 
 One session → it auto-resolves. Several → pick by `--repo <worktree-path>`.
 
@@ -84,7 +84,11 @@ prx does not post. On `/prx post`:
 
 ## Where it fits
 
-- `/pr-review` — builds the worktree and opens the session prx writes into.
+- `prx` (shell function, `zsh/dot-zshrc_aliases`) — builds the worktree and opens
+  the session this skill writes into. It fetches the PR over an authenticated
+  HTTPS URL because SSH auths as the personal account, which cannot read org repos.
+- `/pr-review` — the older path to the same session; it needs `origin` to be
+  readable and the `hunk-gh-review` extension, neither of which holds here.
 - `hunk-review` skill — the same `comment apply` batch for findings a review gate
   produced instead of the user.
 - `github-two-accounts` skill — when a `gh` call under this flow fails on a

@@ -17,7 +17,7 @@
 import { readFileSync, existsSync } from "fs";
 import { extname } from "path";
 import { makeHookIO } from "./lib/hook-io.mjs";
-import { tokenize, codeWords } from "./lib/text.mjs";
+import { tokenize, codeWords, CODE_EXT } from "./lib/text.mjs";
 
 const io = makeHookIO("comment-check", {
   mode: "warn",
@@ -33,9 +33,6 @@ const REASON = /\b(because|since|so|hence|therefore|otherwise|unless|but|not|nev
 // Whole-line comments only. A trailing `#` or `//` inside a string literal is
 // not worth the parser it would take to exclude.
 const LINE_COMMENT = /^\s*(\/\/+|#+|--|;+|\*|\/\*+)/;
-const CODE_EXT = new Set([".tengo", ".ts", ".tsx", ".js", ".mjs", ".cjs", ".go", ".py", ".sh",
-  ".bash", ".zsh", ".rs", ".java", ".rb", ".c", ".h", ".cc", ".cpp", ".hpp", ".kt", ".swift",
-  ".lua", ".sql", ".php", ".scala", ".m", ".mm"]);
 
 // A doc tag whose only content is the parameter's own name and its type.
 const DOC_TAG = /^\s*(\*\s*)?@(param|arg|argument|return|returns|type)\b(.*)$/i;

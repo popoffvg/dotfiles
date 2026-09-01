@@ -1,0 +1,890 @@
+//! Comment session: every behaviour of the server, with no transport and no event loop.
+
+pub mod anchor;
+pub mod cli;
+pub mod export;
+pub mod input;
+pub mod scratch;
+pub mod span;
+pub mod store;
+pub mod trace;
+pub mod wire;
+
+use std::collections::{HashMap, HashSet};
+use std::io;
+use std::path::{Path, PathBuf};
+
+use serde_json::{json, Value};
+
+use crate::input::Target;
+use crate::store::{Author, Comment, LoadError, Store};
+use crate::wire::{
+    Change, CodeAction, Command, Diagnostic, InlayHint, MarkupContent, Position,
+    PublishDiagnostics, Range, CODE_ACTION_KIND, COMMAND_ADD, COMMAND_COPY, COMMAND_DELETE,
+    COMMAND_LIST, COMMAND_RESET, DIAGNOSTIC_SOURCE, SEVERITY_HINT,
+};
+
+/// Characters of comment text an inlay hint shows before it truncates.
+pub const HINT_WIDTH: usize = 40;
+
+const HINT_MARK: &str = "💬 ";
+const HINT_MARK_ORPHANED: &str = "💬? ";
+
+/// Claude's comments carry this in front of their text. Human and agent comments share
+/// one severity, so the message is the only place the author can show.
+const AGENT_MARK: &str = "🤖 ";
+
+/// Work for the caller to perform after a request is answered.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Effect {
+    PersistStore,
+    WriteExport,
+    RefreshInlayHints,
+    ShowMessage {
+        error: bool,
+        text: String,
+    },
+    AskResetConfirmation {
+        prompt: String,
+    },
+    /// Create this input file with this content and put it in front of the operator.
+    OpenInput {
+        path: PathBuf,
+        contents: String,
+    },
+    /// Ask the client to watch the input files and the store, so a write by the operator
+    /// or by the `comment` subcommand is noticed without an open buffer.
+    WatchFiles,
+    /// Push one Hint diagnostic per comment, so the comments show inline and in the
+    /// editor's diagnostics list even when inlay hints are switched off.
+    PublishDiagnostics,
+    /// Write the export, then put this file in front of the operator.
+    OpenList {
+        path: PathBuf,
+        contents: String,
+    },
+}
+
+pub struct Session {
+    root: PathBuf,
+    store: Store,
+    documents: HashMap<String, String>,
+    /// Files we last published diagnostics for, so they can be cleared when emptied.
+    published: HashSet<String>,
+    /// The highest nonce this run has handed over, so a name is never handed over twice.
+    handed_over: u128,
+}
+
+impl Session {
+    /// Load the store for `root`, falling back to an empty store when it cannot be read.
+    pub fn new(root: PathBuf) -> (Session, Vec<Effect>) {
+        let path = root.join(".tmp").join("line-comment.json");
+        let (store, effects) = match Store::load(&path) {
+            Ok(store) => (store, Vec::new()),
+            Err(LoadError::UnsupportedVersion(version)) => (
+                Store::default(),
+                vec![Effect::ShowMessage {
+                    error: true,
+                    text: format!(
+                        "line-comment: store version {version} is not supported, starting empty and leaving {} untouched",
+                        path.display()
+                    ),
+                }],
+            ),
+            Err(LoadError::Malformed(reason)) => (
+                Store::default(),
+                vec![Effect::ShowMessage {
+                    error: true,
+                    text: format!("line-comment: cannot read the store ({reason}), starting empty"),
+                }],
+            ),
+        };
+        let mut session = Session {
+            root,
+            store,
+            documents: HashMap::new(),
+            published: HashSet::new(),
+            handed_over: 0,
+        };
+        let mut effects = effects;
+        effects.push(Effect::WatchFiles);
+        // A save the previous run never saw — the watch only reports changes while the
+        // server lives, so anything left in the input file is picked up here instead.
+        effects.extend(session.drain_input());
+        effects.push(Effect::PublishDiagnostics);
+        (session, effects)
+    }
+
+    pub fn root(&self) -> &Path {
+        &self.root
+    }
+
+    pub fn store(&self) -> &Store {
+        &self.store
+    }
+
+    pub fn store_mut(&mut self) -> &mut Store {
+        &mut self.store
+    }
+
+    pub fn store_path(&self) -> PathBuf {
+        self.root.join(".tmp").join("line-comment.json")
+    }
+
+    pub fn export_path(&self) -> PathBuf {
+        self.root.join(".tmp").join("line-comment.md")
+    }
+
+    pub fn tmp_dir(&self) -> PathBuf {
+        self.root.join(".tmp")
+    }
+
+    /// The pattern a watch registers over one kind of hand-over.
+    pub fn scratch_glob(&self, stem: &str) -> PathBuf {
+        self.tmp_dir().join(scratch::file_glob(stem))
+    }
+
+    /// Whether a path is a hand-over of this kind.
+    pub fn is_scratch_path(&self, stem: &str, path: &Path) -> bool {
+        path.parent() == Some(self.tmp_dir().as_path())
+            && path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| scratch::is_file_name(stem, name))
+    }
+
+    /// Every hand-over of this kind under `.tmp/`, in the order they were minted.
+    pub fn scratch_paths(&self, stem: &str) -> Vec<PathBuf> {
+        let Ok(entries) = std::fs::read_dir(self.tmp_dir()) else {
+            return Vec::new();
+        };
+        let mut paths: Vec<PathBuf> = entries
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| self.is_scratch_path(stem, path))
+            .collect();
+        paths.sort();
+        paths
+    }
+
+    /// A path no hand-over has used yet.
+    ///
+    /// The nonce only ever climbs. A free name on disk is not enough: a hand-over deletes
+    /// the file it replaces, and the editor goes on holding a buffer on that path — so a
+    /// name this run has already given out must not come back, however empty `.tmp/` is.
+    fn fresh_scratch_path(&mut self, stem: &str) -> PathBuf {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |since| since.as_millis());
+        let mut nonce = now.max(self.handed_over + 1);
+        let mut path = self.tmp_dir().join(scratch::file_name(stem, nonce));
+        // A leftover from an earlier run, whose buffer may be open in the editor too.
+        while path.exists() {
+            nonce += 1;
+            path = self.tmp_dir().join(scratch::file_name(stem, nonce));
+        }
+        self.handed_over = nonce;
+        path
+    }
+
+    /// The pattern the watch registers over the input files.
+    pub fn input_glob(&self) -> PathBuf {
+        self.scratch_glob(scratch::INPUT)
+    }
+
+    /// Whether a path is one of the input files.
+    pub fn is_input_path(&self, path: &Path) -> bool {
+        self.is_scratch_path(scratch::INPUT, path)
+    }
+
+    pub fn input_paths(&self) -> Vec<PathBuf> {
+        self.scratch_paths(scratch::INPUT)
+    }
+
+    /// A file for the next comment: clear away the ones nobody typed into, then name one
+    /// no input file has used yet.
+    pub fn take_input_path(&mut self) -> PathBuf {
+        // A file with no header is one the operator abandoned: the header only reaches
+        // disk on a save, and a save is what `drain_input` deletes the file on. Asking
+        // for a new comment says the old one is over.
+        for path in self.input_paths() {
+            let text = std::fs::read_to_string(&path).unwrap_or_default();
+            if input::parse(&text).is_none() {
+                let _ = std::fs::remove_file(&path);
+            }
+        }
+        self.fresh_scratch_path(scratch::INPUT)
+    }
+
+    pub fn list_paths(&self) -> Vec<PathBuf> {
+        self.scratch_paths(scratch::LIST)
+    }
+
+    /// A file for the next `list comments`: drop the views already handed over, then name
+    /// one no view has used yet.
+    ///
+    /// A view is a rendering of the store as it stood, so the one being written replaces
+    /// every earlier one — and the operator's editor holds a buffer on the last of them.
+    /// The export at its fixed path is untouched: nothing opens it, so nothing conflicts,
+    /// and it is the path `copy comments` promises.
+    pub fn take_list_path(&mut self) -> PathBuf {
+        for path in self.list_paths() {
+            let _ = std::fs::remove_file(&path);
+        }
+        self.fresh_scratch_path(scratch::LIST)
+    }
+
+    /// Read every input file, store what it holds, and delete it.
+    ///
+    /// Runs on every save the watch reports and once at startup. A file carrying no
+    /// header is left where it is — that is the empty file a code action just created,
+    /// before the operator typed anything. An empty body means the operator saved without
+    /// writing, which cancels the pending comment.
+    pub fn drain_input(&mut self) -> Vec<Effect> {
+        let mut stored = false;
+        for path in self.input_paths() {
+            let Ok(text) = std::fs::read_to_string(&path) else {
+                continue;
+            };
+            let Some((target, body)) = input::parse(&text) else {
+                continue;
+            };
+            let _ = std::fs::remove_file(&path);
+            if body.is_empty() {
+                continue;
+            }
+            self.upsert_comment(
+                &target.file,
+                target.line,
+                target.end_line,
+                body,
+                Author::Human,
+            );
+            stored = true;
+        }
+        if !stored {
+            return Vec::new();
+        }
+        vec![
+            Effect::PersistStore,
+            Effect::RefreshInlayHints,
+            Effect::PublishDiagnostics,
+        ]
+    }
+
+    /// Take up the store as it stands on disk, when something outside this server wrote
+    /// it — the `comment` subcommand, or another editor window on the same root.
+    ///
+    /// The server's own `persist` triggers the same watch. Reloading what was just
+    /// written costs one read and changes nothing, which is why no write marker is kept.
+    pub fn reload_store(&mut self) -> Vec<Effect> {
+        let Ok(store) = Store::load(&self.store_path()) else {
+            return Vec::new();
+        };
+        if store.files == self.store.files {
+            return Vec::new();
+        }
+        self.store = store;
+        vec![Effect::RefreshInlayHints, Effect::PublishDiagnostics]
+    }
+
+    /// Store one comment against a line, or against the lines `line..=end_line` a
+    /// selection covered, keeping the anchor hash of the first line as it reads now. Used
+    /// by the `comment` subcommand and by the input file alike.
+    pub fn upsert_comment(
+        &mut self,
+        key: &str,
+        line: usize,
+        end_line: usize,
+        text: String,
+        author: Author,
+    ) {
+        let document = self.text_of(key);
+        let lines = anchor::lines(&document);
+        let line = line.max(1);
+        let mut comment = Comment {
+            line,
+            end_line: None,
+            hash: anchor::line_hash(lines.get(line - 1).copied().unwrap_or("")),
+            text,
+            orphaned: false,
+            author,
+        };
+        comment.cover(line, end_line);
+        self.store.upsert(key, comment);
+    }
+
+    /// The text of a target, from its open buffer when there is one, else from disk.
+    fn text_of(&self, key: &str) -> String {
+        self.current_text(key).unwrap_or_default()
+    }
+
+    pub fn export_text(&self) -> String {
+        export::render(&self.store)
+    }
+
+    pub fn persist(&self) -> io::Result<()> {
+        store::ensure_tmp_dir(&self.root)?;
+        self.store.save(&self.store_path())
+    }
+
+    pub fn write_export(&self) -> io::Result<PathBuf> {
+        store::ensure_tmp_dir(&self.root)?;
+        let path = self.export_path();
+        std::fs::write(&path, self.export_text())?;
+        Ok(path)
+    }
+
+    /// One Hint diagnostic per comment, per file, plus an empty list for any file that
+    /// had comments last time and has none now — an editor keeps showing what it was
+    /// last told, so clearing has to be explicit.
+    pub fn diagnostics(&mut self) -> Vec<PublishDiagnostics> {
+        let mut payloads = Vec::new();
+        let mut current = HashSet::new();
+
+        for (key, comments) in &self.store.files {
+            let uri = path_to_uri(&self.path_of(key));
+            let text = self.current_text(key).unwrap_or_default();
+            let lines = anchor::lines(&text);
+            let diagnostics = comments
+                .iter()
+                .map(|comment| {
+                    let line = (comment.line - 1) as u32;
+                    // A comment over a selection underlines every line it covers, so the
+                    // extent of what was commented on stays visible in the editor.
+                    let last = comment.last_line() - 1;
+                    let end = anchor::utf16_len(lines.get(last).copied().unwrap_or(""));
+                    Diagnostic {
+                        range: Range {
+                            start: Position { line, character: 0 },
+                            end: Position {
+                                line: last as u32,
+                                character: end,
+                            },
+                        },
+                        severity: SEVERITY_HINT,
+                        source: DIAGNOSTIC_SOURCE,
+                        message: message_of(comment),
+                    }
+                })
+                .collect();
+            current.insert(uri.clone());
+            payloads.push(PublishDiagnostics { uri, diagnostics });
+        }
+
+        for stale in self.published.difference(&current) {
+            payloads.push(PublishDiagnostics {
+                uri: stale.clone(),
+                diagnostics: Vec::new(),
+            });
+        }
+        self.published = current;
+        payloads
+    }
+
+    /// The path a store key names.
+    fn path_of(&self, key: &str) -> PathBuf {
+        let path = PathBuf::from(key);
+        if path.is_absolute() {
+            path
+        } else {
+            self.root.join(path)
+        }
+    }
+
+    /// The text of a file, from its open buffer when there is one, else from disk.
+    fn current_text(&self, key: &str) -> Option<String> {
+        let open = self
+            .documents
+            .iter()
+            .find(|(uri, _)| self.key(uri).as_deref() == Some(key))
+            .map(|(_, text)| text.clone());
+        match open {
+            Some(text) => Some(text),
+            None => std::fs::read_to_string(self.path_of(key)).ok(),
+        }
+    }
+
+    /// Re-anchor every comment against the file as it stands now.
+    ///
+    /// A file edited while closed moves its lines with nobody watching, so the stored
+    /// line is only trustworthy right after this runs. A file that cannot be read
+    /// keeps its anchors untouched — a missing file is not evidence the text is gone.
+    pub fn reconcile_all(&mut self) -> bool {
+        let keys: Vec<String> = self.store.files.keys().cloned().collect();
+        let mut changed = false;
+        for key in keys {
+            let Some(text) = self.current_text(&key) else {
+                continue;
+            };
+            let before = self.store.comments(&key).to_vec();
+            if let Some(comments) = self.store.files.get_mut(&key) {
+                anchor::reconcile(&text, comments);
+                comments.sort_by_key(|c| c.line);
+            }
+            changed |= self.store.comments(&key) != before.as_slice();
+        }
+        changed
+    }
+
+    /// The store key for a document this server serves, or `None` when it does not.
+    ///
+    /// Every file type is served — a comment is a line annotation, and nothing about it
+    /// depends on the language. Only the server's own scratch files under `.tmp/` are
+    /// refused, so a comment never lands on the input file or the export.
+    pub fn key(&self, uri: &str) -> Option<String> {
+        let path = uri_to_path(uri)?;
+        let relative = path.strip_prefix(&self.root).ok();
+        if let Some(relative) = relative {
+            if relative.starts_with(".tmp") {
+                return None;
+            }
+            return Some(relative.to_string_lossy().replace('\\', "/"));
+        }
+        Some(path.to_string_lossy().replace('\\', "/"))
+    }
+
+    pub fn did_open(&mut self, uri: &str, text: String) -> Vec<Effect> {
+        let Some(key) = self.key(uri) else {
+            return Vec::new();
+        };
+        self.documents.insert(uri.to_string(), text);
+        let text = self.documents.get(uri).cloned().unwrap_or_default();
+        let before = self.store.comments(&key).to_vec();
+        if let Some(comments) = self.store.files.get_mut(&key) {
+            anchor::reconcile(&text, comments);
+            comments.sort_by_key(|c| c.line);
+        }
+        if self.store.comments(&key) == before.as_slice() {
+            vec![Effect::PublishDiagnostics]
+        } else {
+            vec![
+                Effect::PersistStore,
+                Effect::RefreshInlayHints,
+                Effect::PublishDiagnostics,
+            ]
+        }
+    }
+
+    pub fn did_change(&mut self, uri: &str, changes: &[Change]) -> Vec<Effect> {
+        let Some(key) = self.key(uri) else {
+            return Vec::new();
+        };
+        let before = self.store.comments(&key).to_vec();
+        let mut text = self.documents.get(uri).cloned().unwrap_or_default();
+
+        for change in changes {
+            match change.range {
+                Some((start_line, start_character, end_line, end_character)) => {
+                    let touched = match self.store.files.get_mut(&key) {
+                        Some(comments) => {
+                            anchor::shift_for_change(comments, start_line, end_line, &change.text)
+                        }
+                        None => Vec::new(),
+                    };
+                    anchor::apply_change(
+                        &mut text,
+                        Some((start_line, start_character, end_line, end_character)),
+                        &change.text,
+                    );
+                    if let Some(comments) = self.store.files.get_mut(&key) {
+                        anchor::rehash(&text, comments, &touched);
+                        comments.sort_by_key(|c| c.line);
+                    }
+                }
+                None => {
+                    anchor::apply_change(&mut text, None, &change.text);
+                    if let Some(comments) = self.store.files.get_mut(&key) {
+                        anchor::reconcile(&text, comments);
+                        comments.sort_by_key(|c| c.line);
+                    }
+                }
+            }
+        }
+
+        self.documents.insert(uri.to_string(), text);
+        if self.store.comments(&key) == before.as_slice() {
+            Vec::new()
+        } else {
+            vec![Effect::PersistStore, Effect::PublishDiagnostics]
+        }
+    }
+
+    pub fn did_save(&mut self, uri: &str) -> Vec<Effect> {
+        // An input file lives under `.tmp/`, so `key` refuses it — but its save is the
+        // whole point. The watch reports the same save; draining twice is harmless
+        // because the first drain deletes the file.
+        if uri_to_path(uri)
+            .as_deref()
+            .is_some_and(|path| self.is_input_path(path))
+        {
+            return self.drain_input();
+        }
+        match self.key(uri) {
+            Some(_) => vec![Effect::PersistStore],
+            None => Vec::new(),
+        }
+    }
+
+    pub fn did_close(&mut self, uri: &str) {
+        self.documents.remove(uri);
+    }
+
+    /// The input file, aimed at one line. The operator types the body and saves.
+    ///
+    /// A line that already carries a comment is handed back its text, because the same
+    /// command serves `edit comment`: the operator changes what is there instead of
+    /// retyping it, and saving an unchanged file keeps the comment as it was.
+    pub fn input_for(&self, uri: &str, line: usize, end_line: usize) -> Option<String> {
+        let key = self.key(uri)?;
+        let line = line.max(1);
+        let body = self
+            .store
+            .comments(&key)
+            .iter()
+            .find(|comment| comment.line == line)
+            .map(|comment| comment.text.clone())
+            .unwrap_or_default();
+        Some(input::render(
+            &Target {
+                file: key,
+                line,
+                end_line: end_line.max(line),
+            },
+            &body,
+        ))
+    }
+
+    pub fn inlay_hints(&self, uri: &str, range: Range) -> Vec<InlayHint> {
+        let Some(key) = self.key(uri) else {
+            return Vec::new();
+        };
+        let document = self.documents.get(uri).cloned().unwrap_or_default();
+        let lines = anchor::lines(&document);
+        self.store
+            .comments(&key)
+            .iter()
+            .filter(|comment| in_range(comment.line, range))
+            .map(|comment| {
+                let anchored = comment.line - 1;
+                let mark = if comment.orphaned {
+                    HINT_MARK_ORPHANED
+                } else {
+                    HINT_MARK
+                };
+                InlayHint {
+                    position: Position {
+                        line: anchored as u32,
+                        character: anchor::utf16_len(lines.get(anchored).copied().unwrap_or("")),
+                    },
+                    label: format!("{mark}{}", truncate(&comment.text)),
+                    padding_left: true,
+                    tooltip: MarkupContent {
+                        kind: "markdown",
+                        value: comment.text.clone(),
+                    },
+                }
+            })
+            .collect()
+    }
+
+    pub fn code_actions(&self, uri: &str, range: Range) -> Vec<CodeAction> {
+        let Some(key) = self.key(uri) else {
+            return Vec::new();
+        };
+        // The lines the comment would cover: the cursor line, or every line a selection
+        // touches. A comment is addressed by the first of them.
+        let (line, end_line) = covered_lines(range);
+        let existing = self
+            .store
+            .comments(&key)
+            .iter()
+            .any(|comment| comment.line == line);
+
+        let mut actions = Vec::new();
+        if !existing {
+            let title = if end_line > line {
+                format!("add comment on lines {line}-{end_line}")
+            } else {
+                "add comment".to_string()
+            };
+            actions.push(CodeAction {
+                title: title.clone(),
+                kind: CODE_ACTION_KIND,
+                command: Command {
+                    title,
+                    command: COMMAND_ADD.to_string(),
+                    arguments: vec![json!(uri), json!(line), json!(end_line)],
+                },
+            });
+        }
+
+        actions.extend(
+            self.store
+                .comments(&key)
+                .iter()
+                .filter(|comment| overlaps(comment, range))
+                .flat_map(|comment| {
+                    let edit_title = format!("edit comment: {}", truncate(&comment.text));
+                    let edit = CodeAction {
+                        title: edit_title.clone(),
+                        kind: CODE_ACTION_KIND,
+                        command: Command {
+                            title: edit_title,
+                            command: COMMAND_ADD.to_string(),
+                            // The comment keeps the lines it covers; editing is about its
+                            // text, and a selection made to reach it says nothing new.
+                            arguments: vec![
+                                json!(uri),
+                                json!(comment.line),
+                                json!(comment.last_line()),
+                            ],
+                        },
+                    };
+                    [edit, Self::delete_action(uri, comment)]
+                }),
+        );
+
+        for (title, command) in [
+            ("list comments", COMMAND_LIST),
+            ("copy comments", COMMAND_COPY),
+            ("reset comments", COMMAND_RESET),
+        ] {
+            actions.push(CodeAction {
+                title: title.to_string(),
+                kind: CODE_ACTION_KIND,
+                command: Command {
+                    title: title.to_string(),
+                    command: command.to_string(),
+                    arguments: Vec::new(),
+                },
+            });
+        }
+        actions
+    }
+
+    fn delete_action(uri: &str, comment: &Comment) -> CodeAction {
+        let title = format!("delete comment: {}", truncate(&comment.text));
+        CodeAction {
+            title: title.clone(),
+            kind: CODE_ACTION_KIND,
+            command: Command {
+                title,
+                command: COMMAND_DELETE.to_string(),
+                arguments: vec![json!(uri), json!(comment.line)],
+            },
+        }
+    }
+
+    pub fn execute_command(&mut self, command: &str, arguments: &[Value]) -> Vec<Effect> {
+        match command {
+            COMMAND_ADD => {
+                let uri = arguments
+                    .first()
+                    .and_then(Value::as_str)
+                    .unwrap_or_default();
+                let line = arguments.get(1).and_then(Value::as_u64).unwrap_or(1) as usize;
+                // A caller naming no last line means the one line — the shape the
+                // command had before selections, and what `line-comment.add` still
+                // accepts from anything that speaks it by hand.
+                let end_line = arguments
+                    .get(2)
+                    .and_then(Value::as_u64)
+                    .map_or(line, |end| end as usize);
+                let Some(contents) = self.input_for(uri, line, end_line) else {
+                    return Vec::new();
+                };
+                let path = self.take_input_path();
+                let text = format!(
+                    "write the comment in {} and save",
+                    display_path(&self.root, &path)
+                );
+                vec![
+                    Effect::OpenInput { path, contents },
+                    Effect::ShowMessage { error: false, text },
+                ]
+            }
+            COMMAND_LIST => {
+                let moved = self.reconcile_all();
+                let total = self.store.total();
+                let mut effects = Vec::new();
+                if moved {
+                    effects.push(Effect::PersistStore);
+                    effects.push(Effect::RefreshInlayHints);
+                    effects.push(Effect::PublishDiagnostics);
+                }
+                effects.push(Effect::WriteExport);
+                if total == 0 {
+                    effects.push(Effect::ShowMessage {
+                        error: false,
+                        text: "no comments yet".to_string(),
+                    });
+                    return effects;
+                }
+                effects.push(Effect::OpenList {
+                    path: self.take_list_path(),
+                    contents: self.export_text(),
+                });
+                effects
+            }
+            COMMAND_DELETE => {
+                let uri = arguments
+                    .first()
+                    .and_then(Value::as_str)
+                    .unwrap_or_default();
+                let line = arguments.get(1).and_then(Value::as_u64).unwrap_or_default() as usize;
+                let Some(key) = self.key(uri) else {
+                    return Vec::new();
+                };
+                if self.store.remove(&key, line) {
+                    vec![
+                        Effect::PersistStore,
+                        Effect::RefreshInlayHints,
+                        Effect::PublishDiagnostics,
+                    ]
+                } else {
+                    Vec::new()
+                }
+            }
+            COMMAND_COPY => {
+                let moved = self.reconcile_all();
+                let total = self.store.total();
+                let mut effects = Vec::new();
+                if moved {
+                    effects.push(Effect::PersistStore);
+                    effects.push(Effect::RefreshInlayHints);
+                    effects.push(Effect::PublishDiagnostics);
+                }
+                effects.push(Effect::WriteExport);
+                effects.push(Effect::ShowMessage {
+                    error: false,
+                    text: format!(
+                        "{total} {} → {}",
+                        plural(total, "comment", "comments"),
+                        display_path(&self.root, &self.export_path())
+                    ),
+                });
+                effects
+            }
+            COMMAND_RESET => {
+                let total = self.store.total();
+                if total == 0 {
+                    return vec![Effect::ShowMessage {
+                        error: false,
+                        text: "no comments to reset".to_string(),
+                    }];
+                }
+                let files = self.store.file_count();
+                vec![Effect::AskResetConfirmation {
+                    prompt: format!(
+                        "Delete {total} {} in {files} {}?",
+                        plural(total, "comment", "comments"),
+                        plural(files, "file", "files")
+                    ),
+                }]
+            }
+            _ => Vec::new(),
+        }
+    }
+
+    pub fn reset_confirmed(&mut self) -> Vec<Effect> {
+        self.store.clear();
+        vec![
+            Effect::PersistStore,
+            Effect::RefreshInlayHints,
+            Effect::PublishDiagnostics,
+        ]
+    }
+}
+
+/// What a comment reads as on the line: the author's mark, the text, and the orphan note
+/// when its anchor is gone.
+fn message_of(comment: &Comment) -> String {
+    let mark = match comment.author {
+        Author::Agent => AGENT_MARK,
+        Author::Human => "",
+    };
+    if comment.orphaned {
+        format!("{mark}{} (orphaned)", comment.text)
+    } else {
+        format!("{mark}{}", comment.text)
+    }
+}
+
+fn in_range(line: usize, range: Range) -> bool {
+    let anchored = (line - 1) as u32;
+    anchored >= range.start.line && anchored <= range.end.line
+}
+
+/// Whether any line the comment covers falls in the range — a comment over a selection is
+/// offered from every line of it, not only from the one it starts on.
+fn overlaps(comment: &Comment, range: Range) -> bool {
+    let first = (comment.line - 1) as u32;
+    let last = (comment.last_line() - 1) as u32;
+    first <= range.end.line && last >= range.start.line
+}
+
+/// The lines a code-action range covers, 1-based and inclusive.
+///
+/// An editor reports whole selected lines as ending at column 0 of the line after the
+/// last one, so that trailing line is not part of the selection.
+fn covered_lines(range: Range) -> (usize, usize) {
+    let line = range.start.line as usize + 1;
+    let mut end_line = range.end.line as usize + 1;
+    if range.end.character == 0 && end_line > line {
+        end_line -= 1;
+    }
+    (line, end_line.max(line))
+}
+
+fn truncate(text: &str) -> String {
+    if text.chars().count() <= HINT_WIDTH {
+        return text.to_string();
+    }
+    let head: String = text.chars().take(HINT_WIDTH).collect();
+    format!("{}…", head.trim_end())
+}
+
+fn plural(count: usize, one: &'static str, many: &'static str) -> &'static str {
+    if count == 1 {
+        one
+    } else {
+        many
+    }
+}
+
+fn display_path(root: &Path, path: &Path) -> String {
+    path.strip_prefix(root)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .replace('\\', "/")
+}
+
+/// `file://` URI to a path, decoding percent escapes. Any other scheme is not served.
+pub fn uri_to_path(uri: &str) -> Option<PathBuf> {
+    let rest = uri.strip_prefix("file://")?;
+    let rest = match rest.find('/') {
+        Some(index) => &rest[index..],
+        None => rest,
+    };
+    let mut decoded = Vec::with_capacity(rest.len());
+    let bytes = rest.as_bytes();
+    let mut index = 0;
+    while index < bytes.len() {
+        if bytes[index] == b'%' && index + 2 < bytes.len() {
+            let hex = std::str::from_utf8(&bytes[index + 1..index + 3]).ok()?;
+            if let Ok(byte) = u8::from_str_radix(hex, 16) {
+                decoded.push(byte);
+                index += 3;
+                continue;
+            }
+        }
+        decoded.push(bytes[index]);
+        index += 1;
+    }
+    Some(PathBuf::from(String::from_utf8(decoded).ok()?))
+}
+
+pub fn path_to_uri(path: &Path) -> String {
+    format!("file://{}", path.to_string_lossy())
+}

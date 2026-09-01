@@ -1,7 +1,7 @@
 # review — todo
 
 Judge one implemented TODO against the pair the human approved. This is the gate chain
-`impl:sub-auto.md` Step 2 runs per TODO, and the one `/code impl` runs when the spec's `approve` key
+`impl:sub-auto.md` Step 2 runs per TODO, and the one `/code impl` runs when the resolved `approve` key
 is `none`.
 
 The roster — the gates, their tiers, the wave order, the FAIL routing, the budget, and the report

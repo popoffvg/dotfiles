@@ -20,6 +20,13 @@ Done when every unit has all three.
 
 ## 2. Pick the shape — first row that fits
 
+**A named agent owns its model; the table is for units with no agent of their own.** When a unit maps to an existing `subagent_type` — `wm:architector`, `wm:implementer`, any plugin agent — open its frontmatter and let its `model` stand. Override it only when you can name what about *this* unit makes the author's default wrong, and say that to the operator. "The table said `sonnet`" is not a reason.
+
+**`model: inherit` is a choice, not a blank.** It means the author wants this unit on the orchestrator's model, and the agents that declare it are usually the ones that judge rather than type. Passing a cheaper model overrides that silently. So:
+
+- Definition names a concrete model (`sonnet`, `haiku`) → repeat it on the call, so a dropped field cannot quietly buy opus.
+- Definition says `inherit` → pass no `model` at all.
+
 | The unit… | Shape | Model |
 |---|---|---|
 | is one tool call or one short edit | inline | current |
@@ -45,5 +52,13 @@ Then cut every line that does not reach the deliverable — a long prompt costs 
 ## 4. Report
 
 Give the operator the verdicts, one line per unit, plus one line naming which model ran what. A `haiku` result that misses a field of the shape you asked for, or that a spot-check contradicts, re-runs on `sonnet` as a single unit — never as the whole fan-out. Re-check any count a minion reports before relaying it.
+
+**Read the model back before you report it.** What you passed is not proof of what ran. Each minion's own transcript records it, one file per agent:
+
+```bash
+ls ~/.claude/projects/<project-dir>/<session-id>/subagents/*.jsonl
+```
+
+Each `assistant` line carries `message.model`. The main session transcript holds only orchestrator turns, all `isSidechain: false` — grepping it shows your own model and nothing else, which reads as "everything ran on opus".
 
 Six or more units, or any unit that writes: print the plan — unit, shape, model, deliverable — and let the operator correct it before the first minion starts.

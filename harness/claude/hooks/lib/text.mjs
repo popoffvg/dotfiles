@@ -2,6 +2,13 @@
 // dry-check.mjs compares blocks of one message; comment-check.mjs compares a
 // comment against the code under it. Both need the same notion of "content word".
 
+// The extensions a hook treats as source. comment-check.mjs judges comments in
+// them; name-reminder.mjs counts edits to them. A file type added here reaches
+// every hook at once.
+export const CODE_EXT = new Set([".tengo", ".ts", ".tsx", ".js", ".mjs", ".cjs", ".go", ".py", ".sh",
+  ".bash", ".zsh", ".rs", ".java", ".rb", ".c", ".h", ".cc", ".cpp", ".hpp", ".kt", ".swift",
+  ".lua", ".sql", ".php", ".scala", ".m", ".mm"]);
+
 // Function words carry no topic, and leaving them in makes any two passages on
 // one subject look like copies of each other.
 export const STOP = new Set(`a an the and or but if then than that this these those is are was were be been being

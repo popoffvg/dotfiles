@@ -3,6 +3,7 @@ status: todo                # todo → impl → verify → done (blocked: dep un
 type: behavior              # behavior | state machine | data shape — the change shape, never a brick
 depends_on: []              # [TODO-M, …] real edges only; each must reach status: done first
 risk: 3                     # changes the existing Refresh signature; retest the auth middleware and every caller of Refresh, not just the new rotation path
+approve: increment          # inherit | increment | todo | none — override the spec, with the reason: every caller of Refresh moves, so the human reads each step. ref-write.md § Approval
 ---
 
 # TODO-1: Rotate refresh tokens on /auth/refresh

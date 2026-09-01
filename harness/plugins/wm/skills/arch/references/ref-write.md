@@ -89,20 +89,31 @@ first: write the answer as a new `decision` or `fact` note, which archives the q
 (`ref-note-format.md` § Resolution). The other half — the human
 actually reading the spec — no hook can check.
 
-## Approval — `spec.md` frontmatter `approve`
+## Approval — the `approve` key
 
-How much of `impl` the human approves, for the whole spec. One key, set once at init (`sub-new.md`
-Step 0.6) and editable at any time; `impl` reads it and no other file restates the value.
+How much of `impl` the human approves. The key lives at two levels: `spec.md` frontmatter sets it
+for every TODO the spec drives, and `todos/TODO-N.md` frontmatter overrides it for that one TODO.
+`impl` reads both and no other file restates the values.
 
 | Value | What `impl` does |
 |-------|------------------|
-| `increment` *(default)* | Show the real diff after **each** increment and wait. The smallest step worth approving on its own is also the smallest step reviewed on its own. |
+| `increment` | Show the real diff after **each** increment and wait. The smallest step worth approving on its own is also the smallest step reviewed on its own. |
 | `todo` | Apply every increment without stopping, then show the whole TODO's diff **once** and wait, before the autotest. |
 | `none` | Never stop. The `review:sub-todo.md` gate chain is the only review the change gets. |
+| `inherit` | **TODO only** — take the spec's value. |
 
-A missing key reads as `increment` — an old spec keeps the behavior it had. The value never lowers a
-hard gate: the human still reads the spec at the `review→impl` boundary, and destructive git actions
-are still confirmed. `auto` runs as `none` whatever the key says, because nobody is watching it.
+**Two defaults, one per level.** A missing key on `spec.md` reads as `increment`; a missing key on a
+`TODO-N.md` reads as `inherit`. Both defaults keep an old artifact behaving as it did before the key
+existed. A spec set to `inherit` is invalid — the spec is the level that has nothing to inherit from.
+
+**The TODO wins where the two disagree**, and it wins in both directions: a risky TODO under an
+`approve: none` spec can ask for `increment`, and a mechanical one under an `approve: increment` spec
+can ask for `none`. Write the reason as a trailing comment on the key, the way `risk` carries its
+justification — an override with no reason is the one a reviewer cannot judge.
+
+Neither level lowers a hard gate: the human still reads the spec at the `review→impl` boundary, and
+destructive git actions are still confirmed. `auto` runs as `none` whatever either key says, because
+nobody is watching it.
 
 Where it bites: `impl:sub-impl.md` Step 5.
 
@@ -300,7 +311,7 @@ its own audience and bar, owned by `todo`. The user decides when the outcomes ar
 
 The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check against them.
 
-- [ ] `spec.md` opens with a `---` frontmatter block (`status`, `approve`, `branch`, `drives`); `approve` is one of `increment` / `todo` / `none` (§ Approval); no `Status`/phase-rules prose in the body
+- [ ] `spec.md` opens with a `---` frontmatter block (`status`, `approve`, `branch`, `drives`); `approve` is one of `increment` / `todo` / `none` — never `inherit`, which is the TODO-level default (§ Approval); no `Status`/phase-rules prose in the body
 - [ ] `## Plan` carries the target-picture summary (absent only while `status: init`)
 - [ ] `spec.md` body has Description, Goal, What we're NOT doing, the ledger, and the Plan — nothing else. No `Design Decisions`, no `Open Questions` section, no `Implementation Guidelines`, no decision-trail table
 - [ ] Implementation patterns sit in `PATTERNS.md`; `spec.md` mentions `@PATTERNS.md` and carries no pattern content

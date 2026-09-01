@@ -1,8 +1,146 @@
 # wm evals
 
-Plugin-level eval suite. Today it grades one thing: the **TODO pair** gates in
-`../skills/arch/commands/sub-todo.md`. Add a `cases-<skill>.jsonl` beside `cases-todo.jsonl` when a
-second skill needs grading.
+Plugin-level eval suite. Two suites today, one runner each:
+
+| Runner | Cases | Grades |
+|---|---|---|
+| `run.sh` | `cases-todo.jsonl` | The **TODO pair** gates in `arch:sub-todo.md` — where a block of content lives and what form it takes. |
+| `run-names.sh` | `cases-searchable-names.jsonl` | The **descriptions** of the two naming skills — which one a task loads, and when neither does. |
+
+Add a `cases-<skill>.jsonl` beside them when a third skill needs grading.
+
+---
+
+# Suite: naming-skill descriptions (`run-names.sh`)
+
+## What it grades, and why a description is the thing under test
+
+`searchable-names` and `pedant` split one subject between them. `searchable-names` picks the name
+while the code is written; `pedant` attacks the names a finished diff already declares. A session
+never reads either body until a description has already decided. So the description **is** the gate,
+and the runner shows the judge nothing else — the two `description:` blocks, read live from
+frontmatter, and the task. A description that needs its own body to be understood has failed here
+before a human ever sees it.
+
+One axis: **`pick`** → `searchable-names` | `pedant` | `none`.
+
+`none` is not filler. Half the risk in a long trigger list is a description that fires on every code
+task, and only a negative case can catch that.
+
+## Run
+
+```sh
+./run-names.sh                 # all cases
+./run-names.sh -i <case-id>    # one case
+./run-names.sh -v              # also print the model's one-line rationale
+MODEL=opus ./run-names.sh      # override the model (default: sonnet)
+THRESHOLD=0.9 ./run-names.sh   # exit non-zero below this accuracy (default: 0.85)
+```
+
+Needs `claude` and `jq` on `PATH`. Exit 0 = accuracy ≥ threshold.
+
+## Cases
+
+`cases-searchable-names.jsonl`: `id`, `task` (what the user says, in their words), `pick` (the gold
+label), `note` (why that label, and what the case guards).
+
+20 cases: 10 `searchable-names`, 4 `pedant`, 6 `none`. Ten positives against four is deliberate —
+`searchable-names` carries the long trigger list, so it is the one that can over-fire.
+
+The cases that earn the suite:
+
+- **`rename-what-review-flagged`** — the case the split exists for. A reviewer flagged `data`; now
+  pick the real name and apply it. It *starts* in review, which points at `pedant`, but `pedant`
+  proposes renames and applies none, and choosing the replacement is authoring work. If this one
+  flips, the two descriptions have not drawn the line between them.
+- **`commit-message`** and **`tighten-comment-prose`** — hard negatives at the two seams the move
+  created. § Align language names commits, and the doc-line rule sits next to comment prose; neither
+  belongs to a naming skill. `commit-message` owns the first, `CODE_STYLE.md` § Package the fact the
+  second.
+- **`switch-on-column-id`** — a column id is an identifier, so the description's "field name" clause
+  can pull in a fact that belongs to `CODE_STYLE.md` § Declarative table vs imperative reader.
+- **`metric-built-from-parts`**, **`log-prefix-shared`**, **`two-int-ids`**, **`helpers-file`** — four
+  positives where the user never says the word "name". They read as instrumentation, a logging
+  complaint, a bug report, and a routine file add. A description written only around "what should I
+  call this" scores well without them and still misses most real cases.
+- **`are-these-names-clear`** — the case that already earned its keep before the first run. The draft
+  description listed `"is this name clear"` as a trigger, which is verbatim `pedant`'s job. Writing
+  this case found the collision; the trigger came out.
+
+## What this suite cannot see
+
+It hands the model both descriptions and forces a choice, so it grades whether the two descriptions
+**separate from each other**. It cannot grade whether either one **fires** — which is the failure the
+skill was created to fix. `run-names-live.sh` measures that, and answers very differently. Read both
+scores or neither.
+
+## Last run
+
+2026-08-31, `MODEL=sonnet`, skill-blind judge, 20 cases: **20/20**, accuracy 1.00.
+
+`rename-what-review-flagged` held on the first run, with the rationale naming the seam itself:
+"choosing and applying new name is authoring, not judging". Treat one clean run on a 20-case suite as
+weak evidence — a perfect score also means no case is currently pulling on the descriptions. The next
+real naming miss belongs here as a case before the description is edited to catch it.
+
+---
+
+# Suite: does the skill actually fire (`run-names-live.sh`)
+
+Same 20 cases, same gold labels, opposite method. It starts a real `claude -p` session on the task
+text alone — no framing, no mention of skills, all 182 installed skills competing — and reads the
+transcript for a `Skill` tool call. Three sessions per case (`REPEATS`).
+
+```sh
+./run-names-live.sh          # all cases, 3 sessions each
+REPEATS=1 ./run-names-live.sh -i what-should-i-call-it
+```
+
+**Positives pass on any hit; `none` cases pass only on every run.** Once is proof a trigger reaches.
+"Quiet one time in three" is not restraint, and scoring it as a pass would hide a description that
+over-fires two times in three.
+
+## The preflight is not optional
+
+The runner fires the bare word `pedant` before any case and exits 3 if no skill loads. Every gold
+label except five claims something fired, and **a harness that cannot fire answers identically to a
+description that never triggers.**
+
+This is not theoretical. The first version of this runner passed
+`--disallowedTools "Write,Edit,NotebookEdit,Bash"` for safety. That flag suppresses skill invocation
+outright: `pedant` fires `wm:pedant` without it and fires nothing with it. The run scored every case
+`none` and read exactly like a dead description. Safety now comes from the empty scratch cwd.
+
+## Last run
+
+2026-08-31, `MODEL=sonnet`, `REPEATS=3`, 60 sessions: **6/20, accuracy 0.30**. Below threshold.
+
+| Skill | Fired |
+|---|---|
+| `searchable-names` | **0 of 33** attempts |
+| `pedant` | 2 of 3 on its own bare word; **0 of 9** on every other naming-review task |
+
+**Firing is non-deterministic.** `pedant-bare-word` went `none, pedant, pedant` on three identical
+one-word prompts. In the previous single-run pass, the same prompt fired in the preflight and not in
+the case, minutes apart. Never score this suite at `REPEATS=1`.
+
+**`searchable-names` loses to a neighbour on its own ground.** `metric-built-from-parts` loaded
+`name-from-the-registry` 3 times out of 3, and `align-terminology` loaded `terms` once. Both cover
+naming, neither is in this plugin, and the description suite can never see them — it only ever offers
+two choices.
+
+**What the score means.** `pedant` is a mature, unmodified skill and it also fires 0 of 9 on
+realistic prompts; it only wakes when the user types its name. So 0.30 is not a verdict on one
+description — it is evidence that **a skill description is not a reliable delivery mechanism for a
+standing convention.** The lever is a hook on the event where a name gets written, beside
+`comment-check.mjs`, which already enforces the comment half of `CODE_STYLE.md` deterministically.
+
+Keep this suite as the guard that stops anyone claiming the split works because the other one scores
+1.00.
+
+---
+
+# Suite: the TODO pair (`run.sh`)
 
 Gates under test — two axes, both applied to one block of candidate content:
 

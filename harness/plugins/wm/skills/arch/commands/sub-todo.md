@@ -254,6 +254,7 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 | `type` | always |
 | `depends_on` | always (`[]` if none) |
 | `risk` | always |
+| `approve` | always (`inherit` unless this TODO needs its own depth — `arch:ref-write.md` § Approval) |
 
 | # | Element | Level | Required |
 |---|---------|-------|----------|
@@ -317,7 +318,7 @@ read, and these two are answerable only against code:
   increment violates one, which `verify` audits against `CONSTRAINTS.md` and the `reviewer` gate
   re-derives from the diff.
 - **`## Changes`** — do the increments deliver the Outcome, in an order that builds? The human walks
-  it while it is applied, at the grain the spec's `approve` key sets (`impl:sub-impl.md` step 5 and
+  it while it is applied, at the grain the `approve` key sets (`impl:sub-impl.md` step 5 and
   its § Approval), where the answer is the
   real diff rather than a prediction. The gate already approved *what the code becomes* in § Surface;
   what is left is the route, and the route is judged against the code it produces.
@@ -382,6 +383,7 @@ own file against a rule already counted.
 ### `TODO-N.md` — the human half
 
 - [ ] All `always` elements present and ordered; `New terms` present iff the TODO adds terms
+- [ ] **`approve` is `inherit`** unless this TODO needs a depth of its own — and any other value carries, as a trailing comment, the reason it overrides the spec
 - [ ] **Not over-stated**: no spec Description/Goal/target-picture prose was copied in, and the Outcome is this TODO's slice rather than the spec Goal
 - [ ] **Outcome** is a capability in GLOSSARY.md terms — no paths, types, routes, libraries
 - [ ] `## Components` has exactly one `main` row, each a `package.Class` symbol with a `create | modify | delete` **Touch** and a one-sentence **Role**

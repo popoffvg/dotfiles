@@ -27,16 +27,55 @@ import {
 const statusBox = document.getElementById('status')
 const say = (text) => { statusBox.textContent = text }
 
+const CELL_W = 330
+const CELL_H = 150
+const GUTTER = 90
+
+/** A grid cell as pixels. A span swallows the gutters it covers. */
+function placeOnGrid(box) {
+  const colSpan = box.colSpan ?? 1
+  const rowSpan = box.rowSpan ?? 1
+  return {
+    x: box.col * (CELL_W + GUTTER),
+    y: box.row * (CELL_H + GUTTER),
+    w: colSpan * CELL_W + (colSpan - 1) * GUTTER,
+    h: rowSpan * CELL_H + (rowSpan - 1) * GUTTER,
+  }
+}
+
+function rectOf(box) {
+  if (box.row != null && box.col != null) return placeOnGrid(box)
+  if (box.x != null && box.y != null) return { x: box.x, y: box.y, w: box.w, h: box.h }
+  throw new Error(`box "${box.id}" needs row+col, or x+y+w+h`)
+}
+
+/** Pairs with less than one gutter between them on both axes. */
+function findCrowding(placed) {
+  const tight = []
+  for (let i = 0; i < placed.length; i++) {
+    for (let j = i + 1; j < placed.length; j++) {
+      const a = placed[i]
+      const b = placed[j]
+      const gapX = Math.max(b.x - (a.x + a.w), a.x - (b.x + b.w))
+      const gapY = Math.max(b.y - (a.y + a.h), a.y - (b.y + b.h))
+      if (Math.max(gapX, gapY) < GUTTER) tight.push(`${a.id}~${b.id}`)
+    }
+  }
+  return tight
+}
+
 /** Build the diagram from a seed file: plain boxes and arrows, no tldraw types. */
 function drawSeed(editor, seed) {
   const idOf = new Map()
-  const shapes = (seed.boxes ?? []).map((box) => {
+  const placed = (seed.boxes ?? []).map((box) => ({ id: box.id, ...rectOf(box) }))
+  const shapes = (seed.boxes ?? []).map((box, index) => {
     const id = createShapeId()
     idOf.set(box.id, id)
+    const rect = placed[index]
     return {
-      id, type: 'geo', x: box.x, y: box.y,
+      id, type: 'geo', x: rect.x, y: rect.y,
       props: {
-        geo: 'rectangle', w: box.w, h: box.h,
+        geo: 'rectangle', w: rect.w, h: rect.h,
         color: box.color ?? 'black', fill: 'none', size: 's', font: 'mono',
         align: 'start', verticalAlign: 'start',
         richText: toRichText(box.text ?? ''),
@@ -63,6 +102,8 @@ function drawSeed(editor, seed) {
       { fromId: arrowId, toId: toId, type: 'arrow', props: { terminal: 'end', ...anchor } },
     ])
   }
+
+  return findCrowding(placed)
 }
 
 async function handleMount(editor) {
@@ -75,8 +116,9 @@ async function handleMount(editor) {
   } else {
     const seedResponse = await fetch('/seed')
     if (seedResponse.status === 200) {
-      drawSeed(editor, await seedResponse.json())
-      say('built from seed')
+      const tight = drawSeed(editor, await seedResponse.json())
+      if (tight.length) console.warn('crowded pairs:', tight.join(' '))
+      say(tight.length ? `built from seed — crowded: ${tight.join(' ')}` : 'built from seed')
     } else {
       say('empty document')
     }

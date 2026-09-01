@@ -80,5 +80,5 @@ __pycache__/
 *.local.*
 
 # Rust build output — Cargo.lock stays tracked so the server builds reproducibly
-harness/apps/md-comment/target/
+harness/apps/line-comment/target/
 .tmp/

@@ -261,5 +261,29 @@
     "unbind": {
       "cmd-q": "zed::Quit"
     }
+  },
+  {
+    "context": "Editor && mode == full",
+    "bindings": {
+      "ctrl-alt-f": "text_finder::Toggle"
+    }
+  },
+  {
+    "context": "Editor && mode == full",
+    "unbind": {
+      "alt-cmd-f": "text_finder::Toggle"
+    }
+  },
+  {
+    "context": "BufferSearchBar",
+    "bindings": {
+      "ctrl-cmd-f": "text_finder::Toggle"
+    }
+  },
+  {
+    "context": "BufferSearchBar",
+    "unbind": {
+      "alt-cmd-f": "text_finder::Toggle"
+    }
   }
 ]

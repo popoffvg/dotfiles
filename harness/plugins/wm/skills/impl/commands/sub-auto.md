@@ -39,7 +39,7 @@ For **every** TODO in the work list, in order — not the first, not the easy on
 1. **Read `<notes-dir>/LESSONS.md` in full.** Mandatory, every round, before any edit. It carries what
    the earlier rounds already cost.
 2. **Implement one TODO** — follow `sub-impl.md`, with one change: it runs as `approve: none`
-   (its § Approval) whatever the spec's key says. Nobody is watching. Apply each increment, keep the one-commit-per-TODO
+   (its § Approval) whatever the spec's or the TODO's key says. Nobody is watching. Apply each increment, keep the one-commit-per-TODO
    rule, and pass the lessons entries that touch this TODO's **Files** in the @implementer brief.
 3. **The gate chain** — follow `review:sub-todo.md`: one haiku wave (lint, comments, names) in
    parallel, then the test gate, then the opus outcome gate. Any FAIL → return to 2 as a fixup commit

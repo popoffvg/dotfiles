@@ -55,11 +55,11 @@ Three files at the plugin root, shared by all five skills.
 | `commands/sub-todo.md` | `todo` — the `TODO-N.md` + `TODO-N.agent.md` pair and what each half holds; the wave fan-out (one fork per ledger row) and what only the caller may write; the TODO elements, the verification chain, the outcome rules, `## Surface` (the one diff, in the human half), the surface-not-a-body rule with its human-asked exception, and `## Constraints` (the pointer in the agent half, and the `CONSTRAINTS.md` row it points at). |
 | `commands/sub-prototype.md` | `prototype` — settle an open decision with the smallest visible code diff. |
 | `references/ref-bricks.md` | The **brick** roster — the closed set of component types, what each owns, its metric, its common structure. Typed in every `## Components` row and every `GLOSSARY.md` `Kind`. |
-| `references/ref-write.md` | **The spec contract** — artifacts, notes-dir layout, the `status` metadata (spec phase + TODO lifecycle), the `approve` metadata (how much of `impl` the human reviews), the gate, TODO ordering and **waves**, the Spec-Readiness Checklist. The single source; no other file restates it. |
+| `references/ref-write.md` | **The spec contract** — artifacts, notes-dir layout, the `status` metadata (spec phase + TODO lifecycle), the `approve` metadata (how much of `impl` the human reviews, at spec level and per TODO), the gate, TODO ordering and **waves**, the Spec-Readiness Checklist. The single source; no other file restates it. |
 | `references/ref-todo-sections.md` | What goes inside each heading of the pair — one entry per section, frontmatter keys first: `status`, `type`, `depends_on`, `risk`, Outcome, New terms, Constraints (the pointer, and the `CONSTRAINTS.md` row it points at), Components, Surface with the surface-not-a-body rule, Changes, Autotest, Commit, Deviations, Manual test, Definition of done. Split out of `sub-todo.md` so the wave caller does not load it. |
 | `references/ref-note-format.md` | Thought notes; the required `description` and how a reader finds a thought by it; the answered-question and supersede → `thoughts/archived/` moves, both automatic. |
 | `examples/notes-claude.md` | The notes-dir `CLAUDE.md`. |
-| `examples/rules.md` | The notes-dir `RULES.md` and its three init knobs — approval depth is not one of them; it is the `spec.md` `approve` key. |
+| `examples/rules.md` | The notes-dir `RULES.md` and its three init knobs — approval depth is not one of them; it is the `approve` key on `spec.md` and on each TODO. |
 | `examples/constraints.md` | The notes-dir `CONSTRAINTS.md` — the one home for the settled decisions every TODO obeys: `R<n>`, the rule alone, and the live `thoughts/` note or dated document it came from. Append-only ids; no TODO copies a row. |
 | `examples/glossary.md` | The notes-dir `GLOSSARY.md` — the project's ubiquitous language, distinct from `wm:GLOSSARY.md`. |
 | `examples/patterns.md` | The notes-dir `PATTERNS.md` — the implementation patterns and reference files the increments follow, out of `spec.md` so the spec stays human-only. |
@@ -112,7 +112,8 @@ Independent of the `/code` flow, each with its own entry point.
 | `test-suite` | `/test-suite <subcommand>` | All testing work — strategy, scenario design, coverage audit, BDD, TDD. |
 | `trace` | no | **Why an artifact is the way it is.** Spawns one `tracer` subagent that searches `thoughts/` from the artifact's own words and returns at most 8 chain rows plus a verdict — `live`, `superseded`, `unrecorded`. It replaces stored origin links: no file under `todos/` carries one. Loaded by `impl:sub-fix.md`, `code:sub-revise.md`, and the `reviewer` gate. |
 | `commit-message` | no | **The commit message contract** — the subject line and the three body parts: cause, goal, decision. Loaded by name before every commit written by `impl`, `auto`, `fix`, or `squash`. |
-| `pedant` | no | Attacks every name in the code and rejects the ones that read unclearly. The contract the `name-critic` gate reads. |
+| `searchable-names` | no | **Choosing the name while the code is written** — one term per concept, the 2–4 word public name, one concept per file, the domain concept in a type, the whole string literal. Naming and module home for every piece; `arch:ref-bricks.md` adds only the metric and the structure. Loaded from `CODE_STYLE.md`, which keeps the comment prose. |
+| `pedant` | no | **Attacking the names a finished diff already declares** — rejects the ones that read unclearly. The contract the `name-critic` gate reads. |
 | `red-green-refactor` | no | The failing-test-first cycle a bug fix follows. Loaded by `impl:sub-impl.md`. |
 
 ## Graded from outside — `evals/`
@@ -121,6 +122,8 @@ Independent of the `/code` flow, each with its own entry point.
 |---|---|
 | `evals/run.sh` | The runner. Extracts the graded rule blocks from `arch:sub-todo.md` at run time — § One ledger row, two halves, § Surface, § Changes, § Autotest, § Constraints — so the suite always grades the current spec, never a copy of it. |
 | `evals/cases-todo.jsonl` | The labelled cases. Two axes per case: **half** (`human` / `agent` / `corpus` — which file the content belongs in; the `## Constraints` pointer is agent, a rule and its origin are `CONSTRAINTS.md`, a reason is `thoughts/`) and **form** (`keep` / `reshape` — ships as written, or is a **body** that must become an Interface block plus a Behavior sketch). |
+| `evals/run-names.sh` | The runner for the naming split. Extracts the `description:` block of `searchable-names` and of `pedant` from frontmatter at run time and shows the judge nothing else — the description is what decides which skill a session loads, so the description is what gets graded. |
+| `evals/cases-searchable-names.jsonl` | The labelled tasks. One axis: **pick** (`searchable-names` / `pedant` / `none` — write-time naming, review-time naming, or neither). |
 | `evals/README.md` | What each axis means, which cases are deliberately hard, and the last run's score. |
 
 One `evals/` serves the whole plugin (`plugin-evals-at-plugin-root`); add `cases-<skill>.jsonl` beside
@@ -133,5 +136,4 @@ the existing suite rather than nesting an `evals/` inside a skill. A change to a
 |---|---|
 | `flow-scetch` skill | The TS-pseudocode form a `## Changes` **Behavior** snippet follows, and the variant table that picks its shape. |
 | `lessons` skill | Lesson **content** — dependency order, the concept-per-step rule, alternatives and asymmetries. `teach` owns the workspace, not the pedagogy. |
-| `CODE_STYLE.md` § Domain module layout | Naming and module home for every piece. `arch:ref-bricks.md` adds only the metric and the structure. |
 | `thought` skill | The concept of a thought and its rules. `arch:ref-note-format.md` gives this corpus's format. |

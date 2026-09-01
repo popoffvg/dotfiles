@@ -48,26 +48,26 @@ description = "Test the session-lesson scan TUI"
 dir = "{{config_root}}/harness/apps/self-improve"
 run = "go test ./... -count=1"
 
-[tasks."harness:md-comment:build"]
-description = "Build the md-comment language server → ~/.local/bin/md-comment-lsp"
-dir = "{{config_root}}/harness/apps/md-comment"
+[tasks."harness:line-comment:build"]
+description = "Build the line-comment language server → ~/.local/bin/line-comment-lsp"
+dir = "{{config_root}}/harness/apps/line-comment"
 sources = ["server/**/*.rs", "server/Cargo.toml"]
-outputs = ["{{env.HOME}}/.local/bin/md-comment-lsp"]
+outputs = ["{{env.HOME}}/.local/bin/line-comment-lsp"]
 run = """
-cargo build --release -p md-comment-server
+cargo build --release -p line-comment-server
 # install replaces through a temp file + rename. Copying onto the live binary
 # invalidates its signature and macOS then SIGKILLs it.
-install -m 755 target/release/md-comment-lsp $HOME/.local/bin/md-comment-lsp
+install -m 755 target/release/line-comment-lsp $HOME/.local/bin/line-comment-lsp
 """
 
-[tasks."harness:md-comment:test"]
-description = "Test the md-comment language server"
-dir = "{{config_root}}/harness/apps/md-comment"
-run = "cargo test -p md-comment-server"
+[tasks."harness:line-comment:test"]
+description = "Test the line-comment language server"
+dir = "{{config_root}}/harness/apps/line-comment"
+run = "cargo test -p line-comment-server"
 
-[tasks."harness:md-comment:languages"]
-description = "Regenerate md-comment's extension.toml language list from the installed Zed languages"
-run = "{{config_root}}/harness/scripts/sync-md-comment-languages.py"
+[tasks."harness:line-comment:languages"]
+description = "Regenerate line-comment's extension.toml language list from the installed Zed languages"
+run = "{{config_root}}/harness/scripts/sync-line-comment-languages.py"
 
 [tasks."harness:plugins:sync"]
 description = "Regenerate local-plugins marketplace.json from harness/plugins/"

@@ -45,7 +45,9 @@ The four answers land in **two** files, each in its one home:
 - **Approval depth** — *each increment* / *once per TODO* / *autonomous* — is the `spec.md`
   frontmatter `approve` key, written as `increment` / `todo` / `none` (`ref-write.md` § Approval).
   Replace the `increment` default Step 0 wrote. It is spec metadata, not a rule, because `impl`
-  branches on the value rather than raising a choice with the human.
+  branches on the value rather than raising a choice with the human. The answer sets the depth for
+  every TODO the spec drives; a single TODO that needs a different one overrides it in its own
+  frontmatter, and the question is not re-asked per TODO.
 - **The other three** go into `<notes-dir>/RULES.md` using the example's copy block: fill the
   Answers table with the three settings and expand each `<…>` in the per-step table. No placeholder
   may survive.
