@@ -1,11 +1,11 @@
 export const meta = {
   name: 'wm-code-impl',
   description: 'Run the review gate chain until every gate passes — over one wm TODO it implements first, or over a diff no TODO pair covers',
-  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — one parallel checks batch (lint, comments, names, and the opus outcome gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks. wm-code-auto calls this once per TODO.",
+  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — one parallel checks batch (lint, comments, names, test worth, and the opus outcome gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks. wm-code-auto calls this once per TODO.",
   phases: [
     { title: 'Intent', detail: 'diff mode only — resolve the range and derive the intent sentence', model: 'haiku' },
     { title: 'Implement', detail: 'wm:implementer (sonnet) writes + commits, and fixes every gate finding', model: 'sonnet' },
-    { title: 'Checks', detail: 'lint-tester + comment-critic + name-critic + reviewer, in parallel', model: 'haiku + opus' },
+    { title: 'Checks', detail: 'lint-tester + comment-critic + name-critic + test-critic + reviewer, in parallel', model: 'haiku + opus' },
     { title: 'Test', detail: 'wm:tester (sonnet) gates the Autotest contract', model: 'sonnet' },
   ],
 }
@@ -13,24 +13,58 @@ export const meta = {
 // ── args ─────────────────────────────────────────────────────────────────────
 // todo mode: { todo: <N>, notesDir?: ".notes", lessonsFile?, maxGateFails? }
 // diff mode: { mode: "diff", range?: "HEAD", intent?, notesDir?, lessonsFile?, maxGateFails? }
-const notesDir = (args && args.notesDir) || '.notes'
-const todo = args && args.todo
-const mode = (args && args.mode) || (todo === undefined || todo === null ? 'diff' : 'todo')
-if (mode === 'todo' && (todo === undefined || todo === null)) {
+//
+// A slash invocation delivers args as TEXT, not as the object the caller wrote: real runs arrived
+// as the bare string "TODO-2" and as the string '{"todo": 2}'. Reading `.todo` off a string yields
+// undefined, so an unparsed args is indistinguishable from no args at all — which is how a run
+// meant for TODO-2 silently became a gate pass over the last commit, implementing nothing. Parse
+// every shape the caller can type, and let only a genuinely empty args reach the guard below.
+function parseArgs(raw) {
+  if (raw === undefined || raw === null) return {}
+  if (typeof raw === 'object') return raw
+  if (typeof raw === 'number') return { todo: raw }
+  const text = String(raw).trim()
+  if (text === '') return {}
+  if (text.startsWith('{')) {
+    try {
+      return JSON.parse(text)
+    } catch (err) {
+      throw new Error(`args looks like JSON but does not parse: ${text} — ${err.message}`)
+    }
+  }
+  const named = text.match(/^(?:TODO[-\s]?)?(\d+)$/i)
+  if (named) return { todo: Number(named[1]) }
+  // Anything else the caller typed is a revision the review:sub-diff.md table can resolve: a
+  // branch, a sha, a range, a PR url, or the word "last".
+  return { mode: 'diff', range: text }
+}
+const parsed = parseArgs(typeof args === 'undefined' ? null : args)
+
+const notesDir = parsed.notesDir || '.notes'
+const todo = parsed.todo
+const hasTodo = todo !== undefined && todo !== null
+// The caller states the mode, or names a todo. Defaulting a missing todo to diff mode makes the
+// one mistake unrecoverable: a caller that meant todo mode and lost the arg gets a silent green
+// gate run over whatever the last commit happened to be, with no implementation at all.
+const mode = parsed.mode || (hasTodo ? 'todo' : null)
+if (mode !== 'todo' && mode !== 'diff') {
+  throw new Error('Name the work: { todo: <N> } to implement one TODO and gate it, or { mode: "diff", range } to gate code that already exists.')
+}
+if (mode === 'todo' && !hasTodo) {
   throw new Error('todo mode needs args { todo: <N> } — which TODO to implement. Pass { mode: "diff" } to gate a diff instead.')
 }
 const todoPath = mode === 'todo' ? `${notesDir}/todos/TODO-${todo}.md` : null
 
 // review:sub-diff.md step 1 — the caller names the range; nothing named means the working tree.
-const range = (args && args.range) || 'HEAD'
-let intent = (args && args.intent) || null
+let range = parsed.range || 'HEAD'
+let intent = parsed.intent || null
 
 // Set by wm-code-auto to the lessons file every round must read before it edits.
-const lessonsFile = (args && args.lessonsFile) || null
+const lessonsFile = parsed.lessonsFile || null
 
 // null = unbounded-until-green, the standalone `/code impl` contract. wm-code-auto
 // passes 3 — sub-auto.md's "three failed rounds on one gate → status: blocked".
-const maxGateFails = (args && args.maxGateFails) || null
+const maxGateFails = parsed.maxGateFails || null
 
 // Backstop only, for the unbounded case: real termination is a gate budget or the
 // implementer's own hard-stop returning status:"blocked". Logged if ever hit
@@ -100,15 +134,22 @@ const safetyClause =
   `status:"blocked" naming exactly what is missing and the command you would have needed — let a ` +
   `human install it. Never put a secret value in anything you return. `
 
+// Diff mode has no TODO to implement, so a correction round is a correction and nothing more: fix
+// exactly what the gate reported and add no behaviour, because no pair approved any.
 function implPrompt(failures, extra) {
   const base =
     lessonsClause +
     safetyClause +
-    `Implement exactly one TODO: ${todoPath} (notes-dir ${notesDir}). ` +
-    `Follow ${PLUGIN}/skills/impl/commands/sub-impl.md steps 1-4, 6, 7 (read context, dependency gate, ` +
-    `replan guard, every increment in order, glossary, autotest) with one change: the per-increment ` +
-    `approval loop (step 5.3) does not run — nobody is watching, so apply each increment without asking. ` +
-    `Both ## Autotest commands green before committing. Commit per ${PLUGIN}/skills/impl/commands/sub-commit.md. ` +
+    (mode === 'todo'
+      ? `Implement exactly one TODO: ${todoPath} (notes-dir ${notesDir}). ` +
+        `Follow ${PLUGIN}/skills/impl/commands/sub-impl.md steps 1-4, 6, 7 (read context, dependency gate, ` +
+        `replan guard, every increment in order, glossary, autotest) with one change: the per-increment ` +
+        `approval loop (step 5.3) does not run — nobody is watching, so apply each increment without asking. ` +
+        `Both ## Autotest commands green before committing. `
+      : `Correct the code already in ${range} (notes-dir ${notesDir}) — no TODO pair covers it, its ` +
+        `intent is: ${intent}. Close the findings below and change nothing else: add no behaviour, ` +
+        `widen no scope. Leave the tests that cover the changed files green. `) +
+    `Commit per ${PLUGIN}/skills/impl/commands/sub-commit.md. ` +
     `Return status:"done" once green + committed, or status:"blocked" with the blocker if you hit a hard-stop ` +
     `(3+ edits without green, 2 failed fix attempts, tool/permission error, or a request to replan).`
   if (extra) return `${base}\n\n${extra}`
@@ -121,82 +162,130 @@ function implPrompt(failures, extra) {
 }
 
 // The gate roster: ${CLAUDE_PLUGIN_ROOT}/skills/review/references/ref-gates.md owns which gate
-// judges what and at which tier. WAVE runs as one parallel wave; SERIAL runs in order after it.
+// judges what and at which tier. checks() runs as one parallel wave; serial() runs in order after it.
 // Every gate carries the lessons clause: the gates are the agents that actually RUN the linter and
 // the suite, so an environment lesson that reaches only the implementer cannot change the command
 // that fails.
-const WAVE = [
-  {
-    key: 'lint',
-    agentType: 'wm:lint-tester',
-    prompt:
-      lessonsClause +
-      safetyClause +
-      `Lint gate for ${todoPath} (notes-dir ${notesDir}). Follow the wm:lint-tester contract: ` +
-      `from the diff + the TODO's Files, lint the changed files with the repo's configured linter, ` +
-      `run the TODO's Autotest and the tests covering the changed files. Return result PASS/FAIL, ` +
-      `failures verbatim, and the real commands you ran.`,
-  },
-  {
-    key: 'comment',
-    agentType: 'wm:comment-critic',
-    prompt:
-      lessonsClause +
-      safetyClause +
-      `Comment gate for the diff of ${todoPath} (notes-dir ${notesDir}) — the TODO's commit plus its ` +
-      `fixups. Follow the wm:comment-critic contract: judge every comment, doc line, and doc tag the ` +
-      `diff adds or changes. You never read the TODO pair — a comment is judged against the code ` +
-      `under it. Return result PASS/FAIL with failures (file:line — the rule — the rewrite).`,
-  },
-  {
-    key: 'name',
-    agentType: 'wm:name-critic',
-    prompt:
-      lessonsClause +
-      safetyClause +
-      `Naming gate for the diff of ${todoPath} (notes-dir ${notesDir}) — the TODO's commit plus its ` +
-      `fixups. Follow the wm:name-critic contract: run the pedant smell table over every name the ` +
-      `diff declares. You never read the TODO pair — a name is judged against its own body. ` +
-      `Return result PASS/FAIL with failures (file:line — name — smell — the bug it hides — rename).`,
-  },
-]
-const SERIAL = [
-  {
-    key: 'test',
-    phase: 'Test',
-    agentType: 'wm:tester',
-    prompt:
-      lessonsClause +
-      safetyClause +
-      `Test gate for ${todoPath} (notes-dir ${notesDir}) in TODO mode. The cheap wave is green — the ` +
-      `one question left: does a test actually assert this TODO's ## Autotest contract ` +
-      `(both Unit and E2E)? No test covers it → WRITE that test first, then run it, and list every ` +
-      `file you wrote in wroteTests (you do not commit — the implementer folds them in). ` +
-      `Return result FAIL on a red run or a contract you cannot cover, with the real commands and the ` +
-      `failures verbatim; PASS when the contract is covered and green.`,
-  },
-  {
-    key: 'outcome',
-    phase: 'Review',
-    agentType: 'wm:reviewer',
-    prompt:
-      lessonsClause +
-      safetyClause +
-      `Outcome gate for ${todoPath} (notes-dir ${notesDir}). Lint, the tests, the comments, and the ` +
-      `names are already green — do not re-litigate any of them. Follow the wm:reviewer contract: ` +
-      `judge from the TODO pair (Outcome, Surface, Constraints, Changes) + the real diff whether the ` +
-      `Outcome is delivered without correctness bugs or spec drift. Return result PASS/FAIL with ` +
-      `failures (file:line — scenario — closing edit).`,
-  },
-]
+//
+// Both rosters are functions, not constants, because in diff mode the subject of every brief — the
+// resolved range and the intent sentence — is only known after the Intent agent returns. Building
+// the briefs up front is what sent every gate the literal string "null" as the thing to judge.
+function subjectClause() {
+  if (mode === 'todo') return `${todoPath} (notes-dir ${notesDir})`
+  return `the diff ${range} (notes-dir ${notesDir}) — no TODO pair covers it. Intent: ${intent}`
+}
+
+function checks() {
+  const subject = subjectClause()
+  const theDiff = mode === 'todo' ? `the diff of ${subject} — the TODO's commit plus its fixups` : subject
+  return [
+    {
+      key: 'lint',
+      agentType: 'wm:lint-tester',
+      prompt:
+        lessonsClause +
+        safetyClause +
+        `Lint gate for ${subject}. Follow the wm:lint-tester contract: lint the changed files with ` +
+        `the repo's configured linter and run the tests covering them. ` +
+        (mode === 'todo'
+          ? `Take the file list from the diff + the TODO's Files, and run the TODO's Autotest too. `
+          : `Take the file list from the diff; no ## Autotest command exists, so the covering tests are all you run. `) +
+        `Return result PASS/FAIL, failures verbatim, and the real commands you ran.`,
+    },
+    {
+      key: 'comment',
+      agentType: 'wm:comment-critic',
+      prompt:
+        lessonsClause +
+        safetyClause +
+        `Comment gate for ${theDiff}. Follow the wm:comment-critic contract: judge every comment, ` +
+        `doc line, and doc tag the diff adds or changes. You never read the TODO pair — a comment is ` +
+        `judged against the code under it. Return result PASS/FAIL with failures ` +
+        `(file:line — the rule — the rewrite).`,
+    },
+    {
+      key: 'name',
+      agentType: 'wm:name-critic',
+      prompt:
+        lessonsClause +
+        safetyClause +
+        `Naming gate for ${theDiff}. Follow the wm:name-critic contract: run the pedant smell table ` +
+        `over every name the diff declares. You never read the TODO pair — a name is judged against ` +
+        `its own body. Return result PASS/FAIL with failures ` +
+        `(file:line — name — smell — the bug it hides — rename).`,
+    },
+    // The two test gates are opposites and both are needed: this one drops the tests the diff wrote
+    // that buy no failure mode, the serial one writes the test the diff left missing. Running in the
+    // wave puts it on the second pass over every test the serial gate wrote, since folding a written
+    // test in restarts the chain here.
+    {
+      key: 'testWorth',
+      agentType: 'wm:test-critic',
+      prompt:
+        lessonsClause +
+        safetyClause +
+        `Test-worth gate for ${theDiff}. Follow the wm:test-critic contract: judge every test the ` +
+        `diff adds or changes and reject the ones that assert nothing the code can get wrong — a body ` +
+        `with no branch, a getter returning what was set, a case a wider test in the same diff already ` +
+        `proves. Propose the deletion and apply none. Return result PASS/FAIL with failures ` +
+        `(file:line — the test to delete — what it fails to assert).`,
+    },
+    // The standards gate runs in the wave, not after it. It reads the diff and shares no state with
+    // the cheap gates, so serialising it only added its own latency to the round. A test the test
+    // gate writes still reaches it: folding that test in restarts the whole chain at the wave, so
+    // the last wave an accepted run ever does is over the final diff.
+    {
+      key: 'outcome',
+      agentType: 'wm:reviewer',
+      prompt:
+        lessonsClause +
+        safetyClause +
+        (mode === 'todo'
+          ? `Outcome gate for ${subject}. Follow the wm:reviewer contract: judge from the TODO pair ` +
+            `(Outcome, Surface, Constraints, Changes) + the real diff whether the Outcome is delivered ` +
+            `without correctness bugs or spec drift. `
+          : `Standards gate for ${subject}. Follow the wm:reviewer contract with no pair to cite: the ` +
+            `rules come from the repo's CLAUDE.md files, the house style docs, the code around the ` +
+            `diff, and the language idiom. The intent sentence is context, never a contract — never ` +
+            `rule on whether the diff delivers it. Judge how the code is built, plus correctness. `) +
+        `Lint, the comments, the names, and the worth of each test are judged by their own gates in ` +
+        `this same wave — report none of them. Return result PASS/FAIL with failures ` +
+        `(file:line — scenario — closing edit).`,
+    },
+  ]
+}
+
+function serial() {
+  const subject = subjectClause()
+  return [
+    {
+      key: 'test',
+      phase: 'Test',
+      agentType: 'wm:tester',
+      prompt:
+        lessonsClause +
+        safetyClause +
+        `Test gate for ${subject}. The checks wave is green — the one question left: ` +
+        (mode === 'todo'
+          ? `does a test actually assert this TODO's ## Autotest contract (both Unit and E2E)? ` +
+            `No test covers it → WRITE that test first, then run it, and list every file you wrote ` +
+            `in wroteTests (you do not commit — the implementer folds them in). ` +
+            `Return result FAIL on a red run or a contract you cannot cover, with the real commands ` +
+            `and the failures verbatim; PASS when the contract is covered and green.`
+          : `does a test assert the behaviour this diff changed? Run the tests that cover it. ` +
+            `Return result FAIL on a red run or an uncovered change, naming the gap with the real ` +
+            `commands and the failures verbatim; PASS when the changed behaviour is covered and green.`),
+    },
+  ]
+}
 
 // ── loop ─────────────────────────────────────────────────────────────────────
 let round = 0
 const history = []
-const fails = { lint: 0, comment: 0, name: 0, test: 0, outcome: 0 }
+const fails = { lint: 0, comment: 0, name: 0, testWorth: 0, test: 0, outcome: 0 }
 
 function blocked(stage, impl) {
-  return { result: 'BLOCKED', mode, todo, stage, blocker: impl ? impl.blocker : 'implementer agent died', round, history, compact: compactAsked }
+  return { result: 'BLOCKED', mode, todo, stage, blocker: impl ? impl.blocker : 'implementer agent died', round, history }
 }
 
 let impl = null
@@ -219,11 +308,13 @@ if (mode === 'todo') {
         : `3. Derive the intent: one sentence saying what this change is for, from the commit messages in the range.\n`),
     { agentType: 'general-purpose', model: 'haiku', phase: 'Intent', schema: INTENT, label: 'intent' },
   )
-  if (!resolved) return { result: 'ERROR', mode, stage: 'intent', round, history, compact: compactAsked }
+  if (!resolved) return { result: 'ERROR', mode, stage: 'intent', round, history }
   if (resolved.empty) {
     log(`range ${resolved.range} is empty — reporting it as empty, never as a green run`)
-    return { result: 'EMPTY', mode, range: resolved.range, round, history, compact: compactAsked }
+    return { result: 'EMPTY', mode, range: resolved.range, round, history }
   }
+  // The gates judge the range the Intent agent resolved, not the shorthand the caller typed.
+  range = resolved.range
   intent = resolved.intent
   log(`range ${resolved.range} — intent: ${intent}`)
 }
@@ -236,7 +327,6 @@ while (round < MAX_ROUNDS) {
   // The checks: four gates over the same diff, in one parallel batch. They share no state, so the
   // wall clock is the slowest of the four instead of their sum.
   phase('Checks')
-  askCompact()
   const CHECKS = checks()
   const checksOut = await parallel(
     CHECKS.map((gate) => () =>
@@ -245,7 +335,7 @@ while (round < MAX_ROUNDS) {
   )
   const checksRuns = checksOut.filter(Boolean)
   const checksDied = CHECKS.filter((g) => !checksRuns.some((r) => r.gate.key === g.key) || !checksRuns.find((r) => r.gate.key === g.key).out)
-  if (checksDied.length > 0) return { result: 'ERROR', mode, todo, stage: checksDied.map((g) => g.key).join('+'), round, history, compact: compactAsked }
+  if (checksDied.length > 0) return { result: 'ERROR', mode, todo, stage: checksDied.map((g) => g.key).join('+'), round, history }
   for (const { gate, out } of checksRuns) history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], ran: out.ran || '' })
 
   // One fixup carries every failing check's findings — separate fixups would each invalidate the
@@ -264,7 +354,7 @@ while (round < MAX_ROUNDS) {
     for (const gate of serial()) {
       phase(gate.phase)
       const out = await agent(gate.prompt, { agentType: gate.agentType, phase: gate.phase, schema: GATE, label: `${gate.key}:r${round}` })
-      if (!out) return { result: 'ERROR', mode, todo, stage: gate.key, round, history, compact: compactAsked }
+      if (!out) return { result: 'ERROR', mode, todo, stage: gate.key, round, history }
       history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], ran: out.ran || '' })
       if (out.result === 'FAIL') {
         failed = { gate, out }
@@ -281,7 +371,7 @@ while (round < MAX_ROUNDS) {
 
   if (!failed && !uncommitted) {
     log(`${mode === 'todo' ? `TODO-${todo}` : range} green on every gate after ${round} round(s)`)
-    return { result: 'PASS', mode, todo, range: mode === 'diff' ? range : undefined, intent, round, summary: impl ? impl.summary : undefined, history, compact: compactAsked }
+    return { result: 'PASS', mode, todo, range: mode === 'diff' ? range : undefined, intent, round, summary: impl ? impl.summary : undefined, history }
   }
 
   if (uncommitted) {
@@ -312,7 +402,6 @@ while (round < MAX_ROUNDS) {
       blocker: `${failed.gate.key} gate failed ${spent} rounds; last findings: ${failures.join(' | ') || '(none reported)'}`,
       round,
       history,
-      compact: compactAsked,
     }
   }
 
@@ -323,4 +412,4 @@ while (round < MAX_ROUNDS) {
 }
 
 log(`${mode === 'todo' ? `TODO-${todo}` : range}: hit MAX_ROUNDS=${MAX_ROUNDS} without every gate green — stopping (backstop, not a silent truncation)`)
-return { result: 'MAX_ROUNDS', mode, todo, round, history, compact: compactAsked }
+return { result: 'MAX_ROUNDS', mode, todo, round, history }

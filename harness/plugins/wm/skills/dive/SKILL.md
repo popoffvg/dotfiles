@@ -94,6 +94,7 @@ typing files (`components/`, `_flow.entities.d.ts`, `tsconfig.json`) and `flows.
 ## Integration with wm
 
 - During the **research phase**, `explore-research` saves coarse findings as `<notes-dir>/research-*.md`. `explore` complements that with per-entry-point deep dives under `<notes-dir>/research/`.
+- The `docs` route also **starts the glossary**: the terms it finds in the code are merged into `<notes-dir>/GLOSSARY.md`, the same file `arch` keeps current through the spec phase. Research names the words that exist; the spec names the words that will (`dive-docs:SKILL.md` § Glossary).
 - During **spec phase**, `code new` may reference `research/<ep-slug>.md#DP-N` or `#EC-N` from a TODO's **Pre-reads** so the implementer doesn't re-derive the analysis.
 - `research/` is committed alongside `spec.md` and `todos/` — it travels with the task.
 

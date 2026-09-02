@@ -15,38 +15,50 @@ every finding routes back to `impl`, which is the only skill that edits.
 1. **Name the revision.** The diff under judgment is the TODO's commit plus every fixup on top of
    it — `git log --oneline` from the TODO's commit to `HEAD`. Pass that revision range to every
    gate; a gate that picks its own range judges a different diff from its siblings.
-2. **Name the pair.** Every gate gets the paths, never the pasted content: `<notes-dir>/todos/TODO-N.md`
-   (Outcome, Components, Surface, Autotest, Deviations) and `<notes-dir>/todos/TODO-N.agent.md`
-   (Changes, Files), plus `<notes-dir>/CONSTRAINTS.md` — the rules both halves obey. Leave
-   `thoughts/` out of the brief — the outcome gate runs the `trace` skill itself when a rule looks
-   wrong rather than merely unmet.
-3. **Run the cheap wave** — @lint-tester, @comment-critic, and @name-critic in **one message**. The
-   lint gate needs the pair (Files, Autotest); the comment and name gates never read it, because a
-   comment is judged against the code under it and a name against its own body.
-4. **Run the test gate** — @tester in TODO mode. The one question: does a test assert this TODO's
-   `## Autotest` contract, both `Unit` and `E2E`? No → it writes that test and returns the files.
-5. **Run the outcome gate** — @reviewer, with lint and tests already green so it does not
-   re-litigate them.
-6. **Merge and report** — the report shape in the roster. On every gate green, the caller advances
-   the TODO `status: verify → done`; on a budget exhausted, `status: blocked`.
+2. **Name the rule files.** Every gate gets the paths, never the pasted content:
+   `<notes-dir>/CONSTRAINTS.md`, `<notes-dir>/RULES.md`, and `<notes-dir>/PATTERNS.md` — the rules
+   and patterns the code must obey — plus `<notes-dir>/todos/TODO-N.md` (Autotest) and
+   `<notes-dir>/todos/TODO-N.agent.md` (Files) for the two gates that need them. Leave `thoughts/`
+   out of the brief: no gate here judges why a rule exists.
+3. **Run the wave** — @lint-tester, @comment-critic, @name-critic, @test-critic, and @reviewer in
+   **one message**, each with its own `report: <notes-dir>/review/TODO-N/<gate>.md` line (§ Every
+   gate writes its report to a file). The lint gate needs the pair (Files, Autotest), and
+   @test-critic needs `## Autotest` so it can tell a case the human asked for from one the
+   implementer invented; the comment and name gates never read the pair, because a comment is judged
+   against the code under it and a name against its own body. @reviewer's brief names
+   `<notes-dir>/CONSTRAINTS.md`, `<notes-dir>/RULES.md`, and `<notes-dir>/PATTERNS.md` — the rule
+   sources the pair points at — and never the Outcome or the Surface. Tell it the other four gates
+   run beside it, so it reports none of what they judge.
+4. **Run the test gate** — @tester in TODO mode, `report: <notes-dir>/review/TODO-N/test.md`, once
+   the wave is green. The one question: does a test assert this TODO's `## Autotest` contract, both
+   `Unit` and `E2E`? No → it writes that test and returns the files.
+5. **Merge and report** — the report shape in the roster, written to
+   `<notes-dir>/review/TODO-N/report.md` and returned. On every gate green, the caller advances
+   the TODO `status: verify → done`; on a budget exhausted, `status: blocked`. Green here means
+   *built right* only — the Outcome and the Surface were checked by the `verifier` agent when
+   `status` reached `verify`, not by this chain.
 
-## What a TODO gate judges that a loose diff cannot
+## What the pair gives a gate that a loose diff cannot
 
-**The Surface is a contract, not a suggestion.** `TODO-N.md` § Surface is the exact shape every
-changed symbol must end up with, approved before code existed. A signature that does not match it is
-a Failure — the outcome gate checks it symbol by symbol.
+**The pair is a rule source, not a spec to check against.** No gate in this chain judges the
+Outcome, the Surface, or drift — that is `/code verify` before the code and the `verifier` agent
+after it (`ref-gates.md` § No gate judges the spec). What the pair adds here is three files the
+standards gate can cite by name.
 
-**The Blast radius is the migration checklist.** Each increment in `## Changes` predicts the symbols
-and callers it reaches. A caller the blast radius named and the diff did not migrate is a Failure,
-never a nit.
+**`CONSTRAINTS.md` turns taste into a rule.** Each `R<n>` row is a decision the human settled, so a
+breach is a Failure with a citation instead of a reviewer's opinion. A loose diff has no such file
+and the same finding lands as a Nit.
 
-**A `## Deviations` row supersedes the section above it.** The row is a correction the user approved
-mid-implementation, so the code is right and the older section is the stale text. Judge against the
-row and its `[[NNN-impl-decision-slug]]` note. A mismatch with no row is a Failure as usual, and so
-is a row whose note is missing or whose reach goes past this TODO — that correction belonged in
-`revise`.
+**`PATTERNS.md` names the pattern the code was meant to follow.** Without it the standards gate
+infers the pattern from the neighbouring files, which is weaker: a package that is itself
+inconsistent gives it nothing to cite.
 
-**Bodies are held to a weaker standard than signatures.** Nobody specified a body; the increment
-only sketched its Behavior. A body that reaches the sketch's observable outcome by other means is
-fine, and one more idiomatic than the sketch is better. It is drift when it reaches a *different*
-outcome, skips an error path the sketch shows, or drops an edge case the sketch names.
+**`TODO-N.agent.md` § Files bounds the diff.** The gate knows which files the change was supposed to
+touch, so a file changed outside that list is worth a line — as a rule question for the human, never
+as drift the gate rules on.
+
+**An Autotest case the human wrote is still droppable.** @test-critic judges the test the diff
+wrote, not the case that asked for it, so a listed `## Autotest` case whose code has no condition
+comes back as a Failure. Dropping it contradicts the approved pair, which makes it a **deviation**:
+the implementer records the `impl-decision` note and the `## Deviations` row, and never edits the
+Autotest table (`arch:ref-todo-sections.md`).

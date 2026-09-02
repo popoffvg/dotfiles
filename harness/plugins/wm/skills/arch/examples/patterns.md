@@ -14,6 +14,7 @@ human at the gate — nothing here needs the user's agreement.
 > One row per pattern the increments must follow. `Follow` states the rule in one line; `Reference`
 > is the `path:line` that already does it — a pattern with no existing example in the repo is a
 > decision, so it belongs in `thoughts/` as a `NNN-decision-*.md` note, not here.
+> The prose follows `harness-dev:text-style`.
 
 ## Reference files
 

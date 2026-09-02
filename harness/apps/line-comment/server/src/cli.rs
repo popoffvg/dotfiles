@@ -32,23 +32,42 @@ pub fn parse_target(argument: &str) -> Result<Target, String> {
     })
 }
 
-/// The workspace root a path belongs to: its nearest ancestor holding `.git`, else the
-/// current directory. The server derives the same root from the client's workspace
-/// folder, and the two have to agree or they read different stores.
+/// The workspace root the current directory belongs to — the root of a command naming no
+/// file.
+pub fn current_root() -> PathBuf {
+    let current = std::env::current_dir().unwrap_or_default();
+    root_for(&current)
+}
+
+/// The workspace root a path belongs to: the nearest directory from the path up that
+/// already holds a store, else the nearest one holding `.git`, else the current directory.
+/// The search stops below `$HOME`, so a store left in the home directory claims nothing.
+///
+/// The server derives its root from the client's workspace folder, which is one Zed
+/// project and can hold several repositories — so an existing store outranks `.git`, or
+/// the command reads the store of one repository inside the project while the server
+/// writes the project's.
 pub fn root_for(path: &Path) -> PathBuf {
+    let current = std::env::current_dir().unwrap_or_default();
     let absolute = if path.is_absolute() {
         path.to_path_buf()
     } else {
-        std::env::current_dir().unwrap_or_default().join(path)
+        current.join(path)
     };
-    let mut cursor = absolute.as_path();
-    while let Some(parent) = cursor.parent() {
-        if parent.join(".git").exists() {
-            return parent.to_path_buf();
+    let home = std::env::var_os("HOME").map(PathBuf::from);
+    let mut repository = None;
+    for candidate in absolute.ancestors() {
+        if Some(candidate) == home.as_deref() {
+            break;
         }
-        cursor = parent;
+        if candidate.join(".tmp").join("line-comment.json").exists() {
+            return candidate.to_path_buf();
+        }
+        if repository.is_none() && candidate.join(".git").exists() {
+            repository = Some(candidate.to_path_buf());
+        }
     }
-    std::env::current_dir().unwrap_or_default()
+    repository.unwrap_or(current)
 }
 
 /// Attach a comment to a line or a span of lines, replacing whatever the first line of it
@@ -107,7 +126,7 @@ pub fn drop_comments(targets: &[String]) -> Result<String, String> {
 
 /// Drop every comment in the workspace — `reset comments`, from a shell.
 pub fn drop_all() -> Result<String, String> {
-    let root = root_for(Path::new("."));
+    let root = current_root();
     let (mut session, _effects) = Session::new(root);
     let total = session.store().total();
     session.store_mut().clear();
@@ -115,9 +134,15 @@ pub fn drop_all() -> Result<String, String> {
     Ok(format!("dropped {total} comment(s)"))
 }
 
+/// The store the commands read and write, for a caller that has to open it itself.
+pub fn store_path() -> Result<String, String> {
+    let (session, _effects) = Session::new(current_root());
+    Ok(session.store_path().display().to_string())
+}
+
 /// Every comment in the store, in the export format the `/line-comment:act` command reads.
 pub fn list() -> Result<String, String> {
-    let root = root_for(Path::new("."));
+    let root = current_root();
     let (session, _effects) = Session::new(root);
     Ok(export::render(session.store()))
 }

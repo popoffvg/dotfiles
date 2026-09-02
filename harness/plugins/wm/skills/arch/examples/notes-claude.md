@@ -2,6 +2,7 @@
 
 > Copy to `<notes-dir>/CLAUDE.md` verbatim, replacing `<notes-dir>` with the real path. Written once
 > by `/code new` Step 0, next to `spec.md`; no later subcommand rewrites it.
+> The prose follows `harness-dev:text-style`.
 
 This folder is the spec corpus for one piece of work. It is its own jj repo, git-ignored in the
 parent project. `jj -R . log` is the history.

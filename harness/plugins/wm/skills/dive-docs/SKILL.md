@@ -12,6 +12,8 @@ is the `workflow` route.
 
 Do it until the stop criteria are met: **stop when no open question and no unexplored branch remain.**
 
+> **Style**: `harness-dev:text-style` — the house shape of every artifact this skill writes.
+
 ## The files this skill owns
 
 | File | Holds |
@@ -54,20 +56,32 @@ After all agents finish:
 
 | File | Purpose |
 |---|---|
-| `INDEX.md` | One-line summary + links per entry point. |
+| `INDEX.md` | One-line summary + links per entry point, in `$RESEARCH_DIR/`. |
+| `<notes-dir>/GLOSSARY.md` | The project's ubiquitous language, merged from every artifact's `## Terms`. See § Glossary. |
 
 ## Procedure
 
 1. **Resolve task slug.** User's task description, kebab-case, max 40 chars. Save as `TASK_SLUG`.
 2. **Resolve `<notes-dir>` and `$RESEARCH_DIR`** (see `dive:SKILL.md` "Output location"). Create `$RESEARCH_DIR` if missing.
-3. **Check for prior runs.** If `$RESEARCH_DIR/INDEX.md` exists, ask the user: *append*, *overwrite*, or *bail*. Never silently overwrite.
+3. **Check for prior runs.** If `$RESEARCH_DIR/INDEX.md` exists, ask the user inline — one question, `AskUserQuestion` — *append*, *overwrite*, or *bail*. Never silently overwrite.
 4. **Generate question lists** — one `$RESEARCH_DIR/<ep-slug>.questions.md` per entry point. Follow `references/ref-grill.md`. These are questions the explorer must answer, not questions for the user.
 5. **Spawn one `wm:explorer` per entry point, all in one message.** Give each: the entry point, the absolute `$RESEARCH_DIR`, and the contents of its `<ep-slug>.questions.md`.
 6. **Wait for all explorers to finish.**
 7. **Run the convergence loop** — `references/ref-converge.md` — until research converges.
-8. **Write** `$RESEARCH_DIR/INDEX.md` (template below).
-9. **Append worklog entry** to `<notes-dir>/worklog.md` if it exists.
-10. **Print** the research dir path. Suggest `/dive workflow` to add the navigable TS pseudocode + bindings layer.
+8. **Merge the glossary** into `<notes-dir>/GLOSSARY.md` — § Glossary below.
+9. **Write** `$RESEARCH_DIR/INDEX.md` (template below).
+10. **Append worklog entry** to `<notes-dir>/worklog.md` if it exists.
+11. **Print** the research dir path and the count of glossary rows the user approved. Suggest `/dive workflow` to add the navigable TS pseudocode + bindings layer.
+
+## Glossary
+
+Research is where the project's words are found, so research is where `<notes-dir>/GLOSSARY.md` starts. Each artifact's `## Terms` table names the words of one path; this step turns the whole set into one language. There is no second glossary in `$RESEARCH_DIR/` — the notes-dir file is the one home, and `arch` keeps writing to it through the spec phase (`arch:examples/glossary.md`).
+
+1. **Collect** every `## Terms` row from every `$RESEARCH_DIR/<ep-slug>.md`.
+2. **Merge them with the `terms` skill.** Load it and run its cluster-and-canonicalize pass over the collected rows. It picks one canonical word per concept, folds the rest into Avoid, and reports a collision — one word carrying two meanings — as two concepts instead of one. Do not restate its algorithm here.
+3. **Diff against the existing file.** A row whose Term is already in `<notes-dir>/GLOSSARY.md` with the same meaning is not a change. What remains is the change set: new terms, reworded definitions, and collisions.
+4. **Get the user's approval on the change set** — `code:ref-subcommand-rules.md` § Glossary owns how. A collision goes to the user as a question, never as a merge you picked.
+5. **Write the approved rows** into `<notes-dir>/GLOSSARY.md` in the `arch:examples/glossary.md` shape. Leave **Kind** empty — the spec phase types each term against the brick roster. Drop the rejected rows; they do not return next run.
 
 ## INDEX.md
 

@@ -30,16 +30,37 @@ const say = (text) => { statusBox.textContent = text }
 const CELL_W = 330
 const CELL_H = 150
 const GUTTER = 90
+// A row gutter carries the arrow labels, so it needs more air than a column one.
+const GUTTER_Y = 190
+const LINE_H = 26
+const TEXT_PAD = 26
+const CLUSTER_PAD = 45
+const CLUSTER_GAP = CELL_W + GUTTER
 
-/** A grid cell as pixels. A span swallows the gutters it covers. */
+/** Lines a box needs once its longest line is wrapped to the box width. */
+function textHeight(text, w) {
+  const perLine = Math.max(1, Math.floor((w - TEXT_PAD) / 8.4))
+  let lines = 0
+  for (const line of String(text ?? '').split('\n')) {
+    lines += Math.max(1, Math.ceil(line.length / perLine))
+  }
+  return lines * LINE_H + TEXT_PAD
+}
+
+/**
+ * A grid cell as pixels. A span swallows the gutters it covers, and a box grows
+ * downward past its span when its own text does not fit — text overflowing the
+ * border is the one crowding the eye cannot forgive.
+ */
 function placeOnGrid(box) {
   const colSpan = box.colSpan ?? 1
   const rowSpan = box.rowSpan ?? 1
+  const w = colSpan * CELL_W + (colSpan - 1) * GUTTER
   return {
     x: box.col * (CELL_W + GUTTER),
-    y: box.row * (CELL_H + GUTTER),
-    w: colSpan * CELL_W + (colSpan - 1) * GUTTER,
-    h: rowSpan * CELL_H + (rowSpan - 1) * GUTTER,
+    y: box.row * (CELL_H + GUTTER_Y),
+    w,
+    h: Math.max(rowSpan * CELL_H + (rowSpan - 1) * GUTTER_Y, textHeight(box.text, w)),
   }
 }
 
@@ -47,6 +68,60 @@ function rectOf(box) {
   if (box.row != null && box.col != null) return placeOnGrid(box)
   if (box.x != null && box.y != null) return { x: box.x, y: box.y, w: box.w, h: box.h }
   throw new Error(`box "${box.id}" needs row+col, or x+y+w+h`)
+}
+
+/** Cluster ids left to right: the declared order first, then any a box invents. */
+function clusterOrder(seed) {
+  const declared = (seed.clusters ?? []).map((c) => c.id)
+  const invented = []
+  for (const box of seed.boxes ?? []) {
+    const key = box.cluster ?? null
+    if (key !== null && !declared.includes(key) && !invented.includes(key)) invented.push(key)
+  }
+  return [...declared, ...invented]
+}
+
+/**
+ * Lay clusters out left to right, each a frame holding its own local grid, so a
+ * cluster reads as one thing and drags as one thing. `row`/`col` on a clustered
+ * box are cluster-local. A box with no cluster keeps the plain absolute grid and
+ * gets no frame.
+ */
+function layout(seed) {
+  const frames = []
+  const boxes = []
+  let penX = 0
+
+  for (const key of clusterOrder(seed)) {
+    const members = (seed.boxes ?? []).filter((b) => (b.cluster ?? null) === key)
+    if (!members.length) continue
+    const rects = members.map((b) => ({ box: b, r: rectOf(b) }))
+    const w = Math.max(...rects.map(({ r }) => r.x + r.w)) + CLUSTER_PAD * 2
+    const h = Math.max(...rects.map(({ r }) => r.y + r.h)) + CLUSTER_PAD * 2
+    const meta = (seed.clusters ?? []).find((c) => c.id === key) ?? { id: key }
+    const frameId = createShapeId()
+    frames.push({ id: frameId, x: penX, y: 0, w, h, name: meta.text ?? key })
+    for (const { box, r } of rects) {
+      boxes.push({
+        box, parentId: frameId, color: box.color ?? meta.color, w: r.w, h: r.h,
+        local: { x: r.x + CLUSTER_PAD, y: r.y + CLUSTER_PAD },
+        abs: { id: box.id, x: penX + r.x + CLUSTER_PAD, y: r.y + CLUSTER_PAD, w: r.w, h: r.h },
+      })
+    }
+    penX += w + CLUSTER_GAP
+  }
+
+  for (const box of seed.boxes ?? []) {
+    if ((box.cluster ?? null) !== null) continue
+    const r = rectOf(box)
+    boxes.push({
+      box, parentId: null, color: box.color, w: r.w, h: r.h,
+      local: { x: r.x, y: r.y },
+      abs: { id: box.id, ...r },
+    })
+  }
+
+  return { frames, boxes }
 }
 
 /** Pairs with less than one gutter between them on both axes. */
@@ -58,52 +133,206 @@ function findCrowding(placed) {
       const b = placed[j]
       const gapX = Math.max(b.x - (a.x + a.w), a.x - (b.x + b.w))
       const gapY = Math.max(b.y - (a.y + a.h), a.y - (b.y + b.h))
-      if (Math.max(gapX, gapY) < GUTTER) tight.push(`${a.id}~${b.id}`)
+      if (gapX < GUTTER && gapY < GUTTER) tight.push(`${a.id}~${b.id}`)
     }
   }
   return tight
 }
 
+/**
+ * Arrow labels that land on a box. A label sits at the arrow midpoint, so a hop
+ * between distant boxes drops its text on whatever sits between them — the mess
+ * the eye reads first. Long labels are the usual cause: shorten the payload.
+ */
+function findLabelClashes(seed, byId) {
+  const clashes = []
+  for (const arrow of seed.arrows ?? []) {
+    if (!arrow.text) continue
+    const a = byId.get(arrow.from)
+    const b = byId.get(arrow.to)
+    if (!a || !b) continue
+    const mx = (a.x + a.w / 2 + b.x + b.w / 2) / 2
+    const my = (a.y + a.h / 2 + b.y + b.h / 2) / 2
+    for (const box of byId.values()) {
+      if (box === a || box === b) continue
+      if (mx > box.x && mx < box.x + box.w && my > box.y && my < box.y + box.h) {
+        clashes.push(`${arrow.from}->${arrow.to} on ${box.id}`)
+        break
+      }
+    }
+  }
+  return clashes
+}
+
+/**
+ * Arrows whose path crosses a box that is neither end. An elbow arrow routes
+ * orthogonally, so it cuts straight through whatever stands between its ends.
+ * Every crossing is a layout bug: move the two boxes next to each other, or move
+ * the box in the way out of the channel.
+ */
+function findCrossings(seed, byId) {
+  const hits = []
+  const hBlocked = (y, x0, x1, box) =>
+    box.y < y && box.y + box.h > y &&
+    box.x < Math.max(x0, x1) && box.x + box.w > Math.min(x0, x1)
+  const vBlocked = (x, y0, y1, box) =>
+    box.x < x && box.x + box.w > x &&
+    box.y < Math.max(y0, y1) && box.y + box.h > Math.min(y0, y1)
+
+  for (const arrow of seed.arrows ?? []) {
+    const a = byId.get(arrow.from)
+    const b = byId.get(arrow.to)
+    if (!a || !b) continue
+    const ax = a.x + a.w / 2, ay = a.y + a.h / 2
+    const bx = b.x + b.w / 2, by = b.y + b.h / 2
+    const others = [...byId.values()].filter((box) => box !== a && box !== b)
+    // tldraw picks one L; a crossing is real only when both L routes are blocked.
+    const blockers = (route) => others.filter(route)
+    const viaX = blockers((box) => hBlocked(ay, ax, bx, box) || vBlocked(bx, ay, by, box))
+    const viaY = blockers((box) => vBlocked(ax, ay, by, box) || hBlocked(by, ax, bx, box))
+    if (viaX.length && viaY.length) {
+      const named = viaX.filter((box) => viaY.includes(box)).map((box) => box.id)
+      hits.push(`${arrow.from}->${arrow.to} through ${(named.length ? named : viaX.map((n) => n.id)).join(',')}`)
+    }
+  }
+  return hits
+}
+
+/**
+ * Where a label sits along its own arrow. Every label at the midpoint is how two
+ * unrelated arrows come to print one word made of two: slide each label along
+ * its route until it is clear of the boxes and of the labels already placed.
+ * Walks the elbow's own L, so an offset follows the line the reader sees.
+ */
+function placeLabel(arrow, rectOf, placed) {
+  const a = rectOf.get(arrow.from)
+  const b = rectOf.get(arrow.to)
+  const text = arrow.text ?? ''
+  if (!a || !b || !text) return 0.5
+
+  const ax = a.x + a.w / 2, ay = a.y + a.h / 2
+  const bx = b.x + b.w / 2, by = b.y + b.h / 2
+  const legs = [[ax, ay, bx, ay], [bx, ay, bx, by]]
+  const lengths = legs.map(([x0, y0, x1, y1]) => Math.abs(x1 - x0) + Math.abs(y1 - y0))
+  const total = lengths[0] + lengths[1] || 1
+
+  const pointAt = (t) => {
+    let want = t * total
+    for (let i = 0; i < legs.length; i++) {
+      if (want <= lengths[i] || i === legs.length - 1) {
+        const [x0, y0, x1, y1] = legs[i]
+        const f = lengths[i] ? Math.min(1, want / lengths[i]) : 0
+        return [x0 + (x1 - x0) * f, y0 + (y1 - y0) * f]
+      }
+      want -= lengths[i]
+    }
+    return [bx, by]
+  }
+
+  const lw = text.length * 8.4
+  const lh = 30
+  const others = [...rectOf.values()].filter((r) => r !== a && r !== b)
+  const hits = (r, o) =>
+    r.x < o.x + o.w && r.x + r.w > o.x && r.y < o.y + o.h && r.y + r.h > o.y
+
+  for (const t of [0.5, 0.35, 0.65, 0.25, 0.75, 0.15, 0.85]) {
+    const [cx, cy] = pointAt(t)
+    const rect = { x: cx - lw / 2, y: cy - lh / 2, w: lw, h: lh }
+    if (others.some((o) => hits(rect, o))) continue
+    if (placed.some((o) => hits(rect, o))) continue
+    placed.push(rect)
+    return t
+  }
+  return 0.5
+}
+
 /** Build the diagram from a seed file: plain boxes and arrows, no tldraw types. */
 function drawSeed(editor, seed) {
   const idOf = new Map()
-  const placed = (seed.boxes ?? []).map((box) => ({ id: box.id, ...rectOf(box) }))
-  const shapes = (seed.boxes ?? []).map((box, index) => {
+  const { frames, boxes } = layout(seed)
+
+  if (frames.length) {
+    editor.createShapes(frames.map((f) => ({
+      id: f.id, type: 'frame', x: f.x, y: f.y,
+      props: { w: f.w, h: f.h, name: f.name },
+    })))
+  }
+
+  editor.createShapes(boxes.map((placed) => {
     const id = createShapeId()
-    idOf.set(box.id, id)
-    const rect = placed[index]
+    idOf.set(placed.box.id, id)
     return {
-      id, type: 'geo', x: rect.x, y: rect.y,
+      id, type: 'geo', x: placed.local.x, y: placed.local.y,
+      ...(placed.parentId ? { parentId: placed.parentId } : {}),
       props: {
-        geo: 'rectangle', w: rect.w, h: rect.h,
-        color: box.color ?? 'black', fill: 'none', size: 's', font: 'mono',
+        geo: 'rectangle', w: placed.w, h: placed.h,
+        color: placed.color ?? 'black', fill: 'none', size: 's', font: 'mono',
         align: 'start', verticalAlign: 'start',
-        richText: toRichText(box.text ?? ''),
+        richText: toRichText(placed.box.text ?? ''),
       },
     }
-  })
-  editor.createShapes(shapes)
+  }))
+
+  // Two arrows on one pair of boxes must not share a route. Bound centre to
+  // centre they draw the same line, and the pair then reads as one arrow
+  // carrying two labels — the reply is invisible. Spread their anchors across
+  // the faces they leave from, perpendicular to the way the pair is separated.
+  const rectOfBox = new Map(boxes.map((placed) => [placed.box.id, placed.abs]))
+  const pairKey = (a, b) => [a, b].sort().join(' ')
+  const perPair = new Map()
+  for (const arrow of seed.arrows ?? []) {
+    const key = pairKey(arrow.from, arrow.to)
+    perPair.set(key, (perPair.get(key) ?? 0) + 1)
+  }
+  const seenOnPair = new Map()
+  const placedLabels = []
 
   for (const arrow of seed.arrows ?? []) {
     const fromId = idOf.get(arrow.from)
     const toId = idOf.get(arrow.to)
     if (!fromId || !toId) continue
+    const key = pairKey(arrow.from, arrow.to)
+    const total = perPair.get(key) ?? 1
+    const index = seenOnPair.get(key) ?? 0
+    seenOnPair.set(key, index + 1)
+
+    const labelPosition = placeLabel(arrow, rectOfBox, placedLabels)
+
     const arrowId = createShapeId()
     editor.createShapes([{
       id: arrowId, type: 'arrow',
       props: {
+        kind: arrow.kind ?? 'elbow',
+        labelPosition,
         size: 's', font: 'mono', color: arrow.color ?? 'grey',
         richText: toRichText(arrow.text ?? ''),
       },
     }])
-    const anchor = { normalizedAnchor: { x: 0.5, y: 0.5 }, isPrecise: false, isExact: false }
+
+    let anchor = { x: 0.5, y: 0.5 }
+    if (total > 1) {
+      const t = (index + 1) / (total + 1)
+      const a = rectOfBox.get(arrow.from)
+      const b = rectOfBox.get(arrow.to)
+      const dx = a && b ? Math.abs((a.x + a.w / 2) - (b.x + b.w / 2)) : 0
+      const dy = a && b ? Math.abs((a.y + a.h / 2) - (b.y + b.h / 2)) : 0
+      // separated across → the arrows leave the side faces, so fan them in y
+      anchor = dx >= dy ? { x: 0.5, y: t } : { x: t, y: 0.5 }
+    }
+    const bind = { normalizedAnchor: anchor, isPrecise: total > 1, isExact: false }
     editor.createBindings([
-      { fromId: arrowId, toId: fromId, type: 'arrow', props: { terminal: 'start', ...anchor } },
-      { fromId: arrowId, toId: toId, type: 'arrow', props: { terminal: 'end', ...anchor } },
+      { fromId: arrowId, toId: fromId, type: 'arrow', props: { terminal: 'start', ...bind } },
+      { fromId: arrowId, toId: toId, type: 'arrow', props: { terminal: 'end', ...bind } },
     ])
   }
 
-  return findCrowding(placed)
+  const abs = boxes.map((placed) => placed.abs)
+  const byId = new Map(abs.map((r) => [r.id, r]))
+  return {
+    tight: findCrowding(abs),
+    clashes: findLabelClashes(seed, byId),
+    crossings: findCrossings(seed, byId),
+  }
 }
 
 async function handleMount(editor) {
@@ -116,9 +345,14 @@ async function handleMount(editor) {
   } else {
     const seedResponse = await fetch('/seed')
     if (seedResponse.status === 200) {
-      const tight = drawSeed(editor, await seedResponse.json())
-      if (tight.length) console.warn('crowded pairs:', tight.join(' '))
-      say(tight.length ? `built from seed — crowded: ${tight.join(' ')}` : 'built from seed')
+      const report = drawSeed(editor, await seedResponse.json())
+      const faults = [
+        report.tight.length ? `crowded: ${report.tight.join(' ')}` : '',
+        report.crossings.length ? `arrow crosses a box: ${report.crossings.join(' ')}` : '',
+        report.clashes.length ? `label on a box: ${report.clashes.join(' ')}` : '',
+      ].filter(Boolean)
+      for (const fault of faults) console.warn(fault)
+      say(faults.length ? `built from seed — ${faults.join(' | ')}` : 'built from seed — clean')
     } else {
       say('empty document')
     }

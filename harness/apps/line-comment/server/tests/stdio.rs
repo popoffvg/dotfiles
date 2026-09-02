@@ -237,7 +237,7 @@ fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
     assert_eq!(changes[0]["kind"], json!("create"));
     assert_eq!(
         changes[1]["edits"][0]["newText"],
-        json!("<!-- line-comment: docs/spec.md:2 -->\n\n")
+        json!("<!-- line-comment: docs/spec.md:2 -->\n<!-- commenting on:\n## Design\n-->\n\n")
     );
     // The file is named by the server, one per code action, and the client is told which.
     let input = PathBuf::from(

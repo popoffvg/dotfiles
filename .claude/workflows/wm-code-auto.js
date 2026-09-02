@@ -18,9 +18,30 @@ export const meta = {
 // ── args: { notesDir?: ".notes", deploy?: <cmd> | false, maxGateFails?: 3 } ───
 // deploy omitted → probe for the project's deploy task; a string → run that command;
 // false → this ledger does not deploy, skip without probing.
-const notesDir = (args && args.notesDir) || '.notes'
-const deployArg = args && Object.prototype.hasOwnProperty.call(args, 'deploy') ? args.deploy : undefined
-const maxGateFails = (args && args.maxGateFails) || 3
+//
+// A slash invocation delivers args as TEXT, and reading a field off a string yields undefined, so
+// unparsed args read as "caller passed nothing" and every value silently reverts to its default.
+// Here that includes `deploy: false`, which means an unattended run would deploy a ledger the
+// caller said must not deploy. Parse the text, and refuse anything whose meaning is a guess.
+function parseArgs(raw) {
+  if (raw === undefined || raw === null) return {}
+  if (typeof raw === 'object') return raw
+  const text = String(raw).trim()
+  if (text === '') return {}
+  if (text.startsWith('{')) {
+    try {
+      return JSON.parse(text)
+    } catch (err) {
+      throw new Error(`args looks like JSON but does not parse: ${text} — ${err.message}`)
+    }
+  }
+  throw new Error(`args must be an object like { notesDir, deploy, maxGateFails } — got ${text}. A bare word cannot be read as one, and guessing wrong here can deploy a ledger you meant to skip.`)
+}
+const parsed = parseArgs(typeof args === 'undefined' ? null : args)
+
+const notesDir = parsed.notesDir || '.notes'
+const deployArg = Object.prototype.hasOwnProperty.call(parsed, 'deploy') ? parsed.deploy : undefined
+const maxGateFails = parsed.maxGateFails || 3
 const lessonsFile = `${notesDir}/LESSONS.md`
 
 // Backstop for the tail: a deploy or E2E that stays red after this many fix rounds
@@ -67,6 +88,7 @@ const STATUS = {
   properties: {
     status: { type: 'string', description: 'the status now in the TODO frontmatter' },
     commit: { type: 'string', description: 'the sha written into the ledger row' },
+    outcome: { type: 'string', description: "one plain-words sentence: what the system does now, in the domain's words, no symbols and no paths" },
   },
 }
 const TRUTH = {
@@ -103,6 +125,22 @@ const RUN = {
 // ── step 1 · the ledger ──────────────────────────────────────────────────────
 const PLUGIN = '${CLAUDE_PLUGIN_ROOT}'
 
+// sub-auto.md says it outright: nobody is watching. wm-code-impl carries this clause on every agent
+// it spawns, and this workflow — the one that actually runs a deploy command and hands an
+// implementer a red command to close — carried it on none. A setup task is written for a fresh
+// machine: it provisions credentials and writes stores global to the user, not scoped to this
+// checkout. One such command regenerated a keychain vault password and made an encrypted file
+// unreadable for every checkout on the machine, with the old password unrecoverable. Every agent
+// here that runs a command or writes a commit gets it.
+const safetyClause =
+  `SAFETY, because this run is unattended: never run a project bootstrap, setup, provisioning or ` +
+  `credential command — anything like "<runner> run setup", "make setup", a bootstrap/install script, ` +
+  `or a command that writes a keychain, credential store, dotenv or secret, or that generates or ` +
+  `rotates a key. These are global to the machine and destroy state other checkouts depend on, often ` +
+  `irreversibly. Run only the command this brief names. If it fails because the environment is ` +
+  `missing something, report that as the failure, naming exactly what is missing — let a human ` +
+  `install it. Never put a secret value in anything you return. `
+
 phase('Ledger')
 const ledger = await agent(
   `Read the wm ledger in ${notesDir} and report it. Do not edit source, do not implement anything.\n` +
@@ -131,6 +169,7 @@ const done = []
 const blocked = []
 const skipped = []
 const lessons = []
+const squashFailures = []
 
 for (const item of workList) {
   const deps = item.dependsOn || []
@@ -156,14 +195,22 @@ for (const item of workList) {
   // nothing green to fold into, so it skips straight to the lessons.
   if (outcome === 'done') {
     phase('Squash')
-    await agent(
-      `Squash the fixup trail of ${notesDir}/todos/TODO-${item.todo}.md: follow ${PLUGIN}/skills/impl/commands/sub-squash.md, scoped to THIS TODO only.\n` +
+    const squashed = await agent(
+      safetyClause +
+        `Squash the fixup trail of ${notesDir}/todos/TODO-${item.todo}.md: follow ${PLUGIN}/skills/impl/commands/sub-squash.md, scoped to THIS TODO only.\n` +
         `Fold every --fixup commit this round produced into the TODO's own commit (git rebase --autosquash), so the TODO leaves exactly one commit behind. ` +
         `Touch no commit that belongs to an earlier TODO.\n` +
         `Its distill step is where a fixup becomes a skill — invoke the capture-lesson skill on every repeatable mistake the fixups reveal, and skip the one-off typos.\n` +
         `Gate history (JSON): ${JSON.stringify(round && round.history ? round.history : [])}`,
       { agentType: 'wm:implementer', phase: 'Squash', label: `squash:TODO-${item.todo}` },
     )
+    // The one-commit-per-TODO rule (sub-auto.md step 2.4) is claimed by the status this loop writes
+    // next. A squash that died leaves the fixup trail in history while the TODO still goes done, so
+    // the claim and the history disagree and nothing says which one to trust.
+    if (!squashed) {
+      squashFailures.push(item.todo)
+      log(`TODO-${item.todo}: the squash agent returned nothing — its fixup trail is still in history, unfolded`)
+    }
   }
 
   // 2.5 — what the round taught, before the status is settled.
@@ -200,16 +247,26 @@ for (const item of workList) {
   // 2.7 — settle the status, then commit the notes.
   phase('Status')
   const status = await agent(
-    `Settle the bookkeeping for ${notesDir}/todos/TODO-${item.todo}.md. Touch no project source.\n` +
+    safetyClause +
+      `Settle the bookkeeping for ${notesDir}/todos/TODO-${item.todo}.md. Touch no project source.\n` +
       (outcome === 'done'
-        ? `Every gate is green: set the frontmatter status to "done" and fill this TODO's ledger row Commit in ${notesDir}/spec.md with the real sha (git log).\n`
+        ? `Every gate is green: set the frontmatter status to "done" and fill this TODO's ledger row Commit in ${notesDir}/spec.md with the real sha (git log).\n` +
+          `Then return outcome: one sentence of plain words saying what the system does now that it did not do before, ` +
+          `read off the TODO's ## Outcome — the domain's words, no file paths, no symbol names, no shas. It is the line ` +
+          `a reader who never opens the diff gets (${PLUGIN}/skills/impl/commands/sub-impl.md step 9).\n`
         : `The ${round ? round.stage : 'child workflow'} gate did not clear: set the frontmatter status to "blocked" and leave the ledger row's Commit as it is.\n`) +
       `Then commit the notes-dir as ${PLUGIN}/skills/code/references/ref-jj-notes.md says. Return the status you wrote and the sha (empty when blocked).`,
     { agentType: 'general-purpose', model: 'haiku', phase: 'Status', schema: STATUS, label: `status:TODO-${item.todo}` },
   )
 
   if (outcome === 'done') {
-    done.push({ todo: item.todo, rounds: round.round, summary: round.summary, commit: status ? status.commit : undefined })
+    done.push({
+      todo: item.todo,
+      rounds: round.round,
+      outcome: status ? status.outcome : undefined,
+      summary: round.summary,
+      commit: status ? status.commit : undefined,
+    })
   } else {
     blocked.push({ todo: item.todo, stage: round ? round.stage : 'child-died', blocker: round ? round.blocker || round.result : 'the child workflow died' })
   }
@@ -225,6 +282,7 @@ function resolveDeploy() {
 
 function runPrompt(cmd, what) {
   return (
+    safetyClause +
     `Run the project's ${what} command and report it, nothing else: ${cmd}\n` +
     `Return result "green" only when it exits 0. Return the command verbatim in ran, and the real output ` +
     `(the failing part, not a summary of intent) in output. Change no files.`
@@ -234,7 +292,8 @@ function runPrompt(cmd, what) {
 async function fix(what, run) {
   phase('Fix')
   return agent(
-    `The ${what} command came back red. Close it as a gap: follow ${PLUGIN}/skills/impl/commands/sub-fix.md — fix the thought in ${notesDir} first, then the code — and commit per ${PLUGIN}/skills/impl/commands/sub-commit.md. ` +
+    safetyClause +
+      `The ${what} command came back red. Close it as a gap: follow ${PLUGIN}/skills/impl/commands/sub-fix.md — fix the thought in ${notesDir} first, then the code — and commit per ${PLUGIN}/skills/impl/commands/sub-commit.md. ` +
       `Read ${lessonsFile} in full before you edit.\n` +
       `Command: ${run ? run.ran : '(agent died)'}\nOutput:\n${run ? run.output || '(none reported)' : '(none)'}`,
     { agentType: 'wm:implementer', phase: 'Fix', label: `fix:${what}` },
@@ -306,6 +365,9 @@ const truth = await agent(
 const corrections = []
 if (truth && Array.isArray(truth.statuses)) {
   const onDisk = new Map(truth.statuses.map((s) => [String(s.todo), String(s.status || '').toLowerCase()]))
+  // A moved entry keeps the shape of the list it left, so a row corrected into `blocked` arrives
+  // with no blocker and a row corrected into `done` with no outcome line. Stamp the reason on the
+  // way across: the report is the only place this correction is ever stated.
   const move = (from, to, want) => {
     for (let i = from.length - 1; i >= 0; i -= 1) {
       const entry = from[i]
@@ -313,9 +375,10 @@ if (truth && Array.isArray(truth.statuses)) {
       if (actual === undefined) continue
       const isDone = actual === 'done'
       if (isDone !== want) continue
+      const reason = `TODO-${entry.todo}: reported ${want ? 'not done' : 'done'}, notes say ${actual}`
       from.splice(i, 1)
-      to.push(entry)
-      corrections.push(`TODO-${entry.todo}: reported ${want ? 'not done' : 'done'}, notes say ${actual}`)
+      to.push({ ...entry, reconciled: reason, blocker: want ? undefined : entry.blocker || `notes say status ${actual}, never done` })
+      corrections.push(reason)
     }
   }
   move(blocked, done, true) // recorded blocked, finished later by a fix round
@@ -326,15 +389,24 @@ if (corrections.length) log(`reconciled against the notes: ${corrections.join(' 
 
 // ── step 5 · the report ──────────────────────────────────────────────────────
 log(`done: ${done.length} · blocked: ${blocked.length} · skipped: ${skipped.length} · deploy: ${tail.deploy && tail.deploy.skipped ? `skipped (${tail.deploy.skipped})` : tail.deploy && tail.deploy.result} · e2e: ${tail.verify && tail.verify.skipped ? `skipped (${tail.verify.skipped})` : tail.verify && tail.verify.result}`)
+if (squashFailures.length) log(`unfolded fixup trails: ${squashFailures.map((t) => `TODO-${t}`).join(' ')}`)
+
+// PASS means the Step 0 goal holds: TODOs done, deploy green, E2E green. A run that implemented
+// nothing and skipped both tail steps proves none of that, so it reports what it is instead of
+// borrowing the word for a green run.
+const ranNothing = done.length === 0 && blocked.length === 0 && skipped.length === 0 &&
+  Boolean(tail.deploy && tail.deploy.skipped) && Boolean(tail.verify && tail.verify.skipped)
+if (ranNothing) log('the ledger was empty and both tail steps skipped — nothing ran, so nothing is verified')
 
 return {
-  result: tailStop ? 'TAIL_RED' : blocked.length || skipped.length ? 'PARTIAL' : 'PASS',
+  result: tailStop ? 'TAIL_RED' : ranNothing ? 'NOTHING_TO_RUN' : blocked.length || skipped.length ? 'PARTIAL' : 'PASS',
   done,
   blocked,
   skipped,
   deploy: tail.deploy,
   verify: tail.verify,
   lessons,
+  unsquashed: squashFailures,
   reconciled: corrections,
   stopped: tailStop,
 }

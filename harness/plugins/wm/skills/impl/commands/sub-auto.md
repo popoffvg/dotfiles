@@ -41,9 +41,9 @@ For **every** TODO in the work list, in order — not the first, not the easy on
 2. **Implement one TODO** — follow `sub-impl.md`, with one change: it runs as `approve: none`
    (its § Approval) whatever the spec's or the TODO's key says. Nobody is watching. Apply each increment, keep the one-commit-per-TODO
    rule, and pass the lessons entries that touch this TODO's **Files** in the @implementer brief.
-3. **The gate chain** — follow `review:sub-todo.md`: one haiku wave (lint, comments, names) in
-   parallel, then the test gate, then the opus outcome gate. Any FAIL → return to 2 as a fixup commit
-   with the findings quoted, and the chain restarts at the wave. That file owns the gates, their
+3. **The gate chain** — follow `review:sub-todo.md`: one haiku wave (lint, comments, names, test
+   worth) in parallel, then the test gate, then the opus standards gate. Any FAIL → return to 2 as a
+   fixup commit with the findings quoted, and the chain restarts at the wave. That file owns the gates, their
    tiers, and the budget; this step owns nothing but the call.
 4. **Squash this round's fixups** — follow `sub-squash.md`, scoped to this TODO: fold every `--fixup`
    commit the gate chain produced into the TODO's own commit (`git rebase --autosquash`), so the TODO
@@ -84,6 +84,6 @@ and the Stop hook clears itself.
 
 ## Step 5 — report
 
-State, with real output and no summary of intent: TODOs done, TODOs blocked and why, TODOs skipped
+State, with real output and no summary of intent: **one plain-words outcome line per TODO that got done** (`sub-impl.md` step 9 — what the system does now, in the domain's words, no symbols and no paths), TODOs done, TODOs blocked and why, TODOs skipped
 because a blocked TODO blocks them, the deploy command and its result **or the skip and its reason**,
 the E2E command and its result, and the new lines in `LESSONS.md`.

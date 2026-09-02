@@ -34,7 +34,10 @@ Use markdown links for code references: `[packageName|typeName.functionName](pat
 <repo>:<short commit hash>
 
 ## Terms
-The table contains terms used in the workflow and the related area.
+The domain words this path runs on. Table: | Term | Definition | Avoid | Source |.
+**Definition** — one or two sentences saying what the term *is*, never what it does or how it is built.
+**Avoid** — the other names the code uses for the same concept, comma-separated, `—` when there is only one name.
+**Source** — the `path:line` where the term is declared or first carries this meaning.
 
 ## Intent (tests)
 Tests-first (step 2). Table: | Test | What intent it pins | Source (file:line) |.
@@ -83,3 +86,10 @@ One-sentence trace (step 6), entry→exit: "<entry> <verb>s <data> through <key 
 - Decision points and edge cases are numbered (`DP-1`, `EC-1`, …) so other docs and TODOs can reference them.
 - If a section is genuinely empty (e.g. no decisions), write "None." rather than omitting the heading.
 - All 6 chain steps must be covered. A thin step is a gap the convergence loop will catch and re-spawn.
+
+**Terms rules.** The `## Terms` table is the raw material of `<notes-dir>/GLOSSARY.md`, so it is opinionated, not a word list.
+
+- **One word per concept.** When the code names one thing three ways, pick the clearest and put the other two under Avoid.
+- **Only words this project gives a specific meaning.** A general programming word — handler, config, retry, cache — earns a row only when the domain redefines it.
+- **Every row cites a `path:line`.** A term with no source is a guess; drop it.
+- **Definitions use the table's own terms.** Once a term has a row, use that word inside the other definitions rather than a synonym.

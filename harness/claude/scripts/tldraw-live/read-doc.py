@@ -32,18 +32,37 @@ def load(path: Path):
     shapes = {k: v for k, v in store.items() if v.get("typeName") == "shape"}
     bindings = [v for v in store.values() if v.get("typeName") == "binding"]
 
+    # A shape inside a frame carries coordinates relative to that frame, so its
+    # own x/y is meaningless on its own — two children of two frames both read as
+    # (45, 45). Resolve every shape to the page before anything compares them.
+    frames = {k: v for k, v in shapes.items() if v["type"] == "frame"}
+
+    def page_xy(shape):
+        x, y = shape.get("x", 0), shape.get("y", 0)
+        parent = shape.get("parentId")
+        seen = set()
+        while parent in shapes and parent not in seen:
+            seen.add(parent)
+            x += shapes[parent].get("x", 0)
+            y += shapes[parent].get("y", 0)
+            parent = shapes[parent].get("parentId")
+        return x, y
+
     boxes = {}
     for shape_id, shape in shapes.items():
-        if shape["type"] == "arrow":
+        if shape["type"] in ("arrow", "frame"):
             continue
+        x, y = page_xy(shape)
+        cluster = shape.get("parentId")
         boxes[shape_id] = {
             "id": shape_id,
-            "x": round(shape.get("x", 0)),
-            "y": round(shape.get("y", 0)),
+            "x": round(x),
+            "y": round(y),
             "w": round(shape["props"].get("w", 0)),
             "h": round(shape["props"].get("h", 0)),
             "color": shape["props"].get("color", "black"),
             "text": plain_text(shape["props"].get("richText")),
+            "cluster": frames[cluster]["props"].get("name") if cluster in frames else None,
         }
 
     ends = {}

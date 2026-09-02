@@ -3,10 +3,10 @@
 use std::error::Error;
 use std::path::PathBuf;
 
-use lsp_server::{Connection, ErrorCode, Message, Notification, Request, RequestId, Response};
 use line_comment::trace::Trace;
 use line_comment::wire::{Change, Position, Range, RESET_CANCEL, RESET_CONFIRM};
 use line_comment::{uri_to_path, Effect, Session};
+use lsp_server::{Connection, ErrorCode, Message, Notification, Request, RequestId, Response};
 use serde_json::{json, Value};
 
 const USAGE: &str = "\
@@ -20,6 +20,7 @@ The subcommands write the same store from a shell, for Claude to place comments:
   drop <file>:<line>...          remove the comment starting on each of those lines
   drop --all                     remove every comment in the workspace
   list                           print every comment in the export format
+  store                          print the path of the store these commands read
 
 A running server picks the change up through its watch on the store.";
 
@@ -28,7 +29,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     if let Some(first) = arguments.first() {
         let rest = &arguments[1..];
         let answered = match first.as_str() {
-            "--version" | "-V" => Some(Ok(format!("line-comment-lsp {}", env!("CARGO_PKG_VERSION")))),
+            "--version" | "-V" => Some(Ok(format!(
+                "line-comment-lsp {}",
+                env!("CARGO_PKG_VERSION")
+            ))),
             "--help" | "-h" | "help" => Some(Ok(USAGE.to_string())),
             "comment" => Some(match rest {
                 [target, text @ ..] if !text.is_empty() => {
@@ -43,6 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 _ => Err("usage: line-comment-lsp drop <file>:<line>... | --all".to_string()),
             }),
             "list" => Some(line_comment::cli::list()),
+            "store" => Some(line_comment::cli::store_path()),
             _ => None,
         };
         if let Some(answer) = answered {

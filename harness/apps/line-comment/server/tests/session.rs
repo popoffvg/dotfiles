@@ -87,7 +87,10 @@ fn add_writes_a_comment_from_the_input_file() {
     let (mut session, _root, uri) = open("# Title\n\n## Design\n");
 
     let (path, contents) = handed_over(&mut session, &uri, 2);
-    assert_eq!(contents, "<!-- line-comment: docs/spec.md:3 -->\n\n");
+    assert_eq!(
+        contents,
+        "<!-- line-comment: docs/spec.md:3 -->\n<!-- commenting on:\n## Design\n-->\n\n"
+    );
     assert!(session.store().comments("docs/spec.md").is_empty());
 
     write_input(&path, &format!("{contents}needs a source\n"));
@@ -116,7 +119,7 @@ fn editing_a_commented_line_hands_back_the_text_it_holds() {
     let (path, contents) = handed_over(&mut session, &uri, 2);
     assert_eq!(
         contents,
-        "<!-- line-comment: docs/spec.md:3 -->\n\nfirst line\n\nsecond line\n"
+        "<!-- line-comment: docs/spec.md:3 -->\n<!-- commenting on:\n## Design\n-->\n\nfirst line\n\nsecond line\n"
     );
 
     // Saving the file untouched keeps the comment as it reads.
@@ -457,7 +460,7 @@ fn every_line_of_a_span_offers_edit_and_delete() {
         .expect("the edit command hands over an input file");
     assert_eq!(
         contents,
-        "<!-- line-comment: docs/spec.md:2-3 -->\n\nabout b and c\n"
+        "<!-- line-comment: docs/spec.md:2-3 -->\n<!-- commenting on:\nb\nc\n-->\n\nabout b and c\n"
     );
 }
 
@@ -563,7 +566,8 @@ fn a_leftover_input_file_is_taken_at_startup() {
     std::fs::write(&target, "# Title\n## Design\n").unwrap();
     std::fs::create_dir_all(root.join(".tmp")).unwrap();
     std::fs::write(
-        root.join(".tmp").join("line-comment-input-1755769123456.md"),
+        root.join(".tmp")
+            .join("line-comment-input-1755769123456.md"),
         "<!-- line-comment: docs/spec.md:2 -->\n\nsurvived the crash\n",
     )
     .unwrap();
@@ -641,7 +645,13 @@ fn the_export_matches_lumen_format_byte_for_byte() {
 fn the_export_names_the_author_so_claude_skips_its_own_comments() {
     let (mut session, _root, uri) = open("## Design\n## Plan\n");
     add(&mut session, &uri, 0, "needs a source");
-    session.upsert_comment("docs/spec.md", 2, 2, "unreachable".to_string(), Author::Agent);
+    session.upsert_comment(
+        "docs/spec.md",
+        2,
+        2,
+        "unreachable".to_string(),
+        Author::Agent,
+    );
 
     let export = session.export_text();
     assert!(
@@ -877,7 +887,13 @@ fn a_file_outside_the_root_keeps_its_absolute_path() {
 fn an_agent_comment_is_marked_in_the_diagnostic_and_the_human_one_is_not() {
     let (mut session, _root, uri) = open("## Design\n## Plan\n");
     add(&mut session, &uri, 0, "needs a source");
-    session.upsert_comment("docs/spec.md", 2, 2, "unreachable".to_string(), Author::Agent);
+    session.upsert_comment(
+        "docs/spec.md",
+        2,
+        2,
+        "unreachable".to_string(),
+        Author::Agent,
+    );
 
     let payload = session
         .diagnostics()
@@ -901,7 +917,13 @@ fn a_store_written_from_outside_is_taken_up_on_the_watch() {
     // What the `comment` subcommand does: a second session on the same root, writing the
     // store while the first one holds it open.
     let (mut writer, _effects) = Session::new(root);
-    writer.upsert_comment("docs/spec.md", 1, 1, "from Claude".to_string(), Author::Agent);
+    writer.upsert_comment(
+        "docs/spec.md",
+        1,
+        1,
+        "from Claude".to_string(),
+        Author::Agent,
+    );
     writer.persist().unwrap();
 
     let effects = session.reload_store();
@@ -1075,4 +1097,27 @@ fn list_with_no_comments_says_so_and_opens_nothing() {
         error: false,
         text: "no comments yet".to_string()
     }));
+}
+
+#[test]
+fn root_is_the_project_holding_the_store_not_the_repository_inside_it() {
+    let project = root();
+    let repository = project.join("pl");
+    std::fs::create_dir_all(&repository).unwrap();
+    std::fs::create_dir_all(project.join(".tmp")).unwrap();
+    std::fs::write(project.join(".tmp").join("line-comment.json"), "{}").unwrap();
+    std::fs::write(repository.join(".git"), "gitdir: elsewhere\n").unwrap();
+
+    let root = line_comment::cli::root_for(&repository.join("platform").join("store.go"));
+
+    assert_eq!(root, project);
+}
+
+#[test]
+fn root_is_the_directory_itself_when_it_holds_the_store() {
+    let project = root();
+    std::fs::create_dir_all(project.join(".tmp")).unwrap();
+    std::fs::write(project.join(".tmp").join("line-comment.json"), "{}").unwrap();
+
+    assert_eq!(line_comment::cli::root_for(&project), project);
 }

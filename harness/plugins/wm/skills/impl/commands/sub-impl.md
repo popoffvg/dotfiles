@@ -22,15 +22,15 @@ bring its diff back here for approval, or apply small increments directly.
 4. **Replan guard** — if the TODO's assumptions no longer hold (the code moved, a dependency changed), stop and report instead of forcing the plan.
 5. **Implement increment by increment** — walk `TODO-N.agent.md` `## Changes` in order and, for **each** increment, do all four in this order:
    1. **Read, then do** — read this increment's **Files** and the **Pre-reads** that name them (step 1 deliberately left them unread), then carry out its **Do**, touching nothing outside its **Files**. The increment carries no diff: take the shape of every symbol it names from `TODO-N.md` § Surface, and write the bodies behind those signatures yourself — from the increment's **Behavior** sketch where it has one, and the repo's own idiom otherwise. **Do** names the call sites to migrate; migrate all of them. A symbol § Surface does not cover, or a **Do** that cannot be carried out against the real code, is a replan (step 4), not a guess.
-   2. **Show** the user the real `git diff` of what landed, next to the increment's predicted **Blast radius**. Say when the real diff exceeds the predicted radius — that is the signal the plan is wrong. Under `approve: todo` or `none`, hold the diff instead of showing it here — see § Approval below.
+   2. **Show** the user the real `git diff` of what landed, next to the increment's predicted **Blast radius**, and above it **the typed list of changes** — one row per changed file, saying which of the nine kinds each diff is: `impl:ref-change-types.md`. The list is what the human reads first: it separates the `new behavior` and `signature change` rows they must read line by line from the `wiring`, `call-site migration`, `rename`, `move`, `deletion`, `test`, and `generated` rows they only skim. Say when the increment has no `new behavior` and no `signature change` row — it is mechanical, and the approval is one glance. Say when the real diff exceeds the predicted radius — that is the signal the plan is wrong. Under `approve: todo` or `none`, hold the diff instead of showing it here — see § Approval below.
    3. **Wait for approval.** Approved → continue. Rejected → stop, report which increment was rejected and why, set `status: blocked`; apply nothing after it. A correction the pair forbids goes through § When a correction contradicts the pair before any edit lands. Under `approve: todo` or `none`, this substep does not run per increment — § Approval says what runs instead.
    4. **Append to the commit** — increment 1 creates the commit (`TODO-N.md` `## Commit` message); every later approved increment is appended to that same commit with `git commit --amend --no-edit`. Exception: an increment that exists **because the user rejected or corrected a shown diff** is a user correction — commit it per `sub-commit.md` § Fixups, never amend it away.
 
    Never re-order the increments: the sequence is deepest-first so the repo builds after each. Under `approve: increment`, never batch two of them into one approval either. Bug fix? Follow the `red-green-refactor` skill (Red → Green → Refactor); never skip the failing test — the failing test is its own first increment.
-6. **Glossary** — if the change introduces or renames a domain term, update `<notes-dir>/GLOSSARY.md` in the same commit.
+6. **Glossary** — if the change introduces or renames a domain term, get the user's approval and write the row into `<notes-dir>/GLOSSARY.md` in the same commit (`code:ref-subcommand-rules.md` § Glossary).
 7. **Autotest** — run **both** commands in `TODO-N.md` `## Autotest`: `Unit` and `E2E`. Both green before committing (a level written `none` is skipped with its reason quoted in the report). The Cases are sentences, not test source — write each test from its case.
 8. **Finalize the commit** — the commit already exists, built by step 5. On green, make its message match the `commit-message` skill (`TODO-N.md` `## Commit` is the primary message) and fold in any test/glossary edits with `git commit --amend`. Then advance the TODO frontmatter `status: impl → verify` and fill the ledger row's Commit. `done` is set by the `review:sub-todo.md` chain on PASS; FAIL → `blocked`.
-9. **Report** — state what shipped, the `approve` loop you ran, which level set it, and how many increments were approved under it, the TODO's new `status`, the test command + its real output, and stop. One TODO per invocation.
+9. **Report** — open with **the outcome in plain words**: one or two sentences saying what the system does now that it did not do before, written for the person who asked for the TODO. Use the domain words from `TODO-N.md` § Outcome and `<notes-dir>/GLOSSARY.md`; keep out symbol names, file paths, type names, and the word *increment*. "Exports now carry the run they came from, so two runs no longer look like one" — not "`write_columns` takes `run_id` and stamps it into the spec". A reader who cannot see the diff must be able to tell from this line whether the TODO delivered what they asked for. Then state what shipped, the `approve` loop you ran, which level set it, and how many increments were approved under it, the TODO's new `status`, the test command + its real output, and stop. Under `approve: todo` or `none`, put the **start point** and the main changes in the report too (`impl:ref-change-types.md` § The start point): under `none` it is the only place a human is told where the TODO changed the system. One TODO per invocation.
 
 ## Approval — what step 5 shows
 
@@ -41,8 +41,8 @@ step 5**: read `TODO-N.md` frontmatter first, and fall back to `spec.md` only wh
 | `approve` | Step 5.2 + 5.3 | What replaces them |
 |---|---|---|
 | `increment` | run for every increment | — |
-| `todo` | do not run per increment | After the last increment, show one `git diff` of the whole TODO next to the **Blast radius** of every increment in it, and wait once. Rejected → name the increment the user rejects, `status: blocked`, and stop — the commit stays as it is until `revise` or a fixup settles it. |
-| `none` | do not run | Nothing. Go straight to step 6; the `review:sub-todo.md` chain is the only review. |
+| `todo` | do not run per increment | After the last increment, show the **start point** — the one `file:line` where the new behavior begins — then the main changes outward from it and the rest counted by kind (`impl:ref-change-types.md` § The start point), then one `git diff` of the whole TODO next to the **Blast radius** of every increment in it, and wait once. Rejected → name the increment the user rejects, `status: blocked`, and stop — the commit stays as it is until `revise` or a fixup settles it. |
+| `none` | do not run | Nothing shown here. Go straight to step 6; the `review:sub-todo.md` chain is the only review. The start point and the main changes still reach the human — in the step 9 report. |
 
 Two things hold at every setting: the commit is still built increment by increment (step 5.4), and a
 correction the user does make still routes through § When a correction contradicts the pair. A
@@ -54,7 +54,9 @@ loop you ran and which level set it.
 The user corrects a shown diff, and the correction cannot be carried out without breaking a section
 of the pair — a `## Surface` signature, a `CONSTRAINTS.md` rule, an Autotest case, the Outcome itself.
 Never carry it out silently, and never redesign the pair yourself. **Ask the user which route to
-take** (`AskUserQuestion`), and say which one you recommend and why:
+take** — one question, inline, `AskUserQuestion`, because the increment stops until it is answered
+(`code:ref-subcommand-rules.md` § Put a batch of questions in a file the human edits) — and say
+which one you recommend and why:
 
 | Route | Take it when the correction… | What happens |
 |---|---|---|

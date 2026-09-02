@@ -18,6 +18,7 @@ links:
 > Copy to `<notes-dir>/thoughts/NNN-decision-<slug>.md`.
 > Write a decision note when the answer IS a choice — the user decided, recommended, or picked
 > between alternatives. When the answer is an observed truth, write a fact note instead.
+> The prose follows `harness-dev:text-style`.
 
 ## Question
 

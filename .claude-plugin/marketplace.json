@@ -8,7 +8,7 @@
       "name": "harness-dev",
       "source": "./harness/plugins/harness-dev",
       "description": "Authoring aids for the Claude Code harness — skill shapes (workflow, loop, instruction, router), pruning an existing skill or doc corpus into the house style, and repo bootstrap (README, CLAUDE.md, deploy and adr skills, settings).",
-      "version": "0.7.0"
+      "version": "0.8.0"
     },
     {
       "name": "hi",
@@ -20,7 +20,7 @@
       "name": "line-comment",
       "source": "./harness/plugins/line-comment",
       "description": "Review comments on lines of any file, kept outside the file. Zed writes them through the line-comment language server; /line-comment:act reads the store and does the work, /line-comment:write places comments, /line-comment:unresolved reports what is still open, /line-comment:prune throws comments away.",
-      "version": "0.2.0"
+      "version": "0.3.0"
     },
     {
       "name": "self-improvement",
@@ -44,7 +44,7 @@
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.48.0"
+      "version": "2.49.0"
     }
   ]
 }

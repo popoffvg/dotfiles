@@ -379,14 +379,59 @@ _claudex_pick() {
 # Each agent also picks its output style (~/.claude/output-styles, keyed by the file's
 # frontmatter `name`). claude has no --output-style flag, so it rides in --settings JSON,
 # which merges over the settings files.
+# _claudex_model <agent-choice> [claude-args…] — echo the model the run will use.
+# The agent's own default loses to an explicit --model on the command line, which is
+# claude's own precedence. Prints nothing when neither names one, leaving claude's default.
+_claudex_model() {
+  local choice=$1; shift
+  local model
+  case "$choice" in
+    implementer) model=sonnet ;;
+  esac
+  while (( $# )); do
+    case "$1" in
+      --model) model=$2; shift ;;
+      --model=*) model=${1#--model=} ;;
+    esac
+    shift
+  done
+  printf '%s' "$model"
+}
+
+# _claudex_run <agent-choice> [claude-args…] — build claude's arguments and run it.
+# Each agent also picks its output style (~/.claude/output-styles, keyed by the file's
+# frontmatter `name`). claude has no --output-style flag, so it rides in --settings JSON,
+# which merges over the settings files.
+# ~/.claude/SYSTEM_PROMPT.md replaces the default prompt via --system-prompt: this
+# claude has no --system-prompt-file flag, so the file is read into the argument.
+# Its {{model}}, {{modelDescription}}, and {{currentDateTime}} placeholders are filled
+# here — the prompt is a plain string to claude, which expands nothing.
 _claudex_run() {
   local choice=$1; shift
-  local -a args
+  local -a args sysprompt
+  local sysprompt_file=~/.claude/SYSTEM_PROMPT.md
+  local model name description
+  model=$(_claudex_model "$choice" "$@")
+  case "$model" in
+    sonnet*) name='Claude Sonnet 5'; description='Claude Sonnet 5 is a smart, efficient model for everyday use.' ;;
+    haiku*)  name='Claude Haiku 4.5'; description='Claude Haiku 4.5 is the fastest model, for quick focused tasks.' ;;
+    fable*)  name='Claude Fable 5'; description='Claude Fable 5 is a model for creative and open-ended work.' ;;
+    *)       name='Claude Opus 5'; description='Claude Opus 5 is a powerful model for complex challenges.' ;;
+  esac
+  if [[ -r "$sysprompt_file" ]]; then
+    sysprompt=(--system-prompt "$(sed \
+      -e "s|{{model}}|$name|g" \
+      -e "s|{{modelDescription}}|$description|g" \
+      -e "s|{{currentDateTime}}|$(date '+%Y-%m-%d')|g" \
+      "$sysprompt_file")")
+  fi
+  local -a modelflag
+  [[ -n "$model" ]] && modelflag=(--model "$model")
   case "$choice" in
-    architector) args=(--agent wm:architector --settings '{"outputStyle":"ARCHITECT"}' "$@") ;;
-    implementer) args=(--agent wm:implementer --model sonnet --settings '{"outputStyle":"CODE"}' "$@") ;;
-    skills) args=(--agent skill-builder) ;;
-    general|"")  args=("$@") ;;
+    architector) args=("${sysprompt[@]}" "${modelflag[@]}" --agent wm:architector --settings '{"outputStyle":"ARCHITECT"}' "$@") ;;
+    implementer) args=("${sysprompt[@]}" "${modelflag[@]}" --agent wm:implementer --settings '{"outputStyle":"CODE"}' "$@") ;;
+    skills) args=("${sysprompt[@]}" "${modelflag[@]}" --agent skill-builder) ;;
+    general|"")  args=("${sysprompt[@]}" "${modelflag[@]}" "$@") ;;
   esac
   claude "${args[@]}"
 }

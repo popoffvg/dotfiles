@@ -28,7 +28,7 @@ TODO comments in source belong to the user's request alone — write them only w
 
 ## Subcommands
 
-Reference-type slugs in the last column name the skill that owns the file: **`sub:`** this skill's `commands/` · **`arch:`** the `arch` skill (design — the spec corpus and the brick roster) · **`impl:`** the `impl` skill (writes source or git history) · **`review:`** the `review` skill (judges code, writes none) · **`teach:`** the `teach` skill (the human's understanding) · **`ref`** a shared reference here · **`skill`** a model-invocable skill, loaded by name · **`self`** this SKILL.
+Reference-type slugs in the last column name the skill that owns the file: **`sub:`** this skill's `commands/` · **`arch:`** the `arch` skill (design — the spec corpus and the brick roster) · **`impl:`** the `impl` skill (writes source or git history) · **`review:`** the `review` skill (judges code, writes none — its own router, `/review`) · **`teach:`** the `teach` skill (the human's understanding) · **`ref`** a shared reference here · **`skill`** a model-invocable skill, loaded by name · **`self`** this SKILL.
 
 | `/code …` | You need to… | Reference |
 |---|---|---|
@@ -43,7 +43,7 @@ Reference-type slugs in the last column name the skill that owns the file: **`su
 | `diff` | Show change as one self-contained HTML page (opened): before/after arch panels + signatures-as-diffs. `diff arch` *(default)*: current vs proposed. `diff impl`: what the branch shipped. | `sub:diff.md` · `sub:code-map.md` |
 | `impl` | Execute one TODO — read context, replan guard, apply the increments and show them for approval as the `approve` key asks, autotest, commit, report. | `impl:sub-impl.md` |
 | `auto` | Unattended run of the whole ledger: arm the `/goal` Stop hook → per TODO (read `LESSONS.md` → impl → the review gate chain → `squash` the round's fixups → append `LESSONS.md` → `capture-lesson`) → optional deploy → verify E2E. No per-increment approval. | `impl:sub-auto.md` · `impl:sub-impl.md` · `impl:sub-squash.md` · `review:sub-todo.md` · `skill:carry-review-findings-in-a-lessons-file` · `skill:capture-lesson` |
-| `review` | Judge code without writing any: one haiku wave (lint, comments, names) in parallel, then the sonnet test gate, then the opus outcome gate. `review todo` judges an implemented TODO against its pair; `review diff` judges a loose diff, branch, PR, or working tree. Read-only. | `review:sub-todo.md` · `review:sub-diff.md` · `review:ref-gates.md` |
+| `review` | **Alias for `/review`** — the judging skill owns the modes and the gates. One haiku wave (lint, comments, names, test worth) in parallel, then the sonnet test gate, then the opus standards gate — is it built right, never whether it is the right thing. `review todo` cites the pair's rule files; `review diff` judges a loose diff, branch, PR, or working tree. Read-only. | `review:SKILL.md` · `review:ref-gates.md` |
 | `squash` | Read the fixup trail → distill lessons into skills (`capture-lesson`) → squash the scope as one commit. Called by `tree merge` and by `auto` per TODO. | `impl:sub-squash.md` |
 | `fix` | Close a gap (bug / missing / adjust) by fixing the thought, then the code. Edits source. | `impl:sub-fix.md` |
 | `commit` | When to commit and how a correction lands (fixups) — shared by `impl`, `tree`, `fix`. The message itself: the `commit-message` skill. | `impl:sub-commit.md` · `skill:commit-message` |

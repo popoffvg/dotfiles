@@ -20,6 +20,7 @@ todo: TODO-2
 > one when a settled decision already covers it; link that note instead.
 > One note per decision, never a bundle. A choice that changes while later TODOs are written is an
 > edit to this note, never a second note.
+> The prose follows `harness-dev:text-style`.
 
 ## Context
 

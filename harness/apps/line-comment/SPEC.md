@@ -4,7 +4,7 @@
 
 ## Mental model
 
-**A code action hands over an input file.** Zed exposes no LSP request that opens a text box, and a code action's command reaches only the language server, never an editor action. What a server can do is create a file through `workspace/applyEdit` — and a create carrying a text edit makes the client put that file in front of the operator. So `add comment` writes a one-line header naming the target into `.tmp/line-comment-input-<nonce>.md`; the operator types under it and saves.
+**A code action hands over an input file.** Zed exposes no LSP request that opens a text box, and a code action's command reaches only the language server, never an editor action. What a server can do is create a file through `workspace/applyEdit` — and a create carrying a text edit makes the client put that file in front of the operator. So `add comment` writes a header naming the target, and the target lines quoted under it, into `.tmp/line-comment-input-<nonce>.md`; the operator types under that and saves.
 
 **One input file per code action, gone as soon as it is read.** The editor keeps the tab of the previous comment open on its path, so a single reused path is rewritten underneath a live buffer — which the editor reports as a conflicting change on disk and answers with an overwrite prompt. A name nothing holds open cannot conflict, so every code action mints its own and `drain` deletes the file rather than emptying it. Minting also clears away the files nobody typed into, so a cancelled comment leaves nothing behind.
 
@@ -169,8 +169,9 @@ The binary answers these before it opens the LSP channel, so Claude writes comme
 | `drop <file>:<line>...` | Remove the comment starting on each line named. Reports every target, whether it held one or not. One session for the batch, so the store is written once and a running server reloads once. |
 | `drop --all` | Remove every comment in the workspace — `reset comments`, from a shell. |
 | `list` | Print the whole store in the export format. |
+| `store` | Print the path of the store the commands resolved, for a caller that opens it itself. |
 
-The root is the nearest ancestor of the target holding `.git`, else the current directory — it has to match the root the server derived from `initialize`, or the two read different stores.
+The root is the nearest ancestor of the target that already holds `.tmp/line-comment.json`, else the nearest ancestor holding `.git`, else the current directory — it has to match the root the server derived from `initialize`, or the two read different stores. An existing store outranks `.git` because one Zed project can hold several repositories: with `.git` first, a command run inside `<project>/pl` reads `<project>/pl/.tmp/line-comment.json` and reports no comments while the server writes them to `<project>/.tmp/line-comment.json`.
 
 **Nothing re-implements the renderer.** `list` prints `export::render`, the same function the export file is written with, so a second copy of the format cannot drift from it — an earlier Python renderer of the store dropped the `(from Claude)` marker and left Claude acting on its own comments.
 
@@ -206,15 +207,23 @@ All three return `null`; none returns a workspace edit.
 
 ### Input file
 
-`<root>/.tmp/line-comment-input-<nonce>.md`, one header line and then whatever the operator types:
+`<root>/.tmp/line-comment-input-<nonce>.md`, the header naming the target, the lines it aims at, then whatever the operator types:
 
 ```markdown
-<!-- line-comment: docs/spec.md:12 -->
+<!-- line-comment: docs/spec.md:12-13 -->
+<!-- commenting on:
+## Design
+The parser reads the header first.
+-->
 
 needs a source
 ```
 
-Over a selection the header names both ends — `<!-- line-comment: docs/spec.md:12-18 -->`. Parsing takes the first line containing the marker, splits the target on its **last** colon so a path may hold colons, reads what follows as `12` or `12-18`, and treats everything after that line as the body, trimmed. A header naming no lines — a zero, or an end above the start — is no header at all. A body of several lines is kept whole — the hint shows the first 40 characters, the tooltip and the export carry all of it. Draining deletes the file, so a second save of the same content stores nothing. An empty body cancels the pending comment.
+Over a selection the header names both ends — `<!-- line-comment: docs/spec.md:12-18 -->`.
+
+**The quote is the tip, not the comment.** It holds the target lines as the file reads at hand-over — the selection, or the one line the cursor stood on — so the operator sees what the comment is about without leaving the input file, and Zed greys it out as a markdown comment. At most 10 lines are quoted, the rest counted as `… <n> more lines`; a `-->` inside the text is broken up, because it would otherwise close the block and spill the file's own text into the comment. Nothing reads the quote back: the parser drops it, and an operator who edits or deletes it changes nothing.
+
+Parsing takes the first line containing the marker, splits the target on its **last** colon so a path may hold colons, reads what follows as `12` or `12-18`, drops a comment block standing first under the header, and treats the rest as the body, trimmed. A header naming no lines — a zero, or an end above the start — is no header at all. A block the operator never closed is text they wrote, and stays in the body. A body of several lines is kept whole — the hint shows the first 40 characters, the tooltip and the export carry all of it. Draining deletes the file, so a second save of the same content stores nothing. An empty body cancels the pending comment.
 
 A file carrying no header is left alone: that is the empty file the code action just created, before the operator typed anything. Draining reads every input file present, so a save the watch reported late is still taken.
 
@@ -340,7 +349,7 @@ run = "cargo build --release -p line-comment-server && install -m 755 target/rel
 }
 ```
 
-**`harness/plugins/line-comment/commands/act.md` mirrors `commands/lumen.md`.** It runs `line-comment-lsp list`, prints each block, treats each as a task on that file and line, and asks before changing anything the comment does not state plainly. Header-only output means no comments; say so and stop. A block marked `(from Claude)` is its own and it acts on none of it. Every comment it acted on goes in one `line-comment-lsp drop <file>:<line>...`; the running server clears the hints through its watch on the store, with no restart.
+**`harness/plugins/line-comment/commands/act.md` mirrors `commands/lumen.md`.** It runs `line-comment-lsp list`, prints each block, treats each as a task on that file and line, and asks before changing anything the comment does not state plainly. Header-only output means no comments; say so and stop. A block marked `(from Claude)` is its own and it acts on none of it. The edits themselves happen in fork agents, one per file so two agents never write the same file, spawned in one message; the session that read the store keeps the grilling, the drop and the report. Every comment it acted on goes in one `line-comment-lsp drop <file>:<line>...`; the running server clears the hints through its watch on the store, with no restart.
 
 **The extension is installed once per machine.** `zed: install dev extension` pointed at `harness/apps/line-comment` — the directory holding `extension.toml`, which is why the manifest and the shim crate sit at the app root and the server sits in `server/`. After editing the shim, `zed: rebuild dev extension`. Zed compiles the WASM itself and needs `rustup` with the `wasm32-wasip2` target. The `laptop-setup` skill records both steps.
 
@@ -390,7 +399,7 @@ Answer these before writing code:
 **Manual checklist in Zed**, seven steps, recorded in the README:
 
 1. Code actions on a markdown line list `add comment`.
-2. Choosing it opens the input file with a `<!-- line-comment: <file>:<line> -->` header.
+2. Choosing it opens the input file with a `<!-- line-comment: <file>:<line> -->` header and the target line quoted under it.
 3. Type a comment and save — the markdown file is unchanged and `💬 <text>` appears at the end of the target line.
 4. Code actions on that line now list `edit comment` and `delete comment`; delete removes the hint.
 5. With several lines selected the menu lists `add comment on lines <a>-<b>`, the export names `lines <a>-<b>`, and the diagnostic underlines all of them.

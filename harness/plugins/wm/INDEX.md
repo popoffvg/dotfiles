@@ -4,15 +4,17 @@ The single map of this plugin. No skill restates any row below; each one points 
 
 ## The code flow — one router plus four workers
 
-`/code` and the four skills it routes to. Only the router is user-invocable; the workers carry
-`user-invocable: false` and are reached through it, or loaded by name by the model.
+`/code` and the four skills it routes to. `code` and `review` are user-invocable; the other three
+workers carry `user-invocable: false` and are reached through the router, or loaded by name by the
+model. `review` is invocable on its own because judging a diff is a whole job that starts without a
+spec — `/code review` stays as an alias so the flow still reads end to end.
 
 | Skill | Invocable | Role |
 |---|---|---|
 | `code` | `/code <subcommand>` | **Routes.** Holds the subcommand table, the pipeline, and the shared taxonomy — nothing else. |
 | `arch` | no | **Designs.** The spec corpus and the component taxonomy, before any code exists. |
 | `impl` | no | **Writes source.** Every operation that changes source files or git history. |
-| `review` | no | **Judges source.** The gate chain — which gate judges what, at which model tier. Writes nothing. |
+| `review` | `/review <mode>` | **Judges how source is built** — rules, patterns, language idiom, correctness. Never whether it is the right thing; that is `code:sub-verify.md` and the `verifier` agent. Writes nothing but its reports. `/code review` is an alias for it. |
 | `teach` | no | **Teaches.** Builds and measures the human's understanding of the code. |
 
 Split by the kind of work, not by pipeline stage: a reader who knows the kind of work knows the skill.
@@ -77,6 +79,7 @@ content, delete the `>` lines.
 | File | Owns |
 |---|---|
 | `commands/sub-impl.md` | `impl` — execute one TODO, increment by increment; and the fork a user correction that contradicts the pair takes — `revise` or a recorded **deviation**. |
+| `references/ref-change-types.md` | **The change-type roster** — the nine kinds a changed file's diff can be (`new behavior`, `signature change`, `wiring`, `call-site migration`, `rename`, `move`, `deletion`, `test`, `generated`), the typed list shown per increment under `approve: increment`, and the start point + main changes shown once under `approve: todo` and reported under `approve: none`. |
 | `commands/sub-auto.md` | `auto` — the whole ledger unattended, gates replacing the human. |
 | `commands/sub-fix.md` | `fix` — close a gap by fixing the thought, then the code. |
 | `commands/sub-squash.md` | `squash` — distill the fixup trail into skills, squash the scope as one commit. |
@@ -86,10 +89,11 @@ content, delete the `>` lines.
 
 | File | Owns |
 |---|---|
-| `SKILL.md` | The two modes — `todo` (judged against the pair) and `diff` (judged against the repo) — and the read-only rule both obey. |
-| `references/ref-gates.md` | **The gate roster** — the five gates, what each judges, its agent, its model tier and why that tier; the one-wave-then-two-serial order; the FAIL-restarts-the-chain rule; the per-gate budget; the merged report shape. The single source; no caller restates a row. |
-| `commands/sub-todo.md` | `review todo` — the chain over one implemented TODO, and what the pair lets a gate judge that a loose diff cannot: Surface as contract, Blast radius as checklist, a `## Deviations` row superseding its section, bodies held weaker than signatures. |
-| `commands/sub-diff.md` | `review diff` — resolving a loose target into one revision range, deriving the intent sentence no pair provides, and what the outcome gate judges against instead of the Outcome, the Surface, and drift. |
+| `SKILL.md` | The mode table — `diff` (the repo's own rules, the default) and `todo` (plus the pair's rule files) — the one question both ask, the read-only rule both obey, and the `/code review` alias. |
+| `wm:commands/review-help.md` | The `/review-help` page — the same mode roster plus the gate table, printed verbatim. Mirrors `SKILL.md`; a mode change lands in both. |
+| `references/ref-gates.md` | **The gate roster** — the six gates, the `<notes-dir>/review/<target>/` report files each one writes, what each judges, its agent, its model tier and why that tier; the two opposite test gates (`test worth` drops the tests the diff wrote, `test` writes the one it left missing); the one-wave-then-two-serial order; the FAIL-restarts-the-chain rule; the per-gate budget; the merged report shape. The single source; no caller restates a row. |
+| `commands/sub-todo.md` | `review todo` — the chain over one implemented TODO, and what the pair gives a gate that a loose diff cannot: `CONSTRAINTS.md` turning taste into a citable rule, `PATTERNS.md` naming the pattern, § Files bounding the diff, and the deviation route for an Autotest case `test-critic` drops. |
+| `commands/sub-diff.md` | `review diff` — resolving a loose target into one revision range, deriving the intent sentence that gives the gates context, and which rule sources the standards gate falls back to with no `CONSTRAINTS.md` and no `PATTERNS.md`. |
 
 ### `teach` — the human's understanding
 

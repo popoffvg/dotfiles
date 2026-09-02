@@ -24,6 +24,7 @@ Verify against the real code, not against how confident the artifact sounds. A s
 | **Follow data (3)** | An identity/data carrier named in the path has no row. |
 | **Failure path (5)** | A branch, `throw`, or early return in the path has no matching DP-N/EC-N, or a partial failure has no rollback note. |
 | **One-sentence trace (6)** | Missing, or it references a step/branch absent from the body — which means the body is incomplete, not the trace. |
+| **Terms** | A domain word the artifact uses in its own prose or table rows has no glossary row, a row has no `path:line`, or one concept holds two rows under different names — the merge step feeds `<notes-dir>/GLOSSARY.md`, so a thin table starves it. |
 | **Caller-enforced invariant** | The artifact states an invariant is enforced at the call sites rather than in the carrier ("caller-enforced", "any path that calls X directly breaks this", "mutable via a direct setter") and lists only a sample of callers. Run `grep '<setter>('` yourself and cross-check the full list against what the artifact cites. The unlisted caller is exactly where the next bug hides. |
 
 ## New entry points

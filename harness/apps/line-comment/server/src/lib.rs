@@ -538,6 +538,7 @@ impl Session {
     pub fn input_for(&self, uri: &str, line: usize, end_line: usize) -> Option<String> {
         let key = self.key(uri)?;
         let line = line.max(1);
+        let end_line = end_line.max(line);
         let body = self
             .store
             .comments(&key)
@@ -545,13 +546,19 @@ impl Session {
             .find(|comment| comment.line == line)
             .map(|comment| comment.text.clone())
             .unwrap_or_default();
+        let document = self.text_of(&key);
+        let lines = anchor::lines(&document);
+        let quoted = lines
+            .get(line - 1..end_line.min(lines.len()))
+            .unwrap_or_default();
         Some(input::render(
             &Target {
                 file: key,
                 line,
-                end_line: end_line.max(line),
+                end_line,
             },
             &body,
+            quoted,
         ))
     }
 

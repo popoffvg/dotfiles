@@ -1,7 +1,7 @@
 # review — diff
 
 Judge a diff no TODO pair covers: the working tree, a commit range, a branch against its base, or a
-PR. Same gates, same tiers, same wave — the only difference is what the outcome gate has to judge
+PR. Same gates, same tiers, same wave — the only difference is what the standards gate can cite
 against, because nothing was approved in advance.
 
 The roster is @../references/ref-gates.md. This file adds only what changes when the pair is absent.
@@ -25,33 +25,37 @@ mode reports and stops — it runs no fixup loop, because a human is reading the
    An empty range stops here and is reported as empty, never as a green run.
 2. **State the intent in one sentence.** No pair says what the change is for, so derive it from the
    commit messages in the range and put that sentence in every gate's brief. A gate with no stated
-   intent falls back to judging style, which is what the cheap wave already does.
-3. **Run the cheap wave** — @lint-tester, @comment-critic, and @name-critic in **one message**. All
-   three work unchanged without a pair: the linter reads the repo config, the comment gate judges
-   each comment against the code under it, the name gate judges each name against its own body. The
-   lint gate runs the tests covering the changed files, since no `## Autotest` command exists.
-4. **Run the test gate** — @tester over the diff, not in TODO mode. The question becomes: does a
-   test assert the behavior this diff changed? It reports the gap; in this mode it **writes nothing**
-   — there is no implementer to fold a test into and no commit to amend.
-5. **Run the outcome gate** — @reviewer with § No pair below in its brief.
-6. **Report** — the roster's report shape, with the resolved range and the derived intent sentence at
-   the top.
+   intent falls back to judging style, which is what the four haiku gates already do.
+3. **Run the wave** — @lint-tester, @comment-critic, @name-critic, @test-critic, and @reviewer in
+   **one message**, each with its own `report: <notes-dir>/review/<slug>/<gate>.md` line, where
+   `<slug>` is the range resolved in step 1 (§ Every gate writes its report to a file). All five work
+   unchanged without a pair: the linter reads the repo config, the comment gate judges each comment
+   against the code under it, the name gate judges each name against its own body, @test-critic
+   judges each added test against the body it calls, and @reviewer gets § No pair below in its brief.
+   The lint gate runs the tests covering the changed files, since no `## Autotest` command exists.
+4. **Run the test gate** — @tester over the diff, not in TODO mode,
+   `report: <notes-dir>/review/<slug>/test.md`, once the wave is green. The question becomes: does a
+   test assert the behavior this diff changed? It names the gap in its report and **writes no test**
+   here — there is no implementer to fold one into and no commit to amend. The report file it always
+   writes.
+5. **Report** — the roster's report shape, with the resolved range and the derived intent sentence
+   at the top, written to `<notes-dir>/review/<slug>/report.md` and returned.
 
-## No pair: what the outcome gate judges instead
+## No pair: what the standards gate loses
 
-**The intent sentence replaces the Outcome.** The gate asks whether the diff delivers the intent
-derived in step 2, and it says so when the intent itself is unclear from the commits — an unclear
-intent is a finding about the change, not a reason to pass it.
+**Nothing about the spec, because no gate judged it anyway.** The chain answers "is it built right"
+in both modes (`ref-gates.md` § No gate judges the spec), so `diff` mode loses no question — it
+loses citations.
 
-**The repo replaces the Surface and the rules file.** With no approved signatures, a new symbol is
-judged against the conventions of the files around it and the rules in `CODE_STYLE.md`.
-A signature that breaks a caller is still a Failure; a signature that is merely unlike the one a
-spec would have picked is not.
+**The repo's own files carry the whole rule load.** With no `CONSTRAINTS.md` and no `PATTERNS.md`,
+the standards gate falls to sources 1, 2, 5, and 6 of its list: the `CLAUDE.md` files, the house
+style docs, the code around the diff, and the language idiom. A breach it would have cited as
+`R<n>` now cites a neighbouring file instead, which makes it a Nit more often.
 
-**Correctness and duplication are unchanged.** Both are read from the code alone, so they need no
-pair: off-by-one, nil and empty and zero, a swallowed error path, a race on a new shared value, an
-unmigrated caller after a signature change, and a fact left in two places that can disagree.
+**Correctness is unchanged.** It is read from the code alone, so it needs no pair: off-by-one, nil
+and empty and zero, a swallowed error path, a race on a new shared value, an unmigrated caller after
+a signature change, and a fact left in two places that can disagree.
 
-**Spec drift becomes scope.** With nothing approved there is no drift to find, so the gate reports
-scope instead: a change in the diff that the intent sentence does not account for. It is a Nit when
-it is a tidy-up and a Failure when it changes behavior nobody asked to change.
+**The intent sentence is context, not a contract.** Step 2's sentence goes in the brief so the gate
+knows what the code is trying to do while judging how it is built. The gate never rules on whether
+the diff delivers it — an unclear intent is worth one Nit line and nothing more.

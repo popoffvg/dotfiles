@@ -17,6 +17,7 @@ tags: [auth, config]
 > Write a fact note when the answer establishes a truth — a code observation, a user assertion, or
 > a research finding. A fact is evidence; it makes no choice. When the answer IS a choice, write a
 > decision note instead.
+> The prose follows `harness-dev:text-style`.
 
 ## What
 

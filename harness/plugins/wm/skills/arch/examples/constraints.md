@@ -2,6 +2,7 @@
 
 > Copy to `<notes-dir>/CONSTRAINTS.md`. Created empty by `/code new` Step 0.7; rows are appended as
 > decisions settle. Rules for the file: `arch:sub-todo.md` § Constraints.
+> The prose follows `harness-dev:text-style`.
 
 The settled decisions this corpus obeys. One row per decision **an increment can violate** — the
 rule alone, and where it came from. Every TODO's agent half points here; no TODO copies a row.

@@ -5,10 +5,12 @@ description: >
   TODO pair (Files from the agent half, Autotest from the human half), runs the project
   linter over the changed files and the
   tests that cover them, and returns PASS | FAIL with the concrete failures.
-  Read-only on source — never edits or commits. Cheap gate before the opus review.
+  Read-only on source — never edits or commits, and writes its report to the `report:` path the
+  caller names. One of the four haiku gates in the `review` skill's wave, beside
+  `comment-critic`, `name-critic`, `test-critic`, and the opus `reviewer`.
 model: haiku
 color: yellow
-tools: Read, Glob, Grep, Bash
+tools: Read, Glob, Grep, Bash, Write
 ---
 
 # Lint-Tester Agent
@@ -33,7 +35,9 @@ Read the TODO pair: `<notes-dir>/todos/TODO-N.agent.md` for **Files** (what chan
 
 ## Output contract
 
-Return this as your final message (the caller reads it, no file write):
+Write this to the `report:` path your brief names — overwrite whatever is there — then return
+the same text as your final message. The file is the record a human reads after the run; the
+returned text is what the caller merges. Both carry the same rows.
 
 ```
 [LINT] Result: PASS | FAIL
@@ -48,6 +52,10 @@ Return this as your final message (the caller reads it, no file write):
 
 ## Hard rules
 
+- **Always write the report file.** The `report:` path in your brief is not optional and not a
+  choice: write the report there even when the result is PASS and the rows are empty. A run that
+  returns findings and leaves no file is incomplete. It is a notes-dir file, never source — writing
+  it keeps the read-only rule.
 - **Read-only on source.** No edits, no commits. You return findings; the caller routes them back to the implementer.
 - **Real output only.** Paste the linter/test output you actually saw — never summarize a run you did not do.
 - Do not run the full suite when the TODO scopes a package — run the related tests, not everything.

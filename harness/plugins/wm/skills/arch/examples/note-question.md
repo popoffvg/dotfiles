@@ -17,6 +17,7 @@ tags: [auth, scope]
 > Write one the moment an unresolved question surfaces — seeded from the request, raised by a
 > research gap, or opened mid-grill. A `status: open` note here blocks spec readiness.
 > One question per note — a question hiding an "and" is two.
+> The prose follows `harness-dev:text-style`.
 
 ## Question
 

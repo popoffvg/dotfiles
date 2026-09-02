@@ -25,4 +25,4 @@ That reference defines: research planning, codebase exploration, saving findings
 ## Completion
 
 - Research complete → report findings inline and hand control back to the user.
-- Need clarification → use `AskUserQuestion` with 2–4 concrete options, each carrying its own context (`${CLAUDE_PLUGIN_ROOT}/skills/code/references/ref-subcommand-rules.md` § Ask a question the human can answer without opening a file).
+- Need clarification → one blocking question, `AskUserQuestion`, with 2–4 concrete options, each carrying its own context (`${CLAUDE_PLUGIN_ROOT}/skills/code/references/ref-subcommand-rules.md` § Put a batch of questions in a file the human edits). Two or more questions at once → hand them back to the calling session, which writes the `to-user` file.

@@ -265,7 +265,7 @@
   {
     "context": "Editor && mode == full",
     "bindings": {
-      "ctrl-alt-f": "text_finder::Toggle"
+      "cmd-k f": "text_finder::Toggle"
     }
   },
   {
@@ -277,13 +277,30 @@
   {
     "context": "BufferSearchBar",
     "bindings": {
-      "ctrl-cmd-f": "text_finder::Toggle"
+      "cmd-k f": "text_finder::Toggle"
     }
   },
   {
     "context": "BufferSearchBar",
     "unbind": {
       "alt-cmd-f": "text_finder::Toggle"
+    }
+  },
+  {
+    "unbind": {
+      "ctrl-cmd-f": "zed::ToggleFullScreen"
+    }
+  },
+  {
+    "context": "TextFinder || TextFinder > Picker > Editor || TextFinder > Picker > menu",
+    "bindings": {
+      "cmd-shift-f": "text_finder::ToProjectSearch"
+    }
+  },
+  {
+    "context": "TextFinder || TextFinder > Picker > Editor || TextFinder > Picker > menu",
+    "unbind": {
+      "alt-cmd-f": "text_finder::ToProjectSearch"
     }
   }
 ]

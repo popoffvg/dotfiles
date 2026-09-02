@@ -35,10 +35,11 @@ Run every time. Check `<notes-dir>/research/`:
 
 Runs once, only when `<notes-dir>/RULES.md` is missing. Skip it entirely when the file exists.
 
-Ask **four** questions in **one** `AskUserQuestion` batch — approval depth during `impl`, plus the
-three init knobs from `examples/rules.md` (which questions reach the human during the grill, test
-timing, and who commits). Do not assume an answer: this is the one place the user sets the
-interaction contract. A skipped question takes the first (default) option.
+Ask **four** questions as **one** `to-user` file (`code:ref-subcommand-rules.md` § Put a batch of
+questions in a file the human edits) — approval depth during `impl`, plus the three init knobs from
+`examples/rules.md` (which questions reach the human during the grill, test timing, and who
+commits). Each block's **Recommended** is the default. Do not assume an answer: this is the one
+place the user sets the interaction contract. A block the user leaves as written takes the default.
 
 The four answers land in **two** files, each in its one home:
 

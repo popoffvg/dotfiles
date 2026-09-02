@@ -25,6 +25,8 @@ Opening reply: list the settled ground — the request as understood, facts the 
 
 ### 2. Known unknowns — the questions you can name
 
+**This stage is the one exception to the batch rule** (`code:ref-subcommand-rules.md` § Put a batch of questions in a file the human edits): a quadrant walk resolves one question at a time, because each answer changes which question comes next. The artifact the user keeps is the map, not a question file.
+
 Inventory the questions the task can't proceed without; disclose the queue ("still queued after this: …"). Resolve **one at a time, highest architectural blast radius first** — never a wall of questions. Give a recommended answer with each, as lettered options answerable in a few characters.
 
 Close every question one of three ways: **answered by the user**; **answered by the territory** (go read it, then show the user the question and found answer — off-screen isn't closed); **recorded OPEN** on the map with what unblocks it.

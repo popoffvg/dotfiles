@@ -106,7 +106,13 @@ Everything happens in the code-actions menu (`editor: toggle code actions`, or r
 | `copy comments` | re-anchors everything, then writes `.tmp/line-comment.md` in lumen format, without opening it |
 | `reset comments` | asks first, then clears every comment in the workspace |
 
-Saving the input file with **nothing** under the header cancels the pending comment. The
+The input file quotes the lines it aims at under the header — the selection, or the line the
+cursor stood on — so you read what the comment is about while writing it. That quote is a
+tip: it sits in a markdown comment block, the server drops it again on save, and editing or
+deleting it changes nothing. A selection longer than 10 lines is cut short with a count of
+the rest.
+
+Saving the input file with **nothing** under the quote cancels the pending comment. The
 body may run to several lines; the hint shows the first 40 characters and the tooltip and
 the export carry all of it.
 
@@ -174,7 +180,8 @@ did it ask for".
 Then in Zed, by hand:
 
 1. Code actions on a markdown line list `add comment`.
-2. Choosing it opens the input file with a `<!-- line-comment: <file>:<line> -->` header.
+2. Choosing it opens the input file with a `<!-- line-comment: <file>:<line> -->` header and the
+   target line quoted under it.
 3. Type a comment, save — `💬 <text>` appears at the end of the target line.
 4. Code actions on that line now list `edit comment` and `delete comment`; delete removes the hint.
 5. Select several lines — the menu lists `add comment on lines <a>-<b>`; the comment underlines

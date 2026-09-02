@@ -22,12 +22,15 @@ never as a code edit.
 ├── PATTERNS.md     # implementation patterns + reference files the implementer follows (example: examples/patterns.md)
 ├── thoughts/       # NNN-{question,decision,fact,impl-decision}-slug.md — the thought graph
 │   └── archived/   # answered questions + superseded thoughts — out of the live graph, kept for the trail
-└── todos/          # TODO-N.md + TODO-N.agent.md — one pair per ledger row (authored by `todo`, past the gate)
+├── todos/          # TODO-N.md + TODO-N.agent.md — one pair per ledger row (authored by `todo`, past the gate)
+└── review/         # <target>/<gate>.md + report.md — one dir per judged target (written by the `review` gates)
 ```
 
 - **`CLAUDE.md`** and **`RULES.md`** are written once, by `new` Step 0, and are never rewritten by a later subcommand. `CLAUDE.md` tells any agent entering the folder how to read and write it; `RULES.md` says which choices go to the human at each step. Every subcommand reads `RULES.md` before it starts and obeys it over its own defaults — a rule there never lowers a hard gate (the `review→impl` read, destructive-git confirmation).
 - **`CONSTRAINTS.md`** is created empty by `new` Step 0 and **appended to** for the life of the corpus — one row per settled decision an increment can violate: `R<n>`, the rule, and its origin note. It is the one source of truth for those rules: no TODO copies a row, and every agent half points at the file (`sub-todo.md` § Constraints). Ids are append-only; a superseded decision has its row rewritten in place with the replacement note as its `Origin`.
 - A thought that stops being live moves to `thoughts/archived/` — a question once answered (`ref-note-format.md` § Resolution), a decision once superseded (§ Superseding). Never deleted, never left in the live graph; the `thoughts-archive.sh` hook performs the move.
+
+- **`review/`** holds one directory per judged target — `TODO-N` or a resolved range slug — with one file per gate plus the merged `report.md`. Every gate overwrites its file each round, so the directory always shows the current verdict and never the trail. Owned by the `review` skill (`review:ref-gates.md` § Every gate writes its report to a file); no other subcommand writes there.
 
 - **`spec.md`** is read by humans + the audit — the **target picture** plus the **ledger** plus the **Plan**. No bodies, no checkboxes, no file paths.
 - **Decisions and open questions are not spec sections.** Every choice, every fact, every unresolved question is a note in `thoughts/` — `spec.md` has no `Design Decisions` and no `Open Questions` section, and the Plan carries no decision-trail table. One place per thought; `spec.md` says what the world will look like, `thoughts/` says why.

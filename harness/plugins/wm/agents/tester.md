@@ -80,7 +80,8 @@ Record each check result as PASS/FAIL/SKIP.
 
 ### 4. Write test report
 
-Write the report to:
+Write the report to the `report:` path your brief names. That path is not optional — write the
+report there even when everything passed. When the brief names no path, fall back to:
 - **TODO mode**: `.notes/test-report-TODO-N.md` (e.g. `test-report-TODO-1.md`)
 - **Other modes**: `.notes/test-report.md`
 
@@ -149,7 +150,7 @@ After writing the report, summarize:
 
 - **Never modify source code** — you are read-only on product code
 - Only write to `.notes/` directory
-- If you cannot determine expected behavior, use `AskUserQuestion` — don't guess. Put the context in the question itself (`${CLAUDE_PLUGIN_ROOT}/skills/code/references/ref-subcommand-rules.md` § Ask a question the human can answer without opening a file).
+- If you cannot determine expected behavior, ask — don't guess. One blocking question goes inline via `AskUserQuestion`; two or more go back to the calling session for a `to-user` file. Put the context in the question itself (`${CLAUDE_PLUGIN_ROOT}/skills/code/references/ref-subcommand-rules.md` § Put a batch of questions in a file the human edits).
 - Be specific in steps — "click the button" is bad, "POST /api/users with body `{name: "test"}` and expect 201" is good
 - Prioritize P0/P1 cases — don't waste time on P3 if core paths are untested
 - If tests fail, report the failure clearly — don't retry silently

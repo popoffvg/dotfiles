@@ -13,6 +13,7 @@ approve: increment          # inherit | increment | todo | none — override the
 > element list and order are `arch:sub-todo.md` § Required elements.
 > This TODO adds no term missing from `GLOSSARY.md`, so it carries no `## New terms` section.
 > `## Deviations` is shown filled, as `impl` leaves it — a file written by `todo` has no such section.
+> The prose follows `harness-dev:text-style`.
 
 ## Outcome
 

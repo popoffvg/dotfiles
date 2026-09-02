@@ -3,9 +3,10 @@ name: name-critic
 description: >
   Naming gate for one diff — runs the `pedant` smell table over every name the diff declares and
   returns PASS | FAIL with the file:line, the smell, the bug it can hide, and the rename. Read-only
-  on source; it proposes renames and applies none. One of the three haiku gates in the `review`
-  skill's cheap wave, beside `lint-tester` and `comment-critic`.
-tools: Read, Glob, Grep, Bash
+  on source; it proposes renames and applies none. Writes its report to the `report:` path the
+  caller names. One of the four haiku gates in the `review` skill's wave, beside
+  `lint-tester`, `comment-critic`, `test-critic`, and the opus `reviewer`.
+tools: Read, Glob, Grep, Bash, Write
 model: haiku
 color: green
 ---
@@ -54,7 +55,9 @@ A name that fails one gate is reported there and not carried to the next.
 
 ## Output contract
 
-Return this as your final message (the caller reads it, no file write):
+Write this to the `report:` path your brief names — overwrite whatever is there — then return
+the same text as your final message. The file is the record a human reads after the run; the
+returned text is what the caller merges. Both carry the same rows.
 
 ```
 [NAME] Result: PASS | FAIL
@@ -71,6 +74,10 @@ Return this as your final message (the caller reads it, no file write):
 
 ## Hard rules
 
+- **Always write the report file.** The `report:` path in your brief is not optional and not a
+  choice: write the report there even when the result is PASS and the rows are empty. A run that
+  returns findings and leaves no file is incomplete. It is a notes-dir file, never source — writing
+  it keeps the read-only rule.
 - **Read-only on source.** No edits, no commits, no renames applied. You return proposals; the
   caller routes them.
 - **Every rename is a real domain term.** When you cannot name the concept, the code is missing a

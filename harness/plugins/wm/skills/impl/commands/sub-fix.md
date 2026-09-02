@@ -106,7 +106,7 @@ With the thought corrected:
 1. Read the corrected and superseded notes — understand what changed.
 2. Find the files from `todos/TODO-N.agent.md` **Files**.
 3. Make the minimal change aligning code with the corrected thought.
-4. If the fix renames or introduces a domain term, update `<notes-dir>/GLOSSARY.md` in the same commit.
+4. If the fix renames or introduces a domain term, get the user's approval and write the row into `<notes-dir>/GLOSSARY.md` in the same commit (`code:ref-subcommand-rules.md` § Glossary).
 5. Run the TODO's Autotest (or write one that proves the fix).
 6. Commit: `fix: <subject> — corrects NNN-old-slug with NNN-new-slug`.
 

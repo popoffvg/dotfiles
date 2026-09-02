@@ -3,8 +3,9 @@
 > Copy to `<notes-dir>/RULES.md`, replacing any answer the user changed — the answers below are the
 > **defaults**. Written once by `/code new` Step 0.6; no later subcommand rewrites it.
 >
-> Ask the three knobs in one `AskUserQuestion` batch before the grill. The setting shown below is the
-> first option of each, which a skipped question takes:
+> Ask the three knobs in one `to-user` file before the grill (`code:ref-subcommand-rules.md` § Put a
+> batch of questions in a file the human edits). The setting shown below is the recommended answer of
+> each, which an unedited block takes:
 >
 > 1. During the grill, which questions reach you? — **every open question** · only blockers (the agent reads the codebase for the rest) · batch them at the end
 > 2. When are tests written? — **before the code (red-green-refactor)** · in the same increment as the code · after the code lands
@@ -13,6 +14,7 @@
 > How much of `impl` the human approves is **not** a knob here — it is the `approve` key on
 > `spec.md`, and per TODO on `TODO-N.md` (`arch:ref-write.md` § Approval). The spec-level answer is
 > asked in the same batch and written there.
+> The prose follows `harness-dev:text-style`.
 
 The interaction contract for this corpus. Every `/code` subcommand reads this file first and obeys
 it over its own defaults. Hard gates stand regardless: the human reads the spec at the

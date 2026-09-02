@@ -16,6 +16,7 @@ The `code` skill routes here; it holds no teaching procedure of its own.
 
 > **Map**: `wm:INDEX.md` — which skill owns which file, and what that file owns.
 > **Vocabulary**: `wm:GLOSSARY.md` — the leading words all five skills use verbatim.
+> **Style**: `harness-dev:text-style` — the house shape of every artifact this skill writes.
 
 | Piece | Holds | File |
 |---|---|---|
