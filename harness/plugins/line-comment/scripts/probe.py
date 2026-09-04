@@ -27,6 +27,8 @@ class Client:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            # The probe reads the hand-over itself, so the editor is left alone.
+            env={**os.environ, "LINE_COMMENT_ZED": "off"},
         )
         self.next_id = 0
 

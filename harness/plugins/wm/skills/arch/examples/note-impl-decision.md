@@ -2,7 +2,7 @@
 type: impl-decision
 id: "005"
 status: approved            # approved | declined
-description: >              # 1–3 sentences, the only text the thought index shows — ref-note-format.md § Frontmatter
+description: >              # 1–3 sentences — the text the index shows, and the rule wm-constraints.py prints verbatim — ref-note-format.md § Frontmatter
   SessionStore wraps every Redis error in ErrStoreUnavailable, so the auth handler branches on
   one error type instead of importing the driver. Every later TODO touching SessionStore returns
   that type.

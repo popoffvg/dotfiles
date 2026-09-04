@@ -41,7 +41,7 @@ Read `spec.md` frontmatter `status` (spec phase `init → review → impl`). Arg
 | `status` (or arg) | Subject | Source of truth |
 |---|---|---|
 | `init` / `review` | **the codebase the change lands in** | the files the ledger touches, `spec.md` (Goal, Plan), `thoughts/`, `GLOSSARY.md` |
-| `impl` / `diff` | **the change on the branch** | `git diff <target>...HEAD` + the implemented TODO pair — `TODO-N.md` (Outcome, Components, Surface) + `TODO-N.agent.md` (Changes) + `CONSTRAINTS.md` |
+| `impl` / `diff` | **the change on the branch** | `git diff <target>...HEAD` + the implemented TODO pair — `TODO-N.md` (Outcome, Components, Surface) + `TODO-N.agent.md` (Changes) + the rules `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints |
 | `<path-or-symbol>` | **that unit** | the file or symbol, plus its callers and callees |
 
 No `spec.md` and no diff → ask which path or symbol to teach, and stop until answered.

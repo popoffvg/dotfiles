@@ -1,6 +1,6 @@
 ---
 status: todo                # todo → impl → verify → done (blocked: dep unmet / verify DEVIATES). Machine: ref-write.md § Status
-type: behavior              # behavior | state machine | data shape — the change shape, never a brick
+type: new behavior          # the change kind — one of the nine in impl:ref-change-types.md, never a brick
 depends_on: []              # [TODO-M, …] real edges only; each must reach status: done first
 risk: 3                     # changes the existing Refresh signature; retest the auth middleware and every caller of Refresh, not just the new rotation path
 approve: increment          # inherit | increment | todo | none — override the spec, with the reason: every caller of Refresh moves, so the human reads each step. ref-write.md § Approval
@@ -65,10 +65,13 @@ exit 1  → first failed check on stderr, prefixed `FAIL: `
 
 - **Target files:** `pkg/auth/handler_test.go` (create), `pkg/auth/token_test.go` (modify)
 - **Cases:**
-  - valid refresh returns a new token pair, both values different from the input
-  - refresh token past its 15-minute TTL returns 401
-  - rotation deletes the old Redis key `auth:<old>`
-  - second refresh with the same token returns 409 and mints nothing
+  - **Rotation mints exactly one new pair and retires the old token**
+    - property: `refresh(t) -> (t', pair)` where `t' != t` and Redis key `auth:<t>` is gone
+    - over: any unexpired refresh token; pinned: token at exactly its TTL boundary
+  - **An expired token is rejected**
+    - refresh token past its 15-minute TTL → 401
+  - **A reused token is rejected without minting**
+    - second refresh with the same token → 409, and no new pair exists
 - **Command:** `go test ./pkg/auth/...`
 
 ### E2E
@@ -76,9 +79,12 @@ exit 1  → first failed check on stderr, prefixed `FAIL: `
 - **Target files:** `test/e2e/auth_refresh_test.go` (create)
 - **Entry point:** `POST /auth/refresh` on the running server, same as a real SDK client
 - **Cases:**
-  - login → refresh → the returned access token authorizes `GET /me` (200)
-  - login → refresh → refresh again with the *first* refresh token → 409, and the second pair still authorizes `GET /me`
-  - login → wait past TTL → refresh → 401 and `GET /me` with the old access token → 401
+  - **A refreshed session keeps working**
+    - login → refresh → the returned access token authorizes `GET /me` (200)
+  - **Reuse punishes the stale token, never the live session**
+    - login → refresh → refresh again with the *first* refresh token → 409, and the second pair still authorizes `GET /me`
+  - **Expiry ends access on both tokens**
+    - login → wait past TTL → refresh → 401 and `GET /me` with the old access token → 401
 - **Command:** `go test -tags e2e ./test/e2e/ -run TestAuthRefresh`
 
 ## Commit

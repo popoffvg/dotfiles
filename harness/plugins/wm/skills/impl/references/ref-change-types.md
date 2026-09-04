@@ -1,19 +1,30 @@
 # impl — change types
 
-How a shown diff is announced, so the human knows where to read line by line and where to skim.
-Used by `sub-impl.md` step 5.2 under `approve: increment`, and by the one-diff and report views
-under `approve: todo` and `approve: none`.
+**The one roster of change kinds, used at three scales.** A TODO declares one in its `type:`
+frontmatter, an increment declares one in its **Change** bullet, and a changed file gets one row per
+kind in the table above a shown diff. Same nine words each time, so the label the human approved at
+`todo` is the label they read again in the diff.
+
+| Scale | Where it is written | Owner |
+|---|---|---|
+| TODO | `TODO-N.md` frontmatter `type:` | `arch:ref-todo-sections.md` § type |
+| increment | `TODO-N.agent.md` § Changes, the **Change** bullet | `arch:ref-todo-sections.md` § Changes |
+| changed file | the table above the shown diff, one row per file | this file, below |
 
 ## The roster
 
-Every changed file in the shown diff gets one row, typed with one of these nine kinds. A file that
-carries two kinds gets two rows — and a file that carries both `new behavior` and `wiring` is a
-signal the increment does two things at once.
+A TODO or an increment carries exactly one kind — the one its **main** work is. Two kinds with equal
+claim is the split signal: a TODO that is both `new behavior` and `wiring` is two ledger rows, and an
+increment that is both is two increments.
+
+Every changed file in the shown diff gets one row instead, and a file that carries two kinds gets two
+rows — that is the scale where a mixture is normal, since a `new behavior` increment drags its
+call-site migrations along.
 
 | Kind | The diff is | How the human reads it |
 |---|---|---|
 | `new behavior` | code that decides, computes, or stores something the repo did not do before | line by line — this is the change |
-| `signature change` | a symbol's shape changes: a parameter added, a type widened, a return value changed | line by line — it is the contract `TODO-N.md` § Surface fixed |
+| `signature change` | a contract is declared or reshaped: a type added, a parameter added, a type widened, a return value changed — and nothing yet decides anything with it | line by line — it is the contract `TODO-N.md` § Surface fixed |
 | `wiring` | a value only forwarded: a parameter threaded through a layer that does nothing with it, a field handed to a constructor, an entry registered in a container, a router, or a config | check the value reaches the far end; skim the middle |
 | `call-site migration` | a caller changed only because a signature above it changed | count the sites against the increment's **Blast radius** |
 | `rename` | a name changes and behavior does not | check that nothing else changed with it |
@@ -25,9 +36,9 @@ signal the increment does two things at once.
 A diff that fits no kind is a diff the increment did not predict. Stop and replan
 (`sub-impl.md` step 4) instead of inventing a tenth kind.
 
-## The list under `approve: increment`
+## The table under `approve: increment`
 
-Show the list above the `git diff`, one row per changed file, `new behavior` and `signature change`
+Written by `sub-impl.md` step 5.2. Show the table above the `git diff`, one row per changed file, `new behavior` and `signature change`
 rows first:
 
 ```
@@ -43,21 +54,30 @@ Increment 3 — thread the run id to the column writer
 Blast radius predicted: writer/column.py, cli/export.py — real diff matches.
 ```
 
-**Say when the list has no `new behavior` and no `signature change` row.** An increment that is all
+**Say when the table has no `new behavior` and no `signature change` row.** An increment that is all
 wiring, migration, rename, move, and generated files is mechanical: tell the human so, so the
 approval is one glance instead of one read.
 
 ## The start point under `approve: todo` and `approve: none`
 
-The whole-TODO diff is too long to walk file by file, so name **one start point** and let the rest
-follow it.
+The whole-TODO diff is too long to walk file by file. Show the same table, carrying every
+`new behavior` and `signature change` row ordered outward from the start point along the calls, and
+one final row counting the other kinds:
 
-1. **Start point** — the one `file:line` where the new behavior begins: the deepest `new behavior`
-   row, the one no other changed symbol calls. This is the first thing the human opens.
-2. **Main changes** — every `new behavior` and `signature change` row, ordered outward from the
-   start point along the calls, each with the one sentence that says what it now does.
-3. **The rest, counted, not listed** — one line summing the other kinds: `11 call-site migrations,
-   3 wiring, 1 generated`. Name the files only when the human asks.
+```
+TODO 4 — stamp exports with the run they came from
+
+| Kind              | File | What |
+|---|---|---|
+| new behavior      | writer/column.py:41 ← start point | stamp `run_id` into every written column spec |
+| signature change  | writer/column.py:12 | `write_columns(specs)` → `write_columns(specs, run_id)` |
+| signature change  | cli/export.py:71 | `export(path)` → `export(path, run_id)` |
+| the rest, counted | — | 11 call-site migrations, 3 wiring, 1 generated |
+```
+
+The **start point** is the one `file:line` where the new behavior begins: the deepest `new behavior`
+row, the one no other changed symbol calls. Mark it in the row — it is the first thing the human
+opens. Name the files behind the counted row only when the human asks.
 
 Under `approve: todo` this goes above the single `git diff` the user approves. Under `approve: none`
 nobody approves anything, so it goes in the step 9 report instead — it is how a human who reads the

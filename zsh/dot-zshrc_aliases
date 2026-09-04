@@ -266,6 +266,12 @@ handoff-todo() {
 #
 # hunk owns the review: `c` notes a line, `S` submits. The `prx` skill writes
 # notes into this same session with `hunk session comment apply`.
+#
+# Before opening hunk, files that already carry unresolved review comments are
+# marked with the `review-focus` extension (harness/apps/review-focus), so the
+# "Start here" pane and the file order lead with what earlier reviewers already
+# flagged. Marks are cleared again once hunk exits — they are worktree-scoped
+# and the worktree does not survive this call.
 prx() {
   emulate -L zsh -o extended_glob
   local arg="$1" nwo num
@@ -303,8 +309,30 @@ prx() {
   fi
 
   echo "prx: ${nwo}#${num} onto ${base} — $(git -C "$wt" log --oneline -1)"
+  _prx_mark_reviewed_files "$wt" "$nwo" "$num"
   ( cd "$wt" && command hunk diff "$base_ref...HEAD" )
+  ( cd "$wt" && command hunk focus clear --yes ) 2>/dev/null
   _prx_drop "$wt" "$head_ref" "$base_ref"
+}
+
+# Mark every file that already carries a review comment, oldest comment first,
+# so the reviewer opens onto what earlier reviewers already flagged instead of
+# the diff's file order. Best-effort: a `gh api` failure here must never block
+# opening the review, so errors are swallowed and marking is simply skipped.
+_prx_mark_reviewed_files() {
+  local wt="$1" nwo="$2" num="$3"
+  local rows
+  rows=$(gh api "repos/${nwo}/pulls/${num}/comments" --paginate --jq '
+    group_by(.path)[] | [.[0].path, "\(length) review comment(s), latest by \(.[-1].user.login): " + (.[-1].body | gsub("\r?\n";" ") | .[0:80])] | @tsv
+  ' 2>/dev/null) || return 0
+
+  # `path` is a special zsh parameter tied to `PATH` — a loop variable of that
+  # name would clobber PATH on every iteration and break every command after it.
+  local file_path why
+  while IFS=$'\t' read -r file_path why; do
+    [[ -z "$file_path" ]] && continue
+    ( cd "$wt" && command hunk focus add "$file_path" --why "$why" ) 2>/dev/null
+  done <<< "$rows"
 }
 
 # Undo one prx run: the worktree and the two refs its fetch wrote.

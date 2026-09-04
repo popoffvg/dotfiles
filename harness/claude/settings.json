@@ -127,6 +127,7 @@
       "/tmp"
     ]
   },
+  "model": "opus[1m]",
   "skillOverrides": {
     "act-local-github-actions-testing": "off",
     "ast-grep": "off",
@@ -143,8 +144,7 @@
     "go-modify": "off",
     "go-test-debug": "off",
     "go-understanding": "off",
-    "grill-with-docs": "off",
-    "grilling": "off",
+    "grilling": "on",
     "help-command": "off",
     "hunch": "off",
     "idea": "off",
@@ -313,7 +313,6 @@
     "mictx@mictx-helper-marketplace": true,
     "plugin-dev@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": false,
-    "show@local-plugins": true,
     "typescript-lsp@claude-plugins-official": false,
     "understand-anything@understand-anything": true,
     "wm@local-plugins": true,

@@ -60,8 +60,8 @@ write into a notes-dir. Load it before writing or rewriting either; no file here
 
 ## Rule: the roster lives in two files
 
-`/code help` and `commands/code-help.md` print the subcommand table verbatim, and `/review help`
-and `commands/review-help.md` print the mode table the same way. Any roster change — adding,
+`/code help` and `commands/code:help.md` print the subcommand table verbatim, and `/review help`
+and `commands/review:help.md` print the mode table the same way. Any roster change — adding,
 removing, renaming a subcommand or mode, or editing a one-line description — lands in both the
 `SKILL.md` and its `commands/<skill>-help.md` in the same commit. The repo-wide statement of this rule
 is in the root `CLAUDE.md` § Subcommand rosters.

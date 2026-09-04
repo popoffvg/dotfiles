@@ -32,11 +32,19 @@ Worker skills need `user-invocable: false` in their frontmatter. That is the key
 
 ### Subcommand rosters
 
-A router skill (`code`, `dive`, `test-suite`, `work`, …) keeps its subcommand roster in **two** places: the table in its `SKILL.md`, and the matching `harness/plugins/<plugin>/commands/<skill>-help.md`, which prints that table verbatim.
+A router skill (`code`, `dive`, `test-suite`, `work`, …) keeps its subcommand roster in **two** places: the table in its `SKILL.md`, and the matching `harness/plugins/<plugin>/commands/<router>:<sub>.md`, which prints that table verbatim.
 
-**Any change to a roster lands in both files in the same commit.** Adding, removing, or renaming a subcommand, and any edit to a subcommand's one-line description, is incomplete until `<skill>-help.md` says the same thing. The help command is what the user reads before choosing; a roster that disagrees with it sends the user to a subcommand that no longer exists.
+**Any change to a roster lands in both files in the same commit.** Adding, removing, or renaming a subcommand, and any edit to a subcommand's one-line description, is incomplete until `<router>:help.md` says the same thing. The help command is what the user reads before choosing; a roster that disagrees with it sends the user to a subcommand that no longer exists.
 
-The two tables carry different columns — `SKILL.md` adds the reference column pointing at the command file, `<skill>-help.md` does not. Mirror the rows and the descriptions, not the columns.
+The two tables carry different columns — `SKILL.md` adds the reference column pointing at the command file, `<router>:help.md` does not. Mirror the rows and the descriptions, not the columns.
+
+### Command names: colon separates router from subcommand
+
+A command that belongs to a router is named `<router>:<sub>.md`, so it invokes as `/<plugin>:<router>:<sub>` — `commands/code:help.md` → `/wm:code:help`, `commands/work:code-revise.md` → `/wm:work:code-revise`. The dash stays inside a single segment (`code-revise`), never between router and subcommand. A command that is not a router subcommand keeps a plain name (`line-comment:act`, `smart-commit:smart-commit`).
+
+**The filename is the only source of a command's name.** Claude Code ignores a command's `name:` frontmatter — probed on 2.1.224: a file `alpha-beta.md` carrying `name: bumblebee` still registers as `/probeplug:alpha-beta`. Keep `name:` matching the filename so the file reads honestly, and rename the file when the command's name changes.
+
+**Skills cannot use this scheme, so don't try.** A colon in a plugin skill's directory name is normalized back to a dash — `skills/omega:sigma/` registers as `/probeplug:omega-sigma`, and its `name:` frontmatter is ignored too. Only loose and project skills (which carry no plugin prefix) keep a literal colon. A plugin router's routes therefore stay dashed as skills (`dive-docs`, not `dive:docs`) while its commands are colon-named.
 
 ### Skills
 
@@ -48,7 +56,7 @@ Each skill: `SKILL.md` with `name:` + `description:` frontmatter; optional `refe
 
 ### WM Flow
 
-`/wm:work-help` → research → spec → implement (worktree) → verify → `/wm:work-finish`
+`/wm:work:help` → research → spec → implement (worktree) → verify → `/wm:work:finish`
 
 State tracked in `work.settings.json`. Notes in `.notes/` — its own jj repo (history via `jj log`), git-ignored in the parent. Also holds plan + research.
 

@@ -1,6 +1,6 @@
 ---
 name: work-spec-revise
-description: Revise spec.md, the todos/TODO-N.md + TODO-N.agent.md pair, and CONSTRAINTS.md so they match what the last commit related to TODO-N actually implemented.
+description: Revise spec.md, the todos/TODO-N.md + TODO-N.agent.md pair, and the thoughts/ notes so they match what the last commit related to TODO-N actually implemented.
 argument-hint: <TODO-N> [<sha-or-range>]
 ---
 

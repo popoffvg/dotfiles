@@ -6,7 +6,7 @@ description: >
   loose diff, branch, PR, or working tree with no TODO pair (diff). Owns which gate judges what,
   which agent runs it, and at which model tier. Invoke as `/review <todo|diff>` (default `diff`);
   `/code review` is the same skill under its old name. Never edits source and never commits.
-argument-hint: "[diff (default), todo — full list /review-help] + the target to judge"
+argument-hint: "[diff (default), todo — full list /review:help] + the target to judge"
 ---
 
 # review — subcommand router
@@ -24,7 +24,7 @@ FAIL routes back — is one file: @references/ref-gates.md. Read it before eithe
 | Mode | Judges the diff against… | File |
 |---|---|---|
 | `diff` *(default)* | the repo's own rules alone — `CLAUDE.md`, the house style docs, the code around the diff, the language idiom. A loose diff, a branch, a PR, or the working tree. | `commands/sub-diff.md` |
-| `todo` | the same, plus the rule files the `TODO-N.md` + `TODO-N.agent.md` pair points at — `CONSTRAINTS.md`, `RULES.md`, `PATTERNS.md`. A breach there is a Failure with a citation. The chain `impl:sub-auto.md` runs per TODO. | `commands/sub-todo.md` |
+| `todo` | the same, plus the rule sources the `TODO-N.md` + `TODO-N.agent.md` pair points at — the rules `~/.claude/scripts/wm-constraints.py` prints, plus `RULES.md` and `PATTERNS.md`. A breach there is a Failure with a citation. The chain `impl:sub-auto.md` runs per TODO. | `commands/sub-todo.md` |
 | `help` | This page. | `SKILL.md` |
 
 Pick `todo` when a `<notes-dir>/todos/TODO-N.md` covers the diff, `diff` when none does. A TODO

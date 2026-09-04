@@ -1,5 +1,5 @@
 ---
-name: dive-help
+name: dive:help
 description: Show all /dive subcommands with one-line descriptions.
 ---
 

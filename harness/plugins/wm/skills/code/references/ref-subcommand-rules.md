@@ -29,12 +29,12 @@ The answer becomes a `decision` note with `source: human` (`arch:ref-note-format
 so a question the human answered from a thin summary records a choice nobody really made. When the
 code can answer it, read the code instead and write `source: auto`.
 
-## Obey CONSTRAINTS.md
-Read `<notes-dir>/CONSTRAINTS.md` before writing or judging any code. It is short — one row per
-settled decision an increment can violate — and it is the **one** home for those rules: no TODO
-copies a row, and no subcommand restates one. A decision that changes is edited there, once. Why a
-rule exists is not in the file: run the `trace` skill when a rule has to be argued with rather than
-obeyed.
+## Obey the generated rule set
+Run `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` before writing or judging any code.
+It prints one row per settled decision an increment can violate, and each row's text is the
+decision note's `description` — the **one** home for that rule: no TODO copies a row, and no
+subcommand restates one. A decision that changes is an edit to that note, once. Why a rule exists
+is not in the table: run the `trace` skill when a rule has to be argued with rather than obeyed.
 
 ## Archive a thought that stops being live
 A question once answered, a thought once superseded: it moves to `thoughts/archived/` — never
@@ -70,7 +70,7 @@ and each collision where one word carries two meanings — and send the whole se
 
 Write the accepted rows into `GLOSSARY.md` in the same commit as the work that raised them. A
 rejected term does not come back on the next run. A term the user renamed is renamed everywhere it
-is already used — `spec.md`, the TODO outcomes, `CONSTRAINTS.md` — in that same commit.
+is already used — `spec.md`, the TODO outcomes, the `thoughts/` note descriptions — in that same commit.
 
 **A word already in the file with the same meaning is not a change** — do not re-ask it. Only the
 diff reaches the user.

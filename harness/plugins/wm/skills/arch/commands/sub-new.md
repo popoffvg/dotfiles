@@ -12,12 +12,11 @@ No `<notes-dir>/spec.md` → write a minimal one (full template: `ref-write.md` 
 - **Description** — one sentence from the request. **Goal** — 2–3 plain sentences.
 - **Open questions** — seed 1–3 as `thoughts/NNN-question-*.md` notes (`status: open`, example `examples/note-question.md`). They live in the thought graph, not in `spec.md`; the spec has no Open Questions section. **TODO List** — empty until the grill closes.
 - Create `<notes-dir>/GLOSSARY.md` from `examples/glossary.md`, empty.
-- Create `<notes-dir>/CONSTRAINTS.md` from `examples/constraints.md`, empty — the header and the table header, no rows. Rows are appended as decisions settle, by the grill and by `todo`; every TODO's agent half points here (`sub-todo.md` § Constraints).
 - Create `<notes-dir>/CLAUDE.md` from `examples/notes-claude.md` — the corpus guide any agent entering the folder reads. Copy the example's fenced block verbatim, not its header.
 - Create `<notes-dir>/PATTERNS.md` from `examples/patterns.md` — the implementation patterns and reference files the implementer follows. Empty or "follow language defaults" at init; `spec.md` mentions `@PATTERNS.md` and holds no pattern content.
 - What we're NOT doing — empty or "follow language defaults". No `Design Decisions` and no `Open Questions` section: both live in `thoughts/` (`ref-write.md` § Artifacts).
 
-`CLAUDE.md` and `RULES.md` are written **once**; if either already exists, leave it — the user owns it after init. `PATTERNS.md` and `CONSTRAINTS.md` are created once and stay open to extension — patterns as they surface, constraints as decisions settle. Neither is ever rewritten from the example after init.
+`CLAUDE.md` and `RULES.md` are written **once**; if either already exists, leave it — the user owns it after init. `PATTERNS.md` is created once and stays open to extension — patterns as they surface. It is never rewritten from the example after init. No rules file is created: the rules every TODO obeys are generated from `thoughts/` (`ref-todo-sections.md` § Constraints).
 
 spec.md exists → check the frontmatter `branch` against the current branch (`ref-write.md` § Spec ownership by branch):
 
@@ -61,7 +60,9 @@ are still confirmed.
 
 ## Step 1: Grill
 
-Run `/grill-with-docs` until no `status: open` question note is left in `thoughts/` (list them: `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`). Every resolution **writes the answer as a new `decision` or `fact` note** at the next `NNN`, restating the question verbatim, and marks the question note answered — a hook archives it, which is what drops it off the list (`ref-note-format.md` § Resolution). A new question raised mid-grill gets its own `NNN-question-*.md` note before you answer it; the decision tree **is** the spec — walk it branch by branch. A question the codebase can answer, read instead of ask.
+Run the `grilling` skill until no `status: open` question note is left in `thoughts/` (list them: `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`). Every resolution **writes the answer as a new `decision` or `fact` note** at the next `NNN`, restating the question verbatim, and marks the question note answered — a hook archives it, which is what drops it off the list (`ref-note-format.md` § Resolution). A new question raised mid-grill gets its own `NNN-question-*.md` note before you answer it; the decision tree **is** the spec — walk it branch by branch. A question the codebase can answer, read instead of ask.
+
+Record docs as the grill goes with the `domain-modeling` skill — each resolved decision as an ADR, each term in the glossary. Inside the wm flow the glossary is `<notes-dir>/GLOSSARY.md`, never `CONTEXT.md`, and every new or renamed term needs the human's approval first (`code:ref-subcommand-rules.md` § Glossary).
 
 ### Exit contract
 
@@ -69,10 +70,10 @@ Run `/grill-with-docs` until no `status: open` question note is left in `thought
 Back-fill `Affects` and populate `links` per `ref-note-format.md` § Back-linking.
 
 #### 2. Confirm spec.md reflects every resolution
-Every decision is a `thoughts/NNN-decision-*.md` note — **not** a spec section (`spec.md` has no Design Decisions); a decision an increment can violate also gets one `CONSTRAINTS.md` row citing that note (`sub-todo.md` § Constraints); routine picks land in GLOSSARY.md / scope instead; new out-of-scope items in What we're NOT doing. **No `status: open` question note left** (`~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0; any open one = NOT READY). Advance the frontmatter `status: init → review`. Self-check against `ref-write.md` § Spec-Readiness Checklist.
+Every decision is a `thoughts/NNN-decision-*.md` note — **not** a spec section (`spec.md` has no Design Decisions); a decision an increment can violate is a `decision` note whose `description` states the rule the generator prints (`ref-todo-sections.md` § Constraints); routine picks land in GLOSSARY.md / scope instead; new out-of-scope items in What we're NOT doing. **No `status: open` question note left** (`~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0; any open one = NOT READY). Advance the frontmatter `status: init → review`. Self-check against `ref-write.md` § Spec-Readiness Checklist.
 
 #### 3. Compile the plan
-Write a `## Plan` at the bottom of spec.md — 3–5 sentences (one per major branch) plus the **wave** table. No decision-trail table: the graph lives in `thoughts/`, the rules it settled are `CONSTRAINTS.md`, and a reader who wants the reasoning behind either runs the `trace` skill.
+Write a `## Plan` at the bottom of spec.md — 3–5 sentences (one per major branch) plus the **wave** table. No decision-trail table: the graph lives in `thoughts/`, the rules it settled are printed by `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts`, and a reader who wants the reasoning behind either runs the `trace` skill.
 
 ```markdown
 ## Plan

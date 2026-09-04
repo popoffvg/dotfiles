@@ -126,6 +126,48 @@ it underneath that buffer is what makes the editor ask whether to overwrite. `li
 works the same way, and drops the views it handed over earlier. The tab of a comment already
 stored is a tab on a file that no longer exists; close it.
 
+The file is put in front of you twice over: the server-side edit that fills it opens it
+over a plain tab, and over a changes-review multibuffer that edit opens nothing at all, so
+the server also runs `zed --existing` on the path. It takes the CLI from
+`LINE_COMMENT_ZED`, then from the PATH, then from `/usr/local/bin`, `/opt/homebrew/bin`
+and `/Applications/Zed.app/Contents/MacOS/cli` — a Zed started from the dock passes on the
+launchd PATH, which names no package manager's prefix. `LINE_COMMENT_ZED=off` opens
+nothing, and that is what the tests and the probe set.
+
+In a **commit view** — a past commit opened from the git panel — there is no code-actions
+menu to use. Zed builds those buffers from `git cat-file`, and no language server is attached
+to them, so `cmd+.` reports nothing and a task there is given no `ZED_FILE` either. `cmd-.` is
+rebound there instead: it copies `<file>:<line>` from the diff and runs
+`line-comment-lsp add "$(pbpaste)"`, which hands over the same input file. `cmd-alt-y` is the
+second half alone, for a location copied some other way. The comment then lands on the working tree's file at that line — on the tip commit that
+is the line you were looking at, on an older one check it before you trust it.
+
+The path a commit view copies is relative to the git repository, so `add` looks for it inside
+each repository under the project root. Two worktrees of one repository hold the same path, and
+nothing in that view says which commit you were reading — so the first in path order is taken
+and the rest are named in the input file, under the quoted lines:
+
+```
+<!-- line-comment: pl/platform/auth/login_method_test.go:12 -->
+<!-- commenting on:
+func TestLoginMethod(t *testing.T) {
+--
+this line also exists in:
+  pl-stack/platform/auth/login_method_test.go
+change the path in the header above to comment on one of those instead
+-->
+```
+
+The quoted line tells you whether the guess was right; if it was not, edit the path in the
+header before saving.
+
+The comment also records the revision it was read on. `add` asks `git blame` which commit last
+changed that line, writes it as a second marker under the header, and the stored comment ends
+with `read on 36d8b4b6c4a2` — so a later reader can tell whether the line they are looking at is
+still the line you commented on. It sits at the end, so the hint and the export still open with
+your own sentence, and an uncommitted line simply gets no revision. `alt-o` is the other way out — it opens the file as a normal project tab,
+where the code-actions menu works as it does anywhere else.
+
 Two displays carry the same comments: an inlay hint at the end of the line, and a `Hint`
 diagnostic over that line (panel entry, plus inline text when inline diagnostics are on). A
 comment over a selection hints on the first line of the block and underlines all of it, and
@@ -139,7 +181,7 @@ Then, in Claude, through the `line-comment` plugin:
 
 | Command | What it does |
 |---|---|
-| `/line-comment:act` | reads the store with `line-comment-lsp list`, acts on each comment, and clears the ones it handled with `line-comment-lsp drop <file>:<line>...` |
+| `/line-comment:act` | reads the store with `line-comment-lsp list`, moves it into `.tmp/act-session/<id>/` to claim the batch, acts on each comment in a fork per file, and records the outcome in `processed.md` beside the moved store |
 | `/line-comment:write` | places comments on lines instead of writing them in chat |
 | `/line-comment:unresolved` | prints what the store still holds, and edits nothing |
 | `/line-comment:prune` | throws comments away without acting on them |
@@ -151,6 +193,7 @@ From a shell, the same binary writes and reads the store with no editor involved
 
 ```sh
 line-comment-lsp comment <file>:<lines> <text>  # attach or replace a comment (12 or 12-18)
+line-comment-lsp add <file>:<lines>             # open an input file for that target and reveal it
 line-comment-lsp drop <file>:<line>...          # remove the comments starting there
 line-comment-lsp drop --all                     # remove every comment
 line-comment-lsp list                           # print them in lumen format
@@ -190,3 +233,5 @@ Then in Zed, by hand:
 7. `copy comments` — the message names the path, and the file matches lumen's format.
 8. `reset comments` — the confirmation appears; `Cancel` keeps the comments, `Delete` clears them.
 9. The comment also shows in the diagnostics panel, and deleting it clears the entry.
+10. In the changes-review view, `add comment` on a changed line opens the input file too,
+    and the comment lands on that line of the real file.

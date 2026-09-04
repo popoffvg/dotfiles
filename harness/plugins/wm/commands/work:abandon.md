@@ -1,5 +1,5 @@
 ---
-name: work-abandon
+name: work:abandon
 description: Cancel wm flow immediately
 ---
 

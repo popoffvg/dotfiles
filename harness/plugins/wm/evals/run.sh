@@ -3,7 +3,7 @@
 #
 # Two axes per case, both decided by the same rules a `todo` author applies:
 #   half  — human | agent | corpus : which file this content belongs in — a half of the pair,
-#           or the corpus outside it (CONSTRAINTS.md / thoughts/)
+#           or the corpus outside it (thoughts/, which holds every rule and every reason)
 #   form  — keep   | reshape : does it ship as written, or is it a BODY that must be
 #           reshaped into an Interface block + a Behavior sketch (or into case sentences)
 #
@@ -94,11 +94,12 @@ Answer two questions about this candidate.
              block for a file that has no surface, is human.
    \"agent\" = TODO-N.agent.md (the Constraints pointer, Changes, Files, Pre-reads, Manual test, Definition of
              done). Changes holds the increments as Files + Surface + Do + Blast radius prose, and
-             carries no diff at all. Constraints is a POINTER at CONSTRAINTS.md and never a rule.
-   \"corpus\" = outside the pair. CONSTRAINTS.md when it is a settled rule an increment can
-             violate — the rule plus an R<n> id plus its origin. thoughts/ when it is a REASON:
-             why a choice was made, what lost, what a reviewer would argue with. No file under
-             todos/ ever carries a rule table or an origin link.
+             carries no diff at all. Constraints is one fixed line — \"Obey every rule that
+             ~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts prints.\" — never a rule.
+   \"corpus\" = outside the pair, in thoughts/. A settled rule an increment can violate is a
+             decision note whose description IS the rule text; a REASON — why a choice was made,
+             what lost, what a reviewer would argue with — is the rest of that same note. No file
+             under todos/ ever carries a rule table or an origin link.
 
 2. \"form\": does it ship as written, or must it be reshaped?
    \"keep\"    = it is already the right form for its section: a changed surface as a diff, a

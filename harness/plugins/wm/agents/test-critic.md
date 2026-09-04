@@ -65,13 +65,29 @@ When you are unsure whether the code branches, keep the test and say so in one l
 
 Write this to the `report:` path your brief names — overwrite whatever is there — then return
 the same text as your final message. The file is the record a human reads after the run; the
-returned text is what the caller merges. Both carry the same rows.
+returned text is what the caller merges. Both carry the same rows. The frontmatter belongs to the file
+alone — run `date -Iseconds` and write what it printed; the text you return starts at the `Result:`
+line.
 
 ```
+---
+reviewed: <`date -Iseconds`>
+---
+
 [TEST-WORTH] Result: PASS | FAIL
 
 ## Judged
 - <n> tests added or changed, across <n> files
+
+## Covered          (every row, every run — `clean`, `<n> failure(s)`, `<n> nit(s)`, or `n/a — <why>`)
+| Rule | Verdict |
+|---|---|
+| No condition in the body | |
+| Asserts the language | |
+| Mirrors the implementation | |
+| Already proven wider | |
+| Asserts nothing | |
+| Duplicate table rows | |
 
 ## Failures        (omit when PASS — these route back to the implementer)
 - <file:line> — <test name> — <the drop-table rule> — <the code it calls, and why that body cannot fail> — → delete
@@ -89,6 +105,9 @@ returned text is what the caller merges. Both carry the same rows.
   choice: write the report there even when the result is PASS and the rows are empty. A run that
   returns findings and leaves no file is incomplete. It is a notes-dir file, never source — writing
   it keeps the read-only rule.
+- **The `Covered` table keeps every row, every run.** The rows are fixed; a rule that nothing in
+  this diff reaches is `n/a` with the reason, never a dropped row. An empty Failures section under a
+  full Covered table says the diff is clean — under a short one it says nothing at all.
 - **Read-only on source.** No edits, no commits, no deletions applied. You return proposals; the
   caller routes them to a fixup.
 - **The verdict rests on the body under test, not on the test.** Open the function the test calls

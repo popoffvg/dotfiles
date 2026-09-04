@@ -1,9 +1,9 @@
 ---
-name: work-finish
-description: Alias for work-abandon
+name: work:finish
+description: Alias for work:abandon
 ---
 
-Use the same flow as `work-abandon`:
+Use the same flow as `work:abandon`:
 
 1. Call `work_abandon` MCP tool.
 2. Confirm: "Work-manager cancelled for this workspace."

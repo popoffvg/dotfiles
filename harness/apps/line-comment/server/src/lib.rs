@@ -4,6 +4,7 @@ pub mod anchor;
 pub mod cli;
 pub mod export;
 pub mod input;
+pub mod reveal;
 pub mod scratch;
 pub mod span;
 pub mod store;
@@ -257,7 +258,7 @@ impl Session {
                 &target.file,
                 target.line,
                 target.end_line,
-                body,
+                with_revision(body, target.commit.as_deref()),
                 Author::Human,
             );
             stored = true;
@@ -535,7 +536,14 @@ impl Session {
     /// A line that already carries a comment is handed back its text, because the same
     /// command serves `edit comment`: the operator changes what is there instead of
     /// retyping it, and saving an unchanged file keeps the comment as it was.
-    pub fn input_for(&self, uri: &str, line: usize, end_line: usize) -> Option<String> {
+    pub fn input_for(
+        &self,
+        uri: &str,
+        line: usize,
+        end_line: usize,
+        note: &[String],
+        commit: Option<&str>,
+    ) -> Option<String> {
         let key = self.key(uri)?;
         let line = line.max(1);
         let end_line = end_line.max(line);
@@ -556,9 +564,11 @@ impl Session {
                 file: key,
                 line,
                 end_line,
+                commit: commit.map(str::to_string),
             },
             &body,
             quoted,
+            note,
         ))
     }
 
@@ -571,9 +581,10 @@ impl Session {
         self.store
             .comments(&key)
             .iter()
-            .filter(|comment| in_range(comment.line, range))
-            .map(|comment| {
-                let anchored = comment.line - 1;
+            .map(|comment| (comment, hint_line(comment.line)))
+            .filter(|(_, hint_line)| in_range(*hint_line, range))
+            .map(|(comment, hint_line)| {
+                let anchored = hint_line - 1;
                 let mark = if comment.orphaned {
                     HINT_MARK_ORPHANED
                 } else {
@@ -698,7 +709,7 @@ impl Session {
                     .get(2)
                     .and_then(Value::as_u64)
                     .map_or(line, |end| end as usize);
-                let Some(contents) = self.input_for(uri, line, end_line) else {
+                let Some(contents) = self.input_for(uri, line, end_line, &[], None) else {
                     return Vec::new();
                 };
                 let path = self.take_input_path();
@@ -804,6 +815,20 @@ impl Session {
     }
 }
 
+/// The comment's text with the revision it was read on named at the end.
+///
+/// A comment written from a commit view is about the line as that commit left it, and the
+/// store anchors to the working tree — so whoever reads the comment later needs the
+/// revision to tell whether the two still agree. It goes last: the hint and the export
+/// heading show the beginning of the text, and the sentence the operator wrote is what
+/// they should show.
+fn with_revision(body: String, commit: Option<&str>) -> String {
+    match commit {
+        Some(commit) => format!("{body}\n\nread on {commit}"),
+        None => body,
+    }
+}
+
 /// What a comment reads as on the line: the author's mark, the text, and the orphan note
 /// when its anchor is gone.
 fn message_of(comment: &Comment) -> String {
@@ -815,6 +840,17 @@ fn message_of(comment: &Comment) -> String {
         format!("{mark}{} (orphaned)", comment.text)
     } else {
         format!("{mark}{}", comment.text)
+    }
+}
+
+/// The line a comment's hint is drawn on: the one above the first line it covers, so the
+/// shadow text reads as a heading over the block instead of trailing its opening line. A
+/// comment on the first line of the file has nothing above it and keeps its own line.
+fn hint_line(line: usize) -> usize {
+    if line > 1 {
+        line - 1
+    } else {
+        line
     }
 }
 

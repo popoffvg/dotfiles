@@ -104,7 +104,7 @@ impl)
   impl) next="finish $(basename "${cur%.md}") — it is mid-implementation. Re-read $cur first; start no other TODO until it is done." ;;
   verify) next="run the review gate on $(basename "${cur%.md}") — committed and green, awaiting reviewer/verifier." ;;
   todo) next="implement $(basename "${cur%.md}") — \`/code impl\`. Read its body in full before editing." ;;
-  *) next="every TODO is done — close the work with \`/wm:work-finish\`." ;;
+  *) next="every TODO is done — close the work with \`/wm:work:finish\`." ;;
   esac
   ;;
 *)

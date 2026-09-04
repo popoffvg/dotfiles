@@ -15,19 +15,20 @@ every finding routes back to `impl`, which is the only skill that edits.
 1. **Name the revision.** The diff under judgment is the TODO's commit plus every fixup on top of
    it — `git log --oneline` from the TODO's commit to `HEAD`. Pass that revision range to every
    gate; a gate that picks its own range judges a different diff from its siblings.
-2. **Name the rule files.** Every gate gets the paths, never the pasted content:
-   `<notes-dir>/CONSTRAINTS.md`, `<notes-dir>/RULES.md`, and `<notes-dir>/PATTERNS.md` — the rules
-   and patterns the code must obey — plus `<notes-dir>/todos/TODO-N.md` (Autotest) and
-   `<notes-dir>/todos/TODO-N.agent.md` (Files) for the two gates that need them. Leave `thoughts/`
-   out of the brief: no gate here judges why a rule exists.
+2. **Name the rule sources.** Every gate gets the command and the paths, never the pasted content:
+   `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts`, which prints the rules the code must
+   obey, plus `<notes-dir>/RULES.md` and `<notes-dir>/PATTERNS.md` for the patterns it must follow,
+   plus `<notes-dir>/todos/TODO-N.md` (Autotest) and `<notes-dir>/todos/TODO-N.agent.md` (Files) for
+   the two gates that need them. The generator is the only reader of `thoughts/` here: no gate
+   judges why a rule exists.
 3. **Run the wave** — @lint-tester, @comment-critic, @name-critic, @test-critic, and @reviewer in
    **one message**, each with its own `report: <notes-dir>/review/TODO-N/<gate>.md` line (§ Every
    gate writes its report to a file). The lint gate needs the pair (Files, Autotest), and
    @test-critic needs `## Autotest` so it can tell a case the human asked for from one the
    implementer invented; the comment and name gates never read the pair, because a comment is judged
-   against the code under it and a name against its own body. @reviewer's brief names
-   `<notes-dir>/CONSTRAINTS.md`, `<notes-dir>/RULES.md`, and `<notes-dir>/PATTERNS.md` — the rule
-   sources the pair points at — and never the Outcome or the Surface. Tell it the other four gates
+   against the code under it and a name against its own body. @reviewer's brief names the
+   constraint command, `<notes-dir>/RULES.md`, and `<notes-dir>/PATTERNS.md` — the rule sources the
+   pair points at — and never the Outcome or the Surface. Tell it the other four gates
    run beside it, so it reports none of what they judge.
 4. **Run the test gate** — @tester in TODO mode, `report: <notes-dir>/review/TODO-N/test.md`, once
    the wave is green. The one question: does a test assert this TODO's `## Autotest` contract, both
@@ -42,12 +43,12 @@ every finding routes back to `impl`, which is the only skill that edits.
 
 **The pair is a rule source, not a spec to check against.** No gate in this chain judges the
 Outcome, the Surface, or drift — that is `/code verify` before the code and the `verifier` agent
-after it (`ref-gates.md` § No gate judges the spec). What the pair adds here is three files the
+after it (`ref-gates.md` § No gate judges the spec). What the pair adds here is three rule sources the
 standards gate can cite by name.
 
-**`CONSTRAINTS.md` turns taste into a rule.** Each `R<n>` row is a decision the human settled, so a
-breach is a Failure with a citation instead of a reviewer's opinion. A loose diff has no such file
-and the same finding lands as a Nit.
+**The generated rule set turns taste into a rule.** Each `D<NNN>` row is a decision the human
+settled, so a breach is a Failure with a citation instead of a reviewer's opinion. A loose diff has
+no thought graph to generate from and the same finding lands as a Nit.
 
 **`PATTERNS.md` names the pattern the code was meant to follow.** Without it the standards gate
 infers the pattern from the neighbouring files, which is weaker: a package that is itself

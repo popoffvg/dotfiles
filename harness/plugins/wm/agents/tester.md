@@ -88,9 +88,12 @@ report there even when everything passed. When the brief names no path, fall bac
 Use this structure:
 
 ```markdown
+---
+reviewed: <`date -Iseconds`>
+---
+
 # Test Report
 
-**Date**: <ISO date>
 **Scope**: <what was tested — branch, PR, feature>
 **Tested by**: tester agent
 
@@ -104,6 +107,18 @@ Use this structure:
 | Failed | N |
 | Skipped | N |
 | Blocked | N |
+
+## Covered
+
+Every row, every run — the test cases that reach it, or `n/a — <why this change has none>`.
+
+| Category | Cases |
+|---|---|
+| Happy path | |
+| Edge cases | |
+| Error handling | |
+| Regression | |
+| Integration | |
 
 ## Automated Check Results
 

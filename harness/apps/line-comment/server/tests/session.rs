@@ -190,7 +190,7 @@ fn a_multi_line_body_is_kept_whole() {
 }
 
 #[test]
-fn inlay_hint_sits_at_the_end_of_the_line() {
+fn inlay_hint_sits_at_the_end_of_the_line_above_the_comment() {
     let (mut session, _root, uri) = open("# Title\n## Design\n");
     add(&mut session, &uri, 1, "needs a source");
 
@@ -199,14 +199,29 @@ fn inlay_hint_sits_at_the_end_of_the_line() {
     assert_eq!(
         hints[0].position,
         Position {
-            line: 1,
-            character: 9
+            line: 0,
+            character: 7
         }
     );
     assert_eq!(hints[0].label, "💬 needs a source");
     assert!(hints[0].padding_left);
     assert_eq!(hints[0].tooltip.value, "needs a source");
     assert_eq!(hints[0].tooltip.kind, "markdown");
+}
+
+#[test]
+fn a_comment_on_the_first_line_keeps_its_hint_on_that_line() {
+    let (mut session, _root, uri) = open("# Title\n## Design\n");
+    add(&mut session, &uri, 0, "needs a source");
+
+    let hints = session.inlay_hints(&uri, whole_file());
+    assert_eq!(
+        hints[0].position,
+        Position {
+            line: 0,
+            character: 7
+        }
+    );
 }
 
 #[test]
@@ -1113,6 +1128,36 @@ fn root_is_the_project_holding_the_store_not_the_repository_inside_it() {
     assert_eq!(root, project);
 }
 
+/// A directory inside the project that was once opened on its own — `.notes`, its own jj
+/// repo — keeps the store that session wrote. The project never writes to it again, so a
+/// command run from under it has to reach past it to the project's own store, or it reads
+/// a store nothing fills and reports no comments while the project holds them.
+#[test]
+fn root_is_the_project_when_a_directory_inside_it_kept_a_store_of_its_own() {
+    let project = root();
+    let nested = project.join(".notes");
+    std::fs::create_dir_all(nested.join(".tmp")).unwrap();
+    std::fs::create_dir_all(project.join(".tmp")).unwrap();
+    std::fs::write(project.join(".tmp").join("line-comment.json"), "{}").unwrap();
+    std::fs::write(nested.join(".tmp").join("line-comment.json"), "{}").unwrap();
+
+    assert_eq!(
+        line_comment::cli::root_for(&nested.join("todos").join("TODO-8.md")),
+        project
+    );
+    assert_eq!(line_comment::cli::root_for(&nested), project);
+}
+
+#[test]
+fn root_is_the_nested_directory_when_it_is_the_only_one_holding_a_store() {
+    let project = root();
+    let nested = project.join(".notes");
+    std::fs::create_dir_all(nested.join(".tmp")).unwrap();
+    std::fs::write(nested.join(".tmp").join("line-comment.json"), "{}").unwrap();
+
+    assert_eq!(line_comment::cli::root_for(&nested.join("plan.md")), nested);
+}
+
 #[test]
 fn root_is_the_directory_itself_when_it_holds_the_store() {
     let project = root();
@@ -1120,4 +1165,45 @@ fn root_is_the_directory_itself_when_it_holds_the_store() {
     std::fs::write(project.join(".tmp").join("line-comment.json"), "{}").unwrap();
 
     assert_eq!(line_comment::cli::root_for(&project), project);
+}
+
+/// A hand-over that knew the revision — the `add` subcommand, reading a commit view —
+/// writes it under the header, and the comment it stores ends by naming it. The store
+/// anchors to the working tree, so the revision is what tells a later reader whether the
+/// line they see is the line that was commented on.
+#[test]
+fn a_comment_written_against_a_revision_names_it_in_its_text() {
+    let (mut session, _root, uri) = open("## Design\n");
+    let contents = session
+        .input_for(&uri, 1, 1, &[], Some("9f2b1c4e7a05"))
+        .expect("the file is served");
+    assert!(
+        contents.contains("<!-- line-comment-commit: 9f2b1c4e7a05 -->"),
+        "{contents}"
+    );
+
+    let path = session.take_input_path();
+    write_input(&path, &format!("{contents}needs a source\n"));
+    session.drain_input();
+
+    assert_eq!(
+        comment(&session, 0).text,
+        "needs a source\n\nread on 9f2b1c4e7a05"
+    );
+}
+
+/// The revision is written by the hand-over, never by the operator's own text, so a save
+/// with nothing typed still cancels the comment.
+#[test]
+fn a_revision_alone_is_not_a_comment() {
+    let (mut session, _root, uri) = open("## Design\n");
+    let contents = session
+        .input_for(&uri, 1, 1, &[], Some("9f2b1c4e7a05"))
+        .expect("the file is served");
+
+    let path = session.take_input_path();
+    write_input(&path, &contents);
+    session.drain_input();
+
+    assert!(session.store().comments("docs/spec.md").is_empty());
 }

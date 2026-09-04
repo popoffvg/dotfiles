@@ -134,6 +134,17 @@ const safetyClause =
   `status:"blocked" naming exactly what is missing and the command you would have needed — let a ` +
   `human install it. Never put a secret value in anything you return. `
 
+// The comment, name and test-worth gates judge a diff, and a wm diff carries two kinds of file:
+// source, and the notes corpus the source was written from. Only source is the subject. Left
+// unsaid, the gates judge the spec: a real run spent findings on the identifiers quoted inside
+// `todos/TODO-5.md` and on the em-dashes in its Outcome paragraph, and the implementer edited the
+// approved spec to close them — the one file a gate round must never touch.
+const scopeClause =
+  `SCOPE: judge SOURCE files only. Everything under ${notesDir}/ — the spec, the TODO pair, the ` +
+  `glossary, the thought notes — is the INPUT you judge against, never the subject you judge. ` +
+  `Report no finding whose file lives there, and propose no edit to one. A problem you see in the ` +
+  `spec itself is a spec bug for a human, not a gate finding: leave it out. `
+
 // Diff mode has no TODO to implement, so a correction round is a correction and nothing more: fix
 // exactly what the gate reported and add no behaviour, because no pair approved any.
 function implPrompt(failures, extra) {
@@ -143,8 +154,9 @@ function implPrompt(failures, extra) {
     (mode === 'todo'
       ? `Implement exactly one TODO: ${todoPath} (notes-dir ${notesDir}). ` +
         `Follow ${PLUGIN}/skills/impl/commands/sub-impl.md steps 1-4, 6, 7 (read context, dependency gate, ` +
-        `replan guard, every increment in order, glossary, autotest) with one change: the per-increment ` +
-        `approval loop (step 5.3) does not run — nobody is watching, so apply each increment without asking. ` +
+        `replan guard, every increment in order, glossary, autotest) as if the resolved approve key were ` +
+        `"none": the per-increment wave (step 5.2) and the show + approval loop (steps 5.3-5.4) do not run — ` +
+        `nobody is watching, and this workflow runs the gate chain itself once the TODO is committed. ` +
         `Both ## Autotest commands green before committing. `
       : `Correct the code already in ${range} (notes-dir ${notesDir}) — no TODO pair covers it, its ` +
         `intent is: ${intent}. Close the findings below and change nothing else: add no behaviour, ` +
@@ -198,6 +210,7 @@ function checks() {
       prompt:
         lessonsClause +
         safetyClause +
+        scopeClause +
         `Comment gate for ${theDiff}. Follow the wm:comment-critic contract: judge every comment, ` +
         `doc line, and doc tag the diff adds or changes. You never read the TODO pair — a comment is ` +
         `judged against the code under it. Return result PASS/FAIL with failures ` +
@@ -209,9 +222,19 @@ function checks() {
       prompt:
         lessonsClause +
         safetyClause +
+        scopeClause +
         `Naming gate for ${theDiff}. Follow the wm:name-critic contract: run the pedant smell table ` +
         `over every name the diff declares. You never read the TODO pair — a name is judged against ` +
-        `its own body. Return result PASS/FAIL with failures ` +
+        `its own body. ` +
+        // The one exception to "you never read the pair", and the fix for a four-round rename war:
+        // the outcome gate reads these rules and enforces the spellings they fix. A smell table
+        // that cannot see them proposes the rename that gate will reverse next round.
+        `FIRST run \`~/.claude/scripts/wm-constraints.py ${notesDir}/thoughts\` and read ` +
+        `${notesDir}/GLOSSARY.md. A name whose spelling a rule or a glossary term FIXES is settled: ` +
+        `it is not yours to judge, whatever the smell table says about it — the outcome gate enforces ` +
+        `that rule in this same wave and will reverse you. When you believe a settled name is wrong, ` +
+        `say so as a nit naming the rule, never as a failure. ` +
+        `Return result PASS/FAIL with failures ` +
         `(file:line — name — smell — the bug it hides — rename).`,
     },
     // The two test gates are opposites and both are needed: this one drops the tests the diff wrote
@@ -224,6 +247,7 @@ function checks() {
       prompt:
         lessonsClause +
         safetyClause +
+        scopeClause +
         `Test-worth gate for ${theDiff}. Follow the wm:test-critic contract: judge every test the ` +
         `diff adds or changes and reject the ones that assert nothing the code can get wrong — a body ` +
         `with no branch, a getter returning what was set, a case a wider test in the same diff already ` +
@@ -279,6 +303,81 @@ function serial() {
   ]
 }
 
+// Every gate got a byte-identical brief in every round, so each round was a cold re-read with no
+// knowledge that it had already cleared the text in front of it. Measured on one TODO: the comment
+// gate passed rounds 2 and 3 and then failed round 4 on spec lines no fixup had touched, and the
+// test-worth gate passed a test three times before demanding its deletion. Each such late finding
+// costs a full implementer round. Handing a gate its own record turns "I could raise this" into
+// "I already passed this", and asks for the rest of its findings now instead of next round.
+// Every gate contract hard-requires the `report:` path its brief names, and no brief named one:
+// four of the five wrote to a path they guessed, and one invented a different path from its
+// siblings, so the run left no readable record where the next run looks for it.
+const reportDir = mode === 'todo' ? `${notesDir}/review/TODO-${todo}` : `${notesDir}/review/diff`
+function reportClause(gateKey) {
+  return ` report: ${reportDir}/${gateKey}.md`
+}
+
+function historyClause(gateKey) {
+  const mine = history.filter((h) => h.gate === gateKey)
+  if (mine.length === 0) return ''
+  const record = mine
+    .map((h) => `- round ${h.round}: ${h.result}` + (h.failures.length > 0 ? `\n` + h.failures.map((f) => `    - ${f}`).join('\n') : ''))
+    .join('\n')
+  return (
+    `\n\nYOUR OWN RECORD. This is round ${round} of the same chain over the same work, and you have ` +
+    `judged it before:\n${record}\n\n` +
+    `A finding you could have raised in an earlier round, on text no fixup has touched since, is ` +
+    `OUT OF ORDER — you held that text and you passed it. Raise it only if it changed since; say ` +
+    `what changed. Everything else you still have: raise it NOW, in this round, because a finding ` +
+    `held back costs a whole implementation round. Re-report a finding above only when the fixup ` +
+    `failed to close it, and name which one it repeats.`
+  )
+}
+
+// Two gates with different sources of truth flip a name back and forth forever, and neither can see
+// the other: the naming gate judged an identifier from its own smell table while the outcome gate
+// enforced the rule that fixes that same identifier's spelling. Measured: four rounds, the same
+// rename applied in both directions twice, and `git diff` between the two fixups EMPTY — 25 minutes
+// and 155k output tokens of pure churn. A reversal is not a finding to route; it is a contradiction
+// between two rules only a human can settle.
+// Only the TARGET of a finding is stated precisely — after the `→`, or after "rename … to X". The
+// subject is prose ("every desktop occurrence"), so pairing the target against every identifier in
+// the finding is what actually reads both shapes. That over-generates on purpose: a pair matters
+// only when its exact reverse turns up in another round, and noise has no reverse.
+function renamePairs(text) {
+  const ident = /[A-Za-z_][A-Za-z0-9_]{2,}/g
+  // A finding is mostly prose, and prose words pair up as readily as names do. An internal case
+  // change, an underscore or a digit is what separates `pickedIdP` from `qualifier` — without this
+  // the pairs are built out of English and a reversal can be spelled by two ordinary sentences.
+  const isCodeName = (s) => /[a-z][A-Z]|_|\d/.test(s)
+  const mentioned = (text.match(ident) || []).filter(isCodeName)
+  const targets = new Set()
+  const arms = text.split('→')
+  if (arms.length >= 2) for (const t of (arms[arms.length - 1].match(ident) || []).filter(isCodeName)) targets.add(t)
+  for (const m of text.matchAll(/(?:[Rr]ename|[Rr]espell|[Cc]all it)[^.;\n]*?\s(?:to|into|as)\s+([A-Za-z_][A-Za-z0-9_]{2,})/g)) {
+    if (isCodeName(m[1])) targets.add(m[1])
+  }
+  const pairs = []
+  for (const target of targets) for (const subject of mentioned) if (subject !== target) pairs.push([subject, target])
+  return pairs
+}
+
+// A single pair is noise — the arrow split over-generates. A pair whose EXACT reverse was proposed
+// in an earlier round is not: that is the loop undoing itself.
+function oscillation() {
+  const seen = []
+  for (const h of history) {
+    for (const finding of h.failures) {
+      for (const [from, to] of renamePairs(finding)) {
+        const back = seen.find((s) => s.from === to && s.to === from && s.round !== h.round)
+        if (back) return { first: back, second: { round: h.round, gate: h.gate, finding, from, to } }
+        seen.push({ round: h.round, gate: h.gate, finding, from, to })
+      }
+    }
+  }
+  return null
+}
+
 // ── loop ─────────────────────────────────────────────────────────────────────
 let round = 0
 const history = []
@@ -330,7 +429,12 @@ while (round < MAX_ROUNDS) {
   const CHECKS = checks()
   const checksOut = await parallel(
     CHECKS.map((gate) => () =>
-      agent(gate.prompt, { agentType: gate.agentType, phase: 'Checks', schema: GATE, label: `${gate.key}:r${round}` }).then((out) => ({ gate, out })),
+      agent(gate.prompt + reportClause(gate.key) + historyClause(gate.key), {
+        agentType: gate.agentType,
+        phase: 'Checks',
+        schema: GATE,
+        label: `${gate.key}:r${round}`,
+      }).then((out) => ({ gate, out })),
     ),
   )
   const checksRuns = checksOut.filter(Boolean)
@@ -353,7 +457,12 @@ while (round < MAX_ROUNDS) {
   if (!failed) {
     for (const gate of serial()) {
       phase(gate.phase)
-      const out = await agent(gate.prompt, { agentType: gate.agentType, phase: gate.phase, schema: GATE, label: `${gate.key}:r${round}` })
+      const out = await agent(gate.prompt + reportClause(gate.key) + historyClause(gate.key), {
+        agentType: gate.agentType,
+        phase: gate.phase,
+        schema: GATE,
+        label: `${gate.key}:r${round}`,
+      })
       if (!out) return { result: 'ERROR', mode, todo, stage: gate.key, round, history }
       history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], ran: out.ran || '' })
       if (out.result === 'FAIL') {
@@ -386,6 +495,30 @@ while (round < MAX_ROUNDS) {
     )
     if (!impl || impl.status === 'blocked') return blocked('commit-tests', impl)
     continue // a new test file can break lint → restart the chain at the cheap gate
+  }
+
+  // Before spending another implementation round: is this round undoing an earlier one? A reversal
+  // means two gates disagree on a rule, and no number of further rounds can settle that — each one
+  // just applies the rename the other will flip back.
+  const flip = oscillation()
+  if (flip) {
+    log(
+      `round ${round}: OSCILLATION — ${flip.first.gate} (round ${flip.first.round}) wants ` +
+        `${flip.first.from} → ${flip.first.to}, ${flip.second.gate} (round ${flip.second.round}) wants it back. Stopping.`,
+    )
+    return {
+      result: 'BLOCKED',
+      mode,
+      todo,
+      stage: `oscillation:${flip.first.gate}-vs-${flip.second.gate}`,
+      blocker:
+        `Two gates are reversing each other on ${flip.first.from} / ${flip.first.to}, so every ` +
+        `further round is churn. A human decides which rule wins.\n` +
+        `- ${flip.first.gate} (round ${flip.first.round}): ${flip.first.finding}\n` +
+        `- ${flip.second.gate} (round ${flip.second.round}): ${flip.second.finding}`,
+      round,
+      history,
+    }
   }
 
   // The budget is per gate, so a checks FAIL is measured against the worst of the gates that failed.

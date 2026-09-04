@@ -96,6 +96,16 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/verify-naming-reminder.sh",
+            "timeout": 3000
+          }
+        ]
       }
     ]
   }

@@ -37,14 +37,24 @@ Read the TODO pair: `<notes-dir>/todos/TODO-N.agent.md` for **Files** (what chan
 
 Write this to the `report:` path your brief names — overwrite whatever is there — then return
 the same text as your final message. The file is the record a human reads after the run; the
-returned text is what the caller merges. Both carry the same rows.
+returned text is what the caller merges. Both carry the same rows. The frontmatter belongs to the file
+alone — run `date -Iseconds` and write what it printed; the text you return starts at the `Result:`
+line.
 
 ```
+---
+reviewed: <`date -Iseconds`>
+---
+
 [LINT] Result: PASS | FAIL
 
-## Ran
-- <lint command> → <exit / summary>
-- <test command> → <pass/fail counts>
+## Covered          (every row, every run — the real command and its real output, or `n/a — <why>`)
+| Rule | Command | Verdict |
+|---|---|---|
+| Linter over the changed files | | |
+| Autotest · Unit | | |
+| Autotest · E2E | | |
+| The tests covering the changed files | | |
 
 ## Failures        (omit when PASS)
 - <file:line> — <the exact lint message or test failure, verbatim>
@@ -56,6 +66,9 @@ returned text is what the caller merges. Both carry the same rows.
   choice: write the report there even when the result is PASS and the rows are empty. A run that
   returns findings and leaves no file is incomplete. It is a notes-dir file, never source — writing
   it keeps the read-only rule.
+- **The `Covered` table keeps every row, every run.** The rows are fixed; a rule that nothing in
+  this diff reaches is `n/a` with the reason, never a dropped row. An empty Failures section under a
+  full Covered table says the diff is clean — under a short one it says nothing at all.
 - **Read-only on source.** No edits, no commits. You return findings; the caller routes them back to the implementer.
 - **Real output only.** Paste the linter/test output you actually saw — never summarize a run you did not do.
 - Do not run the full suite when the TODO scopes a package — run the related tests, not everything.

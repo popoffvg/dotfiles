@@ -9,6 +9,12 @@ One entry per section of the pair, in the order `sub-todo.md` § Required elemen
 file owns the procedure — the fan-out, the budgets, the verification chain, the pre-save checklist;
 this one owns what goes inside each heading.
 
+**Every prose line of `TODO-N.md` obeys the `i-have-adhd` skill.** The human half is read once, by a
+person deciding whether to approve it — Outcome, New terms **Meaning**, Components **Role**, Autotest
+cases, `Commit.Body`, and any sentence beside a table. Load that skill and write under its rules: one
+idea per sentence, short sentences, front-loaded, literal words, no restatement. The agent half is
+read by an implementer and is not bound by it.
+
 > The first four are `TODO-N.md` frontmatter keys (`status`, `type`, `depends_on`, `risk`); the rest
 > are body headings. Which half each heading lives in: `sub-todo.md` § Required elements.
 
@@ -16,7 +22,19 @@ this one owns what goes inside each heading.
 The TODO's lifecycle phase — `todo → impl → verify → done`, `blocked` off the path. Machine + who sets each transition: `ref-write.md` § Status. `todo` authors it at `todo` (or `blocked` if a `depends_on` TODO is not yet `done`); never author a TODO straight to `impl`/`done`.
 
 ### type
-The **change shape**, one of `behavior | state machine | data shape`. It never names a brick — the brick is the **Type** column of the `## Components` row, and it is the brick of the `main` row that picks the sketch shape for a `type: behavior` TODO. The mapping from both to the `## Changes` **Behavior** snippet lives in the `flow-scetch` skill § Variants.
+The **change kind** — what this TODO does to the repo, one of the nine in `impl:ref-change-types.md`:
+`new behavior | signature change | wiring | call-site migration | rename | move | deletion | test |
+generated`. One roster across all three scales: the same word labels the TODO here, each increment in
+`## Changes`, and each changed file in the table above the diff the human approves.
+
+**Exactly one kind, and it is the TODO's main work.** Two kinds with equal claim is a split signal —
+a TODO that is both `new behavior` and `wiring` is two ledger rows. The consequences a kind drags
+along do not change it: a `new behavior` TODO still migrates its call sites, and those show up per
+increment and per file, not here.
+
+It never names a brick — the brick is the **Type** column of the `## Components` row, and it is the
+brick of the `main` row that picks the sketch shape for a `type: new behavior` TODO. The mapping from
+both to the `## Changes` **Behavior** snippet lives in the `flow-scetch` skill § Variants.
 
 ### depends_on
 `[]`, or `[TODO-M]`, or several (`[TODO-2, TODO-3]`) — each must reach `status: done` first. No forward references. This list defines the **waves** in `spec.md` § Plan, so record only real edges (`ref-write.md` § Waves): a file this TODO's **Files** cannot touch until M creates it, a symbol M introduces, or a test that cannot pass before M lands. "Feels later" is not an edge — a false one serializes the spec.
@@ -62,49 +80,50 @@ GLOSSARY.md, but the pair's author does not put it there — it is returned and 
 | TokenJar | entity | Per-user container of active refresh tokens; bounded to 5, LRU-evicted |
 ```
 
+Every row here is `new` by definition — that is what the section is — and it reaches GLOSSARY.md with `Status: new`. A term the code already carries is not a new term; it belongs in GLOSSARY.md as `existing` and never in this table.
+
 `Kind` ∈ the GLOSSARY.md set. Description is one sentence with the visible contract (TTL, bounds, error semantics). No new terms → omit the section (never write `## New terms\nnone`).
+
+**Unlimited — the table has no row cap and the 550-line budget does not count it** (`sub-todo.md` §
+Budget). Every term the TODO adds gets its row; a term left out to keep the section short is a term
+the implementer has to guess.
 
 ### Constraints
 
-> The rules live in `<notes-dir>/CONSTRAINTS.md`, one file for the whole corpus. Worked example:
-> [`examples/constraints.md`](../examples/constraints.md). The agent half carries the pointer at
-> that file and never a rule.
+> The rules are **generated** from `<notes-dir>/thoughts/`, never written by hand. Worked example of
+> what they look like: [`examples/constraints.md`](../examples/constraints.md). The agent half
+> carries the command that prints them and never a rule.
 
-**In `TODO-N.agent.md` — the pointer, and nothing else.** One fixed line, first in the file, above
+**In `TODO-N.agent.md` — the command, and nothing else.** One fixed line, first in the file, above
 the increments it bounds:
 
 ```markdown
 ## Constraints
 
-Obey [CONSTRAINTS.md](../CONSTRAINTS.md) — every row.
+Obey every rule that `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints.
 ```
 
 - The line is the same in every TODO. It never lists ids, never quotes a rule, never adds a case.
-- The section is **always present**, even when the file is empty today: rules are appended as
-  decisions settle, and a TODO that dropped the pointer would be implemented against a stale set.
+- The section is **always present**, even when the corpus has settled no decision yet: rules appear
+  as decisions settle, and a TODO that dropped the line would be implemented against an empty set.
 - A rule *this* TODO's tests can check gets a matching case in the human half's **Autotest** — that
   is the one place a constraint reaches into a single row.
 
-**In `CONSTRAINTS.md` — the rule and its origin.** The caller appends, one row per settled decision
-**an increment can violate**, never a fork (`sub-todo.md` § Execution step 3):
+**In `thoughts/` — the decision note, which *is* the rule.** There is no rules file to append to.
+A settled decision an increment can violate is a `decision` (or `impl-decision`) note, and its
+frontmatter `description` is the rule text the implementer reads:
 
-```markdown
-| # | Constraint | Origin |
-|---|------------|--------|
-| R1 | A second refresh on the same token returns 409; never two valid pairs | [[003-decision-single-flight]] |
-| R2 | Refresh tokens expire 15 minutes after issue | [[002-fact-token-ttl]] |
-```
-
-- One sentence per row, imperative or invariant — what the code must do, not what was debated. No
-  trade-off prose and no rejected alternatives: those stay in the origin note.
-- `#` is `R<n>`, 1-indexed, contiguous, unique in the file, and **append-only**. Renumbering
-  silently repoints every reader at a different rule.
-- One row per decision. A decision already in the file is not appended again because a second TODO
-  also obeys it — that repetition is the whole thing this file removes.
-- `Origin` is a live `[[note]]` in `thoughts/`, or a document with its section and read date. A rule
-  with no recorded origin is a rule nobody can argue with: write the note first, then append.
-- A decision no increment anywhere can violate is not a constraint. It is a fact, and it stays in
-  `thoughts/` where the `trace` skill can find it.
+- **Write the description as the rule.** One or two sentences stating what the code must do. The
+  same text serves the thought index and the constraint set, so there is no second place to keep in
+  step — and no row anyone can forget to append.
+- `#` is `D<NNN>`, the note's own id. Never reused, so never renumbered: a reader is never
+  repointed at a different rule.
+- **One note per decision** — the rule set cannot hold a duplicate, because two TODOs obeying one
+  decision still read one note.
+- A decision that changes is an **edit to that note's description**. A decision that is reversed is
+  `status: declined` + `superseded_by:`, and the archive hook removes it from the rule set.
+- A decision no increment anywhere can violate is not a constraint. Write it as a `fact` note — the
+  generator skips those, and the `trace` skill still finds it.
 
 ### Components
 
@@ -140,6 +159,11 @@ from this table.
   Outcome's behavior. Two candidates for `main` → the TODO does two things, split it.
 - **Role** — one sentence, this TODO's slice of the component's job. Not the component's full purpose.
 - Every row maps to at least one path in the agent half's **Files**, and every non-test path there belongs to a row — except a file changed only as a consequence of another row's decision (§ A diff carries the change, not what the change forces).
+
+**Unlimited — the table has no row cap and the 550-line budget does not count it** (`sub-todo.md` §
+Budget). One row per symbol the TODO touches, however many that is: the table is the whole reach of
+the change, and a reach stated short is a reach the human approves blind. A wide table is not a
+split signal — two `main` candidates and an over-budget `## Surface` are.
 
 ### Surface
 
@@ -256,12 +280,19 @@ Each increment carries these bullets, in order:
 
 | Bullet | Required | Content |
 |--------|----------|---------|
+| **Change** | always | the increment's change kind — one of the nine in `impl:ref-change-types.md`, the same roster the TODO's `type:` uses |
 | **Files** | always | the repo-relative paths this increment alone touches — a subset of `## Files` |
 | **Surface** | always | which part of `TODO-N.md` § Surface this increment lands, named by symbol — or `none` when it adds no surface (a body-only file, a wiring change) |
 | **Do** | always | one to four imperative sentences: the work, in words. What to write, what to migrate, what to delete. **No code, no fenced block, no pasted signature** |
 | **Blast radius** | always | the **predicted** reach: the symbols, callers, and consumers a mistake here forces you to retest. Name them; `"low"` is not a blast radius |
 | **Behavior** | only where **Do** cannot carry the logic — a real branch structure, an error path that matters, a non-obvious ordering | TS pseudocode per the `flow-scetch` skill, ≤ 40 lines, side effects + error paths visible |
 | **Builds** | only when the increment leaves the repo not compiling | `builds: only with increment <n>` |
+
+**Change is the increment's own kind, not the TODO's.** A `type: new behavior` TODO usually holds one
+`new behavior` increment and several that are `signature change`, `wiring`, or `call-site migration`
+around it. That spread is the point: it tells the human which increment to read line by line and
+which to glance at, before any diff exists. A TODO whose every increment is `wiring` contradicts its
+own `type:` — one of the two is wrong.
 
 **Do is prose, and that is the point.** The signature is in § Surface; what an increment adds is the
 *instruction* — which call sites to migrate, what order to touch things in, what to delete. A **Do**
@@ -286,6 +317,7 @@ hard rejection of any ```diff block in this file.
 ````markdown
 ### 2. Return a pair from the minter — `pkg/auth.TokenMinter`
 
+- **Change:** signature change
 - **Files:** `pkg/auth/token.go`
 - **Surface:** `mintTokens`
 - **Do:** Widen `mintTokens` to the § Surface signature. Mint the refresh token alongside the access token and return both; propagate either signing error unchanged. Migrate both call sites to the new return.
@@ -318,7 +350,19 @@ Each level carries, on its own bullets:
 - **Entry point** — `E2E` only: where the request or command enters, named as a caller enters it
   (`POST /auth/refresh` on the running server), so each case asserts the Outcome as an observer sees
   it rather than as the implementation sees it.
-- **Cases** — one-sentence `input → expected` bullets; each traces to the Outcome or to a `CONSTRAINTS.md` row this TODO can violate. Derive the minimal-but-covering set via `test` (pairwise tiering).
+- **Cases** — grouped under **bold behaviour claims**, never a flat list. A claim is one sentence
+  naming what the group proves (`**A reused token ends the whole session**`); each claim traces to
+  the Outcome or to a generated rule this TODO can violate, both directions — an Outcome promise
+  with no claim is a coverage gap, a claim the Outcome never made is scope creep. The reviewer
+  gate-reads the claims and opens a group's variants only when its claim surprises. Each group is
+  backed one of two ways:
+  - **examples** — `input → expected` bullets under the claim. Derive the minimal-but-covering set
+    via `test` (pairwise tiering).
+  - **a property** — when the claim has algebraic shape (round trip, inverse, idempotence,
+    invariant — the catalog in the `test-suite` skill's `ref-property-based.md`), one line replaces
+    the enumeration: `property: <formula>` then `over: <input domain>; pinned: <known edges>`.
+    The generator body stays in the test file, like any test body. The evidence rule is the same
+    trace: the Outcome is the claim the property asserts.
 - **Command** — one runnable shell command. Never "run the relevant tests".
 
 **Cases, never the test.** This section is the only place a test appears in the pair, and it appears
@@ -396,4 +440,4 @@ Worked example: [`examples/todo.md`](../examples/todo.md) § Deviations.
 Required even when Autotest covers the behavior — catches integration / UX the suite can't see. `Steps` (literal commands) and `Expected` aligned 1:1. `Skip?` defaults to `no`; to skip, `skip — reason: <specific>`. Keep only cases a test can't prove (UX feel, log shape, real third-party behavior).
 
 ### Definition of done
-Checklist the implementer ticks before advancing `status` to `verify` and filling the ledger's Commit: Files, Autotest, Manual test, scope discipline, Commit title. Add items only for unusual post-conditions (e.g. "migration applied on staging"). It sits in the agent half, so its Files row points at a section in the same file and its constraints row points at `CONSTRAINTS.md`; the one row it cannot restate is the Commit message, which it cites in the human half by name.
+Checklist the implementer ticks before advancing `status` to `verify` and filling the ledger's Commit: Files, Autotest, Manual test, scope discipline, Commit title. Add items only for unusual post-conditions (e.g. "migration applied on staging"). It sits in the agent half, so its Files row points at a section in the same file and its constraints row names the generator; the one row it cannot restate is the Commit message, which it cites in the human half by name.

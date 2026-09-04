@@ -1,5 +1,5 @@
 ---
-name: test-suite-help
+name: test-suite:help
 description: Show all /test-suite subcommands with one-line descriptions.
 ---
 

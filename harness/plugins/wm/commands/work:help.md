@@ -1,5 +1,5 @@
 ---
-name: work-help
+name: work:help
 description: Show available work commands, workflow, and tips
 ---
 

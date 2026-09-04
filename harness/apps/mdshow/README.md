@@ -1,8 +1,7 @@
 # mdshow
 
 Show one or more markdown files in a native window, collect inline annotations, print the feedback for
-a coding agent. The Claude Code side is the `show` plugin (`harness/plugins/show`), which adds
-`/show <files or a prompt naming them>`.
+a coding agent. Run it from a terminal — the `show` plugin that once drove it from Claude Code is gone.
 
 Modelled on [`badlogic/pi-diff-review`](https://github.com/badlogic/pi-diff-review): a real OS window
 through [`glimpseui`](https://github.com/hazat/glimpse), no browser tab and no local server.
@@ -15,8 +14,6 @@ npm install
 npm link          # puts `mdshow` on PATH
 ```
 
-Then install the plugin from the `local-plugins` marketplace, or run Claude Code with
-`claude --plugin-dir ~/git/dotfiles/harness/plugins/show`.
 
 ## Use
 

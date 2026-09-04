@@ -1,7 +1,7 @@
 //! One end-to-end test over real stdio, proving the transport wiring.
 
 use std::io::{BufRead, BufReader, Read, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 use std::time::{Duration, Instant};
 
@@ -22,6 +22,9 @@ impl Server {
         let mut child = Command::new(env!("CARGO_BIN_EXE_line-comment-lsp"))
             // Keep the test runs out of the diagnostic log a person reads.
             .env("LINE_COMMENT_LOG", "off")
+            // A hand-over reveals its file in the editor. Under a test run that would
+            // open a tab in the operator's own window.
+            .env("LINE_COMMENT_ZED", "off")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
@@ -147,6 +150,30 @@ impl Drop for Server {
     }
 }
 
+
+/// The one input file the server minted under `.tmp/`, once it lands on disk.
+fn wait_for_input(tmp: &Path) -> PathBuf {
+    for _ in 0..200 {
+        let found: Vec<PathBuf> = std::fs::read_dir(tmp)
+            .into_iter()
+            .flatten()
+            .flatten()
+            .map(|entry| entry.path())
+            .filter(|path| {
+                path.file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name.starts_with("line-comment-input-"))
+            })
+            .collect();
+        assert!(found.len() < 2, "more than one input file: {found:?}");
+        if let Some(path) = found.into_iter().next() {
+            return path;
+        }
+        std::thread::sleep(Duration::from_millis(25));
+    }
+    panic!("the server never wrote an input file");
+}
+
 #[test]
 fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
     let root = std::env::temp_dir().join(format!("line-comment-stdio-{}", std::process::id()));
@@ -223,7 +250,8 @@ fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
     let command = actions["result"][0]["command"].clone();
     assert_eq!(command["command"], json!("line-comment.add"));
 
-    // Running it hands over the input file through workspace/applyEdit.
+    // Running it writes the input file under .tmp/ — one file, no client edit, so the
+    // reveal is the only thing that opens it.
     server.send(json!({
         "jsonrpc": "2.0",
         "id": 3,
@@ -232,22 +260,12 @@ fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
     }));
     server.response(3);
 
-    let applied = server.wait_for("workspace/applyEdit");
-    let changes = &applied["params"]["edit"]["documentChanges"];
-    assert_eq!(changes[0]["kind"], json!("create"));
+    let input = wait_for_input(&root.join(".tmp"));
     assert_eq!(
-        changes[1]["edits"][0]["newText"],
-        json!("<!-- line-comment: docs/spec.md:2 -->\n<!-- commenting on:\n## Design\n-->\n\n")
+        std::fs::read_to_string(&input).unwrap(),
+        "<!-- line-comment: docs/spec.md:2 -->\n<!-- commenting on:\n## Design\n-->\n\n"
     );
-    // The file is named by the server, one per code action, and the client is told which.
-    let input = PathBuf::from(
-        changes[0]["uri"]
-            .as_str()
-            .unwrap()
-            .strip_prefix("file://")
-            .unwrap(),
-    );
-    assert!(input.starts_with(root.join(".tmp")));
+    assert!(server.asked_for("workspace/applyEdit").is_none());
     server.wait_for("client/registerCapability");
 
     // The operator types and saves; the watch tells the server.
@@ -280,7 +298,7 @@ fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
     );
     assert_eq!(
         hints["result"][0]["position"],
-        json!({ "line": 1, "character": 9 })
+        json!({ "line": 0, "character": 7 })
     );
 
     assert!(
@@ -443,5 +461,137 @@ fn a_shutdown_before_initialize_ends_the_process() {
     assert!(
         server.exited_within(Duration::from_secs(5)),
         "the server still runs after a shutdown that arrived before initialize"
+    );
+}
+
+/// The commit-view path. Zed attaches no language server to a past commit's buffers, so the
+/// hand-over is asked for from a shell instead — with the path `editor::CopyFileLocation`
+/// copies there, which is relative to the git repository and not to the Zed project above
+/// it. The subcommand has to find the file anyway, and write the same input file a code
+/// action would.
+#[test]
+fn add_hands_over_an_input_file_for_a_repository_relative_path() {
+    let project = std::env::temp_dir().join(format!("line-comment-commit-{}", std::process::id()));
+    let repository = project.join("pl");
+    let file = repository.join("cmd").join("flags.go");
+    std::fs::create_dir_all(file.parent().unwrap()).expect("the repository is created");
+    std::fs::write(&file, "package flags\n\nfunc Auth() {}\n").expect("the file is written");
+    // A worktree, as the real project is — the marker is a file, not a directory.
+    std::fs::write(repository.join(".git"), "gitdir: elsewhere\n").expect("the marker is written");
+    std::fs::create_dir_all(project.join(".tmp")).expect("the store directory is created");
+    std::fs::write(project.join(".tmp").join("line-comment.json"), "{}").expect("a store exists");
+
+    let handed = Command::new(env!("CARGO_BIN_EXE_line-comment-lsp"))
+        .args(["add", "cmd/flags.go:3"])
+        .current_dir(&project)
+        .env("LINE_COMMENT_ZED", "off")
+        .output()
+        .expect("the subcommand runs");
+    assert!(
+        handed.status.success(),
+        "{}",
+        String::from_utf8_lossy(&handed.stderr)
+    );
+
+    let inputs: Vec<PathBuf> = std::fs::read_dir(project.join(".tmp"))
+        .expect("the directory is readable")
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.starts_with("line-comment-input-"))
+        })
+        .collect();
+    assert_eq!(inputs.len(), 1, "one input file was handed over");
+
+    let written = std::fs::read_to_string(&inputs[0]).expect("the input file is readable");
+    assert!(
+        written.contains("pl/cmd/flags.go:3"),
+        "the header names the file from the project root, not from the repository: {written}"
+    );
+    assert!(
+        written.contains("func Auth() {}"),
+        "the input file quotes the line it aims at: {written}"
+    );
+}
+
+/// A name that no repository under the root holds is refused, and named in the refusal.
+#[test]
+fn add_refuses_a_path_that_names_no_file() {
+    let project = std::env::temp_dir().join(format!("line-comment-missing-{}", std::process::id()));
+    std::fs::create_dir_all(project.join(".tmp")).expect("the store directory is created");
+    std::fs::write(project.join(".tmp").join("line-comment.json"), "{}").expect("a store exists");
+
+    let refused = Command::new(env!("CARGO_BIN_EXE_line-comment-lsp"))
+        .args(["add", "cmd/gone.go:3"])
+        .current_dir(&project)
+        .env("LINE_COMMENT_ZED", "off")
+        .output()
+        .expect("the subcommand runs");
+
+    assert!(!refused.status.success(), "the subcommand fails");
+    let said = String::from_utf8_lossy(&refused.stderr);
+    assert!(
+        said.contains("cmd/gone.go"),
+        "the refusal names the path: {said}"
+    );
+}
+
+/// Two worktrees of one repository hold the same repo-relative path, and the commit view
+/// says nothing about which commit was on screen. The hand-over takes the first in path
+/// order and tells the operator what else it matched, inside the block that is dropped on
+/// save — so correcting it is editing the header, not running the command again.
+#[test]
+fn add_names_the_other_files_a_path_also_matches() {
+    let project = std::env::temp_dir().join(format!("line-comment-two-{}", std::process::id()));
+    for worktree in ["pl", "pl-stack"] {
+        let file = project.join(worktree).join("cmd").join("flags.go");
+        std::fs::create_dir_all(file.parent().unwrap()).expect("the worktree is created");
+        std::fs::write(&file, "package flags\n\nfunc Auth() {}\n").expect("the file is written");
+        std::fs::write(project.join(worktree).join(".git"), "gitdir: elsewhere\n")
+            .expect("the marker is written");
+    }
+    std::fs::create_dir_all(project.join(".tmp")).expect("the store directory is created");
+    std::fs::write(project.join(".tmp").join("line-comment.json"), "{}").expect("a store exists");
+
+    let handed = Command::new(env!("CARGO_BIN_EXE_line-comment-lsp"))
+        .args(["add", "cmd/flags.go:3"])
+        .current_dir(&project)
+        .env("LINE_COMMENT_ZED", "off")
+        .output()
+        .expect("the subcommand runs");
+    assert!(
+        handed.status.success(),
+        "{}",
+        String::from_utf8_lossy(&handed.stderr)
+    );
+
+    let input = std::fs::read_dir(project.join(".tmp"))
+        .expect("the directory is readable")
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .find(|path| {
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.starts_with("line-comment-input-"))
+        })
+        .expect("an input file was handed over");
+    let written = std::fs::read_to_string(&input).expect("the input file is readable");
+
+    assert!(
+        written.starts_with("<!-- line-comment: pl/cmd/flags.go:3 -->"),
+        "the first in path order is the target: {written}"
+    );
+    assert!(
+        written.contains("pl-stack/cmd/flags.go"),
+        "the other file is named: {written}"
+    );
+    // The note rides inside the quote block, so saving untouched still cancels.
+    assert_eq!(
+        line_comment::input::parse(&written)
+            .expect("the header parses")
+            .1,
+        ""
     );
 }

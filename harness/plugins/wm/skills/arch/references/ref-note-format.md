@@ -49,6 +49,11 @@ tags: [topic, subtopic]
   scope works on rotation" is a filename. Never a paraphrase of the title: the title names the
   thought, the description says what it decided or established and, when it fits, why. A note whose
   description could stand for two different answers is unfindable — the reader opens every note again.
+  **On a `decision` or an `impl-decision` it is also the rule text the implementer obeys** —
+  `wm-constraints.py` copies it verbatim into the constraint set (§ Finding the thought for your
+  task), so write it as a rule code can obey: what the code must do, stated in the imperative or as
+  the invariant it holds. There is no second copy of the rule anywhere, so writing a good rule *is*
+  writing this description. Worked example: [`examples/constraints.md`](../examples/constraints.md).
 - `status` — `open` while a question is unresolved, and the only value that keeps a question in the live graph; `approved` on an answered question and on any decision/fact; `declined` when a thought is rejected, moot, or superseded, instead of deleting it.
 - `date` — ISO 8601, the moment the note was written. On a question, add `resolved:` with the timestamp of the answer when marking it (§ Resolution).
 - `source` — optional, on every type. `human` when the user stated or chose it; `auto` when nobody was asked — the answer came out of a research doc or out of the code. On a `question` it says where the question surfaced; on the `decision` or `fact` that answers it, where the **answer** came from.
@@ -66,6 +71,7 @@ ones in context. The index is the entry:
 ~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts -m 'token|scope'   # only the notes whose metadata mentions it
 ~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts -t decision --files # paths only, for a batch read
 ~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts --todo TODO-2       # the impl-decision notes of one TODO
+~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts                      # the rules alone, no note opened
 ```
 
 The rule, in order:
@@ -80,6 +86,11 @@ The rule, in order:
 `--archived` reaches into `thoughts/archived/`; leave it off unless you are auditing history.
 `--missing-description` lists the notes that break the § Frontmatter rule, so an author finds them
 before the reader does.
+
+**Obeying the corpus is a different read from searching it.** `wm-constraints.py` prints the rules
+alone — everything an implementer needs without opening a note; which notes it draws them from, and
+what each column holds, is [`examples/constraints.md`](../examples/constraints.md). `--check` reports
+a note that qualifies as a rule and carries no description: the § Frontmatter rule, counted.
 
 ---
 

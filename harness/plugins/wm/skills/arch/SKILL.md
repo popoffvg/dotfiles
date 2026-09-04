@@ -3,7 +3,7 @@ name: arch
 description: >
   Design the work before any code exists — the spec corpus and the component taxonomy. Owns the
   spec pipeline (new, todo, prototype), the spec contract and its artifacts (spec.md, the ledger,
-  thoughts/, the todos/ TODO-N.md + TODO-N.agent.md pair, CONSTRAINTS.md, GLOSSARY.md), and the brick roster: the closed set of component types
+  thoughts/, the todos/ TODO-N.md + TODO-N.agent.md pair, GLOSSARY.md), and the brick roster: the closed set of component types
   (command, service, flow, gateway, server / consumer, policy, scheduler, wiring) with the metric
   and common structure of each. Load it when the `code` skill routes to new, todo, or prototype,
   when typing a component, or when deciding whether a component owns one responsibility or two.
@@ -20,8 +20,8 @@ The `code` skill routes here; it holds no design procedure of its own.
 
 | Operation | Does | File |
 |---|---|---|
-| `new` | Spec pipeline: init the corpus (`CLAUDE.md`, `RULES.md`, `CONSTRAINTS.md`), write `spec.md` → grill until no open question note is left → compile the plan with its wave table → **stop at the gate**. Writes no TODO bodies. | `commands/sub-new.md` |
-| `todo` | Author the self-contained `todos/TODO-N.md` + `TODO-N.agent.md` pair from a reviewed `spec.md` + `thoughts/`, appending every settled decision it finds to `CONSTRAINTS.md`. Runs only past the gate. | `commands/sub-todo.md` |
+| `new` | Spec pipeline: init the corpus (`CLAUDE.md`, `RULES.md`), write `spec.md` → grill until no open question note is left → compile the plan with its wave table → **stop at the gate**. Writes no TODO bodies. | `commands/sub-new.md` |
+| `todo` | Author the self-contained `todos/TODO-N.md` + `TODO-N.agent.md` pair from a reviewed `spec.md` + `thoughts/`. Runs only past the gate. | `commands/sub-todo.md` |
 | `prototype` | Settle an OPEN decision with the smallest visible code diff — read the diff, not a report. | `commands/sub-prototype.md` |
 
 ## References and examples

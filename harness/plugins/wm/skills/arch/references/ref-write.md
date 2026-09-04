@@ -7,7 +7,7 @@ Vocabulary: `wm:GLOSSARY.md`.
 ## Role
 
 Architector, not executor. Write and edit only under `<notes-dir>/` (`CLAUDE.md`, `RULES.md`,
-`CONSTRAINTS.md`, `spec.md`, `GLOSSARY.md`, `PATTERNS.md`, `thoughts/`, `todos/`). Read any file for planning. "add X" / "fix Y" → capture as a ledger row,
+`spec.md`, `GLOSSARY.md`, `PATTERNS.md`, `thoughts/`, `todos/`). Read any file for planning. "add X" / "fix Y" → capture as a ledger row,
 never as a code edit.
 
 ## Artifacts
@@ -16,7 +16,6 @@ never as a code edit.
 <notes-dir>/
 ├── CLAUDE.md       # how to work with this corpus — map, read order, write rules (example: examples/notes-claude.md)
 ├── RULES.md        # what to discuss directly at each step (example: examples/rules.md)
-├── CONSTRAINTS.md  # the settled decisions every TODO obeys, one row each (example: examples/constraints.md)
 ├── spec.md         # the target picture + the ledger
 ├── GLOSSARY.md     # project ubiquitous language (example: examples/glossary.md)
 ├── PATTERNS.md     # implementation patterns + reference files the implementer follows (example: examples/patterns.md)
@@ -27,7 +26,7 @@ never as a code edit.
 ```
 
 - **`CLAUDE.md`** and **`RULES.md`** are written once, by `new` Step 0, and are never rewritten by a later subcommand. `CLAUDE.md` tells any agent entering the folder how to read and write it; `RULES.md` says which choices go to the human at each step. Every subcommand reads `RULES.md` before it starts and obeys it over its own defaults — a rule there never lowers a hard gate (the `review→impl` read, destructive-git confirmation).
-- **`CONSTRAINTS.md`** is created empty by `new` Step 0 and **appended to** for the life of the corpus — one row per settled decision an increment can violate: `R<n>`, the rule, and its origin note. It is the one source of truth for those rules: no TODO copies a row, and every agent half points at the file (`sub-todo.md` § Constraints). Ids are append-only; a superseded decision has its row rewritten in place with the replacement note as its `Origin`.
+- **The rules every TODO obeys are stored in no file.** `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints them from the `thoughts/` graph (`sub-todo.md` § Constraints for the rules, `examples/constraints.md` for the printed shape). No TODO copies a rule, and every agent half carries the command instead.
 - A thought that stops being live moves to `thoughts/archived/` — a question once answered (`ref-note-format.md` § Resolution), a decision once superseded (§ Superseding). Never deleted, never left in the live graph; the `thoughts-archive.sh` hook performs the move.
 
 - **`review/`** holds one directory per judged target — `TODO-N` or a resolved range slug — with one file per gate plus the merged `report.md`. Every gate overwrites its file each round, so the directory always shows the current verdict and never the trail. Owned by the `review` skill (`review:ref-gates.md` § Every gate writes its report to a file); no other subcommand writes there.
@@ -36,7 +35,7 @@ never as a code edit.
 - **Decisions and open questions are not spec sections.** Every choice, every fact, every unresolved question is a note in `thoughts/` — `spec.md` has no `Design Decisions` and no `Open Questions` section, and the Plan carries no decision-trail table. One place per thought; `spec.md` says what the world will look like, `thoughts/` says why.
 - **ledger** = the TODO List, an index of **outcomes** (one `#### TODO-N` entry each, with `Layer` / `Outcome` / `Concretely` / `Commit` lines). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready. An outcome the user cannot *read* is contested by default, which is what `Concretely` exists to prevent (§ spec.md template).
 - **`PATTERNS.md`** is read by the implementer, not the human — the patterns and reference files a TODO's increments follow. Nothing in it needs human agreement, which is why it is not a spec section: `spec.md` mentions `@PATTERNS.md` and carries none of the content.
-- **`todos/TODO-N.md` + `todos/TODO-N.agent.md`** are one **pair** per ledger row, split by audience. `TODO-N.md` is the human's gate read — frontmatter, Outcome, New terms, Components, **Surface** (the one diff in the pair: every type, field, signature and setting the TODO changes), Autotest, Commit — restating its ledger outcome verbatim at the top, budgeted at 550 lines because the diff needs the room. `TODO-N.agent.md` is the context-free Sonnet implementer's — Constraints (the one-line pointer at `CONSTRAINTS.md`), Changes (the increments **described, never diffed**: what to do, in what order), Files, Pre-reads, Manual test, Definition of done — with no line budget and not one ```diff block. Self-contained means the **pair plus `CONSTRAINTS.md`** is enough; neither half restates the other, and each carries exactly one link to the other. Neither half stores an origin link: why a decision was made is walked on demand from `thoughts/` by the `trace` skill. Both are written, renumbered, and deleted together. Owned by `todo` (`sub-todo.md`).
+- **`todos/TODO-N.md` + `todos/TODO-N.agent.md`** are one **pair** per ledger row, split by audience. `TODO-N.md` is the human's gate read — frontmatter, Outcome, New terms, Components, **Surface** (the one diff in the pair: every type, field, signature and setting the TODO changes), Autotest, Commit — restating its ledger outcome verbatim at the top, budgeted at 550 lines because the diff needs the room. `TODO-N.agent.md` is the context-free Sonnet implementer's — Constraints (the one fixed line naming the generator), Changes (the increments **described, never diffed**: what to do, in what order), Files, Pre-reads, Manual test, Definition of done — with no line budget and not one ```diff block. Self-contained means the **pair plus the generated rule set** is enough; neither half restates the other, and each carries exactly one link to the other. Neither half stores an origin link: why a decision was made is walked on demand from `thoughts/` by the `trace` skill. Both are written, renumbered, and deleted together. Owned by `todo` (`sub-todo.md`).
 - **thought** — one note per question asked and one per answer given, linked by `[[wikilinks]]`. Format + templates: `ref-note-format.md`.
 - History lives in the notes' jj repo (`jj log`) — `code:ref-jj-notes.md`.
 
@@ -119,6 +118,10 @@ destructive git actions are still confirmed. `auto` runs as `none` whatever eith
 nobody is watching it.
 
 Where it bites: `impl:sub-impl.md` Step 5.
+
+Two gates hold the enum, because a value outside it silently gives the human every diff or none
+of them. `bin/guard.sh` rule 3 refuses the Edit or Write that puts a foreign value — or `inherit`
+on `spec.md` — into either file; `bin/spec-lint.py` checks A5 and B3 catch one already on disk.
 
 ## Reading chain — what the understanding must capture
 
@@ -320,8 +323,8 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] Implementation patterns sit in `PATTERNS.md`; `spec.md` mentions `@PATTERNS.md` and carries no pattern content
 - [ ] `spec.md` is ≤ 200 lines — over budget → move detail to `thoughts/` or split the spec, never shrink the ledger. The `budget-check` hook warns on every write and `code:sub-verify.md` Phase 0 fails on it (`arch:sub-todo.md` § Budget)
 - [ ] `GLOSSARY.md` exists (sibling), covers every entity/command/event in the spec, and is current
-- [ ] `CLAUDE.md`, `RULES.md`, `CONSTRAINTS.md`, and `PATTERNS.md` exist in the notes dir; `RULES.md` carries the three answered knobs, no `<…>` placeholder left
-- [ ] Every `CONSTRAINTS.md` row carries an `R<n>` id, the rule alone, and an `Origin` that resolves to a **live** note in `thoughts/` or a document with its section and read date
+- [ ] `CLAUDE.md`, `RULES.md`, and `PATTERNS.md` exist in the notes dir; `RULES.md` carries the three answered knobs, no `<…>` placeholder left
+- [ ] Every rule has text: `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --check` exits 0
 - [ ] Every answered question and superseded thought sits in `thoughts/archived/` — marked, and moved by the hook; no live note links to an archived one
 - [ ] **No `status: open` question note in `thoughts/`** (hard block) — `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0. The `guard.sh` hook re-checks this the moment an edit sets `spec.md` to `status: impl`, and denies the edit
 - [ ] Every decision made while writing the spec has a `thoughts/NNN-decision-*.md` note
@@ -347,6 +350,6 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 | "add X" / "fix Y" | Update Description / Goal + GLOSSARY.md, write the thought note for any choice it forces, **and** add or revise a ledger row (+ its wave). No body file — that's `todo`. |
 | "the outcome of TODO-N should be Z" | Edit entry N; confirm it follows the outcome rules. |
 | "split TODO-N" / "merge N and M" | Rewrite the rows, renumber contiguously, recompute the `## Plan` waves. |
-| "use approach Z" | Write a `thoughts/NNN-decision-*.md` note, and append one `CONSTRAINTS.md` row citing it — once, no matter how many TODOs it binds. |
+| "use approach Z" | Write a `thoughts/NNN-decision-*.md` note whose `description` states the rule — once, no matter how many TODOs it binds. The generator prints it from there. |
 | "looks good" | Signal readiness. |
 | Option selection ("option A") | Execute immediately, don't re-ask. |

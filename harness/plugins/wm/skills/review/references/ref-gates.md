@@ -56,6 +56,12 @@ whole chain at the wave (§ A gate that writes a test), so the last wave of an a
 judges the final diff. The cost is one wasted opus run per restart, paid to take the opus latency
 out of the round.
 
+**The wave has a third caller, and it runs the five judges without the test gate.** `impl` runs it
+over each increment before the human approves that increment
+(`impl:sub-impl.md` § The per-increment wave). The five judges read a diff and return findings, so
+they work over an increment unchanged; the test gate writes files, which cannot land in an increment
+still waiting for approval, so it stays per TODO.
+
 **The test gate runs alone, after the wave is green.** It is the one gate that changes the diff
 rather than judging it — it writes the missing test — so it must not run beside gates reading that
 same diff.
@@ -90,8 +96,9 @@ its own path, so two gates can never collide and the caller always knows where t
 <notes-dir>/review/<target>/report.md      the merged report, written by the caller
 ```
 
-`<target>` is `TODO-N` in `todo` mode and the resolved range's slug in `diff` mode — the branch
-name, the short sha, `pr-<n>`, or `worktree`. The gate slugs are the roster's Gate column with the
+`<target>` is `TODO-N` in `todo` mode, `TODO-N/inc-<k>` when `impl` runs the wave over one increment
+(`impl:sub-impl.md` § The per-increment wave), and the resolved range's slug in `diff` mode — the
+branch name, the short sha, `pr-<n>`, or `worktree`. The gate slugs are the roster's Gate column with the
 space as a dash: `lint`, `comment`, `name`, `test-worth`, `test`, `standards`.
 
 **Overwrite, never append.** A fixup invalidates every earlier verdict, so the file holds the
@@ -101,8 +108,46 @@ trail lives in git history, not in the report.
 **A PASS still writes its file.** An absent file means the gate did not run — a meaning it can only
 carry if a green gate always leaves one.
 
+**Every file opens with the moment it was written.** The writer runs `date -Iseconds` and puts what
+it printed in a frontmatter block above everything else:
+
+```
+---
+reviewed: 2026-09-03T14:22:31+02:00
+---
+```
+
+The files overwrite, so the timestamp is what tells a reader whether they are looking at the round
+that just ran or at a file the current round never rewrote — a gate that died leaves yesterday's
+verdict sitting under today's `report.md`. It belongs to the file alone: the text a gate returns to
+the caller starts at its `[GATE] Result:` line.
+
 **These are notes-dir files, never source.** Writing them keeps the read-only rule this skill's
 `SKILL.md` states.
+
+## Every report names the rules that gate ran
+
+A report with an empty Failures section says one of two things — the diff is clean, or the gate
+never looked. So every gate report carries a `## Covered` table above its findings, one row per rule
+that gate owns, and the rows are fixed: the same list every run, whatever the diff holds.
+
+```
+## Covered
+| Rule | Verdict |
+|---|---|
+| <the rule, by the name its agent file gives it> | clean |
+```
+
+The Verdict column takes one of `clean`, `<n> failure(s)`, `<n> nit(s)`, or `n/a — <the reason
+nothing in this diff reaches the rule>`. A row is never dropped for having nothing to say; `n/a` is
+how a gate reports that.
+
+**Each gate's row set lives in its own agent file**, in the template under its Output contract —
+`comment-critic` lists its five prose gates, `name-critic` its three, `test-critic` its drop-table
+rows, `lint-tester` the commands it ran, `tester` its five case categories, `reviewer` its five hunts and
+the sources it read. An agent
+is a separate prompt that never sees this page, so the rows are written where the agent reads them
+and this page states only the shape.
 
 ## The merged report
 
@@ -110,6 +155,10 @@ Every mode reports the same thing, and it is the caller that merges — a gate r
 The caller writes the merged text to `<notes-dir>/review/<target>/report.md` and returns it:
 
 ```
+---
+reviewed: <`date -Iseconds`>
+---
+
 [GATE] Result: PASS | FAIL   (after <n> round(s))
 
 ## Gates

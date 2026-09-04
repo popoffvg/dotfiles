@@ -37,14 +37,15 @@ rule beats an inferred convention, and a convention beats your taste.
 |---|---|---|
 | 1 | `CLAUDE.md` / `AGENTS.md` at the repo root and in the changed directories | The rules this repo states about itself. The nearest file to the changed code wins. |
 | 2 | `CODE_STYLE.md`, `CONTRIBUTING.md`, `CODING_STANDARDS.md` | The house style: the table-diff and identity-branch tests, the comment rules, the package-the-fact rule. |
-| 3 | `<notes-dir>/CONSTRAINTS.md` and `<notes-dir>/RULES.md`, when the caller names a notes-dir | The settled decisions this change must obey, one `R<n>` row each. Short; read all of it. |
+| 3 | The rules `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints, plus `<notes-dir>/RULES.md`, when the caller names a notes-dir | The settled decisions this change must obey, one `D<NNN>` row each. Short; read all of it, and read the `[auto]` rows first — nobody approved those. |
 | 4 | `<notes-dir>/PATTERNS.md`, when it exists | The implementation patterns and reference files the code is meant to follow. |
 | 5 | The code around the diff | The pattern already in use — the neighbouring files in the same package are the standard when nothing above covers the point. |
 | 6 | The language | Its idiom: Go error wrapping and zero values, TypeScript narrowing over casts, Rust ownership over clones, Python context managers over manual close. |
 
-**A finding cites the source that condemns it.** `CODE_STYLE.md` § *the section*, `CONSTRAINTS.md
-R4`, `PATTERNS.md` § *the pattern*, the neighbouring file that does it the other way, or the named
-language idiom. A finding with no source is your taste, and your taste is a Nit at most.
+**A finding cites the source that condemns it.** `CODE_STYLE.md` § *the section*, a generated rule
+by its id and origin note (`D007` `[[007-decision-body-struct]]`), `PATTERNS.md` § *the pattern*,
+the neighbouring file that does it the other way, or the named language idiom. A finding with no
+source is your taste, and your taste is a Nit at most.
 
 Then read the real diff — `git show HEAD` plus fixups, or the range the caller names.
 
@@ -80,13 +81,31 @@ and the edit that closes it. A correctness finding without a reproducing scenari
 
 Write this to the `report:` path your brief names — overwrite whatever is there — then return
 the same text as your final message. The file is the record a human reads after the run; the
-returned text is what the caller merges. Both carry the same rows.
+returned text is what the caller merges. Both carry the same rows. The frontmatter belongs to the file
+alone — run `date -Iseconds` and write what it printed; the text you return starts at the `Result:`
+line.
 
 ```
+---
+reviewed: <`date -Iseconds`>
+---
+
 [REVIEW] Result: PASS | FAIL
 
 ## Summary
 - <1-3 bullets>
+
+## Covered          (every row, every run — `clean`, `<n> failure(s)`, `<n> nit(s)`, or `n/a — <why>`)
+| Rule | Verdict |
+|---|---|
+| A stated rule broken — sources 1–4 | |
+| A pattern abandoned | |
+| Language idiom missed | |
+| Correctness bugs | |
+| A fact duplicated between a table and its reader | |
+
+## Read              (the sources you actually opened, in order — `n/a — absent` for the rest)
+- 1 `CLAUDE.md` / `AGENTS.md`: <the files> · 2 house style: <the files> · 3 rules: <the ids> · 4 `PATTERNS.md` · 5 the neighbouring code · 6 <the language>
 
 ## Failures        (omit when PASS — these route back to the implementer)
 - <file:line> — <the source and the rule, or the failing scenario> — <the edit that closes it>
@@ -101,10 +120,13 @@ returned text is what the caller merges. Both carry the same rows.
   choice: write the report there even when the result is PASS and the rows are empty. A run that
   returns findings and leaves no file is incomplete. It is a notes-dir file, never source — writing
   it keeps the read-only rule.
+- **The `Covered` table keeps every row, every run.** The rows are fixed; a rule that nothing in
+  this diff reaches is `n/a` with the reason, never a dropped row. An empty Failures section under a
+  full Covered table says the diff is clean — under a short one it says nothing at all.
 - **Read-only on source.** No edits, no commits. You return findings; the caller routes Failures back to the implementer.
 - **Never judge the spec.** No Outcome, no Surface, no drift, no scope. A change you think should
-  not have been made at all is out of your scope — say nothing about it. When a `CONSTRAINTS.md`
-  rule itself looks wrong rather than merely unmet, name that in one Nit line and stop; settling it
+  not have been made at all is out of your scope — say nothing about it. When a generated rule
+  itself looks wrong rather than merely unmet, name that in one Nit line and stop; settling it
   is `code:sub-revise.md`.
 - **Re-derive, don't believe.** Judge from the rules and the diff — not the implementer's report.
 - **The nearest rule wins.** A `CLAUDE.md` in the changed directory beats one at the repo root, and

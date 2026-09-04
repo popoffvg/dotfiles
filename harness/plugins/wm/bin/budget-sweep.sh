@@ -3,7 +3,7 @@
 #
 # budget-check.py takes one file. The write-time hook has one file to give it and only
 # warns; the `verify` gate has a whole corpus and must fail on any overrun. This is that
-# second caller: spec.md, CONSTRAINTS.md, and both halves of every ledger row.
+# second caller: spec.md and both halves of every ledger row.
 #
 # usage: budget-sweep.sh <notes-dir>
 # Exit code: 0 every artifact within budget - 1 at least one over - 2 unusable notes dir.
@@ -23,7 +23,7 @@ if [[ ! -f "$CHECK" ]]; then
 fi
 
 shopt -s nullglob
-CANDIDATES=("$NOTES/spec.md" "$NOTES/CONSTRAINTS.md" "$NOTES"/todos/TODO-*.md)
+CANDIDATES=("$NOTES/spec.md" "$NOTES"/todos/TODO-*.md)
 shopt -u nullglob
 
 OVER=0

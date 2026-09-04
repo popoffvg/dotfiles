@@ -1,5 +1,15 @@
 [
   {
+    "label": "line-comment: add comment from clipboard",
+    "command": "line-comment-lsp add \"$(pbpaste)\"",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "shell": { "program": "sh" },
+    "hide": "on_success",
+    "reveal_target": "center",
+    "allow_concurrent_runs": true,
+    "use_new_terminal": false,
+  },
+  {
     "label": "Go Docs: current package (serve + open)",
     "command": "bash",
     "args": [
@@ -201,6 +211,25 @@
     "allow_concurrent_runs": true,
     "reveal_target": "center",
     "hide": "always",
+    "show_summary": false,
+    "show_command": false,
+  },
+  {
+    // Commit history of the lines under the cursor or selection (git log -L).
+    // Bound to cmd-alt-h in keymap.json. Script: ~/.claude/scripts/git-line-history.sh.
+    "label": "git: line history",
+    "command": "bash",
+    "args": ["-lc", "\"$HOME/.claude/scripts/git-line-history.sh\""],
+    "env": {
+      "ZED_FILE": "$ZED_FILE",
+      "ZED_ROW": "$ZED_ROW",
+      "ZED_SELECTED_TEXT": "$ZED_SELECTED_TEXT",
+    },
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": true,
+    "reveal": "never",
+    "hide": "on_success",
     "show_summary": false,
     "show_command": false,
   },

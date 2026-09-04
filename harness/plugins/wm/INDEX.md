@@ -54,20 +54,20 @@ Three files at the plugin root, shared by all five skills.
 | File | Owns |
 |---|---|
 | `commands/sub-new.md` | `new` — the grill loop and its exit contract. Stops at the gate. |
-| `commands/sub-todo.md` | `todo` — the `TODO-N.md` + `TODO-N.agent.md` pair and what each half holds; the wave fan-out (one fork per ledger row) and what only the caller may write; the TODO elements, the verification chain, the outcome rules, `## Surface` (the one diff, in the human half), the surface-not-a-body rule with its human-asked exception, and `## Constraints` (the pointer in the agent half, and the `CONSTRAINTS.md` row it points at). |
+| `commands/sub-todo.md` | `todo` — the `TODO-N.md` + `TODO-N.agent.md` pair and what each half holds; the wave fan-out (one fork per ledger row) and what only the caller may write; the TODO elements, the verification chain, the outcome rules, `## Surface` (the one diff, in the human half), the surface-not-a-body rule with its human-asked exception, and `## Constraints` (the fixed line in the agent half naming the generator, and the rules it prints). |
 | `commands/sub-prototype.md` | `prototype` — settle an open decision with the smallest visible code diff. |
 | `references/ref-bricks.md` | The **brick** roster — the closed set of component types, what each owns, its metric, its common structure. Typed in every `## Components` row and every `GLOSSARY.md` `Kind`. |
 | `references/ref-write.md` | **The spec contract** — artifacts, notes-dir layout, the `status` metadata (spec phase + TODO lifecycle), the `approve` metadata (how much of `impl` the human reviews, at spec level and per TODO), the gate, TODO ordering and **waves**, the Spec-Readiness Checklist. The single source; no other file restates it. |
-| `references/ref-todo-sections.md` | What goes inside each heading of the pair — one entry per section, frontmatter keys first: `status`, `type`, `depends_on`, `risk`, Outcome, New terms, Constraints (the pointer, and the `CONSTRAINTS.md` row it points at), Components, Surface with the surface-not-a-body rule, Changes, Autotest, Commit, Deviations, Manual test, Definition of done. Split out of `sub-todo.md` so the wave caller does not load it. |
+| `references/ref-todo-sections.md` | What goes inside each heading of the pair — one entry per section, frontmatter keys first: `status`, `type`, `depends_on`, `risk`, Outcome, New terms, Constraints (the fixed line naming the generator), Components, Surface with the surface-not-a-body rule, Changes, Autotest, Commit, Deviations, Manual test, Definition of done. Split out of `sub-todo.md` so the wave caller does not load it. |
 | `references/ref-note-format.md` | Thought notes; the required `description` and how a reader finds a thought by it; the answered-question and supersede → `thoughts/archived/` moves, both automatic. |
 | `examples/notes-claude.md` | The notes-dir `CLAUDE.md`. |
 | `examples/rules.md` | The notes-dir `RULES.md` and its three init knobs — approval depth is not one of them; it is the `approve` key on `spec.md` and on each TODO. |
-| `examples/constraints.md` | The notes-dir `CONSTRAINTS.md` — the one home for the settled decisions every TODO obeys: `R<n>`, the rule alone, and the live `thoughts/` note or dated document it came from. Append-only ids; no TODO copies a row. |
+| `examples/constraints.md` | The **generated** rule set — the worked example of what `~/.claude/scripts/wm-constraints.py` prints, which notes it draws each row from, and what each column holds. **Nobody writes this file**; it shows a reader what the implementer and the reviewer see. |
 | `examples/glossary.md` | The notes-dir `GLOSSARY.md` — the project's ubiquitous language, distinct from `wm:GLOSSARY.md`. |
 | `examples/patterns.md` | The notes-dir `PATTERNS.md` — the implementation patterns and reference files the increments follow, out of `spec.md` so the spec stays human-only. |
 | `examples/note-{question,decision,fact,impl-decision}.md` | The four thought notes. |
 | `examples/todo.md` | The TODO **human half** (`TODO-N.md`) — Outcome, New terms, Components, **Surface** (the one diff), Autotest, Commit, **Deviations** (written by `impl`, never by `todo`) — and the worked example of it, including the plain contract block a file that is all body carries instead of a diff. |
-| `examples/todo-agent.md` | The TODO **agent half** (`TODO-N.agent.md`) — Constraints (the one-line pointer at `CONSTRAINTS.md`, never a rule), Changes (increments as Files + Surface + Do + Blast radius, no diff), Files, Pre-reads, Manual test, Definition of done — and the worked example of it, including the `Surface: none` + Behavior shape an increment uses when the deliverable is a whole body. |
+| `examples/todo-agent.md` | The TODO **agent half** (`TODO-N.agent.md`) — Constraints (the fixed line naming `wm-constraints.py`, never a rule), Changes (increments as Files + Surface + Do + Blast radius, no diff), Files, Pre-reads, Manual test, Definition of done — and the worked example of it, including the `Surface: none` + Behavior shape an increment uses when the deliverable is a whole body. |
 
 `references/` holds the rules that apply across artifacts; `examples/` holds one file per artifact.
 Every file in `examples/` is the finished artifact filled with real content, and it carries its own
@@ -90,10 +90,10 @@ content, delete the `>` lines.
 | File | Owns |
 |---|---|
 | `SKILL.md` | The mode table — `diff` (the repo's own rules, the default) and `todo` (plus the pair's rule files) — the one question both ask, the read-only rule both obey, and the `/code review` alias. |
-| `wm:commands/review-help.md` | The `/review-help` page — the same mode roster plus the gate table, printed verbatim. Mirrors `SKILL.md`; a mode change lands in both. |
+| `wm:commands/review:help.md` | The `/review:help` page — the same mode roster plus the gate table, printed verbatim. Mirrors `SKILL.md`; a mode change lands in both. |
 | `references/ref-gates.md` | **The gate roster** — the six gates, the `<notes-dir>/review/<target>/` report files each one writes, what each judges, its agent, its model tier and why that tier; the two opposite test gates (`test worth` drops the tests the diff wrote, `test` writes the one it left missing); the one-wave-then-two-serial order; the FAIL-restarts-the-chain rule; the per-gate budget; the merged report shape. The single source; no caller restates a row. |
-| `commands/sub-todo.md` | `review todo` — the chain over one implemented TODO, and what the pair gives a gate that a loose diff cannot: `CONSTRAINTS.md` turning taste into a citable rule, `PATTERNS.md` naming the pattern, § Files bounding the diff, and the deviation route for an Autotest case `test-critic` drops. |
-| `commands/sub-diff.md` | `review diff` — resolving a loose target into one revision range, deriving the intent sentence that gives the gates context, and which rule sources the standards gate falls back to with no `CONSTRAINTS.md` and no `PATTERNS.md`. |
+| `commands/sub-todo.md` | `review todo` — the chain over one implemented TODO, and what the pair gives a gate that a loose diff cannot: the generated rule set turning taste into a citable rule, `PATTERNS.md` naming the pattern, § Files bounding the diff, and the deviation route for an Autotest case `test-critic` drops. |
+| `commands/sub-diff.md` | `review diff` — resolving a loose target into one revision range, deriving the intent sentence that gives the gates context, and which rule sources the standards gate falls back to with no generated rule set and no `PATTERNS.md`. |
 
 ### `teach` — the human's understanding
 
@@ -125,7 +125,7 @@ Independent of the `/code` flow, each with its own entry point.
 | File | Owns |
 |---|---|
 | `evals/run.sh` | The runner. Extracts the graded rule blocks from `arch:sub-todo.md` at run time — § One ledger row, two halves, § Surface, § Changes, § Autotest, § Constraints — so the suite always grades the current spec, never a copy of it. |
-| `evals/cases-todo.jsonl` | The labelled cases. Two axes per case: **half** (`human` / `agent` / `corpus` — which file the content belongs in; the `## Constraints` pointer is agent, a rule and its origin are `CONSTRAINTS.md`, a reason is `thoughts/`) and **form** (`keep` / `reshape` — ships as written, or is a **body** that must become an Interface block plus a Behavior sketch). |
+| `evals/cases-todo.jsonl` | The labelled cases. Two axes per case: **half** (`human` / `agent` / `corpus` — which file the content belongs in; the `## Constraints` line is agent, a rule's text and the reason behind it are both a `thoughts/` note) and **form** (`keep` / `reshape` — ships as written, or is a **body** that must become an Interface block plus a Behavior sketch). |
 | `evals/run-names.sh` | The runner for the naming split. Extracts the `description:` block of `searchable-names` and of `pedant` from frontmatter at run time and shows the judge nothing else — the description is what decides which skill a session loads, so the description is what gets graded. |
 | `evals/cases-searchable-names.jsonl` | The labelled tasks. One axis: **pick** (`searchable-names` / `pedant` / `none` — write-time naming, review-time naming, or neither). |
 | `evals/README.md` | What each axis means, which cases are deliberately hard, and the last run's score. |

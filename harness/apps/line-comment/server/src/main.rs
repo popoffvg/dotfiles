@@ -1,11 +1,11 @@
 //! stdio transport: parse LSP messages, hand them to the session, perform its effects.
 
 use std::error::Error;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use line_comment::trace::Trace;
 use line_comment::wire::{Change, Position, Range, RESET_CANCEL, RESET_CONFIRM};
-use line_comment::{uri_to_path, Effect, Session};
+use line_comment::{reveal, uri_to_path, Effect, Session};
 use lsp_server::{Connection, ErrorCode, Message, Notification, Request, RequestId, Response};
 use serde_json::{json, Value};
 
@@ -17,6 +17,9 @@ The subcommands write the same store from a shell, for Claude to place comments:
 
   comment <file>:<lines> <text>  attach a comment, replacing the one that starts there;
                                  <lines> is 12 for one line or 12-18 for a span
+  add <file>:<lines>             open an input file for that target and reveal it, for the
+                                 operator to type into — the way into a commit view, where
+                                 Zed offers no code action
   drop <file>:<line>...          remove the comment starting on each of those lines
   drop --all                     remove every comment in the workspace
   list                           print every comment in the export format
@@ -40,6 +43,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .map(|placed| format!("commented {placed}"))
                 }
                 _ => Err("usage: line-comment-lsp comment <file>:<lines> <text>".to_string()),
+            }),
+            "add" => Some(match rest {
+                [target] => line_comment::cli::add(target)
+                    .map(|path| format!("write the comment in {path} and save")),
+                _ => Err("usage: line-comment-lsp add <file>:<lines>".to_string()),
             }),
             "drop" => Some(match rest {
                 [flag] if flag == "--all" => line_comment::cli::drop_all(),
@@ -213,7 +221,14 @@ impl Server {
                 self.notification(notification);
                 false
             }
-            Message::Response(_) => false,
+            Message::Response(response) => {
+                let answer = response
+                    .result
+                    .map(|value| value.to_string())
+                    .unwrap_or_else(|| "no result".to_string());
+                self.trace.write(&format!("client answered {answer}"));
+                false
+            }
         }
     }
 
@@ -351,44 +366,38 @@ impl Server {
         }
     }
 
-    /// Create the input file through the client, so the client puts it in front of the
-    /// operator. A create alone opens nothing — the text edit is what makes the
-    /// transaction non-empty, and non-empty is what the editor shows.
+    /// Write the input file and bring it up.
     ///
-    /// The path is one no earlier comment used, so nothing holds a buffer on it and the
-    /// client has nothing to reconcile.
+    /// The write is direct, not a `workspace/applyEdit`: an edit makes the client open the
+    /// file too, and with the reveal below that is the same file opened twice.
+    ///
+    /// The path is one no earlier comment used, so nothing holds a buffer on it.
     fn open_input(&mut self, path: PathBuf, contents: String) {
-        let uri = line_comment::path_to_uri(&path);
-        if let Some(parent) = path.parent() {
-            let _ = std::fs::create_dir_all(parent);
-        }
-        // The file has to exist for the edit below to land on it.
-        let _ = std::fs::write(&path, "");
+        self.hand_over(path, contents, "open input");
+    }
 
-        let id = self.request_id();
-        self.send(Message::Request(Request {
-            id,
-            method: "workspace/applyEdit".to_string(),
-            params: json!({
-                "label": "line-comment: write a comment",
-                "edit": {
-                    "documentChanges": [
-                        { "kind": "create", "uri": uri, "options": { "ignoreIfExists": true } },
-                        {
-                            "textDocument": { "uri": uri, "version": null },
-                            "edits": [{
-                                "range": {
-                                    "start": { "line": 0, "character": 0 },
-                                    "end": { "line": 0, "character": 0 }
-                                },
-                                "newText": contents
-                            }]
-                        }
-                    ]
-                }
-            }),
-        }));
-        self.trace.write(&format!("open input {}", path.display()));
+    /// Put a handed-over file in front of the operator through the Zed CLI — the one
+    /// mechanism that works over a review multibuffer as well as a plain tab.
+    ///
+    /// `window/showDocument`, the request that asks the client for this, is one Zed
+    /// leaves unanswered. So the editor is asked from outside.
+    fn reveal_in_editor(&mut self, path: &Path) {
+        let Some(program) = reveal::zed_cli() else {
+            self.trace.write("reveal: no zed cli");
+            return;
+        };
+        match reveal::with(&program, path) {
+            // The CLI exits as soon as the running editor takes the path. Waiting for it
+            // in a thread of its own reaps it without holding the message loop.
+            Ok(mut child) => {
+                self.trace
+                    .write(&format!("reveal {}", program.to_string_lossy()));
+                std::thread::spawn(move || {
+                    let _ = child.wait();
+                });
+            }
+            Err(error) => self.trace.write(&format!("reveal failed: {error}")),
+        }
     }
 
     /// Ask the client to watch the input files and the store. Without this the server
@@ -471,35 +480,23 @@ impl Server {
         }
     }
 
-    /// Hand over a rendered view the same way as the input file: a path of its own, then
-    /// the client applies the text, which is what makes it open the file. The export on
-    /// disk is never touched here — the Claude command reads that one.
+    /// Hand over a rendered view the same way as the input file. The export on disk is
+    /// never touched here — the Claude command reads that one.
     fn open_list(&mut self, path: PathBuf, contents: String) {
-        let uri = line_comment::path_to_uri(&path);
-        let id = self.request_id();
-        self.send(Message::Request(Request {
-            id,
-            method: "workspace/applyEdit".to_string(),
-            params: json!({
-                "label": "line-comment: the comments so far",
-                "edit": {
-                    "documentChanges": [
-                        { "kind": "create", "uri": uri, "options": { "overwrite": true } },
-                        {
-                            "textDocument": { "uri": uri, "version": null },
-                            "edits": [{
-                                "range": {
-                                    "start": { "line": 0, "character": 0 },
-                                    "end": { "line": 0, "character": 0 }
-                                },
-                                "newText": contents
-                            }]
-                        }
-                    ]
-                }
-            }),
-        }));
-        self.trace.write(&format!("open list {}", path.display()));
+        self.hand_over(path, contents, "open list");
+    }
+
+    /// Put the contents on disk, then ask the editor for the path.
+    fn hand_over(&mut self, path: PathBuf, contents: String, what: &str) {
+        if let Some(parent) = path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        if let Err(error) = std::fs::write(&path, contents) {
+            self.show(true, format!("line-comment: cannot write {} ({error})", path.display()));
+            return;
+        }
+        self.trace.write(&format!("{what} {}", path.display()));
+        self.reveal_in_editor(&path);
     }
 
     fn show(&mut self, error: bool, text: String) {

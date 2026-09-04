@@ -5,10 +5,11 @@ description: >
   (pairwise tiering across unit/integration/manual), enumerate scenarios before implementation,
   audit/score an existing test set for missed cases and readability, apply black-box
   techniques (equivalence partitioning, boundary values, decision tables, state transition,
-  state-combination), write BDD Given/When/Then scenarios, drive a feature/bug-fix spec-before-code
+  state-combination, property-based over a whole input domain), write BDD Given/When/Then
+  scenarios, drive a feature/bug-fix spec-before-code
   (TDD), test a harness plugin in isolation, or run the verify phase where the user reviews an
   implementation. Invoke as `/test-suite <subcommand>`.
-argument-hint: [create, write, verify — full list /test-suite-help]
+argument-hint: [create, write, verify — full list /test-suite:help]
 ---
 
 # Test Suite — subcommand router
@@ -39,14 +40,16 @@ list saying in words what you pruned and why.
 | [`create`](references/sub-create.md) *(default)* | Size a test set for a TODO/task with pairwise across unit / integration / manual tiers, and ship it as big cases. | [`references/sub-create.md`](references/sub-create.md) |
 | [`write`](references/sub-write.md) | Enumerate the scenarios before implementation — a readable `.md` test set plus Gherkin feature files. | [`references/sub-write.md`](references/sub-write.md) |
 | [`verify`](references/sub-verify.md) | Audit an existing test set for missed cases and readability — Ready / Not Ready verdict. | [`references/sub-verify.md`](references/sub-verify.md) |
-| [`case-design`](references/sub-case-design.md) | Derive cases systematically — equivalence partitioning, boundary values, decision tables, state transition, state-combination. | [`references/sub-case-design.md`](references/sub-case-design.md) |
+| [`case-design`](references/sub-case-design.md) | Derive cases systematically — equivalence partitioning, boundary values, decision tables, state transition, state-combination, property-based. | [`references/sub-case-design.md`](references/sub-case-design.md) |
 | [`bdd`](references/sub-bdd.md) | Shape integration/e2e cases as Cucumber Given/When/Then. | [`references/sub-bdd.md`](references/sub-bdd.md) (+ [`references/ref-gherkin-guide.md`](references/ref-gherkin-guide.md)) |
 | [`tdd`](references/sub-tdd.md) | Drive a feature or bug-fix spec-before-code with Red-Green-Refactor. | [`references/sub-tdd.md`](references/sub-tdd.md) (+ [`references/ref-bdd-best-practices.md`](references/ref-bdd-best-practices.md)) |
 | [`harness`](references/sub-harness.md) | Test a harness plugin in isolation — MCP server, unit tests, typecheck, Claude plugin loading (tmux panes). | [`references/sub-harness.md`](references/sub-harness.md) |
 | [`review`](references/sub-review.md) | Run the verify phase — present results, let the user review an implementation against acceptance criteria. | [`references/sub-review.md`](references/sub-review.md) |
 
 Supporting references (not direct subcommands): [`references/ref-readable-output.md`](references/ref-readable-output.md) — the output
-contract for every subcommand; [`references/ref-gherkin-guide.md`](references/ref-gherkin-guide.md) and
+contract for every subcommand; [`references/ref-property-based.md`](references/ref-property-based.md) — the
+property-based technique in full, backing the `property-based` row of [`case-design`](references/sub-case-design.md);
+[`references/ref-gherkin-guide.md`](references/ref-gherkin-guide.md) and
 [`references/ref-bdd-best-practices.md`](references/ref-bdd-best-practices.md) — backing docs for [`bdd`](references/sub-bdd.md) and [`tdd`](references/sub-tdd.md).
 
 ## How they combine

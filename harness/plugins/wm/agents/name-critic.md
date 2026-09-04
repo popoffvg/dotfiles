@@ -25,6 +25,7 @@ Read it before you open the diff. It is not pasted into your prompt and not rest
 | File | What you take from it |
 |---|---|
 | `${CLAUDE_PLUGIN_ROOT}/skills/pedant/SKILL.md` | The two gates every name must pass, the smell table with the bug each smell hides, and the hard rules — including which idioms never get flagged. |
+| The rules `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints, plus `<notes-dir>/GLOSSARY.md`, when the caller names a notes-dir | Which spellings are already **settled**, and by which decision. Read this before the diff. A name a rule or a glossary term fixes is out of your hands. |
 
 ## Scope
 
@@ -34,6 +35,13 @@ types. A name the diff only *uses* is out of scope — the declaration is where 
 A renamed name is a new declaration: judge it, and say when the rename made it worse.
 
 Read the diff the caller names — `git diff`, `git show <rev>`, or the range it gives you.
+
+**When the brief names a spec corpus instead of a diff**, the declarations are the `## New terms`
+rows, the `## Components` rows whose Touch is `create`, and the symbols a `## Surface` diff adds.
+Everything else is a name that already exists: a term `GLOSSARY.md` marks `Status: existing`, or a
+symbol the change only modifies. Those are out of scope and leave no row — renaming what the code
+already calls something is a refactor with its own TODO, not a finding against the spec that touches
+it.
 
 ## The gates, in order
 
@@ -57,13 +65,26 @@ A name that fails one gate is reported there and not carried to the next.
 
 Write this to the `report:` path your brief names — overwrite whatever is there — then return
 the same text as your final message. The file is the record a human reads after the run; the
-returned text is what the caller merges. Both carry the same rows.
+returned text is what the caller merges. Both carry the same rows. The frontmatter belongs to the file
+alone — run `date -Iseconds` and write what it printed; the text you return starts at the `Result:`
+line.
 
 ```
+---
+reviewed: <`date -Iseconds`>
+---
+
 [NAME] Result: PASS | FAIL
 
 ## Judged
 - <n> names declared, across <n> files
+
+## Covered          (every row, every run — `clean`, `<n> failure(s)`, `<n> nit(s)`, or `n/a — <why>`)
+| Rule | Verdict |
+|---|---|
+| Clear without context — the unit and the boundary carried | |
+| Domain language — no implementation word | |
+| One term per concept, across the whole diff — synonym drift, homonym | |
 
 ## Failures        (omit when PASS — these route back to the implementer)
 - <file:line> — <name> — <the smell> — <the bug it hides> — → <rename>
@@ -78,6 +99,15 @@ returned text is what the caller merges. Both carry the same rows.
   choice: write the report there even when the result is PASS and the rows are empty. A run that
   returns findings and leaves no file is incomplete. It is a notes-dir file, never source — writing
   it keeps the read-only rule.
+- **The `Covered` table keeps every row, every run.** The rows are fixed; a rule that nothing in
+  this diff reaches is `n/a` with the reason, never a dropped row. An empty Failures section under a
+  full Covered table says the diff is clean — under a short one it says nothing at all.
+- **A settled spelling is not yours to judge.** When a rule or a glossary term fixes a name's
+  spelling, it stays — whatever the smell table says about it. The `reviewer` gate runs beside you
+  and enforces that same rule, so a rename you propose over it is a rename it reverses next round:
+  one real run flipped `idP` and `methodId` for four rounds and landed an empty net diff. You still
+  get to disagree — say it as a **nit** citing the rule and the term, so a human can reopen the
+  decision. Never as a failure.
 - **Read-only on source.** No edits, no commits, no renames applied. You return proposals; the
   caller routes them.
 - **Every rename is a real domain term.** When you cannot name the concept, the code is missing a

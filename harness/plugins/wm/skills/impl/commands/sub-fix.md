@@ -37,7 +37,7 @@ No existing thought covers the gap (always for **missing**, sometimes **adjust**
 ### Finding the wrong thought
 
 Note layout and filenames: `arch:ref-note-format.md`. **Run the `trace` skill** — quote the artifact
-the gap sits in (a `CONSTRAINTS.md` rule, a `## Surface` symbol, an `Autotest` level, an increment)
+the gap sits in (a printed constraint, a `## Surface` symbol, an `Autotest` level, an increment)
 and ask what settled it. It searches `thoughts/` in a subagent and returns the chain plus a verdict:
 `live` names the note to correct, `superseded` names the drift, `unrecorded` means the choice was
 made in code and never written down, which is itself the cause.
@@ -91,11 +91,12 @@ Frontmatter marks it a replacement:
 replaces: "NNN-old-slug"
 ```
 
-Then **repoint the rule**: every `CONSTRAINTS.md` row whose `Origin` is `NNN-old-slug` now cites the
-replacement, and its rule text is rewritten to what the new note settled. The old note is about to
-leave `thoughts/`, and a row pointing into `archived/` is a corpus obeying a decision that no longer
-stands. A gap that needed a *new* thought (the **missing** kind) earns a new `CONSTRAINTS.md` row
-instead, when an increment can violate what it settled.
+**Superseding the note is the whole operation** — the rule follows on its own. The archive hook
+moves the old note out of `thoughts/`, and its row leaves the generated rule set in the same move;
+the replacement's own `description` is the new rule text. There is nothing to repoint. A gap that
+needed a *new* thought (the **missing** kind) becomes a rule the moment its note is `approved`,
+provided an increment can violate what it settled — if none can, write it as a `fact` note and the
+generator skips it.
 
 Commit: `fix: add NNN-<type>-<slug> as replacement for NNN-old-slug`.
 
@@ -118,7 +119,6 @@ In `<notes-dir>`:
 jj commit -m "[FIX:<kind>] <one-line gap>
   - thought: NNN-old-slug superseded (reason: <reason>) | none (missing) | none (code-only drift)
   - corrected/new thought: NNN-new-slug | none
-  - CONSTRAINTS.md rows repointed: R2, R7 | none
   - commit: <sha>
   - autotest: pass | fail (details)"
 ```

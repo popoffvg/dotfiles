@@ -6,7 +6,7 @@ description: >
   `<notes-dir>/research/`. Use when the user says "dive", "explore", "research these entry points", or
   provides a list of files/symbols to investigate before a task. Invoke as
   `/dive <docs|workflow|unknowns|explain|explain-diff>` (default `docs`).
-argument-hint: "[docs (default), workflow — full list /dive-help] + entry points (files, symbols, urls)"
+argument-hint: "[docs (default), workflow — full list /dive:help] + entry points (files, symbols, urls)"
 ---
 
 # Dive — subcommand router

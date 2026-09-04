@@ -44,6 +44,28 @@ no way to tell a missing case from a case they did not understand.
 - No retry loop without a termination criterion.
 - No assertion that says "works" or "succeeds".
 
+## Assertions that pass while proving nothing
+
+Judged under **False or weak assertions**, worst first. The first two are critical on their own:
+a test in either state has never been able to fail.
+
+| Defect | Severity | How it shows up |
+|---|---|---|
+| Tautological | critical | the assertion holds whatever the implementation does — `assert result == result` |
+| Vacuous | critical | the input filter rejects nearly everything, or contradicts itself, so zero cases ran |
+| No assertion | high | the body calls the thing and stops |
+| Reimplementation | high | the assertion recomputes the function's own logic, so any shared bug survives |
+| A stronger property was available | medium | length checked, ordering never — see [`ref-property-based.md`](ref-property-based.md) |
+| Filtered where the generator should constrain | medium | stacked input filters in place of a narrowed generator |
+
+`f(x) == f(x)` is the exception to the first row: it is a real determinism property wherever
+impurity could falsify it — map iteration order, hashing, the clock. Ask whether a broken
+implementation could fail it. If yes it is a property; if no it is noise.
+
+Also flag, whatever the score: float equality with no tolerance, an assertion on map or set
+iteration order, and anything reading the clock. Each one produces a flake that gets blamed on
+the generator, and then the suite gets deleted.
+
 ## Readability invariants
 
 Run the checklist in `ref-readable-output.md` section 7 over the document and report every failed

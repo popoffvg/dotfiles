@@ -9,12 +9,13 @@
 
 ## Constraints
 
-Obey [CONSTRAINTS.md](../CONSTRAINTS.md) — every row.
+Obey every rule that `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints.
 
 ## Changes
 
 ### 1. Add the request and pair types — `pkg/auth.Handler`
 
+- **Change:** signature change
 - **Files:** `pkg/auth/handler.go`
 - **Surface:** `RefreshRequest`, `TokenPair`
 - **Do:** Add both types as § Surface declares them. Nothing reads them yet — this increment is additive and exists so increments 2 and 3 have a type to return.
@@ -25,6 +26,7 @@ Obey [CONSTRAINTS.md](../CONSTRAINTS.md) — every row.
 
 ### 2. Return a pair from the minter — `pkg/auth.TokenMinter`
 
+- **Change:** signature change
 - **Files:** `pkg/auth/token.go`
 - **Surface:** `mintTokens`
 - **Do:** Widen `mintTokens` to the § Surface signature. Mint the refresh token alongside the access token and return both; propagate either signing error unchanged. Migrate both call sites to the new return.
@@ -35,6 +37,7 @@ Obey [CONSTRAINTS.md](../CONSTRAINTS.md) — every row.
 
 ### 3. Exchange the token in the handler — `pkg/auth.Handler`
 
+- **Change:** new behavior
 - **Files:** `pkg/auth/handler.go`
 - **Surface:** `Refresh`
 - **Do:** Reshape `Refresh` to the § Surface signature and implement the rotation: look the session up by the presented refresh token, mint a new pair, delete the old key, store the new one. Migrate `middleware.go` and `cmd/api/routes.go` to the new call.
@@ -61,6 +64,7 @@ function refresh(req: RefreshRequest): TokenPair | 401 | 409 {
 
 ### 4. Add the release check — `scripts.ReleaseCheck`
 
+- **Change:** new behavior
 - **Files:** `scripts/release-check.sh` (create)
 - **Surface:** none — a script is a body; its contract is the plain block in § Surface
 - **Do:** Write the check as that contract describes, in the order the sketch below gives. Fail on the first failure with a `FAIL: ` message naming what failed.
@@ -127,7 +131,7 @@ function releaseCheck(): 0 | 1 {
 ## Definition of done
 
 - [ ] All files in **Files** modified/created as specified
-- [ ] Every `CONSTRAINTS.md` row holds in the shipped code
+- [ ] Every rule `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints holds in the shipped code
 - [ ] Both Autotest commands pass — Unit and E2E (or the level is `none` with its stated reason)
 - [ ] Manual test steps produce **Expected** outcomes
 - [ ] No edits outside **Files** without recording it in the notes (jj snapshots on session stop)

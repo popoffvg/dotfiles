@@ -47,10 +47,10 @@ mode reports and stops — it runs no fixup loop, because a human is reading the
 in both modes (`ref-gates.md` § No gate judges the spec), so `diff` mode loses no question — it
 loses citations.
 
-**The repo's own files carry the whole rule load.** With no `CONSTRAINTS.md` and no `PATTERNS.md`,
+**The repo's own files carry the whole rule load.** With no generated rule set and no `PATTERNS.md`,
 the standards gate falls to sources 1, 2, 5, and 6 of its list: the `CLAUDE.md` files, the house
 style docs, the code around the diff, and the language idiom. A breach it would have cited as
-`R<n>` now cites a neighbouring file instead, which makes it a Nit more often.
+`D<NNN>` now cites a neighbouring file instead, which makes it a Nit more often.
 
 **Correctness is unchanged.** It is read from the code alone, so it needs no pair: off-by-one, nil
 and empty and zero, a swallowed error path, a race on a new shared value, an unmigrated caller after

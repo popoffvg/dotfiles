@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Strip the "work-" prefix from wm skill-name references in the given files.
 # Uses Perl word-boundary + negative-lookahead so e.g. `work-verify-gate` (not a skill)
-# and `work-next-prompt` / `work-abandon` (not renamed) are left untouched.
+# and `work-next-prompt` / `work:abandon` (not renamed) are left untouched.
 # Idempotent. Usage: strip-work-skill-prefix.sh <file> [<file> ...]
 set -euo pipefail
 

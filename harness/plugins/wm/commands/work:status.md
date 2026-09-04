@@ -1,5 +1,5 @@
 ---
-name: work-status
+name: work:status
 description: Show current work state and progress
 ---
 

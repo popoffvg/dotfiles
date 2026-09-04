@@ -5,7 +5,7 @@
 Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 
 Rewrites the notes so they match reality: an existing thought, a new one, and the `spec.md` /
-`GLOSSARY.md` / `CONSTRAINTS.md` / `todos/TODO-N.md` + `TODO-N.agent.md` that depend on it. Two triggers:
+`GLOSSARY.md` / `todos/TODO-N.md` + `TODO-N.agent.md` that depend on it. Two triggers:
 
 1. **Review-phase correction** — a decision changed, a term sharpened, an outcome is wrong while the human reviews.
 2. **Post-impl drift** — a TODO shipped code that differs from its body (files, extra refactor, renamed symbols, dropped step). Rewrite the notes to match what shipped so the target picture stays faithful.
@@ -25,7 +25,7 @@ Name what it touches:
 
 - **Thought** — the `thoughts/NNN-*.md` note(s) affected, or that a new one is needed.
 - **Spec sections** — Description / Goal / ledger row(s) / `## Plan` waves / `GLOSSARY.md`. Decisions are never a spec section — they are thought notes (Step 3).
-- **TODO bodies** — the pair: the `todos/TODO-N.md` outcome line and `## Surface`, and/or the `TODO-N.agent.md` `## Changes` increments. A rule the pair now breaks is not edited in the pair: the `CONSTRAINTS.md` row is rewritten once, and every TODO obeying it follows.
+- **TODO bodies** — the pair: the `todos/TODO-N.md` outcome line and `## Surface`, and/or the `TODO-N.agent.md` `## Changes` increments. A rule the pair now breaks is not edited in the pair: the decision note's `description` is rewritten once, and every TODO obeying it follows.
 
 For **post-impl drift**, locate TODO-N's commit(s) first (stop at first hit):
 
@@ -40,7 +40,7 @@ Inspect it (`git show --stat <sha>`, `git show <sha>`): files, symbols added/ren
 
 | Category | Meaning | Action |
 |----------|---------|--------|
-| **Decision change** | A choice was made differently | Supersede the decision note (Step 3), then edit the one `CONSTRAINTS.md` row it produced: rewrite the rule and repoint its `Origin` at the replacement note. One row, no matter how many TODOs obey it. A rule that no longer binds anything is deleted from the file, not left with a dead origin |
+| **Decision change** | A choice was made differently | Supersede the decision note (Step 3) and write the replacement's `description` as the new rule. The rule set follows on the next generator run — no row to rewrite, no `Origin` to repoint, and the superseded rule leaves the set when the hook archives its note |
 | **New fact** | A constraint/observation surfaced | Write a new `fact` note (Step 3); link from the decisions it constrains |
 | **Drift** | Impl differs from spec, outcome still met | Update `TODO-N.md` `## Surface` to the shipped signatures and `TODO-N.agent.md` `## Changes` to what was actually done |
 | **Outcome shift** | The observable result changed | Rewrite the outcome row in spec.md AND the outcome line in TODO-N.md (verbatim match); update the thought that motivated it |
@@ -70,8 +70,6 @@ Thoughts are the source the spec compiles from — keep them correct, not just t
 
 `<notes-dir>/todos/TODO-N.md` `## Deviations`: fold every row into the section it names — the shipped shape becomes the approved shape — then delete the whole section. Its `impl-decision` notes stay live in `thoughts/`, where the `trace` skill still finds them; the table exists only while the pair still says something else.
 
-`<notes-dir>/CONSTRAINTS.md`: rewrite every rule whose decision changed and repoint its `Origin` at the replacement note; delete every row that no longer binds any increment; append one row for each delta that was itself a decision an increment can violate — including the note this revise just wrote. One row per rule, corpus-wide: a rule is never edited in a TODO, because no TODO holds one.
-
 Log to `<notes-dir>`; message: `"revise TODO-N (+ from <sha> if post-impl): <deltas + notes touched>"`.
 
 ## Step 5 — Report
@@ -84,7 +82,7 @@ Revised <TODO-N | spec section>  [from <sha> "<subject>"]
   spec:     <sections updated>
   todos:    <files / sections updated>
   deviations: <rows folded in and section deleted | none>
-  rules:    <CONSTRAINTS.md rows repointed | added | dropped>
+  rules:    <D-ids the generator now prints differently: added | reworded | gone>
   spinoffs: <new ledger entries, if any>
 ```
 
@@ -103,6 +101,6 @@ Then stop. The user owns the next action (re-review, continue impl, re-verify).
 - [ ] spec.md frontmatter `status` set to `review`
 - [ ] todos/TODO-N.md outcome, Components, Surface, and Autotest restated to the shipped signatures; TODO-N.agent.md `## Changes` + `## Files` match reality, still diff-free and carrying no shipped body
 - [ ] Every `## Deviations` row folded into the section it names, and the section deleted
-- [ ] CONSTRAINTS.md rows repointed at the replacement notes, rows that bind nothing deleted, and a row added for each decision this revise made — no `Origin` resolving only under `thoughts/archived/`
+- [ ] `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` re-run: every decision this revise settled prints as a rule, and every superseded one is gone
 - [ ] jj commit created in `<notes-dir>`
 - [ ] No edits outside `<notes-dir>/`

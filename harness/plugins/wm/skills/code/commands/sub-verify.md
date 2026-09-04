@@ -6,23 +6,29 @@ Readiness criteria: `arch:ref-write.md`. TODO elements: `arch:sub-todo.md`.
 
 Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 
-## Execution — two phases
+## Execution — three phases
 
-Phase 0 is cheap and inline; it gates the expensive Phase 1 fan-out. Pass the real `<notes-dir>`.
+Phase 0 is a script and gates the expensive Phase 1 fan-out; Phase 2 judges the names the corpus
+declares, once the round has returned. Pass the real `<notes-dir>`.
 
-### Phase 0 — static gate (inline, no agent)
+### Phase 0 — static gate (one call, no agent)
 
-The caller runs the pass/fail checks (below) directly — field inspection over `spec.md` +
-`todos/*.md`, no adversarial reasoning. Any fail → write the report `Result: NEEDS REVISION`
-listing the failures and **stop**. No point paying an agent to notice an empty field.
+```
+${CLAUDE_PLUGIN_ROOT}/bin/spec-lint.py <notes-dir>
+```
 
-**Count the corpus first: `<plugin>/bin/budget-sweep.sh <notes-dir>` — exit 1 is a hard block.** It
-runs `budget-check.py` over `spec.md`, `CONSTRAINTS.md`, and both halves of every ledger row, and
-prints each overrun with the split to make. This is where every countable rule below is *enforced* —
-the budgets, the misplaced sections, the unfollowable `CONSTRAINTS.md` row (`arch:sub-todo.md`
-§ Budget lists them). The write-time hook counts one file and only warns, because a pair is written
-over several calls; here the pair is finished, so a count that still fails is real. List each
-overrun under `## Checks` and take the remedy the message names — never a raised budget.
+One call, about a second. It parses `spec.md` and both halves of every ledger row and prints every
+countable check with its verdict — the budgets (it runs `budget-sweep.sh` itself), the frontmatter
+ranges, the section sets and their order, the Components table, the increment sequence, both
+Autotest levels, the wave plan, the rule set, the open questions. **Exit 1 → write the report
+`Result: NEEDS REVISION` with the findings under `## Checks` and stop.** No agent is paid to notice
+an empty field, and no driver reads the corpus to count what a parser counts.
+
+Take the remedy each finding names — never a raised budget, never a loosened check. `--json` gives
+the same rows for a caller that merges them into a larger report.
+
+**A green line is evidence the check ran.** The script prints every check, passed or failed, so a
+missing id means a missing check rather than a clean corpus.
 
 ### Phase 1 — adversarial hunt (parallel agents)
 
@@ -34,7 +40,9 @@ Per-TODO:
 ```
 Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
   "[VERIFY TODO-N] Hunt contradictions / missing-parts / edge-cases in the <notes-dir>/todos/TODO-N.md
-   + TODO-N.agent.md pair. Read only those two + <notes-dir>/CONSTRAINTS.md + the pair's Files (source). Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md § Mission.
+   + TODO-N.agent.md pair. Read only those two + the rules `~/.claude/scripts/wm-constraints.py
+   <notes-dir>/thoughts --todo TODO-N` prints + the pair's Files (source). Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md
+   § Mission and § What the script cannot judge — the countable checks already ran, so report none of them.
    Run the claim pass first and return the claim table with your findings.")
 ```
 
@@ -50,6 +58,43 @@ Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
 
 The agents have no Write tool — they **return** findings. The caller merges returned findings + Phase 0 results into the report and writes `<notes-dir>/spec-verify.md`.
 
+### Phase 2 — the naming pass (after the round returns)
+
+Every round ends with one naming review over the names this spec **mints**, before `status` moves to
+`impl`. A name fixed here is one edit in a table; the same name fixed after the code lands is a
+rename across every file that carries it.
+
+**Only the new names are in scope.** A term `GLOSSARY.md` marks `existing` names something the code
+already calls that, and renaming it is a refactor with its own TODO — not a finding against this
+spec. The gate reads the `Status` column and judges the `new` rows alone
+(`arch:examples/glossary.md` § Status). A spec whose glossary has no `Status` column is not ready
+for this phase: fill the column first, or every existing name is re-litigated every round.
+
+Run the mechanical half first — it is a second and it hands the agent its list:
+
+```
+${CLAUDE_PLUGIN_ROOT}/bin/term-variants.py <notes-dir>/todos/*.md <notes-dir>/spec.md
+```
+
+Exit 1 means one concept is spelled two ways (`idpId` beside `IdPID`). Each group is a finding: pick
+the spelling `GLOSSARY.md` carries, and fix the others.
+
+Then the judgment half, one agent over the whole corpus:
+
+```
+Agent(subagent_type="wm:name-critic", model="haiku", prompt=
+  "[NAME spec] Judge the names <notes-dir> MINTS, not a diff. In scope: every `## New terms` row,
+   every `## Components` symbol whose Touch is `create`, and every symbol a `## Surface` diff adds,
+   across all TODO pairs. Out of scope, silently: every term GLOSSARY.md marks `Status: existing`,
+   and every symbol the code already carries — the diff modifies it, it does not name it.
+   GLOSSARY.md is the domain vocabulary; a new name that contradicts a row there is a Failure.
+   Also judge these term-variants groups, where the existing spelling wins: <term-variants.py output>.
+   report: <notes-dir>/review/spec/name.md")
+```
+
+A Failure keeps the spec at `review`: fold the renames into the pair and `GLOSSARY.md` together, then
+re-run this phase alone — a rename cannot break a countable check that already passed.
+
 ## Mission — hunt three failure modes (Phase 1)
 
 Find what breaks the spec before code does. **Contradictions come first** — they are the only failure mode that makes two correct implementations impossible at once, so the claim pass below runs before any missing-part or edge-case reading.
@@ -63,11 +108,11 @@ Do not scan for contradictions by reading and hoping. Extract, then collide.
 | Kind | Where it hides | Example claim |
 |---|---|---|
 | Signature | `## Changes` diffs, **Behavior** TS block | `loadSpec(dir: string): Spec` |
-| Term meaning | Outcome, CONSTRAINTS.md, GLOSSARY row | `"wave" = a set of TODOs with no shared Files` |
+| Term meaning | Outcome, a printed rule, GLOSSARY row | `"wave" = a set of TODOs with no shared Files` |
 | File ownership | `## Files`, increment **Files** | `TODO-3 rewrites src/gate.ts` |
 | Order | `Depends on`, wave table, increment `n` | `TODO-5 lands after TODO-2` |
 | State transition | Outcome, **Blast radius** | `status moves review → impl` |
-| Decision | `thoughts/` decision notes, CONSTRAINTS.md | `no new dependency in the plugin dir` |
+| Decision | `thoughts/` decision notes | `no new dependency in the plugin dir` |
 
 **Step 2 — collide pairwise.** Compare every claim against every other claim of the same kind. A collision is two claims that cannot both hold:
 
@@ -91,47 +136,51 @@ Work the Goal implies but no TODO covers: error paths, teardown for every setup,
 Inputs and states the outcomes ignore: empty/nil/zero, concurrent access, retry/idempotency, partial failure, boundary limits (TTL, size, count), first-run vs steady-state, ordering.
 
 Each finding names the exact TODO/section, states the concrete scenario that fails, and the edit that closes it. A finding without a reproducing scenario is a nit, not a blocker.
+## What the script cannot judge — the agents' second job
 
-## Phase 0 checks (pass/fail)
+`spec-lint.py` rules on every countable field. What is left needs a reader, so each per-TODO agent
+carries it beside the three hunts. Each one is a hard block when it fires.
 
-The floor beneath the mission — a spec that fails these is unfinished regardless of the hunt.
+**A body in the `## Surface` diff**, and the most common finding here. Read every ```diff for
+content that *is* the implementation rather than the surface a caller sees: a function body, a loop
+or branch chain, a shell script, a SQL query, a regex, a fixture, a table of literal expected
+values, a test file's assertions. The edit is the same each time — delete the body, keep the
+signature, move the logic into the increment's **Behavior** sketch, and use a plain contract block
+when the file has no surface at all (`arch:sub-todo.md` § A diff carries the surface, not a body).
+**The one legal body is one the human asked for**, and it carries a `**Body requested:**` bullet
+naming the symbol. Judge `## Autotest` the same way: its Cases are sentences, never test source.
 
-### A. Spec readiness
-Run `arch:ref-write.md` § Spec-Readiness Checklist against `spec.md` + `GLOSSARY.md` + `thoughts/`. **Any `status: open` question note → NEEDS REVISION** (hard block; route to `new`) — check with `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`. Also a hard block: a `Design Decisions` or `Open Questions` section surviving in `spec.md`, or a decision-trail table in `## Plan` — decisions belong to `thoughts/` alone. Same for an `Implementation Guidelines` section or any pattern content in `spec.md` — patterns belong to `PATTERNS.md`, which the spec only mentions. This covers spec sections, the ledger shape, outcome rules, and GLOSSARY.md currency in one place.
+**Self-containment.** Read one TODO with `spec.md` and the `thoughts/` notes closed and the printed
+rule set open — that is what the implementer sees. A term or a test expectation knowable only from
+the closed files is a missing restatement, named as the finding.
 
-### B. Per-TODO completeness
-Two files per ledger row, contiguous: `todos/TODO-N.md` (the human half) and `todos/TODO-N.agent.md` (the agent half). A row missing either is a finding — the human half alone is unimplementable, the agent half alone is work nobody approved. Each file has every `always` element in order (`arch:sub-todo.md` § Required elements), and **nothing belonging to the other**: a `## Changes` in the human half, a `## Surface` or `## Commit` in the agent half, or **any ```diff outside the human half**, means the split was never made.
+**Readable at one pass — the human half only.** `TODO-N.md` is written under the `i-have-adhd` skill
+(`arch:ref-todo-sections.md` § Every prose line). Read its rules —
+`~/.claude/skills/i-have-adhd/SKILL.md` — then judge every prose line against them: Outcome,
+`New terms` **Meaning**, `Components` **Role**, `Autotest` cases, `Commit.Body`. Apply its own test:
+read the first sentence of each section, then the bold phrases, and rule whether that skim carries
+the approval decision. Two ideas in one sentence, a stacked clause chain, a metaphor standing in for
+a plain word, and a fact restated a second way each fire. A finding quotes the sentence and gives the
+rewrite, never "tighten this". The agent half is out of scope.
 
-Spot-check the human half: **risk** 1–5 with a justification (score ≥ 3 → tests cover callers); **approve** one of `inherit` / `increment` / `todo` / `none`, and anything but `inherit` carries the reason it overrides the spec; `## Components` has exactly one `main`; `## Surface` covers every Components symbol and no others, one ```diff per file, ≤ 150 changed lines each or a declared **Compile floor**. Spot-check the agent half: **Files** concrete paths, no globs; `## Constraints` is the fixed pointer line at `CONSTRAINTS.md` and carries no rule text, no id list, and no table.
+**Over-statement, the same gate in reverse.** The gate may only push text *in* if it can also push
+text *out*, or every pass grows the pair. It fires when a rule was copied out of the printed rule
+set into a TODO, when spec Description/Goal prose was copied into the human half, or when
+`## Surface` carries a symbol no Components row claims. Name the cut, never a move into the agent
+half — that half has no line budget to absorb it.
 
-**The rules file.** `CONSTRAINTS.md` holds every settled decision an increment can violate, one row each, and no TODO holds one. Every row carries an `R<n>` id (contiguous, never renumbered), the rule alone, and an `Origin` that resolves: a `[[NNN-type-slug]]` to a **live** note in `thoughts/`, or a document with a section and a `read <YYYY-MM-DD>` date. **A note that resolves only under `thoughts/archived/` is a hard block** — the decision was superseded while the corpus still obeys it, so the pairs built on it may be wrong; route to `revise`. A rule no increment in any TODO can violate is a finding in the other direction: it is a fact, and it belongs in `thoughts/`. The sweep above reports the mechanical half of this; whether a rule still binds anything is the audit's.
+**A rule that is not a rule.** A decision no increment in any TODO can violate is a fact, not a
+constraint: the finding is to retype that note as `fact`, and the generator then skips it
+(`arch:examples/constraints.md`).
 
-**Changes — the increment sequence** (agent half). `n` contiguous from 1, ≤ 10 increments, each naming one row of the human half's **Components** table, and every row there named by at least one increment. Every increment carries **Files** (a subset of `## Files`), a **Surface** bullet naming the symbols it lands (or `none`), a **Do** of one to four imperative sentences, and a **Blast radius** — and **no diff**, per `arch:sub-todo.md` § Changes. Two findings live here: a **Do** carrying code or a pasted signature (the signature belongs to § Surface alone), and a signature that changes in § Surface whose call sites appear in no increment's **Do** — the second is a caller that will be left broken, and § Surface cannot show it. A **Blast radius** that names no symbol or caller (`"low"`, `"minimal"`, `"none"` on a non-additive increment) → NEEDS REVISION: an unpredicted blast radius is what the increment review exists to catch. Order must be deepest-first — a caller migrated before its callee, without a `builds: only with increment <n>` marker, is a finding. Any **Behavior** snippet: one TS block ≤ 40 lines matching the Type.
+**Scope discipline.** The TODOs align with the current Goal — no unrelated expansion, and no missing
+blocker TODO that the referenced files surface.
 
-**A body in the `## Surface` diff is a finding, and one of the most common.** Read every ```diff for content that *is* the implementation rather than the surface a caller sees: a function body, a loop or branch chain, a shell script, a SQL query, a regex, a fixture, a table of literal expected values, a test file's assertions. Each one is a NEEDS REVISION with the same edit — delete the body, keep the signature, move the logic into the increment's **Behavior** sketch, and use a plain contract block if the file has no surface at all (`arch:sub-todo.md` § A diff carries the surface, not a body). **The one legal body is one the human asked for**, and it carries a `**Body requested:**` bullet naming the symbol; a body without that marker is a finding no matter how reasonable it looks. Check `## Autotest` in the human half the same way: its Cases are sentences, never test source. This is a judgment the `budget-check` hook cannot make, which is why the audit owns it.
-
-**Self-containment (hard block).** Read one TODO with `spec.md` and `thoughts/` closed, `CONSTRAINTS.md` open. If a term it uses or a test expectation is knowable only from the closed files, → NEEDS REVISION naming the missing restatement.
-
-**Over-statement (hard block, the same gate in reverse).** The gate cuts both ways — it may only ever push text *in* if it can also push text *out*, or every pass grows the file. → NEEDS REVISION when a rule was copied out of `CONSTRAINTS.md` into a TODO, when spec Description/Goal/target-picture prose was copied into the human half, when `## Surface` carries a symbol no Components row claims, or when that half exceeds 550 lines (name the cut, not the passage to compress — and never a move into the agent half, which has no line budget to absorb it). The sweep above already counted those 550 lines; what is left here is the judgment (`arch:sub-todo.md` § Budget).
-
-### B2. Wave plan
-`## Plan` has the wave table; every ledger row appears in exactly one wave; no two TODOs in one wave share a **Files** path or a `depends_on` edge; every `depends_on` is a real edge per `arch:ref-write.md` § Waves. A chain where each wave holds one TODO → report it as a finding (serialized spec) with the edges that look false.
-
-### C. Execution readiness
-`Depends on` consistent and acyclic; each TODO one logical commit; destructive changes explicit and justified.
-
-### D. Scope discipline
-TODOs align with the current Goal — no unrelated expansion; no missing blocker TODO surfaced by referenced files.
-
-### E. Test suite filled — both levels (hard block)
-Every TODO's **Autotest** carries a `Unit` **and** an `E2E` sub-block, each with a runnable command **plus** ≥1 concrete case (input → expected). Empty, `TBD`, `...`, a missing level, or command-without-cases → NEEDS REVISION, listing each unfilled TODO and level.
-
-`none` is accepted only with a concrete reason: for `Unit`, a non-behavioral change; for `E2E`, either a stated no-observable-behavior refactor or a deferral meeting every condition in `arch:sub-todo.md` § Autotest — check them there rather than from memory, and reject the deferral if any one fails. Auto-reject reasons: "covered by the unit test", "trivial", "no e2e harness" (name the missing harness — that is its own TODO), "will add later".
-
-Same for **Manual test**: filled steps+expected, or `skip — <concrete reason>`.
-
-### F. Test honesty (hard block)
-Read **Files** per TODO and classify its surface. A file matching a category below **cannot** justify `Manual test: skip` with "covered by unit tests" or similar:
+**Test honesty.** Read **Files** per TODO and classify its surface. A file in a category below cannot
+justify `Manual test: skip` with "covered by unit tests", and its Autotest command has to run against
+the boundary that changed — `go test ./pkg/server/...` for an RPC change, not `./pkg/types/...`. When
+a TODO claims existing tests cover it, open one of those files and confirm it asserts the changed
+behavior.
 
 | Category | Match signal | Required |
 |---|---|---|
@@ -143,9 +192,10 @@ Read **Files** per TODO and classify its surface. A file matching a category bel
 | External integration | k8s, S3, OAuth, HTTP client to third party | manual test or recorded fixture — never "unit-tested" alone |
 | UI / frontend | `.vue`, `.tsx`, `.svelte`, css | manual test with screenshot or browser steps |
 
-For each matching TODO: **Manual test** is not `skip` (or the skip names a specific integration/e2e command exercising the same boundary); the Autotest command runs against the relevant boundary (`go test ./pkg/server/...` for an RPC change, not `./pkg/types/...`); if the TODO claims existing tests cover it, the verifier **reads** one of those test files and confirms it asserts on the changed behavior.
-
-Auto-fail skip-justifications: "fully covered by unit tests" / "covered by autotests" / "covered by tests" / "no manual step needed" / "trivial change" / "covered by existing tests" (without naming the test file + name). A failing F turns the result to NEEDS REVISION with `Required spec edits` naming which TODOs need a real manual or integration step.
+**An E2E deferral is legal only when the named TODO carries the case.** `none — observable only via
+TODO-3` binds TODO-3's `## Autotest` `E2E` to a case that asserts this path; a deferral to a TODO
+whose E2E never mentions it is an untested path with a citation. Deferring to a `Manual test` never
+counts (`arch:ref-todo-sections.md` § Autotest).
 
 ## Output contract
 
@@ -170,8 +220,11 @@ Claim pass: <N> claims extracted, <M> pairs checked.
 ## Edge cases
 - <the ignored input/state + the TODO whose Outcome must handle it + how>
 
+## Readability
+- <TODO-N § section — the quoted sentence + the rewrite; `none` when the half passes the skim test>
+
 ## Checks
-- [PASS|FAIL] <check>
+- <the spec-lint.py verdict lines, verbatim — every check id, passed or failed>
 
 ## Required spec edits
 - <specific change request>

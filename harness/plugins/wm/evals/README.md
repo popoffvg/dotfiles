@@ -147,11 +147,12 @@ Gates under test — two axes, both applied to one block of candidate content:
 - **`half`** → `human` | `agent` | `corpus` : which file the content belongs in.
   `human` is `TODO-N.md` (Outcome, New terms, Components, **Surface**, Autotest, Commit); `agent` is
   `TODO-N.agent.md` (Constraints — the pointer — Changes, Files, Pre-reads, Manual test, Definition
-  of done); `corpus` is outside the pair: `CONSTRAINTS.md` for a settled rule an increment can
-  violate, `thoughts/` for a reason.
+  of done); `corpus` is outside the pair: `thoughts/`, which holds a settled rule an increment can
+  violate and the reason behind it alike.
   **Every diff is human** — `## Surface` is the one diff in the pair. **No rule and no origin link
-  is ever in the pair** — a rule is one `CONSTRAINTS.md` row, and the reason behind it is a
-  `thoughts/` note the `trace` skill searches for.
+  is ever in the pair** — a rule is the `description` of a `decision` note in `thoughts/`, printed
+  by `~/.claude/scripts/wm-constraints.py`, and the reason behind it is the rest of that same note
+  the `trace` skill searches for.
 - **`form`** → `keep` | `reshape` : does it ship as written, or is it a **body** — content that *is*
   the implementation — that must be replaced by an Interface block plus a Behavior sketch, or by case
   sentences.
@@ -188,8 +189,8 @@ Needs `claude` and `jq` on `PATH`. Exit 0 = accuracy ≥ threshold.
 
 29 cases: 12 `human`/`keep`, 6 `agent`/`keep`, 3 `corpus`/`keep`, 7 `human`/`reshape`,
 1 `agent`/`reshape`. The distribution leans human because the diff lives there now. No
-`corpus`/`reshape` case exists yet — the `form` axis asks whether content is a **body**, and a rule
-row or a reason has no body shape to take.
+`corpus`/`reshape` case exists yet — the `form` axis asks whether content is a **body**, and a
+`decision` note — rule and reason in one — has no body shape to take.
 
 **`sapiens-e2e-script` is the case this suite exists for.** It is real — a 45-line bash E2E check
 pasted verbatim into a TODO's `## Changes` diff, which is what prompted the surface-not-a-body rule.
@@ -218,16 +219,18 @@ The hard cases are the ones that *look* like the wrong label:
 - `manual-test-steps` — literal `curl` and `make` lines that must be kept. A shell *script* is a body;
   a shell *command someone types* is not.
 - `constraints-table` vs `constraints-pointer` — **the split that trips every author.** The rules
-  themselves are `corpus`, one table in `CONSTRAINTS.md`; the agent half keeps only a fixed pointer
-  line at that file. A rule table under a TODO's `## Constraints` is the second copy that drifts.
+  themselves are `corpus`, one `decision` note each in `thoughts/`; the agent half keeps only the
+  fixed line that prints them. A rule table under a TODO's `## Constraints` is the second copy that
+  drifts.
 - `constraints-table` vs `outcome-rationale` — **the counter-intuitive pair, in both directions.**
-  A settled decision stated as a rule is a `CONSTRAINTS.md` row even though it reads like design; a
-  reason for the Outcome is a `thoughts/` note even though it is *about* the human half. What
-  decides it is whether an increment can violate the line, not which section it discusses.
+  A settled decision stated as a rule is a `thoughts/` note even though it reads like design; a
+  reason for the Outcome is a `thoughts/` note even though it is *about* the human half. Both land
+  in the same place now, so the `corpus` label turns on one question — is it outside the pair. What
+  an increment can violate decides the note's *type*, `decision` over `fact`, not its home.
 
 ## Last run
 
-Not re-run since the trace companion was dropped and `CONSTRAINTS.md` landed. The three `corpus`
+Not re-run since the trace companion was dropped and the rules moved into `thoughts/`. The three `corpus`
 cases and the `constraints-pointer` case have never been graded — run `./run.sh` before trusting the
 score below, which was measured against an older contract.
 

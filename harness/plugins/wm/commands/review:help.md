@@ -1,5 +1,5 @@
 ---
-name: review-help
+name: review:help
 description: Show all /review modes and the gates they run, with one-line descriptions.
 ---
 
@@ -10,7 +10,7 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 | Mode | Does |
 |---|---|
 | `diff` *(default)* | Judge a loose target against the repo's own rules — the working tree, `last`, a branch, a sha or range, or a PR url. Resolves the target to one revision range, derives the intent sentence from the commit messages as context, then runs the chain. The test gate reports the missing test here and writes nothing. |
-| `todo` | Judge an implemented TODO with the rule files its `TODO-N.md` + `TODO-N.agent.md` pair points at — `CONSTRAINTS.md`, `RULES.md`, `PATTERNS.md`. A settled `R<n>` rule broken is a Failure with a citation. The chain `/code auto` runs per TODO. |
+| `todo` | Judge an implemented TODO with the rule sources its `TODO-N.md` + `TODO-N.agent.md` pair points at — the rules `~/.claude/scripts/wm-constraints.py` prints, plus `RULES.md` and `PATTERNS.md`. A breach there is a Failure with a citation. The chain `/code auto` runs per TODO. |
 | `help` | This page. |
 
 ## The gates each mode runs

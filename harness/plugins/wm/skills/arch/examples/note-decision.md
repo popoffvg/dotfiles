@@ -2,7 +2,7 @@
 type: decision
 id: "003"
 status: approved            # approved | declined
-description: >              # 1–3 sentences, the only text the thought index shows — ref-note-format.md § Frontmatter
+description: >              # 1–3 sentences — the text the index shows, and the rule wm-constraints.py prints verbatim — ref-note-format.md § Frontmatter
   Two refreshes racing on the same expired token: the second one returns 409 and the caller
   retries with the new token. Redis single-flight locking was rejected — 40 lines for under
   0.01% of traffic.

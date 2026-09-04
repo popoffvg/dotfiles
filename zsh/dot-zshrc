@@ -56,7 +56,11 @@ zinit snippet OMZP::eza                      # eza aliases + completions
 # recurses _deja_line_init into FUNCNEST. Loaded once at the bottom.
 
 eval "$(mise activate)"
-eval "$(atuin init zsh --disable-up-arrow)"
+# Claude Code runs each Bash tool call in a fresh non-interactive shell; atuin's
+# preexec/precmd hooks add startup cost and record every agent command as history.
+if [[ -z "$CLAUDECODE" ]]; then
+  eval "$(atuin init zsh --disable-up-arrow)"
+fi
 source <(sk --shell zsh)
 eval "$(sg completions zsh)"
 

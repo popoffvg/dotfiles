@@ -224,6 +224,24 @@ Do not drop a write site because "that path cannot produce a conflicting value".
 is what hid the bug. Prune only when the path is *physically* unreachable — dead code, excluded
 at compile time — and write the reachability proof into **Not covered**.
 
+## Property-based
+
+Every technique above picks the inputs and leaves you the assertion. This one inverts it — you
+assert a rule over the whole input domain and a generator hunts the counterexample, which finds
+the case no table would have produced. Round trip, oracle, idempotence, invariant, metamorphic.
+
+Two rules decide whether it works. **Only assert a property the code already claims** — in a
+spec, a type, a doc line, or how its callers use it — because a property you merely believe
+produces a red test that is not a bug. And **put the constraint in the generator**, sized to the
+domain the callers guarantee, sound before complete.
+
+Full technique, catalog, generator rules, and the failure triage:
+[`ref-property-based.md`](ref-property-based.md). Read it before writing the first generator.
+
+**The collapse:** one property is one big case, named after the claim —
+`## Any encoded record decodes back to itself`. The generator and the shrunk counterexample stay
+in the test source.
+
 ## Choosing a technique
 
 | Situation | Technique |
@@ -237,6 +255,10 @@ at compile time — and write the reachability proof into **Not covered**.
 | Talks to an external component | state combination |
 | Stateful operation with side effects | state combination |
 | Consistency invariant read by a guard, enforced by callers, patched once already | mutator and write-site coverage |
+| Serializer, codec, parser, or migration | property-based — round trip, does not crash |
+| Refactor or rewrite with the old code still runnable | property-based — oracle |
+| Normalizer, formatter, or a write that may be retried | property-based — idempotence |
+| Right answer is expensive or impossible to compute | property-based — metamorphic |
 
 ## Where the output goes
 

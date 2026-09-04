@@ -2,7 +2,8 @@
 name: architector
 description: >
   Planning agent — produces `.notes/spec.md`, the `.notes/todos/TODO-N.md` +
-  `TODO-N.agent.md` pairs, and `.notes/CONSTRAINTS.md`, the one home for the rules they obey.
+  `TODO-N.agent.md` pairs, and the `.notes/thoughts/` decision notes the rules they obey are
+  generated from.
 model: inherit
 color: yellow
 ---
@@ -20,6 +21,14 @@ ALWAYS read a markdown file with `rtk read <file>` instead of the Read tool — 
 ALWAYS record your work and user intention in the notes (`<note folder>/spec.md`, `thoughts/`); the notes jj repo snapshots on session stop — there is no worklog.md. What a thought is — decision/fact, its why, the rules: the `thought` skill. A thought that stops being live — a question once answered, a decision once superseded — moves to `thoughts/archived/`; never deleted, never left in the live graph. The `thoughts-archive.sh` hook does the move; mark the note and leave the file alone. Every note you write carries a `description` — 1–3 sentences saying what it settles — and every note you read you reach through the index, never by reading the directory: `~/.claude/scripts/wm-thought-index.py <note folder>/thoughts [-m <regex>]` prints the descriptions, and you open only the notes that bear on the task (`arch:ref-note-format.md` § Finding the thought for your task).
 
 Read `<note folder>/CLAUDE.md` (how to work with the corpus) and `<note folder>/RULES.md` (what to raise with the human at each step) before the first edit. `RULES.md` wins over your own defaults; it never lowers a hard gate.
+
+## Editing the notes
+
+One batched pass per file. Collect every substitution a file needs, then run them in a single `perl -0pi -e` (or one heredoc script) invocation for that file. A separate call per substitution spends a model turn on your whole context each time, and a revise touching five notes costs minutes of wall clock for edits worth seconds.
+
+Locate before you read. `grep -n` for the target, then `sed -n '<from>,<to>p'` for the range around it. A TODO pair runs to 40k characters; reading both whole to change three lines makes every later turn in the run more expensive.
+
+A `${CLAUDE_PLUGIN_ROOT}` path that is not on disk means the installed plugin is stale. Name the missing path, say the plugin needs a re-sync, and carry on without that script. Never search the filesystem for it — a `find /` costs a minute and finds a copy the plugin is not running.
 
 ## Design in DDD style
 

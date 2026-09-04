@@ -7,14 +7,16 @@ ticked by the model that wrote the file, so a body can pass review at three time
 budget. This script is the same rule, counted.
 
 One ledger row is a PAIR of files split by audience (`arch:sub-todo.md` § One ledger row,
-two halves). The rules both halves obey live outside the pair, in one corpus file,
-CONSTRAINTS.md. Each file is checked against its own budgets, and each is checked for
+two halves). The rules both halves obey live outside the pair, in `thoughts/`, and are
+printed by `wm-constraints.py` - there is no rules file to check. Each file is checked against its own budgets, and each is checked for
 sections that belong to another - a misplaced section means the split was never made.
 
 Checked, by file kind:
 
   todos/TODO-N.md         human half - carries the ONE diff, in ## Surface
                           body <= 550 lines            (arch:sub-todo.md - Budget)
+                          ## New terms and ## Components are UNCOUNTED - both are
+                          rosters, one row per term and per symbol, unlimited in length
                           each ## Surface diff <= 150 changed lines, unless that file
                           declares a `**Compile floor:**`
                           no agent-half section present (Constraints, Changes, Files,
@@ -29,19 +31,8 @@ Checked, by file kind:
                           no frontmatter (status lives in the human half alone)
                           no human-half section present (Outcome, New terms,
                           Components, Surface, Autotest, Commit)
-                          ## Constraints holds the CONSTRAINTS.md pointer, never a rule
+                          ## Constraints holds the wm-constraints.py command, never a rule
                           table - a rule copied here is the second copy that drifts
-
-  CONSTRAINTS.md          the corpus rules - NO line budget and NO row budget, by design: a
-                          row exists because a decision was made, and no number of decisions
-                          makes a corpus too big. What is counted is whether a row can be
-                          FOLLOWED.
-                          one table, every row filling all three columns
-                          ids R<n>, 1-indexed, contiguous, unique
-                          every [[note]] origin resolves to a LIVE note in thoughts/;
-                          one resolving only under thoughts/archived/ is a superseded
-                          decision the corpus still obeys (arch:sub-todo.md - Constraints)
-                          NO ```diff block anywhere, no frontmatter
 
   spec.md                 <= 200 lines                 (arch:ref-write.md - Spec-Readiness)
 
@@ -65,6 +56,11 @@ SPEC_LINES = 200
 MAX_INCREMENTS = 10
 MAX_DIFF_LINES = 150
 
+# Rosters, not prose: one row per term and one per symbol. A TODO that legitimately touches
+# many symbols is not two deliverables, so neither section is counted against the body budget
+# (`arch:sub-todo.md` - Budget).
+UNCOUNTED_SECTIONS = ("New terms", "Components")
+
 # Which half owns each H2. A heading found in the other half is the whole finding: the
 # author wrote one file where the contract asks for two.
 HUMAN_SECTIONS = {
@@ -85,7 +81,6 @@ AGENT_SECTIONS = {
     "Manual test",
     "Definition of done",
 }
-RULE_ID = re.compile(r"^`?R(\d+)`?$")
 
 H2 = re.compile(r"^## +(.+?)\s*$")
 INCREMENT = re.compile(r"^### +(\d+)\. +(.+?)\s*$")
@@ -194,19 +189,31 @@ def increment_spans(lines):
         yield int(m.group(1)), m.group(2), i, end
 
 
+def counted_length(body, found):
+    """Body lines the budget counts - the unlimited rosters are excluded."""
+    skipped = 0
+    for name in UNCOUNTED_SECTIONS:
+        if name in found:
+            start, end = found[name]
+            skipped += end - start + 1
+    return len(body) - skipped
+
+
 def check_todo_human(lines, violations, path):
     body = strip_frontmatter(lines)
-    if len(body) > TODO_HUMAN_LINES:
+    found = sections(body)
+    counted = counted_length(body, found)
+    if counted > TODO_HUMAN_LINES:
         violations.append(
-            f"the human half is {len(body)} lines, budget is {TODO_HUMAN_LINES} "
-            f"({len(body) / TODO_HUMAN_LINES:.1f}x over). This budget is a ceiling, set far "
-            "above what Outcome, New terms, Components, Autotest and Commit need on a real "
+            f"the human half is {counted} counted lines, budget is {TODO_HUMAN_LINES} "
+            f"({counted / TODO_HUMAN_LINES:.1f}x over; `## New terms` and `## Components` are "
+            "not counted). This budget is a ceiling, set far "
+            "above what Outcome, Autotest and Commit need on a real "
             "row - so reaching it means the ledger row carries two deliverables. Split it "
             "(TODO-N.1, TODO-N.2). Never compress the prose to fit, and never move content "
             "to the agent half: the halves are split by audience, not by size."
         )
 
-    found = sections(body)
     violations.extend(
         misplaced(found, AGENT_SECTIONS, "human half", "agent half (`TODO-N.agent.md`)")
     )
@@ -252,8 +259,9 @@ def check_todo_agent(lines, violations, path):
             violations.append(
                 f"the agent half's `## Constraints` carries a table of {len(rules) - 1} rule "
                 "row(s). "
-                "It holds the pointer and nothing else: `Obey [CONSTRAINTS.md]"
-                "(../CONSTRAINTS.md) - every row.` The rules live once, in that file, so a "
+                "It holds the command and nothing else: `Obey every rule that "
+                "`~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints.` A rule "
+                "lives once, as the description of the decision note that settled it, so a "
                 "decision that changes is edited once (`arch:sub-todo.md` - Constraints)."
             )
 
@@ -308,133 +316,6 @@ def check_todo_agent(lines, violations, path):
             )
 
 
-def table_cells(line):
-    """The cells of one markdown table row, outer pipes dropped."""
-    parts = line.split("|")
-    if parts and not parts[0].strip():
-        parts = parts[1:]
-    if parts and not parts[-1].strip():
-        parts = parts[:-1]
-    return [p.strip() for p in parts]
-
-
-def resolve_note(thoughts, slug):
-    """Where a [[wikilink]] lands: 'live', 'archived', or 'missing'."""
-    name = slug if slug.endswith(".md") else slug + ".md"
-    if os.path.isfile(os.path.join(thoughts, name)):
-        return "live"
-    if os.path.isfile(os.path.join(thoughts, "archived", name)):
-        return "archived"
-    return "missing"
-
-
-def check_origin(cell, thoughts, row_label, violations):
-    """An origin is followable or it is not: a live note, or a dated document."""
-    links = WIKILINK.findall(cell)
-    if links:
-        if thoughts is None:
-            return
-        for slug in links:
-            where = resolve_note(thoughts, slug)
-            if where == "live":
-                continue
-            if where == "archived":
-                violations.append(
-                    f"{row_label} cites `[[{slug}]]`, which is archived. The decision was "
-                    "superseded while the corpus still obeys it - repoint the row at the "
-                    "replacement note and rewrite the rule it states "
-                    "(`code:sub-revise.md`). A live artifact never depends on an archived note."
-                )
-            else:
-                violations.append(
-                    f"{row_label} cites `[[{slug}]]`, which is no note in `thoughts/`. An "
-                    "origin nobody can open is not provenance. Write the note "
-                    "(`arch:examples/note-impl-decision.md`) or fix the id."
-                )
-        return
-
-    if MD_LINK.search(cell):
-        if not READ_DATE.search(cell):
-            violations.append(
-                f"{row_label} cites a document with no `read <YYYY-MM-DD>` date. An external "
-                "document changes without telling anyone, so the date is what says which "
-                "version the rule was written against (`arch:sub-todo.md` - Constraints)."
-            )
-        return
-
-    violations.append(
-        f"{row_label} has an Origin that is neither a `[[NNN-type-slug]]` note link nor a "
-        "document link with a section and a `read <YYYY-MM-DD>` date. Those are the only two "
-        "forms - a bare title or a remembered conversation is not an origin."
-    )
-
-
-def check_constraints(lines, violations, path):
-    # No line budget and no row budget by design: a row exists because a decision was made.
-    # What is counted is whether a row can be followed.
-    if has_frontmatter(lines):
-        violations.append(
-            "CONSTRAINTS.md carries a `---` frontmatter block. It holds rules, not state - "
-            "no `status`, no dates, nothing a reader has to reconcile with the spec. "
-            "Delete the block."
-        )
-
-    body = strip_frontmatter(lines)
-    found = sections(body)
-    violations.extend(
-        misplaced(found, HUMAN_SECTIONS, "CONSTRAINTS.md", "human half (`TODO-N.md`)")
-    )
-    violations.extend(
-        misplaced(found, AGENT_SECTIONS, "CONSTRAINTS.md", "agent half (`TODO-N.agent.md`)")
-    )
-
-    diffs = sum(1 for x in body if DIFF_OPEN.match(x))
-    if diffs:
-        violations.append(
-            f"CONSTRAINTS.md carries {diffs} ```diff block(s). It must carry none: a rule is "
-            "one sentence saying what the code must do. The diff for a TODO lives once, in "
-            "`TODO-N.md` `## Surface`."
-        )
-
-    notes_dir = os.path.dirname(os.path.abspath(path))
-    thoughts = os.path.join(notes_dir, "thoughts")
-    if not os.path.isdir(thoughts):
-        thoughts = None
-
-    rows = [x for x in body if TABLE_ROW.match(x) and not TABLE_RULE.match(x)]
-    if len(rows) < 2:
-        # An empty file is legal: `new` Step 0 creates it before any decision has settled.
-        return
-
-    seen = []
-    for row in rows[1:]:  # rows[0] is the header
-        cells = table_cells(row)
-        if len(cells) != 3 or not all(cells):
-            violations.append(
-                f"CONSTRAINTS.md row `{row.strip()[:60]}` does not fill all three columns. "
-                "Every row carries an id, the rule, and an Origin - a row missing the last "
-                "one is a rule nobody can argue with (`arch:sub-todo.md` - Constraints)."
-            )
-            continue
-        rid, _rule, origin = cells
-        m = RULE_ID.match(rid.strip())
-        if not m:
-            violations.append(
-                f"CONSTRAINTS.md row `{rid}` has no `R<n>` id. Ids are what a review, a "
-                "revise, and a `trace` verdict name a rule by."
-            )
-        else:
-            seen.append(int(m.group(1)))
-        check_origin(origin, thoughts, f"CONSTRAINTS.md row `{rid}`", violations)
-
-    if seen and seen != list(range(1, len(seen) + 1)):
-        violations.append(
-            f"CONSTRAINTS.md ids are {seen}, expected 1..{len(seen)} in order. Ids are "
-            "1-indexed, contiguous, and APPEND-ONLY: renumbering silently repoints every "
-            "reader at a different rule (`arch:sub-todo.md` - Constraints)."
-        )
-
-
 def check_spec(lines, violations, path):
     body = strip_frontmatter(lines)
     if len(body) > SPEC_LINES:
@@ -455,10 +336,6 @@ def kind_of(path):
         if base.endswith(".md"):
             return "todo"
         return None
-    if base == "CONSTRAINTS.md" and (
-        os.path.isdir(os.path.join(d, "thoughts")) or os.path.isdir(os.path.join(d, "todos"))
-    ):
-        return "constraints"
     if base == "spec.md" and (
         os.path.isdir(os.path.join(d, "thoughts")) or os.path.isdir(os.path.join(d, "todos"))
     ):
@@ -469,7 +346,6 @@ def kind_of(path):
 CHECKS = {
     "todo": check_todo_human,
     "todo-agent": check_todo_agent,
-    "constraints": check_constraints,
     "spec": check_spec,
 }
 

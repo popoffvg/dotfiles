@@ -1,0 +1,11 @@
+[extensions]
+enabled = true
+paths = ["~/git/dotfiles/harness/apps/review-focus"]
+
+# Free "m" and "space" for review-focus.markHunk / review-focus.markFile — a
+# built-in always wins a key collision over an extension command, so these
+# defaults have to move first. Both commands stay reachable elsewhere:
+# toggleHunkHeaders from the Extensions menu, pageDown on "pagedown" and "f".
+[keybindings]
+"hunk.view.toggleHunkHeaders" = []
+"hunk.review.pageDown" = ["pagedown", "f"]

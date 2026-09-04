@@ -1,0 +1,21 @@
+{
+  "name": "review-focus",
+  "version": "0.1.0",
+  "description": "Order a Hunk review by what is worth reading: agent-marked files first, tests and generated protobuf last.",
+  "private": true,
+  "hunk": {
+    "extensions": [
+      "./index.tsx"
+    ],
+    "apiVersion": 12
+  },
+  "devDependencies": {
+    "@opentui/core": "*",
+    "@opentui/react": "*",
+    "@types/bun": "^1.4.0",
+    "@types/node": "^26.4.1",
+    "@types/react": "*",
+    "hunkdiff": "*",
+    "react": "*"
+  }
+}

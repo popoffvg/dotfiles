@@ -54,5 +54,5 @@ this decision — the choice was made in code with no note behind it, which is i
 | Verdict | Next |
 |---------|------|
 | `live` | The decision stands. Argue with the note, not the artifact — a change here is `code:sub-revise.md`, not an edit to the TODO. |
-| `superseded` | The corpus drifted. Run `code:sub-revise.md`, and repoint any `CONSTRAINTS.md` row whose `Origin` is the archived note. |
+| `superseded` | The corpus drifted. Run `code:sub-revise.md`; archiving the note already took its rule out of the generated set, so there is nothing to repoint. |
 | `unrecorded` | Write the note first (`arch:examples/note-impl-decision.md`), then decide. |

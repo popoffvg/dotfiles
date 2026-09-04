@@ -1,8 +1,30 @@
 [
   {
+    "context": "CommitDiff > Editor",
+    "bindings": {
+      "cmd-alt-y": ["task::Spawn", { "task_name": "line-comment: add comment from clipboard" }],
+      "cmd-.": ["workspace::SendKeystrokes", "cmd-shift-y cmd-alt-y"],
+      "alt-o": "git::OpenFileAtHead",
+    },
+  },
+  {
     "context": "Terminal",
     "bindings": {
       "shift-enter": ["terminal::SendText", "\u001b\r"],
+    },
+  },
+  {
+    "context": "GitDiff > Editor",
+    "unbind": {
+      "m": "vim::PushMark",
+    },
+  },
+  {
+    "context": "GitDiff > Editor",
+    "bindings": {
+      "ctrl-alt-shift-1": "git::ToggleStaged",
+      "ctrl-alt-shift-2": "editor::ToggleFold",
+      "m": ["workspace::SendKeystrokes", "ctrl-alt-shift-1 ctrl-alt-shift-2"],
     },
   },
   {
@@ -149,6 +171,10 @@
       "cmd-alt-r": [
         "task::Spawn",
         { "task_name": "Flow: reveal source", "reevaluate_context": true },
+      ],
+      "cmd-alt-h": [
+        "task::Spawn",
+        { "task_name": "git: line history", "reevaluate_context": true },
       ],
     },
   },

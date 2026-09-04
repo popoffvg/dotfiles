@@ -1,12 +1,11 @@
 # code — todo (TODO bodies)
 
 Authors the `todos/TODO-N.md` + `todos/TODO-N.agent.md` **pair** from a reviewed `spec.md` +
-`thoughts/`, and appends the settled decisions it finds to `<notes-dir>/CONSTRAINTS.md`. Owns the
-TODO element list, the **verification chain**, and the **outcome** rules.
+`thoughts/`. Owns the TODO element list, the **verification chain**, and the **outcome** rules.
 
 **Open the filled examples first** — [`examples/todo.md`](../examples/todo.md) (human half) and
-[`examples/todo-agent.md`](../examples/todo-agent.md) (agent half), plus the corpus file they point
-at, [`examples/constraints.md`](../examples/constraints.md). They are the artifact you are
+[`examples/todo-agent.md`](../examples/todo-agent.md) (agent half), plus the rule set that bounds
+them, [`examples/constraints.md`](../examples/constraints.md). They are the artifact you are
 producing; this page is the rules that govern it, and `references/ref-todo-sections.md` is what
 goes inside each heading. Reading the shape before the rules is how you tell which rule is
 load-bearing.
@@ -17,8 +16,8 @@ Spec contract + the gate: `ref-write.md`. Vocabulary: `wm:GLOSSARY.md`.
 
 | File | Read by | Holds | Length |
 |------|---------|-------------|--------|
-| `TODO-N.md` | the human, repo closed | frontmatter, Outcome, New terms, Components, **Surface (the diff)**, Autotest, Commit | ≤ 550 lines |
-| `TODO-N.agent.md` | the implementer | Constraints (the pointer), Changes (the increments, **described — no diff**), Files, Pre-reads, Manual test, Definition of done | **unlimited** |
+| `TODO-N.md` | the human, repo closed | frontmatter, Outcome, New terms, Components, **Surface (the diff)**, Autotest, Commit | ≤ 550 lines, New terms + Components uncounted |
+| `TODO-N.agent.md` | the implementer | Constraints (the generator command), Changes (the increments, **described — no diff**), Files, Pre-reads, Manual test, Definition of done | **unlimited** |
 
 The split is by audience, not by size. `TODO-N.md` is the design a human approves — what the system
 will be able to do, which symbols move, **what those symbols become**, what proves it, and what the
@@ -31,11 +30,18 @@ the thing a reviewer approves before code exists. The agent half never carries a
 says *what to do*, and the shape it produces is already written once in § Surface. A diff in both
 halves is one fact in two files, and the two disagree the moment either is edited.
 
-**No TODO carries a constraint, and none carries an origin.** The settled decisions live once, in
-`<notes-dir>/CONSTRAINTS.md` (§ Constraints), and the agent half points at that file. The *why*
-behind any of them is not stored in `todos/` at all: it lives in `thoughts/`, and the `trace` skill
-walks to it on demand. A copy of a rule in twenty TODOs is twenty rules to change when the decision
-changes; a stored origin link is a link that rots the moment a note is superseded.
+**No TODO carries a constraint, and none carries an origin.** A settled decision lives once, as its
+`thoughts/` note, and the rule set is generated from those notes on demand —
+`~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` (`ref-todo-sections.md` § Constraints).
+The agent half carries the command and never a rule. The *why* behind a rule is not stored in
+`todos/` either: the `trace` skill walks to it on demand. A copy of a rule in twenty TODOs is twenty
+rules to change when the decision changes; a stored origin link is a link that rots the moment a
+note is superseded.
+
+**The human half is written for an ADHD reader.** Every prose line of `TODO-N.md` obeys the
+`i-have-adhd` skill — load it before writing the half, not after. The person approving a TODO reads it
+once, and a sentence that needs a second pass costs them the decision. The agent half is read by an
+implementer and is not bound by it.
 
 **No file restates another.** The title, the `status`, the Outcome, and the diff live in `TODO-N.md`
 alone; the paths, the increments, and the pre-reads in `TODO-N.agent.md` alone. Each half carries
@@ -62,8 +68,8 @@ per wave instead of one per TODO.
 **Why a fork and not a fresh agent.** A fork starts from this conversation, so the corpus is read
 once by the caller and inherited by every row: `spec.md`, the `thoughts/` graph, `GLOSSARY.md`, and
 the grill that settled them. A `general-purpose` agent would re-read the corpus once per row and
-still arrive without the grill — and the grill is where the decisions that become `CONSTRAINTS.md`
-rows were made. A fork also inherits the caller's model (`model:` is ignored on a fork),
+still arrive without the grill — and the grill is where the decisions that become the rules were
+made. A fork also inherits the caller's model (`model:` is ignored on a fork),
 which is the right one here: writing `## Changes` is design, not extraction.
 
 **The unit is the row, never one file of it.** One fork writes `TODO-N.md` **and**
@@ -95,11 +101,9 @@ Agent(subagent_type="fork", prompt=
    at (references/ref-todo-sections.md) in full — you are past the gate.
    Write exactly two files: <notes-dir>/todos/TODO-N.md and <notes-dir>/todos/TODO-N.agent.md.
    Impl-decision notes: take thoughts/ numbers <lo>-<hi>, no others.
-   Write nothing else — not spec.md, not GLOSSARY.md, not CONSTRAINTS.md, not another row's files.
+   Write nothing else — not spec.md, not GLOSSARY.md, not another row's files.
    Return, and only this: your `## New terms` rows (or `none`), your `## Files` paths, the
-   impl-decision notes you wrote, every settled decision an increment of this row can violate that
-   CONSTRAINTS.md does not already carry — the rule and its origin — and any contradiction in the
-   row you could not resolve.
+   impl-decision notes you wrote, and any contradiction in the row you could not resolve.
    Do not summarize the files — the caller reads them.")
 ```
 
@@ -114,12 +118,11 @@ would otherwise write at once:
 | Shared artifact | Who writes | Why not the fork |
 |---|---|---|
 | `GLOSSARY.md` | caller, from the returned `## New terms` rows | Parallel writes to one table lose rows — and only the caller can see two forks minting two names for one concept. |
-| `CONSTRAINTS.md` | caller, from the returned rules | The same table-write collision, plus the reason the file exists: only the caller can see that two forks returned one rule twice, and appending it twice is the duplication the file removes. Assign `R<n>` in return order and never renumber. |
 | `spec.md` — ledger, wave table | caller only | A row a fork finds wrong is a spec problem, not a pair problem: the caller fixes the ledger row, or stops and runs `revise`. |
 | `thoughts/NNN-*.md` | the fork, inside its assigned block | The number is the collision: two forks both take the next free `NNN` and write the same file. The block is handed out in the prompt. |
 | the notes `jj commit` | caller, once per wave | `code:ref-subcommand-rules.md` § Log to notes-dir. |
 
-Then run the four checks that are cross-row by construction, and so belong to nobody inside a fork:
+Then run the three checks that are cross-row by construction, and so belong to nobody inside a fork:
 
 - **Two pairs in one wave share a `## Files` path** → the wave was wrong. Fix the wave table in
   `spec.md`, or merge the rows; shipping the overlap puts two implementers in one file.
@@ -127,10 +130,6 @@ Then run the four checks that are cross-row by construction, and so belong to no
   wave and re-check the one it left.
 - **Two rows named one concept differently** → one term wins in `GLOSSARY.md`, and the pair that
   loses is edited to match before the next wave reads it.
-- **A fork returns a rule it could not source** → the decision was made and never recorded. The
-  caller writes the missing note at a number outside every handed-out block, or stops and runs
-  `/code new` when the decision is the human's to make; then the `CONSTRAINTS.md` row cites it.
-  Appending a rule with no origin is how a corpus becomes unarguable.
 
 ### Step 4 — the next wave
 
@@ -150,13 +149,14 @@ one row, is written inline. The fork is for a wave.
 No project context, no judgment, no permission to improvise. If the implementer must *infer*
 anything — a path, a name, a test command, a decision — the TODO is broken. Rewrite it.
 
-**Self-contained means: the pair plus `CONSTRAINTS.md` is enough.** The implementer reads
-`TODO-N.md`, `TODO-N.agent.md`, and the one file the agent half points at, and never opens `spec.md`
-or a thought note to know *what* to build. Test the draft by asking: with `spec.md` and `thoughts/`
-deleted, could an implementer still write the code and both tests? If not, the TODO is not finished.
+**Self-contained means: the pair plus the generated rule set is enough.** The implementer reads
+`TODO-N.md`, `TODO-N.agent.md`, and the rules the agent half's command prints, and never opens
+`spec.md` or a thought note to know *what* to build. Test the draft by asking: with `spec.md` deleted and no
+thought note opened, could an implementer still write the code and both tests? If not, the TODO is
+not finished.
 
-**The rules are read, not restated.** `CONSTRAINTS.md` is short — one line per settled decision — so
-the implementer reads all of it and obeys the rows that bite. A rule copied into the agent half is
+**The rules are read, not restated.** The generated table is short — one line per settled decision —
+so the implementer reads all of it and obeys the rows that bite. A rule copied into the agent half is
 the second copy that drifts, and choosing *which* rows to copy is a judgment the pair's author makes
 once and every later reader inherits blind.
 
@@ -167,13 +167,21 @@ wants to argue with the rule rather than obey it.
 
 ## Budget
 
-The human half is ≤ 550 lines; the agent half has no line budget.
+The human half is ≤ 550 lines, not counting `## New terms` and `## Components`; the agent half has no line budget.
 
-`TODO-N.md` at 550 lines is a ceiling, not a nudge. The prose sections — Outcome, New terms,
-Components, Autotest, Commit — run to well under a hundred lines on a real row; the rest of the room
-is for `## Surface`, which is why the number is this large. Hitting the ceiling therefore means the
-contract change itself is too big for one row: split the ledger row. The budget is not the tool for
-tightening a wordy Outcome; § Not over-stated in the pre-save checklist is.
+`TODO-N.md` at 550 lines is a ceiling, not a nudge. The prose sections — Outcome, Autotest, Commit —
+run to well under a hundred lines on a real row; the rest of the room is for `## Surface`, which is
+why the number is this large. Hitting the ceiling therefore means the contract change itself is too
+big for one row: split the ledger row. The budget is not the tool for tightening a wordy Outcome;
+§ Not over-stated in the pre-save checklist is.
+
+**`## New terms` and `## Components` are unlimited, and `budget-check.py` counts neither.** Both are
+rosters, not prose: one row per term the TODO adds, one row per symbol it creates, modifies, or
+deletes. A row is a fact about the change, so cutting rows to fit a budget hides part of the change
+from the human approving it — and a TODO that legitimately touches thirty symbols is one deliverable,
+not two. The `## Components` rules that do bind are elsewhere: exactly one `main` row, every row a
+`package.Class` symbol, and every row's symbol present in `## Surface`. `## Surface` is where a wide
+row hits a ceiling, and that ceiling is per file.
 
 `TODO-N.agent.md` is as long as the increments need. Ten increments at their compile floor is a long
 file, and a long agent half is not a signal of anything — the size that matters there is the
@@ -204,10 +212,10 @@ rather than a row of its own — is `ref-write.md` § Merges that fall out of th
 
 > **The budget is counted, not trusted.** The `budget-check` PostToolUse hook (`wm:bin/budget-check.sh`)
 > counts every budget on this page — the human half's lines, the agent half's
-> increments and diff lines, `CONSTRAINTS.md`'s unresolvable origins, and `spec.md`'s lines — each
-> time one of a row's two files, `CONSTRAINTS.md`, or `spec.md` is written, and **warns** with the
-> count and the split to make. It also names a section written into the wrong file, and a `[[note]]`
-> origin that resolves to no live note. It runs after the write, because an `Edit` call cannot show the resulting file. A
+> increments and diff lines, and `spec.md`'s lines — each
+> time one of a row's two files or `spec.md` is written, and **warns** with the
+> count and the split to make. It also names a section written into the wrong file. It runs after the
+> write, because an `Edit` call cannot show the resulting file. A
 > ticked checklist row is the author grading their own file; this is the same rule counted. Raising a
 > budget is never the fix: the number is the size at which the second deliverable becomes visible.
 >
@@ -233,8 +241,8 @@ rather than a row of its own — is `ref-write.md` § Merges that fall out of th
 ## File location
 
 `<notes-dir>/todos/TODO-N.md` and `<notes-dir>/todos/TODO-N.agent.md`, `N` 1-indexed and contiguous,
-one pair per ledger entry. The rules both halves obey sit outside `todos/`, in
-`<notes-dir>/CONSTRAINTS.md`, one file for the whole corpus.
+one pair per ledger entry. The rules both halves obey are stored in no file: they are generated from
+`<notes-dir>/thoughts/`.
 `TODO-N.md` restates that entry's outcome verbatim at the top. Resolve `<notes-dir>` from the active
 phase — never hardcode `.notes/`.
 
@@ -274,7 +282,7 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 |---|---------|-------|----------|
 | 1 | `TODO-N — increments` | H1 | always — no title, no frontmatter |
 | 2 | `**Design:** [TODO-N.md](TODO-N.md)` | line | always — the first line, the one link back |
-| 3 | `Constraints` | H2 | always — first, because it bounds everything below. One line: the pointer at `CONSTRAINTS.md`, never a table (§ Constraints) |
+| 3 | `Constraints` | H2 | always — first, because it bounds everything below. One fixed line: the command that prints the rules, never a table (`ref-todo-sections.md` § Constraints) |
 | 4 | `Changes` | H2 | always — an ordered increment sequence, one H3 per increment, **no ```diff anywhere in it** |
 | 5 | `Files` | H2 | always |
 | 6 | `Pre-reads (MUST read before editing)` | H2 | always |
@@ -315,7 +323,7 @@ read, and these two are answerable only against code:
 
 - **`## Constraints`** — do the settled decisions actually bound this slice? The human *made* those
   decisions during the grill, so re-reading them here checks nothing; what matters is whether an
-  increment violates one, which `verify` audits against `CONSTRAINTS.md` and the `reviewer` gate
+  increment violates one, which `verify` audits against the generated rules and the `reviewer` gate
   re-derives from the diff.
 - **`## Changes`** — do the increments deliver the Outcome, in an order that builds? The human walks
   it while it is applied, at the grain the `approve` key sets (`impl:sub-impl.md` step 5 and
@@ -378,7 +386,7 @@ own file against a rule already counted.
 
 - [ ] Both files exist for this `N`, written in the same pass, `TODO-N.md` ending with its
       `**Increments:**` link and `TODO-N.agent.md` opening with its `**Design:**` link
-- [ ] **No rule text and no origin link in either half** — both live in `CONSTRAINTS.md`
+- [ ] **No rule text and no origin link in either half** — a rule lives in its `thoughts/` note and reaches the implementer through the generator
 
 ### `TODO-N.md` — the human half
 
@@ -386,6 +394,7 @@ own file against a rule already counted.
 - [ ] **`approve` is `inherit`** unless this TODO needs a depth of its own — and any other value carries, as a trailing comment, the reason it overrides the spec
 - [ ] **Not over-stated**: no spec Description/Goal/target-picture prose was copied in, and the Outcome is this TODO's slice rather than the spec Goal
 - [ ] **Outcome** is a capability in GLOSSARY.md terms — no paths, types, routes, libraries
+- [ ] **Every prose line passes `i-have-adhd`** — Outcome, `Meaning`, `Role`, Autotest cases, `Commit.Body`: one idea per sentence, short sentences, literal words, no restatement, and each section decided by its first sentence alone
 - [ ] `## Components` has exactly one `main` row, each a `package.Class` symbol with a `create | modify | delete` **Touch** and a one-sentence **Role**
 - [ ] `## Surface` carries one ```diff per file, deepest-first — or a plain contract block for a file that is all body
 - [ ] **No body in `## Surface`** — no function body, loop, branch chain, shell script, query, regex, fixture, or literal expected-value table; no comments and no `AGENT:` markers. The sole exception is a body the human asked for directly, carrying a `**Body requested:**` bullet that names the symbol
@@ -399,10 +408,11 @@ own file against a rule already counted.
 
 ### `TODO-N.agent.md` — the agent half
 
-- [ ] **Self-contained**: with `spec.md` and `thoughts/` deleted, the pair plus `CONSTRAINTS.md` still says what to build and what to assert
-- [ ] Every rule this TODO's increments can violate is a row in `CONSTRAINTS.md` with an origin, and every such row a test can check has a matching case in the human half's `## Autotest`
+- [ ] **Self-contained**: with `spec.md` deleted and no thought note opened, the pair plus the generated rules still says what to build and what to assert
+- [ ] Every settled decision this TODO's increments can violate is an approved `decision` or `impl-decision` note whose `description` states the rule, and every such rule a test can check has a matching case in the human half's `## Autotest`
 - [ ] Each increment names one `TODO-N.md` **Components** row, ordered deepest-first so the repo builds after each (or marked `builds: only with increment <n>`)
-- [ ] Every increment carries **Files** (a subset of `## Files`), a **Surface** bullet naming the symbols it lands (or `none`), a **Do** of one to four imperative sentences, and a **Blast radius** that names the real symbols/callers to retest
+- [ ] Every increment carries a **Change** (one of the nine kinds in `impl:ref-change-types.md`), **Files** (a subset of `## Files`), a **Surface** bullet naming the symbols it lands (or `none`), a **Do** of one to four imperative sentences, and a **Blast radius** that names the real symbols/callers to retest
+- [ ] The frontmatter `type:` is the kind of the TODO's **main** work, and the increment **Change** spread agrees with it — every increment `wiring` under a `type: new behavior` TODO means one of the two is wrong
 - [ ] **No code in any Do** — no fenced block, no pasted signature. The signature is in `## Surface`; **Do** is the instruction, and "implement the handler" is not one
 - [ ] Every symbol whose signature changes in `## Surface` has its call sites named in some increment's **Do** — a widened signature with no migration instruction is a caller left broken
 - [ ] Every increment's **Surface** bullet names symbols that actually appear in `TODO-N.md` `## Surface`, and every symbol there is landed by some increment

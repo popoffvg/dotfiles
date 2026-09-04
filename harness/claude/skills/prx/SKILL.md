@@ -87,6 +87,9 @@ prx does not post. On `/prx post`:
 - `prx` (shell function, `zsh/dot-zshrc_aliases`) — builds the worktree and opens
   the session this skill writes into. It fetches the PR over an authenticated
   HTTPS URL because SSH auths as the personal account, which cannot read org repos.
+  It also marks every file with an existing review comment via the `review-focus`
+  extension (`hunk focus add`), so hunk's "Start here" pane and file order lead
+  with what earlier reviewers already flagged.
 - `/pr-review` — the older path to the same session; it needs `origin` to be
   readable and the `hunk-gh-review` extension, neither of which holds here.
 - `hunk-review` skill — the same `comment apply` batch for findings a review gate
