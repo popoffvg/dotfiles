@@ -64,7 +64,7 @@ Only after emergence (step 6), never before. The transition is legitimate becaus
 
 ## Every move is a thought
 
-A thought is the atom of reasoning ([[thought]]); here a numbered line on the board. Log each move — framing, each probe and its engine, sensing, amplify/dampen, the constraint named, the commit — one line, move + why. In the divergent phase a **dampen needs no kill-reason** (options are kept); every *amplify* records the signal that justified it; in the convergent phase every *kill* names the cell that sank it.
+A thought is the atom of reasoning ([thought](../thought/SKILL.md)); here a numbered line on the board. Log each move — framing, each probe and its engine, sensing, amplify/dampen, the constraint named, the commit — one line, move + why. In the divergent phase a **dampen needs no kill-reason** (options are kept); every *amplify* records the signal that justified it; in the convergent phase every *kill* names the cell that sank it.
 
 ## Fog is welcome (in divergence)
 

@@ -24,8 +24,11 @@ What the page owes its reader:
 
 - **Drag a box, pan the canvas, zoom to the cursor.** Plus a fit-to-view control, because a real
   dataflow is wider than a screen.
-- **Colour marks the service, shape marks the kind.** Two axes, two channels — colour alone can
-  only carry one, and the five kinds are the half a reader keeps asking about.
+- **Every box is a rectangle. Colour marks the component type**, not the service — one colour
+  per kind (repository, in-memory store, file, api call, entry point), so a reader spots the
+  kind at a glance without decoding a shape.
+- **A legend outside the drawing area maps colour to type**, on every diagram — never inferred,
+  never omitted.
 - **Selecting a box colours what arrives at it differently from what leaves it**, and dims the
   rest. Direction is the question a reader brings to a hub, and one accent for both answers it
   half. Semantic direction colours are their own pair, never the page accent.

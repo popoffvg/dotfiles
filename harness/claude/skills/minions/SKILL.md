@@ -30,7 +30,7 @@ Done when every unit has all three.
 | The unit… | Shape | Model |
 |---|---|---|
 | is one tool call or one short edit | inline | current |
-| reads a lot and reports a little — audit, summarize, triage, locate | one subagent ([cheap-subagent-for-bounded-analysis](../cheap-subagent-for-bounded-analysis/SKILL.md)) | `haiku` |
+| reads a lot and reports a little — audit, summarize, triage, locate | one subagent | `haiku` |
 | needs this conversation but its work would flood it | `subagent_type: "fork"` | inherited |
 | has siblings with nothing between them | one subagent each, all in one message | `haiku` |
 | writes source, judges a design, or holds the whole task | inline, or one subagent when the reading is heavy | `sonnet`; `opus` only after a cheaper run failed |
@@ -49,9 +49,11 @@ A minion sees only what you type. In this order:
 
 Then cut every line that does not reach the deliverable — a long prompt costs on each parallel copy. Done when the prompt would still work pasted into an empty session.
 
+**Do the deterministic extraction yourself; hand the minion a finished file.** A cheap agent asked to both build a corpus and analyze it spends its run on the filter and returns nothing — a haiku run asked to do both produced 42,140 unfiltered lines and no report. Filter, grep, or script the corpus down first, then give the minion the finished file and its record count.
+
 ## 4. Report
 
-Give the operator the verdicts, one line per unit, plus one line naming which model ran what. A `haiku` result that misses a field of the shape you asked for, or that a spot-check contradicts, re-runs on `sonnet` as a single unit — never as the whole fan-out. Re-check any count a minion reports before relaying it.
+Give the operator the verdicts, one line per unit, plus one line naming which model ran what. A `haiku` result that misses a field of the shape you asked for, or that a spot-check contradicts, re-runs on `sonnet` as a single unit — never as the whole fan-out. Re-check any count a minion reports before relaying it — a claim that does not survive the re-check is dropped, not softened.
 
 **Read the model back before you report it.** What you passed is not proof of what ran. Each minion's own transcript records it, one file per agent:
 

@@ -1,9 +1,13 @@
 ---
 name: tldraw-live-diagram
-description: Draw a component or dataflow diagram the human can then edit by hand, using the tldraw-live scripts. Use when asked to draw, diagram, or sketch an architecture, a component map, or a dataflow, when the user wants to move the boxes themselves, or when a saved tldraw document must be read back or reseeded. Also covers box spacing. Do not use the tldraw MCP tools — they never execute in Claude Code.
+description: Use the tldraw-live scripts only when the human must hand-place the boxes of a component or dataflow diagram and keep those positions across sessions — a saved tldraw document read back or reseeded, or box spacing in one. For any other movable component or dataflow diagram, the answer is an interactive Artifact — see the `dataflow` skill. Do not use the tldraw MCP tools — they never execute in Claude Code.
 ---
 
 # tldraw live diagram
+
+For a movable diagram that does not need hand-placed, position-persistent boxes, use the
+interactive Artifact owned by `dataflow` (its "Draw it as an Artifact" section) instead of this
+skill.
 
 Two scripts under `~/.claude/scripts/tldraw-live/` own the whole flow. Never write a tldraw
 snapshot by hand: it is tens of kilobytes for a dozen boxes.

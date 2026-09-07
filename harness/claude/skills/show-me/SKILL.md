@@ -25,7 +25,8 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 | numbers, series, distributions | a chart → `dataviz` | — |
 | data at rest and payloads in flight | an interactive diagram → `dataflow` | — |
 | layout, spacing, a colour or state comparison | a rendered SVG → `svg-diagram` | — |
-| boxes the human wants to move | a live board → `tldraw-live-diagram` | — |
+| boxes the human wants to move | an interactive Artifact → `dataflow` | — |
+| boxes the human must hand-place and keep positioned across sessions | a live board → `tldraw-live-diagram` | — |
 | a design the human must mark up | a board plus rounds → `discussion-scheme` | — |
 | a batch of choices the human must answer | an editable file → `to-user` | — |
 | a corpus someone must learn | lessons or a deck → `lessons`, `deck-as-code` | — |

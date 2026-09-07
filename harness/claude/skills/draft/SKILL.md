@@ -10,7 +10,7 @@ user-invocation: true
 
 Given a prompt, produce the agent's understanding of it. **Do not execute the task.** No edits, no tool runs beyond read-only lookups needed to ground the interpretation. Output is a mirror the operator corrects before real work starts.
 
-The prompt is a sample, not a spec. Operators give one or two thin examples and expect the whole class handled ([[one-shot]] is the opposite: act when context is complete; here context is deliberately thin). Widen past the literal words: name the general task the examples stand for, the cases they imply but omit, the scope edge they gesture at.
+The prompt is a sample, not a spec. Operators give one or two thin examples and expect the whole class handled ([one-shot](../one-shot/SKILL.md) is the opposite: act when context is complete; here context is deliberately thin). Widen past the literal words: name the general task the examples stand for, the cases they imply but omit, the scope edge they gesture at.
 
 ## Output — three blocks, in order
 
