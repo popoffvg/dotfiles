@@ -1,0 +1,12 @@
+# Cases
+
+## 2026-08-04 — Tiered a settings panel by "importance" instead of by whether the field has a default
+
+- **Repo:** `~/git/mil/tasks/MILAB-6679-developability-designer` (spec for a new Platforma block; the settings panel of its UI)
+- **Task:** The user asked me to add an "advanced settings or note" column to the spec's settings table, which listed ten fields (a dataset selector plus nine thresholds and weights).
+- **What I did:** Invented my own tiering criterion — "the split is by **whose question it answers**: basic rows answer *what should the block fix, and how much do I trust it*; advanced rows answer *how hard should it search*" — and marked seven fields basic, three advanced. Every one of the seven had a documented default, so none of them was needed to run the block. The criterion was a judgment nobody could check, and it kept almost everything on the first screen.
+- **Correction:** > all settings that have default should be moved to the advanced settings
+- **Evidence:** Applying the user's criterion to the same table left exactly one basic field — the `PlDatasetSelector`, the only one with no default and the only one gating the Run button. The other nine all carried defaults inherited from the project spec's "Defaults and Conventions" section (`rSASA 0.075`, framework `4.0 Å`, CDR `6.0 Å`, max edits `5`, re-score top-k `20`, and so on), which is itself the proof that the block runs without the user touching them.
+- **Ambiguous?** No — one right answer for this decision. A default is a claim that the field needs no input, so the field cannot also be on the path to the action. The *values* of the defaults remain a real judgment call, and so does where to surface a non-default run; the tiering criterion does not.
+- **Scope chosen:** global — row 1 of the Step 1 table. Teachable in one line, and it recurs on every settings panel, options form, wizard, and flag-help layout. The wider half — prefer a schema-readable property over an invented judgment when tiering any list — generalizes past UI entirely.
+- **Rule written:** verdict — new skill `defaulted-fields-are-advanced`: a field with a default is advanced, only required fields are primary; prefer an objective per-item property over an importance ranking when tiering any list; and state the two costs of collapsing (what shaped the output stops being glanceable; the collapsed field that answers "why did it skip my thing").
