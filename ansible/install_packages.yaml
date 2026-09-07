@@ -179,14 +179,18 @@
       args:
         creates: "{{ ansible_env.HOME }}/.config/hunk/extensions/installed/hunk-gh-review"
 
-    # Local memory server for coding agents. Listens on 3111 (REST), 3112
-    # (streams), 3113 (viewer); pulls its own pinned iii-engine binary into
-    # ~/.agentmemory/bin on first run. Stays zero-LLM unless an LLM provider
-    # key is present in the environment or ~/.agentmemory/.env.
-    - name: Install agentmemory globally via npm
+    # Records every agent shell command into atuin. The PostToolUse:Bash hook in
+    # harness/claude/settings.json calls the installed binary, NOT `bunx`:
+    # bunx re-resolves the GitHub package per invocation, and on a hook that
+    # fires on every Bash call that raced into "Failed to link <pkg>: EEXIST"
+    # and "could not determine executable to run for package" — 40+ crashes
+    # observed. The same package still backs the bash-history MCP server, where
+    # bunx is harmless because it resolves once per session.
+    - name: Install bash-history-mcp globally via bun
       ansible.builtin.shell:
-        cmd: npm install -g @agentmemory/agentmemory
-      changed_when: false
+        cmd: bun install -g github:nitsanavni/bash-history-mcp
+      args:
+        creates: "{{ ansible_env.HOME }}/.bun/bin/bash-history-mcp"
 
     - name: Install television
       ansible.builtin.shell:

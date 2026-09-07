@@ -127,7 +127,7 @@
       "/tmp"
     ]
   },
-  "model": "opus[1m]",
+  "model": "claude-fable-5[1m]",
   "skillOverrides": {
     "act-local-github-actions-testing": "off",
     "ast-grep": "off",
@@ -177,7 +177,7 @@
           },
           {
             "type": "command",
-            "command": "bunx github:nitsanavni/bash-history-mcp hook"
+            "command": "$HOME/.bun/bin/bash-history-mcp hook"
           }
         ]
       },
@@ -302,7 +302,6 @@
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
-    "agentmemory@agentmemory": true,
     "ast-grep@ast-grep-marketplace": false,
     "claude-md-management@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": false,
@@ -314,7 +313,6 @@
     "plugin-dev@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": false,
     "typescript-lsp@claude-plugins-official": false,
-    "understand-anything@understand-anything": true,
     "wm@local-plugins": true,
     "worktrunk@worktrunk": true,
     "frontend-design@claude-plugins-official": false,
@@ -328,12 +326,6 @@
     "line-comment@local-plugins": true
   },
   "extraKnownMarketplaces": {
-    "agentmemory": {
-      "source": {
-        "source": "github",
-        "repo": "rohitg00/agentmemory"
-      }
-    },
     "ast-grep-marketplace": {
       "source": {
         "source": "github",
@@ -366,22 +358,10 @@
         "repo": "backnotprop/plannotator"
       }
     },
-    "ponytail": {
-      "source": {
-        "source": "github",
-        "repo": "DietrichGebert/ponytail"
-      }
-    },
     "trace-marketplace": {
       "source": {
         "source": "directory",
         "path": "$HOME/.claude/plugins/trace-marketplace"
-      }
-    },
-    "understand-anything": {
-      "source": {
-        "source": "github",
-        "repo": "Egonex-AI/Understand-Anything"
       }
     },
     "worktrunk": {
