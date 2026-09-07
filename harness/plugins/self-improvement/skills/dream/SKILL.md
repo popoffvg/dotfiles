@@ -30,6 +30,14 @@ The background scan ([[capture-lesson]] `references/score.md`, driven by the Ses
 
 Then continue to the consolidation flow, which now also sees whatever skills this step just wrote or extended.
 
+# Step 0.5 — Read the health rollup
+
+Regenerate `~/.claude/self-improvement/health/rollup.json` (`${CLAUDE_PLUGIN_ROOT}/scripts/health-rollup.py --days 90`) — per-skill usage and failure counts extracted from every transcript before Claude Code's 30-day cleanup deletes it. Seed the consolidation with three of its fields:
+
+- **`bucket: DEAD`** — installed and enabled, zero invocations in the window → prune candidates, ranked by `tokens` (always-resident listing cost). Events reach back only to when collection started, so a DEAD verdict younger than the window is weak — say so in the suggestion.
+- **`bucket: BROKEN`** and the `ghost_skills` rows marked `BROKEN` — a name that still errors → rename or re-point suggestions: something refers to a skill that moved. Rows marked `PROJECT_SCOPED` are a repo's own skill reached from another repo, and `DISABLED` is `skillOverrides` doing its job; neither is a defect and neither is prunable.
+- **`interrupt_follow` / `ask_follow`** high relative to `uses` — the skill fires but fights the user. Open the transcript before suggesting anything: a skill whose job *is* interviewing scores here by working, so the count only says which transcript to read.
+
 # Flow
 
 1. **Gather.** Collect every rule across scopes, at two granularities:

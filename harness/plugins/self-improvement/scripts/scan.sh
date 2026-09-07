@@ -109,5 +109,10 @@ if [ "$suggest_budget" -gt 0 ]; then
     | sort -t"$(printf '\t')" -k2,2nr)
 fi
 
+# Health pass: mechanical extraction, no model calls, own lock and watermark.
+# Runs last so a killed scan has already advanced every scoring watermark, and
+# its failure never blocks scoring.
+"$scripts_dir/health-collect.py" 2>/dev/null || log "scan: health-collect failed"
+
 pending=$(awk -F'\t' '$1 == "score"' "$plan" | wc -l | tr -d ' ')
 log "scan: scored=$scored quiet=$quiet reaped=$reaped suggested=$suggested pending=$((pending - examined))"

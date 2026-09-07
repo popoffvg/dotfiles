@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.vitalii.harness-health</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>-c</string>
+		<string>~/git/dotfiles/harness/plugins/self-improvement/scripts/health-collect.py &amp;&amp; ~/git/dotfiles/harness/plugins/self-improvement/scripts/health-rollup.py</string>
+	</array>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Hour</key>
+		<integer>12</integer>
+		<key>Minute</key>
+		<integer>30</integer>
+	</dict>
+	<key>StandardErrorPath</key>
+	<string>/tmp/harness-health.launchd.log</string>
+	<key>StandardOutPath</key>
+	<string>/tmp/harness-health.launchd.log</string>
+</dict>
+</plist>
