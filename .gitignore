@@ -82,3 +82,4 @@ __pycache__/
 # Rust build output — Cargo.lock stays tracked so the server builds reproducibly
 harness/apps/line-comment/target/
 .tmp/
+.config/herdr/sessions/
