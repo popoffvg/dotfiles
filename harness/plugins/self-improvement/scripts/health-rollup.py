@@ -12,6 +12,11 @@ Per-skill buckets:
   NEW         unused but younger than --min-age; no trigger has had time to
               fire, so its zero is absence of evidence, not evidence of death
   DEAD        installed and enabled, zero invocations inside the window
+  UNTRIGGERED the human invokes it by name, the model never picks it up on its
+              own. Not a prune candidate — a description that fails to match
+              the situations the skill is wanted in. Skills that declare
+              themselves human-only (disable-model-invocation,
+              model-invocable: false) are exempt: for a router that is correct
   BROKEN      errored under a name it still answers to: the error is inside the
               window AND postdates the file's mtime. An error older than the
               SKILL.md that fixed it is history, not a defect
@@ -121,6 +126,10 @@ def read_frontmatter(skill_md):
     name = skill_md.parent.name
     origin = ""
     chars = 0
+    # Who is allowed to invoke this skill. A router declares itself human-only
+    # and a worker model-only, so "the model never fired it" is only a finding
+    # for a skill the model was allowed to fire.
+    human_only = model_only = False
     lines = skill_md.read_text(errors="replace").splitlines()
     if lines and FRONT_RE.match(lines[0]):
         in_meta = False
@@ -128,14 +137,19 @@ def read_frontmatter(skill_md):
             if FRONT_RE.match(line):
                 break
             chars += len(line)
+            flat = line.strip().replace(" ", "")
             if line.startswith("name:"):
                 name = line.split(":", 1)[1].strip()
+            if flat in ("disable-model-invocation:true", "model-invocable:false"):
+                human_only = True
+            if flat == "user-invocable:false":
+                model_only = True
             if line.strip().startswith("origin:"):
                 in_meta = True
                 origin = line.split(":", 1)[1].strip()
             elif in_meta and not line.startswith(" "):
                 in_meta = False
-    return name, origin, max(chars // 4, 10)
+    return name, origin, max(chars // 4, 10), human_only, model_only
 
 
 def inventory():
@@ -143,12 +157,13 @@ def inventory():
     for root in skill_roots():
         plugin = root.parts[-3] if "cache" in root.parts else ""
         for md in sorted(root.glob("*/SKILL.md")):
-            name, origin, tokens = read_frontmatter(md)
+            name, origin, tokens, human_only, model_only = read_frontmatter(md)
             qualified = f"{plugin}:{name}" if plugin and not name.startswith(f"{plugin}:") else name
             st = md.stat()
             skills[qualified] = {"name": qualified, "origin": origin, "tokens": tokens,
                                  "path": str(md), "mtime": st.st_mtime,
-                                 "born": getattr(st, "st_birthtime", st.st_mtime)}
+                                 "born": getattr(st, "st_birthtime", st.st_mtime),
+                                 "human_only": human_only, "model_only": model_only}
     return skills
 
 
@@ -176,7 +191,8 @@ def main():
     args = ap.parse_args()
     cutoff = time.time() - args.days * 86400
 
-    skills = defaultdict(lambda: {"uses": 0, "sessions": set(), "last": None,
+    skills = defaultdict(lambda: {"uses": 0, "by_model": 0, "by_human": 0,
+                                  "sessions": set(), "last": None, "last_model": None,
                                   "unknown": 0, "disabled": 0, "err_last": None,
                                   "loads_followed_by_ask": 0, "loads_followed_by_interrupt": 0})
     hooks = defaultdict(lambda: {"fires": 0, "nags": 0, "crashes": 0,
@@ -206,8 +222,16 @@ def main():
                 ts = ev.get("ts")
                 if ts and (s["last"] is None or ts > s["last"]):
                     s["last"] = ts
+                # A Skill tool call is the model choosing the skill off its
+                # description; a slash command is the human naming it. Only the
+                # first says the trigger works.
                 if kind == "skill_load":
+                    s["by_model"] += 1
+                    if ts and (s["last_model"] is None or ts > s["last_model"]):
+                        s["last_model"] = ts
                     last_load[session] = (name, line)
+                else:
+                    s["by_human"] += 1
             elif kind in ("skill_unknown", "skill_disabled"):
                 s = skills[norm(ev.get("name")) or "?"]
                 s["unknown" if kind == "skill_unknown" else "disabled"] += 1
@@ -249,7 +273,12 @@ def main():
         row = {"skill": qualified, "origin": meta["origin"], "tokens": meta["tokens"],
                "uses": uses,
                "sessions": len(seen["sessions"]) if seen else 0,
+               "by_model": seen["by_model"] if seen else 0,
+               "by_human": seen["by_human"] if seen else 0,
                "last_used": seen["last"] if seen else None,
+               "last_used_by_model": seen["last_model"] if seen else None,
+               "invocable": ("human-only" if meta["human_only"]
+                             else "model-only" if meta["model_only"] else "both"),
                "errors": (seen["unknown"] + seen["disabled"]) if seen else 0,
                "error_last": seen["err_last"] if seen else None,
                "ask_follow": seen["loads_followed_by_ask"] if seen else 0,
@@ -273,6 +302,13 @@ def main():
             row["bucket"] = "NEW"
         elif uses == 0:
             row["bucket"] = "DEAD"
+        elif (row["by_model"] == 0 and row["by_human"] > 0
+              and row["invocable"] == "both" and row["age_days"] >= args.min_age):
+            # The human reaches for it, the model never does. The skill earns
+            # its keep, so this is not a prune candidate — it is a description
+            # that does not match the situations the skill is wanted in, and
+            # the fix is rewriting the trigger.
+            row["bucket"] = "UNTRIGGERED"
         elif row["interrupt_follow"] / uses >= FOLLOW_RATE_FLAG:
             row["bucket"] = "MISLEADING"
         elif row["ask_follow"] / uses >= FOLLOW_RATE_FLAG:
@@ -298,7 +334,9 @@ def main():
     for n, s in sorted(skills.items()):
         if s["uses"] and n not in inv and n.split(":")[-1] not in bare_inv:
             rows.append({"skill": n, "origin": "", "tokens": 0, "uses": s["uses"],
+                         "by_model": s["by_model"], "by_human": s["by_human"],
                          "sessions": len(s["sessions"]), "last_used": s["last"],
+                         "last_used_by_model": s["last_model"], "invocable": "unknown",
                          "errors": s["unknown"] + s["disabled"],
                          "ask_follow": s["loads_followed_by_ask"],
                          "interrupt_follow": s["loads_followed_by_interrupt"],

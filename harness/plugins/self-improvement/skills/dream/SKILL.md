@@ -36,6 +36,7 @@ Regenerate `~/.claude/self-improvement/health/rollup.json` (`${CLAUDE_PLUGIN_ROO
 
 - **`bucket: DEAD`** — installed and enabled, zero invocations in the window → prune candidates, ranked by `tokens` (always-resident listing cost). Events reach back only to when collection started, so a DEAD verdict younger than the window is weak — say so in the suggestion.
 - **`bucket: BROKEN`** and the `ghost_skills` rows marked `BROKEN` — a name that still errors → rename or re-point suggestions: something refers to a skill that moved. Rows marked `PROJECT_SCOPED` are a repo's own skill reached from another repo, and `DISABLED` is `skillOverrides` doing its job; neither is a defect and neither is prunable.
+- **`bucket: UNTRIGGERED`** — `by_human` above zero while `by_model` stays zero: the human reaches for the skill by name and the model never picks it up. The rule is wanted, so this is never a prune. It is a `description` that fails to name the situations the skill is for, and the fix is rewriting that trigger against the sessions where the human had to ask. Skills declaring `disable-model-invocation` or `model-invocable: false` are exempt, being human-entry points by design.
 - **`interrupt_follow` / `ask_follow`** high relative to `uses` — the skill fires but fights the user. Open the transcript before suggesting anything: a skill whose job *is* interviewing scores here by working, so the count only says which transcript to read.
 
 # Flow
