@@ -72,6 +72,8 @@ Dispatch `prune-mapper` in mode `props`, one per file, all at once; it returns a
 | **Implied** | A surrounding step, the tool, or the file's own leading rule already forces it. |
 | **Cache** | The environment owns it — `package.json`, the config, `--help`, the directory layout. A doc restating a cheap lookup only goes stale. Cache the unwritten convention and the gotcha no config confesses, never the one-command lookup. |
 
+A SKILL.md hits Cache four ways: an enumeration of a companion script's output fields (self-describing JSON already teaches them), a "done when" line repeated per step, a format rule written as a procedure step (fold it into one closing output line), and a repo-specific lookup table (replace it with the principle it encodes, so the file survives repo changes instead of going stale). Keep only what running the tools cannot teach — the concept definitions the agent cannot derive, the trigger, and the invariants of the procedure.
+
 **The block test — delete the whole block; what breaks?** A block is a paragraph, a list, a table, or a section under one header. One surviving property is not enough to keep its wrapper, and a table nobody acts on or a list whose items all restate each other fails the same way one paragraph does. Answer with the reader's next action, not the block's topic:
 
 | Cut class | Signal |

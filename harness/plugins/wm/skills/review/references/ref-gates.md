@@ -125,6 +125,20 @@ the caller starts at its `[GATE] Result:` line.
 **These are notes-dir files, never source.** Writing them keeps the read-only rule this skill's
 `SKILL.md` states.
 
+## One toolchain run per round
+
+Build, lint, and Autotest each run **once per round**, before the gate wave — the caller runs them
+and writes the result to `<notes-dir>/review/<target>/toolchain.json` (command → exit code → output
+path). No gate re-runs a command the caller already ran; a gate that needs a verdict reads the
+artifact instead.
+
+| Gate | Toolchain |
+|---|---|
+| lint | runs the linter itself, over the changed files only; reads Autotest's outcome from `toolchain.json` — never runs Autotest |
+| test | the sole executor of build and the test suite |
+| standards (`reviewer`) | never executes; may **cite** `toolchain.json` for a finding that depends on whether the diff compiles |
+| test worth, name, comment | never executes, and gets no toolchain input at all — their questions do not depend on green or red |
+
 ## Every report names the rules that gate ran
 
 A report with an empty Failures section says one of two things — the diff is clean, or the gate

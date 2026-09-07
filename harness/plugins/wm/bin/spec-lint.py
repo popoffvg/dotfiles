@@ -60,7 +60,9 @@ LEVEL = re.compile(r"^\s*[-*]?\s*\*\*?(Unit|E2E)\*?\*?:?\s*(.*)$", re.IGNORECASE
 TABLE_ROW = re.compile(r"^\s*\|(.+)\|\s*$")
 TABLE_RULE = re.compile(r"^\s*\|[\s:|-]+\|?\s*$")
 TODO_REF = re.compile(r"\bTODO-(\d+)\b")
+PROGRESS = re.compile(r"^(\d+)\s*/\s*(\d+)$")
 CODE_CALL = re.compile(r"`[A-Za-z_][\w.]*\([^`]*\)`")
+LANDED = re.compile(r"^\s*[`*]*(yes|no)\b", re.IGNORECASE)
 
 
 def table_header(lines):
@@ -373,8 +375,10 @@ def check_human(n, path, lines, pairs, f, checks):
     for key in ("status", "type", "depends_on", "risk", "approve"):
         if key not in fm:
             f.fail(row, where, f"frontmatter key `{key}` missing", "required always")
-    if "risk" in fm and fm["risk"] not in {"1", "2", "3", "4", "5"}:
-        f.fail(row, where, f"risk `{fm['risk']}` is not 1-5", "score the reach")
+    if "risk" in fm:
+        score = fm["risk"].split("#")[0].strip()
+        if score not in {"1", "2", "3", "4", "5"}:
+            f.fail(row, where, f"risk `{score}` is not 1-5", "score the reach")
     if "approve" in fm:
         value = fm["approve"].split("—")[0].split("#")[0].strip()
         if value not in APPROVALS:
@@ -479,6 +483,59 @@ def check_human(n, path, lines, pairs, f, checks):
             f.fail(row, where, f"Autotest {key} left as TBD", "fill it")
 
 
+def increment_count(agent_lines):
+    return len([l for l in section(agent_lines, "Changes") if INCREMENT.match(l)])
+
+
+def landed_count(agent_lines):
+    """How many increments carry `**Landed:** yes` — the markers `<approved>` indexes."""
+    done = 0
+    for line in section(agent_lines, "Changes"):
+        m = BULLET_KEY.match(line)
+        if m and m.group(1).strip().lower().startswith("landed"):
+            if LANDED.match(m.group(2)) and m.group(2).strip(" `*").lower().startswith("yes"):
+                done += 1
+    return done
+
+
+def check_progress(n, human_path, human_lines, agent_lines, f, checks):
+    where = os.path.basename(human_path)
+    row = checks["B11"]
+    fm, _ = frontmatter(human_lines)
+    total = increment_count(agent_lines)
+
+    if "increment" not in fm:
+        f.fail(row, where, "frontmatter key `increment` missing",
+               f"`increment: 0/{total}` at authoring, then one step per approved increment")
+        return
+    value = fm["increment"].split("#")[0].strip()
+    m = PROGRESS.match(value)
+    if not m:
+        f.fail(row, where, f"increment `{value}` is not `<done>/<total>`", "count the approved increments")
+        return
+
+    done, claimed = int(m.group(1)), int(m.group(2))
+    if total and claimed != total:
+        f.fail(row, where, f"increment total {claimed} but the agent half has {total} increments",
+               "the pair drifted — renumber one side")
+    if done > claimed:
+        f.fail(row, where, f"increment {done}/{claimed} counts more done than there are", "")
+
+    marked = landed_count(agent_lines)
+    if total and marked != done:
+        f.fail(row, where,
+               f"increment says {done} approved, the agent half marks {marked} `**Landed:** yes`",
+               "impl writes both in the same step — one of them was missed")
+
+    status = fm.get("status", "").split("#")[0].strip()
+    if status == "todo" and done != 0:
+        f.fail(row, where, f"status todo with increment {done}/{claimed}",
+               "no increment is applied before impl starts")
+    if status in ("verify", "done") and done != claimed:
+        f.fail(row, where, f"status {status} with increment {done}/{claimed}",
+               "every increment is in the commit before the TODO leaves impl")
+
+
 def check_agent(n, path, lines, f, checks):
     where = os.path.basename(path)
 
@@ -532,9 +589,13 @@ def check_agent(n, path, lines, f, checks):
             m = BULLET_KEY.match(line)
             if m:
                 keys[m.group(1).strip().lower()] = m.group(2).strip()
-        for needed in ("change", "files", "surface", "do", "blast radius"):
+        for needed in ("landed", "change", "files", "surface", "do", "blast radius"):
             if not any(k.startswith(needed) for k in keys):
                 f.fail(row, f"{where} § increment {k}", f"no **{needed.title()}**", "required per increment")
+        landed = next((v for k, v in keys.items() if k.startswith("landed")), "")
+        if landed and not LANDED.match(landed):
+            f.fail(row, f"{where} § increment {k}", f"Landed `{landed}` is not yes or no",
+                   "`no` until the increment is in the commit, then `yes`")
         kind = next((v for k, v in keys.items() if k.startswith("change")), "").strip(" .`*").lower()
         if kind and kind not in TYPES:
             f.fail(row, f"{where} § increment {k}", f"Change `{kind}` outside {sorted(TYPES)}",
@@ -590,9 +651,10 @@ def run(notes, as_json=False, quiet=False):
         "E1": f.check("E1", "Autotest — Unit and E2E, command + cases or a real reason"),
         "B7": f.check("B7", "agent half sections — present, ordered, no frontmatter, link back"),
         "B8": f.check("B8", "Constraints is the generator pointer, never a rule table"),
-        "B9": f.check("B9", "increments — contiguous, ≤10, five keys each, valid Change, no diff, no signature in Do"),
+        "B9": f.check("B9", "increments — contiguous, ≤10, six keys each, valid Landed + Change, no diff, no signature in Do"),
         "B10": f.check("B10", "Files are concrete paths"),
         "E2": f.check("E2", "Manual test filled, or skipped with a concrete reason"),
+        "B11": f.check("B11", "increment progress — `<done>/<total>`, total matches the agent half, done matches the Landed markers and fits status"),
     }
     for n in sorted(pairs):
         human, agent = pairs[n].get("human"), pairs[n].get("agent")
@@ -602,6 +664,8 @@ def run(notes, as_json=False, quiet=False):
         if agent:
             lines = read(agent) or []
             check_agent(n, agent, lines, f, checks)
+        if human and agent:
+            check_progress(n, human, read(human) or [], read(agent) or [], f, checks)
 
     if as_json:
         print(json.dumps(f.checks, indent=2))

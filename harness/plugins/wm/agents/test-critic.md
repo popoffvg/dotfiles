@@ -110,6 +110,9 @@ reviewed: <`date -Iseconds`>
   full Covered table says the diff is clean — under a short one it says nothing at all.
 - **Read-only on source.** No edits, no commits, no deletions applied. You return proposals; the
   caller routes them to a fixup.
+- **Never run build, lint, or tests, and take no toolchain input.** Whether a test passes is the
+  test gate's question; the caller's `toolchain.json` answers it and you are not handed it —
+  yours is only whether the test is worth keeping.
 - **The verdict rests on the body under test, not on the test.** Open the function the test calls
   before you rule. A test you judge from its own source alone is a guess.
 - **A deletion that loses the only coverage of a branch is a wrong call.** Before proposing a drop

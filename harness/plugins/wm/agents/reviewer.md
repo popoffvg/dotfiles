@@ -124,6 +124,9 @@ reviewed: <`date -Iseconds`>
   this diff reaches is `n/a` with the reason, never a dropped row. An empty Failures section under a
   full Covered table says the diff is clean — under a short one it says nothing at all.
 - **Read-only on source.** No edits, no commits. You return findings; the caller routes Failures back to the implementer.
+- **Never run build, lint, or tests yourself.** The caller's `<notes-dir>/review/<target>/toolchain.json`
+  is this round's one toolchain run — you may **cite** it for a finding that depends on whether the
+  range compiles, but a failing entry there is lint's or test's Failure to report, never yours.
 - **Never judge the spec.** No Outcome, no Surface, no drift, no scope. A change you think should
   not have been made at all is out of your scope — say nothing about it. When a generated rule
   itself looks wrong rather than merely unmet, name that in one Nit line and stop; settling it

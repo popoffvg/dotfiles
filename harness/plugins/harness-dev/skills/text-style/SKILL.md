@@ -27,3 +27,5 @@ The output is a document written for an agent to *run*, not for a human to read:
 **Write the description last.** It is a **context pointer**: it names material the agent does not yet hold and encodes the condition for reaching it, and its wording — not its target — decides whether the skill fires. It does two jobs: say what the material is, and list the **branches** that trigger it. It costs on every turn, so it prunes harder than the body. Front-load the leading word. One trigger per branch — synonyms renaming a single branch are one branch written twice. Cut identity the body already carries.
 
 Re-order by dependency once the moves stop: a precondition must still precede its action.
+
+For the conventions specific to this harness's always-loaded rules files (CLAUDE.md, output styles), see [rules-file-conventions](../rules-file-conventions/SKILL.md).

@@ -44,7 +44,10 @@ comment is judged against the code under it, not against the spec.
 A comment that fails one gate is reported there and not carried to the next.
 
 1. **The ban.** A link to the task or the docs — a URL, a ticket id, a spec slug, an
-   `NNN-decision-*` filename. Failure, always. The rewrite is the reason itself.
+   `NNN-decision-*` filename; a version, a plan, or a planned increment named in a comment or
+   column/field description; platform or domain behaviour the reader of this codebase already
+   knows, restated instead of left to what is true of this repo alone. Failure, always. The
+   rewrite is the reason itself, or the fact as it stands today.
 
 2. **The deletion test, one sentence at a time.** Delete the sentence, read the code under it, name
    the fact you lost. Judge the whole diff, not a fixed window: a doc block paraphrasing a function
@@ -91,6 +94,8 @@ reviewed: <`date -Iseconds`>
 | Rule | Verdict |
 |---|---|
 | The ban — task link, ticket id, spec slug | |
+| The ban — a named version, plan, or increment | |
+| The ban — restated platform or domain behaviour | |
 | The deletion test — the fact lost | |
 | The property test — the fact the code already forces | |
 | The paragraph test — framing, and the twice-carried fact | |

@@ -123,6 +123,42 @@ Two gates hold the enum, because a value outside it silently gives the human eve
 of them. `bin/guard.sh` rule 3 refuses the Edit or Write that puts a foreign value — or `inherit`
 on `spec.md` — into either file; `bin/spec-lint.py` checks A5 and B3 catch one already on disk.
 
+## Progress — the `increment` key
+
+Where `impl` got to inside one TODO, written in two shapes for two readers.
+
+| Shape | Where | Says |
+|---|---|---|
+| `**Landed:** yes` / `no` | `TODO-N.agent.md`, one bullet per increment | **which** increments are in the commit |
+| `increment: <approved>/<total>` | `TODO-N.md` frontmatter | **how many** — the index over the markers |
+
+- `<total>` — the number of `### N.` increments in `TODO-N.agent.md` § Changes. Fixed when the pair is written.
+- `<approved>` — how many increments are already in the commit. `0` until implementation starts.
+
+**This is not a restatement, because the two answer different questions.** The counter is what a
+resuming session reads first — one number, no walk. The markers are what it reads next, and they are
+per-increment, so a run interrupted between two increments says which one is next by pointing at it
+rather than by arithmetic. `bin/spec-lint.py` check B11 fails when `<approved>` and the count of
+`**Landed:** yes` disagree, so neither can drift alone.
+
+**Who writes them.** `todo` authors `increment: 0/<total>` beside the other keys and `**Landed:** no`
+on every increment. `impl` flips one marker to `yes` and raises the counter by one in the same step
+that appends the increment to the commit (`impl:sub-impl.md` Step 5.5), at every `approve` level — a
+run under `none` is the one most likely to be interrupted with nobody watching.
+
+**What it buys.** A session that dies mid-TODO resumes at increment `<approved> + 1`. Without the key
+the next session reads the diff and guesses which increments already landed, and a re-applied
+increment lands twice.
+
+**Both are facts about the commit, not claims about the work.** Write them after the amend, never
+before — a marker or a number ahead of the commit sends a resume past an increment that was never
+applied.
+
+`bin/spec-lint.py` check B11 fails unless every count agrees: `<total>` against the agent half's
+increment count, `<approved>` against `<total>`, `<approved>` against the number of `**Landed:** yes`
+markers, and all of them against `status` — `todo` means `0/<total>` with every marker `no`, and
+`verify` or `done` means `<total>/<total>` with every marker `yes`.
+
 ## Reading chain — what the understanding must capture
 
 Not a recipe for reading order — investigate however the code forces. It is the criterion the
@@ -333,6 +369,7 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] Every `Commit` is a ≤ 72-char imperative subject and every `Why` states the reason the commit exists
 - [ ] Every `Concretely` has all three beats — **Today …** (current behaviour, concretely), **This …** (the change, in a verb a non-author would use), **Done when …** (the observable check) — and names something that required opening the repo. A `Concretely` that paraphrases its own `Outcome` is not one
 - [ ] No bare symbol (`α`, `β`, `w_struct`, `top-k`) appears without its meaning in words at first use; no parameter is added without a `| Parameter | Default | What it moves |` row and a line on what was deliberately **not** added; a structural change carries a diagram naming what does **not** move (§ Write it for a reader who does not hold your context)
+- [ ] Every `todos/TODO-N.md` carries `increment: 0/<total>`, `<total>` = the increment count in its agent half (§ Progress) — `bin/spec-lint.py` check B11
 - [ ] `## Plan` carries the wave table; every TODO appears in exactly one wave; TODOs sharing a wave have disjoint **Files** sets and no `depends_on` between them
 - [ ] Every outcome is a post-condition (what is true after), ≤ 25 words, no implementation nouns, GLOSSARY.md terms verbatim
 - [ ] No outcome hides two behind "and"; no two entries share an outcome

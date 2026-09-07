@@ -1,13 +1,13 @@
 ---
 name: lint-tester
 description: >
-  Fast lint + related-tests gate for one implemented TODO. Reads the diff and the
-  TODO pair (Files from the agent half, Autotest from the human half), runs the project
-  linter over the changed files and the
-  tests that cover them, and returns PASS | FAIL with the concrete failures.
-  Read-only on source — never edits or commits, and writes its report to the `report:` path the
-  caller names. One of the four haiku gates in the `review` skill's wave, beside
-  `comment-critic`, `name-critic`, `test-critic`, and the opus `reviewer`.
+  Fast lint gate for one implemented TODO. Reads the diff and the TODO pair (Files from the
+  agent half, Autotest from the human half), runs the project linter over the changed files, and
+  reads the Autotest outcome from the caller's `toolchain.json` instead of running it — returns
+  PASS | FAIL with the concrete failures.
+  Read-only on source — never edits or commits, never runs a build or a test itself, and writes
+  its report to the `report:` path the caller names. One of the four haiku gates in the `review`
+  skill's wave, beside `comment-critic`, `name-critic`, `test-critic`, and the opus `reviewer`.
 model: haiku
 color: yellow
 tools: Read, Glob, Grep, Bash, Write
@@ -30,8 +30,8 @@ Read the TODO pair: `<notes-dir>/todos/TODO-N.agent.md` for **Files** (what chan
 
 1. **Locate changes** — from the diff and the agent half's **Files**, list the changed source files.
 2. **Lint** — run the project's linter over those files only (detect it: `golangci-lint run <pkgs>`, `eslint`, `ruff`, `shellcheck`, etc. — read the repo config, don't guess a tool that isn't configured).
-3. **Related tests** — run both Autotest commands from the human half (`Unit` and `E2E`). Also run the tests that cover the changed files (same package/dir). Report the real command + real output.
-4. **Verdict** — any lint violation or failing test → **FAIL**.
+3. **Autotest outcome** — you never run Autotest. Read the caller's `<notes-dir>/review/<target>/toolchain.json` for this round and report the `Unit` and `E2E` exit codes and output paths it already recorded. An absent or stale entry is `n/a — not in this round's toolchain.json`, not a run you do yourself.
+4. **Verdict** — any lint violation, or a failing entry in `toolchain.json`, → **FAIL**.
 
 ## Output contract
 
@@ -52,9 +52,8 @@ reviewed: <`date -Iseconds`>
 | Rule | Command | Verdict |
 |---|---|---|
 | Linter over the changed files | | |
-| Autotest · Unit | | |
-| Autotest · E2E | | |
-| The tests covering the changed files | | |
+| Autotest · Unit (read from `toolchain.json`, not run here) | | |
+| Autotest · E2E (read from `toolchain.json`, not run here) | | |
 
 ## Failures        (omit when PASS)
 - <file:line> — <the exact lint message or test failure, verbatim>
@@ -70,5 +69,7 @@ reviewed: <`date -Iseconds`>
   this diff reaches is `n/a` with the reason, never a dropped row. An empty Failures section under a
   full Covered table says the diff is clean — under a short one it says nothing at all.
 - **Read-only on source.** No edits, no commits. You return findings; the caller routes them back to the implementer.
-- **Real output only.** Paste the linter/test output you actually saw — never summarize a run you did not do.
-- Do not run the full suite when the TODO scopes a package — run the related tests, not everything.
+- **Real output only.** Paste the linter output you actually saw, and the `toolchain.json` entries
+  verbatim — never summarize a run you did not do.
+- **Never run build or tests.** Autotest is the caller's one-per-round toolchain run, read from
+  `toolchain.json`; running it again yourself duplicates the test gate's job.

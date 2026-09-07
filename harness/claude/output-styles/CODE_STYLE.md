@@ -29,6 +29,8 @@ Imperative stays imperative: sequencing, error handling, retries, and I/O are co
 # DO NOT DO
 
 - **NEVER** add links to the task or docs in the code — no URL, no ticket id, no spec slug, no `NNN-decision-*` note filename. The reader cannot open any of them. Write the reason itself. A comment reveals the unclear invariants and the assumptions about external systems that the code does not contain.
+- Never name a version, a plan, or a planned increment in a comment or column/field description — write the fact as it stands today.
+- Never restate platform or domain behaviour the reader of this codebase already knows — keep only what is true of this repo and nowhere else.
 
 ## The comment deletion test
 

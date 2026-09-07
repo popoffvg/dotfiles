@@ -15,6 +15,7 @@ Obey every rule that `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` 
 
 ### 1. Add the request and pair types — `pkg/auth.Handler`
 
+- **Landed:** no
 - **Change:** signature change
 - **Files:** `pkg/auth/handler.go`
 - **Surface:** `RefreshRequest`, `TokenPair`
@@ -26,6 +27,7 @@ Obey every rule that `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` 
 
 ### 2. Return a pair from the minter — `pkg/auth.TokenMinter`
 
+- **Landed:** no
 - **Change:** signature change
 - **Files:** `pkg/auth/token.go`
 - **Surface:** `mintTokens`
@@ -37,6 +39,7 @@ Obey every rule that `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` 
 
 ### 3. Exchange the token in the handler — `pkg/auth.Handler`
 
+- **Landed:** no
 - **Change:** new behavior
 - **Files:** `pkg/auth/handler.go`
 - **Surface:** `Refresh`
@@ -64,6 +67,7 @@ function refresh(req: RefreshRequest): TokenPair | 401 | 409 {
 
 ### 4. Add the release check — `scripts.ReleaseCheck`
 
+- **Landed:** no
 - **Change:** new behavior
 - **Files:** `scripts/release-check.sh` (create)
 - **Surface:** none — a script is a body; its contract is the plain block in § Surface

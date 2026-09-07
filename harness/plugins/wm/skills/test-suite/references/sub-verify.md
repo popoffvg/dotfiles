@@ -58,9 +58,8 @@ a test in either state has never been able to fail.
 | A stronger property was available | medium | length checked, ordering never — see [`ref-property-based.md`](ref-property-based.md) |
 | Filtered where the generator should constrain | medium | stacked input filters in place of a narrowed generator |
 
-`f(x) == f(x)` is the exception to the first row: it is a real determinism property wherever
-impurity could falsify it — map iteration order, hashing, the clock. Ask whether a broken
-implementation could fail it. If yes it is a property; if no it is noise.
+`f(x) == f(x)` escapes the first row where impurity could falsify it — map iteration order,
+hashing, the clock ([`ref-property-based.md`](ref-property-based.md)).
 
 Also flag, whatever the score: float equality with no tolerance, an assertion on map or set
 iteration order, and anything reading the clock. Each one produces a flake that gets blamed on

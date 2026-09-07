@@ -263,6 +263,7 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 | `depends_on` | always (`[]` if none) |
 | `risk` | always |
 | `approve` | always (`inherit` unless this TODO needs its own depth — `arch:ref-write.md` § Approval) |
+| `increment` | always — authored as `0/<total>`, `<total>` = the increment count in the agent half (`arch:ref-write.md` § Progress) |
 
 | # | Element | Level | Required |
 |---|---------|-------|----------|
@@ -411,7 +412,7 @@ own file against a rule already counted.
 - [ ] **Self-contained**: with `spec.md` deleted and no thought note opened, the pair plus the generated rules still says what to build and what to assert
 - [ ] Every settled decision this TODO's increments can violate is an approved `decision` or `impl-decision` note whose `description` states the rule, and every such rule a test can check has a matching case in the human half's `## Autotest`
 - [ ] Each increment names one `TODO-N.md` **Components** row, ordered deepest-first so the repo builds after each (or marked `builds: only with increment <n>`)
-- [ ] Every increment carries a **Change** (one of the nine kinds in `impl:ref-change-types.md`), **Files** (a subset of `## Files`), a **Surface** bullet naming the symbols it lands (or `none`), a **Do** of one to four imperative sentences, and a **Blast radius** that names the real symbols/callers to retest
+- [ ] Every increment carries **Landed:** `no` (nothing is in the commit at `todo`), a **Change** (one of the nine kinds in `impl:ref-change-types.md`), **Files** (a subset of `## Files`), a **Surface** bullet naming the symbols it lands (or `none`), a **Do** of one to four imperative sentences, and a **Blast radius** that names the real symbols/callers to retest
 - [ ] The frontmatter `type:` is the kind of the TODO's **main** work, and the increment **Change** spread agrees with it — every increment `wiring` under a `type: new behavior` TODO means one of the two is wrong
 - [ ] **No code in any Do** — no fenced block, no pasted signature. The signature is in `## Surface`; **Do** is the instruction, and "implement the handler" is not one
 - [ ] Every symbol whose signature changes in `## Surface` has its call sites named in some increment's **Do** — a widened signature with no migration instruction is a caller left broken

@@ -38,6 +38,18 @@ When the user reviews your work and asks for changes:
    ```
 3. Tell the user the fixup is committed. Never fold a user correction into a normal commit.
 
+## Retiring a value
+
+A value is retired only when its last reader stops naming it and its last writer stops producing
+it. Before deleting a declaration (a flag, env var, config key, table column, exported field, UI
+label): grep the exact identifier **and** the rendered/user-visible literal, across every language
+and every generated or vendored twin (`dist/`, `Makefile`, `Dockerfile`, CI YAML, k8s manifests) —
+a plan or TODO's file list is a prediction, not the surface inventory. Pair each absence grep with
+a positive control on a neighbour you know is still there. Check upstream too: a producer left
+writing a value whose last reader you just deleted is a bug, delete it as well. Widening a value's
+meaning is as breaking as removing it. Where the far side is not yours to edit this increment, keep
+the declaration accepted-but-unread and name the follow-up instead of guessing at it.
+
 ## Hard stop rules — when to hand back
 
 **Stop and hand back to the user** (do not keep trying) when:

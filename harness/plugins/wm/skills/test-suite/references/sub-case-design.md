@@ -230,17 +230,9 @@ Every technique above picks the inputs and leaves you the assertion. This one in
 assert a rule over the whole input domain and a generator hunts the counterexample, which finds
 the case no table would have produced. Round trip, oracle, idempotence, invariant, metamorphic.
 
-Two rules decide whether it works. **Only assert a property the code already claims** — in a
-spec, a type, a doc line, or how its callers use it — because a property you merely believe
-produces a red test that is not a bug. And **put the constraint in the generator**, sized to the
-domain the callers guarantee, sound before complete.
-
-Full technique, catalog, generator rules, and the failure triage:
-[`ref-property-based.md`](ref-property-based.md). Read it before writing the first generator.
-
-**The collapse:** one property is one big case, named after the claim —
-`## Any encoded record decodes back to itself`. The generator and the shrunk counterexample stay
-in the test source.
+One property is one big case, named after the claim. Technique, catalog, generator rules, and
+failure triage: [`ref-property-based.md`](ref-property-based.md) — read it before writing the
+first generator.
 
 ## Choosing a technique
 
@@ -259,6 +251,7 @@ in the test source.
 | Refactor or rewrite with the old code still runnable | property-based — oracle |
 | Normalizer, formatter, or a write that may be retried | property-based — idempotence |
 | Right answer is expensive or impossible to compute | property-based — metamorphic |
+| A guarantee that must hold for every input — never negative, stays sorted, conserved total | property-based — invariant |
 
 ## Where the output goes
 

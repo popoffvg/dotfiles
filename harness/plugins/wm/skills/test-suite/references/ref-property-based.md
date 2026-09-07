@@ -2,8 +2,7 @@
 
 Every other technique in [`sub-case-design.md`](sub-case-design.md) picks the **inputs** and you
 write the assertion. This one inverts it: you write an assertion that holds for the whole input
-domain, and a generator hunts the counterexample. It earns its keep on the case no table would
-have produced.
+domain, and a generator hunts the counterexample.
 
 **In:** one function, or two the caller says should agree. **Out:** one big case per property,
 plus the generator in the test source. **Done when** every row of § The catalog has been either
@@ -151,26 +150,16 @@ say that you did.
 
 Use whatever the project already has. Where there is none, adding a generator is a dependency
 decision — offer it once with the specific property you would write, and take the answer either
-way.
-
-| Language | Library |
-|---|---|
-| Python | Hypothesis |
-| TypeScript, JavaScript | fast-check |
-| Rust | proptest, quickcheck |
-| Go | `testing/quick`, rapid, gopter |
-| Java, Kotlin | jqwik |
-| Solidity | Echidna, Medusa |
+way. The one non-obvious pick: Solidity state invariants run under Echidna or Medusa, not a
+unit-test generator.
 
 ## The collapse
 
 **One property is one big case, named after the claim** — `## Any encoded record decodes back to
 itself`, never `## Property 3`. The generator, the pinned examples, and the shrunk counterexample
 live in the test source; the saved document carries the sentence and the technique that produced
-it, in the shape [`ref-readable-output.md`](ref-readable-output.md) defines. A property rejected
-on the evidence rule goes into **Not covered** with the claim you could not find.
+it, in the shape [`ref-readable-output.md`](ref-readable-output.md) defines.
 
-In a wm TODO's `## Autotest`, the same collapse is one line: a property backs one bold claim group —
-`property: <formula>` / `over: <domain>; pinned: <edges>` — in place of that group's example bullets
-(`arch:ref-todo-sections.md` § Autotest). The claim it backs must trace to the TODO's Outcome, which
-is the evidence rule with the Outcome as the claim source.
+In a wm TODO's `## Autotest`, a property backs one bold claim group in place of its example
+bullets, with the Outcome as the claim source — shape owned by `arch:ref-todo-sections.md`
+§ Autotest.

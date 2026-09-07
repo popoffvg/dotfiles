@@ -54,6 +54,14 @@ A command that belongs to a router is named `<router>:<sub>.md`, so it invokes a
 
 Each skill: `SKILL.md` with `name:` + `description:` frontmatter; optional `references/` docs or helper scripts.
 
+When a skill in this repo must cite a skill that exists only as a real directory under `~/.claude/skills/` — not in this repo — move that skill into `harness/claude/skills/` and run `mise run stow` so the relative link resolves; never rewrite the link to an absolute `~/.claude/...` path to route around the stray.
+
+<when="adding or changing a code-style or chat-style rule">
+### Output styles
+
+Code-style rules live in `harness/claude/output-styles/CODE_STYLE.md`. The other output-style files (`STYLE.md`, `CODE.md`, `ARCHITECT.md`) are chat-formatting wrappers that only point at it — an output style does not expand `@file` imports, so a rule landed in a wrapper is never read. Never put a code rule in the wrappers.
+</when>
+
 ### WM Flow
 
 `/wm:work:help` → research → spec → implement (worktree) → verify → `/wm:work:finish`

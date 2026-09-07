@@ -24,7 +24,6 @@
     "bindings": {
       "ctrl-alt-shift-1": "git::ToggleStaged",
       "ctrl-alt-shift-2": "editor::ToggleFold",
-      "m": ["workspace::SendKeystrokes", "ctrl-alt-shift-1 ctrl-alt-shift-2"],
     },
   },
   {
@@ -327,6 +326,15 @@
     "context": "TextFinder || TextFinder > Picker > Editor || TextFinder > Picker > menu",
     "unbind": {
       "alt-cmd-f": "text_finder::ToProjectSearch"
+    }
+  },
+  {
+    "context": "GitDiff > Editor && vim_mode == helix_normal",
+    "bindings": {
+      "m": [
+        "workspace::SendKeystrokes",
+        "ctrl-alt-shift-1 ctrl-alt-shift-2"
+      ]
     }
   }
 ]

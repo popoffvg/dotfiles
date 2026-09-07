@@ -15,7 +15,7 @@ cases, `Commit.Body`, and any sentence beside a table. Load that skill and write
 idea per sentence, short sentences, front-loaded, literal words, no restatement. The agent half is
 read by an implementer and is not bound by it.
 
-> The first four are `TODO-N.md` frontmatter keys (`status`, `type`, `depends_on`, `risk`); the rest
+> The first five are `TODO-N.md` frontmatter keys (`status`, `type`, `depends_on`, `risk`, `increment`); the rest
 > are body headings. Which half each heading lives in: `sub-todo.md` § Required elements.
 
 ### status
@@ -51,6 +51,9 @@ A 1–5 score for **reach** — the surface a regression forces you to retest, n
 | 5 | core contracts many modules depend on | cross-module regression pass |
 
 Format: `risk: <1-5>` in frontmatter. Score ≥ 3 → Autotest/Manual test covers the callers, not just the new code. High score signals keep-it-small, not blocked.
+
+### increment
+How far `impl` got: `increment: <approved>/<total>`. `<total>` is the number of increments in the agent half's `## Changes`; `<approved>` is how many of them are already in the commit. `todo` authors it as `0/<total>`; `impl` raises it by one each time an increment lands, so an interrupted run resumes at increment `<approved> + 1` instead of re-reading the diff to guess. Full rules: `ref-write.md` § Progress.
 
 ### Outcome
 **Capability, not implementation.** Answers *"what new can the system do once this lands?"* in use-case language.
@@ -280,6 +283,7 @@ Each increment carries these bullets, in order:
 
 | Bullet | Required | Content |
 |--------|----------|---------|
+| **Landed** | always | `yes` or `no` — whether this increment is already in the commit. `todo` writes `no` on every increment; `impl` flips one to `yes` after the amend |
 | **Change** | always | the increment's change kind — one of the nine in `impl:ref-change-types.md`, the same roster the TODO's `type:` uses |
 | **Files** | always | the repo-relative paths this increment alone touches — a subset of `## Files` |
 | **Surface** | always | which part of `TODO-N.md` § Surface this increment lands, named by symbol — or `none` when it adds no surface (a body-only file, a wiring change) |
@@ -287,6 +291,12 @@ Each increment carries these bullets, in order:
 | **Blast radius** | always | the **predicted** reach: the symbols, callers, and consumers a mistake here forces you to retest. Name them; `"low"` is not a blast radius |
 | **Behavior** | only where **Do** cannot carry the logic — a real branch structure, an error path that matters, a non-obvious ordering | TS pseudocode per the `flow-scetch` skill, ≤ 40 lines, side effects + error paths visible |
 | **Builds** | only when the increment leaves the repo not compiling | `builds: only with increment <n>` |
+
+**Landed is the record; `TODO-N.md` frontmatter `increment:` is the index over it.** A resuming
+session reads the key to know where to start, then reads the markers to know what it is starting
+after — the key is one number, and the markers say which increments it counts. `impl` writes both in
+the same step, after the amend (`impl:sub-impl.md` step 5.5), and `bin/spec-lint.py` check B11 fails
+when `<approved>` and the count of `**Landed:** yes` disagree. Full rules: `ref-write.md` § Progress.
 
 **Change is the increment's own kind, not the TODO's.** A `type: new behavior` TODO usually holds one
 `new behavior` increment and several that are `signature change`, `wiring`, or `call-site migration`
@@ -317,6 +327,7 @@ hard rejection of any ```diff block in this file.
 ````markdown
 ### 2. Return a pair from the minter — `pkg/auth.TokenMinter`
 
+- **Landed:** no
 - **Change:** signature change
 - **Files:** `pkg/auth/token.go`
 - **Surface:** `mintTokens`
@@ -354,15 +365,14 @@ Each level carries, on its own bullets:
   naming what the group proves (`**A reused token ends the whole session**`); each claim traces to
   the Outcome or to a generated rule this TODO can violate, both directions — an Outcome promise
   with no claim is a coverage gap, a claim the Outcome never made is scope creep. The reviewer
-  gate-reads the claims and opens a group's variants only when its claim surprises. Each group is
+  reads the claims; a group's variants are opened only when its claim surprises. Each group is
   backed one of two ways:
   - **examples** — `input → expected` bullets under the claim. Derive the minimal-but-covering set
     via `test` (pairwise tiering).
   - **a property** — when the claim has algebraic shape (round trip, inverse, idempotence,
     invariant — the catalog in the `test-suite` skill's `ref-property-based.md`), one line replaces
-    the enumeration: `property: <formula>` then `over: <input domain>; pinned: <known edges>`.
-    The generator body stays in the test file, like any test body. The evidence rule is the same
-    trace: the Outcome is the claim the property asserts.
+    the enumeration: `property: <formula>` then `over: <input domain>; pinned: <known edges>` —
+    the pinned edges are that group's examples, no separate example bullets beside a property.
 - **Command** — one runnable shell command. Never "run the relevant tests".
 
 **Cases, never the test.** This section is the only place a test appears in the pair, and it appears

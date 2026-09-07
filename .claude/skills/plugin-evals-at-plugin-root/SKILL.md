@@ -22,4 +22,3 @@ harness/plugins/<plugin>/
 - A skill directory holds what Claude loads: `SKILL.md`, `references/`, `GLOSSARY.md`, `CASE.md`. An eval suite is not loaded — it grades the skill from outside.
 - One `evals/` per plugin serves every skill in it. Nested `skills/*/evals/` fragments the suite and hides it from anyone looking at the plugin.
 - The runner extracts the graded section from the skill at run time (`awk` between headings), so the suite always grades the current spec instead of a copy that drifts.
-- Reference it from the skill as `${CLAUDE_PLUGIN_ROOT}/evals/`, not a relative path — the skill may be read from the plugin cache.
