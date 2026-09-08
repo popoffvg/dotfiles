@@ -127,7 +127,6 @@
       "/tmp"
     ]
   },
-  "model": "claude-fable-5[1m]",
   "skillOverrides": {
     "act-local-github-actions-testing": "off",
     "ast-grep": "off",

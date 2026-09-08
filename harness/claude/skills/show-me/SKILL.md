@@ -1,6 +1,6 @@
 ---
 name: show-me
-description: Pick the form that fits what is being shown — pseudocode, a call tree, a component tree, a file tree, a diff, a decision table, a mermaid flow — and write it into the reply. Use when the user says "show me", "draw it", "sketch that", "what does the flow look like", "where does that live", when a design point is easier pointed at than described, or when prose has grown into a third paragraph about structure. Routes to the drawing skills when the content needs a canvas.
+description: Pick the form that fits what is being shown — pseudocode, a call tree, a component tree, a file tree, a diff, a decision table, a flow diagram (mermaid in md files, ASCII in chat) — and write it into the reply. Use when the user says "show me", "draw it", "sketch that", "what does the flow look like", "where does that live", when a design point is easier pointed at than described, or when prose has grown into a third paragraph about structure. Routes to the drawing skills when the content needs a canvas.
 ---
 
 # show-me — one form per kind of content
@@ -17,9 +17,9 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 | responsibility across directories | **shallow file tree**, one comment per dir | each comment says what the dir *owns*, not what it holds |
 | a change to any shape above | **`diff`** over that same shape | the surrounding shape is present and unchanged |
 | a shape that is mostly new, or one to copy | **the whole block** | omitting context would hide ownership or order |
-| a path that forks on a condition | **mermaid `flowchart`** | every branch leaves by a labelled edge |
-| two components talking over time | **mermaid `sequenceDiagram`** | each arrow is a real call, named as the code names it |
-| states and the moves between them | **mermaid `stateDiagram`** | every terminal state is reachable and marked |
+| a path that forks on a condition | **flowchart** | every branch leaves by a labelled edge |
+| two components talking over time | **sequence diagram** | each arrow is a real call, named as the code names it |
+| states and the moves between them | **state diagram** | every terminal state is reachable and marked |
 | conditions that combine | **decision table**, one row per combination | no combination is missing a row |
 | options being weighed | **comparison table**, one row per option | every column is a dimension that changed someone's mind |
 | numbers, series, distributions | a chart → `dataviz` | — |
@@ -35,7 +35,7 @@ The bold forms are fenced blocks in the reply and answer most questions. A route
 
 ## Three rules for every form
 
-**A flow is mermaid.** `flowchart`, `sequenceDiagram`, `stateDiagram` — never arrows and boxes drawn in monospace. The indented forms above are code shapes: a call tree is a stack trace, a file tree is a directory listing, a component tree is JSX. Each mirrors something that already exists in that shape.
+**The medium picks the flow syntax.** A flow written into a markdown file is mermaid — `flowchart`, `sequenceDiagram`, `stateDiagram`. A flow shown in the chat reply to the user is an ASCII diagram in a fenced block — arrows and boxes in monospace — because chat renders no mermaid. The indented forms above are code shapes in both media: a call tree is a stack trace, a file tree is a directory listing, a component tree is JSX. Each mirrors something that already exists in that shape.
 
 **Cut to the question.** If a row, call, file, prop, or boundary were deleted, would the answer change? If not, it is inventory, not a view. A view the reader must scroll has already failed this — cut rows before shrinking type.
 

@@ -58,3 +58,5 @@
 	helper = !/opt/nanobrew/prefix/bin/gh auth git-credential
 [safe]
 	directory = *
+[pager]
+	log = less -FRX
