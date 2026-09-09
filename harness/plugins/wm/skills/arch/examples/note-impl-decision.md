@@ -11,9 +11,16 @@ tags: [auth, errors]
 todo: TODO-2
 ---
 
+> The frontmatter is what the thought index and `wm-constraints.py` read; the per-key contract is
+> `arch:ref-note-format.md` § Frontmatter. Specific to an impl-decision: the `todo: TODO-N` key,
+> required here and carried by no other type — it is what scopes the rule to one ledger row, which
+> `wm-constraints.py --todo TODO-N` selects on. A rule written without it reaches every TODO.
+> `source:` is optional and omitted here; the other three types carry it.
+
 # Wrap store errors at the auth boundary
 
-> Copy to `<notes-dir>/thoughts/NNN-impl-decision-<slug>.md` — e.g. `005-impl-decision-error-wrapping.md`.
+> Copy to `<notes-dir>/thoughts/NNN-impl-decision-<slug>.md` — e.g.
+> `005-impl-decision-error-wrapping.md` — and delete the `>` lines.
 > Write one while authoring a TODO body, the moment you chose between two valid approaches, picked a
 > pattern the spec did not mandate, named a symbol absent from `GLOSSARY.md`, or made a choice that
 > shapes how later TODOs are written — fresh reasoning beats reconstructed reasoning. Do not write
@@ -21,6 +28,10 @@ todo: TODO-2
 > One note per decision, never a bundle. A choice that changes while later TODOs are written is an
 > edit to this note, never a second note.
 > The prose follows `harness-dev:text-style`.
+
+> The title names the thought as a statement — imperative or declarative — in at most 60
+> characters. The frontmatter `description` never paraphrases it: the title names the thought, the
+> description says what it settled (`arch:ref-note-format.md` § Frontmatter).
 
 ## Context
 

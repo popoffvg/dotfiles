@@ -1,169 +1,132 @@
-# Test Harness Plugin
+# Test a harness plugin from its source dir
 
-Run harness plugin tests in tmux panes for visible, parallel feedback.
+Prove that a command, a skill, an agent, a hook, or an MCP server of
+`harness/plugins/<name>/` really fires — reading the working tree, not the plugin cache. Every
+plugin dir **is** its own plugin root: `.claude-plugin/plugin.json` sits inside it, and it holds
+markdown, JSON config, and shell scripts only. Compiled code lives in `harness/apps/<name>/` and
+reaches the plugin as a binary name in `.mcp.json` (root `CLAUDE.md` § Plugins, § Dev Conventions).
 
-## Plugin layout
+Two scripts carry the work. Run them in that order — the static check costs nothing and catches
+most of what a live run would only hint at.
 
-```
-harness/plugins/<name>/
-├── common/           # Shared: types, FSM, server, skills
-│   ├── server/       # MCP server (stdio) — has its own package.json
-│   └── *.ts          # Pure logic (unit-testable)
-├── claude/           # Claude Code plugin
-│   ├── .claude-plugin/plugin.json
-│   └── ...
-├── pi/               # Pi agent extension
-│   └── index.ts
-└── __tests__/        # Unit tests (node:test + tsx)
-```
-
-## Test layers
-
-| Layer | What | How | Pane |
-|-------|------|-----|------|
-| **typecheck** | TS types compile | `npx tsc --noEmit` in each `package.json` dir | 1 |
-| **unit** | Pure logic | `npx tsx --test __tests__/*.test.ts` or `node --test --loader tsx` | 1 |
-| **MCP server** | Server starts, tools register | Spawn server via stdio, call `tools/list` | 2 |
-| **Claude plugin** | Full plugin loads in Claude | `claude --plugin-dir <path> -p "list your MCP tools"` | 3 |
-
-## Workflow
-
-### 1. Resolve plugin path
+## Step 1 — check the layout
 
 ```bash
-PLUGIN="<name>"
-PLUGIN_DIR="$HOME/Documents/git/dotfiles/harness/plugins/$PLUGIN"
+~/.claude/scripts/check-plugin-layout.sh ~/git/dotfiles/harness/plugins/<name>
 ```
 
-Verify it exists: `ls "$PLUGIN_DIR"`.
+Read-only. It checks the manifest name against the directory, that no TypeScript or node package
+sits in the plugin dir, that no symlink and no `../` path is there for the cache copy to drop, that
+every `commands/<file>.md` declares the `name:` its filename registers under, that every
+`skills/<dir>/SKILL.md` declares the name it registers under (a colon in a plugin skill dir
+normalizes to a dash), that every hook command exists and is executable, and that every `.mcp.json`
+server names a binary on `PATH`.
 
-### 2. Typecheck (fast, run first)
+Done when the last line reads `PASS <name> layout clean`. Each `FAIL` line names the file and the
+rule; fix it and run again.
 
-Check each subdir that has a `tsconfig.json`:
+## Step 2 — load it and see what registered
 
 ```bash
-for dir in "$PLUGIN_DIR/common/server" "$PLUGIN_DIR/claude" "$PLUGIN_DIR/pi"; do
-  [ -f "$dir/tsconfig.json" ] && (cd "$dir" && npx tsc --noEmit) && echo "OK: $dir" || echo "FAIL: $dir"
-done
+~/.claude/scripts/probe-harness-plugin.sh ~/git/dotfiles/harness/plugins/<name> \
+  --prompt "/<name>:<command>" --expect "<a string only that command produces>"
 ```
 
-### 3. Unit tests
+The script starts one headless session with `--plugin-dir` pointed at the source dir, then reads the
+session's own `init` record back: where the plugin loaded from, which slash commands, skills, and
+agents it registered, every hook that fired with its exit code, and the model's reply.
+
+`--plugin-dir` **overrides** an installed copy of the same plugin. Probing `wm`, which the
+`local-plugins` marketplace also installs, showed one `wm` entry sourced `wm@inline` at the repo
+path — so the probe reads the working tree with no sync and no reinstall.
+
+Run it in the background (`Bash` with `run_in_background: true`) — a session takes tens of seconds,
+and the `bg-build-and-test` skill governs every run of this length.
+
+Done when the last line reads `PASS <name>`.
+
+## Step 3 — prove the one surface the change touched
+
+Pick the row for what you changed and give the probe a marker that only that surface can produce.
+
+| Surface | Probe with |
+|---|---|
+| command | `--prompt "/<plugin>:<command> <args>" --expect "<string the command body asks for>"` |
+| skill | `--prompt "<a sentence matching the skill's description>" --expect "<string the skill body asks for>"` |
+| agent | `--prompt "Use the <plugin>:<agent> agent to …" --expect "<string the agent prompt asks for>"` |
+| hook | `--hook-marker "<string the hook script echoes>"` — a `hook_response` record names the event, never the script, so a marker the script echoes is the only proof yours ran |
+| MCP server | nothing extra — the probe checks every server named in the plugin's `.mcp.json` reached `connected` |
+
+A skill row is the one worth spending a run on: it measures whether the **description** fires, which
+is the failure a body-only read can never see.
+
+Done when the marker appears in the probe's output. A registered name proves only registration; the
+marker proves the body ran.
+
+## Step 4 — grade behaviour with the plugin's eval suite
+
+A judgement call — which skill a task loads, where a block of content belongs — needs labelled cases,
+not one probe. The suite lives at the plugin root, `harness/plugins/<name>/evals/`, with one
+`cases-<skill>.jsonl` per graded skill and a runner that extracts the rule text from the skill at run
+time (`skill:plugin-evals-at-plugin-root`).
 
 ```bash
-# If __tests__/ exists
-if [ -d "$PLUGIN_DIR/__tests__" ]; then
-  cd "$PLUGIN_DIR" && npx tsx --test __tests__/*.test.ts
-fi
-
-# If pi/tests/ exists
-if [ -d "$PLUGIN_DIR/pi/tests" ]; then
-  cd "$PLUGIN_DIR/pi" && npx tsx --test tests/*.test.ts
-fi
+cd ~/git/dotfiles/harness/plugins/<name>/evals && ./run.sh
 ```
 
-### 4. MCP server smoke test
+In the background, as above. Done when the runner exits 0, meaning accuracy at or above its
+threshold. `harness/plugins/wm/evals/README.md` shows the shape and records the last score.
 
-For plugins with `common/server/index.ts`:
+## Step 5 — drive an interactive surface in a pane
+
+A surface that needs a real terminal — the plugin's TUI, a full `claude` session where you type,
+anything that dies with `Resource temporarily unavailable (os error 35)` — runs in a herdr pane, not
+in a Bash call:
 
 ```bash
-SERVER_DIR="$PLUGIN_DIR/common/server"
-if [ -f "$SERVER_DIR/index.ts" ]; then
-  # Install deps if needed
-  [ -d "$SERVER_DIR/node_modules" ] || (cd "$SERVER_DIR" && npm install)
-
-  # Start server and send initialize + tools/list via stdio
-  echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"0.1"}}}' | \
-    timeout 10 npx tsx "$SERVER_DIR/index.ts" 2>/dev/null | head -5
-fi
+herdr agent start plugin-test --cwd ~/git/dotfiles/harness/plugins/<name> \
+  --tab "$HERDR_TAB_ID" --split down --no-focus -- \
+  claude --plugin-dir ~/git/dotfiles/harness/plugins/<name>
+herdr agent read plugin-test --source visible --lines 40
+herdr pane close <pane_id>
 ```
 
-Expected: JSON response with server capabilities and tool list.
+The `herdr` skill owns the full procedure — waiting for output, addressing panes, and cleaning up a
+pane you opened only to prove something. Done when you have quoted the real screen lines in your
+report and closed the pane.
 
-### 5. Claude plugin load test (tmux pane)
+## Step 6 — publish the change
 
-This requires a separate tmux pane since Claude is interactive:
+Editing the source is enough for every step above, and nothing else. Reaching the plugin from an
+ordinary session needs the marketplace regenerated and the plugin refreshed in Claude Code:
 
 ```bash
-# In a new tmux pane:
-tmux split-window -h -c "$PLUGIN_DIR"
-tmux send-keys 'claude --plugin-dir ./claude -p "List all MCP tools available to you. For each tool, show the name and parameters."' Enter
+mise run harness:plugins:sync
 ```
 
-Or with cmux (if available):
+Done when `.claude-plugin/marketplace.json` carries the plugin's new version — the `pre-commit`
+bump writes it, so a manual sync only matters before a commit.
 
-```bash
-OUTPUT=$(cmux new-pane --type terminal --direction right --cwd "$PLUGIN_DIR")
-SURFACE=$(echo "$OUTPUT" | grep -o 'surface:[0-9]*')
-cmux send --surface "$SURFACE" "claude --plugin-dir ./claude -p 'List all MCP tools available to you. For each tool, show the name and parameters.'"
-cmux send-key --surface "$SURFACE" enter
-# Read result after ~15s
-sleep 15 && cmux read-screen --surface "$SURFACE"
-```
+---
 
-### 6. Parallel test run (all layers)
+## What a probe run does and does not isolate
 
-Use tmux to run typecheck + unit + MCP in parallel panes:
+**Isolated:** where the plugin under test comes from. `--plugin-dir` beats the cache copy of the
+same name, and the probe runs in a fresh temp cwd so no project settings and no project `CLAUDE.md`
+answer for the plugin.
 
-```bash
-SESSION="test-$PLUGIN"
-tmux new-session -d -s "$SESSION" -c "$PLUGIN_DIR"
+**Not isolated:** everything else in the session. Every other installed plugin loads, the user's
+settings load, and the user's global hooks fire — a probe run of a plugin with one hook showed
+fifteen hook records. Read your own marker out of that list; never read the list as the plugin's.
 
-# Pane 0: typecheck + unit
-tmux send-keys "echo '=== TYPECHECK ===' && (cd common/server && npx tsc --noEmit) && echo '=== UNIT TESTS ===' && npx tsx --test __tests__/*.test.ts 2>/dev/null; echo '--- DONE ---'" Enter
+## Failures and what they mean
 
-# Pane 1: MCP server test
-tmux split-window -h -c "$PLUGIN_DIR"
-tmux send-keys 'echo "=== MCP SERVER ===" && echo "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"test\",\"version\":\"0.1\"}}}" | timeout 10 npx tsx common/server/index.ts 2>/dev/null | head -5; echo "--- DONE ---"' Enter
-
-# Pane 2: Claude plugin load
-tmux split-window -v -c "$PLUGIN_DIR"
-tmux send-keys 'echo "=== CLAUDE PLUGIN ===" && claude --plugin-dir ./claude -p "List your MCP tools (name + params only)" 2>&1 | tail -20; echo "--- DONE ---"' Enter
-
-# Attach or read
-tmux attach -t "$SESSION"
-```
-
-## Quick single-layer commands
-
-```bash
-# Just typecheck
-cd "$PLUGIN_DIR/common/server" && npx tsc --noEmit
-
-# Just unit tests
-cd "$PLUGIN_DIR" && npx tsx --test __tests__/*.test.ts
-
-# Just MCP smoke
-echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"0.1"}}}' | npx tsx common/server/index.ts
-
-# Just Claude load
-claude --plugin-dir ./claude -p "list MCP tools"
-```
-
-## Reading results
-
-After running parallel tests in tmux:
-
-```bash
-# Capture each pane's output
-tmux capture-pane -t "$SESSION:0.0" -p  # typecheck + unit
-tmux capture-pane -t "$SESSION:0.1" -p  # MCP server
-tmux capture-pane -t "$SESSION:0.2" -p  # Claude plugin
-```
-
-Or with cmux:
-
-```bash
-cmux read-screen --surface surface:N
-```
-
-Look for `--- DONE ---` markers to know each layer finished.
-
-## Common failures
-
-| Symptom | Fix |
-|---------|-----|
-| `Cannot find module` | Run `npm install` in the relevant subdir |
-| `__dirname is not defined` | Module uses CJS pattern — switch to `fileURLToPath(import.meta.url)` |
-| MCP server hangs | Missing `StdioServerTransport` connect, or infinite loop in init |
-| Claude can't find plugin | Check `plugin.json` exists in `claude/.claude-plugin/` |
-| `PLUGIN_ROOT` wrong | Set env: `PLUGIN_ROOT=$PLUGIN_DIR/claude` before server start |
+| Symptom | Cause |
+|---|---|
+| `<plugin> does not appear in the session's plugin list` | `plugin.json` missing or unparseable, or `--plugin-dir` pointed one level off the plugin root. |
+| `<plugin> loaded from somewhere else: cache:…` | The path given is not the source dir — usually `~/.claude/plugins/cache/…` copied by hand. |
+| the command registers under a name you did not expect | The filename is the only source of a command's name; `name:` frontmatter is ignored. Rename the file. |
+| a plugin skill registers with a dash where you wrote a colon | Plugin skill dirs normalize `:` to `-`. Only loose and project skills keep a literal colon. |
+| the marker never appears though the name registered | The body did not run. Check the prompt actually invokes it, and for a skill, that the description covers the sentence you sent. |
+| a hook is missing from the list | Its script is not executable, its path escapes `${CLAUDE_PLUGIN_ROOT}`, or `hooks/hooks.json` does not parse. Step 1 catches all three. |
+| an MCP server is `needs-auth` or absent | The binary is not on `PATH`. Build it with its own task — `mise run harness:<app>:build` writes to `~/.local/bin`. |

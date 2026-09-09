@@ -67,7 +67,7 @@ the generator, and then the suite gets deleted.
 
 ## Readability invariants
 
-Run the checklist in `ref-readable-output.md` section 7 over the document and report every failed
+Run the checklist in `ref-readable-output.md` § Checklist before saving over the document and report every failed
 line as a readability defect. Each one costs points out of the 15.
 
 Two of those lines carry most of the weight and deserve a written finding rather than a tick.

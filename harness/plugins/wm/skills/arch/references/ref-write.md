@@ -7,7 +7,7 @@ Vocabulary: `wm:GLOSSARY.md`.
 ## Role
 
 Architector, not executor. Write and edit only under `<notes-dir>/` (`CLAUDE.md`, `RULES.md`,
-`spec.md`, `GLOSSARY.md`, `PATTERNS.md`, `thoughts/`, `todos/`). Read any file for planning. "add X" / "fix Y" → capture as a ledger row,
+`spec.md`, `GLOSSARY.md`, `PATTERNS.md`, `CONCEPTS.md`, `thoughts/`, `todos/`). Read any file for planning. "add X" / "fix Y" → capture as a ledger row,
 never as a code edit.
 
 ## Artifacts
@@ -16,9 +16,10 @@ never as a code edit.
 <notes-dir>/
 ├── CLAUDE.md       # how to work with this corpus — map, read order, write rules (example: examples/notes-claude.md)
 ├── RULES.md        # what to discuss directly at each step (example: examples/rules.md)
-├── spec.md         # the target picture + the ledger
+├── spec.md         # the target picture + the ledger (example: examples/spec.md)
 ├── GLOSSARY.md     # project ubiquitous language (example: examples/glossary.md)
 ├── PATTERNS.md     # implementation patterns + reference files the implementer follows (example: examples/patterns.md)
+├── CONCEPTS.md     # app architecture, data flow, the flow — drawn with `show-me` (example: examples/concepts.md)
 ├── thoughts/       # NNN-{question,decision,fact,impl-decision}-slug.md — the thought graph
 │   └── archived/   # answered questions + superseded thoughts — out of the live graph, kept for the trail
 ├── todos/          # TODO-N.md + TODO-N.agent.md — one pair per ledger row (authored by `todo`, past the gate)
@@ -26,14 +27,15 @@ never as a code edit.
 ```
 
 - **`CLAUDE.md`** and **`RULES.md`** are written once, by `new` Step 0, and are never rewritten by a later subcommand. `CLAUDE.md` tells any agent entering the folder how to read and write it; `RULES.md` says which choices go to the human at each step. Every subcommand reads `RULES.md` before it starts and obeys it over its own defaults — a rule there never lowers a hard gate (the `review→impl` read, destructive-git confirmation).
-- **The rules every TODO obeys are stored in no file.** `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints them from the `thoughts/` graph (`sub-todo.md` § Constraints for the rules, `examples/constraints.md` for the printed shape). No TODO copies a rule, and every agent half carries the command instead.
+- **The rules every TODO obeys are stored in no file.** `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints them from the `thoughts/` graph (`ref-todo-sections.md` § Constraints). No TODO copies a rule, and every agent half carries the command instead.
 - A thought that stops being live moves to `thoughts/archived/` — a question once answered (`ref-note-format.md` § Resolution), a decision once superseded (§ Superseding). Never deleted, never left in the live graph; the `thoughts-archive.sh` hook performs the move.
 
 - **`review/`** holds one directory per judged target — `TODO-N` or a resolved range slug — with one file per gate plus the merged `report.md`. Every gate overwrites its file each round, so the directory always shows the current verdict and never the trail. Owned by the `review` skill (`review:ref-gates.md` § Every gate writes its report to a file); no other subcommand writes there.
 
 - **`spec.md`** is read by humans + the audit — the **target picture** plus the **ledger** plus the **Plan**. No bodies, no checkboxes, no file paths.
 - **Decisions and open questions are not spec sections.** Every choice, every fact, every unresolved question is a note in `thoughts/` — `spec.md` has no `Design Decisions` and no `Open Questions` section, and the Plan carries no decision-trail table. One place per thought; `spec.md` says what the world will look like, `thoughts/` says why.
-- **ledger** = the TODO List, an index of **outcomes** (one `#### TODO-N` entry each, with `Layer` / `Outcome` / `Concretely` / `Commit` lines). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready. An outcome the user cannot *read* is contested by default, which is what `Concretely` exists to prevent (§ spec.md template).
+- **ledger** = the TODO List, an index of **outcomes** (one `#### TODO-N` entry each, with `Layer` / `Outcome` / `Concretely` / `Commit` lines). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready. An outcome the user cannot *read* is contested by default, which is what `Concretely` exists to prevent (§ spec.md shape).
+- **`CONCEPTS.md`** carries every diagram — app architecture, data flow, and the flow this work changes — drawn with the `show-me` skill. It is the human's first read and the spec's, so it is a file rather than a `spec.md` section: the diagrams re-read while the ledger is shaped, and the spec's 200-line budget has no room for them. Written when a picture changes a layer, a wave, or where a row splits; a change with no structure to draw has none (example: `examples/concepts.md`).
 - **`PATTERNS.md`** is read by the implementer, not the human — the patterns and reference files a TODO's increments follow. Nothing in it needs human agreement, which is why it is not a spec section: `spec.md` mentions `@PATTERNS.md` and carries none of the content.
 - **`todos/TODO-N.md` + `todos/TODO-N.agent.md`** are one **pair** per ledger row, split by audience. `TODO-N.md` is the human's gate read — frontmatter, Outcome, New terms, Components, **Surface** (the one diff in the pair: every type, field, signature and setting the TODO changes), Autotest, Commit — restating its ledger outcome verbatim at the top, budgeted at 550 lines because the diff needs the room. `TODO-N.agent.md` is the context-free Sonnet implementer's — Constraints (the one fixed line naming the generator), Changes (the increments **described, never diffed**: what to do, in what order), Files, Pre-reads, Manual test, Definition of done — with no line budget and not one ```diff block. Self-contained means the **pair plus the generated rule set** is enough; neither half restates the other, and each carries exactly one link to the other. Neither half stores an origin link: why a decision was made is walked on demand from `thoughts/` by the `trace` skill. Both are written, renumbered, and deleted together. Owned by `todo` (`sub-todo.md`).
 - **thought** — one note per question asked and one per answer given, linked by `[[wikilinks]]`. Format + templates: `ref-note-format.md`.
@@ -177,96 +179,18 @@ entry to trace **without reopening the codebase**. Tests (front) and the one-sen
 
 If `<notes-dir>/research/` exists, consume those artifacts — they already encode this chain (owned by `explore`) — rather than re-deriving.
 
-## spec.md template
+## spec.md shape
+
+The filled artifact, with the rules for every section written beside it:
+[`examples/spec.md`](../examples/spec.md). Copy it, replace the content, delete the `>` lines.
 
 One audience: the human at the gate. Description, Goal, What we're NOT doing, the ledger, the
 Plan — everything the reviewer reads to judge whether the target picture is right, the ledger
 included, since the outcomes are the discussion object the user aligns on.
 
-A section belongs here only if a human must verify it. What only an agent consumes is not a spec
+A section belongs there only if a human must verify it. What only an agent consumes is not a spec
 section: the implementation patterns and reference files live in the sibling `PATTERNS.md`
 (example: `examples/patterns.md`), which the spec mentions and does not restate.
-
-```markdown
----
-status: init          # init → review → impl  (phase machine + rules: ref-write.md § Status)
-approve: increment    # increment | todo | none  (what the human approves during impl: ref-write.md § Approval)
-branch: <git branch at init>   # the branch this spec belongs to; set once at init. See § Spec ownership by branch
-drives: <one sentence — what this work delivers, user-facing>
----
-
-# Spec
-
-## Description
-<what this work is about, 2–5 sentences>
-
-> Terms live in the sibling `GLOSSARY.md` (example: `examples/glossary.md`), current every phase.
-> Implementation patterns live in the sibling `@PATTERNS.md` — the implementer reads it; this spec does not restate it.
-
-## Goal
-
-Plain-language user-visible outcome once this spec is done. 2–5 sentences. No IDs, no checkboxes, no TODO references.
-
-> Example: "Users with an expired session keep working without re-logging in: the SDK silently refreshes on the first 401, and the server invalidates the previous refresh token on every rotation, behind the existing `auth.v2` flag."
-
-## What we're NOT doing
-
-> Explicit out-of-scope list — the scope-creep guard a reviewer checks by exclusion. One line each.
-
-- <out-of-scope item> — <why deferred / where it belongs>
-
-> Decisions live in `thoughts/` as `NNN-decision-*.md`, open questions as `NNN-question-*.md` — never as sections here. A choice made while writing this spec that has no note yet is an unrecorded thought: write the note, then continue.
-
-## TODO List (the ledger)
-
-> Index only — outcomes, not bodies. Each row is a discussion object the user aligns on before any body is drafted. Rows are sorted deepest layer first (a legal order); the `## Plan` wave table below says what actually runs together. Bodies live in `todos/TODO-N.md`, restating the outcome verbatim.
-
-#### TODO-1
-**Layer:** L0 — leaf
-**Outcome:** <observable result after this TODO, user/system-facing>
-**Concretely:** Today <what the code does now>. This <what the work does to it>. Done when <the check that settles it>.
-**Commit:** `<commit subject, ≤ 72 chars, imperative>`
-**Why:** <commit body — the problem or constraint that forced this commit, and what breaks without it>
-
-> Outcome rules — post-condition, ≤ 25 words, GLOSSARY.md terms only, no implementation nouns. Full rules and examples: `sub-todo.md` § Outcome. If a row hides an "and", split it; if two rows share an outcome, merge them.
-
-> **`Concretely` is the plain-language twin of `Outcome`, and it is not optional.** The name avoids
-> `Changes`, which in a TODO's agent half means the ordered increment sequence (`sub-todo.md` § Changes) — a
-> different thing entirely. `Outcome` is written
-> for *correctness* — abstract, glossary-bound, checkable against the Goal. That same discipline makes
-> it unreadable to anyone who does not already hold the design: "An objective is three named parts"
-> tells a reviewer nothing about what will happen to the repo. `Concretely` is written for
-> *comprehension*, in three fixed beats:
->
-> - **Today …** — the current behaviour, concretely. This is the beat that makes the row legible: a
->   reader who knows what it does now can judge whether the change is right.
-> - **This …** — what the work does to that, in a verb a non-author would use (*moves, deletes,
->   teaches, throws away, puts the choice in the user's hands*) — never *improves, handles, wires up*.
-> - **Done when …** — the observable check. A pure refactor's is often *"output is byte-identical
->   before and after"*; that is a real check and the strongest one such a row can have.
->
-> Implementation nouns are **allowed here** — module and symbol names are what make "today" concrete.
-> The ban on them applies to `Outcome` only. Keep it to 2–4 sentences; longer means the row is two rows.
-> A `Concretely` that could be written without opening the repo is wrong: it is a paraphrase of
-> `Outcome`, not a description of the change.
-
-## Plan
-
-<target picture in 3–5 sentences, one per major branch of the work>
-
-### Waves — parallel execution
-
-| Wave | TODOs | Runs together because |
-|------|-------|-----------------------|
-| W1 | TODO-1, TODO-2 | no `depends_on` between them; **Files** sets disjoint |
-| W2 | TODO-3 | `depends_on: [TODO-1]` |
-
-> Widest wave first. The wave table is the execution order; `Ln` only proves the dependency edges are legal (§ TODO ordering and waves).
-```
-
-Rules:
-- spec.md ends after the Plan.
-- TODO numbers match the `todos/` pairs 1-to-1: ledger row `N` ⇔ `TODO-N.md` **and** `TODO-N.agent.md`. A row with only one of the two files is not implementable.
 
 ## Write it for a reader who does not hold your context
 
@@ -318,7 +242,7 @@ upward (callers depend on callees); commits land the same direction — leaf →
 
 **Why deepest first:** a leaf commit compiles and tests in isolation (no stubs); upper layers never rewrite when a leaf detail changes; the diff reads in narrative order (new thing → what uses it → how it starts up); reverting the topmost TODO still compiles.
 
-**Merges that fall out of this rule:**
+### Merges that fall out of this rule
 - A type split + the call site depending on the new types = **one** TODO. Two would force a dead intermediate state where the type exists but nothing populates it.
 - Wiring that branches on one config flag = **one** TODO. The branch is mechanism, not outcome.
 - An **enabler** with exactly one consumer — a shared package, an asset, a fixture, a taxonomy — is **not its own ledger row**. It is increment 1 of the slice that consumes it, by the same rule: alone it is a dead intermediate state, it cannot state an Outcome as a capability, and its `E2E` can only be `none`. Two exceptions keep it a row: it lives in **another repo**, so it cannot share the one commit; or it has **two or more consumers**, where a `W1` interface row with its implementations in `W2` removes an edge (§ Waves step 4).
@@ -356,7 +280,7 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] `spec.md` opens with a `---` frontmatter block (`status`, `approve`, `branch`, `drives`); `approve` is one of `increment` / `todo` / `none` — never `inherit`, which is the TODO-level default (§ Approval); no `Status`/phase-rules prose in the body
 - [ ] `## Plan` carries the target-picture summary (absent only while `status: init`)
 - [ ] `spec.md` body has Description, Goal, What we're NOT doing, the ledger, and the Plan — nothing else. No `Design Decisions`, no `Open Questions` section, no `Implementation Guidelines`, no decision-trail table
-- [ ] Implementation patterns sit in `PATTERNS.md`; `spec.md` mentions `@PATTERNS.md` and carries no pattern content
+- [ ] Implementation patterns sit in `PATTERNS.md` and every diagram sits in `CONCEPTS.md`; `spec.md` mentions `@PATTERNS.md` and `@CONCEPTS.md` and carries neither
 - [ ] `spec.md` is ≤ 200 lines — over budget → move detail to `thoughts/` or split the spec, never shrink the ledger. The `budget-check` hook warns on every write and `code:sub-verify.md` Phase 0 fails on it (`arch:sub-todo.md` § Budget)
 - [ ] `GLOSSARY.md` exists (sibling), covers every entity/command/event in the spec, and is current
 - [ ] `CLAUDE.md`, `RULES.md`, and `PATTERNS.md` exist in the notes dir; `RULES.md` carries the three answered knobs, no `<…>` placeholder left
@@ -365,10 +289,10 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] **No `status: open` question note in `thoughts/`** (hard block) — `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0. The `guard.sh` hook re-checks this the moment an edit sets `spec.md` to `status: impl`, and denies the edit
 - [ ] Every decision made while writing the spec has a `thoughts/NNN-decision-*.md` note
 - [ ] Every live thought note carries a `description` — 1–3 sentences saying what it settles, so a reader picks notes from the index instead of opening all of them (`ref-note-format.md` § Frontmatter). Check with `~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts --missing-description --files` (prints nothing = pass)
-- [ ] The ledger is a list of `#### TODO-N` entries, each with `**Layer:**` / `**Outcome:**` / `**Concretely:**` / `**Commit:**` / `**Why:**` lines — no bodies, no checkboxes, no file paths
+- [ ] The ledger is a list of `#### TODO-N` entries, each with `**Layer:**` / `**Outcome:**` / `**Concretely:**` (Today | After table) / `**Done when:**` / `**Commit:**` / `**Why:**` lines — no bodies, no checkboxes, no file paths
 - [ ] Every `Commit` is a ≤ 72-char imperative subject and every `Why` states the reason the commit exists
-- [ ] Every `Concretely` has all three beats — **Today …** (current behaviour, concretely), **This …** (the change, in a verb a non-author would use), **Done when …** (the observable check) — and names something that required opening the repo. A `Concretely` that paraphrases its own `Outcome` is not one
-- [ ] No bare symbol (`α`, `β`, `w_struct`, `top-k`) appears without its meaning in words at first use; no parameter is added without a `| Parameter | Default | What it moves |` row and a line on what was deliberately **not** added; a structural change carries a diagram naming what does **not** move (§ Write it for a reader who does not hold your context)
+- [ ] Every `Concretely` is a one-row **Today | After** table plus a **Done when** line, and names something that required opening the repo. A `Concretely` that paraphrases its own `Outcome` is not one
+- [ ] No bare symbol (`α`, `β`, `w_struct`, `top-k`) appears without its meaning in words at first use; no parameter is added without a `| Parameter | Default | What it moves |` row and a line on what was deliberately **not** added; a structural change carries a diagram in `CONCEPTS.md` naming what does **not** move (§ Write it for a reader who does not hold your context)
 - [ ] Every `todos/TODO-N.md` carries `increment: 0/<total>`, `<total>` = the increment count in its agent half (§ Progress) — `bin/spec-lint.py` check B11
 - [ ] `## Plan` carries the wave table; every TODO appears in exactly one wave; TODOs sharing a wave have disjoint **Files** sets and no `depends_on` between them
 - [ ] Every outcome is a post-condition (what is true after), ≤ 25 words, no implementation nouns, GLOSSARY.md terms verbatim

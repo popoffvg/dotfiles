@@ -10,11 +10,8 @@ a time.
 writes those examples as scenarios: Given the state, When the event, Then the observable. See
 [`ref-gherkin-guide.md`](ref-gherkin-guide.md) for the syntax and the file layout, and
 [`ref-bdd-best-practices.md`](ref-bdd-best-practices.md) for the discovery practice.
-**Automation** implements them with red, green, refactor.
-
-- **Red** — write the failing test for one variant, and watch it fail for the reason you expect.
-- **Green** — write the least code that passes it.
-- **Refactor** — clean up with the test still green.
+**Automation** implements them one variant at a time with the cycle in
+`red-green-refactor:SKILL.md`.
 
 ## The iron law
 

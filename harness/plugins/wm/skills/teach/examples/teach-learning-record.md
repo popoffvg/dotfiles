@@ -1,11 +1,13 @@
 ---
-status: active              # active | superseded by LR-0007 — only when a later record contradicts this one
+status: active              # active | superseded by 0007 — only when a later record contradicts this one
 ---
 
 # Ivan reads the result pool as a cache, not a log
 
-> Copy to `<notes-dir>/teach/learning-records/NNNN-<slug>.md` — `0001-…` on the first record, then
-> the highest number in the directory plus one.
+> A filled learning record. Copy the file, replace the content, delete the `>` lines — each one
+> states the rules for the piece above it. It is saved as
+> `<notes-dir>/teach/learning-records/NNNN-<slug>.md` — `0001-…` on the first record, then the
+> highest number in the directory plus one.
 > A record is the teaching counterpart of a `thoughts/` decision note: it captures the non-obvious
 > lesson, the key insight, or the disclosed prior knowledge that steers the next session. Together
 > the records are the level calculation — the floor of what is already known.
@@ -42,4 +44,4 @@ Caching rules are now teachable directly. The storage layer under the pool stays
 > What this unlocks or rules out for later lessons, when that is not already obvious.
 
 > **Supersede, never delete.** A later record that contradicts this one sets `status: superseded by
-> LR-NNNN` here. How the understanding evolved is itself signal for what to teach next.
+> NNNN` here, naming that record's own file number. How the understanding evolved is itself signal for what to teach next.

@@ -2,9 +2,9 @@
 
 Owner of the code skill's **thought**-note *format*. What a thought is — the concept and its rules — lives in the `thought` skill; this file specializes it into concrete files. Four types: `question`, `decision`, `fact`, `impl-decision`. A question is asked as a `question` note and answered by a new `decision` or `fact` note; the answered question is archived (§ Resolution). Notes link via `[[wikilinks]]`.
 
-An **open question** is a thought too: it lives in `thoughts/` as `NNN-question-slug.md`, not as a checklist line in `spec.md`. `spec.md` has no Open Questions section (`ref-write.md` § spec.md template).
+An **open question** is a thought too: it lives in `thoughts/` as `NNN-question-slug.md`, not as a checklist line in `spec.md`. `spec.md` has no Open Questions section (`ref-write.md` § Artifacts).
 
-Templates (one per type):
+Shape of each note, filled, with the rules for every piece as `>` blocks (one per type):
 - [`examples/note-question.md`](../examples/note-question.md)
 - [`examples/note-decision.md`](../examples/note-decision.md)
 - [`examples/note-fact.md`](../examples/note-fact.md)
@@ -36,6 +36,7 @@ description: >                       # 1–3 sentences — what this thought set
   <the summary the index prints>
 date: 2026-06-18T14:30:22
 source: auto | human                  # optional
+todo: TODO-N                          # type: impl-decision only — the row the rule is scoped to
 tags: [topic, subtopic]
 ---
 ```
@@ -53,11 +54,12 @@ tags: [topic, subtopic]
   `wm-constraints.py` copies it verbatim into the constraint set (§ Finding the thought for your
   task), so write it as a rule code can obey: what the code must do, stated in the imperative or as
   the invariant it holds. There is no second copy of the rule anywhere, so writing a good rule *is*
-  writing this description. Worked example: [`examples/constraints.md`](../examples/constraints.md).
+  writing this description. What the generated set looks like: `ref-todo-sections.md` § Constraints.
 - `status` — `open` while a question is unresolved, and the only value that keeps a question in the live graph; `approved` on an answered question and on any decision/fact; `declined` when a thought is rejected, moot, or superseded, instead of deleting it.
 - `date` — ISO 8601, the moment the note was written. On a question, add `resolved:` with the timestamp of the answer when marking it (§ Resolution).
 - `source` — optional, on every type. `human` when the user stated or chose it; `auto` when nobody was asked — the answer came out of a research doc or out of the code. On a `question` it says where the question surfaced; on the `decision` or `fact` that answers it, where the **answer** came from.
 - `source: auto` on a decision marks an **auto-discovered** choice — the research or the code answered it, nobody was asked. The choice is as binding as any other, but it carries no human approval, so a reviewer reads those rows first. Every `auto` decision names what forced it in its `## Why` — the `path:line` in the code, or the research doc.
+- `todo` — on an `impl-decision` only, and required there: the ledger row whose implementation raised the decision. It is what scopes the rule: `wm-constraints.py --todo TODO-N` prints every corpus-wide rule plus the `impl-decision` rules carrying that row, so a rule written without the key reaches every TODO and a rule carrying the wrong row reaches none. A `decision` or a `fact` never carries it — a rule that holds for one row only is an `impl-decision` by definition.
 - `tags` — 1–3 topic tags for grouping in Obsidian graph view.
 
 ## Finding the thought for your task
@@ -88,9 +90,9 @@ The rule, in order:
 before the reader does.
 
 **Obeying the corpus is a different read from searching it.** `wm-constraints.py` prints the rules
-alone — everything an implementer needs without opening a note; which notes it draws them from, and
-what each column holds, is [`examples/constraints.md`](../examples/constraints.md). `--check` reports
-a note that qualifies as a rule and carries no description: the § Frontmatter rule, counted.
+alone — everything an implementer needs without opening a note. Which notes it draws a row from is
+`ref-todo-sections.md` § Constraints. `--check` reports a note that qualifies as a rule and carries
+no description: the § Frontmatter rule, counted.
 
 ---
 

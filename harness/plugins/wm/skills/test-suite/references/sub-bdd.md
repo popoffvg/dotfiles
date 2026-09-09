@@ -5,6 +5,11 @@ Shape the behavioural cases as Given/When/Then. The feature file is the **body**
 and keep the two in step: one `Rule` or block of scenarios per big case, and one scenario per
 variant, tagged with that variant's name.
 
+**The filled file is [`examples/auth-refresh.feature.md`](../examples/auth-refresh.feature.md)** —
+the Gherkin bodies for the test set in
+[`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md), every piece carrying
+its own rules. Copy its shape; this file is the procedure that produces it.
+
 ## Cucumber Notation
 
 Every test scenario is expressed in **Given / When / Then** steps:
@@ -21,18 +26,9 @@ Every test scenario is expressed in **Given / When / Then** steps:
 
 ## Scenario Structure
 
-Each test starts with a plain-English scenario block, then each step appears as a labeled section in the implementation:
-
-```
-Scenario: User deletes a resource
-
-  Given a resource exists
-  When the user deletes it
-  Then the resource no longer exists
-  And no error is returned
-```
-
-Implementation mirrors the scenario exactly:
+Each test starts with a plain-English scenario block — the shape is any `Scenario` in the
+example — and each step then appears as a labeled section in the implementation, mirroring the
+scenario exactly:
 
 ```
 // Given a resource exists
@@ -53,19 +49,9 @@ assert err == nil
 
 ## Multi-step Scenarios
 
-Break complex flows into numbered sub-steps when a single Given/When/Then isn't enough:
-
-```
-Scenario: Concurrent updates converge
-
-  Given two clients connected to the same resource
-  When both clients update the same field simultaneously
-  Then one update succeeds
-  And the other receives a conflict error
-  And the final state reflects exactly one of the two updates
-```
-
-Use numbered labels in code when there are multiple actions or checks within one keyword:
+A flow that one Given/When/Then cannot carry breaks into more `And` steps, each observable on
+its own — the parallel-refresh scenario of the example is one. Use numbered labels in code when
+one keyword covers multiple actions or checks:
 
 ```
 // When both clients update simultaneously
@@ -90,6 +76,7 @@ assert exists == false, "resource was just deleted — it must not be retrievabl
 Assert at the right granularity:
 - One `Then` per observable outcome
 - Don't bundle unrelated checks into a single assertion
+- Assert what a user or a caller can see, never an internal call or a private field
 - Prefer specific matchers: `equal`, `contains`, `has_length` over generic `is_true`
 
 ---
@@ -99,9 +86,11 @@ Assert at the right granularity:
 Each scenario must be fully independent:
 
 - **Create fresh data** per scenario — never share state between tests
-- **Use random identifiers** — never hardcode names like `"test-user"` (causes coupling)
-- **Clean up after yourself** — delete everything created, even on failure
-- **No order dependency** — any scenario must pass when run alone
+- **Generate a unique random identifier** per scenario — a hardcoded `"test-user"` collides the
+  moment two scenarios run at once
+- **Tear down everything the scenario created, even when it failed** — a leaked resource is the
+  next scenario's mystery failure
+- **Set up its own preconditions**, so any scenario passes when it runs alone
 
 ```
 # Bad — hardcoded name, shared state
@@ -141,6 +130,9 @@ submit(job)
 result = listener.wait(timeout: 5s)
 assert result != nil, "job did not complete within 5s"
 ```
+
+Wait on an event, or poll with a timeout. A `sleep(500ms)` passes on a fast machine and flakes
+on a loaded one.
 
 ---
 
@@ -188,7 +180,8 @@ For each new test scenario:
 Always produce a `.feature` file — never embed Gherkin inside a Markdown document.
 
 Place the file in `<notes-dir>/features/<feature-name>.feature`. If the notes dir has no
-`features/` subdirectory, create it.
+`features/` subdirectory, create it. This is the one statement of the output path; every
+checklist that needs it cites this section.
 
 ---
 
@@ -198,22 +191,12 @@ The "business language, not technical terms" rule applies to **user-facing app t
 For **operator runbooks** — backend startups, CLI flag changes, infra config — the
 operator's business language IS the shell command. In these scenarios:
 
-- Embed the literal CLI invocation in a `"""sh` docstring on the `When` step.
+- Embed the literal CLI invocation in a `"""sh` docstring on the `When` step — annotate it
+  `"""sh`, never a bare `"""`, so an editor highlights it and the intent is visible.
 - `Then` steps stay declarative (what the operator observes), not imperative.
 - Use `Background` for shared setup (build step, credential fetch, seed data creation).
 
-```gherkin
-When the backend starts without the library flag
-  """sh
-  ./platforma \
-    --main-root ~/data \
-    --master-secret-file ~/secret.txt
-  """
-Then the library is absent from the library list
-```
-
-For multi-line shell commands in docstrings, always annotate with `"""sh` (not bare `"""`).
-This signals intent and enables syntax highlighting in editors that support it.
+The filled shape is the `@rotation-emits-one-join-event` scenario of the example.
 
 ---
 
@@ -230,18 +213,3 @@ Criteria for "hardest":
 - Every intermediate state is independently observable (can be checked before the next step).
 
 Put it first in the `.feature` file and mark it in the strategy doc.
-
----
-
-## Scenario hygiene
-
-- **Wait on an event, or poll with a timeout.** A `sleep(500ms)` passes on a fast machine and
-  flakes on a loaded one.
-- **Generate a unique random name per scenario.** A hardcoded `"test-item"` collides the moment
-  two scenarios run at once.
-- **Tear down every resource the scenario created, even when it failed.** A leaked resource is
-  the next scenario's mystery failure.
-- **Assert observable outcomes only** — what a user or a caller can see, never an internal call
-  or a private field.
-- **Each scenario sets up its own preconditions**, so any one of them runs alone.
-- **Annotate a shell docstring `"""sh`**, never bare `"""`.

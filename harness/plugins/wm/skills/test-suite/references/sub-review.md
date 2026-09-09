@@ -1,63 +1,72 @@
-# Verify Phase (user reviews implementation)
+# Sign-off — the human accepts or rejects what shipped
 
-Verify phase. The user reviews implementation results and decides next steps.
+The implementation is in the working tree and the gates have run. This step puts the result in front
+of the human, in the form they can decide on, and then routes the decision they make. It writes no
+source and runs no test — the numbers it reports come from runs that already happened.
 
-## Context
+Naming: this step is the **human's** accept-or-reject. Auditing a test set for missed cases is
+[`sub-verify.md`](sub-verify.md), and judging whether the code is built right is the `review` skill's
+gate chain (`review:SKILL.md`). Neither of those asks the human anything.
 
-You just completed the implement phase. All changes are in the working tree.
-The user will now review your work against the acceptance criteria.
+## Step 1 — collect the criteria the human agreed to
 
-## Step 1: Show summary
+Read them from the artifacts that hold them, in this order:
 
-Present a compact summary:
-1. **What was done** — list of changes (files modified, tests added/updated)
-2. **Acceptance criteria status** — check each criterion from `<note folder>/plan.md`
-3. **Test results** — pass/fail summary from the last test run
-4. **Open issues** — anything incomplete or uncertain
+| Source | What it gives |
+|---|---|
+| `<notes-dir>/spec.md` | The ledger row for this TODO — its `Outcome` and `Concretely` lines, which are what the human aligned on before any body existed. |
+| `<notes-dir>/todos/TODO-N.md` | `Outcome`, `Surface`, and `Autotest` — the human half of the pair, restating the ledger outcome verbatim at the top. |
+| `<notes-dir>/review/TODO-N/report.md` | The merged gate verdict, if the gate chain ran. |
 
-Report every case by its name, the same string the test set and the test function use —
-`expired-token-is-rejected`, never `U-PAIR-1`. The user is deciding whether to approve, so a line
-they have to look up is a line they will skip. Group the failures under the behaviour they break,
-not under the file they live in.
+The artifact set is `arch:ref-write.md` § Artifacts. Done when every criterion you will report traces
+to a line in one of those files — a criterion you invented is a criterion the human never agreed to.
 
-## Step 2: Wait for user feedback
+## Step 2 — write the summary
 
-The user may:
-- **Approve** — all criteria met, move to `/work:done`
-- **Request changes** — specific feedback on what to fix or redo
-- **Reject** — fundamental issues, needs replanning
+Four sections, in this order:
 
-## Step 3: Route feedback
+1. **What shipped** — the files changed and the tests added or changed.
+2. **Criterion by criterion** — each criterion from Step 1 with `met` or `not met`, and one sentence
+   of evidence for each: the assertion that covers it, or the behaviour you exercised by hand.
+3. **Test results** — the pass and fail counts from the last real run, and the failing case names.
+4. **Open** — anything incomplete, anything you are unsure of, anything you decided along the way
+   that the human has not seen.
 
-- If approved: suggest `/work:done` then `/work:pr`
-- If changes requested or rejected: suggest `/work:plan` to return to planning with the feedback
+Name every case by the string the test set and the test function share — `expired-token-is-rejected`.
+The human is deciding, so a line they have to look up is a line they skip. Group failures under the
+behaviour they break, not under the file they live in. The full output contract is
+[`ref-readable-output.md`](ref-readable-output.md).
 
-**Important:** From verify, you can ONLY go back to **plan**. Never to implement directly.
-The user must go through plan to refine requirements before another implement cycle.
+Done when each of the four sections carries content or the words "none", and every criterion from
+Step 1 appears exactly once.
 
-## Allowed transitions
+## Step 3 — stop and let the human answer
 
-- verify → plan (always allowed)
-- verify → done (if all criteria pass)
+End your turn on the summary. The human's answer decides where the work goes, and no route runs
+before they give one. Done when you have made no further tool call.
 
-Do NOT suggest transitioning to implement or research from verify.
+## Step 4 — route the answer
 
-Append to `<note folder>/worklog.md`: `- YYYY-MM-DD HH:MM: <action summary>`
+| The human says | Run |
+|---|---|
+| Accepted | `/wm:work:finish` — closes the wm flow for this workspace. |
+| These specific things need changing | The `code` skill's `fix` subcommand (`impl:sub-fix.md`) — one gap at a time, thought first, then code. |
+| The spec was wrong, not the code | `/wm:work:code-revise <TODO-N>` — rewrites `spec.md` and the TODO pair to match what shipped. Notes only. |
+| Start this TODO over | The `code` skill's `revise` subcommand, then `impl` again. |
+| Where does this stand | `/wm:work:status`. |
 
-## Autoresearch rules
+Every route above goes back through the spec or the thought before it touches source. That is the
+one hard rule of this step: a change the human asks for lands as a `fix` or a `revise`, never as an
+edit made straight from a chat line.
 
-**Eval checklist:**
-1. Did the summary include all four required sections (changes, criteria status, test results, open issues)?
-2. Was every acceptance criterion from the plan explicitly listed with pass/fail status?
-3. Did the agent wait for user feedback before taking any action?
-4. Were user change requests correctly interpreted (not executed as new TODOs)?
+Done when you have named exactly one route and started it, or the human has stopped the session.
 
-**Test inputs:**
-- "Verify implementation where all criteria pass"
-- "Verify implementation where user requests 2 specific changes"
-- "Verify implementation where user rejects and wants replanning"
+## Step 5 — record it
 
-**Can change:** summary format, criteria presentation, feedback interpretation rules
-**Cannot change:** user controls all decisions, can only transition back to plan, no code changes allowed
-**Min sessions before eval:** 5
-**Runs per experiment:** 3
+Append one line to `<notes-dir>/worklog.md`:
+
+```
+- YYYY-MM-DD HH:MM: sign-off TODO-N — <accepted | changes requested | spec revised>
+```
+
+Done when the line is in the file and the notes' jj repo has it (`code:ref-jj-notes.md`).

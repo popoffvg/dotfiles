@@ -11,13 +11,25 @@ source: auto
 tags: [auth, scope]
 ---
 
+> The frontmatter is what the thought index and `wm-open-questions.sh` read; the per-key contract is
+> `arch:ref-note-format.md` § Frontmatter. Specific to a question: `status: open` is the only value
+> that keeps the question in the live graph, and it is what blocks the readiness gate. When the
+> question is answered, `resolved:` is added carrying the answer's timestamp and the note is then
+> archived (`arch:ref-note-format.md` § Resolution).
+
 # Scope of a rotated refresh token
 
-> Copy to `<notes-dir>/thoughts/NNN-question-<slug>.md`.
+> Copy to `<notes-dir>/thoughts/NNN-question-<slug>.md`, and delete the `>` lines.
 > Write one the moment an unresolved question surfaces — seeded from the request, raised by a
 > research gap, or opened mid-grill. A `status: open` note here blocks spec readiness.
 > One question per note — a question hiding an "and" is two.
+> **No answer text ever appears here, and no question is ever deleted.** Both moves — answering
+> and declining a moot question — are `arch:ref-note-format.md` § Resolution.
 > The prose follows `harness-dev:text-style`.
+
+> The title names the thought as a statement — imperative or declarative — in at most 60
+> characters. The frontmatter `description` never paraphrases it: the title names the thought, the
+> description says what it blocks (`arch:ref-note-format.md` § Frontmatter).
 
 ## Question
 
@@ -46,6 +58,3 @@ codebase: `pkg/auth/rotate.go` — read what the current handler puts in the new
 - [[002-fact-token-ttl]] — a 15-minute TTL means a stale copied scope survives at most 15 minutes
 
 > One line per note that narrows the answer space. Omit the section when nothing narrows it.
-
-> **No answer text ever appears here, and no question is ever deleted.** Both moves — answering and
-> declining a moot question — are `ref-note-format.md` § Resolution.

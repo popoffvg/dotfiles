@@ -33,7 +33,7 @@ sec() {
 sec — keychain helper (add + pick + env usage)
 
 Usage:
-  sec            # pick service via skim (sk); choose [NEW] to create one
+  sec            # pick service via fzf; choose [NEW] to create one
   sec -h         # show this help
   sec -w         # pick service and print secret only (for scripting)
 
@@ -54,7 +54,7 @@ EOF
   list_cmd='printf "[NEW]\n"; security dump-keychain 2>/dev/null | awk -F'\''"'\'' '\''/"svce"<blob>="/{print $4}'\'' | awk '\''NF'\'' | sort -u'
 
   local selection
-  selection=$(eval "$list_cmd" | sk --prompt 'keychain service> ' --height 40% \
+  selection=$(eval "$list_cmd" | fzf --prompt 'keychain service> ' --height 40% \
     --bind "ctrl-d:execute-silent([ {} != '[NEW]' ] && security delete-generic-password -s {} >/dev/null 2>&1)+reload($list_cmd)")
 
   [[ -z "$selection" ]] && return 0
@@ -119,7 +119,7 @@ Usage:
 Related:
   roumount <symlink-path>  # remove symlink only
 
-Requires: sk, fd (optional)
+Requires: fzf, fd (optional)
 EOF
     return 0
   fi
@@ -139,9 +139,9 @@ EOF
   if [[ "$interactive" -eq 1 ]]; then
     local base="${input:-$PWD}"
     if command -v fd >/dev/null 2>&1; then
-      src=$(fd --type d --hidden --exclude .git . "$base" | sk --prompt 'source dir> ' --height 60%)
+      src=$(fd --type d --hidden --exclude .git . "$base" | fzf --prompt 'source dir> ' --height 60%)
     else
-      src=$(find "$base" -type d -not -path '*/.git/*' 2>/dev/null | sk --prompt 'source dir> ' --height 60%)
+      src=$(find "$base" -type d -not -path '*/.git/*' 2>/dev/null | fzf --prompt 'source dir> ' --height 60%)
     fi
     [[ -z "$src" ]] && return 0
   else
@@ -180,12 +180,12 @@ awsx() {
       command aws sso login --profile "${2:-${AWS_PROFILE:-research-poweruser}}"
       ;;
     use)
-      # aws mil use [profile]  — fuzzy-pick with sk when no arg
+      # aws mil use [profile]  — fuzzy-pick with fzf when no arg
       local profile="${2:-}"
       if [[ -z "$profile" ]]; then
         profile=$(grep '^\[profile ' ~/.aws/config \
           | sed 's/^\[profile //;s/\]//' \
-          | sk --prompt 'aws profile> ' --height 40%) || return 0
+          | fzf --prompt 'aws profile> ' --height 40%) || return 0
       fi
       export AWS_PROFILE="$profile"
       command aws sts get-caller-identity --query 'Arn' --output text
@@ -220,13 +220,11 @@ handoff-todo() {
   if [[ -n "$todo_id" ]]; then
     : # use explicit arg
   elif [[ -d "$todos_dir" ]]; then
-    local picker
-    picker=$(command -v sk 2>/dev/null || command -v fzf 2>/dev/null || true)
-    if [[ -z "$picker" ]]; then
-      echo "sk or fzf required" >&2
+    if ! command -v fzf >/dev/null 2>&1; then
+      echo "fzf required" >&2
       return 1
     fi
-    todo_id=$(ls "$todos_dir" | "$picker" --prompt 'TODO> ' --height 40%)
+    todo_id=$(ls "$todos_dir" | fzf --prompt 'TODO> ' --height 40%)
     [[ -z "$todo_id" ]] && return 0
     todo_id="${todo_id%.md}"
   else
@@ -377,6 +375,8 @@ _down_complete_or_yazi() {
 	if [[ "${BUFFER// /}" == cd && $CURSOR == $#BUFFER ]]; then
 		BUFFER=
 		_yazi_jump
+	elif (( ${+widgets[fzf-tab-complete]} )); then
+		zle fzf-tab-complete
 	else
 		zle expand-or-complete
 	fi
@@ -397,9 +397,9 @@ claudex() {
 
 # _claudex_pick — fzf agent picker, then run the chosen agent.
 _claudex_pick() {
-  local picker choice
-  picker=$(command -v sk 2>/dev/null || command -v fzf 2>/dev/null) || { echo "sk or fzf required" >&2; return 1; }
-  choice=$(printf 'general\narchitector\nimplementer\nskills\n' | "$picker" --prompt 'claude agent> ' --height 40%) || return 0
+  local choice
+  command -v fzf >/dev/null 2>&1 || { echo "fzf required" >&2; return 1; }
+  choice=$(printf 'general\narchitector\nimplementer\nskills\n' | fzf --prompt 'claude agent> ' --height 40%) || return 0
   _claudex_run "${choice:-general}" "$@"
 }
 

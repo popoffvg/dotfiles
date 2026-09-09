@@ -33,7 +33,7 @@ every finding routes back to `impl`, which is the only skill that edits.
 4. **Run the test gate** — @tester in TODO mode, `report: <notes-dir>/review/TODO-N/test.md`, once
    the wave is green. The one question: does a test assert this TODO's `## Autotest` contract, both
    `Unit` and `E2E`? No → it writes that test and returns the files.
-5. **Merge and report** — the report shape in the roster, written to
+5. **Merge and report** — the merged shape in `../examples/report.md`, written to
    `<notes-dir>/review/TODO-N/report.md` and returned. On every gate green, the caller advances
    the TODO `status: verify → done`; on a budget exhausted, `status: blocked`. Green here means
    *built right* only — the Outcome and the Surface were checked by the `verifier` agent when
@@ -62,4 +62,4 @@ as drift the gate rules on.
 wrote, not the case that asked for it, so a listed `## Autotest` case whose code has no condition
 comes back as a Failure. Dropping it contradicts the approved pair, which makes it a **deviation**:
 the implementer records the `impl-decision` note and the `## Deviations` row, and never edits the
-Autotest table (`arch:ref-todo-sections.md`).
+Autotest table (`arch:examples/todo.md` § Autotest).

@@ -7,8 +7,8 @@ kind in the table above a shown diff. Same nine words each time, so the label th
 
 | Scale | Where it is written | Owner |
 |---|---|---|
-| TODO | `TODO-N.md` frontmatter `type:` | `arch:ref-todo-sections.md` § type |
-| increment | `TODO-N.agent.md` § Changes, the **Change** bullet | `arch:ref-todo-sections.md` § Changes |
+| TODO | `TODO-N.md` frontmatter `type:` | `arch:examples/todo.md`, the frontmatter block |
+| increment | `TODO-N.agent.md` § Changes, the **Change** bullet | `arch:examples/todo-agent.md` § Changes |
 | changed file | the table above the shown diff, one row per file | this file, below |
 
 ## The roster
@@ -38,21 +38,7 @@ A diff that fits no kind is a diff the increment did not predict. Stop and repla
 
 ## The table under `approve: increment`
 
-Written by `sub-impl.md` step 5.2. Show the table above the `git diff`, one row per changed file, `new behavior` and `signature change`
-rows first:
-
-```
-Increment 3 — thread the run id to the column writer
-
-| Kind                | File | What |
-|---|---|---|
-| new behavior        | writer/column.py:41 | stamp `run_id` into every written column spec |
-| signature change    | writer/column.py:12 | `write_columns(specs)` → `write_columns(specs, run_id)` |
-| wiring              | cli/export.py:88 | pass the parsed `run_id` down to `write_columns` |
-| call-site migration | tests/test_column.py:20,54 | two calls updated for the new parameter |
-
-Blast radius predicted: writer/column.py, cli/export.py — real diff matches.
-```
+Written by `sub-impl.md` step 5.3, above the increment's `git diff`, one row per changed file.
 
 **Say when the table has no `new behavior` and no `signature change` row.** An increment that is all
 wiring, migration, rename, move, and generated files is mechanical: tell the human so, so the
@@ -62,23 +48,16 @@ approval is one glance instead of one read.
 
 The whole-TODO diff is too long to walk file by file. Show the same table, carrying every
 `new behavior` and `signature change` row ordered outward from the start point along the calls, and
-one final row counting the other kinds:
-
-```
-TODO 4 — stamp exports with the run they came from
-
-| Kind              | File | What |
-|---|---|---|
-| new behavior      | writer/column.py:41 ← start point | stamp `run_id` into every written column spec |
-| signature change  | writer/column.py:12 | `write_columns(specs)` → `write_columns(specs, run_id)` |
-| signature change  | cli/export.py:71 | `export(path)` → `export(path, run_id)` |
-| the rest, counted | — | 11 call-site migrations, 3 wiring, 1 generated |
-```
+one final row counting the other kinds.
 
 The **start point** is the one `file:line` where the new behavior begins: the deepest `new behavior`
-row, the one no other changed symbol calls. Mark it in the row — it is the first thing the human
-opens. Name the files behind the counted row only when the human asks.
+row, the one no other changed symbol calls. It is the first thing the human opens.
 
 Under `approve: todo` this goes above the single `git diff` the user approves. Under `approve: none`
 nobody approves anything, so it goes in the step 9 report instead — it is how a human who reads the
 report later finds where the TODO actually changed the system.
+
+## The shape of both tables
+
+`examples/change-table.md` — the two tables filled, each column and each required line carrying its
+own rules. Nothing on this page is copyable; open the example to write one.

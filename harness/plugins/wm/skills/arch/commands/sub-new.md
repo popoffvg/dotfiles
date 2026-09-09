@@ -6,7 +6,7 @@ Obeys the shared subcommand rules — see `code:ref-subcommand-rules.md`.
 
 > The notes jj repo is inited on session start and committed on stop — `code:ref-jj-notes.md`. No manual init.
 
-No `<notes-dir>/spec.md` → write a minimal one (full template: `ref-write.md` § spec.md template):
+No `<notes-dir>/spec.md` → write a minimal one (full artifact with the rules per section: `examples/spec.md`):
 
 - **Frontmatter** — a `---` block with `status: init`, `approve: increment` (the default; Step 0.6 replaces it with the user's answer — `ref-write.md` § Approval), `branch:` (current branch, `git rev-parse --abbrev-ref HEAD`), and `drives:` (one sentence from the user's request). No phase-rules prose in the body — the machine lives in `ref-write.md` § Status.
 - **Description** — one sentence from the request. **Goal** — 2–3 plain sentences.
@@ -14,9 +14,10 @@ No `<notes-dir>/spec.md` → write a minimal one (full template: `ref-write.md` 
 - Create `<notes-dir>/GLOSSARY.md` from `examples/glossary.md`, empty.
 - Create `<notes-dir>/CLAUDE.md` from `examples/notes-claude.md` — the corpus guide any agent entering the folder reads. Copy the example's fenced block verbatim, not its header.
 - Create `<notes-dir>/PATTERNS.md` from `examples/patterns.md` — the implementation patterns and reference files the implementer follows. Empty or "follow language defaults" at init; `spec.md` mentions `@PATTERNS.md` and holds no pattern content.
+- Create `<notes-dir>/CONCEPTS.md` from `examples/concepts.md` when the work has structure to draw — app architecture, data flow, the flow it changes — using the `show-me` skill. Draw before the ledger: the pictures are what decide a layer, a wave, and where a row splits. Nothing structural → no file, and `spec.md` mentions none.
 - What we're NOT doing — empty or "follow language defaults". No `Design Decisions` and no `Open Questions` section: both live in `thoughts/` (`ref-write.md` § Artifacts).
 
-`CLAUDE.md` and `RULES.md` are written **once**; if either already exists, leave it — the user owns it after init. `PATTERNS.md` is created once and stays open to extension — patterns as they surface. It is never rewritten from the example after init. No rules file is created: the rules every TODO obeys are generated from `thoughts/` (`ref-todo-sections.md` § Constraints).
+`CLAUDE.md` and `RULES.md` are written **once**; if either already exists, leave it — the user owns it after init. `PATTERNS.md` is created once and stays open to extension — patterns as they surface. It is never rewritten from the example after init. Generated implementation constraints have no file: they come from `thoughts/` (`ref-todo-sections.md` § Constraints).
 
 spec.md exists → check the frontmatter `branch` against the current branch (`ref-write.md` § Spec ownership by branch):
 

@@ -48,9 +48,14 @@ result. A service and a gateway return their interface. A server and a consumer 
 or subscriptions. A scheduler returns its schedule. Wiring returns the running process.
 
 **The sketches below are TS pseudocode — read them for the ordered parts, not the syntax.** The
-notation is the one the `flow-scetch` skill owns, where the unit is a `namespace` and the entry
+notation is the one the `flow-sketch` skill owns, where the unit is a `namespace` and the entry
 point is `flow(...)`. The order of the parts survives translation into any language; the keywords do
 not. None of them is a template to copy.
+
+**This file owns the ordered parts of each brick; `flow-sketch` owns the notation and picks the
+variant** from the change shape and the `main` component's brick (`flow-sketch` § Variants). Both
+are read together by any sketch in the flow, including a `## Changes` **Behavior** sketch in a TODO's
+agent half (`examples/todo-agent.md` § Changes).
 
 ### command
 
@@ -297,7 +302,7 @@ have started it. A brick built out of order → the dependency graph has a cycle
 domain, not with a lazy reference.
 
 Parts in order: open the clients, build the gateways, build the services, start the edges. This is
-the same deepest-first order the `code` skill's TODO layers use.
+the same deepest-first order the TODO layers use (`ref-write.md` § TODO ordering and waves).
 
 ```ts
 namespace Main {

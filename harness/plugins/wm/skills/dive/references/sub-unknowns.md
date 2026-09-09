@@ -55,14 +55,11 @@ Report each finding as a card: **evidence** (file and line), **why it bites**, *
 
 ### 5. Hand over the map — the walk's only done-condition
 
-Assemble the completed four-quadrant map as one self-contained artifact the user keeps (`$RESEARCH_DIR/<slug>.unknowns.md`):
+Assemble the completed four-quadrant map as one self-contained artifact the user keeps (`$RESEARCH_DIR/<slug>.unknowns.md`).
 
-- **Known knowns** — the settled ground, with file citations.
-- **Known unknowns** — the decision ledger: every named question, its answer, who closed it (user / territory / OPEN). OPEN items state what unblocks them.
-- **Unknown knowns** — what got extracted: taste, consumers, environment, tacit conventions, and what each reshaped.
-- **Unknown unknowns** — the landmine cards with evidence, each marked decided, OPEN, or sharp-edge.
+**The map is filled in `examples/unknowns-map.md`** — every section it must carry, and the rules for each as the `>` block under it: the four quadrants, the decisions table, the steal/skip chips, the resonate checkboxes, the landmine card's three fields, the build plan, and the copyable prompt. Open it before assembling; the rules for a section are written there and nowhere else.
 
-Anything still open lives on the map, not in scrollback. A **build plan may accompany the map, never replace it** — sort by likelihood-of-tweaking (judgment calls first with alternatives toggleable, mechanical work collapsed at the bottom). Add a **copyable implementation prompt** — the user's next message pre-drafted.
+Anything still open lives on the map, not in scrollback.
 
 **Done when** the user holds the map. Offer to begin implementation as a separate task.
 

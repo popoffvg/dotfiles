@@ -1,6 +1,7 @@
 # Mission: the block workflow engine
 
-> Copy to `<notes-dir>/teach/MISSION.md`.
+> A filled `<notes-dir>/teach/MISSION.md`. Copy the file, replace the content, delete the `>`
+> lines — each one states the rules for the piece above it.
 > The mission is the compass: what to teach next, which files to surface, which exercise to design,
 > all trace back to it. Keep it under one screen; past that it has stopped being a compass and
 > started being a plan. One mission per workspace — two unrelated subsystems are two workspaces.

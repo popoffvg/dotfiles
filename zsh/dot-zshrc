@@ -61,7 +61,6 @@ eval "$(mise activate)"
 if [[ -z "$CLAUDECODE" ]]; then
   eval "$(atuin init zsh --disable-up-arrow)"
 fi
-source <(sk --shell zsh)
 eval "$(sg completions zsh)"
 
 # Argument completion for the ~1000 CLIs carapace knows, most of which ship no
@@ -213,5 +212,6 @@ if (( ${+functions[_yazi_jump]} )); then
 
   zle -N down-complete-or-yazi _down_complete_or_yazi
   bindkey '^[[B' down-complete-or-yazi
+  bindkey '^[OB' down-complete-or-yazi
 fi
 

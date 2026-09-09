@@ -6,17 +6,18 @@ The contract every `/code` subcommand obeys.
 Read `<notes-dir>/RULES.md` before the first step. It says what to raise with the human and what
 to decide alone; it wins over a subcommand's own default. It never lowers a hard gate — the human
 still reads the spec at the `review→impl` gate, destructive git is still confirmed. Missing file →
-use the defaults in `arch:examples/rules.md` § Rules table, and let `new` Step 0.6 write it.
+use the defaults in `arch:examples/rules.md` § Per step, and let `new` Step 0.6 write it.
 
 ## Put a batch of questions in a file the human edits
 **Two or more questions at once go to a file, through the `to-user` skill** — one block per
 question, each with the source anchor, the question, and a recommended answer the user can accept
-as written. Load `to-user` for the block shape and the extraction rule; nothing here restates them.
+as written. Load `to-user` for the block shape and the extraction rule — it owns the field roster,
+and the only thing written here is how each field reads for one kind of batch (§ Glossary, a term).
 The grill, the init knobs, a quiz, a glossary change set, a batch of open questions: all of these
 are batches. The user answers them in their editor, at their pace, with the file in front of them.
 
 **One question that blocks the current step stays inline** — `AskUserQuestion`, answered now. A
-route the agent cannot pick without stopping work (`impl:sub-impl.md` § correction routes) is the
+route the agent cannot pick without stopping work (`impl:sub-impl.md` § When a correction contradicts the pair) is the
 case this covers. A file the user may not open for an hour is the wrong place for it.
 
 **Every question carries its own context, in either form.** Give what forced the question, what
@@ -53,7 +54,7 @@ the cause / goal / decision body — is the `commit-message` skill; load it befo
 ## Glossary
 `<notes-dir>/GLOSSARY.md` grows through the whole flow, not once at the start. Every subcommand
 that meets a domain word the file does not have — `dive docs` reading the code, `new` grilling the
-user, `todo` naming a component, `impl` writing it, `fix` renaming it — adds it. Table shape:
+user, `todo` naming a component, `impl` writing it, `fix` renaming it — adds it. Entry shape:
 `arch:examples/glossary.md`.
 
 **The user approves every new or renamed term before it lands.** A term is the spec's contract with
@@ -64,11 +65,13 @@ and each collision where one word carries two meanings — and send the whole se
 
 - **Source** — the `path:line` or spec section the term came from.
 - **Original** — the word as the code or the user writes it today, with the other names in use.
-- **Recommended** — the row as it would land: `Term | Kind | Description | Avoid | Source`.
+- **Recommended** — the entry as it would land: the term as its heading, the one-sentence
+  definition, then `Status`, `Kind`, `Forbidden` (every other name in use for the concept, spelling
+  variants included), and `Source`.
 - **Answer** — pre-filled with the recommendation. The user accepts it, rewords it, or writes
   `drop` to reject the term.
 
-Write the accepted rows into `GLOSSARY.md` in the same commit as the work that raised them. A
+Write the accepted entries into `GLOSSARY.md` in the same commit as the work that raised them. A
 rejected term does not come back on the next run. A term the user renamed is renamed everywhere it
 is already used — `spec.md`, the TODO outcomes, the `thoughts/` note descriptions — in that same commit.
 

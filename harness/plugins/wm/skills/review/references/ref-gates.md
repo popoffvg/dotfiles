@@ -22,7 +22,9 @@ The two test gates are opposites and both are needed. `test worth` reads the tes
 **wrote** and drops the ones that buy no failure mode; `test` reads the contract the diff left with
 **no** test and writes it. One subtracts, one adds, so neither can stand in for the other.
 
-**No gate judges the spec.** Whether the change is the *right thing* — the Outcome delivered, the
+### No gate judges the spec
+
+Whether the change is the *right thing* — the Outcome delivered, the
 approved Surface matched, scope kept — is settled outside this chain, by `/code verify` before the
 code exists and the `verifier` agent after it. Every gate here answers the other question: is it
 built right. A gate that reports drift is reporting something it was not asked to judge.
@@ -66,7 +68,9 @@ still waiting for approval, so it stays per TODO.
 rather than judging it — it writes the missing test — so it must not run beside gates reading that
 same diff.
 
-**Any FAIL restarts the whole chain at the wave.** Merge the failing gates' findings into one fixup
+### Any FAIL restarts the whole chain at the wave
+
+Merge the failing gates' findings into one fixup
 brief, hand it to `impl` (`impl:sub-commit.md` § Fixups — a correction is a fixup, never a plain
 commit), then run the wave again from the start. A fixup can break what a later gate already
 cleared, so no gate result survives a fixup.
@@ -108,19 +112,11 @@ trail lives in git history, not in the report.
 **A PASS still writes its file.** An absent file means the gate did not run — a meaning it can only
 carry if a green gate always leaves one.
 
-**Every file opens with the moment it was written.** The writer runs `date -Iseconds` and puts what
-it printed in a frontmatter block above everything else:
-
-```
----
-reviewed: 2026-09-03T14:22:31+02:00
----
-```
-
-The files overwrite, so the timestamp is what tells a reader whether they are looking at the round
-that just ran or at a file the current round never rewrote — a gate that died leaves yesterday's
-verdict sitting under today's `report.md`. It belongs to the file alone: the text a gate returns to
-the caller starts at its `[GATE] Result:` line.
+**Every file opens with the moment it was written**, in a `reviewed:` frontmatter block above
+everything else. The files overwrite, so the timestamp is what tells a reader whether they are
+looking at the round that just ran or at a file the current round never rewrote — a gate that died
+leaves yesterday's verdict sitting under today's `report.md`. It belongs to the file alone: the text
+a gate returns to the caller starts at its `Result:` line.
 
 **These are notes-dir files, never source.** Writing them keeps the read-only rule this skill's
 `SKILL.md` states.
@@ -128,9 +124,33 @@ the caller starts at its `[GATE] Result:` line.
 ## One toolchain run per round
 
 Build, lint, and Autotest each run **once per round**, before the gate wave — the caller runs them
-and writes the result to `<notes-dir>/review/<target>/toolchain.json` (command → exit code → output
-path). No gate re-runs a command the caller already ran; a gate that needs a verdict reads the
-artifact instead.
+and writes the result to `<notes-dir>/review/<target>/toolchain.json`. No gate re-runs a command the
+caller already ran; a gate that needs a verdict reads the artifact instead.
+
+**The file the caller writes:**
+
+```json
+{
+  "round": 2,
+  "at": "2026-09-04T11:05:12+02:00",
+  "commands": {
+    "build": { "command": "go build ./...",       "exit": 0, "output": "toolchain/build.log" },
+    "Unit":  { "command": "go test ./pkg/auth/...", "exit": 1, "output": "toolchain/unit.log" },
+    "E2E":   { "command": "none",                  "exit": null, "output": null }
+  }
+}
+```
+
+`round` is the round the wave is about to run, `at` is what `date -Iseconds` printed. Each key of
+`commands` is a step a gate asks about — `build`, `Unit`, `E2E` — and its entry carries the literal
+command the caller ran, its exit code, and the output path, relative to
+`<notes-dir>/review/<target>/`. An Autotest level written `none` gets an entry with
+`"command": "none"` and a null exit, so a gate can tell a skipped level from a level nobody ran.
+
+**Staleness is decidable from `round`.** The caller overwrites the whole file each round and puts the
+same `round: <n>` line in every gate's brief, beside `report:`. A gate reads the file's `round`: it
+matches the brief → the entries are this round's; it is lower, or the key it needs is absent → the
+entry is stale and the gate reports `n/a`, never a run of its own.
 
 | Gate | Toolchain |
 |---|---|
@@ -145,45 +165,23 @@ A report with an empty Failures section says one of two things — the diff is c
 never looked. So every gate report carries a `## Covered` table above its findings, one row per rule
 that gate owns, and the rows are fixed: the same list every run, whatever the diff holds.
 
-```
-## Covered
-| Rule | Verdict |
-|---|---|
-| <the rule, by the name its agent file gives it> | clean |
-```
-
-The Verdict column takes one of `clean`, `<n> failure(s)`, `<n> nit(s)`, or `n/a — <the reason
-nothing in this diff reaches the rule>`. A row is never dropped for having nothing to say; `n/a` is
-how a gate reports that.
-
 **Each gate's row set lives in its own agent file**, in the template under its Output contract —
-`comment-critic` lists its five prose gates, `name-critic` its three, `test-critic` its drop-table
-rows, `lint-tester` the commands it ran, `tester` its five case categories, `reviewer` its five hunts and
-the sources it read. An agent
-is a separate prompt that never sees this page, so the rows are written where the agent reads them
-and this page states only the shape.
+`comment-critic` lists seven rows over its five prose gates, because the ban splits into three;
+`name-critic` its three, `test-critic` its six drop-table rows, `lint-tester` the commands it ran,
+`tester` its five case categories, `reviewer` its five hunts and the sources it read. An agent is a
+separate prompt that never sees this page, so the rows are written where the agent reads them.
+
+**A gate may carry a column the others do not.** `Rule | Verdict` is the minimum; `lint-tester`
+writes `Rule | Command | Verdict`, because the command it ran is the evidence for its row. The extra
+column is declared in that gate's agent file beside its rows.
 
 ## The merged report
 
 Every mode reports the same thing, and it is the caller that merges — a gate reports only itself.
-The caller writes the merged text to `<notes-dir>/review/<target>/report.md` and returns it:
-
-```
----
-reviewed: <`date -Iseconds`>
----
-
-[GATE] Result: PASS | FAIL   (after <n> round(s))
-
-## Gates
-- lint <PASS|FAIL> · comment <PASS|FAIL> · name <PASS|FAIL> · test worth <PASS|FAIL> · test <PASS|FAIL> · standards <PASS|FAIL>
-
-## Failures        (omit when PASS)
-- <gate> · <file:line> — <the scenario or the rule> — <the edit that closes it>
-
-## Nits           (optional, non-blocking)
-- <gate> · <file:line> — <observation>
-```
+The caller writes the merged text to `<notes-dir>/review/<target>/report.md` and returns it.
 
 Every finding keeps the gate that produced it. A finding whose gate is stripped cannot be
 re-litigated: the reader needs to know whether a line was rejected by a table or by a judgment.
+
+**The shape of both files is `examples/report.md`** — one gate's file and the merged report, filled,
+each piece carrying its own rules. Nothing on this page is copyable; open the example to write one.

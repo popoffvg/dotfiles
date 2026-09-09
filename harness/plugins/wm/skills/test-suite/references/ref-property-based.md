@@ -161,5 +161,4 @@ live in the test source; the saved document carries the sentence and the techniq
 it, in the shape [`ref-readable-output.md`](ref-readable-output.md) defines.
 
 In a wm TODO's `## Autotest`, a property backs one bold claim group in place of its example
-bullets, with the Outcome as the claim source — shape owned by `arch:ref-todo-sections.md`
-§ Autotest.
+bullets, with the Outcome as the claim source — shape owned by `arch:examples/todo.md` § Autotest.

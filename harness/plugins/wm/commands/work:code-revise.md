@@ -1,20 +1,10 @@
 ---
-name: work-spec-revise
-description: Revise spec.md, the todos/TODO-N.md + TODO-N.agent.md pair, and the thoughts/ notes so they match what the last commit related to TODO-N actually implemented.
+name: work:code-revise
+description: Reconcile a TODO's review correction or shipped drift through the arch revision procedure.
 argument-hint: <TODO-N> [<sha-or-range>]
 ---
 
-Use the `code` skill's `revise` subcommand (`commands/sub-revise.md`) to update the spec to match reality.
+Run `arch:sub-revise.md` for `$ARGUMENTS`. It owns the delta manifest, commit discovery, and
+notes-only reconciliation.
 
-Arguments: `$ARGUMENTS`
-
-1. Parse `$ARGUMENTS` — first token is the TODO id (e.g. `TODO-3`). Optional second token pins a git SHA or range; otherwise discover the commit via the notes jj history (`jj log`) / `git log --grep`.
-2. Follow the `code` skill's `revise` subcommand end-to-end:
-   - Locate the commit(s) for the given TODO.
-   - Inspect the diff (`git show <sha>`) and categorize deltas vs the current plan.
-   - Update `<notes-dir>/spec.md` and both halves of `<notes-dir>/todos/TODO-N` so they reflect what actually shipped.
-   - Append a worklog line.
-3. **Do not modify source code.** Edits are limited to `<notes-dir>/`.
-4. Stop after reporting the summary. Return control to the user.
-
-If `$ARGUMENTS` is empty or the TODO id is missing, ask the user which TODO to revise — do not guess.
+If `$ARGUMENTS` lacks a TODO id, ask which TODO to revise.

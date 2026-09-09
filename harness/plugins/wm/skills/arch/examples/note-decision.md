@@ -13,12 +13,23 @@ links:
   - "[[002-fact-token-ttl]]"
 ---
 
+> The frontmatter is what the thought index and `wm-constraints.py` read; the per-key contract is
+> `arch:ref-note-format.md` § Frontmatter. Specific to a decision: `status: approved` unless the
+> user rejected the choice or a later note superseded it, both of which make it `declined`.
+> `description` is the rule text `wm-constraints.py` prints verbatim into the constraint set, so
+> write it as a rule code can obey. `source: human` when a person chose, `source: auto` when nobody
+> was asked — and an `auto` decision names what forced it in `## Why`.
+
 # Reject concurrent refreshes (single-flight)
 
-> Copy to `<notes-dir>/thoughts/NNN-decision-<slug>.md`.
+> Copy to `<notes-dir>/thoughts/NNN-decision-<slug>.md`, and delete the `>` lines.
 > Write a decision note when the answer IS a choice — the user decided, recommended, or picked
 > between alternatives. When the answer is an observed truth, write a fact note instead.
 > The prose follows `harness-dev:text-style`.
+
+> The title names the thought as a statement — imperative or declarative — in at most 60
+> characters. The frontmatter `description` never paraphrases it: the title names the thought, the
+> description says what it settled (`arch:ref-note-format.md` § Frontmatter).
 
 ## Question
 

@@ -66,9 +66,9 @@ rename across every file that carries it.
 
 **Only the new names are in scope.** A term `GLOSSARY.md` marks `existing` names something the code
 already calls that, and renaming it is a refactor with its own TODO — not a finding against this
-spec. The gate reads the `Status` column and judges the `new` rows alone
-(`arch:examples/glossary.md` § Status). A spec whose glossary has no `Status` column is not ready
-for this phase: fill the column first, or every existing name is re-litigated every round.
+spec. The gate reads each entry's `Status` field and judges the `new` terms alone
+(`arch:examples/glossary.md`). A glossary whose entries carry no `Status` is not ready for this
+phase: fill it in first, or every existing name is re-litigated every round.
 
 Run the mechanical half first — it is a second and it hands the agent its list:
 
@@ -146,7 +146,8 @@ content that *is* the implementation rather than the surface a caller sees: a fu
 or branch chain, a shell script, a SQL query, a regex, a fixture, a table of literal expected
 values, a test file's assertions. The edit is the same each time — delete the body, keep the
 signature, move the logic into the increment's **Behavior** sketch, and use a plain contract block
-when the file has no surface at all (`arch:sub-todo.md` § A diff carries the surface, not a body).
+when the file has no surface at all (`arch:ref-todo-sections.md` § A diff carries the surface, not a
+body).
 **The one legal body is one the human asked for**, and it carries a `**Body requested:**` bullet
 naming the symbol. Judge `## Autotest` the same way: its Cases are sentences, never test source.
 
@@ -171,7 +172,7 @@ half — that half has no line budget to absorb it.
 
 **A rule that is not a rule.** A decision no increment in any TODO can violate is a fact, not a
 constraint: the finding is to retype that note as `fact`, and the generator then skips it
-(`arch:examples/constraints.md`).
+(`arch:ref-todo-sections.md` § Constraints).
 
 **Scope discipline.** The TODOs align with the current Goal — no unrelated expansion, and no missing
 blocker TODO that the referenced files surface.
@@ -195,7 +196,7 @@ behavior.
 **An E2E deferral is legal only when the named TODO carries the case.** `none — observable only via
 TODO-3` binds TODO-3's `## Autotest` `E2E` to a case that asserts this path; a deferral to a TODO
 whose E2E never mentions it is an untested path with a citation. Deferring to a `Manual test` never
-counts (`arch:ref-todo-sections.md` § Autotest).
+counts (`arch:examples/todo.md` § Autotest).
 
 ## Output contract
 

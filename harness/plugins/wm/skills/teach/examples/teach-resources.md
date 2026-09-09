@@ -1,6 +1,7 @@
 # Resources: the block workflow engine
 
-> Copy to `<notes-dir>/teach/RESOURCES.md`.
+> A filled `<notes-dir>/teach/RESOURCES.md`. Copy the file, replace the content, delete the `>`
+> lines — each one states the rules for the piece above it.
 > It is the curated set of trusted sources for this subject. Lesson knowledge comes from here, never
 > from a guess about how such code usually works.
 > Prune ruthlessly: a source that turns out stale, shallow, or off-mission is removed, not buried.
@@ -33,8 +34,8 @@
 
 > Annotate every entry, in every group. A bare path or link is useless in three months; one line
 > saying what it covers and when to reach for it is not.
-> The three groups map to knowledge and wisdom in `commands/sub-teach.md`. An entry sits in one
-> group only.
+> The three groups map to the three categories in `commands/sub-teach.md` § Knowledge, skills,
+> wisdom. An entry sits in one group only.
 
 ## Gaps
 

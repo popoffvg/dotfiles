@@ -1,6 +1,6 @@
 ---
 name: show-me
-description: Pick the form that fits what is being shown — pseudocode, a call tree, a component tree, a file tree, a diff, a decision table, a flow diagram (mermaid in md files, ASCII in chat) — and write it into the reply. Use when the user says "show me", "draw it", "sketch that", "what does the flow look like", "where does that live", when a design point is easier pointed at than described, or when prose has grown into a third paragraph about structure. Routes to the drawing skills when the content needs a canvas.
+description: Pick the form that fits what is being shown — pseudocode, a call tree, a Codemap, a component tree, a file tree, a diff, a decision table, a flow diagram (mermaid in md files, ASCII in chat) — and write it into the reply. Use when the user says "show me", "draw it", "sketch that", "what does the flow look like", "where does that live", when a design point is easier pointed at than described, or when prose has grown into a third paragraph about structure. Routes to the drawing skills when the content needs a canvas.
 ---
 
 # show-me — one form per kind of content
@@ -11,8 +11,9 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 
 | The content is | Show it as | Done when |
 | --- | --- | --- |
-| a rule, a branch, an algorithm | **pseudocode** | the reader can restate the rule without the source |
-| which function calls which, and in what order | **call tree**, indented | every name is one the reader can grep |
+| a rule, a branch, an algorithm | **pseudocode** → `flow-sketch` | the reader can restate the rule without the source |
+| which function calls which, and in what order | **call tree**, indented | every name is one the reader can grep, looks like tree command output in stack trace format |
+| a code path across files that someone will revisit | a **Codemap** → `codelens` | one question has a pinned, re-anchorable trace |
 | which component owns which, and where state sits | **component tree**, owning path on the root | the state hook and the package boundary are both visible |
 | responsibility across directories | **shallow file tree**, one comment per dir | each comment says what the dir *owns*, not what it holds |
 | a change to any shape above | **`diff`** over that same shape | the surrounding shape is present and unchanged |
@@ -32,6 +33,23 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 | a corpus someone must learn | lessons or a deck → `lessons`, `deck-as-code` | — |
 
 The bold forms are fenced blocks in the reply and answer most questions. A routed row costs a canvas, a browser, or a publish, and is done when the skill it names is done — that skill states its own criterion. **Take a routed row only by naming what the inline form could not carry: pixels, motion, the human's hands, or a page of its own.**
+
+## Code traces that survive the reply
+
+Use a Codemap only for a code path across files that someone will revisit. `codelens` writes `docs/traces/<slug>.codemap.md`, walks its real code locations, and later re-anchors them with `codelens check`.
+
+```markdown
+# how a request becomes a saved result
+@ <short commit>
+> src/entry.rs:42 handle_request
+
+- Input is validated
+  - src/entry.rs:42 handle_request
+    - src/validation.rs:18 validate
+      | rejects malformed input before storage is reached
+```
+
+`#` is the question, `@` the commit pin, `>` an entry point, `-` a stage or `path:line:symbol` Node, and `|` a fact the code alone does not say. Indentation means part of the current step, not necessarily a direct call; expand a location once and repeat it bare thereafter.
 
 ## Three rules for every form
 

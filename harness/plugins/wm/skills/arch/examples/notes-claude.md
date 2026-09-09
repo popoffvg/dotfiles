@@ -1,7 +1,9 @@
 # Notes corpus
 
 > Copy to `<notes-dir>/CLAUDE.md` verbatim, replacing `<notes-dir>` with the real path. Written once
-> by `/code new` Step 0, next to `spec.md`; no later subcommand rewrites it.
+> by `/code new` Step 0, next to `spec.md`; no later subcommand rewrites it. Delete this block on
+> copy; it is the only `>` block here, because a file copied verbatim needs no per-section rules —
+> its own prose is the contract the notes corpus obeys.
 > The prose follows `harness-dev:text-style`.
 
 This folder is the spec corpus for one piece of work. It is its own jj repo, git-ignored in the
@@ -15,14 +17,15 @@ parent project. `jj -R . log` is the history.
 | `GLOSSARY.md` | Project ubiquitous language — every term the spec uses | every phase |
 | `RULES.md` | What to raise with the human at each step, and what to decide alone | `/code new` Step 0.6 |
 | `PATTERNS.md` | Implementation patterns + reference files the increments follow — for the implementer, not the human | `/code new` Step 0, then any subcommand that finds a pattern |
+| `CONCEPTS.md` | App architecture, data flow, and the flow this work changes — every diagram, drawn with `show-me` | `/code new` Step 0, when there is structure to draw |
 | `thoughts/` | `NNN-{question,decision,fact,impl-decision}-slug.md` — the thought graph | every phase |
 | `thoughts/archived/` | Answered questions + superseded thoughts — kept for the trail, out of the live graph | a hook, on any note that stops being live |
 | `todos/` | `TODO-N.md` + `TODO-N.agent.md` — one self-contained pair per ledger row: the human half (Outcome, Components, Autotest, Commit) and the agent half (the constraint command, the increments, Files, Pre-reads) | `/code todo` |
-| `research/` | Explore-phase artifacts, ingested into `thoughts/` as facts | `/explore` |
+| `research/` | Explore-phase artifacts, ingested into `thoughts/` as facts | `/dive docs` |
 
 ## Read order
 
-1. `spec.md` — Description, Goal, What we're NOT doing, the ledger, the Plan.
+1. `CONCEPTS.md` — the diagrams, if the file exists. Then `spec.md` — Description, Goal, What we're NOT doing, the ledger, the Plan.
 2. `GLOSSARY.md` — the terms the spec uses. Same word, same meaning, everywhere.
 3. `RULES.md` — the interaction contract for the current step.
 4. `~/.claude/scripts/wm-constraints.py thoughts` — the rules the code must satisfy, generated from

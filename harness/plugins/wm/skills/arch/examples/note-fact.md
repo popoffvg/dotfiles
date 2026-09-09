@@ -11,13 +11,23 @@ source: auto                # auto | human
 tags: [auth, config]
 ---
 
+> The frontmatter is what the thought index reads; the per-key contract is
+> `arch:ref-note-format.md` § Frontmatter. Same keys as a decision, with `status: approved` and
+> `source: auto | human` carrying the same meaning. The one difference decides how `description` is
+> written: a `fact` generates no constraint row (`arch:ref-todo-sections.md` § Constraints), so its
+> description is written to be read, not obeyed.
+
 # Refresh token TTL is 15 minutes in production
 
-> Copy to `<notes-dir>/thoughts/NNN-fact-<slug>.md`.
+> Copy to `<notes-dir>/thoughts/NNN-fact-<slug>.md`, and delete the `>` lines.
 > Write a fact note when the answer establishes a truth — a code observation, a user assertion, or
 > a research finding. A fact is evidence; it makes no choice. When the answer IS a choice, write a
 > decision note instead.
 > The prose follows `harness-dev:text-style`.
+
+> The title names the thought as a statement — imperative or declarative — in at most 60
+> characters. The frontmatter `description` never paraphrases it: the title names the thought, the
+> description says what it settled (`arch:ref-note-format.md` § Frontmatter).
 
 ## What
 

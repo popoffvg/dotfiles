@@ -4,8 +4,9 @@ Produce two artifacts: a **`.md` test set** that a human reads top to bottom, an
 feature files** that carry the body of every behavioural scenario.
 
 The `.md` follows [`ref-readable-output.md`](ref-readable-output.md) — read that first, it is the
-contract this subcommand fills. The worked example is
-[`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md).
+contract this subcommand fills. The two worked examples are the pair this subcommand produces:
+[`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md) is the `.md` map, and
+[`examples/auth-refresh.feature.md`](../examples/auth-refresh.feature.md) is its Gherkin body.
 
 ## How the two artifacts divide
 
@@ -30,8 +31,8 @@ features/<area>.feature     # Given/When/Then bodies, tagged with variant names
 
 ## Names join the two artifacts
 
-The variant name from `ref-readable-output.md` section 4 is the joining key. It appears in the
-`.md` line in bold and as the Gherkin tag on the scenario:
+The variant name from `ref-readable-output.md` § Names, never slugs is the joining key. It
+appears in the `.md` line in bold and as the Gherkin tag on the scenario:
 
 ```gherkin
 @running-cannot-return-to-pending
@@ -131,7 +132,7 @@ which message.
 
 ## Done criteria
 
-- [ ] The `.md` passes the checklist in `ref-readable-output.md` section 7
+- [ ] The `.md` passes the checklist in `ref-readable-output.md` § Checklist before saving
 - [ ] Every requirement reaches at least one case
 - [ ] Every checklist category has a case or a written N/A reason
 - [ ] Every external dependency has at-limit and unavailable behaviour covered, or an N/A reason

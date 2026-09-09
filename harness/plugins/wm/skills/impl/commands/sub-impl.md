@@ -1,7 +1,8 @@
 # code — impl
 
 Execute **exactly one** TODO end-to-end, then stop and hand back. One TODO ships one deliverable as
-one commit plus its fixups, built increment by increment (`arch:sub-todo.md` § Changes). How much of
+one commit plus its fixups, built increment by increment (`arch:examples/todo-agent.md` § Changes).
+How much of
 it the user approves — each increment's diff, the TODO's diff once, or nothing — is the `approve` key,
 read off `TODO-N.md` and off `spec.md` behind it (`arch:ref-write.md` § Approval). `squash` collapses the fixups back into
 the one commit.
@@ -73,8 +74,8 @@ only skill that edits source.
    count, and apply nothing after it. Never show a human a diff a gate still rejects — a blocked
    increment is reported, not approved.
 
-**The test gate stays per TODO** — `review:ref-gates.md` § The order says why, and
-`review:sub-todo.md` step 4 runs it once over the finished TODO.
+**The test gate stays per TODO** — `review:ref-gates.md` § The order: one wave of judges, then
+the gate that writes says why, and `review:sub-todo.md` step 4 runs it once over the finished TODO.
 
 **A fix here is part of the increment, not a fixup.** It lands before 5.5 and is amended in with the
 rest of the increment. `sub-commit.md` § Fixups covers user corrections — a human rejecting a shown
@@ -91,7 +92,7 @@ which one you recommend and why:
 
 | Route | Take it when the correction… | What happens |
 |---|---|---|
-| **revise** *(recommended for a big blast radius)* | reaches past this TODO — another TODO's symbol or Files list, a ledger row or wave, a settled `decision` / `fact` note other TODOs cite, or the Outcome of this TODO | Stop implementing. Set `status: blocked`, hand the correction to `code:sub-revise.md`, and resume only against the revised pair. Nothing after the corrected increment is applied. |
+| **revise** *(recommended for a big blast radius)* | reaches past this TODO — another TODO's symbol or Files list, a ledger row or wave, a settled `decision` / `fact` note other TODOs cite, or the Outcome of this TODO | Stop implementing. Set `status: blocked`, hand the correction to `arch:sub-revise.md`, and resume only against the revised pair. Nothing after the corrected increment is applied. |
 | **deviation** | stays inside this TODO — a symbol only this TODO owns, an Autotest case only this TODO asserts, a choice the spec left open | Record it (below) and keep implementing. The spec `status` does not move. |
 
 Measure the blast radius before you recommend: grep the other TODOs' `## Surface` and `Files` for

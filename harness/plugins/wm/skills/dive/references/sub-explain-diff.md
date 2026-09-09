@@ -20,7 +20,14 @@ candidate removes it.
    anchors — never the whole system.
 2. **Sort every element into one of five slots:** `unchanged · removed · new · changed · why`. Read
    the slots as the delta from the left panel to the right (baseline → candidate, or A → B). An
-   element that fits none is cut. Open the diagram with a five-slot summary strip.
+   element that fits none is cut.
+
+   Open the diagram with a **five-slot summary strip**: one horizontal band of five labelled cells,
+   `UNCHANGED · REMOVED · NEW · CHANGED · WHY` in that order, each cell naming its elements in two
+   or three words apiece. It renders the whole delta before any panel, so a reader who stops there
+   still knows what the change is. All five cells appear even when one is empty — write `none` in
+   it, because a missing cell reads as a slot nobody sorted. Worked instance:
+   `examples/arch-diagram.html` § 0.
 3. **Lay two panels on a shared coordinate grid.** Unchanged anchors keep the **same x,y** in both
    panels — then movement *means* a difference rather than noise. Side-by-side when panels are
    wider than tall; stacked when tall. Label each panel with the solution it shows.
@@ -28,8 +35,13 @@ candidate removes it.
    unchanged = grey and receding. These are the hues the shared redundancy rule pairs with a glyph
    and a label.
 5. **Put the contract change beside its node** as a real red/green line diff, same colour
-   semantics. **No signature change ≠ no change** — flag a behavioural-only shift explicitly,
-   because silence reads as "unchanged".
+   semantics. The diff carries **the declaration and nothing under it** — a signature, a type, a
+   field, a route, a message shape, each as one `-` or `+` row, plus context rows for the file and
+   the symbol they sit in. A body never appears: the page is read to judge a design, and a body
+   makes the reader review an implementation nobody has written yet. When the contract's *behaviour*
+   is the whole change, the rows say what the call now does in one line each rather than showing
+   code. **No signature change ≠ no change** — flag a behavioural-only shift explicitly, because
+   silence reads as "unchanged". Worked instance: `examples/arch-diagram.html` § 5.
 6. Then the shared steps, in the order @ref-diagram.md § The shared procedure steps gives them.
 
 ## Where the diff shifts a shared rule

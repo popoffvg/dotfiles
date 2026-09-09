@@ -95,7 +95,7 @@ tests/
 
 ## Best Practices Checklist
 
-- [ ] **Output:** Written to `<notes-dir>/features/<name>.feature` — never inside a Markdown file.
+- [ ] **Output:** Written to the path in `sub-bdd.md` § Output format — never inside a Markdown file.
 - [ ] **Golden Rule:** Can a non-technical stakeholder read and understand this? (For ops scenarios: can the operator execute it without guessing?)
 - [ ] **Independence:** Scenarios must not depend on each other (no shared state between tests).
 - [ ] **Brevity:** Keep scenarios short (3-5 steps is ideal).

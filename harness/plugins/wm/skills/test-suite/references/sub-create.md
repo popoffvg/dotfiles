@@ -53,9 +53,10 @@ up to.
 
 ### 1. Distill the system to a function
 
-Write the signature block described in `ref-readable-output.md` section 1 — inputs, state read,
-results, state written. Do this before enumerating anything. The input names you choose here are
-the words every case will use, so a sloppy signature costs you twice.
+Write the signature block described in `ref-readable-output.md` § Distill the system to a
+function — inputs, state read, results, state written. Do this before enumerating anything. The
+input names you choose here are the words every case will use, so a sloppy signature costs you
+twice.
 
 ### 2. Enumerate factors — in scratch
 
@@ -142,8 +143,8 @@ means the behaviour was never named in the spec, so name it and check it is inte
 
 ### 9. Emit the document
 
-Follow the skeleton in `ref-readable-output.md` section 6, shaped like the worked example you
-opened at the start.
+Follow the worked example you opened at the start — its section order, and the rules its `>`
+blocks state for each section.
 
 ## Reducing the derivation
 
@@ -159,7 +160,7 @@ to lose and why that loss is acceptable.
 
 ## Pre-save checklist
 
-Run the checklist in `ref-readable-output.md` section 7 first, then:
+Run the checklist in `ref-readable-output.md` § Checklist before saving first, then:
 
 - [ ] The pairwise property held in scratch for every tier that used it
 - [ ] Smoke, boundary, and regression-shape cases appended on top of the matrix rows

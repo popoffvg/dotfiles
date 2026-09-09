@@ -6,7 +6,7 @@ description: >
   split, a Surface shape, a constraint row, an Autotest level set to none, a line of shipped code.
   Spawns one subagent that searches `<notes-dir>/thoughts/` and returns a short decision trace.
   Load it whenever a decision behind a TODO, a spec, or a diff has to be defended, changed, or
-  superseded — `impl:sub-fix.md` Step 1, `code:sub-revise.md`, a reviewer arguing with an approved
+  superseded — `impl:sub-fix.md` Step 1, `arch:sub-revise.md`, a reviewer arguing with an approved
   shape, or the user asking "why did we do X".
 ---
 
@@ -53,6 +53,6 @@ this decision — the choice was made in code with no note behind it, which is i
 
 | Verdict | Next |
 |---------|------|
-| `live` | The decision stands. Argue with the note, not the artifact — a change here is `code:sub-revise.md`, not an edit to the TODO. |
-| `superseded` | The corpus drifted. Run `code:sub-revise.md`; archiving the note already took its rule out of the generated set, so there is nothing to repoint. |
+| `live` | The decision stands. Argue with the note, not the artifact — a change here is `arch:sub-revise.md`, not an edit to the TODO. |
+| `superseded` | The corpus drifted. Run `arch:sub-revise.md`; archiving the note already took its rule out of the generated set, so there is nothing to repoint. |
 | `unrecorded` | Write the note first (`arch:examples/note-impl-decision.md`), then decide. |

@@ -3,6 +3,11 @@
 Implementation patterns and reference files for this spec. Read by the implementer, not by the
 human at the gate — nothing here needs the user's agreement.
 
+> A filled `<notes-dir>/PATTERNS.md`. Copy the file, replace the rows, delete the `>` lines — each
+> one states the rules for the section above it. Written by `/code new` Step 0; extended by `revise`
+> and by any subcommand that discovers a pattern the increments must follow. It carries no decision
+> and no open question — those are `thoughts/` notes.
+
 ## Patterns
 
 | Pattern | Follow | Reference |
@@ -23,7 +28,3 @@ human at the gate — nothing here needs the user's agreement.
 
 > Files an implementer reads before writing, with one line saying what to take from each. Cited by
 > a TODO's **Pre-reads** when that TODO needs it; this list is the corpus-wide set.
-
-> Copy to `<notes-dir>/PATTERNS.md`. Written by `/code new` Step 0; extended by `revise` and by any
-> subcommand that discovers a pattern the increments must follow. It carries no decision and no open
-> question — those are `thoughts/` notes.

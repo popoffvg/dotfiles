@@ -62,10 +62,17 @@ property-based technique in full, backing the `property-based` row of [`case-des
 
 Typical chain for a TODO: [`case-design`](references/sub-case-design.md) (derive) → [`create`](references/sub-create.md) (tier + pairwise) → [`write`](references/sub-write.md) (write artifacts) → [`verify`](references/sub-verify.md) (audit).
 
-## Output shape
+## Output shape — `examples/`
 
-The canonical document is [`examples/strategy-auth-refresh.md`](examples/strategy-auth-refresh.md) — a `POST /auth/refresh` test set
-written to the contract, with the function block, five big cases, coverage, and the prunes. Copy its section order.
+`examples/` holds one file per artifact this skill writes, over the same `POST /auth/refresh`
+handler: [`examples/strategy-auth-refresh.md`](examples/strategy-auth-refresh.md) is the `.md`
+test set — the function block, five big cases, coverage, and the prunes — and
+[`examples/auth-refresh.feature.md`](examples/auth-refresh.feature.md) is its Gherkin body.
+
+Each example is the finished artifact filled with real content, and every piece of it carries its
+own rules as a `>` block underneath: what that piece must do, what it must contain, when it is
+wrong. Copy the file, replace the content, delete the `>` lines. A rule about one section is
+written there and nowhere else; `references/` holds only what no single piece owns.
 
 Per-TODO output goes into `## Autotest` in `<notes-dir>/todos/TODO-N.md` and `## Manual test` in `<notes-dir>/todos/TODO-N.agent.md` (follow the `arch` skill's
 `todo` subcommand) — cases as sentences, never test source; task-wide output goes to `<notes-dir>/test-strategy.md`.

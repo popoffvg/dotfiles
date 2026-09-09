@@ -336,5 +336,16 @@
         "ctrl-alt-shift-1 ctrl-alt-shift-2"
       ]
     }
+  },
+  {
+    "bindings": {
+      "ctrl-alt-shift-a": "workspace::ToggleAllDocks",
+      "ctrl-alt-shift-w": "multi_workspace::ToggleWorkspaceSidebar",
+      "ctrl-alt-shift-z": "workspace::ToggleCenteredLayout",
+      "cmd-k z": [
+        "workspace::SendKeystrokes",
+        "ctrl-alt-shift-a ctrl-alt-shift-w"
+      ]
+    }
   }
 ]

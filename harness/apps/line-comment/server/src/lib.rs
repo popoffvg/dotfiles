@@ -205,12 +205,13 @@ impl Session {
     /// A file for the next comment: clear away the ones nobody typed into, then name one
     /// no input file has used yet.
     pub fn take_input_path(&mut self) -> PathBuf {
-        // A file with no header is one the operator abandoned: the header only reaches
-        // disk on a save, and a save is what `drain_input` deletes the file on. Asking
-        // for a new comment says the old one is over.
+        // A file nobody typed a body into is one the operator abandoned — a header with
+        // nothing under it, or not even a header. Asking for a new comment says the old
+        // one is over, and this is where those files are swept: a drain leaves them
+        // alone so that the editor still finds the header it was handed.
         for path in self.input_paths() {
             let text = std::fs::read_to_string(&path).unwrap_or_default();
-            if input::parse(&text).is_none() {
+            if input::parse(&text).is_none_or(|(_, body)| body.is_empty()) {
                 let _ = std::fs::remove_file(&path);
             }
         }
@@ -239,9 +240,23 @@ impl Session {
     ///
     /// Runs on every save the watch reports and once at startup. A file carrying no
     /// header is left where it is — that is the empty file a code action just created,
-    /// before the operator typed anything. An empty body means the operator saved without
-    /// writing, which cancels the pending comment.
+    /// before the operator typed anything.
     pub fn drain_input(&mut self) -> Vec<Effect> {
+        self.take_input(None)
+    }
+
+    /// The same read, told which file the operator just saved. An empty body in that one
+    /// file cancels the pending comment.
+    ///
+    /// Only a save cancels. A hand-over writes the header itself, so a watch event fires
+    /// on a file that reads exactly like a cancelled one — and deleting it there takes
+    /// the header away before the editor has read the path, which hands the operator an
+    /// empty buffer whose save stores nothing.
+    pub fn drain_saved_input(&mut self, saved: &Path) -> Vec<Effect> {
+        self.take_input(Some(saved))
+    }
+
+    fn take_input(&mut self, saved: Option<&Path>) -> Vec<Effect> {
         let mut stored = false;
         for path in self.input_paths() {
             let Ok(text) = std::fs::read_to_string(&path) else {
@@ -250,10 +265,13 @@ impl Session {
             let Some((target, body)) = input::parse(&text) else {
                 continue;
             };
-            let _ = std::fs::remove_file(&path);
             if body.is_empty() {
+                if saved == Some(path.as_path()) {
+                    let _ = std::fs::remove_file(&path);
+                }
                 continue;
             }
+            let _ = std::fs::remove_file(&path);
             self.upsert_comment(
                 &target.file,
                 target.line,
@@ -513,13 +531,11 @@ impl Session {
 
     pub fn did_save(&mut self, uri: &str) -> Vec<Effect> {
         // An input file lives under `.tmp/`, so `key` refuses it — but its save is the
-        // whole point. The watch reports the same save; draining twice is harmless
-        // because the first drain deletes the file.
-        if uri_to_path(uri)
-            .as_deref()
-            .is_some_and(|path| self.is_input_path(path))
-        {
-            return self.drain_input();
+        // whole point, and the only event that may cancel a pending comment. The watch
+        // reports the same save; draining twice is harmless because the first drain
+        // deletes the file.
+        if let Some(path) = uri_to_path(uri).filter(|path| self.is_input_path(path)) {
+            return self.drain_saved_input(&path);
         }
         match self.key(uri) {
             Some(_) => vec![Effect::PersistStore],

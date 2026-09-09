@@ -4,11 +4,12 @@ Authors the `todos/TODO-N.md` + `todos/TODO-N.agent.md` **pair** from a reviewed
 `thoughts/`. Owns the TODO element list, the **verification chain**, and the **outcome** rules.
 
 **Open the filled examples first** — [`examples/todo.md`](../examples/todo.md) (human half) and
-[`examples/todo-agent.md`](../examples/todo-agent.md) (agent half), plus the rule set that bounds
-them, [`examples/constraints.md`](../examples/constraints.md). They are the artifact you are
-producing; this page is the rules that govern it, and `references/ref-todo-sections.md` is what
-goes inside each heading. Reading the shape before the rules is how you tell which rule is
-load-bearing.
+[`examples/todo-agent.md`](../examples/todo-agent.md) (agent half). They are the artifact you are
+producing, and each carries the rules for every section as a `>` block under the heading it governs.
+The rule set that bounds them is printed, not written: run
+`~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts`.
+This page is the procedure that produces them; `references/ref-todo-sections.md` is what cuts across
+the sections. Reading the shape before the rules is how you tell which rule is load-bearing.
 
 Spec contract + the gate: `ref-write.md`. Vocabulary: `wm:GLOSSARY.md`.
 
@@ -43,9 +44,9 @@ note is superseded.
 once, and a sentence that needs a second pass costs them the decision. The agent half is read by an
 implementer and is not bound by it.
 
-**No file restates another.** The title, the `status`, the Outcome, and the diff live in `TODO-N.md`
-alone; the paths, the increments, and the pre-reads in `TODO-N.agent.md` alone. Each half carries
-exactly one link to the other, and no second copy of anything travels along it.
+**Each pair field has one home.** The title, `status`, Outcome, and diff live in `TODO-N.md`; paths,
+increments, and pre-reads live in `TODO-N.agent.md`. The ledger outcome is the sole derived copy:
+it appears verbatim as the TODO Outcome. Each half carries exactly one link to the other.
 
 **The row is atomic.** Both files are written in the same pass, and both are deleted or renumbered
 together. A `TODO-N.md` with no agent half cannot be implemented; an agent half with no human half is
@@ -53,7 +54,7 @@ work nobody approved.
 
 ## Precondition — past the gate
 
-Run `todo` only after a human has reviewed the spec (`ref-write.md` § the gate). `new` stops before
+Run `todo` only after a human has reviewed the spec (`ref-write.md` § Stop at the gate). `new` stops before
 this deliberately. Before authoring: `spec.md` frontmatter `status: review`, **no `status: open` question
 note in `thoughts/`** (`~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0), ledger
 settled, and the human has asked for TODOs. Otherwise stop and run `/code new` first.
@@ -97,8 +98,9 @@ nothing more; the context is already there.
 ```
 Agent(subagent_type="fork", prompt=
   "[TODO-N] Author the pair for ledger row N: <the row's outcome, verbatim>.
-   Follow ${CLAUDE_PLUGIN_ROOT}/skills/arch/commands/sub-todo.md and the section rules it points
-   at (references/ref-todo-sections.md) in full — you are past the gate.
+   Follow ${CLAUDE_PLUGIN_ROOT}/skills/arch/commands/sub-todo.md, the `>` rule blocks in
+   examples/todo.md and examples/todo-agent.md, and references/ref-todo-sections.md in full — you
+   are past the gate.
    Write exactly two files: <notes-dir>/todos/TODO-N.md and <notes-dir>/todos/TODO-N.agent.md.
    Impl-decision notes: take thoughts/ numbers <lo>-<hi>, no others.
    Write nothing else — not spec.md, not GLOSSARY.md, not another row's files.
@@ -117,7 +119,7 @@ would otherwise write at once:
 
 | Shared artifact | Who writes | Why not the fork |
 |---|---|---|
-| `GLOSSARY.md` | caller, from the returned `## New terms` rows | Parallel writes to one table lose rows — and only the caller can see two forks minting two names for one concept. |
+| `GLOSSARY.md` | caller, from the returned `## New terms` rows | Parallel writes to one file lose entries — and only the caller can see two forks minting two names for one concept. |
 | `spec.md` — ledger, wave table | caller only | A row a fork finds wrong is a spec problem, not a pair problem: the caller fixes the ledger row, or stops and runs `revise`. |
 | `thoughts/NNN-*.md` | the fork, inside its assigned block | The number is the collision: two forks both take the next free `NNN` and write the same file. The block is handed out in the prompt. |
 | the notes `jj commit` | caller, once per wave | `code:ref-subcommand-rules.md` § Log to notes-dir. |
@@ -231,7 +233,7 @@ rather than a row of its own — is `ref-write.md` § Merges that fall out of th
 2. **Strong verbs.** *rename X to Y, add field Z to type T, delete function F* — never *improve, handle, refactor stuff, clean up*.
 3. **Every section is a checklist to tick off.** Prose → bullets, a table, or a code block.
 4. **One TODO = one deliverable = one commit.** One outcome a user can observe; group the edits that deliver it, nothing else. >8 files → ask before writing.
-5. **The surface ships as a diff; the logic ships as a sketch.** Every changed type, field, signature, and setting is a unified diff the implementer applies, never prose it translates. Every body — the code behind those signatures — is pseudocode (the `flow-scetch` skill) the implementer writes from. Neither substitutes for the other, and a body pasted as a diff is the one shape both rules reject (§ A diff carries the surface, not a body).
+5. **The surface ships as a diff; the logic ships as a sketch.** Every changed type, field, signature, and setting is a unified diff the implementer applies, never prose it translates. Every body — the code behind those signatures — is pseudocode (the `flow-sketch` skill) the implementer writes from. Neither substitutes for the other, and a body pasted as a diff is the one shape both rules reject (§ A diff carries the surface, not a body).
 6. **No outward links** — reference other TODOs only via `Depends on`.
 7. **Pre-reads are mandatory** — every file to understand before editing.
 8. **New terms are defined, not assumed** — a domain term missing from `GLOSSARY.md` gets a `## New terms` row (see § New terms below).
@@ -248,8 +250,9 @@ phase — never hardcode `.notes/`.
 
 ## Required elements — in order
 
-Exact keys and headings, this order, in the file named. The examples above carry the artifact and
-no rules — every rule about a TODO section is written once, so the two can never drift.
+Exact keys and headings, this order, in the file named. The rule for each one is written once, in the
+`>` block under that heading in the example — this list says which headings exist and where, never
+what goes inside them.
 
 ### `TODO-N.md` — the human half
 
@@ -333,7 +336,7 @@ read, and these two are answerable only against code:
   what is left is the route, and the route is judged against the code it produces.
 
 What `verify` checks before any of that — both sections' shape, and that neither sits in the wrong
-half: `code:sub-verify.md` § B.
+half: `code:sub-verify.md` § Phase 0 — static gate.
 
 **The `trace` skill is not a link in the chain — it is what you run to break one.** The chain asks
 whether the seven elements agree with each other. A trace answers a different question: whether any
@@ -353,8 +356,10 @@ all that stays — the only place the *why* is written for a reader who has just
 
 ## Section rules
 
-What goes inside each heading — one entry per section, frontmatter keys first — is
-@../references/ref-todo-sections.md. A fork authoring a pair reads it; the caller running the
+What goes inside each heading is the `>` block under that heading in @../examples/todo.md and
+@../examples/todo-agent.md. What cuts across the sections — the prose rule, where the generated rules
+come from, the two diff doctrines, and what an approval buys — is
+@../references/ref-todo-sections.md. A fork authoring a pair reads all three; the caller running the
 fan-out does not.
 
 ## Implementation decisions

@@ -31,6 +31,13 @@ Pick `todo` when a `<notes-dir>/todos/TODO-N.md` covers the diff, `diff` when no
 whose pair the diff has outgrown is still `todo` — the pair's rule files apply either way, and the
 mismatch itself is for `/code verify`, not for a gate here.
 
+## Examples
+
+`examples/report.md` is the finished artifact filled with real content — one gate's own report file
+and the merged `report.md` — and every piece carries its own rules as a `>` block underneath: what it
+must contain, and when it is wrong. Copy the one you are writing, replace the content, delete the
+`>` lines. A rule about one piece is written there and nowhere else.
+
 ## What this skill never does
 
 **Read-only on source, always.** Every gate returns findings; the caller routes them back to
@@ -44,5 +51,5 @@ green gate writes it too (@references/ref-gates.md § Every gate writes its repo
 **Judges how, never whether.** This skill rules on how the code is built — the rules it obeys, the
 patterns it follows, the inputs that break it. Whether it should have been built at all, whether it
 delivers its Outcome, and whether a rule was right are three other questions, owned by
-`code:sub-verify.md`, the `verifier` agent, and `code:sub-revise.md`. A gate that reports one of
+`code:sub-verify.md`, the `verifier` agent, and `arch:sub-revise.md`. A gate that reports one of
 them has left its scope.

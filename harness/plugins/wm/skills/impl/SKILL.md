@@ -26,6 +26,14 @@ this skill.
 | `squash` | Read the fixup trail → distill lessons into skills (`capture-lesson`) → squash the scope as one commit. Called by `tree merge` and by `auto` per TODO. | `commands/sub-squash.md` |
 | `commit` | When to commit and how a correction lands (fixups) — shared by `impl`, `tree`, `fix`. The message itself: the `commit-message` skill. | `commands/sub-commit.md` |
 
+## Examples
+
+`examples/change-table.md` is the finished artifact filled with real content — the per-increment
+table and the whole-TODO table — and every column and required line carries its own rules as a `>`
+block underneath: what it must contain, and when it is wrong. Copy the table the resolved `approve`
+key asks for, replace the content, delete the `>` lines. A rule about one column is written there
+and nowhere else.
+
 ## What these five read
 
 They write source; they design nothing. Everything they read is owned by another skill, and this

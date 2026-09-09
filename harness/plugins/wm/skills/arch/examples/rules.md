@@ -1,7 +1,8 @@
 # Rules
 
-> Copy to `<notes-dir>/RULES.md`, replacing any answer the user changed — the answers below are the
-> **defaults**. Written once by `/code new` Step 0.6; no later subcommand rewrites it.
+> Copy to `<notes-dir>/RULES.md`, replacing any answer the user changed and deleting the `>` lines
+> — the answers below are the **defaults**. Written once by `/code new` Step 0.6; no later
+> subcommand rewrites it.
 >
 > Ask the three knobs in one `to-user` file before the grill (`code:ref-subcommand-rules.md` § Put a
 > batch of questions in a file the human edits). The setting shown below is the recommended answer of
@@ -27,6 +28,11 @@ it over its own defaults. Hard gates stand regardless: the human reads the spec 
 | Questions during the grill | every open question |
 | Test timing | before the code |
 | Commits | agent commits each green TODO |
+
+> One row per knob the header block asked about, each answer worded as one of the options that were
+> offered there. A row for a knob nobody was asked is wrong — ask it first, then write it here.
+> Approval depth is not a knob here: it is the `approve` key on `spec.md`
+> (`arch:ref-write.md` § Approval).
 
 ## Per step
 

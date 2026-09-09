@@ -79,9 +79,9 @@ Research is where the project's words are found, so research is where `<notes-di
 
 1. **Collect** every `## Terms` row from every `$RESEARCH_DIR/<ep-slug>.md`.
 2. **Merge them with the `terms` skill.** Load it and run its cluster-and-canonicalize pass over the collected rows. It picks one canonical word per concept, folds the rest into Avoid, and reports a collision — one word carrying two meanings — as two concepts instead of one. Do not restate its algorithm here.
-3. **Diff against the existing file.** A row whose Term is already in `<notes-dir>/GLOSSARY.md` with the same meaning is not a change. What remains is the change set: new terms, reworded definitions, and collisions.
+3. **Diff against the existing file.** A term already in `<notes-dir>/GLOSSARY.md` with the same meaning is not a change. What remains is the change set: new terms, reworded definitions, and collisions.
 4. **Get the user's approval on the change set** — `code:ref-subcommand-rules.md` § Glossary owns how. A collision goes to the user as a question, never as a merge you picked.
-5. **Write the approved rows** into `<notes-dir>/GLOSSARY.md` in the `arch:examples/glossary.md` shape. Leave **Kind** empty — the spec phase types each term against the brick roster. Drop the rejected rows; they do not return next run.
+5. **Write the approved terms** into `<notes-dir>/GLOSSARY.md` as one entry each, in the `arch:examples/glossary.md` shape — the term as its heading, the definition, then `Status`, `Forbidden`, and `Source`. Leave **Kind** out; the spec phase types each term against the brick roster. Drop the rejected terms; they do not return next run.
 
 ## INDEX.md
 
@@ -94,8 +94,8 @@ Generated: <ISO date>
 
 | Entry point | Slug | Artifacts | Summary |
 |---|---|---|---|
-| `src/server/index.ts` | server-index | [md](server-index.md) · [questions](server-index.questions.md) | HTTP request lifecycle from router to response |
-| `HandleRequest` | handle-request | [md](handle-request.md) · [questions](handle-request.questions.md) | Dispatch + middleware chain |
+| `src/server/index.ts` | server-index | `server-index.md` · `server-index.questions.md` | HTTP request lifecycle from router to response |
+| `HandleRequest` | handle-request | `handle-request.md` · `handle-request.questions.md` | Dispatch + middleware chain |
 
 **Workflow layer:** run `/dive workflow` to add `../workflows/<ep-slug>/<ep-slug>.workflow.ts` + `../workflows/flows.json` (render with `/flow-map`).
 ```

@@ -175,9 +175,45 @@ fn saving_an_empty_body_cancels_the_comment() {
     let (path, contents) = handed_over(&mut session, &uri, 0);
     write_input(&path, &contents);
 
-    assert!(session.drain_input().is_empty());
+    assert!(session
+        .did_save(&line_comment::path_to_uri(&path))
+        .is_empty());
     assert!(session.store().comments("docs/spec.md").is_empty());
     assert!(session.input_paths().is_empty());
+}
+
+/// The hand-over writes the header itself, and the watch reports that write. A drain that
+/// took it for a cancelled comment deleted the file before the editor had read the path —
+/// so the operator got an empty buffer, and the comment they typed into it went nowhere.
+#[test]
+fn the_watch_leaves_the_file_a_hand_over_just_wrote_alone() {
+    let (mut session, _root, uri) = open("## Design\n");
+    let (path, contents) = handed_over(&mut session, &uri, 0);
+    write_input(&path, &contents);
+
+    assert!(session.drain_input().is_empty());
+    assert_eq!(session.input_paths(), vec![path.clone()]);
+    assert_eq!(std::fs::read_to_string(&path).unwrap(), contents);
+
+    // The comment typed into the file it kept still reaches the store.
+    write_input(&path, &format!("{contents}needs a source\n"));
+    session.drain_input();
+    assert_eq!(comment(&session, 0).text, "needs a source");
+    assert!(session.input_paths().is_empty());
+}
+
+/// A pending hand-over another one replaces is swept then, not by the watch.
+#[test]
+fn a_hand_over_nobody_typed_into_is_swept_by_the_next_one() {
+    let (mut session, _root, uri) = open("## Design\n## Notes\n");
+    let (first, contents) = handed_over(&mut session, &uri, 0);
+    write_input(&first, &contents);
+    session.drain_input();
+
+    let (second, next) = handed_over(&mut session, &uri, 1);
+    write_input(&second, &next);
+    assert_eq!(session.input_paths(), vec![second]);
+    assert!(!first.exists());
 }
 
 #[test]

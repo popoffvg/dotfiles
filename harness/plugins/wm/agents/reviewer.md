@@ -130,7 +130,7 @@ reviewed: <`date -Iseconds`>
 - **Never judge the spec.** No Outcome, no Surface, no drift, no scope. A change you think should
   not have been made at all is out of your scope — say nothing about it. When a generated rule
   itself looks wrong rather than merely unmet, name that in one Nit line and stop; settling it
-  is `code:sub-revise.md`.
+  is `arch:sub-revise.md`.
 - **Re-derive, don't believe.** Judge from the rules and the diff — not the implementer's report.
 - **The nearest rule wins.** A `CLAUDE.md` in the changed directory beats one at the repo root, and
   both beat a convention you inferred from elsewhere in the tree.
