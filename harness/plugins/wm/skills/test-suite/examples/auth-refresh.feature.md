@@ -1,13 +1,10 @@
 # `auth-refresh.feature` — the Gherkin bodies
 
-> A filled `.feature` file, one piece per fenced block. Copy the fenced blocks into
-> `<notes-dir>/features/<name>.feature`, replace the content, and leave the `>` lines behind —
-> each one states the rules for the block above it. The procedure that produces the file is
-> [`references/sub-bdd.md`](../references/sub-bdd.md); the keyword syntax is
-> [`references/ref-gherkin-guide.md`](../references/ref-gherkin-guide.md).
-> This file is the body half of one test set. Its map half is
-> [`strategy-auth-refresh.md`](strategy-auth-refresh.md) — the same `POST /auth/refresh` handler,
-> and every tag below is a variant name from it.
+> A filled `.feature` file. Copy its fenced blocks into `<notes-dir>/features/<name>.feature`,
+> replace the content, and remove its `>` lines. See
+> [`sub-bdd.md`](../references/sub-bdd.md) and
+> [`ref-gherkin-guide.md`](../references/ref-gherkin-guide.md). Its map half is
+> [`strategy-auth-refresh.md`](strategy-auth-refresh.md).
 
 ```gherkin
 Feature: Refresh token rotation
@@ -16,9 +13,7 @@ Feature: Refresh token rotation
   So that a stolen refresh token stops working the moment I refresh
 ```
 
-> **The Feature line is a noun phrase naming the capability**, then the three-line role / want /
-> so-that block saying whose problem the feature solves. One `Feature` per file, and the file
-> covers one system under test — the same one the map half distilled to a function.
+> See [Cucumber Notation](../references/sub-bdd.md#cucumber-notation).
 
 ```gherkin
 Background:
@@ -26,11 +21,7 @@ Background:
   And a signed-in client with a unique generated account name
 ```
 
-> **`Background` holds the setup every scenario in the file shares**, so no `Given` repeats it.
-> Keep it to the context a reader still needs to understand the scenarios — setup hidden here
-> that changes an outcome makes each scenario unreadable on its own.
-> The account name is generated per scenario, never a literal `"test-user"`: a hardcoded name
-> collides the moment two scenarios run at once.
+> See [Test Isolation](../references/sub-bdd.md#test-isolation).
 
 ```gherkin
 Rule: Rotation replaces the pair and forgets the old token
@@ -61,17 +52,9 @@ Rule: Rotation replaces the pair and forgets the old token
     And the session store holds exactly one new refresh key
 ```
 
-> **One `Rule` per big case of the map half, and one `Scenario` per variant**, tagged with that
-> variant's name. The `Rule` line repeats the big case's heading, so the two files read as one
-> document and a reviewer can join them by eye.
-> **The hardest happy path goes first** — the scenario that chains the most behaviours, crosses
-> the most boundaries, and uses real values rather than mocks. It is the mandatory pre-merge
-> manual test, and a reader who stops after one scenario should read that one.
-> The tag is the joining key, so it matches the variant name character for character. A failing
-> CI run prints the tag and nothing else: `@rotation-issues-a-new-pair` reports the broken
-> behaviour where `@TS-STATE-013` reports a lookup task.
-> One `When` per scenario names the trigger. Each `Then` asserts one observable a caller can
-> see — a status, a stored value, a screen — never an internal call or a private field.
+> See [BDD Test Design](../references/sub-bdd.md#bdd-test-design),
+> [Naming Conventions](../references/sub-bdd.md#naming-conventions), and
+> [Hardest happy path](../references/sub-bdd.md#hardest-happy-path).
 
 ```gherkin
 Rule: An expired token is rejected and the store is left alone
@@ -104,12 +87,8 @@ Rule: A missing session is a rejection, not a crash
     And the service stays up
 ```
 
-> **Every rejection scenario asserts the specific reason**, not "an error" — two rejections that
-> both assert only the status would pass an implementation that swapped their branches.
-> A `Rule` with a single variant carries a single scenario. Adding a sibling that varies an
-> input the branch never reaches adds a scenario and proves nothing.
-> Each scenario sets up its own preconditions on top of `Background`, so any one of them passes
-> when it runs alone, and it tears down what it created even after it failed.
+> See [Scenario Design Checklist](../references/sub-bdd.md#scenario-design-checklist) and
+> [Test Isolation](../references/sub-bdd.md#test-isolation).
 
 ```gherkin
 Rule: The rotation is legible in the logs
@@ -126,9 +105,5 @@ Rule: The rotation is legible in the logs
     And that event carries the user id, the old key id, and the new key id
 ```
 
-> **An operator scenario embeds the literal command in a `"""sh` docstring on the `When` step.**
-> The business language of an operator is the shell command, so the exception to
-> declarative-only steps lives here — and the annotation is `"""sh`, never a bare `"""`.
-> The `Then` steps stay declarative: what the operator observes, not what they type next.
-> Wait on the event or poll with a timeout. A `sleep(500ms)` passes on a fast machine and flakes
-> on a loaded one.
+> See [Ops / manual scenarios](../references/sub-bdd.md#ops--manual-scenarios) and
+> [Async Behavior](../references/sub-bdd.md#async-behavior).

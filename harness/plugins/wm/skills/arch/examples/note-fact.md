@@ -11,11 +11,9 @@ source: auto                # auto | human
 tags: [auth, config]
 ---
 
-> The frontmatter is what the thought index reads; the per-key contract is
-> `arch:ref-note-format.md` § Frontmatter. Same keys as a decision, with `status: approved` and
-> `source: auto | human` carrying the same meaning. The one difference decides how `description` is
-> written: a `fact` generates no constraint row (`arch:ref-todo-sections.md` § Constraints), so its
-> description is written to be read, not obeyed.
+> Copy the frontmatter shape and its per-key contract from `arch:ref-note-format.md` § Frontmatter.
+> A fact generates no constraint row, so write its description to be read, not obeyed
+> (`arch:ref-todo-sections.md` § Constraints).
 
 # Refresh token TTL is 15 minutes in production
 
@@ -25,9 +23,7 @@ tags: [auth, config]
 > decision note instead.
 > The prose follows `harness-dev:text-style`.
 
-> The title names the thought as a statement — imperative or declarative — in at most 60
-> characters. The frontmatter `description` never paraphrases it: the title names the thought, the
-> description says what it settled (`arch:ref-note-format.md` § Frontmatter).
+> Title and description rules: `arch:ref-note-format.md` § Frontmatter.
 
 ## What
 

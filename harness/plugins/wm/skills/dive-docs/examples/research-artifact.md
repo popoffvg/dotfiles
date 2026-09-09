@@ -2,7 +2,6 @@
 > the content, delete the `>` lines; each one states the rules for the piece above it. The contract
 > around the file — the 6-step chain and the cross-cutting rules — is `ref-artifact.md`.
 > The `explorer` agent writes this shape; the `explore-critic` agent grades it.
-> The prose follows `harness-dev:text-style`.
 
 # anchor::reconcile — where a stored comment lands when the file has changed
 
@@ -14,13 +13,7 @@ comment (`input.rs`), and the export format (`export.rs`) — none of them move 
 **source list**:
 dotfiles:25f27fa1
 
-> **Title** is `<symbol or file> — <scope one-liner>`, and the symbol is the exact one the path starts
-> at (chain step 1). A title naming the top of a file instead of the entry symbol is wrong.
-> **Scope** says what the doc covers in one or two sentences. **Out of scope** is chain step 4: the
-> code that sits next to this path and was deliberately not read, each with the reason it was skipped,
-> so a reader can tell an intentional gap from a missed one.
-> **source list** is `<repo>:<short commit hash>` — the revision every `path:line` below was read at.
-> A citation read at a different revision points at a different line.
+> Title, scope, and source-list criteria: `references/ref-artifact.md` § Result criteria and § Rules.
 
 ## Terms
 
@@ -61,8 +54,7 @@ dotfiles:25f27fa1
 | `a_span_moves_whole_when_its_first_line_moves` | A span keeps the number of lines it covered wherever its hashed first line turns up. | `harness/apps/line-comment/server/tests/session.rs:537` |
 | `copy_leaves_anchors_alone_when_the_file_cannot_be_read` | An unreadable file is not evidence its text is gone; anchors stay untouched. | `harness/apps/line-comment/server/tests/session.rs:795` |
 
-> Tests first, because tests pin *intent* before implementation (chain step 2). Columns:
-> | Test | What intent it pins | Source (file:line) |. One row per test that exercises this path, and
+> Columns: | Test | What intent it pins | Source (file:line) |. One row per test that exercises this path, and
 > **What intent it pins** states the behaviour the code must keep, not what the test calls.
 > With no test on the path, write `None — UNTESTED PATH` and carry it into § 6 as a refactor risk. An
 > artifact with no test trail cannot claim it understood what the code is *for*.
@@ -83,9 +75,7 @@ flowchart TD
   search -- no --> orphan[set orphaned, keep the stored line]
 ```
 
-> The `## TL;DR` is one mermaid diagram of the path — the whole flow a reader gets before any table.
-> Mermaid, never ASCII art: the artifact renders in an editor and a browser, and ASCII survives
-> neither reflow nor a proportional font.
+> The TL;DR is one Mermaid diagram of the path, before its tables.
 
 ## 1. Workflow steps
 
@@ -108,9 +98,7 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 | 2 | Re-anchor every comment of the file by hash. | `harness/apps/line-comment/server/src/anchor.rs:139` |
 | 3 | Sort by line and compare against the snapshot to decide the effects. | `harness/apps/line-comment/server/src/lib.rs:475` |
 
-> Numbered table: | # | Step | File:line |. One row per atomic operation, in happy-path order.
-> Where the code forks into parallel paths — prerun and main, sync and async, fast path and slow path
-> — give each path its own sub-table under a one-line label, rather than interleaving them.
+> Numbered table: | # | Step | File:line |. Give parallel paths their own labeled sub-tables.
 
 ## 2. Decision points
 
@@ -157,11 +145,7 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 | readable | Reconcile against that text. | `harness/apps/line-comment/server/src/lib.rs:441` |
 | unreadable | Skip the file, leaving its anchors untouched. See EC-4. | `harness/apps/line-comment/server/src/lib.rs:437` |
 
-> Each decision is `DP-N` and carries three parts: **Condition** — the exact predicate or field check,
-> with its `path:line`; **Branches** — a small table or bullet list, each branch naming its effect and
-> its `path:line`; and a cross-link to the `EC-N` of § 5 when a branch has a known edge case.
-> The numbering is what lets another artifact, a spec, or a TODO cite one branch, so a `DP-N` is never
-> renumbered once written.
+> `DP-N` numbering and cross-reference rules: `references/ref-artifact.md` § Rules.
 
 ## 3. Identity / data carriers
 
@@ -172,9 +156,7 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 | re-anchoring | `hash` — the only field that survives an edit made while the file was closed | hash-equal lines are indistinguishable, which is what DP-3 breaks by distance | — | `hash`, until `rehash` recomputes it |
 | span | the first line's hash; `end_line` is derived from the covered count | — | both ends, by `cover` (`harness/apps/line-comment/server/src/store.rs:50`) | the covered count, across a whole-span move |
 
-> Table of what value carries identity at each layer, how equality is defined there, which fields are
-> mutated and which are locked after creation. Write the section when the path carries state across
-> layers; the identity field is usually where a duplicate or a silent overwrite hides.
+> Identity/data-carrier criterion: `references/ref-artifact.md` § Result criteria.
 
 ## 4. Per-variant shapes
 
@@ -184,9 +166,7 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 | span comment | `line` + `end_line`, first line hashed | `(file, line)` — the first line only | same `upsert`; a span and a single-line comment on the same first line collide and the later one wins |
 | orphaned comment | `orphaned: true`, `line` kept as last known | `(file, line)` | none — it competes for the stored line with a live comment written there |
 
-> Table of shape, conflict key, and conflict resolution for each polymorphic case — dataset type,
-> resource kind, message variant, and so on. Write it when the path handles more than one shape of the
-> same thing; the conflict key column is what shows whether two variants can collide.
+> Use this table when the path handles multiple shapes of one thing.
 
 ## 5. Edge cases
 
@@ -201,12 +181,7 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 | EC-7 | The line differs only in trailing whitespace. | The hash strips trailing whitespace, so the anchor still matches and no re-hash is needed. | `harness/apps/line-comment/server/src/anchor.rs:9` |
 | EC-8 | The store file exists but cannot be parsed. | The session starts with an empty store and shows an error; the next `PersistStore` overwrites the unreadable file. | `harness/apps/line-comment/server/src/lib.rs:95` |
 
-> Numbered `EC-N` table: | # | Case | Effect | Source (file:line) |. Be adversarial and go looking for
-> the case rather than reporting the ones the code already handles: empty inputs, races, partial
-> failure mid-loop, encoder ambiguity, duplicate keys, deleted resources, iteration-order
-> non-determinism, cache staleness.
-> **Effect** states what actually happens, including when that is data loss. A row saying "handled
-> correctly" is not an edge case.
+> `EC-N` rules and failure-path criterion: `references/ref-artifact.md`.
 
 ## 6. Refactor risks (hotspots)
 
@@ -218,10 +193,7 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 | `Store::load` swallowing every read error | `fs::read_to_string` failing for any reason returns an empty store (`harness/apps/line-comment/server/src/store.rs:87`), and the next save replaces the real file. A permission error is indistinguishable from a first run. |
 | The store key is a path string | A rename leaves comments under a key nothing reads and nothing cleans up. |
 
-> Table: | Hotspot | Why it bites |. One row per surface a future change will trip on — coupling,
-> hidden invariants, non-deterministic ordering, missing rollback, silent overwrites, undocumented
-> contracts.
-> **Why it bites** names the failure a change would cause, not the fact that the code is complicated.
+> Each hotspot states the concrete failure a future change could cause.
 
 ## 7. File map
 
@@ -232,8 +204,7 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 | `harness/apps/line-comment/server/src/lib.rs` | The session: the three re-anchoring call sites, the effect list each emits, and the inlay-hint rendering that shows the orphan mark. |
 | `harness/apps/line-comment/server/tests/session.rs` | Every behaviour above, driven through `Session` with no transport. |
 
-> Table: | File | Role |. Every file referenced anywhere above, and nothing else. **Role** says what
-> the file owns in this path, so a reader can pick the file to open next.
+> Table: | File | Role |. Include every referenced file and state its role.
 
 ## Grill answers
 
@@ -251,11 +222,7 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
    stored state. It is written to the JSON store, which makes it look sticky, and every reconcile
    overwrites it.
 
-> Numbered answers to every question from `<ep-slug>.questions.md`, in the same order as that file
-> asks them. This is the verification trail: the critic reads it to check the explorer answered the
-> agenda instead of writing around it.
-> An answer that points at a section above (`§ 1`, `DP-3`) is right — repeating the content here would
-> put it in two places. An answer with no section and no `path:line` is a guess.
+> Answer the agenda in order. A section reference avoids duplicating an answer.
 
 ## Trace
 
@@ -264,8 +231,4 @@ to the document text, and re-hashes the anchors whose line content moved — bra
 change carries a range, and falling back to a whole-document hash search that either moves the
 comment to the nearest hash-equal line or marks it orphaned.
 
-> One sentence, entry to exit (chain step 6):
-> `<entry> <verb>s <data> through <key steps>, branching on <decision>, returning <result> / failing
-> to <failure>.`
-> It closes the file, and it is the strongest gap detector the artifact has: a path you cannot state
-> in one sentence is a path you have not finished reading. Go back rather than writing two sentences.
+> One-sentence trace criterion: `references/ref-artifact.md` § Result criteria.

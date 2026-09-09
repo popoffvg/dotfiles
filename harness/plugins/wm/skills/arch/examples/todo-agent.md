@@ -19,30 +19,14 @@
 
 Obey every rule that `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints.
 
-> **The command, and nothing else.** One fixed line, first in the file, above the increments it
-> bounds. The line is the same in every TODO: it never lists ids, never quotes a rule, never adds a
-> case.
->
-> **Always present, even when the corpus has settled no decision yet.** Rules appear as decisions
-> settle, so a TODO that dropped the line would be implemented against an empty set.
->
-> A rule *this* TODO's tests can check gets a matching case in the human half's `## Autotest` — the one
-> place a constraint reaches into a single row.
->
-> Where the rules come from — the `thoughts/` decision note that *is* the rule — is
-> `arch:ref-todo-sections.md` § Constraints. What the generated set looks like:
-> `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts`, run against the live corpus.
+> The fixed command is always present and is the only constraint text in this half. Its source and
+> the rule for Autotest coverage are `arch:ref-todo-sections.md` § Constraints.
 
 ## Changes
 
-> **An ordered sequence of increments — what to do, in apply order.** One TODO is still one
-> deliverable and one commit; `## Changes` splits only its *execution*, so the implementer lands a
-> small, verifiable piece at a time and the human approves each real diff as it appears. How the
-> increments reach that one commit, and what a single approval buys:
-> `arch:ref-todo-sections.md` § How the increments reach the commit.
->
-> **It carries no diff and no pasted signature.** The diff is the human half's `## Surface`, written
-> once.
+> Write the increments in apply order. They build one TODO commit; approval and commit rules:
+> `arch:ref-todo-sections.md` § How the increments reach the commit. The diff belongs only in the
+> human half's `## Surface`.
 >
 > **Increment** = the smallest step worth approving on its own. Its heading is
 > ``### <n>. <imperative title> — `<package.Class>` ``, with `n` 1-indexed and contiguous. Each

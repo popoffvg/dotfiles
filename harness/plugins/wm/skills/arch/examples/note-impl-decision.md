@@ -8,16 +8,10 @@ description: >              # 1–3 sentences — the text the index shows, and 
   that type.
 date: 2026-06-19T09:12:40
 tags: [auth, errors]
-todo: TODO-2
+depends: ["list of related thoughts"]
 ---
 
-> The frontmatter is what the thought index and `wm-constraints.py` read; the per-key contract is
-> `arch:ref-note-format.md` § Frontmatter. Specific to an impl-decision: the `todo: TODO-N` key,
-> required here and carried by no other type — it is what scopes the rule to one ledger row, which
-> `wm-constraints.py --todo TODO-N` selects on. A rule written without it reaches every TODO.
-> `source:` is optional and omitted here; the other three types carry it.
-
-# Wrap store errors at the auth boundary
+# Details
 
 > Copy to `<notes-dir>/thoughts/NNN-impl-decision-<slug>.md` — e.g.
 > `005-impl-decision-error-wrapping.md` — and delete the `>` lines.
@@ -27,7 +21,7 @@ todo: TODO-2
 > one when a settled decision already covers it; link that note instead.
 > One note per decision, never a bundle. A choice that changes while later TODOs are written is an
 > edit to this note, never a second note.
-> The prose follows `harness-dev:text-style`.
+> The prose follows `i-have-adhd skill`.
 
 > The title names the thought as a statement — imperative or declarative — in at most 60
 > characters. The frontmatter `description` never paraphrases it: the title names the thought, the
@@ -45,6 +39,7 @@ The spec says the rotation handler returns 500 on a store failure, but not what 
 
 > What was chosen and why, one sentence.
 
+<when="alternatives were discussed with operator">
 ## Alternatives
 
 | Option | Verdict |
@@ -53,10 +48,4 @@ The spec says the rotation handler returns 500 on a store failure, but not what 
 | Return a bare `error` with a message | Rejected: the handler cannot branch on a string without matching text |
 
 > What else was considered and why each lost. Table or bullets.
-
-## Affects
-
-- Every later TODO touching `SessionStore` returns `ErrStoreUnavailable`, never a driver error.
-- The handler's error test asserts on the wrapped type.
-
-> How this shapes other TODOs or the codebase.
+</when>

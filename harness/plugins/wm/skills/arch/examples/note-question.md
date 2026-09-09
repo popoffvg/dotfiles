@@ -11,11 +11,8 @@ source: auto
 tags: [auth, scope]
 ---
 
-> The frontmatter is what the thought index and `wm-open-questions.sh` read; the per-key contract is
-> `arch:ref-note-format.md` § Frontmatter. Specific to a question: `status: open` is the only value
-> that keeps the question in the live graph, and it is what blocks the readiness gate. When the
-> question is answered, `resolved:` is added carrying the answer's timestamp and the note is then
-> archived (`arch:ref-note-format.md` § Resolution).
+> Copy the frontmatter shape from `arch:ref-note-format.md` § Frontmatter. Question status and
+> resolution rules: `arch:ref-note-format.md` § Resolution.
 
 # Scope of a rotated refresh token
 
@@ -27,9 +24,7 @@ tags: [auth, scope]
 > and declining a moot question — are `arch:ref-note-format.md` § Resolution.
 > The prose follows `harness-dev:text-style`.
 
-> The title names the thought as a statement — imperative or declarative — in at most 60
-> characters. The frontmatter `description` never paraphrases it: the title names the thought, the
-> description says what it blocks (`arch:ref-note-format.md` § Frontmatter).
+> Title and description rules: `arch:ref-note-format.md` § Frontmatter.
 
 ## Question
 

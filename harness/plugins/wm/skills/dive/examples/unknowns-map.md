@@ -3,8 +3,6 @@
 > states the rules for the piece above it. The walk that produces it is `sub-unknowns.md`.
 > **The map is written as the walk goes, not at the end.** Each stage appends its quadrant, so a stage
 > that never lands on the map never happened.
-> The prose follows `harness-dev:text-style`, and — because a human reads this file to decide what to
-> build — the `i-have-adhd` rules.
 
 # Unknowns map — replace the nearest-hash-match anchor rule
 
@@ -19,12 +17,8 @@
 **Settled unless you say otherwise:** the store stays a single JSON file, and `version` bumps rather
 than migrating in place.
 
-> The settled ground, and **every claim cites a real file that was actually read**. A fabricated
-> specific destroys the map's authority, so a line with no `path:line` belongs in a different quadrant.
-> Separate what is **locked** from what is **assumed**: end the section with the assumptions under one
-> "settled unless you say otherwise" line, so the user can overturn one by naming it.
-> Prior attempts belong here too — half-built or reverted work is settled ground, and *why* it died
-> usually belongs in the fourth quadrant.
+> Record cited settled ground and distinguish locked facts from assumptions; the quadrant-walk rules
+> are `sub-unknowns.md` § 1.
 
 ## Known unknowns — the decision ledger
 
@@ -36,17 +30,14 @@ than migrating in place.
 | 4 | Do the three re-anchoring call sites keep their own snapshot-and-compare code? | **OPEN** — unblocked by deciding question 2, because a three-hash anchor changes what "unchanged" means at every call site. | — |
 | 5 | Are existing stored comments re-hashed on first load under version 2? | **OPEN** — unblocked by the user saying whether losing the comments in an old store is acceptable for a personal tool. | — |
 
-> The decision ledger: **one row per named question**, and every row is closed one of three ways —
-> **user** (they answered), **territory** (the code answered, and the answer was shown to the user
-> before it landed here), or **OPEN**.
+> The decision ledger has one row per named question, closed by **user**, **territory**, or **OPEN**;
+> the closing rules are `sub-unknowns.md` § 2.
 > **Decision** holds the answer as a sentence a reader can act on, never "decided" or "see above". A
 > `territory` row cites the `path:line` that answered it in **Closed by**.
 > **An OPEN row states what unblocks it** — the person, the decision, or the experiment — in the
 > Decision cell, marked `**OPEN**`. An OPEN row with no unblocker is an unfinished row: the walk's
 > whole purpose is that nothing is left vague, including what is still unknown.
-> **Nothing closes off-screen.** A row marked user or territory was shown to the user before it was
-> written here. The numbering is what a later message points at ("2 and 4 are wrong"), so a number is
-> never reused.
+> Numbering is stable so a later message can cite a row.
 
 ## Unknown knowns — what got extracted
 
@@ -78,9 +69,8 @@ same six real comments, so the format was the only variable. What they took from
 turned it into "one hash or three", because three hashes make a wrong-line move much harder while
 keeping the orphan path exactly as it is.
 
-> What the user holds but never said out loud: taste, vocabulary, and tacit conventions. **Nothing is
-> written here that the user did not react to** — the section records reactions, not guesses, and it
-> names what the user reacted *to* in one line above the list.
+> Record reactions to a concrete artifact, not guesses; the extraction method is
+> `sub-unknowns.md` § 3.
 > **The form is a resonate checkbox**: one statement per line as `- [ ]`, written in the user's own
 > words, ticked `- [x]` for the ones they confirmed and left unticked for the ones they did not. An
 > unticked line is data — it is a statement they declined, and it stays on the map so nobody re-asks.
@@ -110,19 +100,13 @@ The sweep covered the 6 files this task touches: `anchor.rs`, `store.rs`, `lib.r
 - **Why it bites:** comments accumulate under dead paths forever and are counted by `total()`, so the count the user sees is larger than the comments they can reach.
 - **What it changes:** nothing in this task. Noted so a later "why is the count wrong" question has an answer already on the map.
 
-> One card per finding, **worst first**, under a `###` heading that ends in the finding's status —
-> `decided`, `OPEN`, or `sharp edge`.
+> Landmine discovery and status rules are `sub-unknowns.md` § 4.
 > **Three fields, all three required, in this order:** **Evidence** (a `path:line` and the fact it
 > shows), **Why it bites** (the failure a user would actually experience, not that the code is ugly),
 > and **What it changes** (which decision row this reshapes, or `nothing in this task`).
 > **A card marked OPEN says what unblocks it**, in the same form as an OPEN ledger row. A card marked
 > decided points at the ledger row that decided it. A sharp edge needs no decision — it is recorded so
 > the next reader does not re-find it.
-> **Open with the sweep's coverage** — the count and the names of the files swept — so the reader can
-> tell "no more landmines" from "nobody looked".
-> Hunt for: wrong-by-default data, stale denormalizations, filters that pass bad rows, escaping that
-> corrupts output, unwritten conventions, reverted prior attempts and why they died, and latent bugs
-> beyond the feature. A finding beyond the feature is escalated to the map, never silently absorbed.
 
 ## Build plan
 

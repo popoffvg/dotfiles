@@ -9,14 +9,8 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 
 > Six keys, all metadata — the inline `#` comments above are part of the shape, keep them.
 >
-> **`status`** — the lifecycle phase. `todo` authors it at `todo`, or `blocked` when a `depends_on`
-> TODO is not yet `done`. Never author straight to `impl` or `done`. Machine and who sets each
-> transition: `arch:ref-write.md` § Status.
->
-> **`type`** — the change kind, one of the nine in `impl:ref-change-types.md`. **Exactly one, and it
-> is the TODO's main work**: two kinds with equal claim is a split signal. The consequences a kind
-> drags along do not change it — a `new behavior` TODO still migrates its call sites. It never names
-> a brick; the brick is the **Type** column of `## Components`.
+> `status`, `type`, `approve`, and `increment` rules: `arch:ref-write.md` § Status, § Approval, and
+> § Progress; change-kind rules: `impl:ref-change-types.md`.
 >
 > **`depends_on`** — `[]`, one entry, or several, each of which must reach `status: done` first. No
 > forward references. Real edges only: a file this TODO cannot touch until M creates it, a symbol M
@@ -37,14 +31,6 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 > Score ≥ 3 → Autotest/Manual test covers the callers, not just the new code. A high score signals
 > keep-it-small, not blocked.
 >
-> **`approve`** — what the human approves during impl: `inherit | increment | todo | none`. Anything
-> but `inherit` states its reason inline, as above. Full rules: `arch:ref-write.md` § Approval.
->
-> **`increment`** — `<approved>/<total>`. `<total>` is the number of increments in the agent half's
-> `## Changes`; `<approved>` is how many are already in the commit. `todo` writes `0/<total>`; `impl`
-> raises it by one each time an increment lands, so an interrupted run resumes at `<approved> + 1`.
-> `arch:ref-write.md` § Progress.
-
 # TODO-1: Rotate refresh tokens on /auth/refresh
 
 > `TODO-N: <imperative line>` — the same line the ledger row carries. `N` is contiguous and 1-indexed,
@@ -208,17 +194,9 @@ exit 1  → first failed check on stderr, prefixed `FAIL: `
 > ```diff. A check script, a migration, a test file, a generated query all take this shape, and the
 > increment that builds one carries `Surface: none` plus a **Behavior** sketch.
 >
-> Two doctrines govern what a diff may hold, and they live in the reference because Autotest and
-> `## Changes` cite them too:
->
-> - **A diff carries the change, not what the change forces.** One entry per file whose contract this
->   TODO *decides*; a file that only moves to a contract decided elsewhere in the same section carries
->   no entry. Full test and the agent-half home of a skipped consequence:
->   `arch:ref-todo-sections.md` § A diff carries the change, not what the change forces.
-> - **A diff carries the surface, not a body.** Show the signature; the logic goes in the increment's
->   **Behavior** sketch as pseudocode nobody can copy. The one exception is a human asking for a
->   specific body directly, and it is marked. Full rules: `arch:ref-todo-sections.md` § A diff carries
->   the surface, not a body.
+> The doctrines limiting a diff's contents — its decided change, not consequences; its surface, not
+> a body — are `arch:ref-todo-sections.md` § A diff carries the change, not what the change forces
+> and § A diff carries the surface, not a body.
 
 ## Autotest
 
