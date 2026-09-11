@@ -117,12 +117,12 @@
     "hide": "on_success",
   },
   {
-    // Pick a PR of this repo (fzf), reuse or create its worktree via `wt switch pr:<N>`,
+    // Pick a PR of this repo (fzf), reuse its worktree or create one at <repo>.pr-<N>,
     // set the worktree's diff base to the branch base, open it with `zed --existing`.
-    // Script: ~/.claude/scripts/zed-pr-worktree.sh
+    // Script: ~/.config/zed/scripts/zed-pr-worktree.sh
     "label": "Github: PR review",
     "command": "bash",
-    "args": ["-lc", "\"$HOME/.claude/scripts/zed-pr-worktree.sh\""],
+    "args": ["-lc", "\"$HOME/.config/zed/scripts/zed-pr-worktree.sh\""],
     "cwd": "$ZED_WORKTREE_ROOT",
     "use_new_terminal": true,
     "allow_concurrent_runs": false,
@@ -134,10 +134,10 @@
   {
     // Render the line comments as a review report, ask before sending, submit them as one
     // GitHub review with inline comments, then file the batch under .tmp/review-session/.
-    // Script: ~/.claude/scripts/gh-send-review.sh
+    // Script: ~/.config/zed/scripts/gh-send-review.sh
     "label": "Github: send review",
     "command": "bash",
-    "args": ["-lc", "\"$HOME/.claude/scripts/gh-send-review.sh\""],
+    "args": ["-lc", "\"$HOME/.config/zed/scripts/gh-send-review.sh\""],
     "cwd": "$ZED_WORKTREE_ROOT",
     "use_new_terminal": true,
     "allow_concurrent_runs": false,
