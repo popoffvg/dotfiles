@@ -16,6 +16,7 @@ same rule the review gates' `Covered` table follows.
 
 usage: spec-lint.py <notes-dir> [--json] [--quiet]
 exit 0 every check passed - 1 at least one finding - 2 unusable notes dir
+Tool index — every .notes tool and its flags: wm:TOOLS.md
 """
 import json
 import os

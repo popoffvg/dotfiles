@@ -13,6 +13,9 @@ plain-fenced Interface blocks, and all markdown are left untouched.
 
 Prettier resolution: nearest project `node_modules/.bin/prettier` (honours the
 repo's .prettierrc), else `npx --yes prettier@3`.
+
+usage: format-todo.py <todos/TODO-N*.md>
+Tool index — every .notes tool and its flags: wm:TOOLS.md
 """
 import os
 import re

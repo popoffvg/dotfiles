@@ -11,8 +11,9 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 
 | The content is | Show it as | Done when |
 | --- | --- | --- |
-| a rule, a branch, an algorithm | **pseudocode** → `flow-sketch` | the reader can restate the rule without the source |
-| which function calls which, and in what order | **call tree**, indented | every name is one the reader can grep, looks like tree command output in stack trace format |
+| a rule, a branch, an algorithm in code that exists | **pseudocode**, one step per line | the reader can restate the rule without the source; every step that exists carries a clickable trailing `# path:line` |
+| a rule or flow before any code exists | **pseudocode** → `flow-sketch` | every branch, failure cause, and open decision is nameable without the source |
+| which function calls which, and in what order | **call tree**, `tree` glyphs | every name is grep-able; path sits as a trailing `# path:line` comment, never on its own line |
 | a code path across files that someone will revisit | a **Codemap** → `codelens` | one question has a pinned, re-anchorable trace |
 | which component owns which, and where state sits | **component tree**, owning path on the root | the state hook and the package boundary are both visible |
 | responsibility across directories | **shallow file tree**, one comment per dir | each comment says what the dir *owns*, not what it holds |
@@ -34,26 +35,65 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 
 The bold forms are fenced blocks in the reply and answer most questions. A routed row costs a canvas, a browser, or a publish, and is done when the skill it names is done — that skill states its own criterion. **Take a routed row only by naming what the inline form could not carry: pixels, motion, the human's hands, or a page of its own.**
 
+## Pseudocode
+
+One step per line, indentation for nesting, the code's own names, no language syntax — no braces, no types, no `await`.
+
+**A step the code already has carries a trailing reference; a step being proposed carries none.** The blank right column is what tells the reader which half of the rule is written. Write the reference as a repo-relative path plus line — `src/session/save.ts:94` — which is the form a Zed terminal turns into a click. A bare basename is not clickable; an absolute path is noise. Name the root once above the block when the paths are long.
+
+```text
+on save(content)                            # src/session/save.ts:88
+  if content is unchanged since last write  # src/session/save.ts:94
+    return the cached result                # src/session/cache.ts:31
+  write the new content                     # src/session/save.ts:101
+  invalidate the cache entry
+  return the fresh result
+```
+
+Here the last two lines are the change: the cache is read today and never invalidated.
+
+A `flow-sketch` carries no references at all: nothing is written yet, so there is nothing to click.
+
+## Call tree
+
+Names are the tree. Location is metadata: a trailing `# path:line` aligned to the right, clickable and rooted as in **Pseudocode** above, shortened against a root named once under the block. A path on its own line is too loud — the reader came for the calls.
+
+```
+# under src/variants/
+process_one                                            # build_variants.py:81
+├── build_candidates_and_declines                      # variant_candidates.py:374
+│   ├── admitted_targets                               # variant_candidates.py:201
+│   └── _scored_dropping_blockers                      # variant_candidates.py:310
+│       └── _cleared_candidate                         # variant_candidates.py:243
+└── rank_variants                                      # variant_ranking.py:152
+```
+
+Two roots (a later pass, a second entry) are two trees, not one stretched trunk.
+
 ## Code traces that survive the reply
 
 Use a Codemap only for a code path across files that someone will revisit. `codelens` writes `docs/traces/<slug>.codemap.md`, walks its real code locations, and later re-anchors them with `codelens check`.
 
 ```markdown
-# how a request becomes a saved result
+# how a save reaches the cache or the disk
 @ <short commit>
-> src/entry.rs:42 handle_request
+> src/session/save.ts:88 save
 
-- Input is validated
-  - src/entry.rs:42 handle_request
-    - src/validation.rs:18 validate
-      | rejects malformed input before storage is reached
+- the content is unchanged since the last write
+  - src/session/save.ts:94 isUnchanged
+    - src/session/cache.ts:31 cachedResult
+      | the entry is read here and invalidated nowhere
+- the content changed
+  - src/session/save.ts:101 writeContent
 ```
+
+Same flow as **Pseudocode** above, same locations as a **call tree** — the step names carry the rule, the nesting carries the calls, and the pin makes both re-checkable months later.
 
 `#` is the question, `@` the commit pin, `>` an entry point, `-` a stage or `path:line:symbol` Node, and `|` a fact the code alone does not say. Indentation means part of the current step, not necessarily a direct call; expand a location once and repeat it bare thereafter.
 
 ## Three rules for every form
 
-**The medium picks the flow syntax.** A flow written into a markdown file is mermaid — `flowchart`, `sequenceDiagram`, `stateDiagram`. A flow shown in the chat reply to the user is an ASCII diagram in a fenced block — arrows and boxes in monospace — because chat renders no mermaid. The indented forms above are code shapes in both media: a call tree is a stack trace, a file tree is a directory listing, a component tree is JSX. Each mirrors something that already exists in that shape.
+**The medium picks the flow syntax.** A flow written into a markdown file is mermaid — `flowchart`, `sequenceDiagram`, `stateDiagram`. A flow shown in the chat reply to the user is an ASCII diagram in a fenced block — arrows and boxes in monospace — because chat renders no mermaid. The indented forms above are code shapes in both media: a call tree is `tree` output with `# file:line` comments, a file tree is a directory listing, a component tree is JSX. Each mirrors something that already exists in that shape.
 
 **Cut to the question.** If a row, call, file, prop, or boundary were deleted, would the answer change? If not, it is inventory, not a view. A view the reader must scroll has already failed this — cut rows before shrinking type.
 

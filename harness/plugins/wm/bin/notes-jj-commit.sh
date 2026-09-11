@@ -15,15 +15,10 @@ active=$(echo "$INPUT" | jq -r '.stop_hook_active // false' 2>/dev/null) || acti
 CWD=$(echo "$INPUT" | jq -r '.cwd // ""' 2>/dev/null) || exit 0
 [[ -z "$CWD" || ! -d "$CWD" ]] && exit 0
 
-dir="$CWD"
-notes=""
-while :; do
-  [[ -d "$dir/.notes/.jj" ]] && { notes="$dir/.notes"; break; }
-  parent=$(dirname "$dir")
-  [[ "$parent" == "$dir" ]] && break
-  dir="$parent"
-done
-[[ -z "$notes" ]] && exit 0
+lib="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/notes-store.sh"
+# shellcheck source=notes-store.sh
+source "$lib"
+notes=$(notes_find_dir "$CWD") || exit 0
 
 # jj auto-snapshots the working copy on any command; skip if nothing changed
 # to avoid empty commits.

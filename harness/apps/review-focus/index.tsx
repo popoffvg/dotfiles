@@ -1,6 +1,26 @@
 import { createHash } from "node:crypto";
 import { useMemo, useSyncExternalStore } from "react";
-import type { ExtensionDiffFile, ExtensionPaneProps, HunkExtensionAPI } from "hunkdiff/extension";
+import type {
+  ExtensionDiffFile,
+  ExtensionPaneProps,
+  ExtensionPaneTheme,
+  ExtensionReviewNote,
+  ExtensionReviewSnapshotNote,
+  HunkExtensionAPI,
+} from "hunkdiff/extension";
+import { quoteReason } from "./quote";
+import { branchGlyph, groupByDirectory, leafName } from "./tree";
+import {
+  agentCommand,
+  agentModel,
+  askAgent,
+  buildPrompt,
+  changedFiles,
+  headCommit,
+  parseSuggestions,
+  spawnFailure,
+  type ChangedFile,
+} from "./generate";
 import {
   DEFAULT_GENERATED_PATTERNS,
   DEFAULT_TEST_PATTERNS,
@@ -11,13 +31,19 @@ import {
 } from "./classify";
 import {
   findRepoRoot,
+  readComments,
   readMarks,
+  readRanking,
   readReviewed,
+  reviewKey,
   toRepoPath,
+  writeComment,
   writeMarks,
+  writeRanking,
   writeReviewedFile,
   type FocusMark,
   type ReviewedFileState,
+  type SavedComment,
 } from "./store";
 
 interface ReviewedProgress {
@@ -59,18 +85,25 @@ function applyReviewedUpdate(repoRoot: string, filePath: string, next: ReviewedP
   const nextContribution = next.fileReviewed ? next.totalHunks : next.reviewedHunks.size;
   const fileCountDelta = (next.fileReviewed ? 1 : 0) - (previous?.fileReviewed ? 1 : 0);
 
+  // Unmarking the last hunk removes the entry rather than storing an empty one: Start here
+  // lists a file with *any* progress, so an empty entry would keep an untouched file listed.
+  const emptied = !next.fileReviewed && next.reviewedHunks.size === 0;
+  const reviewed = { ...snapshot.reviewed };
+  if (emptied) delete reviewed[filePath];
+  else reviewed[filePath] = next;
+
   publish({
     ...snapshot,
-    reviewed: { ...snapshot.reviewed, [filePath]: next },
+    reviewed,
     reviewedHunkCount: snapshot.reviewedHunkCount - previousContribution + nextContribution,
     reviewedFileCount: snapshot.reviewedFileCount + fileCountDelta,
   });
 
-  writeReviewedFile(repoRoot, filePath, {
-    patchHash: next.patchHash,
-    hunks: [...next.reviewedHunks],
-    fileReviewed: next.fileReviewed,
-  });
+  writeReviewedFile(
+    repoRoot,
+    filePath,
+    emptied ? null : { patchHash: next.patchHash, hunks: [...next.reviewedHunks], fileReviewed: next.fileReviewed },
+  );
 }
 
 let snapshot: FocusSnapshot = EMPTY_SNAPSHOT;
@@ -100,84 +133,161 @@ function boolOr(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
 }
 
-function StartHerePane({ files, selectedFileId, theme, width, actions }: ExtensionPaneProps) {
-  const focus = useSyncExternalStore(subscribe, readSnapshot, readSnapshot);
+interface PaneRow {
+  readonly key: string;
+  readonly content: string;
+  readonly fg: string;
+  readonly bg?: string;
+  readonly onMouseDown?: () => void;
+}
+
+function progressMark(progress: ReviewedProgress | undefined): string {
+  if (progress?.fileReviewed) return "✓";
+  return progress && progress.reviewedHunks.size > 0 ? "·" : " ";
+}
+
+function fitPath(path: string, width: number): string {
+  return path.length <= width ? path : `…${path.slice(path.length - width + 1)}`;
+}
+
+function startHereRows(
+  files: readonly ExtensionDiffFile[],
+  focus: FocusSnapshot,
+  selectedFileId: string | null,
+  theme: ExtensionPaneTheme,
+  width: number,
+  selectFile: (fileId: string) => void,
+): PaneRow[] {
+  const rows: PaneRow[] = [{ key: "title", content: " Start here", fg: theme.accent }];
+  if (focus.totalHunkCount > 0) {
+    rows.push({
+      key: "progress",
+      content: ` ${focus.reviewedFileCount} file(s), ${focus.reviewedHunkCount}/${focus.totalHunkCount} hunks reviewed`,
+      fg: theme.muted,
+    });
+  }
+
   // Marked (★) files, plus any file with review progress even if never marked — reviewed
   // state must stay visible here, not just for the files you also flagged important.
-  const listed = useMemo(
-    () => files.filter((file) => focus.tiers[file.path] === "focused" || focus.reviewed[file.path] !== undefined),
-    [files, focus],
+  const listed = files.filter(
+    (file) => focus.tiers[file.path] === "focused" || focus.reviewed[file.path] !== undefined,
   );
+  // The placeholder says what is missing and how to get it. "Nothing here" alone reads the
+  // same whether the ranking has not run, failed, or genuinely had nothing to say.
+  if (listed.length === 0) {
+    rows.push({ key: "empty", content: " no ranking for this diff", fg: theme.muted });
+    rows.push({ key: "empty:how", content: " run `hunk focus generate`", fg: theme.accentMuted });
+    rows.push({ key: "empty:keys", content: " ctrl+b for the plain file list", fg: theme.muted });
+  }
+
+  // Drawn as a tree, one heading per directory: the paths of a ranking repeat their leading
+  // directories, and repeating them costs the columns a 36-wide pane does not have.
+  const byPath = new Map(listed.map((file) => [file.path, file]));
+  for (const group of groupByDirectory(listed.map((file) => file.path))) {
+    if (group.dir.length > 0) {
+      rows.push({
+        key: `dir:${group.dir}`,
+        content: ` ${fitPath(group.dir, Math.max(4, width - 3))}/`,
+        fg: theme.muted,
+      });
+    }
+
+    group.paths.forEach((path, index) => {
+      const file = byPath.get(path);
+      if (!file) return;
+      const selected = file.id === selectedFileId;
+      const marked = focus.tiers[path] === "focused";
+      const glyph = group.dir.length > 0 ? ` ${branchGlyph(index, group.paths.length)} ` : " ";
+      const name = group.dir.length > 0 ? leafName(path) : path;
+
+      rows.push({
+        key: `${file.id}:path`,
+        content: `${glyph}${progressMark(focus.reviewed[path])}${marked ? "★" : " "} ${fitPath(name, Math.max(4, width - glyph.length - 3))}`,
+        fg: selected ? theme.accent : theme.text,
+        bg: selected ? theme.selectedHunk : theme.panel,
+        onMouseDown: () => selectFile(file.id),
+      });
+
+      // A file's stats and reason hang under its own branch, so the trunk stays readable
+      // while a group is still open below it.
+      const trunk = group.dir.length > 0 && index < group.paths.length - 1 ? " │  " : "    ";
+      rows.push({
+        key: `${file.id}:stats`,
+        content: `${trunk} +${file.stats.additions} -${file.stats.deletions}`,
+        fg: theme.muted,
+      });
+
+      const reason = focus.reasons[path];
+      if (!reason) return;
+      const quoted = quoteReason(reason, Math.max(8, width - 8));
+      if (quoted.header) rows.push({ key: `${file.id}:why`, content: `${trunk} ${quoted.header}`, fg: theme.muted });
+      quoted.body.forEach((line, lineIndex) => {
+        rows.push({ key: `${file.id}:quote:${lineIndex}`, content: `${trunk} > ${line}`, fg: theme.noteBorder });
+      });
+    });
+  }
+
   const demoted = focus.counts.test + focus.counts.generated;
-  const wrap = Math.max(12, width - 4);
+  if (demoted > 0) {
+    rows.push({
+      key: "demoted",
+      content: ` moved down: ${focus.counts.test} test, ${focus.counts.generated} generated`,
+      fg: theme.muted,
+    });
+  }
+  return rows;
+}
+
+function PaneRows({ rows, theme }: { rows: readonly PaneRow[]; theme: ExtensionPaneTheme }) {
+  return (
+    <box style={{ width: "100%", flexDirection: "column", backgroundColor: theme.panel }}>
+      {rows.map((row) => (
+        <text
+          key={row.key}
+          content={row.content}
+          style={{ fg: row.fg, bg: row.bg ?? theme.panel }}
+          {...(row.onMouseDown ? { onMouseDown: row.onMouseDown } : {})}
+        />
+      ))}
+    </box>
+  );
+}
+
+function scrollProps(theme: ExtensionPaneTheme) {
+  return {
+    focused: false,
+    scrollY: true,
+    rootOptions: { backgroundColor: theme.panel },
+    wrapperOptions: { backgroundColor: theme.panel },
+    viewportOptions: { backgroundColor: theme.panel },
+    contentOptions: { backgroundColor: theme.panel },
+    verticalScrollbarOptions: { visible: false },
+    horizontalScrollbarOptions: { visible: false },
+  };
+}
+
+// Start here is the left column a review opens on: Hunk's own file list is still registered
+// and still reordered, it just starts closed (`replaces: "hunk:files"`).
+function StartHerePane({ files, selectedFileId, theme, width, actions }: ExtensionPaneProps) {
+  const focus = useSyncExternalStore(subscribe, readSnapshot, readSnapshot);
+
+  const rows = useMemo(
+    () => startHereRows(files, focus, selectedFileId, theme, width, actions.selectFile),
+    [files, focus, selectedFileId, theme, width, actions],
+  );
 
   return (
-    <scrollbox
-      width="100%"
-      height="100%"
-      focused={false}
-      scrollY={true}
-      rootOptions={{ backgroundColor: theme.panel }}
-      wrapperOptions={{ backgroundColor: theme.panel }}
-      viewportOptions={{ backgroundColor: theme.panel }}
-      contentOptions={{ backgroundColor: theme.panel }}
-      verticalScrollbarOptions={{ visible: false }}
-      horizontalScrollbarOptions={{ visible: false }}
-    >
-      <box style={{ width: "100%", flexDirection: "column", backgroundColor: theme.panel }}>
-        <text content=" Start here" style={{ fg: theme.accent, bg: theme.panel }} />
-        {focus.totalHunkCount > 0 ? (
-          <text
-            content={` ${focus.reviewedFileCount} file(s), ${focus.reviewedHunkCount}/${focus.totalHunkCount} hunks reviewed`}
-            style={{ fg: theme.muted, bg: theme.panel }}
-          />
-        ) : null}
-        {listed.length === 0 ? (
-          <text content=" nothing marked or reviewed yet" style={{ fg: theme.muted, bg: theme.panel }} />
-        ) : null}
-        {listed.flatMap((file) => {
-          const selected = file.id === selectedFileId;
-          const marked = focus.tiers[file.path] === "focused";
-          const reason = focus.reasons[file.path];
-          const progress = focus.reviewed[file.path];
-          const mark = progress?.fileReviewed ? "✓" : progress && progress.reviewedHunks.size > 0 ? "·" : " ";
-          const rows = [
-            <text
-              key={`${file.id}:path`}
-              content={` ${mark} ${marked ? "★ " : "  "}${file.path}`}
-              style={{ fg: selected ? theme.accent : theme.text, bg: selected ? theme.selectedHunk : theme.panel }}
-              onMouseDown={() => actions.selectFile(file.id)}
-            />,
-            <text
-              key={`${file.id}:stats`}
-              content={`    +${file.stats.additions} -${file.stats.deletions}`}
-              style={{ fg: theme.muted, bg: theme.panel }}
-            />,
-          ];
-          if (reason) {
-            rows.push(
-              <text
-                key={`${file.id}:why`}
-                content={`    ▸ ${reason.slice(0, wrap * 3)}`}
-                style={{ fg: theme.accentMuted, bg: theme.panel }}
-              />,
-            );
-          }
-          return rows;
-        })}
-        {demoted > 0 ? (
-          <text
-            content={` moved down: ${focus.counts.test} test, ${focus.counts.generated} generated`}
-            style={{ fg: theme.muted, bg: theme.panel }}
-          />
-        ) : null}
-      </box>
+    <scrollbox style={{ width: "100%", height: "100%" }} {...scrollProps(theme)}>
+      <PaneRows rows={rows} theme={theme} />
     </scrollbox>
   );
 }
 
 const USAGE = [
   "Usage:",
+  "  hunk focus generate [<revisions...>]        ask the agent what to read first",
+  "    --skip                                    never ask; reuse a stored ranking or open empty",
+  "    --force                                   ask again even when this commit is already ranked",
   "  hunk focus add <path...> [--why <reason>]   mark files worth reading first",
   "  hunk focus rm <path...>                     drop marks",
   "  hunk focus list [--json]                    show marks for this repo",
@@ -187,6 +297,10 @@ const USAGE = [
   "them to a window that is already open.",
   "",
 ].join("\n");
+
+/** Files the agent may name, and how long it gets to answer. */
+const GENERATE_LIMIT = 8;
+const GENERATE_TIMEOUT_MS = 240_000;
 
 export default function (hunk: HunkExtensionAPI) {
   const configuredTests = stringList(hunk.config.testPatterns);
@@ -250,14 +364,23 @@ export default function (hunk: HunkExtensionAPI) {
     id: "start-here",
     title: "Start here",
     placement: "left",
+    // Opens in the files pane's place, which therefore starts closed: a review opens on the
+    // ranked reading order, not on every changed path. Both panes stay toggleable —
+    // `ctrl+f` for this one, `ctrl+b` for the file list it opened in front of.
+    replaces: "hunk:files",
     width: { preferred: 36, min: 24, fraction: 0.22 },
-    defaultOpen: readMarks(findRepoRoot(process.cwd())).length > 0,
-    available: () => snapshot.counts.focused > 0 || snapshot.reviewedHunkCount > 0,
     component: StartHerePane,
   });
 
-  hunk.registerCommand({ id: "toggle", title: "Toggle start-here pane", key: "ctrl+f" }, (ctx) => {
+  hunk.registerCommand({ id: "toggle", title: "Show/hide Start here", key: "ctrl+f" }, (ctx) => {
     ctx.panes.toggle("start-here");
+  });
+
+  // Hunk's own files-pane command resolves to whatever owns the files slot, which is this
+  // extension's pane — so the built-in list needs a key that addresses it literally, or
+  // replacing the slot would make it unreachable for the rest of the session.
+  hunk.registerCommand({ id: "files", title: "Show/hide the file list", key: "ctrl+b" }, (ctx) => {
+    ctx.panes.toggle("hunk:files");
   });
 
   hunk.registerCommand({ id: "first", title: "Jump to first marked file", key: "ctrl+g" }, (ctx) => {
@@ -328,6 +451,41 @@ export default function (hunk: HunkExtensionAPI) {
     ctx.commands.execute("hunk.review.nextHunk");
   });
 
+  // The exact inverse of `m`. Because `m` advances after marking, the mark to undo is the one
+  // *before* the cursor — so this steps back first and unmarks what it lands on, and pressing
+  // m,m,m,M,M leaves hunk 1 marked with the cursor on hunk 2.
+  hunk.registerCommand({ id: "unmarkHunk", title: "Step back and unmark that hunk", key: "M" }, (ctx) => {
+    const file = ctx.selection.file;
+    const hunkIndex = ctx.selection.hunkIndex;
+    if (!file || hunkIndex === null) {
+      ctx.notify("review-focus: no hunk selected", "warning");
+      return;
+    }
+
+    // At the first hunk there is nothing to step back to, so `M` unmarks it in place.
+    const target = Math.max(0, hunkIndex - 1);
+    const hash = patchHashOf(file);
+    const current = snapshot.reviewed[file.path];
+
+    // The jump happens either way: it is half of what the key promises, and landing on the
+    // hunk is what lets the reviewer see why nothing was unmarked.
+    ctx.navigation.selectHunk(file.id, target);
+
+    if (!current || current.patchHash !== hash || !current.reviewedHunks.has(target)) {
+      ctx.notify(`review-focus: hunk ${target + 1} was not marked`, "warning");
+      return;
+    }
+
+    const reviewedHunks = new Set(current.reviewedHunks);
+    reviewedHunks.delete(target);
+    applyReviewedUpdate(findRepoRoot(ctx.cwd), file.path, {
+      patchHash: hash,
+      reviewedHunks,
+      totalHunks: file.hunks?.length ?? 0,
+      fileReviewed: false,
+    });
+  });
+
   hunk.registerCommand({ id: "markFile", title: "Mark selected file fully reviewed", key: "space" }, (ctx) => {
     const file = ctx.selection.file;
     if (!file) {
@@ -347,6 +505,51 @@ export default function (hunk: HunkExtensionAPI) {
     ctx.notify(`review-focus: ${file.path} marked reviewed`);
   });
 
+  // A note lives in the session's memory and dies when Hunk exits, so every saved note is
+  // mirrored to the comment store as it is written. prx reads that store back to restore the
+  // notes into the next run and to offer posting them.
+  const noteStoreIds = new Map<string, string>();
+
+  const commentId = (comment: SavedComment): string =>
+    [comment.filePath, comment.side, comment.line, comment.summary].join(" ");
+
+  const rememberNote = (cwd: string, note: ExtensionReviewNote): void => {
+    if (note.draft) return;
+    const key = reviewKey(findRepoRoot(cwd));
+    const comment: SavedComment = { filePath: note.filePath, side: note.side, line: note.line, summary: note.body };
+    const id = commentId(comment);
+    const previous = noteStoreIds.get(note.id);
+    if (previous && previous !== id) writeComment(key, previous, null);
+    noteStoreIds.set(note.id, id);
+    writeComment(key, id, comment);
+  };
+
+  const bindRestoredNote = (cwd: string, note: ExtensionReviewSnapshotNote): void => {
+    const key = reviewKey(findRepoRoot(cwd));
+    const line = note.anchor.preferred?.line;
+    const entry = Object.entries(readComments(key)).find(
+      ([, comment]) => comment.summary === note.summary && comment.line === line,
+    );
+    if (entry) noteStoreIds.set(note.id, entry[0]);
+  };
+
+  hunk.on("note_created", ({ note }, ctx) => rememberNote(ctx.cwd, note));
+  hunk.on("note_edited", ({ note }, ctx) => rememberNote(ctx.cwd, note));
+
+  hunk.on("note_changed", ({ kind, note }, ctx) => {
+    if (kind === "removed") {
+      const id = noteStoreIds.get(note.id);
+      if (!id) return;
+      writeComment(reviewKey(findRepoRoot(ctx.cwd)), id, null);
+      noteStoreIds.delete(note.id);
+      return;
+    }
+    // A note prx restored arrives as an agent comment, which carries an opaque file key
+    // instead of the path the store is keyed on. Bind it to the entry it was restored from,
+    // so deleting it here deletes it there too.
+    if (!noteStoreIds.has(note.id)) bindRestoredNote(ctx.cwd, note);
+  });
+
   hunk.on("startup", (_event, ctx) => {
     const marks = readMarks(findRepoRoot(ctx.cwd));
     if (marks.length > 0) ctx.notify(`review-focus: ${marks.length} file(s) marked to read first`);
@@ -362,6 +565,75 @@ export default function (hunk: HunkExtensionAPI) {
       if (!subcommand || subcommand === "--help" || subcommand === "-h" || subcommand === "help") {
         await ctx.stdout.write(USAGE);
         return { kind: "exit", code: subcommand ? 0 : 2 };
+      }
+
+      // `generate` is the whole Start here list: the agent's answer replaces the marks rather
+      // than merging into them, so the pane always shows one coherent reading order instead of
+      // this run's ranking layered over a stale one.
+      if (subcommand === "generate") {
+        // Every exit from here reports why. An unreported one leaves the pane empty, which
+        // reads on screen exactly like an agent that had nothing to say.
+        let files: readonly ChangedFile[];
+        try {
+          files = changedFiles(repoRoot, rest.filter((token) => !token.startsWith("--")));
+        } catch (error) {
+          await ctx.stderr.write(`git diff failed — ${spawnFailure(error)}\n`);
+          return { kind: "exit", code: 1 };
+        }
+        if (files.length === 0) {
+          await ctx.stderr.write(`no changed files in ${repoRoot}\n`);
+          return { kind: "exit", code: 1 };
+        }
+
+        // The ranking is read before the agent is ever considered: its file is named for this
+        // review and this commit, so its existence is the whole answer to "was this ranked
+        // already?" — no comparison, and one agent run per pull request per commit.
+        const key = reviewKey(repoRoot);
+        const head = headCommit(repoRoot);
+        const stored = readRanking(key, head);
+
+        if (stored !== null && !rest.includes("--force")) {
+          writeMarks(repoRoot, stored.marks);
+          for (const mark of stored.marks) {
+            await ctx.stdout.write(mark.why ? `${mark.path}  — ${mark.why}\n` : `${mark.path}\n`);
+          }
+          await ctx.stdout.write(`stored ranking of ${key} at ${head.slice(0, 8)} — the agent was not asked\n`);
+          return { kind: "exit", code: 0 };
+        }
+
+        if (rest.includes("--skip")) {
+          await ctx.stdout.write(
+            `skipped the agent — nothing stored for ${key} at ${head.slice(0, 8)}, Start here opens empty\n`,
+          );
+          return { kind: "exit", code: 0 };
+        }
+
+        await ctx.stdout.write(`asking ${agentCommand()} (${agentModel()}) about ${files.length} changed file(s)…\n`);
+        let reply: string;
+        try {
+          reply = askAgent(repoRoot, buildPrompt(files, GENERATE_LIMIT), GENERATE_TIMEOUT_MS);
+        } catch (error) {
+          await ctx.stderr.write(`${agentCommand()} failed — ${spawnFailure(error)}\n`);
+          return { kind: "exit", code: 1 };
+        }
+
+        const suggestions = parseSuggestions(reply, new Set(files.map((file) => file.path)));
+        if (suggestions.length === 0) {
+          await ctx.stderr.write("no usable ranking in the reply — nothing written\n");
+          return { kind: "exit", code: 1 };
+        }
+
+        const at = new Date().toISOString();
+        const ranked = suggestions.map((suggestion) =>
+          suggestion.why ? { ...suggestion, at } : { path: suggestion.path, at },
+        );
+        writeMarks(repoRoot, ranked);
+        writeRanking(key, head, { at, marks: ranked });
+        for (const suggestion of suggestions) {
+          await ctx.stdout.write(suggestion.why ? `${suggestion.path}  — ${suggestion.why}\n` : `${suggestion.path}\n`);
+        }
+        await ctx.stdout.write(`wrote ${suggestions.length} mark(s), replacing ${marks.length}\n`);
+        return { kind: "exit", code: 0 };
       }
 
       if (subcommand === "list") {

@@ -10,6 +10,8 @@ Blank lines and #-comments are skipped.
 
 Also syncs each edited note's frontmatter `links:` list to every [[wikilink]] in
 its body. A bullet already present in its section is left alone, so reruns are safe.
+
+Tool index — every .notes tool and its flags: wm:TOOLS.md
 """
 
 import re

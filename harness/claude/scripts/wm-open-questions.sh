@@ -13,6 +13,7 @@ usage: wm-open-questions.sh [thoughts-dir] [--count|--files]
 
 Default output: one line per open question — id  title  (file)
 Exit code: 0 none open · 1 one or more open · 2 usage or missing dir.
+Tool index — every .notes tool and its flags: wm:TOOLS.md
 EOF
 	exit 2
 }

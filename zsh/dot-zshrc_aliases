@@ -262,12 +262,16 @@ handoff-todo() {
 # URL match no insteadOf rule, so nothing rewrites it. The token is visible in
 # `ps` for the length of the fetch.
 #
-# hunk owns the review: `c` notes a line, `S` submits. The `prx` skill writes
-# notes into this same session with `hunk session comment apply`.
+# hunk owns the review: `c` notes a line, `T` lists the PR's existing threads, and
+# `S` submits every note as one atomic GitHub review (hunk-gh-review). The `prx`
+# skill writes into the same session with `hunk session comment apply`.
+#
+# Notes taken but not submitted are not lost: the review-focus extension mirrors
+# them to a store keyed by the PR, and the next `prx <same-pr>` restores them.
 #
 # Before opening hunk, files that already carry unresolved review comments are
 # marked with the `review-focus` extension (harness/apps/review-focus), so the
-# "Start here" pane and the file order lead with what earlier reviewers already
+# "Start here" half of the files pane and the file order lead with what earlier reviewers already
 # flagged. Marks are cleared again once hunk exits — they are worktree-scoped
 # and the worktree does not survive this call.
 prx() {
@@ -307,30 +311,72 @@ prx() {
   fi
 
   echo "prx: ${nwo}#${num} onto ${base} — $(git -C "$wt" log --oneline -1)"
-  _prx_mark_reviewed_files "$wt" "$nwo" "$num"
-  ( cd "$wt" && command hunk diff "$base_ref...HEAD" )
-  ( cd "$wt" && command hunk focus clear --yes ) 2>/dev/null
+
+  local review_key="${nwo}#${num}"
+  _prx_rank_files "$wt" "$base_ref" "$review_key"
+  _prx_restore_comments "$review_key" "$wt" "$nwo" "$num"
+
+  # The worktree is detached, so hunk-gh-review cannot resolve the PR from a checked-out
+  # branch. GH_PR_NUMBER/GH_PR_REPO are its documented answer for exactly that, and `S`
+  # confirms the number and title before it posts anything.
+  (
+    cd "$wt" &&
+      PRX_REVIEW_KEY="$review_key" GH_PR_NUMBER="$num" GH_PR_REPO="$nwo" \
+        command hunk diff "$base_ref...HEAD"
+  )
+  # No `focus clear` here. Marks are keyed on the worktree path, and `_prx_drop` deletes that
+  # worktree on the next line, so the clear only ever destroyed state that was already going
+  # away — while making a reopened review look like its ranking had been lost.
   _prx_drop "$wt" "$head_ref" "$base_ref"
+  _prx_report_kept "$review_key" "$num"
 }
 
-# Mark every file that already carries a review comment, oldest comment first,
-# so the reviewer opens onto what earlier reviewers already flagged instead of
-# the diff's file order. Best-effort: a `gh api` failure here must never block
-# opening the review, so errors are swallowed and marking is simply skipped.
-_prx_mark_reviewed_files() {
-  local wt="$1" nwo="$2" num="$3"
-  local rows
-  rows=$(gh api "repos/${nwo}/pulls/${num}/comments" --paginate --jq '
-    group_by(.path)[] | [.[0].path, "\(length) review comment(s), latest by \(.[-1].user.login): " + (.[-1].body | gsub("\r?\n";" ") | .[0:80])] | @tsv
-  ' 2>/dev/null) || return 0
+_PRX_COMMENTS="$HOME/.claude/scripts/prx-comments.sh"
 
-  # `path` is a special zsh parameter tied to `PATH` — a loop variable of that
-  # name would clobber PATH on every iteration and break every command after it.
-  local file_path why
-  while IFS=$'\t' read -r file_path why; do
-    [[ -z "$file_path" ]] && continue
-    ( cd "$wt" && command hunk focus add "$file_path" --why "$why" ) 2>/dev/null
-  done <<< "$rows"
+# Notes taken in the session outlive the worktree, because the review-focus extension mirrors
+# them to a store keyed by the PR. Put them back, minus the ones the PR already carries —
+# `S` clears what it submits, but a review posted from the web UI or another machine would
+# otherwise come back as a duplicate.
+_prx_restore_comments() {
+  local key="$1" wt="$2" nwo="$3" num="$4"
+  [[ -x "$_PRX_COMMENTS" ]] || return 0
+  "$_PRX_COMMENTS" prune "$key" "$nwo" "$num"
+  ( "$_PRX_COMMENTS" restore "$key" "$wt" ) &!
+}
+
+_prx_report_kept() {
+  local key="$1" num="$2" pending
+  [[ -x "$_PRX_COMMENTS" ]] || return 0
+  pending=$("$_PRX_COMMENTS" count "$key") || return 0
+  (( pending > 0 )) &&
+    echo "prx: ${pending} note(s) not submitted — \`prx ${num}\` restores them, \`S\` posts them"
+  return 0
+}
+
+# Fill the review-focus "Start here" pane before the TUI opens: `hunk focus generate`
+# hands the agent the PR's changed paths and their +/- counts, and the agent answers with
+# the files worth reading first and why. It runs here rather than inside the session
+# because marks are read once, when a review loads.
+#
+# Earlier reviewers' comments are deliberately not what fills this pane. A PR comment is
+# already reachable in the TUI with `T`, and pasting them here filled Start here with bot
+# markup instead of a reading order. Best-effort: the agent failing must never block
+# opening the review, so a failure only prints and marking is skipped.
+_prx_rank_files() {
+  local wt="$1" base_ref="$2" review_key="$3" ranked
+  # PRX_REVIEW_KEY is what makes the ranking cacheable: without it the extension keys the
+  # answer on the worktree path, which is a fresh temp directory every run, so the same pull
+  # request would pay for the agent again on every open.
+  echo "prx: ranking the diff — reused when this PR was already ranked at this commit"
+  if ! ( cd "$wt" && PRX_REVIEW_KEY="$review_key" command hunk focus generate "${base_ref}...HEAD" ); then
+    echo "prx: no ranking — Start here opens empty (ctrl+b for the plain file list)"
+    return 0
+  fi
+  # The count is what tells the operator whether the pane will have anything in it, before
+  # the TUI takes the screen and an empty pane becomes indistinguishable from a broken one.
+  ranked=$( ( cd "$wt" && PRX_REVIEW_KEY="$review_key" command hunk focus list ) 2>/dev/null | grep -c . )
+  echo "prx: ${ranked} file(s) in Start here — opening hunk"
+  return 0
 }
 
 # Undo one prx run: the worktree and the two refs its fetch wrote.

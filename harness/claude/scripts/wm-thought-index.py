@@ -132,6 +132,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(
         prog="wm-thought-index.py",
         description="Metadata index of a wm thought graph: id, type, status, tags, title, description.",
+        epilog="Tool index — every .notes tool and its flags: wm:TOOLS.md",
     )
     ap.add_argument("dir", nargs="?", help=f"thoughts dir (default: first of {', '.join(DEFAULT_DIRS)})")
     ap.add_argument("-m", "--match", help="case-insensitive regex over id, type, tags, title, description, slug")

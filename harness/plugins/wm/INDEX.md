@@ -27,12 +27,13 @@ means a file in the citing skill. The prefix is the only thing that says which d
 
 ## The common layer — `wm:`
 
-Three files at the plugin root, shared by all five skills.
+Four files at the plugin root, shared by all five skills.
 
 | File | Owns |
 |---|---|
 | `wm:INDEX.md` | This map. |
 | `wm:GLOSSARY.md` | **The leading words** — one word, one meaning, used verbatim by all five skills: the gate, thought, open question, target picture, wave, constraints, outcome, components, brick, increment, approve, blast radius, ledger, status, grill, trace, layer, verification chain, audit, drift, deviation, notes-dir, fixup. A word used in two skills is defined here once; a word private to one skill is defined there. |
+| `wm:TOOLS.md` | **Situation → tool** — every script, agent, and skill the five skills reach for, grouped by the need it serves, with the invocation and what it returns. A procedure cites a row here instead of describing the step by hand. |
 | `wm:CLAUDE.md` | How to work on this plugin — the rules a change to any skill obeys. |
 
 ## The file map

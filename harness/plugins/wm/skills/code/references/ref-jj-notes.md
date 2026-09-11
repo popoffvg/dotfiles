@@ -58,19 +58,17 @@ The message states the **phase + the main ideas of the change** — the reasonin
 - `review: fold status field into notes, decline worklog fallback`
 - `revise TODO-3: split handler, error-wrap at boundary`
 
+**A `revise` message starts with the word `revise`, because the next revision searches for that prefix.** `notes-revision-diff.sh` (§ History) finds the before-state by it; a message that opens any other way hides the previous revision from the tool that needs it.
+
 Each phase reference gives its own message shape (`arch:sub-new.md`, `arch:sub-revise.md`, `impl:sub-fix.md`, …) — all follow this: lead with the phase, then the ideas.
 
 The Stop hook is the **fallback** for uncommitted leftovers only — it can't know intent, so it falls back to the changed basenames. Commit at each phase boundary with a why-message so the hook rarely fires.
 
 ## History — `jj log`
 
-View the spec history with your notes:
+`jj -R <notes-dir> log` prints one entry per change, with its description, timestamp, and diff.
 
-```
-jj -R <notes-dir> log
-```
-
-Each entry is a change with its description and timestamp — the browsable trail the old worklog approximated, now with the diff attached.
+**What changed since the last revision — `bin/notes-revision-diff.sh`.** The commit a `revise` run leaves is the before-state of the corpus, so diffing it against the working copy names the stale artifacts without opening one. It locates that commit by the `revise` prefix § Message convention requires. Invocation, flags, and exits: `wm:TOOLS.md` § Ask why it is this way.
 
 ## Requires jj
 

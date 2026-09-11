@@ -11,12 +11,13 @@ Use the `skill-build` skill for changing any skill here.
 
 ## The common layer
 
-Three files at this root are shared by all five skills. Nothing else at this level is.
+Four files at this root are shared by all five skills. Nothing else at this level is.
 
 | File | Holds |
 |---|---|
 | `INDEX.md` | The map: which skill owns which file, and what that file owns. |
 | `GLOSSARY.md` | **The leading words** — one word, one meaning, used verbatim by all five skills. A word used in two skills is defined here; a word private to one is defined there. |
+| `TOOLS.md` | **Situation → tool** — which script, agent, or skill answers a need, and how to invoke it. |
 | `CLAUDE.md` | This file: how to work on the plugin. |
 
 ## Rule: the router holds routing and the shared taxonomy, nothing else
@@ -57,6 +58,16 @@ That skill owns the house shape — steps plus disclosed reference, a checkable 
 per step, leading words instead of restatements, positive targets instead of bans, and the
 description as a context pointer. It governs the files of this plugin and the artifacts its skills
 write into a notes-dir. Load it before writing or rewriting either; no file here restates its rules.
+
+## Rule: the tool index is a roster
+
+Adding a script under `bin/` or `~/.claude/scripts/`, adding an agent, or changing a script's flags
+lands in `TOOLS.md` in the same commit. An invocation line there is copied from the script's own
+usage block, never paraphrased — a wrong flag in the index costs more than a missing row.
+
+**A procedure cites the row; it does not restate the step.** A step that hand-rolls `git log`,
+`grep`, or a whole-file read when a row already covers the need is the bug this rule prevents. Read
+`TOOLS.md` before writing a step that reaches for anything.
 
 ## Rule: the roster lives in two files
 

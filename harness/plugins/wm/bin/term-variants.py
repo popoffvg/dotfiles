@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Report backticked identifiers in a wm notes corpus that appear in more than one
-spelling differing only by case or separator (idp / idP / id_p). Prototype detector."""
+spelling differing only by case or separator (idp / idP / id_p). Prototype detector.
+
+usage: term-variants.py <notes-dir>/todos/*.md <notes-dir>/spec.md
+Exit code: 0 no variant group - 1 at least one group.
+Tool index — every .notes tool and its flags: wm:TOOLS.md"""
 import re, sys, collections, pathlib
 
 TOK = re.compile(r'`([A-Za-z][A-Za-z0-9_.]{2,40})`')

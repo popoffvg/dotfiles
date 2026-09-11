@@ -12,6 +12,7 @@
 # repos sitting side by side.
 #
 # See code:ref-jj-notes.md for the store layout and the reconcile rule.
+# Tool index — every .notes tool and its flags: wm:TOOLS.md
 set -euo pipefail
 
 lib="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/notes-store.sh"
@@ -19,7 +20,9 @@ lib="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/notes-store.sh"
 source "$lib"
 
 usage() {
-  sed -n '2,14p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  # The header comment IS the usage text: print every leading comment line, so a
+  # line added to the header cannot fall outside a fixed range.
+  sed -e '1d' -e '/^[^#]/,$d' -e 's/^# \{0,1\}//' "${BASH_SOURCE[0]}"
   exit "${1:-0}"
 }
 

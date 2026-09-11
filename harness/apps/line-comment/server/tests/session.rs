@@ -1243,3 +1243,4 @@ fn a_revision_alone_is_not_a_comment() {
 
     assert!(session.store().comments("docs/spec.md").is_empty());
 }
+

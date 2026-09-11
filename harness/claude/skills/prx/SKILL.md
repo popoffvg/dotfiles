@@ -1,18 +1,22 @@
 ---
 name: prx
 description: This skill should be used when the user runs "/prx", "/prx <pr-url>", or "/prx post" — to turn spoken review remarks into notes on the exact lines of a live hunk review session, so the user submits them as one GitHub PR review with `S`. Trigger on "collect my PR comments", "start collecting comments", "note that on line N", "put my comments in the review".
-version: 0.2.0
+version: 0.4.0
 ---
 
 # prx — turn spoken remarks into notes on a live review
 
 The user talks; prx writes each remark onto the line it is about, inside the hunk
-session they are looking at. They press `S` and hunk-gh-review posts every note
-as one GitHub review.
+session they are looking at. They press `S` and hunk-gh-review posts every note as
+one GitHub review.
 
 **prx never calls the GitHub API.** Posting belongs to the `S` key. That keeps one
 comment store (the live session) and one posting path, so a note cannot exist in a
 file the user cannot see, and nothing reaches GitHub without them.
+
+Quitting without `S` loses nothing: the `review-focus` extension mirrors every
+saved note to a store keyed by the pull request, and the next `prx <same-pr>` puts
+them back. `S` clears what it submits, so a restored note is never a duplicate.
 
 ## Before anything: a session must be live
 
@@ -76,22 +80,32 @@ prx does not post. On `/prx post`:
 
 ## Rules
 
-- A note only survives if its line is in the PR's head diff. hunk rejects the whole
+- A note only survives if its line is in the PR's head diff. GitHub rejects the whole
   review if any position is stale, so re-read the structure after a force-push.
 - `comment list --type user` is the user's own notes; without `--type` you get the
   legacy live-agent view. Use `--type all` to see both before reporting a count.
 - The TUI is the user's. Never run `hunk diff`, `hunk show`, or `hunk patch`.
+- Earlier reviewers' threads are the user's to read with `T`, and `R` replies to the
+  active one. Do not restate a thread as a new note — that posts a second comment
+  on a line that already has one.
 
 ## Where it fits
 
 - `prx` (shell function, `zsh/dot-zshrc_aliases`) — builds the worktree and opens
   the session this skill writes into. It fetches the PR over an authenticated
   HTTPS URL because SSH auths as the personal account, which cannot read org repos.
-  It also marks every file with an existing review comment via the `review-focus`
-  extension (`hunk focus add`), so hunk's "Start here" pane and file order lead
-  with what earlier reviewers already flagged.
+  Before the TUI opens it runs `hunk focus generate` (`review-focus` extension),
+  which asks a haiku agent to rank the PR's changed files; that ranking is the
+  "Start here" pane and the file order. It is cached per PR and commit, so a
+  reopened review does not spawn the agent again. Earlier reviewers' comments do
+  not fill it — read those with `T`. It also exports
+  `GH_PR_NUMBER`/`GH_PR_REPO`, which is how `S` knows the PR — the worktree is
+  detached, so hunk-gh-review cannot read it off a checked-out branch.
+- `~/.claude/scripts/prx-comments.sh` — carries notes between runs: restores the
+  saved ones into a new session and drops the ones already on the PR. It never
+  posts. Called by the shell function, not by this skill.
 - `/pr-review` — the older path to the same session; it needs `origin` to be
-  readable and the `hunk-gh-review` extension, neither of which holds here.
+  readable, which does not hold here.
 - `hunk-review` skill — the same `comment apply` batch for findings a review gate
   produced instead of the user.
 - `github-two-accounts` skill — when a `gh` call under this flow fails on a

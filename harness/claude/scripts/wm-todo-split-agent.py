@@ -28,6 +28,7 @@ also catches the bodies a pre-split diff often pasted.
 
 usage: wm-todo-split-agent.py <todos/TODO-N.md> [more...] [--dry-run]
 Exit: 0 split or already split - 1 nothing to move / bad input - 2 unreadable.
+Tool index — every .notes tool and its flags: wm:TOOLS.md
 """
 import re
 import sys

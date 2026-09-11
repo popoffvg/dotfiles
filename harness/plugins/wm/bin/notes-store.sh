@@ -48,6 +48,20 @@ notes_branch() {
   git -C "$1" symbolic-ref --short HEAD 2>/dev/null || true
 }
 
+# The nearest notes dir at or above a directory — the one every hook and script
+# reads. Prints its path; fails when no `.notes/.jj` is found on the way up.
+# Follows the symlink case for free: `.notes/.jj` resolves through the link.
+notes_find_dir() {
+  local dir="$1" parent
+  [[ -n "$dir" && -d "$dir" ]] || return 1
+  while :; do
+    [[ -d "$dir/.notes/.jj" ]] && { echo "$dir/.notes"; return 0; }
+    parent=$(dirname "$dir")
+    [[ "$parent" == "$dir" ]] && return 1
+    dir="$parent"
+  done
+}
+
 # A store is real when it holds a jj repo. `<store>@feat` is only a parent of
 # `<store>@feat/parser`, so the directory alone proves nothing.
 notes_store_exists() {

@@ -1,6 +1,22 @@
+theme = "catppuccin-mocha"
+mode = "stack"
+line_numbers = true
+wrap_lines = false
+hunk_headers = true
+menu_bar = true
+agent_notes = false
+copy_decorations = true
+cursor_line = "row"
+
 [extensions]
 enabled = true
-paths = ["~/git/dotfiles/harness/apps/review-focus"]
+# hunk-gh-review is a fork, not the managed install: `S` upstream reads only `--type user`,
+# and a note carried across sessions can only ever be `source: "agent"`, so upstream can never
+# post one. Forked at d1415964, `hunk extension remove hunk-gh-review` run to free the slot.
+paths = [
+  "~/git/dotfiles/harness/apps/review-focus",
+  "~/git/dotfiles/harness/apps/hunk-gh-review",
+]
 
 # Free "m" and "space" for review-focus.markHunk / review-focus.markFile — a
 # built-in always wins a key collision over an extension command, so these

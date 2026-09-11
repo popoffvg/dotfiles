@@ -7,6 +7,7 @@
 #
 # usage: budget-sweep.sh <notes-dir>
 # Exit code: 0 every artifact within budget - 1 at least one over - 2 unusable notes dir.
+# Tool index — every .notes tool and its flags: wm:TOOLS.md
 set -euo pipefail
 
 NOTES=${1:-}

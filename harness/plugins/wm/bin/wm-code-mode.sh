@@ -14,6 +14,8 @@
 #   mark <cwd>    record current branch as the code-mode slug
 #   check <cwd>   exit 0 if code mode enabled, else 1  (silent)
 #   status <cwd>  print a status-bar segment when enabled, else nothing
+#
+# Tool index — every .notes tool and its flags: wm:TOOLS.md
 set -euo pipefail
 
 # Current branch name for <dir>; echo the name or nothing (detached HEAD -> none).

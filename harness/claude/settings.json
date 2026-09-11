@@ -321,7 +321,6 @@
     "rust-analyzer-lsp@claude-plugins-official": true,
     "codemap@codelens": true,
     "codelens@codelens": true,
-    "plannotator@plannotator": true,
     "line-comment@local-plugins": true
   },
   "extraKnownMarketplaces": {
@@ -392,6 +391,7 @@
         "~/.claude/scripts",
         "~/.config/gh",
         "~/.kube",
+        "~/.notes",
         "~/.npm",
         "~/.pnpm",
         "~/Library/Caches/gopls",

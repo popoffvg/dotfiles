@@ -46,6 +46,7 @@ never to compress, and never to raise the budget.
 
 usage: budget-check.py <file>
 Exit code: 0 within budget or not a checked file - 1 over budget - 2 unreadable.
+Tool index — every .notes tool and its flags: wm:TOOLS.md
 """
 import os
 import re

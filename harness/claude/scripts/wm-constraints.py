@@ -114,6 +114,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(
         prog="wm-constraints.py",
         description="The rules a wm corpus obeys, generated from its live approved decision notes.",
+        epilog="Tool index — every .notes tool and its flags: wm:TOOLS.md",
     )
     ap.add_argument("dir", nargs="?", help=f"thoughts dir or notes dir (default: first of {', '.join(DEFAULT_DIRS)})")
     ap.add_argument("-m", "--match", help="case-insensitive regex over id, rule, title, slug")

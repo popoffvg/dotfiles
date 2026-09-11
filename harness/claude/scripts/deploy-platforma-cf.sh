@@ -5,13 +5,14 @@ usage() {
   cat <<'EOF'
 Deploy Platforma AWS EKS CloudFormation stacks for the MILAB-6670 auth comparison.
 
-  deploy-platforma-cf.sh <1|2|3|4|all> [--params FILE] [--repo DIR]
+  deploy-platforma-cf.sh <1|2|3|4|5|all> [--params FILE] [--repo DIR]
                          [--template-url URL] [--dry-run]
 
   1   v4.3.5 released template, LDAP     AuthMethod=ldap
   2   branch template, LDAP              LdapServer set, AuthMethod empty
   3   branch template, no auth provider  all sources off; forced `platforma` admin
   4   branch template, Google SSO        SsoProvider=google beside a local admin
+  5   v4.3.5 released template, htpasswd AuthMethod=htpasswd (auto-gen password)
 
   --params FILE       default: <repo>/../.notes/cf-deploy.params
   --repo DIR          the pl checkout; default $PL_REPO, else cwd
@@ -55,7 +56,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-case $WHICH in 1|2|3|4|all) ;; *) echo "expected 1, 2, 3, 4 or all — got: $WHICH" >&2; exit 2 ;; esac
+case $WHICH in 1|2|3|4|5|all) ;; *) echo "expected 1, 2, 3, 4, 5 or all — got: $WHICH" >&2; exit 2 ;; esac
 
 [[ -f $REPO/$TEMPLATE_PATH ]] || { echo "not a pl checkout: $REPO (no $TEMPLATE_PATH)" >&2; exit 2; }
 : "${PARAMS:=$REPO/../.notes/cf-deploy.params}"
@@ -238,6 +239,15 @@ deploy_1() {
   } | create_stack "$STACK1_NAME" "$url"
 }
 
+deploy_5() {
+  local src=$WORK/cf-$TAG_REF.yaml url
+  git -C "$REPO" show "$TAG_REF:$TEMPLATE_PATH" > "$src"
+  url=$(publish_template "$src" "cf-$TAG_REF.yaml")
+  { common_params "$STACK5_DOMAIN" "$STACK5_CLUSTER"
+    printf '%s\n' "AuthMethod=htpasswd" "AdminUsers=${STACK5_ADMIN_USERS:-platforma}"
+  } | create_stack "$STACK5_NAME" "$url"
+}
+
 deploy_2() {
   local url
   url=$(branch_template_url)
@@ -277,5 +287,6 @@ case $WHICH in
   2)   deploy_2 ;;
   3)   deploy_3 ;;
   4)   deploy_4 ;;
-  all) deploy_1; deploy_2; deploy_3; deploy_4 ;;
+  5)   deploy_5 ;;
+  all) deploy_1; deploy_2; deploy_3; deploy_4; deploy_5 ;;
 esac

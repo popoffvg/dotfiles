@@ -201,7 +201,22 @@
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('harness/claude/settings.json','utf8'\\)\\)\")",
       "Bash(node -e \"console.log\\(JSON.parse\\(require\\('fs'\\).readFileSync\\('harness/claude/settings.json','utf8'\\)\\).env.SHELL\\)\")",
       "Bash(/opt/nanobrew/prefix/bin/nb info *)",
-      "Bash(/opt/nanobrew/prefix/bin/nb search *)"
+      "Bash(/opt/nanobrew/prefix/bin/nb search *)",
+      "Bash(./wm-backlink-thoughts.py)",
+      "Bash(./collect-range-commits.sh)",
+      "Bash(bash -n harness/plugins/wm/bin/notes-revision-diff.sh)",
+      "Bash(harness/plugins/wm/bin/notes-revision-diff.sh --help)",
+      "Bash(bash -n harness/plugins/wm/bin/note-declare.sh)",
+      "Bash(harness/plugins/wm/bin/note-declare.sh --help)",
+      "Bash(harness/plugins/wm/bin/note-declare.sh --list)",
+      "Bash(~/.claude/scripts/prune-verify.sh /Users/vitaliipopov/git/dotfiles/harness/plugins/wm)",
+      "Bash(jj -R .notes log -n 5)",
+      "Bash(~/.claude/scripts/wm-thought-index.py .notes/thoughts -m 'notes')",
+      "Bash(~/.claude/scripts/wm-thought-index.py --help)",
+      "Bash(harness/plugins/wm/bin/spec-lint.py --help)",
+      "Bash(harness/plugins/wm/bin/budget-check.py --help)",
+      "Bash(harness/plugins/wm/bin/notes-revision-diff.sh)",
+      "mcp__plugin_engram_engram__mem_save"
     ]
   },
   "enabledMcpjsonServers": [
@@ -213,13 +228,13 @@
     "cocoindex",
     "commit-index"
   ],
+  "skillOverrides": {
+    "prune-text": "on"
+  },
   "sandbox": {
     "enabled": false,
     "autoAllowBashIfSandboxed": false
   },
   "spinnerTipsEnabled": false,
-  "prefersReducedMotion": true,
-  "skillOverrides": {
-    "prune-text": "on"
-  }
+  "prefersReducedMotion": true
 }
