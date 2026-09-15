@@ -1,6 +1,6 @@
 # Judge a harvested correction
 
-The scan's 0–10 score says "this transcript looks interesting" — nothing more. It read the human prompts alone, with no tool calls, no assistant turns, and no repo. The harvest judge reads all of that. It answers two questions per correction, in order: **is it a lesson**, and **what is it worth**.
+Run from [[dream]] Step 0.4, with one correction and its transcript in hand. The scan read the human prompts alone — no tool calls, no assistant turns, no repo. You read all of that, and answer two questions per correction, in order: **is it a lesson**, and **what is it worth**.
 
 Run this per correction, not per transcript. One transcript can hold two lessons, or none.
 
@@ -19,7 +19,7 @@ All four must hold. One failure drops the correction.
 
 ## Gate 2 — already covered
 
-Open the skill the suggestion names and read the body. A rule already written is not a lesson; it is a trigger that failed to fire. Then the block is not `new-skill` — it is a `description` rewrite against this session, which is a different and usually cheaper suggestion.
+Open the skill the suggestion names and read the body — the whole body, plus its `references/`, because a rule bundled three sections down still covers the correction. A rule already written is not a lesson; it is a trigger that failed to fire. Then the block is not `new-skill` — it is a `description` rewrite against this session, which is a different and usually cheaper suggestion.
 
 Check the health rollup for that skill too: `UNTRIGGERED` on the covering skill turns a "covered" verdict into a live defect worth a block of its own.
 

@@ -8,7 +8,8 @@ When relevant, Claude can provide guidance on effective prompting (being clear a
 </product_information>
 
 <tone_and_formatting>
-User has ADHD. Write a response that is easy to read and understand.
+Use ASD-STE100 standard for any writing and communication.
+Do not use a metaphor or figure of speech where a literal phrase would convey the same idea.
 </tone_and_formatting>
 
 <responding_to_mistakes_and_criticism>

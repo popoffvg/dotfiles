@@ -23,7 +23,7 @@ Every candidate carries two integers, 1–5, and their difference:
 
 - **impact** — how much the harness improves if this lands. 5 = a rule that fires in most sessions, or a prune that removes a skill from every context window. 1 = one rule in one repo the operator rarely enters.
 - **effort** — what it costs to land. 1 = delete a dir, move one bullet, write one short skill from a suggestion that already holds. 5 = a deep read across several bodies, a merge that must preserve unique content, or a rewrite the operator has to judge line by line.
-- **fast-win = impact − effort.** Range −4 to +4.
+- **fast-win = impact − effort.**
 
 Write the pair in every block as `**Fast-win:** +3 (impact 4 / effort 1)`. **Order the whole review file by fast-win, highest first**, across both halves — a harvest lesson and a prune suggestion compete on the same scale. Ties break on impact.
 
@@ -33,9 +33,9 @@ A negative fast-win is kept, not dropped — it goes at the bottom, and its bloc
 
 # Step 0 — Harvest interesting transcripts
 
-The background scan ([[capture-lesson]] `references/score.md`, driven by the SessionStart hook) only scores a session — 0–10, plus a scope and one line of reason — and writes that to `~/.claude/self-improvement/sessions/<session-id>.json`. A session that scored at or above the keep threshold also gets its transcript copied to `~/.claude/self-improvement/lessons/<scope>/<date>-<topic-slug>-<session-id>.jsonl`. A second pass then writes `suggestions/<session-id>.md` — where that lesson would land in the harness as it stood that day. No recurrence judgment happens in either pass: the score is a cheap haiku guess and the suggestion is one reader's draft, and nobody has yet judged whether the lesson is real or recurs. `dream` closes that loop, in batch, before consolidating:
+The background scan (`capture-lesson:references/score.md`, driven by the SessionStart hook) only scores a session — 0–10, plus a scope and one line of reason — and writes that to `~/.claude/self-improvement/sessions/<session-id>.json`. A session that scored at or above the keep threshold also gets its transcript copied to `~/.claude/self-improvement/lessons/<scope>/<date>-<topic-slug>-<session-id>.jsonl`. A second pass then writes `suggestions/<session-id>.md` — where that lesson would land in the harness as it stood that day. No recurrence judgment happens in either pass: the score is a cheap haiku guess and the suggestion is one reader's draft, and nobody has yet judged whether the lesson is real or recurs. `dream` closes that loop, in batch, before consolidating:
 
-1. **List unharvested archives, highest score first.** `${CLAUDE_PLUGIN_ROOT}/scripts/records-list.sh` prints one row per scored session with its score and scope; the archived transcripts sit in `~/.claude/self-improvement/lessons/<scope>/`. Harvested transcripts live in `~/.claude/self-improvement/lessons/harvested/` and are done. Work down from the top score — that ordering is the whole point of scoring, and a run that stops early has still taken the most promising sessions. Take the score and the subdir as the scan's guess and re-judge both yourself in step 5: a `global/` transcript can still turn out to be project-scoped, and a 9 can still turn out to be a one-off.
+1. **List unharvested archives, highest score first.** `${CLAUDE_PLUGIN_ROOT}/scripts/records-list.sh` prints one row per scored session, sorted by session id — re-sort it on the score column yourself (`sort -t\x27\t\x27 -k5,5rn`). The archived transcripts sit in `~/.claude/self-improvement/lessons/<scope>/`. Harvested transcripts live in `~/.claude/self-improvement/lessons/harvested/` and are done — decide that by searching that dir for the session id, never by reading the record's `archive` field, which still names the pre-harvest path. A record whose archive file is in neither place is unprocessable: report it in the count and move on. Work down from the top score — that ordering is the whole point of scoring, and a run that stops early has still taken the most promising sessions. Take the score and the subdir as the scan's guess and re-judge both yourself in step 5: a `global/` transcript can still turn out to be project-scoped, and a 9 can still turn out to be a one-off.
 2. **Read the session's suggestion next, if it has one.** `~/.claude/self-improvement/suggestions/<session-id>.md`, pointed at by the record's `suggestion` field. Written by the scan's second pass, it already names a verdict (`covered`, `extend`, `doc`, `new-skill`), a target path, the user's own words as evidence, and the runner-up it rejected — all judged against the harness as it stood that day. Treat it as a first draft by a reader who had the inventory in front of them and the transcript's surrounding context not at all: adopt the target when the evidence holds, and overrule it freely. In particular a `covered` verdict is worth checking hardest, because it is the one that ends the work — open the skill it names and confirm the body really says the rule. A stale suggestion (the target skill has since changed) is normal; the record's `suggested_at` says how old it is.
 3. **Read the transcript's `.env.md` sidecar.** Every archived transcript has one beside it, written by the scan: the session topic and one row per git repo that was in context, with branch and origin remote. Read it before the transcript — it is a few lines, and it is where the scope decision's evidence lives. The archive outlives the working directories, so the sidecar is often the only surviving record of which repo a correction was about; never re-derive that from the cwd you are in now.
 4. **Per transcript, find and judge corrections.** Extract human prompts (`${CLAUDE_PLUGIN_ROOT}/scripts/human-turns.sh <transcript>`), mark the ones that correct behavior, read the surrounding context (`Read` with `offset`/`limit`) to see what the assistant did. Judge each one against `references/judge.md` — the two gates and the harvest scoring anchors. A transcript where nothing passes the gates is harvested with nothing to show for it — delete its `.jsonl` **and its `.env.md`**, move to the next transcript.
@@ -71,14 +71,12 @@ Read in escalating depth — cheap first, deep only where it pays: **description
 
 5. **Per cluster, emit suggestions.** For each cluster produce prune / unite / generalize / move suggestions, each with: the target rules (paths), the operation, a one-line reason, its fast-win score, and — for unite/move — the survivor and the unique content to preserve (from step 4). Concrete — name the files, quote the overlapping triggers.
 
-6. **Review gate — write the file, do not present it in chat.** Run the [[to-user]] skill over the whole set, harvest blocks and consolidation suggestions together. That skill owns the block shape, the `**Answer:**` slot, opening the file, and extracting the answers back. `dream` adds four things to it:
+6. **Review gate — write the file, do not present it in chat.** Run the [[to-user]] skill over the whole set, harvest blocks and consolidation suggestions together, with four `dream` specifics:
 
    - The file is `dream-decisions.md`, in the notes dir of the repo the session runs in, or the scratchpad when there is none.
    - **One order: fast-win, highest first.** Not grouped by operation — the operator reads down and stops when they run out of attention, and what they read first is what pays most.
    - Every block carries the `**Fast-win:**` line under **Detail**, and **Recommended** is pre-filled into the `**Answer:**` slot. Leaving a block alone accepts it; `no` rejects it.
    - A header line stating that nothing is written until answers come back, and the harvest count from Step 0.7.
-
-   Do not write to any skill before the answers are extracted — merging deletes captured lessons and is hard to reverse.
 
 7. **Apply approved.** For each approved suggestion:
    - **prune** → delete the skill dir, or remove the single rule from the body.
@@ -96,7 +94,7 @@ Read in escalating depth — cheap first, deep only where it pays: **description
 
 # Rules
 
-1. **Suggest before write.** Nothing — a harvested lesson included — is written before the answers come back from the review file. This is editorial and irreversible.
+1. **Suggest before write.** Nothing — a harvested lesson included — is written before the answers come back from the review file. Merging deletes captured lessons and is hard to reverse.
 2. **The review file is the only report.** No suggestion set in chat, no summary that duplicates the blocks. Chat carries the path and the counts.
 3. **Every block is scored.** A block with no `**Fast-win:**` line has no place in the order, and the order is what makes the file readable.
 4. **Autocreated first.** Target `metadata.origin: self-improvement` skills; touch hand-authored ones only on explicit request.
