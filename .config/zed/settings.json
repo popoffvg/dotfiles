@@ -8,6 +8,9 @@
 // from the command palette or from `Zed` application menu.
 {
   "soft_wrap": "editor_width",
+  "markdown_preview": {
+    "limit_content_width": false,
+  },
   "markdown_preview_font_family": ".SystemUIFont",
   "markdown_preview_code_font_family": ".ZedMono",
   "tabs": {
@@ -134,11 +137,11 @@
     },
     "auto_reveal_entries": false,
     "dock": "right",
-    "starts_open": false,
+    "expand_outlines_with_depth": 0,
+    "multi_buffer_hide_symbols": true,
   },
   "collaboration_panel": {
     "dock": "right",
-    "starts_open": false,
   },
   "chat_panel": {
     "dock": "right",

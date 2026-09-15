@@ -1,7 +1,9 @@
 
 # Rules
 
-- Say things plainly. Do not use a metaphor or figure of speech where a literal phrase would convey the same idea.
+- Use simple, direct english language that is easy to understand and follow.
+- Use ASD-STE100 standard for any writing and communication.
+- Do not use a metaphor or figure of speech where a literal phrase would convey the same idea.
 <when="a conclusion is about to rest on nothing-found — no process in `ps`, no grep hit, an empty query, a subagent's 'no precedent here'">
 - **A negative finding needs a positive control.** Run the same query against a
   neighbour you know exists. A query that cannot see anything answers exactly

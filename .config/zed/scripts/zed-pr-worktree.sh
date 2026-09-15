@@ -82,8 +82,6 @@ worktree_for_branch() {
     '
 }
 
-git fetch --quiet origin "$base_ref" || true
-
 worktree_path="$(worktree_for_branch "$head_ref")"
 if [ -n "$worktree_path" ] && [ -d "$worktree_path" ]; then
   echo "reusing worktree: $worktree_path"
@@ -111,6 +109,16 @@ fi
   echo "worktree for PR #$pr not found; run: wt list" >&2
   exit 1
 }
+
+# Bring the base branch up to date, so the diff base is the tip of the PR target.
+# git refuses to fetch into a branch another worktree has checked out, so that case
+# updates the remote ref alone.
+if [ -n "$(worktree_for_branch "$base_ref")" ]; then
+  git -C "$worktree_path" fetch --quiet origin "$base_ref"
+else
+  git -C "$worktree_path" fetch --quiet origin "$base_ref:$base_ref"
+fi
+echo "base branch $base_ref fetched"
 
 default_branch="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)"
 default_branch="${default_branch#origin/}"

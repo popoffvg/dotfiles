@@ -22,7 +22,6 @@ alias claude-exp='claude --agent explorer'
 alias ask='pi -p --no-extensions'
 alias zed='mise x -- zed .'
 alias brew-raw='/opt/homebrew/bin/brew'
-alias bg=mprocs
 alias llm="claude --model sonnet -p"
 alias bg=background
 sec() {
