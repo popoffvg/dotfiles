@@ -56,6 +56,11 @@ A worktree costs a build: a fresh checkout has no `node_modules`, no `target/`, 
 The agent's baseline step (§ 4) is what says whether that cost was payable — a worktree that cannot
 run the suite returns `n/a`, never a guess.
 
+**Inside a batch the mutants run in parallel too.** `~/.claude/scripts/go-mutation-check.sh` splits
+the agent's mutant list over one hardlinked sandbox per job, so a batch costs about one test run per
+job and not one per mutant. Its coverage pass answers a mutant on an uncovered line without running
+anything, so give every mutant its `<file>:<line>`.
+
 ### 4. Spawn the batch — one message, all agents
 
 Spawn every `mutation-tester` in a single message, each with a brief carrying:
@@ -66,7 +71,7 @@ files:     <the batch's source files>
 test:      <the narrowed command that runs their covering tests>
 report:    <notes-dir>/review/<target>/mutation/<batch-slug>.md
 round:     <n>
-budget:    <mutants per batch — 12 by default>
+budget:    <mutants per batch — 12 by default, ranked by kill-value and cut to this number>
 ```
 
 Each agent runs the unmutated command first — the **baseline**. A red or unbuildable baseline ends
@@ -81,7 +86,7 @@ Collect the batches into one verdict.
 
 | Verdict | When |
 |---|---|
-| **FAIL** | Any mutant survived and names a real gap — the report gives the file:line, the edit, and the assertion that would have killed it. |
+| **FAIL** | Any mutant survived or came back `UNCOVERED` and names a real gap — the report gives the file:line, the edit, and the assertion that would have killed it. |
 | **PASS** | Every mutant was killed, or every survivor is an equivalent with its row named. |
 | **n/a** | No batch could establish a baseline. Say which, and why — never report PASS for a suite that never ran. |
 

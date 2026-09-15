@@ -52,16 +52,39 @@ baseline.
 ### 2. Read the changed lines and plan the mutants
 
 Read each file in your batch and the diff hunks inside it. Walk the operator roster top-down and
-list the mutants the changed lines actually support, up to `budget:`. Write the list before you edit
-anything, so a slow suite does not leave you halfway through an unplanned run.
+list the mutants the changed lines actually support. Write the whole list to the mutants file before
+you run anything — one run drives all of them, so an unplanned list wastes the run.
 
-### 3. Run one mutant at a time
+**Rank the list, then cut it to `budget:`.** Every mutant costs a test run, so spend the budget on
+the ones whose survival would name a real missing assertion:
 
-**Drive the batch with `~/.claude/scripts/go-mutation-check.sh <worktree> <mutants-file>`.** Write
-your planned mutants as its TAB-separated lines — `<label>\t<file>\t<perl-expr>\t<test-command>` —
-and it applies each expression in place, runs the command, restores the file, and prints `killed`,
-`SURVIVED`, or `NO-OP`. Edit by hand only for a mutant no single perl expression can express, and
-revert it yourself before the next.
+| Rank | Mutant |
+|---|---|
+| first | a changed line the diff's own tests claim to cover — a boundary, a returned value, a branch condition |
+| then | error paths and early returns the diff added |
+| last | a line whose behavior another mutant in the same list already changes |
+| never | a line matching an equivalent row in the operator roster — it cannot be killed, so it buys nothing |
+
+Two mutants on the same expression are one mutant. Stop at `budget:` and say in the report how many
+candidates you dropped.
+
+### 3. Run the whole list in one parallel pass
+
+**Drive the batch with `~/.claude/scripts/go-mutation-check.sh [-j N] <worktree> <mutants-file>`.**
+Each TAB-separated line is `<label>\t<file>:<line>\t<perl-expr>\t<test-command>`. The script runs
+the mutants **in parallel**, each in its own hardlinked sandbox of the worktree, applies the
+expression, runs the command, restores the file, and prints `killed`, `SURVIVED`, `UNCOVERED`, or
+`NO-OP`. It defaults to half the cores; pass `-j` only to hold a heavy suite down.
+
+**Always give the `:<line>`.** With it, the script's one coverage pass answers `UNCOVERED` without
+spending a test run at all; without it, every mutant pays a full run. An `UNCOVERED` mutant is a
+survivor that cost nothing — report it as the missing test.
+
+The script appends `-failfast` to a `go test` command, so a killed mutant stops at the first red
+test instead of running the package out. Pass `-F` when the suite needs every test to run.
+
+Edit by hand only for a mutant no single perl expression can express, and revert it yourself before
+the next.
 
 **A `NO-OP` is not a killed mutant.** The expression matched nothing, so the mutant never existed.
 Rewrite the expression or drop that operator — counting it as killed is the failure mode that makes
@@ -71,6 +94,7 @@ an unasserted test set read as a perfect one.
 |---|---|
 | `killed` | a test failed — record which test, one line |
 | `SURVIVED` | every test passed — record the file:line, the edit, and the assertion that would have killed it |
+| `UNCOVERED` | no test executes that line — a survivor, reported without a test run |
 | `NO-OP` | the expression matched nothing — rewrite it or drop the operator; never count it |
 | the build broke | **invalid** — the edit does not compile; discard it and take the next operator |
 
