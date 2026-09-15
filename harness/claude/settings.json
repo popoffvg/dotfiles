@@ -201,6 +201,16 @@
             "command": "node $HOME/.claude/hooks/name-reminder.mjs"
           }
         ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/cbm-code-discovery-gate\"",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "PreCompact": [],
@@ -240,6 +250,16 @@
             "command": "$HOME/.claude/hooks/guard-uncommitted-loss.sh"
           }
         ]
+      },
+      {
+        "matcher": "Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/cbm-code-discovery-gate\"",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -259,6 +279,46 @@
             "type": "command",
             "command": "bash $HOME/.claude/hooks/herdr-agent-state.sh session",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/cbm-session-reminder\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/cbm-session-reminder\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/cbm-session-reminder\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/cbm-session-reminder\"",
+            "timeout": 5
           }
         ]
       }
@@ -291,6 +351,18 @@
           {
             "type": "command",
             "command": "node $HOME/.claude/hooks/dry-check.mjs"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/cbm-subagent-reminder\"",
+            "timeout": 5
           }
         ]
       }
@@ -416,7 +488,7 @@
   "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
-  "theme": "auto",
+  "theme": "custom:catppuccin-macchiato-dark",
   "editorMode": "normal",
   "terminalProgressBarEnabled": true,
   "teammateMode": "in-process",
@@ -425,7 +497,7 @@
   "autoMode": {
     "soft_deny": [
       "$defaults",
-      "Bash(gh workflow run deploy.yml*) in openclaw-infra — manual full-playbook dispatch to the production host",
+      "Bash(gh workflow run deploy.yml*) in openclaw-infra \u2014 manual full-playbook dispatch to the production host",
       "Bash(git push*) directly to main in openclaw-infra outside the documented PR flow"
     ],
     "environment": [
@@ -434,24 +506,24 @@
       "**Primary use of Claude Code**: software development",
       "**Cloud provider(s)**: None configured",
       "**Repository visibility**: Private (popoffvg/openclaw-infra, confirmed via gh)",
-      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
-      "**Secrets management**: Ansible Vault — secrets live only in ansible/inventory/group_vars/openclaw/vault.yml, encrypted; edited via `mise run vault:edit`; CI password from GitHub secret ANSIBLE_VAULT_PASSWORD, local password from macOS Keychain",
-      "**Default / protected branches**: Default branch main; Protected branches: none listed via gh (rulesets not queryable here — do not assume unprotected)",
+      "**Internal sharing / snippet hosting**: None configured \u2014 treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: Ansible Vault \u2014 secrets live only in ansible/inventory/group_vars/openclaw/vault.yml, encrypted; edited via `mise run vault:edit`; CI password from GitHub secret ANSIBLE_VAULT_PASSWORD, local password from macOS Keychain",
+      "**Default / protected branches**: Default branch main; Protected branches: none listed via gh (rulesets not queryable here \u2014 do not assume unprotected)",
       "**CI/CD deploy targets**: GitHub Actions self-hosted runner on the production Hetzner server (vpopov.dev / 89.167.108.228); a merge to main auto-deploys via .github/workflows/deploy.yml; single environment `production`, no staging tier, no approval gate",
       "**Network posture**: None configured",
-      "**Source control**: The trusted repo (popoffvg/openclaw-infra) and its origin remote (github.com:popoffvg/openclaw-infra.git) only — no additional orgs configured",
+      "**Source control**: The trusted repo (popoffvg/openclaw-infra) and its origin remote (github.com:popoffvg/openclaw-infra.git) only \u2014 no additional orgs configured",
       "**Trusted internal domains**: vpopov.dev (the openclaw production host)",
       "**Trusted cloud buckets**: None configured",
       "**Key internal services**: openclaw production host reached as `ssh openclaw` (user deploy, port 2222, key ~/.ssh/hetzner-openclaw), IP 89.167.108.228; systemd user units telepi, piscord, blog-run on that host",
       "**Internal package registry**: None configured",
-      "**Sensitive data locations & audiences**: ansible/inventory/group_vars/openclaw/vault.yml (ansible-vault encrypted secrets) — restrict to those with the Vault password (Keychain locally / ANSIBLE_VAULT_PASSWORD in CI); ~/.ssh/hetzner-openclaw and ~/.ssh/id_ed25519 private keys",
+      "**Sensitive data locations & audiences**: ansible/inventory/group_vars/openclaw/vault.yml (ansible-vault encrypted secrets) \u2014 restrict to those with the Vault password (Keychain locally / ANSIBLE_VAULT_PASSWORD in CI); ~/.ssh/hetzner-openclaw and ~/.ssh/id_ed25519 private keys",
       "**Data retention / declassification**: None configured",
       "**Sensitive remote targets**: the openclaw production host (vpopov.dev / 89.167.108.228, ssh alias `openclaw`) and its `production` GitHub Actions environment; any namespace/host carrying prod or production as a whole word/segment",
       "**Protected deployment namespaces / environments**: the GitHub Actions `production` environment for openclaw-infra deploys",
       "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; ansible roles governing the production Hetzner host; anything named prod/production as a whole word or segment",
       "### User-specific",
       "**Primary use of Claude Code**: software development / infrastructure-as-code for the openclaw-infra repo",
-      "**Trusted repo**: /Users/popoffvg/Documents/git/openclaw-infra (origin github.com:popoffvg/openclaw-infra.git), private — confidential material (secrets, vault contents) still requires the Vault password / cleared audience regardless of repo privacy",
+      "**Trusted repo**: /Users/popoffvg/Documents/git/openclaw-infra (origin github.com:popoffvg/openclaw-infra.git), private \u2014 confidential material (secrets, vault contents) still requires the Vault password / cleared audience regardless of repo privacy",
       "**Org-specific CLIs**: mise (task runner: lint, test, check, deploy, deploy:full, vault:edit), ansible-playbook, gh",
       "routine under harness/extensions/ prefix: adding files there requires a matching ansible deploy-loop entry (per repo skill), not a blanket permission"
     ]
