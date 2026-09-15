@@ -406,7 +406,10 @@ own file against a rule already counted.
 - [ ] **No body in `## Surface`** — no function body, loop, branch chain, shell script, query, regex, fixture, or literal expected-value table; no comments and no `AGENT:` markers. The sole exception is a body the human asked for directly, carrying a `**Body requested:**` bullet that names the symbol
 - [ ] Every `## Components` row's symbol appears in `## Surface`, and every symbol in `## Surface` belongs to a Components row
 - [ ] **No consequence in `## Surface`** — no file whose diff is already fixed by another entry (a migrated call site, an updated import, a forwarded field, a renamed use). It lives in the agent half's **Files**, the deciding increment's **Do**, and its **Blast radius**
-- [ ] **Autotest** has both a `Unit` and an `E2E` sub-block, each with Target files + Cases + one runnable Command — or `none — <concrete reason>`
+- [ ] **Autotest** has both a `Unit` and an `E2E` sub-block, each with **Under test** + Target files + Cases + one runnable Command — or `none — <concrete reason>`
+- [ ] **Under test** opens each level, above **Target files**, naming the symbols and the one behaviour the whole block proves
+- [ ] Every Autotest case nests under `**Happy path:**` or `**Error cases:**` — no flat case — and carries a short bold label plus what it tests
+- [ ] A multi-step case writes **one bullet per step**, in order, never a chain joined by `;` or `→`
 - [ ] Every Autotest case is a sentence — no assertion source, no fixture, no shell, no table of literal expected values
 - [ ] An `E2E: none` that defers names a TODO that **exists in the ledger** and whose own `E2E` carries a case asserting this path; a deferral to a `Manual test` does not count
 - [ ] **No `## Deviations`** — that section belongs to `impl`, and one present at `todo` means a correction was written as design

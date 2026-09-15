@@ -9,6 +9,8 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 
 ## The table
 
+**The medium picks the syntax before the table picks the form.** A flow shown in the chat reply to the user is an ASCII diagram in a fenced block — arrows and boxes in monospace — because chat renders no mermaid. A flow written into a markdown file is mermaid — `flowchart`, `sequenceDiagram`, `stateDiagram`.
+
 | The content is | Show it as | Done when |
 | --- | --- | --- |
 | a rule, a branch, an algorithm in code that exists | **pseudocode**, one step per line | the reader can restate the rule without the source; every step that exists carries a clickable trailing `# path:line` |
@@ -19,9 +21,9 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 | responsibility across directories | **shallow file tree**, one comment per dir | each comment says what the dir *owns*, not what it holds |
 | a change to any shape above | **`diff`** over that same shape | the surrounding shape is present and unchanged |
 | a shape that is mostly new, or one to copy | **the whole block** | omitting context would hide ownership or order |
-| a path that forks on a condition | **flowchart** | every branch leaves by a labelled edge |
-| two components talking over time | **sequence diagram** | each arrow is a real call, named as the code names it |
-| states and the moves between them | **state diagram** | every terminal state is reachable and marked |
+| a path that forks on a condition | **flowchart** — ASCII in chat, mermaid in a file | every branch leaves by a labelled edge |
+| two components talking over time | **sequence diagram** — ASCII in chat, mermaid in a file | each arrow is a real call, named as the code names it |
+| states and the moves between them | **state diagram** — ASCII in chat, mermaid in a file | every terminal state is reachable and marked |
 | conditions that combine | **decision table**, one row per combination | no combination is missing a row |
 | options being weighed | **comparison table**, one row per option | every column is a dimension that changed someone's mind |
 | numbers, series, distributions | a chart → `dataviz` | — |
@@ -93,7 +95,7 @@ Same flow as **Pseudocode** above, same locations as a **call tree** — the ste
 
 ## Three rules for every form
 
-**The medium picks the flow syntax.** A flow written into a markdown file is mermaid — `flowchart`, `sequenceDiagram`, `stateDiagram`. A flow shown in the chat reply to the user is an ASCII diagram in a fenced block — arrows and boxes in monospace — because chat renders no mermaid. The indented forms above are code shapes in both media: a call tree is `tree` output with `# file:line` comments, a file tree is a directory listing, a component tree is JSX. Each mirrors something that already exists in that shape.
+**The indented forms above are code shapes in both media.** A call tree is `tree` output with `# file:line` comments, a file tree is a directory listing, a component tree is JSX. Each mirrors something that already exists in that shape.
 
 **Cut to the question.** If a row, call, file, prop, or boundary were deleted, would the answer change? If not, it is inventory, not a view. A view the reader must scroll has already failed this — cut rows before shrinking type.
 

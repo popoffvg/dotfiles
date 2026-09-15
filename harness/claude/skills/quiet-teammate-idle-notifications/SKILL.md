@@ -1,6 +1,6 @@
 ---
 name: quiet-teammate-idle-notifications
-description: Use when a teammate-message arrives that is just an idle_notification (idleReason "available") from a background or named subagent going idle, or when a background subagent goes idle without ever delivering its report. Applies to any session using SendMessage-addressable background agents, not one specific plugin.
+description: Two rules for an idle_notification from a background or named subagent (idleReason "available"). First, keep quiet — a teammate-message that is only an idle notification needs no narration, no "no action needed" line, just the barest reply. Second, and the one that costs you turns — an idle notification is not a delivered report. Use this skill when a background agent you spawned for an answer signals idle and no result has arrived: the report is lost, not pending, so stop waiting across turns and stop chasing it with ListAgents, TaskList, or a SendMessage asking for it, and re-run the prompt synchronously instead. Applies to any session using SendMessage-addressable background agents, not one specific plugin.
 metadata:
   origin: self-improvement
 ---

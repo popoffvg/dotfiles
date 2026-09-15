@@ -1,6 +1,6 @@
 ---
 name: note
-description: Capture a human note — a todo, a thought, a reminder, or an open question — as one file per note in `.note/personals/`. Use when the user says "note this", "note it down", "make a note", "remind me to", "add a todo", "don't let me forget", "write this down", "open questions", or states something they want to keep for themselves rather than act on now.
+description: Capture a human note — a todo, a thought, a reminder, or an open question — as one file per note in `.note/personals/`. Use when the user says "note this", "note it down", "make a note", "remind me to", "add a todo", "don't let me forget", "write this down", "open questions". Use it just as much when no such phrase appears and the session produces something the user wants kept, not done: they raise an open question and say not to answer it now, they park a task or an idea in the middle of other work, they name something to check or ask someone later, they say "later", "not now", "some day", "we should look at this", or they state a fact about themselves or the project they want to keep for themselves rather than act on now.
 ---
 
 # Note

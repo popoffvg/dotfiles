@@ -202,28 +202,40 @@ exit 1  → first failed check on stderr, prefixed `FAIL: `
 
 ### Unit
 
+- **Under test:** `pkg/auth.Handler.Refresh`, `pkg/auth.TokenMinter.mintTokens` — one refresh swaps a live token for a new pair and kills the token it replaces.
 - **Target files:** `pkg/auth/handler_test.go` (create), `pkg/auth/token_test.go` (modify)
-- **Cases:**
-  - **Rotation mints exactly one new pair and retires the old token**
+- **Happy path:**
+  - **Rotation mints exactly one new pair** — a valid token returns a fresh pair and the old token leaves the store.
     - property: `refresh(t) -> (t', pair)` where `t' != t` and Redis key `auth:<t>` is gone
     - over: any unexpired refresh token; pinned: token at exactly its TTL boundary
-  - **An expired token is rejected**
+- **Error cases:**
+  - **An expired token is rejected** — a token past its TTL mints nothing.
     - refresh token past its 15-minute TTL → 401
-  - **A reused token is rejected without minting**
+  - **A reused token is rejected without minting** — the second use of one token fails and leaves the store as it was.
     - second refresh with the same token → 409, and no new pair exists
 - **Command:** `go test ./pkg/auth/...`
 
 ### E2E
 
+- **Under test:** `POST /auth/refresh` on the running server — a client keeps a working session across a refresh, and a retired token buys nothing.
 - **Target files:** `test/e2e/auth_refresh_test.go` (create)
 - **Entry point:** `POST /auth/refresh` on the running server, same as a real SDK client
-- **Cases:**
-  - **A refreshed session keeps working**
-    - login → refresh → the returned access token authorizes `GET /me` (200)
-  - **Reuse punishes the stale token, never the live session**
-    - login → refresh → refresh again with the *first* refresh token → 409, and the second pair still authorizes `GET /me`
-  - **Expiry ends access on both tokens**
-    - login → wait past TTL → refresh → 401 and `GET /me` with the old access token → 401
+- **Happy path:**
+  - **A refreshed session keeps working** — the pair a refresh returns authorizes the next call.
+    - log in
+    - refresh
+    - call `GET /me` with the returned access token → 200
+- **Error cases:**
+  - **Reuse punishes the stale token, never the live session** — replaying the first refresh token fails and the live pair still works.
+    - log in
+    - refresh
+    - refresh again with the *first* refresh token → 409
+    - call `GET /me` with the second pair's access token → 200
+  - **Expiry ends access on both tokens** — once the TTL passes, neither token of the old pair works.
+    - log in
+    - wait past the TTL
+    - refresh → 401
+    - call `GET /me` with the old access token → 401
 - **Command:** `go test -tags e2e ./test/e2e/ -run TestAuthRefresh`
 
 > **Two levels, both required.** One TODO ships the behavior *and* the proof at both scales — that is
@@ -238,18 +250,31 @@ exit 1  → first failed check on stderr, prefixed `FAIL: `
 >
 > Each level carries, on its own bullets:
 >
+> - **Under test** — opens the level, above **Target files**: the symbol or symbols the level
+>   exercises, then one clause naming the behaviour the whole block proves. A reader knows what is
+>   verified before reading a single case.
 > - **Target files** — the test file path, `create` if new.
 > - **Entry point** — `E2E` only: where the request or command enters, named as a caller enters it
 >   (`POST /auth/refresh` on the running server), so each case asserts the Outcome as an observer sees
 >   it rather than as the implementation sees it.
-> - **Cases** — grouped under **bold behaviour claims**, never a flat list. A claim is one sentence
->   naming what the group proves; each claim traces to the Outcome or to a generated rule this TODO
->   can violate, both directions — an Outcome promise with no claim is a coverage gap, a claim the
->   Outcome never made is scope creep. Each group is backed one of two ways: **examples**, as
->   `input → expected` bullets under the claim; or **a property**, when the claim has algebraic shape
->   (round trip, inverse, idempotence, invariant — catalog in `test-suite:ref-property-based.md`),
->   written as `property: <formula>` then `over: <input domain>; pinned: <known edges>`. The pinned
->   edges are that group's examples; no separate example bullets beside a property.
+> - **Cases** — **two groups, always**: every case nests under `- **Happy path:**` or
+>   `- **Error cases:**`, never flat. Happy path holds the successes, including a success that must
+>   stay unchanged; error cases hold the refusals and the error codes. Omit a group that would be
+>   empty.
+>
+>   Each case carries a short bold label plus a description of what it tests, and traces to the
+>   Outcome or to a generated rule this TODO can violate, both directions — an Outcome promise with
+>   no case is a coverage gap, a case the Outcome never made is scope creep.
+>
+>   Each case is backed one of two ways: **examples**, as `input → expected` bullets under the case;
+>   or **a property**, when the case has algebraic shape (round trip, inverse, idempotence, invariant
+>   — catalog in `test-suite:ref-property-based.md`), written as `property: <formula>` then
+>   `over: <input domain>; pinned: <known edges>`. The pinned edges are that case's examples; no
+>   separate example bullets beside a property.
+>
+>   **One step, one bullet.** A case that runs through several steps writes one bullet per step, in
+>   order — never a chain joined by `;` or `→`. A step in the user's source list stays one step: do
+>   not merge two, do not split one.
 > - **Command** — one runnable shell command. Never "run the relevant tests".
 >
 > **Cases, never the test.** This is the only place a test appears in the pair, and it appears as
