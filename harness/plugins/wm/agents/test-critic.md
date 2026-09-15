@@ -6,7 +6,8 @@ description: >
   set, a case a wider test in the same diff already proves. Returns PASS | FAIL with the file:line
   and the test to delete. Read-only on source; it proposes deletions and applies none, and writes its
   report to the `report:` path the caller names. One of the four haiku gates in the `review`
-  skill's wave, beside `lint-tester`, `comment-critic`, `name-critic`, and the opus `reviewer`.
+  skill's wave, beside `lint-tester`, `comment-critic`, `name-critic`, `mutation-tester`, and the
+  opus `reviewer`.
 tools: Read, Glob, Grep, Bash, Write
 model: haiku
 color: yellow

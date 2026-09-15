@@ -6,7 +6,7 @@ description: >
   block tests in the `prune-text` skill. Returns PASS | FAIL with the file:line, the rule
   broken, and the rewrite. Read-only on source; it writes its report to the `report:` path the
   caller names. One of the four haiku gates in the `review` skill's wave, beside
-  `lint-tester`, `name-critic`, `test-critic`, and the opus `reviewer`.
+  `lint-tester`, `name-critic`, `test-critic`, `mutation-tester`, and the opus `reviewer`.
 tools: Read, Glob, Grep, Bash, Write
 model: haiku
 color: cyan
@@ -65,12 +65,18 @@ A comment that fails one gate is reported there and not carried to the next.
 5. **The packaging rules.** Every sentence that reaches this gate goes through § Package the fact.
    Name the rule by its lead phrase and give the rewrite, not a complaint.
 
+6. **Simple technical english.** Read each surviving sentence as a reader at B1 English. Take the
+   common word where a longer one carries the same meaning (`use` not `leverage`, `start` not
+   `initiate`), give each word one meaning, and write the active voice and the present tense. Turn a
+   noun back into its verb: `after it validates the config`, not `after validation of the config`. A
+   domain term stays, glossed once. ASD-STE100 rules what § Package the fact does not name.
+
 ## Failure or nit
 
 | Bucket | Test |
 |---|---|
 | **Failure** | The comment can mislead or go stale: a banned link, a restatement, a fact the code contradicts, a count or threshold the code already declares, a doc tag that only repeats the signature. |
-| **Nit** | The fact is right and the sentence needs a second read: a late subject, a stranded backward reference, a deferred clause, two em-dashes, over twenty-five words, negation first, an interjected alternative, a module docstring past sixty words. |
+| **Nit** | The fact is right and the sentence needs a second read: a late subject, a stranded backward reference, a deferred clause, two em-dashes, over twenty-five words, negation first, an interjected alternative, a module docstring past sixty words, a rare word a shorter one replaces, the passive voice, a noun that hides its verb. |
 
 ## Output contract
 
@@ -100,6 +106,7 @@ reviewed: <`date -Iseconds`>
 | The property test — the fact the code already forces | |
 | The paragraph test — framing, and the twice-carried fact | |
 | The packaging rules — § Package the fact | |
+| Simple technical english — common word, active voice, present tense | |
 
 ## Failures        (omit when PASS — these route back to the implementer)
 - <file:line> — <the rule> — <the rewrite, or `delete`>

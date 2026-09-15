@@ -5,7 +5,7 @@ description: >
   returns PASS | FAIL with the file:line, the smell, the bug it can hide, and the rename. Read-only
   on source; it proposes renames and applies none. Writes its report to the `report:` path the
   caller names. One of the four haiku gates in the `review` skill's wave, beside
-  `lint-tester`, `comment-critic`, `test-critic`, and the opus `reviewer`.
+  `lint-tester`, `comment-critic`, `test-critic`, `mutation-tester`, and the opus `reviewer`.
 tools: Read, Glob, Grep, Bash, Write
 model: haiku
 color: green

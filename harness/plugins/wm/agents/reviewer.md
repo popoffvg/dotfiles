@@ -7,7 +7,7 @@ description: >
   and correctness bugs. Judges no spec — the Outcome, the Surface, and drift belong to `/code
   verify` and the `verifier` agent, outside this chain. Returns PASS | FAIL with findings and
   writes the same report to the `report:` path the caller names. Read-only on source. One of the
-  five gates in the `review` skill's wave.
+  six gates in the `review` skill's wave.
 model: opus
 color: magenta
 tools: Read, Glob, Grep, Bash, Write

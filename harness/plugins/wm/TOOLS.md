@@ -45,6 +45,13 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 | Re-link the notes an edit touched | `wm-backlink-thoughts.py <thoughts> <edge-file>` — lines `<id>\|<section>\|<target-id>\|<annotation>` | appends the bullet under `## <section>` and syncs frontmatter `links:`. Idempotent. The `.sh` twin skips the frontmatter sync |
 | Reshape a pre-split TODO | `wm-todo-split-agent.py <todos/TODO-N.md>... [--dry-run]` | the pair, agent half left failing `budget-check` until a human hoists each increment's surface |
 
+## Judge the tests a diff already has
+
+| Need | Invocation | Returns |
+|---|---|---|
+| Whether the existing tests assert anything | the `mutation` skill → one `Agent(subagent_type: "wm:mutation-tester", isolation: "worktree")` per changed-source batch | `PASS \| FAIL \| n/a` per batch, plus every surviving mutant as `file:line — the edit — the assertion to write`. A red or unbuildable baseline returns `n/a`, never PASS |
+| Run a batch of mutants and report the survivors | `go-mutation-check.sh <worktree> <mutants-file>` — TAB-separated `<label>\t<file>\t<perl-expr>\t<test-command>` | one line per mutant — `killed`, `SURVIVED`, or `NO-OP` when the expression matched nothing — then the counts. Restores each file after every run. Exit 1 when anything survived or no-opped |
+
 ## Check the corpus
 
 | Need | Invocation | Returns |

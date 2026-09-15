@@ -15,7 +15,6 @@ Opaque token held in Redis, TTL-bound, exchanged for a new pair on every refresh
 - **Status:** existing
 - **Kind:** entity
 - **Forbidden:** refresh key, rtok, `refresh_tok`
-- **Source:** `pkg/auth/token.go:31`
 
 > The heading is the term, spelled exactly as the code and the spec spell it — one `#` per entry, so
 > a term is a section a reader can link to and a grep lands on the definition rather than a row.
@@ -42,7 +41,6 @@ Serves every `/auth/*` route and owns the request-to-domain translation for them
 - **Status:** existing
 - **Kind:** server
 - **Forbidden:** auth router, AuthController
-- **Source:** `pkg/auth/handler.go:12`
 
 > **Kind** is one word from one of two sets — data, or a **brick** (a running responsibility):
 > data ∈ `aggregate | entity | value-object | event | state`;
@@ -59,7 +57,6 @@ Exchanges a valid refresh token for a new pair; issued by the SDK against a `Ses
 - **Status:** new
 - **Kind:** command
 - **Forbidden:** refresh, renew, reissue
-- **Source:** spec § Goal
 
 > A command's name is imperative, and its definition says who issues it and which events it emits.
 > Every new or renamed entry is approved by the user before it lands —
@@ -72,7 +69,6 @@ The previous refresh token is invalidated and the new pair is persisted.
 - **Status:** new
 - **Kind:** event
 - **Forbidden:** none
-- **Source:** spec § Goal
 
 > An event's name is past tense and its definition is the state that now holds, not the call that
 > produced it. `Forbidden: none` is written out rather than left off, so a reader can tell a concept

@@ -32,7 +32,7 @@ Four files at the plugin root, shared by all five skills.
 | File | Owns |
 |---|---|
 | `wm:INDEX.md` | This map. |
-| `wm:GLOSSARY.md` | **The leading words** — one word, one meaning, used verbatim by all five skills: the gate, thought, open question, target picture, wave, constraints, outcome, components, brick, increment, approve, blast radius, ledger, status, grill, trace, layer, verification chain, audit, drift, deviation, notes-dir, fixup. A word used in two skills is defined here once; a word private to one skill is defined there. |
+| `wm:GLOSSARY.md` | **The leading words** — one word, one meaning, used verbatim by all five skills: the gate, thought, open question, target picture, wave, constraints, outcome, components, brick, increment, approve, blast radius, ledger, status, grill, trace, layer, verification chain, audit, drift, deviation, notes-dir, mutant, fixup. A word used in two skills is defined here once; a word private to one skill is defined there. |
 | `wm:TOOLS.md` | **Situation → tool** — every script, agent, and skill the five skills reach for, grouped by the need it serves, with the invocation and what it returns. A procedure cites a row here instead of describing the step by hand. |
 | `wm:CLAUDE.md` | How to work on this plugin — the rules a change to any skill obeys. |
 
@@ -94,7 +94,7 @@ content, delete the `>` lines.
 |---|---|
 | `SKILL.md` | The mode table — `diff` (the repo's own rules, the default) and `todo` (plus the pair's rule files) — the one question both ask, the read-only rule both obey, and the `/code review` alias. |
 | `wm:commands/review:help.md` | The `/review:help` page — the same mode roster plus the gate table, printed verbatim. Mirrors `SKILL.md`; a mode change lands in both. |
-| `references/ref-gates.md` | **The gate roster** — the six gates, the `<notes-dir>/review/<target>/` report files each one writes, what each judges, its agent, its model tier and why that tier; the two opposite test gates (`test worth` drops the tests the diff wrote, `test` writes the one it left missing); the one-wave-then-two-serial order; the FAIL-restarts-the-chain rule; the per-gate budget; the `toolchain.json` schema and what makes an entry stale; who merges the report. The single source; no caller restates a row. |
+| `references/ref-gates.md` | **The gate roster** — the seven gates, the `<notes-dir>/review/<target>/` report files each one writes, what each judges, its agent, its model tier and why that tier; the three test-reading gates (`test worth` drops the tests the diff wrote, `mutation` breaks the code to see whether the rest assert anything, `test` writes the one the diff left missing); the one-wave-then-the-gate-that-writes order, and the mutation gate's per-batch worktree fan-out; the FAIL-restarts-the-chain rule; the per-gate budget; the `toolchain.json` schema and what makes an entry stale; who merges the report. The single source; no caller restates a row. |
 | `examples/report.md` | The two report files filled — one gate's own file and the merged `report.md` — each piece carrying its own rules: the `reviewed:` frontmatter, the fixed `## Covered` rows and their verdict enum, the one-line gate roll-up, and the finding line that ends in the edit that closes it. |
 | `commands/sub-todo.md` | `review todo` — the chain over one implemented TODO, and what the pair gives a gate that a loose diff cannot: the generated rule set turning taste into a citable rule, `PATTERNS.md` naming the pattern, § Files bounding the diff, and the deviation route for an Autotest case `test-critic` drops. |
 | `commands/sub-diff.md` | `review diff` — resolving a loose target into one revision range, deriving the intent sentence that gives the gates context, and which rule sources the standards gate falls back to with no generated rule set and no `PATTERNS.md`. |
@@ -122,7 +122,15 @@ Independent of the `/code` flow, each with its own entry point.
 | `commit-message` | no | **The commit message contract** — the subject line and the three body parts: cause, goal, decision. Loaded by name before every commit written by `impl`, `auto`, `fix`, or `squash`. |
 | `searchable-names` | no | **Choosing the name while the code is written** — one term per concept, the 2–4 word public name, one concept per file, the domain concept in a type, the whole string literal. Naming and module home for every piece; `arch:ref-bricks.md` adds only the metric and the structure. Loaded from `CODE_STYLE.md`, which keeps the comment prose. |
 | `pedant` | no | **Attacking the names a finished diff already declares** — rejects the ones that read unclearly. The contract the `name-critic` gate reads. |
+| `mutation` | no | **Judging a test set by breaking the code it covers** — one behavior-changing edit at a time, re-run the covering tests, report every mutant that survived as the assertion nobody wrote. Fans out one `mutation-tester` per changed-source batch, each in its own git worktree. No external mutation tool: the model writes the edit. The contract the `mutation` gate reads. |
 | `red-green-refactor` | no | The failing-test-first cycle a bug fix follows. Loaded by `impl:sub-impl.md`. |
+
+### `mutation` — the test set under attack
+
+| File | Owns |
+|---|---|
+| `SKILL.md` | The four terms (**mutant**, killed, survived, equivalent), the five run steps — resolve the surface, batch it one per source file, pick worktree or in place, spawn the batch in one message, merge and rule — the baseline that makes a negative finding trustworthy, and the all-survived control. |
+| `references/ref-operators.md` | **The operator roster** — the ten mutation operators in the order their survivors most often name a real gap, the one-edit-per-mutant and budget rules, the six equivalent-mutant rows, and what is never mutated. The `mutation-tester` agent's `## Covered` rows are these ten. |
 
 ### `test-suite` — the test artifacts
 

@@ -7,7 +7,8 @@ description: >
   PASS | FAIL with the concrete failures.
   Read-only on source — never edits or commits, never runs a build or a test itself, and writes
   its report to the `report:` path the caller names. One of the four haiku gates in the `review`
-  skill's wave, beside `comment-critic`, `name-critic`, `test-critic`, and the opus `reviewer`.
+  skill's wave, beside `comment-critic`, `name-critic`, `test-critic`, `mutation-tester`, and the
+  opus `reviewer`.
 model: haiku
 color: yellow
 tools: Read, Glob, Grep, Bash, Write
