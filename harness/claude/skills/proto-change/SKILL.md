@@ -5,7 +5,7 @@ description: buf-validated Protocol Buffers authoring — write or modify .proto
 
 # Proto Authoring Skill
 
-Write and modify `.proto` files as a structured workflow — analogous to `go-modify`. Treat the `.proto` as the source of truth and generated Go/TS bindings as derived artifacts that must stay in lock-step.
+Write and modify `.proto` files as a structured workflow. Treat the `.proto` as the source of truth and generated Go/TS bindings as derived artifacts that must stay in lock-step.
 
 ## When to Use This Skill
 
