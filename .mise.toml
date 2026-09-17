@@ -22,6 +22,7 @@ run = [
   "stow --target=$HOME/.claude --dir={{config_root}}/harness --restow claude",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow zsh",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow git",
+  "bash {{config_root}}/harness/claude/scripts/prune-stale-skill-links.sh $HOME/.claude/skills",
 ]
 
 [tasks.unstow]
