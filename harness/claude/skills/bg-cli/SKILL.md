@@ -29,7 +29,7 @@ description: Drive the `bg` CLI (the `background` binary) — launch a detached 
 
 ## Never open the TUI from a tool call
 
-Bare `bg` and `bg list` launch a Bubble Tea TUI. A Bash tool call has no tty, so it dies with `EAGAIN (os error 35)`. From a session use the non-interactive commands only: `ls`, `logs`, `kill`, `rm`, `gc`. To put the TUI in front of the user, route it through `herdr` (see the `herdr` skill) so it opens in a real pane.
+Bare `bg` and `bg list` launch a Bubble Tea TUI. A Bash tool call has no tty, so it dies with `EAGAIN (os error 35)`. From a session use the non-interactive commands only: `ls`, `logs`, `kill`, `rm`, `gc`. To put the TUI in front of the user, open it in a real pane with `herdr pane open`.
 
 `bg logs <id> -f` follows the log and never exits — run it with `run_in_background: true` or not at all.
 

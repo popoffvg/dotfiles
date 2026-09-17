@@ -91,9 +91,9 @@ herdr agent read plugin-test --source visible --lines 40
 herdr pane close <pane_id>
 ```
 
-The `herdr` skill owns the full procedure — waiting for output, addressing panes, and cleaning up a
-pane you opened only to prove something. Done when you have quoted the real screen lines in your
-report and closed the pane.
+Wait for the pane to render before reading it, address every command to the pane id the open call
+returned, and close a pane you opened only to prove something. Done when you have quoted the real
+screen lines in your report and closed the pane.
 
 ## Step 6 — publish the change
 

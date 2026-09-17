@@ -35,7 +35,7 @@ Done when every unit has all three.
 | has siblings with nothing between them | one subagent each, all in one message | `haiku` |
 | writes source, judges a design, or holds the whole task | inline, or one subagent when the reading is heavy | `sonnet`; `opus` only after a cheaper run failed |
 
-Parallel writers get disjoint write sets; when two could touch one path, give them `isolation: "worktree"` instead. Either way, check the changed set afterwards with [parallel-agent-tree-guard](../parallel-agent-tree-guard/SKILL.md). Done when every unit names a shape and a model.
+Parallel writers get disjoint write sets; when two could touch one path, give them `isolation: "worktree"` instead. Either way, run `git status --porcelain` afterwards and confirm every changed path belongs to a write set you handed out. Done when every unit names a shape and a model.
 
 ## 3. Write the prompt blind
 
