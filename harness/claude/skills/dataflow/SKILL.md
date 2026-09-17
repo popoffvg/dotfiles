@@ -38,7 +38,7 @@ What the page owes its reader:
 The strict Artifact CSP blocks every external host, so no diagram library, no font CDN, no WASM
 from a CDN. Vanilla SVG and one `<script>` is the whole budget, and it is enough.
 
-**Reach for `tldraw-live-diagram` only when the human must hand-place the boxes** and keep those
+**Reach for `board` only when the human must hand-place the boxes** and keep those
 positions — it owns a seed format, a grid, and a live editor that writes back to disk. It costs a
 local server and a browser, and it makes you responsible for crossings and label collisions.
 
