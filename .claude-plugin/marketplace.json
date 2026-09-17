@@ -26,7 +26,7 @@
       "name": "self-improvement",
       "source": "./harness/plugins/self-improvement",
       "description": "Scores every Claude Code session for the lessons it holds and proposes where each one belongs in the harness: a watermarked background scan kicked by the SessionStart hook, one haiku call per dirty session, then a suggestion pass over the existing skill inventory. Browsable in the self-improve TUI. High scorers are archived for the capture-lesson skill to turn into skills and the dream skill to consolidate.",
-      "version": "0.25.0"
+      "version": "0.26.0"
     },
     {
       "name": "smart-commit",
