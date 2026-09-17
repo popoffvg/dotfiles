@@ -1,6 +1,6 @@
 ---
 name: to-user
-description: This skill should be used when a task produces a batch of items each needing a human decision, edit, or reply — and the output belongs in an editable file, not chat. Trigger on "write it to a file for me to edit", "list the PR comments with recommended answers", "prepare answers for me to review", "put the review threads in a file", "draft replies I can fill in", "give me a file to decide on each". Also trigger before building an artifact, page, deck, or design when the build carries a batch of open choices (palette, typefaces, navigation model, theme, fidelity to a source file) — write the choices out as answerable blocks instead of resolving them inside the build.
+description: This skill should be used when work belongs in a file the operator edits in their own editor rather than in chat — either a batch of items each needing a decision, edit, or reply, or a draft they will rewrite in their own words (a spec section, a PR description, a changelog, an email). Trigger on "write it to a file for me to edit", "list the PR comments with recommended answers", "prepare answers for me to review", "put the review threads in a file", "draft replies I can fill in", "give me a file to decide on each", "draft it and I'll edit it", "let me rewrite it myself". Also trigger before building an artifact, page, deck, or design when the build carries a batch of open choices (palette, typefaces, navigation model, theme, fidelity to a source file) — write the choices out as answerable blocks instead of resolving them inside the build.
 version: 0.1.0
 ---
 
@@ -55,6 +55,31 @@ Open design decisions count as such a batch. Before building an artifact, page, 
 
 ---
 ```
+
+## Prose the operator edits in place
+
+**Not every handoff is a batch of slots.** A draft the operator rewrites in their own words — a
+spec section, a PR description, a changelog entry, an email, a design rationale — goes out as prose
+in a file, not as blocks with `**Answer:**` lines. Forcing continuous text into per-item slots gives
+them a form to fill where they wanted a paragraph to edit.
+
+Pick the shape by what comes back:
+
+| What the operator returns | Shape | Extract with |
+| --- | --- | --- |
+| A verdict per item — accept, reject, pick B | blocks with `**Answer:**` slots | grep the answer slots |
+| Rewritten sentences | the prose itself, in the file | `git diff` on the file |
+| Both — prose plus a few open choices | prose, with the choices as blocks under a `## Open` heading | grep the slots, diff the rest |
+
+Everything above still holds for the prose form: write it to a file, open it with
+`~/.claude/scripts/open-file.sh <file>`, and never call an editor directly.
+
+Two things change. **Mark what you are unsure of** — bracket the passages you want their eye on,
+rather than leaving them to find the soft spots. **Read back the diff, not the file.** Their edits
+are the answer; the unchanged paragraphs are consent, and re-reading the whole file to find three
+changed sentences is the cost this skill exists to avoid.
+
+Use `--wait` on `open-file.sh` when the next step cannot start until they have finished editing.
 
 ## Rules
 
