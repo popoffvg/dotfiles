@@ -12,7 +12,7 @@ never sees this skill.
 | Gate | Judges | Agent | Model |
 |---|---|---|---|
 | lint | the repo's linter over the changed files, and the tests that cover them | @lint-tester | haiku |
-| comment | every comment, doc line, and doc tag the diff adds or changes | @comment-critic | haiku |
+| comment | every comment, doc line, and doc tag the diff adds or changes — fails the useless one, nits the rest | @comment-critic | haiku |
 | name | every name the diff declares — the `pedant` smell table | @name-critic | haiku |
 | test worth | every test the diff adds — and rejects the ones asserting nothing the code can get wrong | @test-critic | haiku |
 | mutation | whether the tests that exist assert anything — breaks the code and reports every test that stayed green | @mutation-tester | sonnet |
@@ -185,14 +185,16 @@ never looked. So every gate report carries a `## Covered` table above its findin
 that gate owns, and the rows are fixed: the same list every run, whatever the diff holds.
 
 **Each gate's row set lives in its own agent file**, in the template under its Output contract —
-`comment-critic` lists seven rows over its five prose gates, because the ban splits into three;
+`comment-critic` lists ten rows over its seven prose gates — six that fail and four that nit;
 `name-critic` its three, `test-critic` its six drop-table rows, `mutation-tester` its ten operators,
 `lint-tester` the commands it ran, `tester` its five case categories, `reviewer` its five hunts and
 the sources it read. An agent is a
 separate prompt that never sees this page, so the rows are written where the agent reads them.
 
 **A gate may carry a column the others do not.** `Rule | Verdict` is the minimum; `lint-tester`
-writes `Rule | Command | Verdict`, because the command it ran is the evidence for its row. The extra
+writes `Rule | Command | Verdict`, because the command it ran is the evidence for its row, and
+`comment-critic` writes `Rule | Bucket | Verdict`, because each of its rows fails or nits by
+construction. The extra
 column is declared in that gate's agent file beside its rows.
 
 ## The merged report

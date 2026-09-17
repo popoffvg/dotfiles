@@ -39,7 +39,7 @@ review, and it is not a comment. Nothing fired.
 
 ## What did not change
 
-Comment prose (§ DO NOT DO, § The comment deletion test, § Package the fact) stayed in
+Comment prose (§ DO NOT DO) stayed in
 `CODE_STYLE.md`. The `comment-critic` agent reads those three sections by name.
 
 ## How the dead import was settled

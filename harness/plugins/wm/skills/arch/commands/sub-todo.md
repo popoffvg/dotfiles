@@ -56,8 +56,9 @@ work nobody approved.
 
 Run `todo` only after a human has reviewed the spec (`ref-write.md` § Stop at the gate). `new` stops before
 this deliberately. Before authoring: `spec.md` frontmatter `status: review`, **no `status: open` question
-note in `thoughts/`** (`~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0), ledger
-settled, and the human has asked for TODOs. Otherwise stop and run `/code new` first.
+note and no `status: proposed` decision in `thoughts/`** (`~/.claude/scripts/wm-open-questions.sh
+<notes-dir>/thoughts` and `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --check` both exit 0),
+ledger settled, and the human has asked for TODOs. Otherwise stop and run `/code new` first.
 
 ## Execution — one fork per ledger row, wave by wave
 

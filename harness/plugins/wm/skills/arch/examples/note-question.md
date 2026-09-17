@@ -1,7 +1,7 @@
 ---
 type: question
 id: "004"
-status: open                # open | declined
+status: open                # open | approved | declined — approved once a note answers it, declined when it turns out moot
 description: >              # 1–3 sentences, the only text the thought index shows — ref-note-format.md § Frontmatter
   Whether a rotated refresh token inherits the scope of the token it replaces or re-reads
   scope from the user record. Blocks the rotation-handler ledger row, which must do one or

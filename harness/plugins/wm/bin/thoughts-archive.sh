@@ -109,7 +109,9 @@ while IFS= read -r note; do
 
   if [[ "$type" == "question" ]]; then
     # Live while open, and while the key is absent — an unset status is open.
-    [[ -n "$status" && "$status" != "open" ]] || continue
+    # `proposed` belongs to a decision, never a question; treat it as live anyway, so a
+    # status written on the wrong type is caught by spec-lint instead of silently archived.
+    [[ -n "$status" && "$status" != "open" && "$status" != "proposed" ]] || continue
   else
     [[ -n "$marker" ]] || continue
   fi

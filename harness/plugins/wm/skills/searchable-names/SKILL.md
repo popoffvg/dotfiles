@@ -54,7 +54,7 @@ already declares — its smell table is the review gate, not this list.
 
 Give every public symbol one doc line that states the sharpest fact the signature cannot show — the unit, the timezone, the owner, the order, the lifetime, who must release the resource. Add the plain-words phrase a person would search for, because `SessionExpiryChecker` does not match a grep for "session expired". Good: `SessionExpiryChecker reports whether the user session has expired.` Bad: `SessionExpiryChecker implements ExpiryCheck.`
 
-How the prose of that line is written — the word budget, the voice, the deletion test — is `CODE_STYLE.md` § Package the fact.
+How the prose of that line is written — the word budget, the voice, the deletion test — is `CODE_STYLE.md` § DO NOT DO, and `wm:agents/comment-critic.md` § The sentence shape.
 
 ## Name the literal
 

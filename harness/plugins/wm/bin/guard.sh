@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # PreToolUse Edit|Write guard — deny an edit that breaks a wm hard rule.
 #   1. any direct edit to .vscode/agent-comments.json — use the comment_update_status MCP tool
-#   2. flipping spec.md to `status: impl` while a thoughts/ question is still `status: open`
+#   2. flipping spec.md to `status: impl` while a thoughts/ question is still `status: open`,
+#      or a thoughts/ decision is still `status: proposed` or carries an unknown status
 #   3. an `approve:` value outside the enum, or `inherit` written on spec.md
 # Every other edit passes through untouched.
 set -euo pipefail
@@ -53,6 +54,21 @@ if [[ "$BASE" == "spec.md" ]]; then
           "The spec cannot enter status: impl — the gate is open questions, and $THOUGHTS still holds one." \
           "$OPEN" \
           "Flip each open question into a decision or fact note (same id, renamed file) before implementation starts. Grill the human for the answer — never resolve one yourself, and never edit the status past it.")"
+      fi
+    fi
+
+    # Same gate, second reason: a decision nobody agreed to. A `proposed` note generates
+    # no rule, so impl would never see the choice; an unknown status does the same thing
+    # by accident. Both are exit 3 from --check, alongside a rule with no text.
+    CONSTRAINTS="$HOME/.claude/scripts/wm-constraints.py"
+
+    if [[ -d "$THOUGHTS" && -x "$CONSTRAINTS" ]]; then
+      REPORT=$("$CONSTRAINTS" "$THOUGHTS" --check 2>&1) && CRC=0 || CRC=$?
+      if ((CRC == 3)); then
+        block "$(printf '%s\n\n%s\n\n%s' \
+          "The spec cannot enter status: impl — $THOUGHTS holds a thought that binds nothing." \
+          "$REPORT" \
+          "A \`proposed\` decision is one nobody agreed to and it generates no rule, so the implementer would never see the choice. Bring each to \`status: approved\` once the human agrees, or \`declined\` with the reason. An unknown status drops the rule the same way — fix it to one of proposed, open, approved, declined. Owned by arch:ref-note-format.md § Frontmatter.")"
       fi
     fi
   fi

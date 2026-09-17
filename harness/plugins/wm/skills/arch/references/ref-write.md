@@ -90,8 +90,14 @@ Bodies are never auto-written — a wrong spec authored into TODOs becomes wrong
 holds a `status: open` question, the hook denies the edit and prints the open questions — so
 implementation cannot start on an unanswered spec, whatever the agent believes. Answer the question
 first: write the answer as a new `decision` or `fact` note, which archives the question
-(`ref-note-format.md` § Resolution). The other half — the human
-actually reading the spec — no hook can check.
+(`ref-note-format.md` § Resolution).
+
+The same hook denies the edit for the mirror case: a decision still `status: proposed`, or one
+carrying a status outside the four the tools know. Both bind nothing — the constraint set is built
+from `approved` notes alone — so the spec would enter `impl` with a choice the implementer never
+sees. Get the human to agree it and set `status: approved`, or decline it with the reason.
+
+The other half of the gate — the human actually reading the spec — no hook can check.
 
 ## Approval — the `approve` key
 
@@ -284,7 +290,7 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] `spec.md` is ≤ 200 lines — over budget → move detail to `thoughts/` or split the spec, never shrink the ledger. The `budget-check` hook warns on every write and `code:sub-verify.md` Phase 0 fails on it (`arch:sub-todo.md` § Budget)
 - [ ] `GLOSSARY.md` exists (sibling), covers every entity/command/event in the spec, and is current
 - [ ] `CLAUDE.md`, `RULES.md`, and `PATTERNS.md` exist in the notes dir; `RULES.md` carries the three answered knobs, no `<…>` placeholder left
-- [ ] Every rule has text: `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --check` exits 0
+- [ ] Every rule has text, carries a known status, and is agreed: `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --check` exits 0. It fails a decision still `status: proposed` and a note whose status is outside `proposed | open | approved | declined` — both generate no rule, so the implementer never sees the choice (`ref-note-format.md` § Frontmatter)
 - [ ] Every answered question and superseded thought sits in `thoughts/archived/` — marked, and moved by the hook; no live note links to an archived one
 - [ ] **No `status: open` question note in `thoughts/`** (hard block) — `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0. The `guard.sh` hook re-checks this the moment an edit sets `spec.md` to `status: impl`, and denies the edit
 - [ ] Every decision made while writing the spec has a `thoughts/NNN-decision-*.md` note

@@ -55,7 +55,7 @@ The cases that earn the suite:
   flips, the two descriptions have not drawn the line between them.
 - **`commit-message`** and **`tighten-comment-prose`** — hard negatives at the two seams the move
   created. § Align language names commits, and the doc-line rule sits next to comment prose; neither
-  belongs to a naming skill. `commit-message` owns the first, `CODE_STYLE.md` § Package the fact the
+  belongs to a naming skill. `commit-message` owns the first, `comment-critic` § The sentence shape the
   second.
 - **`switch-on-column-id`** — a column id is an identifier, so the description's "field name" clause
   can pull in a fact that belongs to `CODE_STYLE.md` § Declarative table vs imperative reader.

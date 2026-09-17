@@ -69,7 +69,7 @@ reviewed: 2026-09-04T11:09:18+02:00
 - name · writer/column.py:34 — `rid` reads as a row id in a writer that also writes rows — rename it to `run_id`
 
 ## Nits
-- comment · writer/column.py:41 — the doc line restates the function name three lines below it — delete it
+- comment · writer/column.py:41 — the subject reaches the reader in the third clause — lead with `a null run id`
 ```
 
 > **The caller merges; a gate reports only itself.** Every mode writes this same file and returns the

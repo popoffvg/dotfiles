@@ -74,4 +74,4 @@ from. Resume implementing only against the updated TODO.
 - commit a user correction as a plain commit — it must be `--fixup`.
 - run more than one TODO per invocation.
 - leave comments contain reference to the brief or spec.
-- write a comment that fails the deletion test, or breaks a § Package the fact rule, in `CODE_STYLE.md`.
+- write a comment that repeats the code, carries a banned fact, or states a fact the code contradicts — `CODE_STYLE.md` § DO NOT DO.

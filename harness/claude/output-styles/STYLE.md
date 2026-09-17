@@ -6,9 +6,6 @@ keep-coding-instructions: true
 
 ## Language
 
-<when="writing response to the chat, not for file">
-- I have ADHD. Write a response that is easy to read and understand.
-</when>
 - use ASD-STE100
 -  **Write for a reader at B1 English.** Take the common word, and give each word one meaning. Never make a reader look up a word that a shorter word replaces: `lower` not `penalize`, `guess` not `proxy`, `use` not `leverage`, `change the order` not `reorder`, `each` not `respective`, `start` not `initiate`. A domain term is the one exception, under the gloss rule below.
 - **Write the active voice and the present tense.** `The caller must close the file`, not `The file is expected to be closed`. Turn a noun back into its verb: `after it validates the config`, not `after validation of the config`.

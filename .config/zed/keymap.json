@@ -331,7 +331,7 @@
   {
     "context": "GitDiff > Editor && vim_mode == helix_normal",
     "bindings": {
-      "m": [
+      "cmd-k m": [
         "workspace::SendKeystrokes",
         "ctrl-alt-shift-1 ctrl-alt-shift-2"
       ]

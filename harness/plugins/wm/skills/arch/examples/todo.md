@@ -352,7 +352,11 @@ idle user on a normal day, and the stolen token stays usable until it expires.
 >   Refresh`, `## Autotest Unit: case 3`, `## Outcome`.
 > - **Shipped instead** — the shape or behavior that actually landed, one line.
 > - **Why** — the reason the approved version lost, one line.
-> - **Note** — the `[[NNN-impl-decision-slug]]` holding the full reasoning.
+> - **Note** — the `[[NNN-impl-decision-slug]]` holding the full reasoning. **Required on every
+>   row, and written before the row is.** This block is temporary: `revise` folds the rows in and
+>   deletes it, so the note is the only thing that survives. A row with an empty Note column takes
+>   the reason with it, and the approved text it replaced then reads as if nobody chose against it.
+>   `spec-lint.py` check B4 fails a row without one.
 >
 > `revise` folds every row into the section it names and deletes the whole block. A correction that
 > reaches past this TODO — another TODO's symbol, a ledger row, a settled `decision` note — is not a

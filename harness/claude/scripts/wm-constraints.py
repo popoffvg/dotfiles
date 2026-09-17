@@ -7,7 +7,8 @@ Every live approved `decision` / `impl-decision` note is one rule; its frontmatt
 leaves the constraint set in the same move.
 
 Exit 0 = at least one rule printed · 1 = no rule matched · 2 = usage or missing dir
-· 3 = --check found a qualifying note with no description.
+· 3 = --check found a note with an unknown status, a decision still `proposed`, or a
+qualifying note with no description.
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ from pathlib import Path
 
 DEFAULT_DIRS = (".notes/thoughts", "_notes/thoughts", "thoughts")
 RULE_TYPES = ("decision", "impl-decision")
+STATUSES = ("proposed", "open", "approved", "declined")
 
 
 def resolve_dir(arg: str | None) -> Path:
@@ -104,9 +106,13 @@ def load(path: Path) -> dict[str, str]:
     }
 
 
-def rules(dirpath: Path, types: list[str]) -> list[dict[str, str]]:
+def notes(dirpath: Path) -> list[dict[str, str]]:
     rows = [load(f) for f in sorted(dirpath.glob("*.md")) if f.is_file()]
-    rows = [r for r in rows if r["type"] in types and r["status"] == "approved"]
+    return sorted(rows, key=lambda r: r["id"])
+
+
+def rules(dirpath: Path, types: list[str]) -> list[dict[str, str]]:
+    rows = [r for r in notes(dirpath) if r["type"] in types and r["status"] == "approved"]
     return sorted(rows, key=lambda r: r["id"])
 
 
@@ -124,7 +130,7 @@ def main() -> int:
     )
     ap.add_argument("--todo", help="drop rules scoped to a different TODO; keeps unscoped ones (e.g. TODO-2)")
     ap.add_argument("--json", action="store_true", help="print the rules as one JSON array")
-    ap.add_argument("--check", action="store_true", help="report qualifying notes with no description, exit 3 if any")
+    ap.add_argument("--check", action="store_true", help="report unknown statuses, proposed decisions, and qualifying notes with no description; exit 3 if any")
     args = ap.parse_args()
 
     dirpath = resolve_dir(args.dir)
@@ -136,13 +142,33 @@ def main() -> int:
     rows = rules(dirpath, args.type or list(RULE_TYPES))
 
     if args.check:
+        # The status checks read every note, not just the approved ones `rules()` kept:
+        # a status the tools do not know is exactly the note that fell out of `rows`.
+        live = notes(dirpath)
+        types = args.type or list(RULE_TYPES)
+
+        unknown = [r for r in live if r["status"] not in STATUSES]
+        for r in unknown:
+            print(f"D{r['id']}  status: {r['status']!r} is not one of {', '.join(STATUSES)} — the note binds nothing: {r['path']}")
+
+        proposed = [r for r in live if r["status"] == "proposed" and r["type"] in types]
+        for r in proposed:
+            print(f"D{r['id']}  status: proposed — agreed by nobody, so it generates no rule: {r['path']}")
+
         broken = [r for r in rows if not r["rule"]]
         for r in broken:
             print(f"D{r['id']}  no description — the rule has no text: {r['path']}")
-        if broken:
-            print(f"--- {len(broken)} rule(s) with no text (arch:ref-note-format.md § Frontmatter)")
+
+        if unknown or proposed or broken:
+            counts = [
+                (len(unknown), "note(s) with an unknown status"),
+                (len(proposed), "proposed decision(s) awaiting approval"),
+                (len(broken), "rule(s) with no text"),
+            ]
+            print("--- " + ", ".join(f"{n} {label}" for n, label in counts if n)
+                  + " (arch:ref-note-format.md § Frontmatter)")
             return 3
-        print(f"all {len(rows)} rule(s) carry a description")
+        print(f"all {len(rows)} rule(s) carry a description, and every note carries a known status")
         return 0
 
     if args.todo:

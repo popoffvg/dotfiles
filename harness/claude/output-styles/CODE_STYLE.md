@@ -31,38 +31,7 @@ Imperative stays imperative: sequencing, error handling, retries, and I/O are co
 - **NEVER** add links to the task or docs in the code — no URL, no ticket id, no spec slug, no `NNN-decision-*` note filename. The reader cannot open any of them. Write the reason itself. A comment reveals the unclear invariants and the assumptions about external systems that the code does not contain.
 - Never name a version, a plan, or a planned increment in a comment or column/field description — write the fact as it stands today.
 - Never restate platform or domain behaviour the reader of this codebase already knows — keep only what is true of this repo and nowhere else.
-
-## The comment deletion test
-
-Run this test on each sentence, not on the comment as a whole. Delete the sentence, read the code under it, and name the fact you lost.
-
-- No fact lost — the comment paraphrased the code. Delete it.
-- A fact lost — keep that fact alone: an invariant, an assumption about another system, a unit or scale, a nullability rule, or an alternative that was rejected and why. Never what the code shows.
-- Half a fact lost — keep the reason clause, drop the clause that narrates the code.
-
-A doc tag stating only a parameter's name and its type restates the signature. Write the constraint on the value, or no tag.
-
-## Package the fact
-
-**Put the subject in the first five words.** A late subject leaves the reader holding a clause with nothing to attach it to.
-
-**Keep a backward reference beside its meaning.** `both`, `either`, `that`, `the same` and `it` must never reach across a dash, a parenthesis, a line break or a sentence to find it. Where the meaning sits in an earlier sentence, name it again.
-
-**Close each thought before opening the next.** No deferred clause: `X, which is what lets Y treat Z as W`.
-
-**One fact per sentence, twenty-five words at most.** Two facts joined by `and` or `so` are two sentences.
-
-**Say what happens.** The rejected alternative gets its own sentence, or gets cut. An interjected one (`Drop it here — rather than emit a hole — to keep the indexes aligned`) holds the fact open. Negation first (`not from a clean scan`) makes the reader carry a falsehood before reaching the fact.
-
-**One em-dash per comment, and none in a sentence that already carries a parenthesis.**
-
-**Name no count, no threshold, and no membership the code already declares.** Not `the four skip reasons`, not `the bottom third`, not a parenthetical re-listing the enum below. A number in prose is a second definition site, checked by no compiler and covered by no test, and it goes stale the first time the table gains a row. Name the table and let the reader count. Where a comment genuinely must enumerate, give each item its own line.
-
-**Lead with the constraint, not the context.** The first sentence carries what a caller can violate.
-
-**Write for a reader at B1 English.** Take the common word, and give each word one meaning. Never make a reader look up a word that a shorter word replaces: `lower` not `penalize`, `guess` not `proxy`, `use` not `leverage`, `change the order` not `reorder`, `each` not `respective`, `start` not `initiate`. A domain term is the one exception, under the gloss rule below.
-
-**Write the active voice and the present tense.** `The caller must close the file`, not `The file is expected to be closed`. Turn a noun back into its verb: `after it validates the config`, not `after validation of the config`.
+- Don't add the comment that explains how the code works — the reader already knows how to read code.
 
 **Follow ASD-STE100 for what the rules here do not name.**
 

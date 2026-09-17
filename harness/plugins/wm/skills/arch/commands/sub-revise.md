@@ -94,7 +94,9 @@ section the manifest named.
   for changed symbols; `Autotest` for changed behavior or coverage; `Changes` or `Files` for
   changed implementation steps or paths.
 - Fold each consumed `## Deviations` row into its named section, then remove that table when no row
-  remains.
+  remains. **Check every row carries its `[[NNN-impl-decision-slug]]` before you delete one.**
+  Deleting the table is what makes the note the only surviving record of the correction; a row with
+  an empty Note column has no such record, so write the note first and fold second.
 - Recompute the Plan waves only if a ledger row, `depends_on`, or a TODO `## Files` set changed
   (`ref-write.md` § Waves).
 - Regenerate the rules only when a decision or implementation-decision rule changed

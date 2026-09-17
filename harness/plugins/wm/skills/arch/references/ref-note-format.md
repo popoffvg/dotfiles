@@ -31,7 +31,7 @@ Example: `001-decision-token-rotation.md`, `002-fact-token-ttl.md`, `004-questio
 ---
 type: question | decision | fact | impl-decision
 id: "NNN"
-status: open | approved | declined   # open only on type: question; approved is the default otherwise
+status: proposed | open | approved | declined   # open only on a question; proposed only on a decision; approved is the default otherwise
 description: >                       # 1–3 sentences — what this thought settles. Required on every type
   <the summary the index prints>
 date: 2026-06-18T14:30:22
@@ -55,7 +55,13 @@ tags: [topic, subtopic]
   task), so write it as a rule code can obey: what the code must do, stated in the imperative or as
   the invariant it holds. There is no second copy of the rule anywhere, so writing a good rule *is*
   writing this description. What the generated set looks like: `ref-todo-sections.md` § Constraints.
-- `status` — `open` while a question is unresolved, and the only value that keeps a question in the live graph; `approved` on an answered question and on any decision/fact; `declined` when a thought is rejected, moot, or superseded, instead of deleting it.
+- `status` — the lifecycle of the thought. It moves in one direction — `proposed → approved → declined` on a decision, `open → approved | declined` on a question — and these four values are the whole set.
+  - `proposed` — on a `decision` or an `impl-decision` only: the choice is drafted, nobody has agreed to it yet. It **carries no rule** — `wm-constraints.py` generates the constraint set from `approved` notes alone — and it **blocks spec readiness** the same way an open question does. Write one when a choice is still being argued, so the draft outlives the session instead of staying in chat.
+  - `open` — on a `question` only, and the only value that keeps a question in the live graph.
+  - `approved` — an answered question, and any decision, fact, or impl-decision that has been agreed. It is the default when the key is absent on a non-question, and it is the value that turns a decision's `description` into a rule the implementer obeys.
+  - `declined` — the thought is rejected, moot, or superseded, instead of deleted.
+
+  **Any other value fails `spec-lint.py`.** A status the tools do not know does not raise an error on its own — it silently drops the note out of the constraint set, which is a rule nobody can see is missing. The allowlist is what makes that loud.
 - `date` — ISO 8601, the moment the note was written. On a question, add `resolved:` with the timestamp of the answer when marking it (§ Resolution).
 - `source` — optional, on every type. `human` when the user stated or chose it; `auto` when nobody was asked — the answer came out of a research doc or out of the code. On a `question` it says where the question surfaced; on the `decision` or `fact` that answers it, where the **answer** came from.
 - `source: auto` on a decision marks an **auto-discovered** choice — the research or the code answered it, nobody was asked. The choice is as binding as any other, but it carries no human approval, so a reviewer reads those rows first. Every `auto` decision names what forced it in its `## Why` — the `path:line` in the code, or the research doc.
@@ -181,6 +187,19 @@ The answer establishes a truth. Sections, rules, worked example: [`examples/note
 
 An implementation choice made while authoring a TODO body. Same directory, shared counter. Sections, rules, when-to-write table: [`examples/note-impl-decision.md`](../examples/note-impl-decision.md).
 
+## What a choice costs — the optional `## Consequences`
+
+Both decision types carry an optional `## Consequences` section, and only those two: a fact makes no
+choice and a question holds no answer, so neither has a bill to state.
+
+Write it when the choice makes something harder downstream in a way the Resolution does not already
+say — a caller that now needs a second error type, a client that must handle a new status code, a
+migration the next TODO inherits. One bullet each. Leave it out when there is nothing surprising;
+a section listing the obvious is how the one that matters gets skipped.
+
+It is the forward half of the reasoning the note already carries backwards: `## Why` (or
+`## Alternatives`) says what the choice beat, `## Consequences` says what it will cost.
+
 ---
 
 ## Back-linking
@@ -192,3 +211,8 @@ At loop end (any subcommand that writes or edits thoughts): for each `Depends on
 Every `status: open` question note is an unresolved blocker, and the graph is where they are
 counted. List them with `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` — exit 1
 means at least one is open, which is the hard block on spec readiness.
+
+A `status: proposed` decision blocks the same gate for the same reason: the spec would enter `impl`
+carrying a choice nobody agreed to, and the implementer would never see it — a proposed note
+generates no rule. Bring each one to `approved` or `declined` before implementation starts. Both
+blocks are enforced by `guard.sh` on the flip to `status: impl`, and reported by `spec-lint.py`.

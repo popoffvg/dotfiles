@@ -1,7 +1,7 @@
 ---
 type: fact
 id: "002"
-status: approved
+status: approved            # approved | declined — a fact makes no choice, so it is never proposed
 description: >              # 1–3 sentences, the only text the thought index shows — ref-note-format.md § Frontmatter
   Refresh tokens expire 15 minutes after issue in production and 1 hour in development, from
   two constants in pkg/auth/config.go. The short window is what makes concurrent-refresh

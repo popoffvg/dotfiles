@@ -1,7 +1,7 @@
 ---
 type: decision
 id: "003"
-status: approved            # approved | declined
+status: approved            # proposed | approved | declined — proposed while the choice is still argued, and it binds nothing until approved
 description: >              # 1–3 sentences — the text the index shows, and the rule wm-constraints.py prints verbatim — ref-note-format.md § Frontmatter
   Two refreshes racing on the same expired token: the second one returns 409 and the caller
   retries with the new token. Redis single-flight locking was rejected — 40 lines for under
@@ -52,6 +52,17 @@ The 15-minute TTL in [[002-fact-token-ttl]] makes the race rare, so option C's c
 > Forced by constraints → list the constraints and show how they leave one option.
 > Auto-discovered (`source: auto`) → name the `path:line` (or the research doc) that forced the choice and say what
 > the code does there. Nobody was asked, so the code IS the reason; the reviewer reads these first.
+
+<when="the choice costs something a reader would not predict">
+## Consequences
+
+- A client that fires two refreshes at once now has to handle 409 and retry. The SDK does not retry yet, so until the `auth.v2` clients ship, a racing client shows the user a login screen.
+
+> What this choice makes harder downstream, one bullet each — only the effects a reader could not
+> predict from the Resolution. **Why** looks backwards at the alternatives; **Consequences** looks
+> forward at the bill. Skip the section when there are none; a list of the obvious buries the one
+> that matters.
+</when>
 
 ## Depends on
 

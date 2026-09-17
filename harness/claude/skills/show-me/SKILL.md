@@ -3,6 +3,11 @@ name: show-me
 description: Pick the form that fits what is being shown — pseudocode, a call tree, a Codemap, a component tree, a file tree, a diff, a decision table, a flow diagram (mermaid in md files, ASCII in chat) — and write it into the reply. Use when the user says "show me", "draw it", "sketch that", "what does the flow look like", "where does that live", when a design point is easier pointed at than described, or when prose has grown into a third paragraph about structure. Routes to the drawing skills when the content needs a canvas.
 ---
 
+# MUST FOLLOW
+
+- Use ASD-STE100 for any text in the reply.
+- Write response in architecture decisions record style.
+
 # show-me — one form per kind of content
 
 **The content picks the form, not the size of the system.** Find the row below, draw that form, put one short sentence next to it, and stop.

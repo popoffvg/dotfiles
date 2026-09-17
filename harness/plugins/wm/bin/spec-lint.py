@@ -233,7 +233,7 @@ def check_budgets(notes, f):
 
 
 def check_rules(notes, f):
-    row = f.check("A2", "every rule note carries its text (wm-constraints.py --check)")
+    row = f.check("A2", "every rule note carries a known status and its text (wm-constraints.py --check)")
     script = os.path.expanduser("~/.claude/scripts/wm-constraints.py")
     thoughts = os.path.join(notes, "thoughts")
     if not os.path.isfile(script) or not os.path.isdir(thoughts):
@@ -241,9 +241,16 @@ def check_rules(notes, f):
         return
     proc = subprocess.run(["python3", script, thoughts, "--check"], capture_output=True, text=True)
     if proc.returncode == 3:
+        fixes = {
+            "is not one of": "set status to one of proposed, open, approved, declined",
+            "status: proposed": "get the human to agree it, then set status: approved — or decline it with the reason",
+        }
         for line in proc.stdout.splitlines():
-            if line.strip():
-                f.fail(row, thoughts, line.strip(), "give the note a frontmatter description")
+            line = line.strip()
+            if not line or line.startswith("---"):
+                continue
+            fix = next((v for k, v in fixes.items() if k in line), "give the note a frontmatter description")
+            f.fail(row, thoughts, line, fix)
 
 
 def check_open_questions(notes, f):
@@ -405,6 +412,19 @@ def check_human(n, path, lines, pairs, f, checks):
                " → ".join(HUMAN_ORDER))
     if "Deviations" in found and fm.get("status") == "todo":
         f.fail(row, where, "`## Deviations` written at status todo", "impl writes it, never arch")
+    if "Deviations" in found:
+        # The block is temporary — `revise` folds the rows in and deletes it — so the linked
+        # note is the only record that outlives the correction. A row without one loses the reason.
+        for i, line in enumerate(section(body, "Deviations"), 1):
+            text = line.strip()
+            if not text.startswith("|") or set(text) <= set("|- "):
+                continue
+            cells = [c.strip() for c in text.strip("|").split("|")]
+            if cells[:1] == ["What"]:
+                continue
+            if not any("[[" in c for c in cells):
+                f.fail(row, where, f"`## Deviations` row {i} names no thought note: {cells[0]}",
+                       "add the [[NNN-impl-decision-slug]] holding the reason, before revise deletes the table")
     tail = [l for l in body if l.strip()]
     if not tail or "TODO-%d.agent.md" % n not in tail[-1]:
         f.fail(row, where, "last line is not the link to the agent half",
@@ -646,7 +666,7 @@ def run(notes, as_json=False, quiet=False):
 
     checks = {
         "B3": f.check("B3", "human half frontmatter — keys, risk 1-5, approve, type, depends_on"),
-        "B4": f.check("B4", "human half sections — present, ordered, link out"),
+        "B4": f.check("B4", "human half sections — present, ordered, link out, deviations named a note"),
         "B5": f.check("B5", "Components — brick, touch, exactly one main"),
         "B6": f.check("B6", "Surface carries the diff"),
         "E1": f.check("E1", "Autotest — Unit and E2E, command + cases or a real reason"),
