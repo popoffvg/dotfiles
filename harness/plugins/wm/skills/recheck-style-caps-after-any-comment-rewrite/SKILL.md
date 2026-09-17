@@ -28,4 +28,4 @@ of you is "make this true," not "make this short." The caps don't announce thems
 round later has to re-read the same lines to catch the overflow, burning a full extra round to fix
 a comment that was just rewritten.
 
-A code example inside the comment being rewritten has its own separate check: see [doc-examples-must-lint](../doc-examples-must-lint/SKILL.md) for the rule that a snippet in prose must still satisfy the repo's linters, since nothing else checks it either.
+A code example inside the comment being rewritten has its own separate check: see `harness-dev:doc-examples-must-lint` for the rule that a snippet in prose must still satisfy the repo's linters, since nothing else checks it either.

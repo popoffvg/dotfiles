@@ -173,6 +173,9 @@ reviewed: <`date -Iseconds`>
 - **Every Failure names the fact** — the fact lost by deleting the sentence, the fact the code
   already shows, or the fact the code contradicts. "Reads poorly" is a Nit, never a Failure.
 - **Give the rewrite, never longer than what it replaces.** A rewrite that grows the comment fails
-  the rule it was fixing.
+  the rule it was fixing. Check the rewrite against the nit gates before you print it: a comment
+  stopped by a Failure gate never reaches them, so the rewrite is the only place those caps get
+  applied this round. `wm:recheck-style-caps-after-any-comment-rewrite` states the same rule for
+  whoever applies the fix.
 - **A comment the diff did not touch stays out of the report**, unless the code under it changed.
 - Judge one diff per run.
