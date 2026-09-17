@@ -58,4 +58,4 @@ Never leave a violating snippet as the unlabeled or `good:` case.
 
 These defects cluster: the same misunderstanding usually produced several examples. When a review flags one, grep the file for every other snippet of the same shape and fix them in the same change.
 
-A comment rewritten to fix one of these snippets is still bound by the file's prose-style caps: see [recheck-style-caps-after-any-comment-rewrite](../recheck-style-caps-after-any-comment-rewrite/SKILL.md) for the rule that a rewrite must be self-checked against those caps before commit, since no gate currently checks it.
+A comment rewritten to fix one of these snippets is still bound by the file's prose-style caps: see `wm:recheck-style-caps-after-any-comment-rewrite` for the rule that a rewrite must be self-checked against those caps before commit, since no gate currently checks it.

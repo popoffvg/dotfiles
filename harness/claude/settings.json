@@ -129,13 +129,13 @@
   },
   "skillOverrides": {
     "ast-grep": "off",
-    "doc-examples-must-lint": "off",
     "domain-modeling": "off",
-    "draft": "off",
     "grilling": "on",
-    "help-command": "off",
-    "hunch": "off",
+    "harness-dev:doc-examples-must-lint": "off",
+    "harness-dev:help-command": "off",
+    "harness-dev:prompt-dry-run": "off",
     "harness-dev:prune-text": "off",
+    "hunch": "off",
     "quint-spec": "off",
     "tracker-task-drafting": "off"
   },

@@ -1,16 +1,16 @@
 ---
-name: draft
-description: Use when the user runs "/draft <prompt>" or asks to draft/preview/dry-run how a prompt would be handled — reflect back the agent's reading of the prompt (intent, planned actions, limits) BEFORE acting, so misalignment surfaces first. Trigger on "draft this", "what would you do with", "before you act, tell me your plan", "how do you read this".
+name: prompt-dry-run
+description: Use when the user runs "/prompt-dry-run <prompt>" or asks to draft/preview/dry-run how a prompt would be handled — reflect back the agent's reading of the prompt (intent, planned actions, limits) BEFORE acting, so misalignment surfaces first. Trigger on "draft this", "what would you do with", "before you act, tell me your plan", "how do you read this".
 argument-hint: [the prompt to interpret — do not execute it]
 model-invocation: false
 user-invocation: true
 ---
 
-# draft — reflect the read, don't act
+# prompt-dry-run — reflect the read, don't act
 
 Given a prompt, produce the agent's understanding of it. **Do not execute the task.** No edits, no tool runs beyond read-only lookups needed to ground the interpretation. Output is a mirror the operator corrects before real work starts.
 
-The prompt is a sample, not a spec. Operators give one or two thin examples and expect the whole class handled ([one-shot](../one-shot/SKILL.md) is the opposite: act when context is complete; here context is deliberately thin). Widen past the literal words: name the general task the examples stand for, the cases they imply but omit, the scope edge they gesture at.
+The prompt is a sample, not a spec. Operators give one or two thin examples and expect the whole class handled (the `one-shot` skill is the opposite: act when context is complete; here context is deliberately thin). Widen past the literal words: name the general task the examples stand for, the cases they imply but omit, the scope edge they gesture at.
 
 ## Output — three blocks, in order
 
