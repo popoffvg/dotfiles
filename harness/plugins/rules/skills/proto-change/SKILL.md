@@ -1,6 +1,8 @@
 ---
 name: proto-change
 description: buf-validated Protocol Buffers authoring — write or modify .proto files with pre-edit analysis of wire-compat constraints, style conventions, and coordinated codegen + downstream consumer updates. Use for any non-trivial .proto edit (new message/field/rpc, type change, deprecation).
+paths:
+  - "**/*.proto"
 ---
 
 # Proto Authoring Skill

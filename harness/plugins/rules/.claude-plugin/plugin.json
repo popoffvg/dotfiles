@@ -1,0 +1,8 @@
+{
+  "name": "rules",
+  "version": "0.2.0",
+  "description": "Narrow code rules, one trigger and one rule each, scoped to the file type they govern. A rule lands here once it is worth obeying on every matching file rather than remembering from the session that taught it. The self-improvement plugin captures and consolidates lessons; this plugin is where the surviving ones live.",
+  "author": {
+    "name": "popoffvg"
+  }
+}
