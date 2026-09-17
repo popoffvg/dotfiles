@@ -103,3 +103,22 @@ tests/
 - [ ] **Backgrounds:** Use Backgrounds to DRY up repeated setup, but don't hide critical context.
 - [ ] **Separation:** Store scenarios in .feature files, not as code comments.
 - [ ] **Shell docstrings:** Annotate with `"""sh`, not bare `"""`.
+
+## Grammar the parser enforces
+
+**One physical line per step.** A long step wrapped onto an indented second line has no keyword on
+that line, so strict Gherkin grammar reads it as a parse error rather than a continuation.
+
+**No apostrophe character (`'`).** Write `the settings panel of the block`, not
+`the block's settings panel`.
+
+**Every Examples column used by a step.** A column no `<placeholder>` reads is dead data — delete it
+or reference it.
+
+## Lint before calling a feature file done
+
+Run `gherkin-lint` from the directory holding the file: `npx --yes gherkin-lint`. It needs a
+`.gherkin-lintrc` there — copy one from another `.feature` directory in the same repo, or write a
+minimal one covering `keywords-in-logical-order`, `no-unused-variables`, `no-trailing-spaces`,
+`new-line-at-eof`, and `one-space-between-tags`. Fix every finding; do not report findings back as
+the result.
