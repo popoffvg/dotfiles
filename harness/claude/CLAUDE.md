@@ -21,7 +21,7 @@
 
 - fff for all file search/grep: `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob — faster, frecency-ranked.
 - perl for multi-editing files, not bash.
-- **gitnexus is the code graph tool.** Every repo under `~/git/mil` is indexed. Ask the graph before you grep when the question is about structure, not text: `mcp__gitnexus__query` (execution flows for a concept), `context` (every reference to a symbol), `impact` (what breaks if I change this), `trace` (how does A reach B), `explain` / `pdg_query` (data and control dependence). grep finds a string; the graph finds callers, callees, and blast radius. Read the `gitnexus-guide` skill for the full tool list and the graph schema, `gitnexus-cli` to index a new repo.
+- **gitnexus is the code graph tool.** Every repo under `~/git/mil` is indexed. Ask the graph before you grep when the question is about structure, not text: `mcp__gitnexus__query` (execution flows for a concept), `context` (every reference to a symbol), `impact` (what breaks if I change this), `trace` (how does A reach B), `explain` / `pdg_query` (data and control dependence). grep finds a string; the graph finds callers, callees, and blast radius. The MCP server carries its own tool descriptions; `mcp__gitnexus__tool_map` lists them, and `mcp__gitnexus__list_repos` shows what is indexed.
 
 When a request says "do X as/like existing Y" (mirror a pattern), find the missing parallel in the actual diff/code — don't propose new mechanisms, scope expansions, or alternative shapes. Re-read the diff first. Copy Y's exact structure; don't substitute a "better" variant (e.g. inline vs reference).
 
