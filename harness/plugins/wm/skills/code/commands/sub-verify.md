@@ -157,7 +157,7 @@ the closed files is a missing restatement, named as the finding.
 
 **Readable at one pass — the human half only.** `TODO-N.md` is written under the `i-have-adhd` skill
 (`arch:ref-todo-sections.md` § Every prose line). Read its rules —
-`~/.claude/skills/i-have-adhd/SKILL.md` — then judge every prose line against them: Outcome,
+`~/.claude/skills/i-have-adhd/SKILL.md` — then judge every prose line against them: Outcome, `Delivers`,
 `New terms` **Meaning**, `Components` **Role**, `Autotest` cases, `Commit.Body`. Apply its own test:
 read the first sentence of each section, then the bold phrases, and rule whether that skim carries
 the approval decision. Two ideas in one sentence, a stacked clause chain, a metaphor standing in for

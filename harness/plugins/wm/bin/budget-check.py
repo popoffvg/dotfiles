@@ -66,6 +66,7 @@ UNCOUNTED_SECTIONS = ("New terms", "Components")
 # author wrote one file where the contract asks for two.
 HUMAN_SECTIONS = {
     "Outcome",
+    "Delivers",
     "New terms",
     "Components",
     "Surface",

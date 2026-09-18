@@ -4,10 +4,10 @@
 `arch:sub-todo.md` § One ledger row, two files splits every TODO by audience. This script
 performs that cut on a body written before the split:
 
-  todos/TODO-N.md         Outcome, New terms,      the human's gate read, walked with the
-                          Components, Surface,     repo closed; the 550-line budget is
-                          Autotest, Commit         counted on it. `Surface` is the one diff
-                                                   in the pair and STAYS here.
+  todos/TODO-N.md         Outcome, Delivers,       the human's gate read, walked with the
+                          New terms, Components,   repo closed; the 550-line budget is
+                          Surface, Autotest,       counted on it. `Surface` is the one diff
+                          Commit                   in the pair and STAYS here.
 
   todos/TODO-N.agent.md   Constraints, Changes     the implementer's half; no line budget,
                           (the increments), Files, no frontmatter — `status` stays in the

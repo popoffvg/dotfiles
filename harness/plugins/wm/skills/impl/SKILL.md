@@ -7,6 +7,9 @@ description: >
   rules all three share (commit). Load it when the `code` skill routes to impl, auto, fix, squash,
   or commit, or when writing code against a TODO body. The message text itself: `commit-message`.
 user-invocable: false
+context: fork
+agent: wm:implementer
+background: false
 ---
 
 # impl — the source-editing operations

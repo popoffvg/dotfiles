@@ -145,7 +145,7 @@ Keep this suite as the guard that stops anyone claiming the split works because 
 Gates under test — two axes, both applied to one block of candidate content:
 
 - **`half`** → `human` | `agent` | `corpus` : which file the content belongs in.
-  `human` is `TODO-N.md` (Outcome, New terms, Components, **Surface**, Autotest, Commit); `agent` is
+  `human` is `TODO-N.md` (Outcome, Delivers, New terms, Components, **Surface**, Autotest, Commit); `agent` is
   `TODO-N.agent.md` (Constraints — the pointer — Changes, Files, Pre-reads, Manual test, Definition
   of done); `corpus` is outside the pair: `thoughts/`, which holds a settled rule an increment can
   violate and the reason behind it alike.

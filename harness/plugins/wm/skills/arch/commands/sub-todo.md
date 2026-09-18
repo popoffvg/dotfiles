@@ -17,7 +17,7 @@ Spec contract + the gate: `ref-write.md`. Vocabulary: `wm:GLOSSARY.md`.
 
 | File | Read by | Holds | Length |
 |------|---------|-------------|--------|
-| `TODO-N.md` | the human, repo closed | frontmatter, Outcome, New terms, Components, **Surface (the diff)**, Autotest, Commit | ≤ 550 lines, New terms + Components uncounted |
+| `TODO-N.md` | the human, repo closed | frontmatter, Outcome, Delivers, New terms, Components, **Surface (the diff)**, Autotest, Commit | ≤ 550 lines, New terms + Components uncounted |
 | `TODO-N.agent.md` | the implementer | Constraints (the generator command), Changes (the increments, **described — no diff**), Files, Pre-reads, Manual test, Definition of done | **unlimited** |
 
 The split is by audience, not by size. `TODO-N.md` is the design a human approves — what the system
@@ -274,13 +274,14 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 |---|---------|-------|----------|
 | 1 | `TODO-N: <title>` | H1 | always — imperative, ≤ 60 chars |
 | 2 | `Outcome` | H2 | always |
-| 3 | `New terms` | H2 | only if the TODO adds terms missing from GLOSSARY.md |
-| 4 | `Components` | H2 | always |
-| 5 | `Surface` | H2 | always — the one diff: every symbol the TODO changes, one ```diff per file |
-| 6 | `Autotest` | H2 | always — **both** a `Unit` and an `E2E` sub-block |
-| 7 | `Commit` | H2 | always — the `Title` and `Body` of the one commit the increments build |
-| 8 | `Deviations` | H2 | never at `todo` — written by `impl` when a user correction contradicts a section above, removed by `revise` |
-| 9 | `**Increments:** [TODO-N.agent.md](TODO-N.agent.md)` | line | always — the last line, the one link out |
+| 3 | `Delivers` | H2 | always — what the TODO brings, 3–7 free-text bullets, or `none — <reason>` |
+| 4 | `New terms` | H2 | only if the TODO adds terms missing from GLOSSARY.md |
+| 5 | `Components` | H2 | always |
+| 6 | `Surface` | H2 | always — the one diff: every symbol the TODO changes, one ```diff per file |
+| 7 | `Autotest` | H2 | always — **both** a `Unit` and an `E2E` sub-block |
+| 8 | `Commit` | H2 | always — the `Title` and `Body` of the one commit the increments build |
+| 9 | `Deviations` | H2 | never at `todo` — written by `impl` when a user correction contradicts a section above, removed by `revise` |
+| 10 | `**Increments:** [TODO-N.agent.md](TODO-N.agent.md)` | line | always — the last line, the one link out |
 
 ### `TODO-N.agent.md` — the agent half
 
@@ -305,12 +306,13 @@ or **any ```diff block outside the human half** — each one means the split was
 A correct TODO is self-explanatory: a human approves it by walking seven elements of `TODO-N.md`
 alone, repo closed. The agent half stays shut.
 
-**type → Outcome → New terms → Components → Surface → Autotest → Commit**
+**type → Outcome → Delivers → New terms → Components → Surface → Autotest → Commit**
 
 | Element | Verifies | Link |
 |---------|----------|------|
 | `type` (frontmatter) | what kind of change — frames the rest | — |
 | Outcome | is this the right capability? (the anchor) | — |
+| Delivers | what does this TODO bring, and which section do I read for it? | orients Outcome |
 | New terms | right vocabulary, consistent with GLOSSARY.md? | grounds Outcome |
 | Components | which `package.Class` symbols are created, modified, or deleted, and which one holds the main part? | locates Outcome |
 | Surface | what does each of those symbols *become* — the exact types, fields, and signatures a caller will see? | commits Outcome |
@@ -403,6 +405,7 @@ own file against a rule already counted.
 - [ ] **`where` is `inherit`** unless this TODO needs a checkout of its own — same rule: any other value carries the reason as a trailing comment
 - [ ] **Not over-stated**: no spec Description/Goal/target-picture prose was copied in, and the Outcome is this TODO's slice rather than the spec Goal
 - [ ] **Outcome** is a capability in GLOSSARY.md terms — no paths, types, routes, libraries
+- [ ] **`## Delivers`** carries 3–7 bullets, each a plain-words kind plus a symbol and one clause — or the single line `none — <concrete reason>`
 - [ ] **Every prose line passes `i-have-adhd`** — Outcome, `Meaning`, `Role`, Autotest cases, `Commit.Body`: one idea per sentence, short sentences, literal words, no restatement, and each section decided by its first sentence alone
 - [ ] `## Components` has exactly one `main` row, each a `package.Class` symbol with a `create | modify | delete` **Touch** and a one-sentence **Role**
 - [ ] `## Surface` carries one ```diff per file, deepest-first — or a plain contract block for a file that is all body

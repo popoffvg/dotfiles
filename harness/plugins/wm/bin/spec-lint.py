@@ -37,7 +37,7 @@ APPROVALS = {"inherit", "increment", "todo", "none"}
 WORKSPACES = {"inherit", "in-place", "worktree"}
 MAX_INCREMENTS = 10
 
-HUMAN_ORDER = ["Outcome", "Components", "Surface", "Autotest", "Commit"]
+HUMAN_ORDER = ["Outcome", "Delivers", "Components", "Surface", "Autotest", "Commit"]
 AGENT_ORDER = [
     "Constraints", "Changes", "Files",
     "Pre-reads (MUST read before editing)", "Manual test", "Definition of done",

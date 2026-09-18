@@ -71,6 +71,29 @@ A `User` can issue `RotateToken` to exchange a valid refresh token for a new `To
 > A pure refactor with no new capability says so: *"No new capability; reshapes the `Session`
 > aggregate so future `RotateToken` variants share a path."* Still in terms, not paths.
 
+## Delivers
+
+- a public method on `pkg/auth.Handler` — one call swaps a live refresh token for a new pair
+- a state machine on `Session` — active → rotated → revoked, with reuse as the trap state
+- a config key for the refresh TTL — 15 minutes by default
+
+> **What the TODO brings, as a tip for the reviewer on what to read.** One bullet per thing that
+> lands, biggest first. The reviewer reads this list, then knows what `## Components` and
+> `## Surface` below will show before scrolling to them.
+>
+> Each bullet is `<what kind of thing> on <symbol> — <one clause on what it does>`. The kind is
+> plain words, not a roster: a public method, a state machine, an event, an endpoint, a config key,
+> a migration, a script. Free text on purpose — this section talks to a person, not to a checker.
+>
+> Name a symbol the way `## Components` does (`pkg/auth.Handler`), never a file path.
+>
+> **Three to seven bullets.** Past seven, the TODO brings more than one deliverable — split the
+> ledger row. Under three is normal for a small slice.
+>
+> **Always present.** A TODO that brings nothing a reviewer would look for writes one line:
+> `none — <concrete reason>`, the same shape the Autotest levels use. A pure refactor is the usual
+> case: `none — reshapes the Session aggregate; no new surface`.
+
 ## New terms
 
 | Term | Kind | Description |
