@@ -53,10 +53,9 @@ skill for what stays in the foreground and how to wait for the exit.
 
 ## Scripts
 
-**NEVER** embed complex logic as an inline bash `-c '...'` one-liner.
 → Write reusable scripts to `~/.claude/scripts/<name>.sh` (create dir if missing).
-→ Register each in `~/.claude/scripts/MANIFEST.md`: `| filename | description |`.
-→ Before writing a new script, check MANIFEST.md — reuse or extend an overlapping one.
+→ Write md file for each script in `~/.claude/scripts/` with metadata only. Description in metadata should be a one-sentence summary of what the script does.
+→ Before writing a new script, check existing scripts in `~/.claude/scripts/` for overlap using MANIFEST.md and script metadata.
 → Idempotent, accept args where useful, `chmod +x` on creation.
 
 ---

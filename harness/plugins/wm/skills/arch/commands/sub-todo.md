@@ -243,6 +243,10 @@ rather than a row of its own — is `ref-write.md` § Merges that fall out of th
 
 ## File location
 
+`<notes-dir>/todos/CLAUDE.md` — the pair guide the folder already carries — is written by `new` Step 0
+and is never rewritten here. Missing → copy [`examples/todos-claude.md`](../examples/todos-claude.md)
+verbatim without its `>` block, as the caller, before the fan-out.
+
 `<notes-dir>/todos/TODO-N.md` and `<notes-dir>/todos/TODO-N.agent.md`, `N` 1-indexed and contiguous,
 one pair per ledger entry. The rules both halves obey are stored in no file: they are generated from
 `<notes-dir>/thoughts/`.

@@ -20,7 +20,7 @@ parent project. `jj -R . log` is the history.
 | `CONCEPTS.md` | App architecture, data flow, and the flow this work changes — every diagram, drawn with `show-me` | `/code new` Step 0, when there is structure to draw |
 | `thoughts/` | `NNN-{question,decision,fact,impl-decision}-slug.md` — the thought graph | every phase |
 | `thoughts/archived/` | Answered questions + superseded thoughts — kept for the trail, out of the live graph | a hook, on any note that stops being live |
-| `todos/` | `TODO-N.md` + `TODO-N.agent.md` — one self-contained pair per ledger row: the human half (Outcome, Components, Autotest, Commit) and the agent half (the constraint command, the increments, Files, Pre-reads) | `/code todo` |
+| `todos/` | `CLAUDE.md` (the pair convention) + `TODO-N.md` + `TODO-N.agent.md` — one self-contained pair per ledger row: the human half (Outcome, Components, Autotest, Commit) and the agent half (the constraint command, the increments, Files, Pre-reads) | `/code new` (the folder + `CLAUDE.md`), `/code todo` (the pairs) |
 | `research/` | Explore-phase artifacts, ingested into `thoughts/` as facts | `/dive docs` |
 
 ## Read order

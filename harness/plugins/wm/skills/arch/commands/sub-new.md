@@ -13,11 +13,12 @@ No `<notes-dir>/spec.md` → write a minimal one (full artifact with the rules p
 - **Open questions** — seed 1–3 as `thoughts/NNN-question-*.md` notes (`status: open`, example `examples/note-question.md`). They live in the thought graph, not in `spec.md`; the spec has no Open Questions section. **TODO List** — empty until the grill closes.
 - Create `<notes-dir>/GLOSSARY.md` from `examples/glossary.md`, empty.
 - Create `<notes-dir>/CLAUDE.md` from `examples/notes-claude.md` — the corpus guide any agent entering the folder reads. Copy the example's fenced block verbatim, not its header.
+- Create `<notes-dir>/todos/CLAUDE.md` from `examples/todos-claude.md` — the pair convention any agent entering that folder reads: two files per ledger row, which half holds what, the read order, the write rules. The folder is scaffolded here, empty; `todo` fills it past the gate.
 - Create `<notes-dir>/PATTERNS.md` from `examples/patterns.md` — the implementation patterns and reference files the implementer follows. Empty or "follow language defaults" at init; `spec.md` mentions `@PATTERNS.md` and holds no pattern content.
 - Create `<notes-dir>/CONCEPTS.md` from `examples/concepts.md` when the work has structure to draw — app architecture, data flow, the flow it changes — using the `show-me` skill. Draw before the ledger: the pictures are what decide a layer, a wave, and where a row splits. Nothing structural → no file, and `spec.md` mentions none.
 - What we're NOT doing — empty or "follow language defaults". No `Design Decisions` and no `Open Questions` section: both live in `thoughts/` (`ref-write.md` § Artifacts).
 
-`CLAUDE.md` and `RULES.md` are written **once**; if either already exists, leave it — the user owns it after init. `PATTERNS.md` is created once and stays open to extension — patterns as they surface. It is never rewritten from the example after init. Generated implementation constraints have no file: they come from `thoughts/` (`ref-todo-sections.md` § Constraints).
+`CLAUDE.md`, `todos/CLAUDE.md`, and `RULES.md` are written **once**; if one already exists, leave it — the user owns it after init. `PATTERNS.md` is created once and stays open to extension — patterns as they surface. It is never rewritten from the example after init. Generated implementation constraints have no file: they come from `thoughts/` (`ref-todo-sections.md` § Constraints).
 
 spec.md exists → check the frontmatter `branch` against the current branch (`ref-write.md` § Spec ownership by branch):
 

@@ -60,12 +60,12 @@ send_start_command() {
   return 1
 }
 
-# Claude Code marks its own state with a hairline glyph in front of the title —
-# U+2733 at rest, U+2802/U+2810 alternating while it works. Do not read that
-# glyph: herdr strips it, so `terminal_title_stripped` carries the bare name and
-# a match against the glyph never fires. Read `agent_status` instead, which
-# herdr tracks per pane and which also separates blocked (Claude is waiting on
-# the operator) from idle — a state the glyph cannot express.
+# Claude Code marks its own state with a glyph in front of the title, and herdr
+# strips only the ones it knows — the circle set (U+25D0 and its neighbours)
+# reaches `terminal_title_stripped` and reads as a second icon beside this one,
+# so the jq filter below cuts every glyph Claude Code can write. Read
+# `agent_status` for the state instead: herdr tracks it per pane, and it
+# separates blocked (Claude waits on the operator) from idle.
 #
 # The rotation is counted here rather than mirrored off Claude Code's own 960ms
 # flip, because sampling that clock on this one aliases into a stutter.
@@ -106,7 +106,9 @@ publish_pane_title() {
     # would freeze the icon for the rest of the session. Swallow it and skip the
     # tick instead; read has already blanked both fields.
     IFS=$'\t' read -r status name < <(herdr pane current 2>/dev/null |
-      jq -r 'try ([.result.pane.agent_status // "", .result.pane.terminal_title_stripped // ""] | @tsv)') || true
+      jq -r 'try ([.result.pane.agent_status // "",
+        (.result.pane.terminal_title_stripped // ""
+          | sub("^[\\x{2733}\\x{273B}\\x{23FA}\\x{25CB}\\x{25CF}\\x{25C9}\\x{25CE}\\x{25EF}\\x{25D0}-\\x{25D3}\\x{2800}-\\x{28FF}\\s]+"; ""))] | @tsv)') || true
     restyle_icon "$status" "$name"
     [[ -n "$styled" && "$styled" != "$last" ]] || continue
     herdr terminal title set "$styled" >/dev/null 2>&1 && last="$styled"
