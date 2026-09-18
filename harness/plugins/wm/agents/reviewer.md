@@ -36,13 +36,13 @@ rule beats an inferred convention, and a convention beats your taste.
 | Order | Source | What you take from it |
 |---|---|---|
 | 1 | `CLAUDE.md` / `AGENTS.md` at the repo root and in the changed directories | The rules this repo states about itself. The nearest file to the changed code wins. |
-| 2 | `CODE_STYLE.md`, `CONTRIBUTING.md`, `CODING_STANDARDS.md` | The house style: the table-diff and identity-branch tests, the comment rules, the package-the-fact rule. |
+| 2 | `~/.claude/CLAUDE.md`, `CONTRIBUTING.md`, `CODING_STANDARDS.md` | The house style: the table-diff and identity-branch tests, the comment rules, the package-the-fact rule. |
 | 3 | The rules `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints, plus `<notes-dir>/RULES.md`, when the caller names a notes-dir | The settled decisions this change must obey, one `D<NNN>` row each. Short; read all of it, and read the `[auto]` rows first — nobody approved those. |
 | 4 | `<notes-dir>/PATTERNS.md`, when it exists | The implementation patterns and reference files the code is meant to follow. |
 | 5 | The code around the diff | The pattern already in use — the neighbouring files in the same package are the standard when nothing above covers the point. |
 | 6 | The language | Its idiom: Go error wrapping and zero values, TypeScript narrowing over casts, Rust ownership over clones, Python context managers over manual close. |
 
-**A finding cites the source that condemns it.** `CODE_STYLE.md` § *the section*, a generated rule
+**A finding cites the source that condemns it.** `~/.claude/CLAUDE.md` § *the when-block*, a generated rule
 by its id and origin note (`D007` `[[007-decision-body-struct]]`), `PATTERNS.md` § *the pattern*,
 the neighbouring file that does it the other way, or the named language idiom. A finding with no
 source is your taste, and your taste is a Nit at most.
@@ -60,7 +60,7 @@ Then read the real diff — `git show HEAD` plus fixups, or the range the caller
 4. **Correctness bugs.** Off-by-one, nil / empty / zero, error paths swallowed, wrong boundary, a
    race on a new shared value, a caller left unmigrated after a signature change.
 5. **A fact duplicated between a table and its reader.** Apply the table-diff and identity-branch
-   tests from `CODE_STYLE.md`. A parallel array of ids beside a declaration table, a default the
+   tests from `~/.claude/CLAUDE.md`. A parallel array of ids beside a declaration table, a default the
    reader merges in, a field the reader injects on every row, or a branch keyed on one item's
    identity: each leaves one fact in two places, and the two can disagree.
 

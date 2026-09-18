@@ -430,7 +430,6 @@
       }
     }
   },
-  "outputStyle": "ADHD",
   "sandbox": {
     "enabled": true,
     "network": {

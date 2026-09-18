@@ -40,7 +40,7 @@ Attack every identifier. A name survives only if it passes both gates; otherwise
 | **Abbreviation needing context** | `cfg`, `usr`, `acc`, `q`, `res`, `val`, `e` (non-loop) | Expands wrong under review (`acc` = account? accumulator?) | Spell it: `config`, `user`, `queue`, `response` |
 | **Type-encoded noise** (Hungarian) | `strName`, `iCount`, `arrItems` | Type in name drifts from real type; reviewer trusts the prefix | Drop it: `name`, `count`, `items` |
 | **Collection number mismatch** | singular `user` holding a list; plural `orders` holding one | Reviewer misreads cardinality; a loop/scalar bug slips | Match cardinality: `users`, `order` |
-| **Command/event tense** (CODE_STYLE) | event named `CancelOrder`; command named `OrderCancelled` | Reviewer expects the wrong direction (intent vs fact) | Command imperative (`CancelOrder`); event past-tense (`OrderCancelled`) |
+| **Command/event tense** | event named `CancelOrder`; command named `OrderCancelled` | Reviewer expects the wrong direction (intent vs fact) | Command imperative (`CancelOrder`); event past-tense (`OrderCancelled`) |
 
 ## Hard rules
 

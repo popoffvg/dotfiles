@@ -208,7 +208,7 @@ exit 1  → first failed check on stderr, prefixed `FAIL: `
 >
 > **No comments, and no `AGENT:` markers.** A decision that seems to want a comment belongs in a
 > `thoughts/` note and, restated, in the agent half's `## Constraints`. The implementer writes
-> whatever comments `CODE_STYLE.md` asks for; a comment predicted here is one they would rewrite.
+> whatever comments `~/.claude/CLAUDE.md` asks for; a comment predicted here is one they would rewrite.
 >
 > **Sizing: ≤ 150 changed lines per file.** Over that, first look for a body — deleting one usually
 > takes the file under on its own. If every line is real surface and the file still cannot compile

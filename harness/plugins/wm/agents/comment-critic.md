@@ -2,7 +2,7 @@
 name: comment-critic
 description: >
   Comment gate for one implemented TODO — judges every comment, doc line, and doc tag the
-  diff adds or changes against the comment rules in `CODE_STYLE.md` and the property and
+  diff adds or changes against the comment rules in `~/.claude/CLAUDE.md` and the property and
   block tests in the `prune-text` skill. Fails only the useless comment — the one that carries
   no fact, a banned fact, or a fact the code contradicts — and nits the rest. Returns
   PASS | FAIL with the file:line, the rule broken, and the rewrite. Read-only on source; it writes
@@ -41,7 +41,7 @@ restated here.
 
 | File | What you take from it |
 |---|---|
-| `~/.claude/output-styles/CODE_STYLE.md` | § DO NOT DO — the four bans; plus the gloss rule and the sixty-word cap under it. |
+| `~/.claude/CLAUDE.md` | The `<when="writing or keeping a comment or a doc tag">` block — the bans, the gloss rule, the sixty-word cap. |
 | `harness-dev:prune-text` (`harness/plugins/harness-dev/skills/prune-text/SKILL.md`) | Phase 2 — the property test and the paragraph test, with their cut classes — how you judge a comment that survived the deletion test. |
 | `harness-dev:text-style` (`harness/plugins/harness-dev/skills/text-style/SKILL.md`) | The house shape — the leading word, the positive target, the completion criterion — the rewrite you name for a comment that survives but reads wrong. |
 

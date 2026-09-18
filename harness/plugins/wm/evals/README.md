@@ -58,7 +58,7 @@ The cases that earn the suite:
   belongs to a naming skill. `commit-message` owns the first, `comment-critic` § The sentence shape the
   second.
 - **`switch-on-column-id`** — a column id is an identifier, so the description's "field name" clause
-  can pull in a fact that belongs to `CODE_STYLE.md` § Declarative table vs imperative reader.
+  can pull in a fact that belongs to `~/.claude/CLAUDE.md` § declarative table.
 - **`metric-built-from-parts`**, **`log-prefix-shared`**, **`two-int-ids`**, **`helpers-file`** — four
   positives where the user never says the word "name". They read as instrumentation, a logging
   complaint, a bug report, and a routine file add. A description written only around "what should I
@@ -133,7 +133,7 @@ two choices.
 realistic prompts; it only wakes when the user types its name. So 0.30 is not a verdict on one
 description — it is evidence that **a skill description is not a reliable delivery mechanism for a
 standing convention.** The lever is a hook on the event where a name gets written, beside
-`comment-check.mjs`, which already enforces the comment half of `CODE_STYLE.md` deterministically.
+`comment-check.mjs`, which already enforces the comment half of `~/.claude/CLAUDE.md` deterministically.
 
 Keep this suite as the guard that stops anyone claiming the split works because the other one scores
 1.00.
