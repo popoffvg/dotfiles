@@ -52,6 +52,9 @@
   "show_signature_help_after_edits": true,
   "auto_signature_help": true,
   "terminal": {
+    "env": {
+      "EDITOR": "zed -e --wait",
+    },
     "cursor_shape": "block",
     "toolbar": {
       "breadcrumbs": true,
