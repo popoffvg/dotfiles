@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Shared paths and helpers for the self-improvement scan. Sourced, never run.
 #
-# Four directories, all under one root so a machine's whole scoring state moves
-# or resets as a unit:
+# Everything under one root, so a machine's whole scoring state moves or resets
+# as a unit:
 #   sessions/  one JSON record per session — the watermark and the score.
 #   lessons/   full transcript copies, written only for sessions that scored at
 #              or above the keep threshold. This is what /dream harvests.
@@ -10,6 +10,11 @@
 #              land in the harness as it exists today. Suggestions only — no pass
 #              in this plugin edits a skill or a doc.
 #   log/       scan.log, appended by every pass.
+#   inbox.jsonl  one line per result the user is meant to act on — a suggestion
+#              or a caught lesson. The SessionStart hook prints the unread tail
+#              into the next session; inbox.read holds the byte offset it has
+#              reached. This is the whole announcement path: nothing here calls
+#              the desktop notifier of any platform.
 #   state/     dead: `<id>.checked-line` files from the Stop-hook era. Nothing
 #              reads them. They are not seeded into the new records on purpose —
 #              they recorded "these prompts were classified for scope", and a
@@ -26,6 +31,8 @@ lessons_dir=${SELF_IMPROVE_LESSONS_DIR:-$self_improve_root/lessons}
 suggestions_dir=${SELF_IMPROVE_SUGGESTIONS_DIR:-$self_improve_root/suggestions}
 log_dir=${SELF_IMPROVE_LOG_DIR:-$self_improve_root/log}
 projects_dir=${SELF_IMPROVE_PROJECTS_DIR:-$HOME/.claude/projects}
+inbox_path=${SELF_IMPROVE_INBOX:-$self_improve_root/inbox.jsonl}
+inbox_mark_path=${SELF_IMPROVE_INBOX_MARK:-$self_improve_root/inbox.read}
 
 # A session is scored once it has been quiet this long, so a pass never spends a
 # model call on a transcript the user is still typing into.

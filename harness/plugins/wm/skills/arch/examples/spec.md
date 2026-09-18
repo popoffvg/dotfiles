@@ -1,6 +1,7 @@
 ---
 status: init                   # init → review → impl. Phase machine: ref-write.md § Status
 approve: increment             # increment | todo | none — what the human approves during impl. ref-write.md § Approval
+where: in-place                # in-place | worktree — the checkout impl writes into. ref-write.md § Where the work happens
 branch: feat/auth-refresh      # the branch this spec belongs to; set once at init. ref-write.md § Spec ownership by branch
 drives: A stolen refresh token stops working the moment the real client refreshes.   # one sentence — what this work delivers, user-facing
 ---

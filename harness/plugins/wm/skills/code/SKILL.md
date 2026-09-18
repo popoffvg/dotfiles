@@ -41,12 +41,12 @@ Reference-type slugs in the last column name the skill that owns the file: **`su
 | `prototype` | Settle an OPEN decision with the smallest visible code diff — read the diff, not a report. | `arch:sub-prototype.md` |
 | `code-map` | Single-panel planned-architecture HTML map (package or component) as a visual aid — via `/dive explain`. | `sub:code-map.md` |
 | `diff` | Show change as one self-contained HTML page (opened): before/after arch panels + signatures-as-diffs. `diff arch` *(default)*: current vs proposed. `diff impl`: what the branch shipped. | `sub:diff.md` · `sub:code-map.md` |
-| `impl` | Execute one TODO — read context, replan guard, apply the increments and show them for approval as the `approve` key asks, autotest, commit, report. | `impl:sub-impl.md` |
+| `impl` | Execute one TODO — read context, replan guard, apply the increments and show them for approval as the `approve` key asks, autotest, commit, report. Works in the checkout the `where` key names — the pair's, then the spec's. | `impl:sub-impl.md` |
 | `auto` | Unattended run of the whole ledger: arm the `/goal` Stop hook → per TODO (read `LESSONS.md` → impl → the review gate chain → `squash` the round's fixups → append `LESSONS.md` → `capture-lesson`) → optional deploy → verify E2E. No per-increment approval. | `impl:sub-auto.md` · `impl:sub-impl.md` · `impl:sub-squash.md` · `review:sub-todo.md` · `skill:carry-review-findings-in-a-lessons-file` · `skill:capture-lesson` |
 | `review` | **Alias for `/review`** — the judging skill owns the modes and the gates. One haiku wave (lint, comments, names, test worth) in parallel, then the sonnet test gate, then the opus standards gate — is it built right, never whether it is the right thing. `review todo` cites the pair's rule files; `review diff` judges a loose diff, branch, PR, or working tree. Read-only. | `review:SKILL.md` · `review:ref-gates.md` |
-| `squash` | Read the fixup trail → distill lessons into skills (`capture-lesson`) → squash the scope as one commit. Called by `tree merge` and by `auto` per TODO. | `impl:sub-squash.md` |
+| `squash` | Read the fixup trail → distill lessons into skills (`capture-lesson`) → squash the scope as one commit, and merge the worktree branch when the spec ran under `where: worktree`. Called by hand after such a run, and by `auto` per TODO. | `impl:sub-squash.md` |
 | `fix` | Close a gap (bug / missing / adjust) by fixing the thought, then the code. Edits source. | `impl:sub-fix.md` |
-| `commit` | When to commit and how a correction lands (fixups) — shared by `impl`, `tree`, `fix`. The message itself: the `commit-message` skill. | `impl:sub-commit.md` · `skill:commit-message` |
+| `commit` | When to commit and how a correction lands (fixups) — shared by `impl`, `auto`, `fix`. The message itself: the `commit-message` skill. | `impl:sub-commit.md` · `skill:commit-message` |
 | `help` | This page. | `self:SKILL.md` |
 
 Path by slug: `sub:` files live in this skill's `commands/`; `arch:`, `impl:`, `review:`, and `teach:` in that skill's `commands/` or `references/`; `ref:` in this skill's `references/`; `self` is this SKILL.
@@ -58,6 +58,6 @@ research → new → ┃ the gate ┃ → todo → verify → impl → revise (i
                  ┗ human review ┛
 ```
 
-The gate is a human read, not a command: `new` stops at a reviewable spec; the human runs `todo` when satisfied. `auto` is `impl` looped over the whole ledger with the gates replacing the human, then deploy + E2E. `tree` is the worktree-isolated `impl`; `squash` collapses a fixup trail — a whole `tree` branch, or one `auto` round. `revise` settles drift notes-only; `fix` corrects thought **and** code. `prototype`, `code-map`, `diff` are mid-spec aids.
+The gate is a human read, not a command: `new` stops at a reviewable spec; the human runs `todo` when satisfied. `auto` is `impl` looped over the whole ledger with the gates replacing the human, then deploy + E2E. Which checkout `impl` writes into is the `where` key — the current one, or the branch's own worktree, set on the spec and overridable per TODO (`arch:ref-write.md` § Where the work happens); `squash` collapses a fixup trail — a whole worktree branch, or one `auto` round. `revise` settles drift notes-only; `fix` corrects thought **and** code. `prototype`, `code-map`, `diff` are mid-spec aids.
 
 The spec contract — layout, the `status` metadata (spec phase `init → review → impl`; TODO lifecycle `todo → impl → verify → done`, both in YAML frontmatter), output shape, and the gate — lives in one place: `arch:ref-write.md`. This router does not restate it.

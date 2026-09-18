@@ -8,7 +8,7 @@ Obeys the shared subcommand rules — see `code:ref-subcommand-rules.md`.
 
 No `<notes-dir>/spec.md` → write a minimal one (full artifact with the rules per section: `examples/spec.md`):
 
-- **Frontmatter** — a `---` block with `status: init`, `approve: increment` (the default; Step 0.6 replaces it with the user's answer — `ref-write.md` § Approval), `branch:` (current branch, `git rev-parse --abbrev-ref HEAD`), and `drives:` (one sentence from the user's request). No phase-rules prose in the body — the machine lives in `ref-write.md` § Status.
+- **Frontmatter** — a `---` block with `status: init`, `approve: increment` (the default; Step 0.6 replaces it with the user's answer — `ref-write.md` § Approval), `where: in-place` (the default; Step 0.6 replaces it too — `ref-write.md` § Where the work happens), `branch:` (current branch, `git rev-parse --abbrev-ref HEAD`), and `drives:` (one sentence from the user's request). No phase-rules prose in the body — the machine lives in `ref-write.md` § Status.
 - **Description** — one sentence from the request. **Goal** — 2–3 plain sentences.
 - **Open questions** — seed 1–3 as `thoughts/NNN-question-*.md` notes (`status: open`, example `examples/note-question.md`). They live in the thought graph, not in `spec.md`; the spec has no Open Questions section. **TODO List** — empty until the grill closes.
 - Create `<notes-dir>/GLOSSARY.md` from `examples/glossary.md`, empty.
@@ -35,13 +35,13 @@ Run every time. Check `<notes-dir>/research/`:
 
 Runs once, only when `<notes-dir>/RULES.md` is missing. Skip it entirely when the file exists.
 
-Ask **four** questions as **one** `to-user` file (`code:ref-subcommand-rules.md` § Put a batch of
-questions in a file the human edits) — approval depth during `impl`, plus the three init knobs from
-`examples/rules.md` (which questions reach the human during the grill, test timing, and who
-commits). Each block's **Recommended** is the default. Do not assume an answer: this is the one
+Ask **five** questions as **one** `to-user` file (`code:ref-subcommand-rules.md` § Put a batch of
+questions in a file the human edits) — approval depth during `impl`, the checkout `impl` writes
+into, plus the three init knobs from `examples/rules.md` (which questions reach the human during the
+grill, test timing, and who commits). Each block's **Recommended** is the default. Do not assume an answer: this is the one
 place the user sets the interaction contract. A block the user leaves as written takes the default.
 
-The four answers land in **two** files, each in its one home:
+The five answers land in **two** files, each in its one home:
 
 - **Approval depth** — *each increment* / *once per TODO* / *autonomous* — is the `spec.md`
   frontmatter `approve` key, written as `increment` / `todo` / `none` (`ref-write.md` § Approval).
@@ -49,11 +49,15 @@ The four answers land in **two** files, each in its one home:
   branches on the value rather than raising a choice with the human. The answer sets the depth for
   every TODO the spec drives; a single TODO that needs a different one overrides it in its own
   frontmatter, and the question is not re-asked per TODO.
+- **The checkout** — *this one* / *its own worktree* — is the `spec.md` frontmatter `where` key,
+  written as `in-place` / `worktree` (`ref-write.md` § Where the work happens). Replace the
+  `in-place` default Step 0 wrote. Spec metadata for the same reason. The answer sets the checkout
+  for every TODO the spec drives; one TODO that needs its own overrides it in its own frontmatter.
 - **The other three** go into `<notes-dir>/RULES.md` using the example's copy block: fill the
   Answers table with the three settings and expand each `<…>` in the per-step table. No placeholder
   may survive.
 
-Then print: `RULES.md written — <the three settings, one line>. Approval: <approve value>.`
+Then print: `RULES.md written — <the three settings, one line>. Approval: <approve value>. Workspace: <where value>.`
 
 Every later subcommand reads `RULES.md` first and obeys it over its own defaults. It never lowers
 a hard gate: the human still reads the spec at the `review→impl` gate, and destructive git actions

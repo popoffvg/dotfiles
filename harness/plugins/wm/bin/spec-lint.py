@@ -34,6 +34,7 @@ TYPES = {
     "rename", "move", "deletion", "test", "generated",
 }
 APPROVALS = {"inherit", "increment", "todo", "none"}
+WORKSPACES = {"inherit", "in-place", "worktree"}
 MAX_INCREMENTS = 10
 
 HUMAN_ORDER = ["Outcome", "Components", "Surface", "Autotest", "Commit"]
@@ -292,6 +293,16 @@ def check_spec(notes, pairs, f):
             f.fail(row, "spec.md", f"approve `{value}` outside {sorted(APPROVALS - {'inherit'})}",
                    "pick one")
 
+    row = f.check("A6", "spec.md `where` names a checkout impl can enter")
+    if "where" in fm:
+        value = fm["where"].split("—")[0].split("#")[0].strip()
+        if value == "inherit":
+            f.fail(row, "spec.md", "where `inherit` on the spec",
+                   "the spec is the level with nothing to inherit from — in-place or worktree")
+        elif value not in WORKSPACES:
+            f.fail(row, "spec.md", f"where `{value}` outside {sorted(WORKSPACES - {'inherit'})}",
+                   "pick one")
+
     plan = f.check("B2", "the wave plan covers every ledger row exactly once")
     body = section(lines, "Plan")
     if not body:
@@ -376,42 +387,46 @@ def check_pairs_exist(notes, pairs, f):
 
 
 def check_human(n, path, lines, pairs, f, checks):
-    where = os.path.basename(path)
+    label = os.path.basename(path)
     fm, body = frontmatter(lines)
 
     row = checks["B3"]
-    for key in ("status", "type", "depends_on", "risk", "approve"):
+    for key in ("status", "type", "depends_on", "risk", "approve", "where"):
         if key not in fm:
-            f.fail(row, where, f"frontmatter key `{key}` missing", "required always")
+            f.fail(row, label, f"frontmatter key `{key}` missing", "required always")
     if "risk" in fm:
         score = fm["risk"].split("#")[0].strip()
         if score not in {"1", "2", "3", "4", "5"}:
-            f.fail(row, where, f"risk `{score}` is not 1-5", "score the reach")
+            f.fail(row, label, f"risk `{score}` is not 1-5", "score the reach")
     if "approve" in fm:
         value = fm["approve"].split("—")[0].split("#")[0].strip()
         if value not in APPROVALS:
-            f.fail(row, where, f"approve `{value}` outside {sorted(APPROVALS)}", "pick one")
+            f.fail(row, label, f"approve `{value}` outside {sorted(APPROVALS)}", "pick one")
+    if "where" in fm:
+        value = fm["where"].split("—")[0].split("#")[0].strip()
+        if value not in WORKSPACES:
+            f.fail(row, label, f"where `{value}` outside {sorted(WORKSPACES)}", "pick one")
     if "type" in fm:
         kind = fm["type"].split("#")[0].strip()
         if kind not in TYPES:
-            f.fail(row, where, f"type `{kind}` outside {sorted(TYPES)}", "pick one change kind")
+            f.fail(row, label, f"type `{kind}` outside {sorted(TYPES)}", "pick one change kind")
     for ref in TODO_REF.findall(fm.get("depends_on", "")):
         if int(ref) not in pairs:
-            f.fail(row, where, f"depends_on names TODO-{ref}, which is not in the ledger", "fix the edge")
+            f.fail(row, label, f"depends_on names TODO-{ref}, which is not in the ledger", "fix the edge")
         if int(ref) == n:
-            f.fail(row, where, "depends_on names itself", "remove the edge")
+            f.fail(row, label, "depends_on names itself", "remove the edge")
 
     row = checks["B4"]
     found = [t for _, t in headings(body)]
     order = [t for t in found if t in HUMAN_ORDER]
     for name in HUMAN_ORDER:
         if name not in found:
-            f.fail(row, where, f"`## {name}` missing", "required always")
+            f.fail(row, label, f"`## {name}` missing", "required always")
     if order != [t for t in HUMAN_ORDER if t in order]:
-        f.fail(row, where, f"sections out of order: {' → '.join(order)}",
+        f.fail(row, label, f"sections out of order: {' → '.join(order)}",
                " → ".join(HUMAN_ORDER))
     if "Deviations" in found and fm.get("status") == "todo":
-        f.fail(row, where, "`## Deviations` written at status todo", "impl writes it, never arch")
+        f.fail(row, label, "`## Deviations` written at status todo", "impl writes it, never arch")
     if "Deviations" in found:
         # The block is temporary — `revise` folds the rows in and deletes it — so the linked
         # note is the only record that outlives the correction. A row without one loses the reason.
@@ -423,39 +438,39 @@ def check_human(n, path, lines, pairs, f, checks):
             if cells[:1] == ["What"]:
                 continue
             if not any("[[" in c for c in cells):
-                f.fail(row, where, f"`## Deviations` row {i} names no thought note: {cells[0]}",
+                f.fail(row, label, f"`## Deviations` row {i} names no thought note: {cells[0]}",
                        "add the [[NNN-impl-decision-slug]] holding the reason, before revise deletes the table")
     tail = [l for l in body if l.strip()]
     if not tail or "TODO-%d.agent.md" % n not in tail[-1]:
-        f.fail(row, where, "last line is not the link to the agent half",
+        f.fail(row, label, "last line is not the link to the agent half",
                f"**Increments:** [TODO-{n}.agent.md](TODO-{n}.agent.md)")
 
     row = checks["B5"]
     comp_rows = table_rows(section(body, "Components"))
     if not comp_rows:
-        f.fail(row, where, "`## Components` has no table", "one row per package.Class")
+        f.fail(row, label, "`## Components` has no table", "one row per package.Class")
     mains = 0
     for cells in comp_rows:
         if len(cells) < 5:
-            f.fail(row, where, f"component row has {len(cells)} columns, needs 5",
+            f.fail(row, label, f"component row has {len(cells)} columns, needs 5",
                    "Component | Touch | Type | Part | Role")
             continue
         name, touch, brick, part = cells[0], cells[1].lower(), cells[2].lower(), cells[3].lower()
         if touch not in TOUCHES:
-            f.fail(row, where, f"{name}: Touch `{cells[1]}` outside {sorted(TOUCHES)}", "")
+            f.fail(row, label, f"{name}: Touch `{cells[1]}` outside {sorted(TOUCHES)}", "")
         if brick not in BRICKS:
-            f.fail(row, where, f"{name}: Type `{cells[2]}` is not a brick", f"one of {sorted(BRICKS)}")
+            f.fail(row, label, f"{name}: Type `{cells[2]}` is not a brick", f"one of {sorted(BRICKS)}")
         if part == "main":
             mains += 1
         elif part != "supporting":
-            f.fail(row, where, f"{name}: Part `{cells[3]}` is not main/supporting", "")
+            f.fail(row, label, f"{name}: Part `{cells[3]}` is not main/supporting", "")
     if comp_rows and mains != 1:
-        f.fail(row, where, f"{mains} rows marked `main`", "exactly one component carries the Outcome")
+        f.fail(row, label, f"{mains} rows marked `main`", "exactly one component carries the Outcome")
 
     row = checks["B6"]
     surface = section(body, "Surface")
     if not any(l.strip().startswith("```diff") for l in surface):
-        f.fail(row, where, "`## Surface` carries no ```diff block", "one diff per file")
+        f.fail(row, label, "`## Surface` carries no ```diff block", "one diff per file")
 
     row = checks["E1"]
     auto = section(body, "Autotest")
@@ -475,17 +490,17 @@ def check_human(n, path, lines, pairs, f, checks):
     for level in ("UNIT", "E2E"):
         key = "Unit" if level == "UNIT" else "E2E"
         if level not in levels:
-            f.fail(row, where, f"Autotest has no `{key}` level", "both levels, always")
+            f.fail(row, label, f"Autotest has no `{key}` level", "both levels, always")
             continue
         text = "\n".join(levels[level])
         head = levels[level][0].strip()
         if head.lower().startswith("none"):
             if not has_reason(head):
-                f.fail(row, where, f"Autotest {key}: `none` with no concrete reason — `{head[:60]}`",
+                f.fail(row, label, f"Autotest {key}: `none` with no concrete reason — `{head[:60]}`",
                        "name what makes the level impossible")
             for ref in TODO_REF.findall(head):
                 if int(ref) not in pairs:
-                    f.fail(row, where, f"Autotest {key} defers to TODO-{ref}, which is not in the ledger", "")
+                    f.fail(row, label, f"Autotest {key} defers to TODO-{ref}, which is not in the ledger", "")
             continue
         keys = {m.group(1).strip().lower() for m in
                 (BULLET_KEY.match(l) for l in levels[level]) if m}
@@ -494,14 +509,14 @@ def check_human(n, path, lines, pairs, f, checks):
             return any(k.startswith(name) for k in keys)
 
         if not has_key("command"):
-            f.fail(row, where, f"Autotest {key} has no **Command**", "one runnable shell command")
+            f.fail(row, label, f"Autotest {key} has no **Command**", "one runnable shell command")
         if not has_key("cases"):
-            f.fail(row, where, f"Autotest {key} has no **Cases**", "≥1 input → expected sentence")
+            f.fail(row, label, f"Autotest {key} has no **Cases**", "≥1 input → expected sentence")
         elif not re.search(r"→|->", text):
-            f.fail(row, where, f"Autotest {key} Cases carry no `input → expected`", "write the case")
+            f.fail(row, label, f"Autotest {key} Cases carry no `input → expected`", "write the case")
         if re.search(r"\bTBD\b", text, re.IGNORECASE) or any(
                 l.strip().strip("-* ") in ("...", "…") for l in levels[level]):
-            f.fail(row, where, f"Autotest {key} left as TBD", "fill it")
+            f.fail(row, label, f"Autotest {key} left as TBD", "fill it")
 
 
 def increment_count(agent_lines):
@@ -665,7 +680,7 @@ def run(notes, as_json=False, quiet=False):
     check_glossary(notes, pairs, f)
 
     checks = {
-        "B3": f.check("B3", "human half frontmatter — keys, risk 1-5, approve, type, depends_on"),
+        "B3": f.check("B3", "human half frontmatter — keys, risk 1-5, approve, where, type, depends_on"),
         "B4": f.check("B4", "human half sections — present, ordered, link out, deviations named a note"),
         "B5": f.check("B5", "Components — brick, touch, exactly one main"),
         "B6": f.check("B6", "Surface carries the diff"),

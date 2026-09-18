@@ -1,6 +1,6 @@
 # code — commit
 
-When to commit and what a correction lands as. Shared by `impl`, `tree`, and `fix`.
+When to commit and what a correction lands as. Shared by `impl`, `auto`, and `fix`.
 
 **The message itself is not here** — subject, body, and the three body parts (cause, goal, decision)
 are owned by the `commit-message` skill. Load it by name before writing any message.
@@ -19,4 +19,4 @@ When the user reviews and asks for a change after a commit:
 2. `git commit --fixup=<sha-of-commit-this-corrects>`.
 3. Never fold a user correction into a normal commit — the fixup trail is what `squash` reads to distill lessons.
 
-On "looks good, squash"/"merge": interactively rebase-squash the fixups, or hand to `tree merge` if this was a `tree` worktree flow.
+On "looks good, squash"/"merge": interactively rebase-squash the fixups, or hand to `squash` if the spec ran under `where: worktree` — it squashes and merges the branch in one step.

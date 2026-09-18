@@ -216,7 +216,8 @@
       "Bash(harness/plugins/wm/bin/spec-lint.py --help)",
       "Bash(harness/plugins/wm/bin/budget-check.py --help)",
       "Bash(harness/plugins/wm/bin/notes-revision-diff.sh)",
-      "mcp__plugin_engram_engram__mem_save"
+      "mcp__plugin_engram_engram__mem_save",
+      "mcp__fff__grep"
     ]
   },
   "enabledMcpjsonServers": [

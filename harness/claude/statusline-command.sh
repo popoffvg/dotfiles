@@ -32,4 +32,12 @@ if [ -n "$cwd_real" ] && [ -x "$wm_code_mode" ]; then
   [ -n "$seg" ] && parts="$parts | $seg"
 fi
 
+# self-improvement: how many kept lessons wait to be harvested, out of all kept.
+# Same arrangement as the wm segment — the counting lives in the plugin.
+lessons_status="$HOME/git/dotfiles/harness/plugins/self-improvement/scripts/lessons-status.sh"
+if [ -x "$lessons_status" ]; then
+  seg=$("$lessons_status" 2>/dev/null || true)
+  [ -n "$seg" ] && parts="$parts | $seg"
+fi
+
 printf "%s" "$parts"

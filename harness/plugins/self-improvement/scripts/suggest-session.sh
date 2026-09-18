@@ -136,6 +136,6 @@ log "suggest $id: verdict=$verdict target=${target:-none}"
 
 case "$verdict" in
   extend|doc|new-skill)
-    "$scripts_dir/notify.sh" "Harness suggestion ($verdict)" "${target:-$id}"
+    "$scripts_dir/inbox-add.sh" suggestion "$id" "$verdict → ${target:-$id}" "$dest"
     ;;
 esac

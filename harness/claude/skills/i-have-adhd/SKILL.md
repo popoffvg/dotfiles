@@ -18,6 +18,7 @@ The reader has ADHD. Text that needs a second pass to parse costs them the decis
 - **Concrete over abstract.** Name the actor and the action. Avoid nominalizations ("performs a validation" → "validates").
 - **One paragraph, no internal line breaks.** In markdown, a paragraph is one line.
 - **Short blocks.** A paragraph past ~4 sentences becomes a list. A list past ~7 rows becomes a table.
+- **A long inventory is clustered, not printed.** Past ~15 rows, the reader wants the shape of the pile, not the pile: group the rows by what they share, give each group a count and one sentence, name the process that fills the list and the process that drains it, and say which rows are dead weight. Print the rows only when asked for them.
 - **Bold the load-bearing phrase** of a bullet or paragraph, so a skim lands on it.
 - **No restatement.** Saying the same thing a second way makes the reader check whether it differs.
 

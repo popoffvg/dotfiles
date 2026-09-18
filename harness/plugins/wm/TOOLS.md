@@ -36,6 +36,13 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 | Which commits touched these code lines | `git-line-history.sh <file> <start> <end>` | the `git log -L` trail, opened as a diff |
 | What landed in each repo between two revisions | `collect-range-commits.sh <root> <update.tsv> <out-dir>` | one log file per updated repo. **Writes files** |
 
+## Work in the branch's own checkout
+
+| Need | Invocation | Returns |
+|---|---|---|
+| Enter the worktree a `where: worktree` spec or TODO asks for | the `worktrunk:wt-switch-create` skill, steps 1–3 — the spec's `branch` for a whole spec, a branch named for the TODO when one TODO overrides | the session re-rooted in the worktree, or its absolute path when `EnterWorktree` is refused |
+| Merge that branch back when the TODO is done | `impl:sub-squash.md` — `wt merge` in squash mode | one commit on the target branch; the human runs it, never `impl` |
+
 ## Patch an artifact
 
 | Need | Invocation | Returns |

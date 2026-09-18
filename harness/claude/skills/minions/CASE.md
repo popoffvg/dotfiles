@@ -27,3 +27,17 @@
 - **Rule written:** two bullets appended to the existing skill — do the deterministic extraction yourself and hand the agent a finished file; re-check every reported number with one grep before relaying it
 - **Transcript:** `~/.claude/self-improvement/lessons/global/2026-08-11-build-discord-bot-for-english-learning-7bf070e7-3994-430a-983d-cd8a66a93a3c.jsonl`
 - **Session topic:** Build Discord bot for English learning
+
+## 2026-09-17 — Three background minions finished and returned nothing
+
+- **Repo:** `/Users/vitaliipopov/git/dotfiles`
+- **Source:** discovery — the harness behaved against the assumption, and the excavation cost four turns
+- **Task:** Cluster the 80 unharvested lessons of the self-improvement backlog with three parallel subagents, one per lens
+- **What I did:** Spawned three agents with `run_in_background: true`, each prompted to "return only a markdown report", and waited for their reports to arrive
+- **User's words:** > bad report, I want reveal lessons clusters (use subagent for that) and the current process
+- **Evidence:** each agent produced only `{"type":"idle_notification","from":"cluster-area",…}` with no report body; a `SendMessage` asking for the report brought another idle notification; only after messaging each agent to `Write` its report to `/tmp/cluster-<lens>.md` did the content become readable
+- **Ambiguous?** no — a background unit has no channel for its final text, so the deliverable needs a file
+- **Scope chosen:** global — background fan-out is a harness behavior, not a repo one
+- **Rule written:** verdict — name an absolute output path in a background minion's prompt, have it write the deliverable there and reply with the path
+- **Transcript:** `~/.claude/self-improvement/lessons/global/2026-09-17-session-9e393699-739e-44cd-adac-b2c9a4802ab6.jsonl`
+- **Session topic:** add the self-improvement lesson count and lesson list to the harness

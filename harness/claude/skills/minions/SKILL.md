@@ -47,6 +47,8 @@ A minion sees only what you type. In this order:
 4. **The return shape.** "Return one markdown table, columns: file, line, kind." Its last line is the return value, so make that line the table itself.
 5. **The limits.** Read-only, stop after N files, spawn nothing further.
 
+**A background minion returns a file, not a message.** Spawned with `run_in_background: true`, its final text does not land in the main context — an idle notification does, carrying nothing. Name an absolute output path in the prompt, tell it to write the deliverable there and reply with that path, then read the file. Without the path there is no way to collect the result but to message each agent afterwards and ask again.
+
 Then cut every line that does not reach the deliverable — a long prompt costs on each parallel copy. Done when the prompt would still work pasted into an empty session.
 
 **Do the deterministic extraction yourself; hand the minion a finished file.** A cheap agent asked to both build a corpus and analyze it spends its run on the filter and returns nothing — a haiku run asked to do both produced 42,140 unfiltered lines and no report. Filter, grep, or script the corpus down first, then give the minion the finished file and its record count.

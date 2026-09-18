@@ -154,5 +154,5 @@ write_record "$score" "$scope" "$why" "$mark" "$archive"
 log "score $id: score=$score scope=$scope watermark=$mark archive=${archive:-none}"
 
 if [ -n "$archive" ]; then
-  "$scripts_dir/notify.sh" "Lesson caught ($scope, $score/10)" "${why:-${topic:-$id}}"
+  "$scripts_dir/inbox-add.sh" lesson "$id" "$scope $score/10 — ${why:-${topic:-$id}}" "$archive"
 fi

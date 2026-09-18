@@ -267,6 +267,7 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 | `depends_on` | always (`[]` if none) |
 | `risk` | always |
 | `approve` | always (`inherit` unless this TODO needs its own depth — `arch:ref-write.md` § Approval) |
+| `where` | always (`inherit` unless this TODO needs its own checkout — `arch:ref-write.md` § Where the work happens) |
 | `increment` | always — authored as `0/<total>`, `<total>` = the increment count in the agent half (`arch:ref-write.md` § Progress) |
 
 | # | Element | Level | Required |
@@ -399,6 +400,7 @@ own file against a rule already counted.
 
 - [ ] All `always` elements present and ordered; `New terms` present iff the TODO adds terms
 - [ ] **`approve` is `inherit`** unless this TODO needs a depth of its own — and any other value carries, as a trailing comment, the reason it overrides the spec
+- [ ] **`where` is `inherit`** unless this TODO needs a checkout of its own — same rule: any other value carries the reason as a trailing comment
 - [ ] **Not over-stated**: no spec Description/Goal/target-picture prose was copied in, and the Outcome is this TODO's slice rather than the spec Goal
 - [ ] **Outcome** is a capability in GLOSSARY.md terms — no paths, types, routes, libraries
 - [ ] **Every prose line passes `i-have-adhd`** — Outcome, `Meaning`, `Role`, Autotest cases, `Commit.Body`: one idea per sentence, short sentences, literal words, no restatement, and each section decided by its first sentence alone

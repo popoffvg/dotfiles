@@ -131,6 +131,40 @@ Two gates hold the enum, because a value outside it silently gives the human eve
 of them. `bin/guard.sh` rule 3 refuses the Edit or Write that puts a foreign value — or `inherit`
 on `spec.md` — into either file; `bin/spec-lint.py` checks A5 and B3 catch one already on disk.
 
+## Where the work happens — the `where` key
+
+Which checkout `impl` writes into. The key lives at two levels, like `approve`: `spec.md`
+frontmatter sets it for every TODO the spec drives, and `todos/TODO-N.md` frontmatter overrides it
+for that one TODO.
+
+| Value | What `impl` does |
+|-------|------------------|
+| `in-place` | Write into the current checkout, on the spec's `branch`. |
+| `worktree` | Enter the branch's own worktree first, and do every increment and commit there. |
+| `inherit` | **TODO only** — take the spec's value. |
+
+**Two defaults, one per level.** A missing key on `spec.md` reads as `in-place`; a missing key on a
+`TODO-N.md` reads as `inherit`. A spec set to `inherit` is invalid — the spec is the level with
+nothing to inherit from.
+
+**The TODO wins where the two disagree**, in both directions — a wide TODO under an `in-place` spec
+can ask for its own worktree, and a mechanical one under a `worktree` spec can stay put. Write the
+reason as a trailing comment on the key.
+
+Pick `worktree` when the work must not disturb the current checkout — a long ledger run beside other
+work, or an `auto` run nobody is watching. A worktree costs a checkout and a merge, so `in-place` is
+the answer everywhere else.
+
+**A TODO on `worktree` gets its own branch**, named for the TODO rather than the spec, because two
+TODOs of one spec must not share a tree. A whole spec on `worktree` uses the spec's `branch`.
+
+Where it bites: `impl:sub-impl.md` Step 3. `impl` never merges the worktree back — it reports the
+path, and `/code squash` merges it.
+
+Two gates hold the enum, because a foreign value silently sends the work into the wrong checkout.
+`bin/guard.sh` rule 4 refuses the Edit or Write that puts one — or `inherit` on `spec.md` — into
+either file; `bin/spec-lint.py` checks A6 and B3 catch one already on disk.
+
 ## Progress — the `increment` key
 
 Where `impl` got to inside one TODO, written in two shapes for two readers.
@@ -283,7 +317,7 @@ its own audience and bar, owned by `todo`. The user decides when the outcomes ar
 
 The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check against them.
 
-- [ ] `spec.md` opens with a `---` frontmatter block (`status`, `approve`, `branch`, `drives`); `approve` is one of `increment` / `todo` / `none` — never `inherit`, which is the TODO-level default (§ Approval); no `Status`/phase-rules prose in the body
+- [ ] `spec.md` opens with a `---` frontmatter block (`status`, `approve`, `where`, `branch`, `drives`); `approve` is one of `increment` / `todo` / `none` — never `inherit`, which is the TODO-level default (§ Approval); `where` is `in-place` or `worktree` (§ Where the work happens); no `Status`/phase-rules prose in the body
 - [ ] `## Plan` carries the target-picture summary (absent only while `status: init`)
 - [ ] `spec.md` body has Description, Goal, What we're NOT doing, the ledger, and the Plan — nothing else. No `Design Decisions`, no `Open Questions` section, no `Implementation Guidelines`, no decision-trail table
 - [ ] Implementation patterns sit in `PATTERNS.md` and every diagram sits in `CONCEPTS.md`; `spec.md` mentions `@PATTERNS.md` and `@CONCEPTS.md` and carries neither

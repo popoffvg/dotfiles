@@ -234,6 +234,15 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/block-ask-user-question.sh"
+          }
+        ]
       }
     ],
     "SessionStart": [

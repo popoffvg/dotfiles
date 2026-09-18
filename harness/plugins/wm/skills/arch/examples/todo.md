@@ -4,13 +4,15 @@ type: new behavior          # the change kind — one of the nine in impl:ref-ch
 depends_on: []              # [TODO-M, …] real edges only; each must reach status: done first
 risk: 3                     # changes the existing Refresh signature; retest the auth middleware and every caller of Refresh, not just the new rotation path
 approve: increment          # inherit | increment | todo | none — override the spec, with the reason: every caller of Refresh moves, so the human reads each step. ref-write.md § Approval
+where: inherit              # inherit | in-place | worktree — the checkout impl writes into; override the spec with the reason. ref-write.md § Where the work happens
 increment: 0/4              # <approved>/<total> — impl stamps it after each increment lands; `todo` writes `0/<total>`. ref-write.md § Progress
 ---
 
-> Six keys, all metadata — the inline `#` comments above are part of the shape, keep them.
+> Seven keys, all metadata — the inline `#` comments above are part of the shape, keep them.
 >
-> `status`, `type`, `approve`, and `increment` rules: `arch:ref-write.md` § Status, § Approval, and
-> § Progress; change-kind rules: `impl:ref-change-types.md`.
+> `status`, `type`, `approve`, `where`, and `increment` rules: `arch:ref-write.md` § Status,
+> § Approval, § Where the work happens, and § Progress; change-kind rules:
+> `impl:ref-change-types.md`.
 >
 > **`depends_on`** — `[]`, one entry, or several, each of which must reach `status: done` first. No
 > forward references. Real edges only: a file this TODO cannot touch until M creates it, a symbol M
