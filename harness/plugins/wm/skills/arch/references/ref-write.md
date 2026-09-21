@@ -146,7 +146,7 @@ for that one TODO.
 | Value | What `impl` does |
 |-------|------------------|
 | `in-place` | Write into the current checkout, on the spec's `branch`. |
-| `worktree` | Enter the branch's own worktree first, and do every increment and commit there. |
+| `worktree` | Create **this TODO's own** worktree first, and do every increment and commit there. |
 | `inherit` | **TODO only** — take the spec's value. |
 
 **Two defaults, one per level.** A missing key on `spec.md` reads as `in-place`; a missing key on a
@@ -158,14 +158,24 @@ can ask for its own worktree, and a mechanical one under a `worktree` spec can s
 reason as a trailing comment on the key.
 
 Pick `worktree` when the work must not disturb the current checkout — a long ledger run beside other
-work, or an `auto` run nobody is watching. A worktree costs a checkout and a merge, so `in-place` is
-the answer everywhere else.
+work, or an `auto` run nobody is watching. Each tree costs a checkout and a merge the human runs
+later, so `in-place` is the answer everywhere else, and it is the answer for a ledger whose rows
+depend on each other.
 
-**A TODO on `worktree` gets its own branch**, named for the TODO rather than the spec, because two
-TODOs of one spec must not share a tree. A whole spec on `worktree` uses the spec's `branch`.
+**`worktree` means one worktree per TODO, at both levels.** A spec on `worktree` gives every TODO it
+drives its own tree; a single TODO on `worktree` gives that one TODO its own tree. The word means
+the same thing wherever it sits, so a reader of the key never has to ask which file carries it. Two
+TODOs of one spec sharing a tree would put two commits in one working copy.
 
-Where it bites: `impl:sub-impl.md` Step 3. `impl` never merges the worktree back — it reports the
-path, and `/code squash` merges it.
+**Each TODO worktree branches off the spec's `branch`** and carries a branch named for the TODO.
+Every TODO of a spec therefore starts from the same base, and the trees are siblings, not a stack.
+
+**The branch stays unmerged until the human acts.** `impl` reports the path and the branch and stops
+there; `/code squash` merges one branch back, and stacking them is the human's choice. A `depends_on`
+TODO whose dep is still unmerged starts from a base without the dep's code — merge the dep first, or
+run the dependent TODO `in-place`.
+
+Where it bites: `impl:sub-impl.md` Step 3.
 
 Two gates hold the enum, because a foreign value silently sends the work into the wrong checkout.
 `bin/guard.sh` rule 4 refuses the Edit or Write that puts one — or `inherit` on `spec.md` — into

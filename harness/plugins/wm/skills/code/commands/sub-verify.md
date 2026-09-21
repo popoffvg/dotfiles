@@ -19,7 +19,7 @@ ${CLAUDE_PLUGIN_ROOT}/bin/spec-lint.py <notes-dir>
 
 One call, about a second. It parses `spec.md` and both halves of every ledger row and prints every
 countable check with its verdict — the budgets (it runs `budget-sweep.sh` itself), the frontmatter
-ranges, the section sets and their order, the Components table, the increment sequence, both
+ranges, the section sets and their order, the Components tree, the increment sequence, both
 Autotest levels, the wave plan, the rule set, the open questions. **Exit 1 → write the report
 `Result: NEEDS REVISION` with the findings under `## Checks` and stop.** No agent is paid to notice
 an empty field, and no driver reads the corpus to count what a parser counts.
@@ -84,7 +84,7 @@ Then the judgment half, one agent over the whole corpus:
 ```
 Agent(subagent_type="wm:name-critic", model="haiku", prompt=
   "[NAME spec] Judge the names <notes-dir> MINTS, not a diff. In scope: every `## New terms` row,
-   every `## Components` symbol whose Touch is `create`, and every symbol an `## Increments` diff adds,
+   every `## Components` symbol whose touch is `create`, and every symbol an `## Increments` diff adds,
    across all TODO pairs. Out of scope, silently: every term GLOSSARY.md marks `Status: existing`,
    and every symbol the code already carries — the diff modifies it, it does not name it.
    GLOSSARY.md is the domain vocabulary; a new name that contradicts a row there is a Failure.
@@ -167,7 +167,7 @@ rewrite, never "tighten this". The agent half is out of scope.
 **Over-statement, the same gate in reverse.** The gate may only push text *in* if it can also push
 text *out*, or every pass grows the pair. It fires when a rule was copied out of the printed rule
 set into a TODO, when spec Description/Goal prose was copied into the human half, or when
-an increment diff carries a symbol no Components row claims. Name the cut, never a move into the agent
+an increment diff carries a symbol no component claims. Name the cut, never a move into the agent
 half — that half has no line budget to absorb it.
 
 **A `new` that a search refutes.** `spec-lint.py` counts the **Extends** bullet; only a reader can

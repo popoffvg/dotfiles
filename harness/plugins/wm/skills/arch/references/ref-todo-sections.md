@@ -13,7 +13,7 @@ pre-save checklist. Which half each heading lives in: `sub-todo.md` § Required 
 
 | Section | Half | Its rules |
 |---|---|---|
-| frontmatter (`status`, `type`, `depends_on`, `risk`, `approve`, `increment`) | `TODO-N.md` | `examples/todo.md` |
+| frontmatter (`status`, `type`, `depends_on`, `risk`, `size`, `approve`, `increment`) | `TODO-N.md` | `examples/todo.md` |
 | Outcome, New terms, Components, Flow changes, Increments with their `### Commit` sections, Deviations | `TODO-N.md` | `examples/todo.md` |
 | Autotest | `TODO-N.test.md` | `examples/todo-test.md` |
 | Files, Pre-reads, Manual test, Gotchas | `TODO-N.agent.md` | `examples/todo-agent.md` |
@@ -76,7 +76,7 @@ broken callers in its **Surprises**. When a caller sits in another component, th
 moves it, and its summary says what the call does before and after; the agent half's `## Files`
 keeps the paths under that increment's number. `examples/todo.md` § Increments already demands
 this, which is why the diff can drop the consequence and lose nothing. A consequence-only file gets no
-`## Components` row either — it holds no symbol this TODO decides.
+`## Components` node either — it holds no symbol this TODO decides.
 
 ## A diff carries the surface, not a body
 

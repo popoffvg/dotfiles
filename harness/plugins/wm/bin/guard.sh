@@ -131,7 +131,7 @@ if [[ "$BASE" == "spec.md" || "$BASE" == TODO-*.md ]]; then
     cat <<'EOF'
 The whole enum:
   in-place — write into the current checkout, on the spec's branch
-  worktree — enter the branch's own worktree first, and work there
+  worktree — create this TODO's own worktree first, off the spec's branch, and work there
   inherit  — TODO-N.md only: take the spec's value
 
 Defaults: a missing key on spec.md reads as `in-place`, a missing key on a TODO-N.md

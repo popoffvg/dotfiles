@@ -10,7 +10,10 @@
 #                   Claude Code Bash call has no tty and dies with EAGAIN (os error 35).
 #
 # Zed wins over herdr when both apply: a herdr running inside a Zed terminal still
-# has a real editor one keystroke away, and a pane editor would hide it.
+# has a real editor one keystroke away, and a pane editor would hide it. A `zed`
+# call that fails — a sandboxed caller cannot reach the app and gets a Mach
+# handshake error — falls through to the next host, so the operator always gets
+# at least the path.
 set -euo pipefail
 
 usage() {
@@ -69,26 +72,32 @@ wait_for_save() {
 	return 1
 }
 
+zed_failed=0
 if in_zed; then
 	# Zed answers over a Mach port; a sandboxed caller fails with "Unknown Mach error".
-	zed --existing -- "$@" || {
-		printf 'zed --existing failed — run open-file.sh outside the sandbox\n' >&2
-		exit 1
-	}
-	print_paths "$@"
-	(( wait_for_close )) || exit 0
-	wait_for_save "$@"
-	exit
+	zed --existing -- "$@" || zed_failed=1
+	if (( zed_failed == 0 )); then
+		print_paths "$@"
+		(( wait_for_close )) || exit 0
+		wait_for_save "$@"
+		exit
+	fi
+	printf 'zed did not take the file; trying the next host\n' >&2
 fi
 
+herdr_usable=0
 if in_herdr; then
 	editor=${EDITOR:-hx}
-	command -v "$editor" >/dev/null || { printf '%s not on PATH\n' "$editor" >&2; exit 1; }
+	herdr_usable=1
+	command -v "$editor" >/dev/null || { printf '%s not on PATH\n' "$editor" >&2; herdr_usable=0; }
 	# Every step below talks to the herdr socket; a sandboxed caller cannot reach it.
 	herdr status server 2>/dev/null | grep -q '^status: running' || {
 		printf 'cannot reach the herdr server — not running, or this shell is sandboxed away from the socket\n' >&2
-		exit 1
+		herdr_usable=0
 	}
+fi
+
+if (( herdr_usable )); then
 	pane=$(herdr pane split "$HERDR_PANE_ID" --direction down --cwd "$PWD" --focus \
 		| jq -er '.result.pane.pane_id')
 	# exec replaces the shell, so closing the editor ends the pane and the split
@@ -108,3 +117,8 @@ if in_herdr; then
 fi
 
 print_paths "$@"
+# No host opened the file. With --wait the caller would otherwise read the file
+# back as if the operator had answered it.
+if (( wait_for_close )) && { in_zed || in_herdr; }; then
+	exit 3
+fi

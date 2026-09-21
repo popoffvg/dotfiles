@@ -68,7 +68,7 @@ MAX_INCREMENTS = 10
 MAX_COMMITS = 4
 MAX_DIFF_LINES = 150
 
-# Rosters, not prose: one row per term and one per symbol. A TODO that legitimately touches
+# Rosters, not prose: one row per term, one tree node per symbol. A TODO that legitimately touches
 # many symbols is not two deliverables, so neither section is counted against the body budget.
 # `## Increments` is bounded by its commit and increment counts instead (`arch:sub-todo.md` - Budget).
 UNCOUNTED_SECTIONS = ("New terms", "Components", "Increments")

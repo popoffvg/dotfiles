@@ -14,7 +14,7 @@
     "command": "bash",
     "args": [
       "-lc",
-      "set -euo pipefail\ncd \"$(dirname \"$ZED_FILE\")\"\npkg=\"$(go list .)\"\n\nif command -v pkgsite >/dev/null 2>&1; then\n  pkill -f \"pkgsite -http=:6060\" >/dev/null 2>&1 || true\n  nohup pkgsite -http=:6060 >/tmp/zed-pkgsite.log 2>&1 &\n  sleep 1\n  open \"http://localhost:6060/${pkg}\"\nelif command -v godoc >/dev/null 2>&1; then\n  pkill -f \"godoc -http=:6060\" >/dev/null 2>&1 || true\n  nohup godoc -http=:6060 >/tmp/zed-godoc.log 2>&1 &\n  sleep 1\n  open \"http://localhost:6060/pkg/${pkg}\"\nelse\n  echo \"Neither pkgsite nor godoc is installed. Falling back to CLI docs + pkg.go.dev.\"\n  echo\n  go doc . || true\n  echo\n  echo \"To run a local docs site, install one of:\"\n  echo \"  go install golang.org/x/pkgsite/cmd/pkgsite@latest\"\n  echo \"  go install golang.org/x/tools/cmd/godoc@latest\"\n  open \"https://pkg.go.dev/${pkg}\" || true\nfi",
+      "set -euo pipefail\ncd \"$(dirname \"$ZED_FILE\")\"\npkg=\"$(go list .)\"\nmod=\"$(go list -m -f '{{.Dir}}')\"\nbin=\"$(go env GOBIN)\"\n[ -n \"$bin\" ] || bin=\"$(go env GOPATH)/bin\"\nport=6060\nurl=\"http://localhost:$port/$pkg\"\n\nif [ ! -x \"$bin/pkgsite\" ]; then\n  echo \"Installing pkgsite into $bin ...\"\n  go install golang.org/x/pkgsite/cmd/pkgsite@latest\nfi\n\nif ! curl -fsS -o /dev/null \"$url\"; then\n  pkill -f \"pkgsite -http=localhost:$port\" >/dev/null 2>&1 || true\n  nohup \"$bin/pkgsite\" -http=localhost:$port \"$mod\" >/tmp/zed-pkgsite.log 2>&1 &\n  for _ in $(seq 1 60); do\n    curl -fsS -o /dev/null \"$url\" && break\n    sleep 1\n  done\nfi\n\nopen \"$url\"",
     ],
     "use_new_terminal": true,
     "allow_concurrent_runs": false,

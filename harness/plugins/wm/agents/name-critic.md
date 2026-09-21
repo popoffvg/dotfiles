@@ -39,7 +39,7 @@ A renamed name is a new declaration: judge it, and say when the rename made it w
 Read the diff the caller names — `git diff`, `git show <rev>`, or the range it gives you.
 
 **When the brief names a spec corpus instead of a diff**, the declarations are the `## New terms`
-rows, the `## Components` rows whose Touch is `create`, and the symbols a `## Surface` diff adds.
+rows, the `## Components` components whose touch is `create`, and the symbols a `## Surface` diff adds.
 Everything else is a name that already exists: a term `GLOSSARY.md` marks `Status: existing`, or a
 symbol the change only modifies. Those are out of scope and leave no row — renaming what the code
 already calls something is a refactor with its own TODO, not a finding against the spec that touches

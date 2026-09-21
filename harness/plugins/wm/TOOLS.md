@@ -56,8 +56,8 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 
 | Need | Invocation | Returns |
 |---|---|---|
-| Enter the worktree a `where: worktree` spec or TODO asks for | the `worktrunk:wt-switch-create` skill, steps 1–3 — the spec's `branch` for a whole spec, a branch named for the TODO when one TODO overrides | the session re-rooted in the worktree, or its absolute path when `EnterWorktree` is refused |
-| Merge that branch back when the TODO is done | `impl:sub-squash.md` — `git rebase --autosquash`, then `wt merge --no-squash` | one commit per `### Commit` section on the target branch; the human runs it, never `impl` |
+| Create the worktree a `where: worktree` spec or TODO asks for | the `worktrunk:wt-switch-create` skill, steps 1–3 — one tree per TODO, off the spec's `branch`, on a branch named for the TODO | the session re-rooted in the worktree, or its absolute path when `EnterWorktree` is refused |
+| Merge that branch back when the TODO is done | `impl:sub-squash.md` — `git rebase --autosquash`, then `wt merge --no-squash` | one commit per `### Commit` section on the spec's branch and the TODO's tree removed; the human runs it, never `impl` |
 
 ## Patch an artifact
 

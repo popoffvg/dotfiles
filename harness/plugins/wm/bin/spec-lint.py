@@ -36,6 +36,11 @@ TYPES = {
     "rename", "move", "deletion", "test", "generated",
 }
 APPROVALS = {"inherit", "increment", "todo", "none"}
+# `size` - the PR the TODO becomes, read off two counts in the agent half. The letter is the
+# first band holding BOTH counts, so the wider dimension wins. `L` has no ceiling: the ceilings
+# that stop a TODO growing are the 10-increment budget and the 550-line human half.
+SIZE_BANDS = [("S", 3, 3), ("M", 8, 6), ("L", None, None)]
+SIZES = {letter for letter, _, _ in SIZE_BANDS}
 WORKSPACES = {"inherit", "in-place", "worktree"}
 RISK_COLORS = {"red", "yellow", "green"}
 LEGACY_RISK_SCORES = {"1", "2", "3", "4", "5"}
@@ -313,6 +318,10 @@ def check_spec(notes, pairs, f):
 
     row = f.check("A5", "spec.md `approve` is a level impl can read")
     fm, _ = frontmatter(lines)
+    if "size" in fm:
+        letter = fm["size"].split("#")[0].strip()
+        if letter not in SIZES:
+            f.fail(row, label, f"size `{letter}` is not S, M or L", "band the PR")
     if "approve" in fm:
         value = fm["approve"].split("—")[0].split("#")[0].strip()
         if value == "inherit":
@@ -392,13 +401,17 @@ def check_human(n, path, lines, pairs, f, checks):
     fm, body = frontmatter(lines)
 
     row = checks["B3"]
-    for key in ("status", "type", "depends_on", "risk", "approve", "where"):
+    for key in ("status", "type", "depends_on", "risk", "size", "approve", "where"):
         if key not in fm:
             f.fail(row, label, f"frontmatter key `{key}` missing", "required always")
     if "risk" in fm:
         color = fm["risk"].split("#")[0].strip()
         if color not in RISK_COLORS | LEGACY_RISK_SCORES:
             f.fail(row, label, f"risk `{color}` is not red, yellow, or green", "take the worst of reach, flow, recovery")
+    if "size" in fm:
+        letter = fm["size"].split("#")[0].strip()
+        if letter not in SIZES:
+            f.fail(row, label, f"size `{letter}` is not S, M or L", "band the PR")
     if "approve" in fm:
         value = fm["approve"].split("—")[0].split("#")[0].strip()
         if value not in APPROVALS:
@@ -456,26 +469,44 @@ def check_human(n, path, lines, pairs, f, checks):
                f"**Tests:** [TODO-{n}.test.md](TODO-{n}.test.md)")
 
     row = checks["B5"]
-    comp_rows = table_rows(section(body, "Components"))
-    if not comp_rows:
-        f.fail(row, label, "`## Components` has no table", "one row per package.Class")
-    mains = 0
-    for cells in comp_rows:
-        if len(cells) < 6:
-            f.fail(row, label, f"component row has {len(cells)} columns, needs 6",
-                   "Component | Touch | Type | Part | Role | Change")
+    comps, mains, roots, fenced = 0, 0, 0, False
+    for line in section(body, "Components"):
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
             continue
-        name, touch, brick, part = cells[0], cells[1].lower(), cells[2].lower(), cells[3].lower()
+        if not fenced or "#" not in line:
+            continue
+        name = line.split("#", 1)[0].strip(" │├└─|+`-").strip()
+        note = line.split("#", 1)[1].strip()
+        if note.startswith("OWNS"):
+            roots += 1
+            continue
+        if "·" not in note:
+            continue  # a member line: one method, field, or case, and no touch/brick/part
+        head = note.split("—", 1)
+        fields = [c.strip().lower() for c in head[0].split("·")]
+        comps += 1
+        if len(fields) != 3 or len(head) < 2 or not head[1].strip():
+            f.fail(row, label, f"{name}: comment is not `touch · brick · part — role`",
+                   "modify · server · main — one sentence on its slice of the job")
+            continue
+        touch, brick, part = fields
         if touch not in TOUCHES:
-            f.fail(row, label, f"{name}: Touch `{cells[1]}` outside {sorted(TOUCHES)}", "")
+            f.fail(row, label, f"{name}: touch `{touch}` outside {sorted(TOUCHES)}", "")
         if brick not in BRICKS:
-            f.fail(row, label, f"{name}: Type `{cells[2]}` is not a brick", f"one of {sorted(BRICKS)}")
+            f.fail(row, label, f"{name}: `{brick}` is not a brick", f"one of {sorted(BRICKS)}")
         if part == "main":
             mains += 1
         elif part != "supporting":
-            f.fail(row, label, f"{name}: Part `{cells[3]}` is not main/supporting", "")
-    if comp_rows and mains != 1:
-        f.fail(row, label, f"{mains} rows marked `main`", "exactly one component carries the Outcome")
+            f.fail(row, label, f"{name}: part `{part}` is not main/supporting", "")
+    if not comps:
+        f.fail(row, label, "`## Components` draws no component tree",
+               "one tree per package, one node per symbol touched")
+    elif not roots:
+        f.fail(row, label, "no package root carries `# OWNS`",
+               "the root is the package path, and says what the package owns")
+    if comps and mains != 1:
+        f.fail(row, label, f"{mains} components marked `main`", "exactly one component carries the Outcome")
 
     check_increments(label, body, f, checks)
 
@@ -723,6 +754,36 @@ def landed_count(human_lines):
     return done
 
 
+def files_count(agent_lines):
+    """Paths in the agent half `## Files` - one of the two counts `size` bands."""
+    return len([l for l in section(agent_lines, "Files") if re.match(r"^\s*[-*]\s*`", l)])
+
+
+def size_band(files, increments):
+    for letter, max_files, max_increments in SIZE_BANDS:
+        if max_files is None or (files <= max_files and increments <= max_increments):
+            return letter
+    return "L"
+
+
+def check_size(human_path, human_lines, agent_lines, f, checks):
+    row = checks["B14"]
+    where = os.path.basename(human_path)
+    fm, _ = frontmatter(human_lines)
+    letter = fm.get("size", "").split("#")[0].strip()
+    if letter not in SIZES:
+        return
+    files, increments = files_count(agent_lines), increment_count(human_lines)
+    if not files or not increments:
+        return
+    counted = size_band(files, increments)
+    if counted != letter:
+        f.fail(row, where,
+               f"size `{letter}` but the agent half carries {files} file(s) and "
+               f"{increments} increment(s), which band `{counted}`",
+               f"write `size: {counted}`, or cut the row until it is a {letter}")
+
+
 def check_progress(n, human_path, human_lines, agent_lines, f, checks):
     where = os.path.basename(human_path)
     row = checks["B11"]
@@ -836,9 +897,9 @@ def run(notes, as_json=False, quiet=False):
     check_glossary(notes, f)
 
     checks = {
-        "B3": f.check("B3", "human half frontmatter — keys, risk color, approve, where, type, depends_on"),
+        "B3": f.check("B3", "human half frontmatter — keys, risk color, size S/M/L, approve, where, type, depends_on"),
         "B4": f.check("B4", "human half sections — present, ordered, link out, deviations named a note"),
-        "B5": f.check("B5", "Components — brick, touch, exactly one main"),
+        "B5": f.check("B5", "Components — one tree per package, brick, touch, exactly one main"),
         "B6": f.check("B6", "every increment carries its surface — one diff, a contract block, or `none` with a reason; no diff outside `## Increments`"),
         "B12": f.check("B12", "Flow changes — flows with numbered steps and a marked change, or `none` with a reason"),
         "B13": f.check("B13", "test file — no frontmatter, link back, holds ## Autotest"),
@@ -849,6 +910,7 @@ def run(notes, as_json=False, quiet=False):
         "B10": f.check("B10", "Files are concrete paths, each mapped to an existing increment"),
         "E2": f.check("E2", "Manual test filled, or skipped with a concrete reason"),
         "B11": f.check("B11", "increment progress — `<done>/<total>`, total matches `## Increments`, done matches the Landed markers and fits status"),
+        "B14": f.check("B14", "size — S/M/L, matching the file and increment counts"),
     }
     for n in sorted(pairs):
         human, agent = pairs[n].get("human"), pairs[n].get("agent")
@@ -862,7 +924,9 @@ def run(notes, as_json=False, quiet=False):
         if tests:
             check_tests(n, tests, read(tests) or [], pairs, f, checks)
         if human and agent:
-            check_progress(n, human, read(human) or [], read(agent) or [], f, checks)
+            human_lines, agent_lines = read(human) or [], read(agent) or []
+            check_progress(n, human, human_lines, agent_lines, f, checks)
+            check_size(human, human_lines, agent_lines, f, checks)
 
     if as_json:
         print(json.dumps(f.checks, indent=2))

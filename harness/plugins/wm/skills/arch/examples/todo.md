@@ -3,12 +3,13 @@ status: todo                # todo → impl → verify → done (blocked: dep un
 type: new behavior          # the change kind — one of the nine in impl:ref-change-types.md, never a brick
 depends_on: []              # [TODO-M, …] real edges only; each must reach status: done first
 risk: red                   # reach: changes the Refresh signature, every caller retests; flow: breaks main user flow step `POST /auth/refresh`; recovery: none, a user who fails refresh is logged out
+size: M                     # 5 files, 6 increments — the PR this TODO becomes
 approve: increment          # inherit | increment | todo | none — override the spec, with the reason: every caller of Refresh moves, so the human reads each step. ref-write.md § Approval
 where: inherit              # inherit | in-place | worktree — the checkout impl writes into; override the spec with the reason. ref-write.md § Where the work happens
 increment: 0/6              # <approved>/<total> — impl stamps it after each increment lands; `todo` writes `0/<total>`. ref-write.md § Progress
 ---
 
-> Seven keys, all metadata — the inline `#` comments above are part of the shape, keep them.
+> Eight keys, all metadata — the inline `#` comments above are part of the shape, keep them.
 >
 > `status`, `type`, `approve`, `where`, and `increment` rules: `arch:ref-write.md` § Status,
 > § Approval, § Where the work happens, and § Progress; change-kind rules:
@@ -41,6 +42,25 @@ increment: 0/6              # <approved>/<total> — impl stamps it after each i
 > | green | as `approve` says | the new path | sonnet `@implementer` |
 >
 > A red TODO is a signal to keep it small, not a block.
+>
+> **`size`** — `S`, `M`, or `L`: how big the PR is that a reviewer opens when this TODO lands. Work
+> and reading time, not reach — a one-line edit to a core type is `risk: 5, size: S`.
+>
+> Read it off two counts, and take the band that holds **both** — the paths in the agent half's `## Files` and the increments in `## Increments`:
+>
+> | Size | `## Files` paths | Increments |
+> |------|------------------|------------|
+> | S | ≤ 3 | ≤ 3 |
+> | M | ≤ 8 | ≤ 6 |
+> | L | more | more |
+>
+> Write both numbers as the trailing comment, so the reader sees what produced the letter. The
+> counts are in the pair, so `spec-lint` B14 recomputes the letter — a hand-picked `S` over nine
+> files fails.
+>
+> **`L` needs the human's word before the pair is written.** Nine files is Operating principle 4's
+> ask-first line, and the honest fix is usually two ledger rows. When the human keeps it as one row,
+> the comment carries their reason instead of the counts.
 >
 # TODO-1: A stolen refresh token stops working at the next refresh
 
@@ -142,47 +162,63 @@ increment: 0/6              # <approved>/<total> — impl stamps it after each i
 
 ## Components
 
-> **Check:** this table is the whole reach of the change. Find the component you know must change and do not see here. Confirm that the `main` row is the one that carries the Outcome.
+> **Check:** this tree is the whole reach of the change. Find the component you know must change and do not see here. Confirm that the `main` component is the one that carries the Outcome.
 
-| Component | Touch | Type | Part | Role | Change |
-|-----------|-------|------|------|------|--------|
-| `pkg/auth.Handler` | modify | server | main | Exchanges a valid refresh token for a new pair | Takes a `RefreshRequest`, returns a `TokenPair`, and invalidates the old refresh token. |
-| `pkg/auth.TokenMinter` | modify | command | supporting | Mints an access/refresh pair for a user id | Returns a `TokenPair` instead of one token string. |
-| `cmd/api.Routes` | modify | wiring | supporting | Maps `POST /auth/refresh` to the handler | Decodes a `RefreshRequest` and writes back the `TokenPair`. |
-| `scripts.ReleaseCheck` | create | command | supporting | Checks a release before it ships | Builds from clean and checks every asset against the manifest. |
+```text
+pkg/auth                            # OWNS the refresh exchange
+├── Handler                         #   modify · server · main — exchanges a valid refresh token for a new pair
+│   └── Refresh()                   #     takes a `RefreshRequest`, returns a `TokenPair`, and invalidates the old refresh token
+└── TokenMinter                     #   modify · command · supporting — mints an access/refresh pair for a user id
+    └── MintPair()                  #     returns a `TokenPair` instead of one token string
 
-> The `package.Class` set this TODO touches, one row each, **main part first**. A human reads this
-> create/modify/delete list *instead of* any diff: it is the whole reach of the change, stated for a
-> reader who never opens the agent half.
+cmd/api                             # OWNS the HTTP routes
+└── Routes                          #   modify · wiring · supporting — maps `POST /auth/refresh` to the handler
+
+scripts                             # OWNS the release scripts
+└── ReleaseCheck                    #   create · command · supporting — builds from clean and checks every asset against the manifest
+```
+
+
+> The symbols this TODO touches, drawn as a **component tree** with the `show-me` skill. A human
+> reads this tree *instead of* any diff: it is the whole reach of the change, stated for a reader who
+> never opens the agent half.
 >
-> **Component** — `package.Class` in the project's own notation (`pkg/auth.Handler`,
-> `blocks/upload/model.UploadState`).
+> **One tree per package. The root is the package path and carries `# OWNS <one clause>`** — what the
+> package is answerable for once this TODO lands. Two packages are two trees, never one stretched
+> trunk; the tree holding the `main` component comes first.
+>
+> **A component is a child of a root, named bare** — `Handler`, not `pkg/auth.Handler`, because the
+> root already says the package. A symbol, never a file path — paths live in the agent half's
+> **Files**.
+>
+> **Every component line ends with `<touch> · <brick> · <part> — <role>`**, in one aligned comment
+> column, indented one step past its root.
 >
 > **Touch** — `create | modify | delete`. **It types the symbol, not the file**: a `create` component
 > may land in a file **Files** marks `modify`, and a `modify` component may need a new file. A
-> component this TODO only reads belongs in **Pre-reads**, not here. An all-`create` table is a
-> greenfield slice; a `delete` row names its replacement row in the same table, or the TODO that
+> component this TODO only reads belongs in **Pre-reads**, not here. An all-`create` tree is a
+> greenfield slice; a `delete` component names its replacement in the same tree, or the TODO that
 > already shipped it.
 >
-> **Type** — the **brick**: `command | service | flow | gateway | server | consumer | policy |
-> scheduler | wiring`. The roster, with the metric and common structure of each, is
-> `arch:ref-bricks.md`. A component that fits no brick, or fits two, owns more than one
-> responsibility — split it before writing the body.
+> **Brick** — `command | service | flow | gateway | server | consumer | policy | scheduler | wiring`.
+> The roster, with the metric and common structure of each, is `arch:ref-bricks.md`. A component that
+> fits no brick, or fits two, owns more than one responsibility — split it before writing the body.
 >
-> **Part** — `main` or `supporting`, and **exactly one row is `main`**: the component carrying the
-> Outcome's behavior. Two candidates means the TODO does two things.
+> **Part** — `main` or `supporting`, and **exactly one component across every tree is `main`**: the
+> one carrying the Outcome's behavior. Two candidates means the TODO does two things.
 >
 > **Role** — one sentence, this TODO's slice of the component's job. Not the component's full purpose.
 >
-> **Change** — one sentence, what this TODO changes in the component. A `create` row says what the new
-> symbol adds; a `delete` row says what replaces it.
+> **A child of a component is one member this TODO decides** — a method, a field, a case. It carries a
+> comment and no `·` triple, and it says what the member does for this TODO. Draw only the members
+> the change decides; a member the TODO leaves alone is noise. The signatures stay in each increment's **Surface**.
 >
-> Every row maps to at least one path in the agent half's **Files**, and every non-test path there
-> belongs to a row — except a file changed only as a consequence of another row's decision. Every row
-> is named by at least one increment in `## Increments`, and no increment there names a component
-> missing from this table.
+> Every component maps to at least one path in the agent half's **Files**, and every non-test path
+> there belongs to a component — except a file changed only as a consequence of another component's
+> decision. Every component is named by at least one increment in `## Increments`, and no increment there
+> names a component missing from the tree.
 >
-> **A wide table is not a split signal** — two `main` candidates and more than ten increments are.
+> **A wide tree is not a split signal** — two `main` candidates and more than ten increments are.
 
 ## Flow changes
 

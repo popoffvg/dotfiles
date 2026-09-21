@@ -50,10 +50,13 @@ The five answers land in **two** files, each in its one home:
   branches on the value rather than raising a choice with the human. The answer sets the depth for
   every TODO the spec drives; a single TODO that needs a different one overrides it in its own
   frontmatter, and the question is not re-asked per TODO.
-- **The checkout** — *this one* / *its own worktree* — is the `spec.md` frontmatter `where` key,
+- **The checkout** — *this one* / *a worktree per TODO* — is the `spec.md` frontmatter `where` key,
   written as `in-place` / `worktree` (`ref-write.md` § Where the work happens). Replace the
   `in-place` default Step 0 wrote. Spec metadata for the same reason. The answer sets the checkout
   for every TODO the spec drives; one TODO that needs its own overrides it in its own frontmatter.
+  Say what `worktree` costs before the human picks it: one tree and one branch per row, each
+  unmerged until they run `/code squash` on it, so a ledger whose rows depend on each other wants
+  `in-place`.
 - **The other three** go into `<notes-dir>/RULES.md` using the example's copy block: fill the
   Answers table with the three settings and expand each `<…>` in the per-step table. No placeholder
   may survive.

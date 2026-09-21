@@ -7,7 +7,6 @@ description: >
   SKILL.md, an agent file, a command file, a `references/` doc, or an AGENTS.md/CLAUDE.md, when the
   `prune-text` skill reaches its reshape phase, and when judging whether a file reads as the shape
   its reader needs.
-user-invocable: false
 ---
 
 # text-style — the shape of a file an agent runs

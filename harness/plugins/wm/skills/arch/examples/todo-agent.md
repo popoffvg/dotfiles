@@ -32,9 +32,9 @@
 >
 > **Recommended reading, not a border.** The list is where the implementer starts. The implementer MAY change a file outside it when the work needs it, and names that file in the increment report.
 >
-> Every non-test path maps to a `## Components` row in the human half — except a file changed only as
-> a consequence of another row's decision, which carries no row of its own. Every increment has at
-> least one line.
+> Every non-test path maps to a `## Components` component in the human half — except a file changed
+> only as a consequence of another component's decision, which carries no node of its own. Every
+> increment has at least one line.
 
 ## Pre-reads (MUST read before editing)
 
@@ -47,7 +47,7 @@
 > increments look self-explanatory.
 >
 > A component this TODO only *reads* belongs here rather than in the human half's `## Components` —
-> that table is what the TODO changes.
+> that tree is what the TODO changes.
 
 ## Manual test
 
