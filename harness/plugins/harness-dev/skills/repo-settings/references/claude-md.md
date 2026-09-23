@@ -15,7 +15,7 @@ State the trigger and the boundary, then point at the skill:
 ```md
 ## Deploy
 
-Deploy runs through `.claude/skills/deploy/SKILL.md` — never through ad-hoc commands. Invoke it as `/deploy`.
+Deploy runs through `.claude/skills/deploy/SKILL.md`. Invoke it as `/deploy`.
 
 The skill is generated from `<the CI workflows and release scripts>`. When any of those change, regenerate the skill in the same change — a stale deploy skill is worse than none.
 

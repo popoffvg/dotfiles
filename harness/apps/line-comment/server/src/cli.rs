@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 
 use crate::span;
 use crate::store::Author;
-use crate::{export, Session};
+use crate::{export, journal, Effect, Session};
 
 /// `<file>:<line>` or `<file>:<line>-<end>` — the lines named the way the input file
 /// header names them.
@@ -83,7 +83,7 @@ pub fn root_holding(absolute: &Path) -> Option<PathBuf> {
 pub fn comment(target: &str, text: &str) -> Result<String, String> {
     let target = parse_target(target)?;
     let root = root_for(&target.file);
-    let (mut session, _effects) = Session::new(root);
+    let mut session = open_session(root)?;
     let uri = crate::path_to_uri(&absolute(&target.file));
     let key = session
         .key(&uri)
@@ -114,7 +114,7 @@ pub fn add(target: &str) -> Result<String, String> {
     let named = parse_target(target)?;
     let (file, others) = resolve(&named.file)?;
     let root = root_for(&file);
-    let (mut session, _effects) = Session::new(root);
+    let mut session = open_session(root)?;
     let uri = crate::path_to_uri(&file);
     let contents = session
         .input_for(
@@ -244,7 +244,7 @@ pub fn drop_comments(targets: &[String]) -> Result<String, String> {
         .first()
         .ok_or("expected at least one <file>:<line>")?;
     let root = root_for(&parse_target(first)?.file);
-    let (mut session, _effects) = Session::new(root);
+    let mut session = open_session(root)?;
 
     let mut lines = Vec::new();
     for target in targets {
@@ -253,7 +253,7 @@ pub fn drop_comments(targets: &[String]) -> Result<String, String> {
         let key = session
             .key(&uri)
             .ok_or_else(|| format!("{} is not a file this server serves", target.file.display()))?;
-        let dropped = session.store_mut().remove(&key, target.line);
+        let dropped = session.remove_comment(&key, target.line);
         lines.push(format!(
             "{} {key}:{}",
             if dropped { "dropped" } else { "no comment on" },
@@ -267,24 +267,62 @@ pub fn drop_comments(targets: &[String]) -> Result<String, String> {
 /// Drop every comment in the workspace — `reset comments`, from a shell.
 pub fn drop_all() -> Result<String, String> {
     let root = current_root();
-    let (mut session, _effects) = Session::new(root);
+    let mut session = open_session(root)?;
     let total = session.store().total();
-    session.store_mut().clear();
+    session.clear_comments();
     session.persist().map_err(|error| error.to_string())?;
     Ok(format!("dropped {total} comment(s)"))
 }
 
 /// The store the commands read and write, for a caller that has to open it itself.
 pub fn store_path() -> Result<String, String> {
-    let (session, _effects) = Session::new(current_root());
+    let session = open_session(current_root())?;
     Ok(session.store_path().display().to_string())
 }
 
 /// Every comment in the store, in the export format the `/line-comment:act` command reads.
 pub fn list() -> Result<String, String> {
     let root = current_root();
-    let (session, _effects) = Session::new(root);
+    let session = open_session(root)?;
     Ok(export::render(session.store()))
+}
+
+/// Rebuild the store from the journal, as it stood at `until` (Unix ms) or after the last
+/// entry, and save it.
+pub fn restore(until: Option<u128>) -> Result<String, String> {
+    let mut session = open_session(current_root())?;
+    let journal = session.journal_path();
+    let total = session
+        .restore_from_journal(until)
+        .map_err(|error| format!("cannot read the journal {} ({error})", journal.display()))?;
+    session.persist().map_err(|error| error.to_string())?;
+    Ok(format!(
+        "restored {total} comment(s) from {} into {}",
+        journal.display(),
+        session.store_path().display()
+    ))
+}
+
+/// Every journal entry, one line each: time in Unix ms, pid, event, target, text — the
+/// times `restore --until` takes.
+pub fn journal_lines() -> Result<String, String> {
+    let session = open_session(current_root())?;
+    let path = session.journal_path();
+    let entries = journal::read_journal(&path)
+        .map_err(|error| format!("cannot read the journal {} ({error})", path.display()))?;
+    let mut lines = vec![format!("# {}", path.display())];
+    lines.extend(entries.iter().map(journal::describe_entry));
+    Ok(lines.join("\n"))
+}
+
+/// A session for a subcommand. Opening one takes up every saved input file, which deletes
+/// it, so a comment taken up here is saved at once — no server may be running to do it.
+fn open_session(root: PathBuf) -> Result<Session, String> {
+    let (session, effects) = Session::new(root);
+    if effects.contains(&Effect::PersistStore) {
+        session.persist().map_err(|error| error.to_string())?;
+    }
+    Ok(session)
 }
 
 fn absolute(path: &Path) -> PathBuf {

@@ -33,6 +33,7 @@ Opaque token, TTL-bound, exchanged for a new pair on every refresh.
 - **Code:** `RefreshToken`, `refresh_token`
 - **Forbidden:** refresh key, `rtok`
 - **Links:** part of [Session](#session); consumed by [RotateToken](#rotatetoken)
+- **Source:** `pkg/auth/token.go:24`
 
 > The `###` heading is the term as the spec writes it. The line under it is the definition: one
 > sentence, the visible contract (TTL, bounds, error semantics), no implementation detail a reader
@@ -84,6 +85,7 @@ The previous refresh token is invalidated and the new pair is persisted.
 - **Code:** none
 - **Forbidden:** none
 - **Links:** emitted by [RotateToken](#rotatetoken); changes [Session](#session)
+- **Source:** `spec.md` § Goal
 
 > An event's name is past tense and its definition is the state that now holds, not the call that
 > produced it. `none` is written out, so a reader can tell a concept with one name from an entry

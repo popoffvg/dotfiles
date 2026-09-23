@@ -1,6 +1,6 @@
 ---
 name: lessons
-description: This skill should be used when the user asks to "create lessons", "teach me this project", "explain it concept by concept", "term by term", "like a professor presentation", "make a course from this spec", "I'm a newcomer to X, help me study it", "build a study guide", or "create a quiz so I can verify my understanding". Turns a document corpus (spec, project folder, codebase area, docs set) into a dependency-ordered lesson series and an optional self-scoring quiz, published as Artifacts.
+description: This skill should be used when the user asks to "create lessons", "teach me this project", "explain it concept by concept", "term by term", "like a professor presentation", "make a course from this spec", "I'm a newcomer to X, help me study it", "build a study guide", or "create a quiz so I can verify my understanding". Turns a document corpus (spec, project folder, codebase area, docs set) into a dependency-ordered lesson series and an optional self-scoring quiz, published as Artifacts. Reporting the self-improvement lesson archive is `self-improvement:lessons`, not this skill.
 argument-hint: [path to the corpus, and optionally "quiz" / "lessons only"]
 ---
 
@@ -8,7 +8,7 @@ argument-hint: [path to the corpus, and optionally "quiz" / "lessons only"]
 
 Turn a body of existing material into a course a newcomer can actually learn from: a dependency-ordered lesson series, and an optional quiz that verifies understanding rather than recall. Both ship as published Artifacts.
 
-The output is **derived, never invented**. Every definition, threshold, and rationale traces to the corpus. The skill's value is *ordering, framing, and interrogating* material the reader already owns but cannot yet absorb.
+The output is **derived, never invented**. Every definition, threshold, and rationale traces to the corpus.
 
 ## When this applies
 
@@ -20,7 +20,7 @@ Do not use for: teaching a general topic from world knowledge (no corpus to grou
 
 Inventory every file and its size before reading. Then read the canonical sources in full.
 
-Layered corpora are the norm and the trap. A project may hold a reader-facing render (`README.md`), a decisions render, an implementation render, a glossary, plus per-unit source files (spec atoms, ADRs, RFCs) and the evidence they were derived from. Renders often duplicate each other verbatim.
+A project may hold a reader-facing render (`README.md`), a decisions render, an implementation render, a glossary, plus per-unit source files (spec atoms, ADRs, RFCs) and the evidence they were derived from. Renders often duplicate each other verbatim.
 
 - Read the **renders** for framing and audience-appropriate prose — they are already pitched at a reader.
 - Read the **source units** for detail the renders compress, and for `status:` / `version:` metadata that reveals what is settled versus in flux.
@@ -77,8 +77,7 @@ See `references/quiz.md` for worked examples of each archetype, distractor const
 Load the `artifact-design` skill before writing markup, and follow it. Then:
 
 - Write the HTML to the session scratchpad, publish with `Artifact`, and report the URL.
-- Two deliverables ⇒ two artifacts, with distinct favicons and one shared visual identity (same tokens, same type pairing). Coherence across the pair reads as one course; a second unrelated design reads as a second project.
-- For the quiz, copy `assets/quiz-scaffold.html` — it carries the option/verdict markup, the scoring bar, and the reveal script, so that boilerplate is never re-derived.
+- Two deliverables ⇒ two artifacts, with distinct icons and one shared visual identity (same tokens, same type pairing). Coherence across the pair reads as one course; a second unrelated design reads as a second project.
 - Keep the lesson page a **document** (syllabus rail, reading column, term blocks) and the quiz an **instrument** (immediate feedback, running score, reset).
 
 ## Grounding rules
@@ -92,4 +91,3 @@ Load the `artifact-design` skill before writing markup, and follow it. Then:
 
 - **`references/curriculum.md`** — lesson anatomy, sequencing patterns, content-type priorities, worked arc from a real spec corpus.
 - **`references/quiz.md`** — the seven question archetypes with worked examples, distractor construction, open-question design, scoring conventions.
-- **`assets/quiz-scaffold.html`** — copy-and-fill scaffold: question markup, verdict blocks, score bar, reveal/reset script.

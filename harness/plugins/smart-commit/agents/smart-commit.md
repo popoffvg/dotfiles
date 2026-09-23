@@ -111,16 +111,20 @@ resolved plan — repo, commit number, message, hunk count — before touching g
 
 ## 2. Build the patches
 
-Write `plan.json` per repo and run the splitter. `ref-patch-split.md` holds the schema and the
-failure modes. The script validates the plan and rewrites every hunk header itself, so a patch it
-emits either applies or names the reason it cannot.
+Write `plan.json` per repo and run the splitter with `--outdir "$OUT"`. `ref-patch-split.md` holds
+the schema and the failure modes. The script validates the plan and rewrites every hunk header
+itself, so a patch it emits either applies or names the reason it cannot.
+
+```bash
+REPO=<repo>; SLUG=$(basename "$REPO"); OUT="$TMPDIR/smart-commit/$SLUG/out"; mkdir -p "$OUT"
+```
 
 ## 3. Commit in a throwaway worktree
 
 Never build commits in the operator's working tree.
 
 ```bash
-REPO=<repo>; SLUG=$(basename "$REPO"); WT="$TMPDIR/smart-commit/$SLUG/wt"
+WT="$TMPDIR/smart-commit/$SLUG/wt"
 BASE=$(git -C "$REPO" branch --show-current)
 git -C "$REPO" ls-files --others --exclude-standard > "$TMPDIR/smart-commit/$SLUG/untracked.txt"
 git -C "$REPO" worktree add -b _smart-commit-tmp "$WT" HEAD
@@ -213,8 +217,8 @@ Your final message: per repo, the commits created, and whatever is still uncommi
 - Never `git add .` or `git add -A`.
 - Never `--no-verify`. A hook that fails is a real failure — fix it, re-stage, make a **new** commit.
 - Never amend a pushed commit.
-- No `Co-Authored-By` line, no "Generated with Claude Code" footer.
 - Never write a patch file or a Python script through a heredoc. The shell mangles backslashes,
   backticks, and `!` inside diff content. Use the Write tool, or let the splitter write it.
-- Two attempts at a failing step, then abort and report.
+- Two attempts at a failing step, then abort and report. A patch that fails `--check` gets no
+  retry: abort at once.
 - On abort, the reason goes in your final message.

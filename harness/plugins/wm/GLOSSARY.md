@@ -1,8 +1,9 @@
 # wm — leading words
 
-The shared taxonomy. One word, one meaning, used verbatim by all four skills — `code` (the router),
-`arch` (design), `impl` (source and git history), `teach` (the human's understanding). A word used
-in two of them is defined here once; a word private to one skill is defined there.
+The shared taxonomy. One word, one meaning, used verbatim by all five skills — `code` (the router),
+`arch` (design), `impl` (source and git history), `review` (judging code), `teach` (the human's
+understanding). A word used in two of them is defined here once; a word private to one skill is
+defined there.
 
 Not the project's ubiquitous language — that lives in the notes-dir `GLOSSARY.md`
 (example: `arch:examples/glossary.md`).

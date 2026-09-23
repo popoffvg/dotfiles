@@ -36,7 +36,7 @@ One quick question about something already on screen needs no sketch.
 | **Follow the data** — the body reads as one value's lifecycle: born, guarded, transformed, returned | no line is ordered by which helper was convenient to call next |
 | **Every failure cause gets its own arm** | no two distinct causes share a `return` unless a trailing comment says the sameness is deliberate (enumeration or timing leak) |
 | **Every branch terminal** | no silent fall-through |
-| **Decisions surface as branches**, anchored `// see spec.md → Decisions: <name>` | no algorithm hides inside `/* ... */` |
+| **Decisions surface as branches**, anchored `// DECISION: <name>` | no algorithm hides inside `/* ... */` |
 | **Real TS, fake bodies** | it parses; bodies may be `/* ... */`; no imports and no real paths |
 
 ## Variants
@@ -45,10 +45,11 @@ One quick question about something already on screen needs no sketch.
 
 | Change `type` | Brick of the `main` component | Variant |
 |--------|-------------------------------|---------|
-| `state machine` | any | transition function |
-| `data shape` | any | before/after types only |
-| `behavior` | command · flow · policy · server · consumer | the `flow(...)` body — the default |
-| `behavior` | service · gateway · scheduler · wiring | interface + constructor |
+| `signature change` | any | before/after types only |
+| `new behavior` | command · flow · policy · server · consumer | the `flow(...)` body — the default |
+| `new behavior` | service · gateway · scheduler · wiring | interface + constructor |
+
+A `new behavior` change over a component that holds explicit states takes the transition function instead.
 
 The brick also fixes the *ordered parts* of the sketch (what a command shows, what a gateway shows) — `wm:arch` § Common structure in `references/ref-bricks.md`.
 

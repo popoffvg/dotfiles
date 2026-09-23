@@ -26,7 +26,8 @@ job is the three steps below.
    ~/.claude/scripts/open-file.sh --wait <proposal path>
    ```
 
-   The operator edits the `**Answer:**` lines and closes the editor. `--wait` blocks until then.
+   The operator edits the `**Answer:**` lines. `--wait` returns only in a herdr pane, and it does
+   not prove the edits are done — ask the operator to confirm before step 3.
    If the script prints the path instead of opening an editor, tell the operator the path and
    stop — they will run `/smart-commit apply` when ready.
 

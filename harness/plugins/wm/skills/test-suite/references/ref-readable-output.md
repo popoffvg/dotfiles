@@ -4,11 +4,6 @@ Every artifact this skill writes obeys the contract below: `create`, `write`, `c
 `bdd`, `tdd`, and the audit `verify` runs against it. A document that breaks the contract is
 not ready, whatever its coverage.
 
-The contract exists because of one failure. A test set written as a wide factor matrix with
-thirty short rows is unreadable. The reader cannot tell which rows matter, cannot hold the
-column meanings in their head, and cannot see the behaviour the rows are supposed to describe.
-Coverage is proven and understanding is lost.
-
 **The document itself is [`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md)** —
 a filled `POST /auth/refresh` test set whose every piece carries its own rules underneath as a
 `>` block: the section order, what each section must contain, and when it is wrong. Copy that

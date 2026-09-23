@@ -10,10 +10,7 @@ three re-anchoring paths (`did_open`, `did_change`, `reconcile_all`), and the or
 scope.** The LSP transport and the event loop (`main.rs`), the input-file hand-over that creates a
 comment (`input.rs`), and the export format (`export.rs`) — none of them move an anchor.
 
-**source list**:
-dotfiles:25f27fa1
-
-> Title, scope, and source-list criteria: `references/ref-artifact.md` § Result criteria and § Rules.
+> Title and scope criteria: `references/ref-artifact.md` § Result criteria and § Rules.
 
 ## Terms
 
@@ -222,7 +219,8 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
    stored state. It is written to the JSON store, which makes it look sticky, and every reconcile
    overwrites it.
 
-> Answer the agenda in order. A section reference avoids duplicating an answer.
+> Answer the agenda in order — one numbered answer per section, covering its questions. A section
+> reference avoids duplicating an answer.
 
 ## Trace
 

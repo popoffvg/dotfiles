@@ -1,6 +1,6 @@
-# Notes history — jj, not worklog.md
+# Notes history — jj
 
-The notes dir (`<notes-dir>`, e.g. `.notes/`) is its **own standalone jj repo**, git-ignored in the parent project. Spec/TODO/thought history lives in jj — there is no `worklog.md`.
+The notes dir (`<notes-dir>`, e.g. `.notes/`) is its **own standalone jj repo**, git-ignored in the parent project. Spec/TODO/thought history lives in jj.
 
 ## Where the notes live — the home-dir store
 

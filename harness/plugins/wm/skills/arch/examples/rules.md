@@ -4,9 +4,9 @@
 > — the answers below are the **defaults**. Written once by `/code new` Step 0.6; no later
 > subcommand rewrites it.
 >
-> Ask the three knobs in one `to-user` file before the grill (`code:ref-subcommand-rules.md` § Put a
-> batch of questions in a file the human edits). The setting shown below is the recommended answer of
-> each, which an unedited block takes:
+> Ask the three knobs below, plus the `approve` and `where` keys, in one `to-user` file before the
+> grill (`arch:sub-new.md` Step 0.6). The setting shown below is the recommended answer of each,
+> which an unedited block takes:
 >
 > 1. During the grill, which questions reach you? — **every open question** · only blockers (the agent reads the codebase for the rest) · batch them at the end
 > 2. When are tests written? — **before the code (red-green-refactor)** · in the same increment as the code · after the code lands

@@ -2,8 +2,6 @@
 
 Guided conversation — the **quadrant walk**. Map the unknowns of a task with the user *before* code is written, one quadrant per stage, ending with a completed four-quadrant map in the user's hands.
 
-The map is not the territory. The prompt, the plan, the context window are the map; the codebase, the domain, the user's actual intent are the territory. The gap between them is the unknowns — one found before code costs minutes; the same one found three PRs later costs the three PRs.
-
 The map is the deliverable. Implementation is a separate task that starts only after the map is handed over. Write the finished map to `$RESEARCH_DIR/<slug>.unknowns.md` (resolve `$RESEARCH_DIR` per the SKILL's "Output location").
 
 ## Two moves at every stage
@@ -65,11 +63,7 @@ Anything still open lives on the map, not in scrollback.
 
 ## After the walk
 
-The map lives on past planning:
-
-- **Implementation notes** (during the build) — running log; each time the code forces a deviation, record what the plan said, what the code revealed, the conservative call made. Tag entries needing the user's judgment. Each deviation is an unknown unknown that escaped the walk — fold it back for attempt #2.
-- **Buy-in doc** (before shipping) — package prototype, spec, notes into one skimmable pitch: lead with a demo, pre-answer each reviewer's objection with evidence, name who signs off on what.
-- **Quiz before merge** (before merging someone else's or a long diff) — merge-readiness report (mental model, non-obvious behaviors introduced, what to watch after deploy) ending in a quiz; wrong answers point back to the skimmed section.
+During the build, record every deviation the code forces on the plan. Each one is an unknown unknown that escaped the walk — fold it back into the next map.
 
 ## Rules
 

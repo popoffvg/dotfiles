@@ -26,10 +26,10 @@ argument-hint: "[docs (default), workflow — full list /dive:help] + entry poin
 ## How they combine
 
 ```
-docs (prose + questions, 6-step chain) → workflow (TS pseudocode + bindings) → /flow-map (HTML)
+docs (prose + questions, 6-step chain) → workflow (TS pseudocode + bindings)
 ```
 
-Run `docs` alone for a read-only refactor brief. Add `workflow` — which mirrors the cited locations from each `<ep-slug>.md`, so **run `docs` first** — when the team wants to navigate the flows in the editor or render them with `/flow-map`.
+Run `docs` alone for a read-only refactor brief. Add `workflow` — which mirrors the cited locations from each `<ep-slug>.md`, so **run `docs` first** — when the team wants to navigate the flows in the editor.
 
 ## Inputs
 
@@ -38,9 +38,9 @@ A list of entry points. Each may be:
 - A symbol (`HandleRequest`, `userController.create`)
 - A URL or doc reference
 
-If the user provides a free-form description, find the entry points with the **code graph tool** (gitnexus — see the `## Tools` section of the global `CLAUDE.md`): `mcp__gitnexus__query` turns a concept into the execution flows that carry it, and `context` gives one symbol's full reference set. Fall back to `mcp__fff__grep` / `mcp__fff__find_files` when the repo has no index, or when you are matching literal text rather than structure.
+If the user provides a free-form description, find the entry points with the **code graph tools**: `mcp__codebase-memory-mcp__search_graph` turns a concept into the symbols that carry it, and `mcp__codebase-memory-mcp__get_code_snippet` gives one symbol its exact source. Fall back to `mcp__fff__grep` / `mcp__fff__find_files` when the repo has no index, or when you are matching literal text rather than structure.
 
-Once the entry points are fixed, use `impact` to check whether the list is complete — a caller the graph reports and the list omits is a missing entry point. Give each subagent the graph facts for its entry point in the prompt, so it does not re-derive them.
+Once the entry points are fixed, use `mcp__codebase-memory-mcp__trace_path` to check whether the list is complete — a caller the graph reports and the list omits is a missing entry point. Give each subagent the graph facts for its entry point in the prompt, so it does not re-derive them.
 
 The user may pass a **destination folder** inline with a `dst:<path>` token (see "Output location").
 
@@ -66,7 +66,7 @@ Every route that fans out over entry points spawns its subagents the same way. T
 
 ## Output location
 
-`<notes-dir>` is the wm notes directory for the active task, persisting with the rest of the planning context (`spec.md`, `worklog.md`, `todos/`). Resolve it:
+`<notes-dir>` is the wm notes directory for the active task, persisting with the rest of the planning context (`spec.md`, `todos/`, `thoughts/`). Resolve it:
 
 - If a wm flow is active, use its notes dir (typically `.notes/` at repo root).
 - If no flow is active, default to `./.notes/` and tell the user.
@@ -93,7 +93,7 @@ typing files (`components/`, `_flow.entities.d.ts`, `tsconfig.json`) and `flows.
 
 ## Integration with wm
 
-- During the **research phase**, `explore-research` saves coarse findings as `<notes-dir>/research-*.md`. `explore` complements that with per-entry-point deep dives under `<notes-dir>/research/`.
+- During the **research phase**, the `docs` route writes one per-entry-point deep dive under `$RESEARCH_DIR`.
 - The `docs` route also **starts the glossary**: the terms it finds in the code are merged into `<notes-dir>/GLOSSARY.md`, the same file `arch` keeps current through the spec phase. Research names the words that exist; the spec names the words that will (`dive-docs:SKILL.md` § Glossary).
 - During **spec phase**, `code new` may reference `research/<ep-slug>.md#DP-N` or `#EC-N` from a TODO's **Pre-reads** so the implementer doesn't re-derive the analysis.
 - `research/` is committed alongside `spec.md` and `todos/` — it travels with the task.

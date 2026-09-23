@@ -5,19 +5,6 @@ description: Guide for writing ast-grep rules to perform structural code search 
 
 # ast-grep Code Search
 
-## Overview
-
-This skill helps translate natural language queries into ast-grep rules for structural code search. ast-grep uses Abstract Syntax Tree (AST) patterns to match code based on its structure rather than just text, enabling powerful and precise code search across large codebases.
-
-## When to Use This Skill
-
-Use this skill when users:
-- Need to search for code patterns using structural matching (e.g., "find all async functions that don't have error handling")
-- Want to locate specific language constructs (e.g., "find all function calls with specific parameters")
-- Request searches that require understanding code structure rather than just text
-- Ask to search for code with particular AST characteristics
-- Need to perform complex code queries that traditional text search cannot handle
-
 ## General Workflow
 
 Follow this process to help users write effective ast-grep rules:
@@ -227,21 +214,7 @@ ast-grep scan --rule my_rule.yml --json /path/to/project
 - Composite logic (all, any, not)
 - When you need the power of full YAML rules
 
-**Tip:** For relational rules (inside/has), always add `stopBy: end` to ensure complete traversal.
-
 ## Tips for Writing Effective Rules
-
-### Always Use stopBy: end
-
-For relational rules, always use `stopBy: end` unless there's a specific reason not to:
-
-```yaml
-has:
-  pattern: await $EXPR
-  stopBy: end
-```
-
-This ensures the search traverses the entire subtree rather than stopping at the first non-matching node.
 
 ### Start Simple, Then Add Complexity
 
@@ -305,33 +278,6 @@ rule:
 
 Then narrow scope to controller paths (for example `controllers/workflow/`) and inspect exact matches.
 
-### Find Functions with Specific Content
-
-Find async functions that use await:
-```bash
-ast-grep scan --inline-rules "id: async-await
-language: javascript
-rule:
-  all:
-    - kind: function_declaration
-    - has:
-        pattern: await \$EXPR
-        stopBy: end" /path/to/project
-```
-
-### Find Code Inside Specific Contexts
-
-Find console.log inside class methods:
-```bash
-ast-grep scan --inline-rules "id: console-in-class
-language: javascript
-rule:
-  pattern: console.log(\$\$\$)
-  inside:
-    kind: method_definition
-    stopBy: end" /path/to/project
-```
-
 ### Find Code Missing Expected Patterns
 
 Find async functions without try-catch:
@@ -358,20 +304,3 @@ Contains detailed documentation for ast-grep rule syntax:
 
 Load these references when detailed rule syntax information is needed.
 
-## Autoresearch rules
-
-**Eval checklist:**
-1. Did the rule match the target code pattern correctly (zero false negatives on the test example)?
-2. Were there zero false positives (rule didn't match unintended code)?
-3. Was `stopBy: end` included in all relational rules (has/inside)?
-4. Did the agent test the rule against example code before searching the full codebase?
-
-**Test inputs:**
-- "Find all async functions that use await but don't have try-catch"
-- "Find all Go functions that return error but don't wrap it"
-- "Find all React components that use useState without useEffect cleanup"
-
-**Can change:** rule writing workflow, debugging steps, CLI command examples, common use cases
-**Cannot change:** test-before-search requirement, YAML rule format, ast-grep CLI as the tool
-**Min sessions before eval:** 5
-**Runs per experiment:** 3

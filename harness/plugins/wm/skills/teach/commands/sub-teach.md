@@ -8,25 +8,23 @@ beginning. Read-only over project source. Vocabulary: `wm:GLOSSARY.md`. Spec con
 
 Obeys the shared subcommand rules — see `code:ref-subcommand-rules.md`.
 
-Sibling, not a duplicate: `quiz` measures understanding in one pass and scores it; `teach` builds
-the understanding over time and records it. A missed quiz question is an input to the next lesson.
+A missed quiz question is an input to the next lesson.
 
 ## Workspace
 
 ```
 <notes-dir>/teach/
-├── MISSION.md            # why the human is learning this code (example: examples/teach-mission.md)
-├── RESOURCES.md          # trusted sources — the code first, external docs second (example: examples/teach-resources.md)
+├── MISSION.md            # why the human is learning this code
+├── RESOURCES.md          # trusted sources — the code first, external docs second
 ├── NOTES.md              # the human's teaching preferences and working notes
 ├── learning-records/     # NNNN-slug.md — what is now known, and why it changes what to teach next
-│                         #   (example: examples/teach-learning-record.md)
 ├── lessons/              # NNNN-slug.html — one lesson per file, the unit of teaching
 ├── reference/            # *.html — compressed cheat sheets the human returns to
 └── assets/               # components shared across lessons — stylesheet, quiz widget, diagram helpers
 ```
 
-Create each directory lazily, on the first file that needs it. `MISSION.md` is the exception — it
-comes first, before any lesson.
+The example file for each is `teach:SKILL.md`. Create each directory lazily, on the first file that
+needs it. `MISSION.md` is the exception — it comes first, before any lesson.
 
 **One glossary, not two.** The workspace has no glossary of its own: the project's ubiquitous
 language lives in `<notes-dir>/GLOSSARY.md` (`arch:examples/glossary.md`), and every lesson uses those terms
@@ -81,18 +79,9 @@ Three things build deep understanding of a codebase, and each has a different so
   people who wrote the code and in the project's review history, not in a lesson. Answer as far as
   the repo supports, then name who or which PR trail to ask.
 
-**Difficulty is the enemy for knowledge and the tool for skills.** Acquiring a fact should be easy —
-difficulty eats the working memory needed to understand it. Making the fact durable should be hard —
-effortful retrieval is what builds retention.
-
-Split retention from recall on purpose:
-
-- **Fluency strength** — retrieval in the moment. It feels like mastery and is not.
-- **Storage strength** — retention over weeks. This is the goal.
-
-Build storage strength with desirable difficulty: retrieval practice (recall from memory, closed
-book), spacing (revisit an earlier lesson's core fact in a later lesson), and interleaving (mix two
-related subsystems in one skills exercise).
+Target retention over weeks, not recall in the moment. Build it with desirable difficulty:
+retrieval practice (recall from memory, closed book), spacing (revisit an earlier lesson's core
+fact in a later lesson), and interleaving (mix two related subsystems in one skills exercise).
 
 ## Lessons
 
@@ -120,8 +109,8 @@ it. This file does not restate them. What `teach` adds on top:
 
 Rendering: single self-contained HTML file, inline `<style>` and `<svg>`, no external fetch,
 theme-aware. Diagram encoding rules are the `/dive explain` guide's
-(`../../dive/references/arch-diff-diagram-guide.html`). Open the lesson after writing and verify it
-renders — load the `visual-artifact-verify` skill; the correctness is visual.
+(`../../dive/references/arch-diff-diagram-guide.html`). Open the lesson after writing and check it against
+`../../dive/references/ref-diagram.md` § Done when — the correctness is visual.
 
 ## Assets
 
@@ -138,7 +127,7 @@ Lessons are rarely reread; reference documents are. Write the compressed essence
 `reference/<slug>.html`, in a shape built for a five-second lookup and for printing.
 
 What earns a reference document here: the module map, the call-flow of the core path, the invariants
-a change must not break, the commands to run the tests, the shape of a `PColumn`-style domain
+a change must not break, the commands to run the tests, the shape of the domain
 structure the code passes around.
 
 ## Learning records

@@ -1,6 +1,6 @@
 # code — fix
 
-Fix the **thought** first, then the code. Code changed without correcting the thought drifts back; a thought corrected without touching the code is philosophy.
+Fix the **thought** first, then the code. Code changed without correcting the thought drifts back.
 
 Obeys the shared subcommand rules — see `code:ref-subcommand-rules.md`. Commit rules: `sub-commit.md`; the message itself: the `commit-message` skill.
 
@@ -98,7 +98,7 @@ needed a *new* thought (the **missing** kind) becomes a rule the moment its note
 provided an increment can violate what it settled — if none can, write it as a `fact` note and the
 generator skips it.
 
-Commit: `fix: add NNN-<type>-<slug> as replacement for NNN-old-slug`.
+Commit in `<notes-dir>`: `fix: add NNN-<type>-<slug> as replacement for NNN-old-slug`.
 
 ## Step 4: Fix the code
 
@@ -106,10 +106,11 @@ With the thought corrected:
 
 1. Read the corrected and superseded notes — understand what changed.
 2. Find the files from `todos/TODO-N.agent.md` **Files**.
-3. Make the minimal change aligning code with the corrected thought.
-4. If the fix renames or introduces a domain term, get the user's approval and write the row into `<notes-dir>/GLOSSARY.md` in the same commit, and rename every use in the notes and the code (`code:ref-subcommand-rules.md` § Glossary).
-5. Run the TODO's Autotest (or write one that proves the fix).
-6. Commit: `fix: <subject> — corrects NNN-old-slug with NNN-new-slug`.
+3. On a **bug**, follow the `red-green-refactor` skill: write the failing test that reproduces the gap before any production edit.
+4. Make the minimal change aligning code with the corrected thought.
+5. If the fix renames or introduces a domain term, get the user's approval and write the row into `<notes-dir>/GLOSSARY.md` in the same commit, and rename every use in the notes and the code (`code:ref-subcommand-rules.md` § Glossary).
+6. Run the TODO's Autotest.
+7. Commit per the `commit-message` skill, `fix:` prefix. The note slugs stay in the notes-dir commit (Step 5) and never enter the code-repo message.
 
 ## Step 5: Report
 

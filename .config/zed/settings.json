@@ -121,7 +121,7 @@
   "edit_predictions": {
     "provider": "zed",
   },
-  "diff_view_style": "split",
+  "diff_view_style": "unified",
   "cli_default_open_behavior": "new_window",
   "project_panel": {
     "sticky_scroll": false,
@@ -203,13 +203,6 @@
         "model": "gpt-5.5",
       },
       "type": "registry",
-    },
-  },
-  "context_servers": {
-    "fff": {
-      "command": "fff-mcp",
-      "args": [],
-      "env": {},
     },
   },
   "agent": {
@@ -315,10 +308,13 @@
       "enable_lsp_tasks": true,
     },
     "gopls": {
+      "initialization_options": {
+        "renameMovesSubpackages": true,
+      },
       "binary": {
         "path": "/Users/popoffvg/.local/share/mise/shims/gopls",
         "arguments": [
-          "-logfile=/Users/popoffvg/Library/Logs/gopls-zed.log",
+          "-logfile=auto",
           "-rpc.trace",
         ],
       },

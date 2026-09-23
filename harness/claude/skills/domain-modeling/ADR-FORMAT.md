@@ -1,6 +1,6 @@
 # ADR Format
 
-**An ADR is one markdown file with metadata, a decision paragraph, and a changelog.** Active ADRs live in `docs/adr/`, superseded and deprecated ones in `docs/!archived/adr/`. Both directories are created lazily — the first ADR creates `docs/adr/`, the first supersession creates `docs/!archived/adr/`.
+**An ADR is one markdown file with metadata, a decision paragraph, and a changelog.** Active ADRs live in `docs/adr/`, superseded and deprecated ones in `docs/!archived/adr/`.
 
 ## File name and numbering
 

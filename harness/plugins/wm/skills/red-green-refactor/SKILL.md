@@ -41,12 +41,6 @@ Fix bugs test-first. Never change production code before proving the bug with a 
 
 ## After the cycle
 
-- Commit: use `fix:` prefix (see `impl-commit`). The message describes the bug, not the fix.
+- Commit: use the `fix:` prefix (`impl:sub-commit.md`; the message itself is the `commit-message` skill).
 - If multiple bugs: one cycle per bug, one commit per cycle.
-
-## Hard rules
-
-- Never skip Red. A fix without a reproducing test is not a fix — it's a guess.
-- Never refactor in Green. Green is minimal — one change, no cleanup.
-- Never add new features in Refactor. Behavior is locked.
 - If the test is hard to write (requires mocking 5+ services, etc.), stop and ask the user to scope it down.

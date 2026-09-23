@@ -4,7 +4,7 @@ description: Compact the current conversation into a handoff document for anothe
 argument-hint: "What will the next session be used for?"
 ---
 
-Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save it as an in-memory tmp file at `$TMPDIR/claude-handoff/<short-slug>.md` (create the directory if missing). On macOS `$TMPDIR` is a per-user tmpfs-style location — fast, ephemeral, survives until reboot.
+Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save it as an in-memory tmp file at `$TMPDIR/claude-handoff/<short-slug>.md` (create the directory if missing).
 
 Before writing, list `$TMPDIR/claude-handoff/` and read any existing file with the same slug — extend it rather than overwriting. Print the absolute path of the saved file at the end so the next session can `Read` it directly.
 
@@ -18,7 +18,7 @@ Before writing, list `$TMPDIR/claude-handoff/` and read any existing file with t
    ```bash
    ls "${TMPDIR%/}/claude-handoff/" 2>/dev/null
    ```
-   If `<slug>.md` exists, write to the another file with a different name (e.g. `<slug>-<label>.md`).
+   If `<slug>.md` exists, read it and extend it.
 3. Use the `Write` tool with the absolute path from step 1 (not the `$TMPDIR` literal — `Write` does not expand shell variables).
 4. Print the final absolute path back to the user.
 

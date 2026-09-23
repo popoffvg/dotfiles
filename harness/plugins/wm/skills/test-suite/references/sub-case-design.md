@@ -41,11 +41,6 @@ keep on the branch nobody ran.
 
 ## Pairwise
 
-Most defects come from the interaction of two parameters, so covering every pair of values costs
-far less than covering every combination and finds nearly as much. Browser compatibility over
-browser (Chrome, Firefox, Safari, Edge), OS (Windows, macOS, Linux), and version (latest,
-previous) is 24 full combinations and 8 to 12 pairwise cases.
-
 Use PICT, allpairs, or an online generator. `sub-create.md` drives this technique for tiering.
 
 ## Error guessing
@@ -152,8 +147,7 @@ as a covered one.
 
 **Pick the injection mechanism by trigger type, and never by wall-clock sleep.** A call-boundary
 event (eviction, external delete, partition) wants an interceptor around the external client that
-fires on the Nth call or on a condition — deterministic, with no hook in production code; the
-pattern is `util/minet/nettest/RoundTripper`. A time-based event (visibility timeout, lease
+fires on the Nth call or on a condition — deterministic, with no hook in production code. A time-based event (visibility timeout, lease
 expiry) wants an injectable clock advanced by the test. Sleeping is flaky and is only the last
 resort when no clock seam exists.
 

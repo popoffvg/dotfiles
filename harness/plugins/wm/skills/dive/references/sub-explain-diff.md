@@ -49,8 +49,8 @@ candidate removes it.
 - **Contention** usually *removes* a hot spot: the baseline panel piles converging arrows on a
   ringed node, and the candidate panel fans them out to independent targets. The absent
   convergence is the fix.
-- **Unchanged nodes that move or recolour between panels** is a seventh anti-pattern, and it is
-  this route's most common failure — the reader cannot tell a difference from drift.
+- **Unchanged nodes that move or recolour between panels** is one more anti-pattern, and this route's
+  most common failure — the reader cannot tell a difference from drift.
 
 ## Done when
 

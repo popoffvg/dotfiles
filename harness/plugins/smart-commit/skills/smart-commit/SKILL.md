@@ -2,7 +2,6 @@
 name: smart-commit
 description: What makes a logical commit when splitting a working tree at hunk granularity, and the contract of the proposal file the operator answers. Read by the smart-commit agent in both phases — the propose phase writes against this format, the apply phase reads answers back out of it.
 user-invocable: false
-version: 0.1.0
 ---
 
 # Splitting a working tree into commits

@@ -5,6 +5,7 @@ pub mod cli;
 pub mod diff_view;
 pub mod export;
 pub mod input;
+pub mod journal;
 pub mod reveal;
 pub mod scratch;
 pub mod span;
@@ -20,6 +21,7 @@ use serde_json::{json, Value};
 
 use crate::diff_view::{DiffFile, DiffView};
 use crate::input::Target;
+use crate::journal::StoreEvent;
 use crate::store::{Author, Comment, LoadError, Store};
 use crate::wire::{
     Change, CodeAction, Command, Diagnostic, InlayHint, MarkupContent, Position,
@@ -117,6 +119,14 @@ impl Session {
             published: HashSet::new(),
             handed_over: 0,
         };
+        // A store older than its journal has comments no entry describes; the snapshot is
+        // the base a replay starts from.
+        if session.store.total() > 0 && !session.journal_path().exists() {
+            session.record(StoreEvent::Snapshot {
+                files: session.store.files.clone(),
+                reason: "baseline".to_string(),
+            });
+        }
         let mut effects = effects;
         effects.push(Effect::WatchFiles);
         // A save the previous run never saw — the watch only reports changes while the
@@ -140,6 +150,24 @@ impl Session {
 
     pub fn store_path(&self) -> PathBuf {
         self.root.join(".tmp").join("line-comment.json")
+    }
+
+    pub fn journal_path(&self) -> PathBuf {
+        journal::journal_path(&self.root)
+    }
+
+    /// Append one change to the journal. A journal that cannot be written costs the
+    /// journal only: the store change goes on.
+    fn record(&self, event: StoreEvent) {
+        let _ = journal::append_store_event(&self.journal_path(), event);
+    }
+
+    /// Journal the whole comment list of `key` after edits moved its anchors.
+    fn record_anchor_move(&self, key: &str) {
+        self.record(StoreEvent::Anchor {
+            file: key.to_string(),
+            comments: self.store.comments(key).to_vec(),
+        });
     }
 
     pub fn export_path(&self) -> PathBuf {
@@ -281,14 +309,17 @@ impl Session {
                 }
                 continue;
             }
-            let _ = std::fs::remove_file(&path);
-            self.upsert_comment(
+            // Journaled before the file goes: from here the journal is the only copy until
+            // the caller persists the store.
+            self.upsert_comment_from(
                 &target.file,
                 target.line,
                 target.end_line,
                 with_revision(body, target.commit.as_deref()),
                 Author::Human,
+                &path.to_string_lossy(),
             );
+            let _ = std::fs::remove_file(&path);
             stored = true;
         }
         if !stored {
@@ -313,6 +344,10 @@ impl Session {
         if store.files == self.store.files {
             return Vec::new();
         }
+        self.record(StoreEvent::Snapshot {
+            files: store.files.clone(),
+            reason: "store file changed on disk".to_string(),
+        });
         self.store = store;
         vec![Effect::RefreshInlayHints, Effect::PublishDiagnostics]
     }
@@ -328,6 +363,19 @@ impl Session {
         text: String,
         author: Author,
     ) {
+        self.upsert_comment_from(key, line, end_line, text, author, "comment");
+    }
+
+    /// `upsert_comment`, with `source` naming the writer in the journal.
+    fn upsert_comment_from(
+        &mut self,
+        key: &str,
+        line: usize,
+        end_line: usize,
+        text: String,
+        author: Author,
+        source: &str,
+    ) {
         let document = self.text_of(key);
         let lines = anchor::lines(&document);
         let line = line.max(1);
@@ -340,7 +388,43 @@ impl Session {
             author,
         };
         comment.cover(line, end_line);
+        self.record(StoreEvent::Put {
+            file: key.to_string(),
+            comment: comment.clone(),
+            source: source.to_string(),
+        });
         self.store.upsert(key, comment);
+    }
+
+    /// Remove the comment starting on `line`; false when there was none.
+    pub fn remove_comment(&mut self, key: &str, line: usize) -> bool {
+        let removed = self.store.remove(key, line);
+        if removed {
+            self.record(StoreEvent::Drop {
+                file: key.to_string(),
+                line,
+            });
+        }
+        removed
+    }
+
+    /// Remove every comment.
+    pub fn clear_comments(&mut self) {
+        self.record(StoreEvent::Clear);
+        self.store.clear();
+    }
+
+    /// Put back the store as the journal says it stood at `until` (Unix ms), or after the
+    /// last entry. Returns the number of comments restored. The caller persists.
+    pub fn restore_from_journal(&mut self, until: Option<u128>) -> io::Result<usize> {
+        let entries = journal::read_journal(&self.journal_path())?;
+        let restored = journal::replay_journal(&entries, until);
+        self.record(StoreEvent::Snapshot {
+            files: restored.files.clone(),
+            reason: "restore".to_string(),
+        });
+        self.store = restored;
+        Ok(self.store.total())
     }
 
     /// The text of a target, from its open buffer when there is one, else from disk.
@@ -472,7 +556,10 @@ impl Session {
                 anchor::reconcile(&text, comments);
                 comments.sort_by_key(|c| c.line);
             }
-            changed |= self.store.comments(&key) != before.as_slice();
+            if self.store.comments(&key) != before.as_slice() {
+                self.record_anchor_move(&key);
+                changed = true;
+            }
         }
         changed
     }
@@ -522,6 +609,7 @@ impl Session {
         if self.store.comments(&key) == before.as_slice() {
             vec![Effect::PublishDiagnostics]
         } else {
+            self.record_anchor_move(&key);
             vec![
                 Effect::PersistStore,
                 Effect::RefreshInlayHints,
@@ -577,6 +665,7 @@ impl Session {
         if self.store.comments(&key) == before.as_slice() {
             Vec::new()
         } else {
+            self.record_anchor_move(&key);
             vec![Effect::PersistStore, Effect::PublishDiagnostics]
         }
     }
@@ -833,7 +922,7 @@ impl Session {
                 let Some(key) = self.key(uri) else {
                     return Vec::new();
                 };
-                if self.store.remove(&key, line) {
+                if self.remove_comment(&key, line) {
                     vec![
                         Effect::PersistStore,
                         Effect::RefreshInlayHints,
@@ -885,7 +974,7 @@ impl Session {
     }
 
     pub fn reset_confirmed(&mut self) -> Vec<Effect> {
-        self.store.clear();
+        self.clear_comments();
         vec![
             Effect::PersistStore,
             Effect::RefreshInlayHints,

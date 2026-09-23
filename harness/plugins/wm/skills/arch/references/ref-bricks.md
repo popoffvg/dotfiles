@@ -317,10 +317,6 @@ namespace Main {
 
 ## What is not a brick
 
-- **Entity, aggregate, value object, event, state** — data with invariants, not a responsibility
-  that runs. Their names and homes are in the `searchable-names` skill. A glossary term is
-  one of these **or** a brick, never both.
-- **DTO** — data at a boundary. It belongs to the gateway or server that converts it, and never
-  crosses into a command, flow, or policy.
-- **`utils`, `helpers`, `manager`, `core`, `common`** — a name for code that shares no
-  responsibility. Every member belongs to one brick above; move it there.
+A glossary term is a **brick** or a piece of data — entity, aggregate, value object, event, state —
+never both. A DTO is data at a boundary: it belongs to the gateway or server that converts it, and
+never crosses into a command, flow, or policy.

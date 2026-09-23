@@ -7,11 +7,11 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 
 ## `/code <subcommand>` — full list
 
-| Subcommand | Does |
+| Subcommand | You need to… |
 |---|---|
 | `new` *(default)* | Spec pipeline: init the corpus (`CLAUDE.md`, `RULES.md` — ask the three rule questions plus the spec's `approve` depth — `PATTERNS.md`), write `spec.md` (if missing) → grill until no open question note is left in `thoughts/` → compile the plan with its **wave** table → **stop at the gate**. Does not write TODO bodies. |
 | `todo` | Author the self-contained `todos/TODO-N.md` + `TODO-N.agent.md` pair — human half (frontmatter — including `approve`, `inherit` unless this TODO needs its own review depth — Outcome, Components, **Flow changes**, **Increments** — numbered `<c>.<i>`, each self-contained for review, with its own diff and no file path, grouped into commits by `### Commit` sections), test file (Unit **and** E2E tests, no budget), and agent half (the `wm-constraints.py` pointer line + Files keyed to increments, no diff, unlimited length). Two stages: stage 1 writes the human half with its increments, the test file, and the `GLOSSARY.md` entries, then stops for human approval; stage 2 writes the agent half. Settles a decision by writing its note — the rule set is generated from `thoughts/`, so nothing is appended anywhere. From a reviewed `spec.md` + `thoughts/`; runs only past the gate. |
-| `verify` | Audit a spec before implementation in a separate `spec-verifier` agent (sonnet, read-only) — hunts contradictions, missing parts, edge cases. READY / NEEDS REVISION. |
+| `verify` | Audit the spec before impl in a separate read-only `spec-verifier` agent — contradictions, missing parts, edge cases, plus the completeness / test-honesty floor. Returns READY / NEEDS REVISION. |
 | `revise` | Settle drift from a delta manifest, patching only stale notes and spec sections; resets the spec `status` to `review`. Notes-only. |
 | `quiz` | Test the human's understanding — build a multiple-choice quiz over the spec (`status` init/review) or the code changes (`status` impl), grade the answers, report a score. Read-only; edits no artifact. |
 | `teach` | Teach the human this codebase step by step, across sessions. Stateful workspace `<notes-dir>/teach/` — MISSION.md, numbered HTML lessons, reference cheat sheets, learning records that set the level for the next session. Subject follows `status`: the code the change lands in (init/review) or the branch diff (impl); `/code teach <path-or-symbol>` targets one unit. Read-only over source. |

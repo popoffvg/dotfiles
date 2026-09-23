@@ -90,5 +90,3 @@ Label the verdict differently for wrong answers ("Not quite — the answer is C"
 - Sticky bar with answered/total, correct count, a progress track, and a reset.
 - One shot per question — lock the options after the first click, reveal the correct one. Allowing retries destroys the score's meaning and the reader's own signal.
 - State that scoring is page-local and resets on reload; do not persist it.
-
-Copy `../assets/quiz-scaffold.html` rather than re-deriving this markup and script.

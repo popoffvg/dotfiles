@@ -9,3 +9,10 @@ pre-commit:
     sync-subcommand-commands:
       glob: "harness/plugins/*/commands/*:help.md"
       run: python3 harness/scripts/sync-subcommand-commands.py && git add harness/plugins/*/commands
+    skill-citations:
+      glob: "harness/plugins/*/**/*.md"
+      run: |
+        set -e
+        for p in $(printf '%s\n' {staged_files} | cut -d/ -f1-3 | sort -u); do
+          python3 harness/claude/scripts/check-skill-citations.py "$p" --quiet
+        done

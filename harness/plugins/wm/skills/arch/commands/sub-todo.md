@@ -43,9 +43,7 @@ increment text.
 `thoughts/` note, and the rule set is generated from those notes on demand —
 `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` (`ref-todo-sections.md` § Constraints).
 No pair file carries a rule or the command; `todos/CLAUDE.md` § Read order names the command once. The *why* behind a rule is not stored in
-`todos/` either: the `trace` skill walks to it on demand. A copy of a rule in twenty TODOs is twenty
-rules to change when the decision changes; a stored origin link is a link that rots the moment a
-note is superseded.
+`todos/` either: the `trace` skill walks to it on demand.
 
 **The human half is written for an ADHD reader.** Every prose line of `TODO-N.md` obeys the
 `i-have-adhd` skill — load it before writing the half, not after. The person approving a TODO reads it

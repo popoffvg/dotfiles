@@ -36,7 +36,7 @@ never as a code edit.
 
 - **`spec.md`** is read by humans + the audit — the **target picture** plus the **ledger** plus the **Plan**. No bodies, no checkboxes, no file paths.
 - **Decisions and open questions are not spec sections.** Every choice, every fact, every unresolved question is a note in `thoughts/` — `spec.md` has no `Design Decisions` and no `Open Questions` section, and the Plan carries no decision-trail table. One place per thought; `spec.md` says what the world will look like, `thoughts/` says why.
-- **ledger** = the TODO List, an index of **outcomes** (one `#### TODO-N` entry each, with `Layer` / `Outcome` / `Concretely` / `Commit` lines). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready. An outcome the user cannot *read* is contested by default, which is what `Concretely` exists to prevent (§ spec.md shape).
+- **ledger** = the TODO List, an index of **outcomes**, one `#### TODO-N` entry each (the line roster: § Spec-Readiness Checklist). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready. An outcome the user cannot *read* is contested by default, which is what `Concretely` exists to prevent (§ spec.md shape).
 - **`CONCEPTS.md`** carries every diagram — app architecture, data flow, and the flow this work changes — drawn with the `show-me` skill. It is the human's first read and the spec's, so it is a file rather than a `spec.md` section: the diagrams re-read while the ledger is shaped, and the spec's 200-line budget has no room for them. Written when a picture changes a layer, a wave, or where a row splits; a change with no structure to draw has none (example: `examples/concepts.md`).
 - **`PATTERNS.md`** is read by the implementer, not the human — the patterns and reference files a TODO's increments follow. Nothing in it needs human agreement, which is why it is not a spec section: `spec.md` mentions `@PATTERNS.md` and carries none of the content.
 - **`todos/TODO-N.md` + `todos/TODO-N.agent.md`** are one **pair** per ledger row, split by audience. `TODO-N.md` is the human's gate read — frontmatter, Outcome, New terms, Components, **Flow changes** (each running path, step by step, with the changed steps marked), **Increments** (the ordered steps of the change, numbered `<c>.<i>`, each self-contained for review with its own diff of the types, fields, signatures and settings it lands, and no file path; each commit group closes with a `---` line and a `### Commit <c>` section) — restating its ledger outcome verbatim at the top, budgeted at 200 lines of prose; `## Increments` is bounded by shape instead (≤ 4 commits, ≤ 10 increments per commit). `TODO-N.agent.md` is the context-free Sonnet implementer's — Files (each path keyed to the increments that touch it), Pre-reads, Manual test, Gotchas — with no line budget and not one ```diff block. Self-contained means the **pair plus the generated rule set** is enough; neither half restates the other, and each carries exactly one link to the other. Neither half stores an origin link: why a decision was made is walked on demand from `thoughts/` by the `trace` skill. `todos/TODO-N.test.md` holds the row's `## Autotest` alone, with no line budget. Written in two stages with a human gate between them (`sub-todo.md` § Execution); all three are renumbered and deleted together. Owned by `todo` (`sub-todo.md`). `todos/CLAUDE.md` states the pair convention for any agent entering the folder — scaffolded with the folder by `new` Step 0, written once, never rewritten (example: `examples/todos-claude.md`).
@@ -115,8 +115,7 @@ for every TODO the spec drives, and `todos/TODO-N.md` frontmatter overrides it f
 | `inherit` | **TODO only** — take the spec's value. |
 
 **Two defaults, one per level.** A missing key on `spec.md` reads as `increment`; a missing key on a
-`TODO-N.md` reads as `inherit`. Both defaults keep an old artifact behaving as it did before the key
-existed. A spec set to `inherit` is invalid — the spec is the level that has nothing to inherit from.
+`TODO-N.md` reads as `inherit`. A spec set to `inherit` is invalid — the spec is the level that has nothing to inherit from.
 
 **The TODO wins where the two disagree**, and it wins in both directions: a risky TODO under an
 `approve: none` spec can ask for `increment`, and a mechanical one under an `approve: increment` spec
@@ -233,7 +232,7 @@ entry to trace **without reopening the codebase**. Tests (front) and the one-sen
 | 5 | **Failure path** | GLOSSARY.md + `thoughts/` | One failure path the spec depends on: does the response leak cause (different message or timing)? |
 | 6 | **One-sentence trace** *(end gate)* | Goal → feeds ordering | Entry→exit in one line. Can't state it in one sentence → the flow wasn't understood. |
 
-If `<notes-dir>/research/` exists, consume those artifacts — they already encode this chain (owned by `explore`) — rather than re-deriving.
+If `<notes-dir>/research/` exists, consume those artifacts — they already encode this chain (owned by `dive-docs`) — rather than re-deriving.
 
 ## spec.md shape
 
@@ -284,7 +283,6 @@ On any `new` where `spec.md` already exists, decide iteration vs. a fresh spec b
 - **Current branch shares part of `branch`** (either contains the other as a substring — e.g. meta `feat/auth-refresh` and current `feat/auth-refresh-fix`) → same work, **iterate** the existing spec.
 - **No shared part** → the notes belong to unrelated work; treat this as a **new spec** — author a fresh minimal spec and set `branch` to the current branch. The prior spec is not lost: it stays in the notes jj history (`code:ref-jj-notes.md`).
 
-Rationale: `.notes/` is git-ignored and travels with the working tree, so switching to an unrelated branch leaves a stale spec behind. The branch match is the signal for "is this still the same work?".
 
 ## TODO ordering and waves
 
@@ -296,7 +294,6 @@ upward (callers depend on callees); commits land the same direction — leaf →
 3. Group outcomes into commits per layer; sort the ledger by ascending depth.
 4. A TODO never precedes the TODO introducing a lower-layer component it depends on. If it must, merge them.
 
-**Why deepest first:** a leaf commit compiles and tests in isolation (no stubs); upper layers never rewrite when a leaf detail changes; the diff reads in narrative order (new thing → what uses it → how it starts up); reverting the topmost TODO still compiles.
 
 ### Merges that fall out of this rule
 - A type split + the call site depending on the new types = **one** TODO. Two would force a dead intermediate state where the type exists but nothing populates it.
@@ -324,7 +321,7 @@ lower-layer component it uses). Waves say what can run at once; layers say the e
 
 ## Stop at the gate
 
-`new` (and its condensed variant for ≤3 TODOs) writes the ledger and stops. It does not write
+`new` writes the ledger and stops. It does not write
 bodies and does not chain into `todo`. Why split: spec.md must be reviewable on its own — the
 outcome list is, full bodies bury the discussion in implementer-grade detail. Body authoring has
 its own audience and bar, owned by `todo`. The user decides when the outcomes are right.

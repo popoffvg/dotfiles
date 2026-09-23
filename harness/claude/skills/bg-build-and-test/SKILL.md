@@ -5,10 +5,6 @@ description: Run every test, build, lint, install, or dev-server command in the 
 
 # Run builds and tests in the background
 
-A foreground command hides its output until it exits. The user sees nothing while it runs,
-and the session is blocked. A background command streams into a task the user can open,
-so the run is visible while it happens. That visibility is the point.
-
 ## Steps
 
 1. **Start it in the background.** Call `Bash` with `run_in_background: true`. Do not add `&`
@@ -18,8 +14,7 @@ so the run is visible while it happens. That visibility is the point.
 3. **Do other work.** Read files, plan the next edit, prepare the follow-up commit.
    Never call `sleep` to wait.
 4. **Wait for the exit.** The harness re-invokes you when the process exits. Use `Monitor`
-   with a condition only when you must block on a specific line of output. Poll with
-   `TaskOutput` only when you need partial output before the exit.
+   with a condition only when you must block on a specific line of output.
 5. **Report the real result.** Read the output, and state pass or fail with the failing
    lines. Never report a run you did not read.
 

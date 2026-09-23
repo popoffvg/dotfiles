@@ -139,7 +139,11 @@
     "harness-dev:prune-text": "off",
     "hunch": "off",
     "quint-spec": "off",
-    "tracker-task-drafting": "off"
+    "tracker-task-drafting": "off",
+    "board": "off",
+    "flow-sketch": "off",
+    "hunk-review": "off",
+    "with-proof": "off"
   },
   "hooks": {
     "PostToolUse": [
@@ -294,14 +298,15 @@
   },
   "enabledPlugins": {
     "ast-grep@ast-grep-marketplace": false,
-    "claude-md-management@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": false,
     "code-simplifier@claude-plugins-official": false,
     "engram@engram": true,
     "first-prompt-model@local-plugins": true,
     "harness-dev@local-plugins": true,
     "prompt-stack@local-plugins": true,
+    "hi@local-plugins": false,
     "mictx-ecosystem@mictx-helper-marketplace": true,
-    "mictx@mictx-helper-marketplace": true,
+    "mictx@mictx-helper-marketplace": false,
     "plugin-dev@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": false,
     "typescript-lsp@claude-plugins-official": false,
@@ -311,8 +316,8 @@
     "frontend-design@claude-plugins-official": false,
     "gopls-lsp@claude-plugins-official": true,
     "self-improvement@local-plugins": true,
-    "rust-analyzer-lsp@claude-plugins-official": true,
-    "codemap@codelens": true,
+    "rust-analyzer-lsp@claude-plugins-official": false,
+    "codemap@codelens": false,
     "codelens@codelens": true,
     "cc-plugin-you-should-know@builtin": true,
     "hi@local-plugins": true,
@@ -345,12 +350,6 @@
         "repo": "milaboratory/mictx-helper"
       },
       "autoUpdate": true
-    },
-    "plannotator": {
-      "source": {
-        "source": "github",
-        "repo": "backnotprop/plannotator"
-      }
     },
     "trace-marketplace": {
       "source": {

@@ -60,6 +60,6 @@ A task whose log was purged reads grey/unknown and `bg logs <id>` prints `— ou
 
 ## What the TUI gives the user
 
-Named here so you can tell the user what to press, not so you can drive it. Two panes, `Tab` / `h` / `l` to focus, `q` to quit. In the log pane: `j`/`k` move a line cursor, `←`/`→` scroll horizontally (lines never wrap), `/` searches, `n`/`N` jump matches, `G` re-engages follow, `y` copies the line or visual selection, `Y` copies the log path. `a` or `Enter` opens the actions menu: Repeat (`r`) relaunches the same command in the same cwd as a new task, Transform (`t`/`x`) opens `$EDITOR` to write a shell command run as a new task with `$FILE` set to the source log path, Rename (`n`) sets an alias that replaces the command in the list, plus Kill and Delete.
+Two panes: a task list and a log pane. `Tab` moves focus, `q` quits, `/` searches the log, and `a` or `Enter` opens the actions menu — Repeat, Transform, Rename, Kill, Delete. Named here so you can tell the user what to press, not so you can drive it.
 
 Finish notifications fire only while the TUI is open, in Ghostty (OSC-777). `BG_NOTIFY=0` off, `BG_NOTIFY=1` forces it in other terminals.

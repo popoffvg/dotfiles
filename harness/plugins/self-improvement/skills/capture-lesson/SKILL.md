@@ -2,15 +2,16 @@
 name: capture-lesson
 disable-model-invocation: true
 description: >
-  Turn every captured lesson into a skill — extend an existing skill whose
-  trigger already covers it, or write a new one. Use after a user correction,
-  after the user states how they want a task done or how work is done in this
-  repo, or after you learn something non-obvious from docs during the task.
+  Route a captured lesson to the cheapest container that enforces it — a hook,
+  a lefthook job, a CLAUDE.md line, engram, or a skill when the lesson is about
+  how a request is read. Use after a user correction, after the user states how
+  they want a task done or how work is done in this repo, or after you learn
+  something non-obvious from docs during the task.
 ---
 
-A lesson worth keeping lands in a skill — never as a loose rule in a config or instruction file. A lesson not worth keeping is **skipped**, not filed somewhere weaker.
+A lesson worth keeping lands in the container Step 1a picks. A lesson not worth keeping is **skipped**, not filed somewhere weaker.
 
-Run per lesson: **(0) name the source**, **(1) pick the scope — or skip**, **(1a) pick the container**, **(1b) pick the form**, **(2) find an existing skill for that trigger**, **(3) extend it or write a new skill**, **(4) record the case**, **(5) report in one sentence or stay silent**.
+Run per lesson: **(0) name the source**, **(1) pick the scope — or skip**, **(1a) pick the container**, **(1b) pick the form**, **(2) find an existing skill for that trigger**, **(3) extend it or write a new skill**, **(4) archive the transcript**, **(5) report in one sentence or stay silent**.
 
 # Step 0 — Name the source: correction, method, discovery, or decision
 
@@ -63,7 +64,7 @@ The teachability test: **would you teach this rule to a student or a new colleag
 
 | Test | Scope | Location |
 |---|---|---|
-| Yes — it is worth teaching someone new; the situation recurs and the rule stays useful | global | `~/.claude/skills/<slug>/SKILL.md` |
+| Yes — it is worth teaching someone new; the situation recurs and the rule stays useful | global | `harness/claude/skills/<slug>/SKILL.md` in the dotfiles repo, then `mise run stow` |
 | No, but the situation is tied to **this** content — these files, this layout, this repo's tooling — and will come back here | project | `<repo-root>/.claude/skills/<slug>/SKILL.md` |
 | Neither — a one-off that will not recur and teaches nobody | **skip** — write no skill |
 
@@ -75,7 +76,7 @@ That session may also already have a suggestion at `~/.claude/self-improvement/s
 
 A lesson can be teachable *and* anchored to this machine — a vault path, an MCP server, a CLI on `PATH`. That is still global; name the anchor in the body and say what to do when it is absent, so the skill degrades instead of hard-failing.
 
-Write to `~/.claude` directly — never the dotfiles `harness/` source. Project root is `git rev-parse --show-toplevel`; if the cwd is not a git repo, the scope is global.
+A global skill is written to `harness/claude/skills/<slug>/` in the dotfiles repo, then made live with `mise run stow` — `~/.claude/skills` is a farm of stow symlinks, so a directory written there is a stray outside git. Project root is `git rev-parse --show-toplevel`; if the cwd is not a git repo, the scope is global.
 
 For a global skill, phrase the lesson generally and strip this project's names and paths. For a project skill, keep the real paths and commands — concreteness helps at project scope.
 
@@ -118,7 +119,7 @@ An ambiguous lesson has two homes: a check at global scope, or a verdict scoped 
 
 List the skills in the chosen scope and read the frontmatter `description` of each — that is the trigger. A lesson belongs to an existing skill when its situation is already inside that skill's `description`, or sits one clause away from it.
 
-Extend, don't fork. A near-duplicate skill splits one trigger across two files, and [[dream]] has to merge it back later.
+Extend, don't fork. A near-duplicate skill splits one trigger across two files, and `dream` has to merge it back later.
 
 # Step 3a — Extend the existing skill
 
@@ -129,41 +130,17 @@ Extend, don't fork. A near-duplicate skill splits one trigger across two files, 
 # Step 3b — Write a new skill
 
 1. **Body** = the lesson: what to do, and the failure it prevents.
-2. **`description`** = the if/when trigger, and the load-bearing field. `skill-build:references/foundations.md` § Frontmatter and invocation owns how to write one and which invocation frontmatter to set; follow it instead of re-deriving the rules here.
+2. **`description`** = the if/when trigger, and the load-bearing field. The `skill-build` skill (`harness-dev` plugin) owns it, in its foundations reference under Frontmatter and invocation — how to write one and which invocation frontmatter to set; follow it instead of re-deriving the rules here.
 3. **One lesson, one trigger.** A `description` covering unrelated situations fires on everything and sharpens nothing. Split rather than widen.
 4. **Verify the anchor exists first.** A lesson pinned to a file, flag, or workflow that is already gone is not worth a skill.
 5. **`paths:`** — scope activation when the trigger is "touched these files" (e.g. an LLM-config check on the config files). The skill then auto-fires only on relevant edits.
-6. **Origin marker** (below). Before finishing, re-read the frontmatter and confirm the stamp is there — an unstamped autocreated skill is invisible to [[dream]] and never gets pruned or merged.
+6. **Origin marker** (below). Before finishing, re-read the frontmatter and confirm the stamp is there — an unstamped autocreated skill is invisible to `dream` and never gets pruned or merged.
 
-# Step 4 — Record the case in `CASE.md`
+# Step 4 — Archive the transcript
 
-Every skill this skill touches — new or extended — gets a sibling `CASE.md` next to `SKILL.md`. Append one entry per case; never rewrite an earlier entry. **No `CASE.md`, no skill** — writing the rule without its case is the failure this step exists to prevent.
+Run `${CLAUDE_PLUGIN_ROOT}/scripts/archive-transcript.sh <transcript> <global|project>` with the same scope word Step 1 chose. A skipped lesson archives nothing: the transcript is worth keeping only when a rule came out of it.
 
-## Entry template
-
-```markdown
-## <YYYY-MM-DD> — <one-line case title>
-
-- **Repo:** <repo path, or `machine` / `none`>
-- **Source:** <correction | method | discovery> — <Step 0>
-- **Task:** <what was being done when the user spoke>
-- **What I did:** <correction: the wrong action, concretely — the command, the edit, the claim | method: what I was about to do, or the default I would have used>
-- **User's words:** > <verbatim — never paraphrased; for a `discovery`, the doc/source passage that settled it>
-- **Evidence:** <file:line, command output, or doc URL that settled it — `none` for a method the user simply stated>
-- **Ambiguous?** <no — one right answer | yes — the other branch is right when …>
-- **Scope chosen:** <project:<repo> | global | machine-scoped global> — <which row of the Step 1 table, and why>
-- **Rule written:** <verdict | check> — <the one-line rule, or the new bullet added to an existing skill>
-- **Transcript:** <the archived `.jsonl` path — printed by `${CLAUDE_PLUGIN_ROOT}/scripts/archive-transcript.sh <transcript> <global|project>`, or already known when [[dream]] calls this skill>
-- **Session topic:** <the `Topic:` line from the transcript's `.env.md` sidecar>
-```
-
-Fill `Repo:` from the sidecar's "Projects in context" table, not from the cwd you happen to be in. A session that moved between repos has several rows; name the one whose files the correction was about, and list the others — a correction that spans two repos is the ≥2-repos evidence Step 1 looks for.
-
-## Rules for `CASE.md`
-
-1. **Name the repo even at global scope.** "This came from `~/git/pl`" is what makes [[dream]]'s ≥2-repos generalization test checkable next time.
-2. **On extend (Step 3a), append to the existing skill's `CASE.md`** — a second case in the same file is the evidence that promotes a project rule to global.
-3. **Archive the transcript under the Step 1 scope** — `global` or `project`, the same word Step 1 chose. A skipped lesson archives nothing: the transcript is only worth keeping when a rule came out of it.
+The skill's own body carries the reason it exists — the failure it prevents, stated in the rule. Nothing else is recorded.
 
 # Step 5 — Report in one sentence, or say nothing
 
@@ -180,7 +157,7 @@ The sentence: what the skill is for, and its slug. Nothing else.
 
 Two skills, two sentences. Never a paragraph each.
 
-**Never print:** the gate decisions (Step 0/1/1b/2 reasoning), a table of them, the file paths written, the `CASE.md` entry or any part of it, why the lesson was worth keeping, what you almost missed, or a second thought after the sentence. That reasoning belongs in `CASE.md`, which is where anyone re-judging the rule will look.
+**Never print:** the gate decisions (Step 0/1/1b/2 reasoning), a table of them, the file paths written, why the lesson was worth keeping, what you almost missed, or a second thought after the sentence.
 
 # Origin marker
 

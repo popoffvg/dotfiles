@@ -85,10 +85,6 @@ document.
 2. Run a pairwise generator (PICT, allpairs, or by hand under three factors of three values).
 3. Check the property: every pair of values across two factors appears in at least one row.
 
-Exhaustive coverage of N factors with k values each is k^N cases and explodes fast. Pairwise
-guarantees every value pair appears together at least once, and catches most combinatorial
-defects at O(k²).
-
 Skip pairwise when only one or two factors matter (enumerate all combinations), when the
 interaction you are chasing is specifically three-way (pairwise cannot see it — add the triples
 explicitly), or when the cases are independent per input field (enumerate per field).

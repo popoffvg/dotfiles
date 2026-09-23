@@ -11,7 +11,7 @@ sees this skill.
 
 | Gate | Judges | Agent | Model |
 |---|---|---|---|
-| lint | the repo's linter over the changed files, and the tests that cover them | @lint-tester | haiku |
+| lint | the repo's linter over the changed files | @lint-tester | haiku |
 | rules | every rule in the rule files, against each changed file in the rule's scope — comments, names, test worth, tables, language rules, the TODO's decisions | @rule-checker per batch, then one @rule-reducer | haiku; reducer sonnet |
 | idiom | every changed line — is it written the way its language and pinned version expect | @idiom-critic | sonnet |
 | reuse | every new symbol and changed body — does it write again a job the repo or its dependencies already do; `PATTERNS.md` § Need → use is its contract | @reuse-critic | sonnet |

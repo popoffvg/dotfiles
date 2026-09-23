@@ -1,6 +1,6 @@
 # Score a session for the lessons it holds
 
-Read the human-typed prompts of one session and return one score, one scope, and one line of reason. Decide nothing else — no lesson write-up, no recurrence verdict, no skill. Extraction happens later, in batch, in [[dream]]'s harvest.
+Read the human-typed prompts of one session and return one score, one scope, and one line of reason. Decide nothing else — no lesson write-up, no recurrence verdict, no skill. Extraction happens later, in batch, in `dream`'s harvest.
 
 `score-session.sh` feeds this file to the model verbatim as the rubric, so it is the single home for the bands. Edit here and both the scorer and the reader change together.
 

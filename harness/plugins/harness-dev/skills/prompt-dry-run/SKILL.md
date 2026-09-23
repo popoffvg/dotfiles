@@ -1,9 +1,8 @@
 ---
 name: prompt-dry-run
-description: Use when the user runs "/prompt-dry-run <prompt>" or asks to draft/preview/dry-run how a prompt would be handled — reflect back the agent's reading of the prompt (intent, planned actions, limits) BEFORE acting, so misalignment surfaces first. Trigger on "draft this", "what would you do with", "before you act, tell me your plan", "how do you read this".
+description: Use when the user runs "/harness-dev:prompt-dry-run <prompt>" or asks to draft/preview/dry-run how a prompt would be handled — reflect back the agent's reading of the prompt (intent, planned actions, limits) BEFORE acting, so misalignment surfaces first. Trigger on "draft this", "what would you do with", "before you act, tell me your plan", "how do you read this".
 argument-hint: [the prompt to interpret — do not execute it]
-model-invocation: false
-user-invocation: true
+disable-model-invocation: true
 ---
 
 # prompt-dry-run — reflect the read, don't act
@@ -38,7 +37,7 @@ The prompt is a sample, not a spec. Operators give one or two thin examples and 
 ## Rules
 
 1. **Never act.** Read-only grounding only (locate a file, confirm a symbol). No writes, no side effects. If tempted to "just do it", stop — that is a different skill.
-2. **Concrete over hedged.** Name the file, the count, the command. "several files" is a failure; `glob X → 7 files` is the standard (facts over evaluations, per STYLE).
+2. **Concrete over hedged.** Name the file, the count, the command. "several files" is a failure; `glob X → 7 files` is the standard.
 3. **Widen, then bound.** Block 2 expands scope past the example; block 3 draws the line. Both are required — an unbounded read is as wrong as a too-literal one.
 4. **Surface the fork, don't resolve it silently.** Every ambiguity gets named with the chosen branch, so the operator can flip it in one word.
 5. **End with the single question** that, answered, would most sharpen the plan — or "none; ready to run" if the reading is tight.

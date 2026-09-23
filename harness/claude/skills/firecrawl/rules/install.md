@@ -17,13 +17,10 @@ npm install -g firecrawl-cli
 Check if installed and authenticated in one command:
 
 ```bash
-firecrawl --version --auth-status
+firecrawl --status
 ```
 
-Output will show:
-
-- Version number
-- `authenticated: true` or `authenticated: false`
+It prints the version, the auth state, the concurrency limit, and the remaining credits.
 
 ## Authentication
 
@@ -91,6 +88,3 @@ export PATH=~/.npm-global/bin:$PATH
 # Add the export to your shell profile
 ```
 
-### Specific Instructions for Codex
-
-When a user selects to authenticate with a browser, run `firecrawl login --browser` to automatically open the browser for authentication without requiring interactive input.

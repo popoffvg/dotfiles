@@ -10,7 +10,7 @@ Dive into the codebase by writing **markdown research artifacts + question lists
 entry point. Prose write-ups graded against the 6-step chain. No `.workflow.ts`, no bindings — that
 is the `workflow` route.
 
-Do it until the stop criteria are met: **stop when no open question and no unexplored branch remain.**
+Run the convergence loop until its stop rule fires — `references/ref-converge.md` step 4.
 
 > **Style**: `harness-dev:text-style` — the house shape of every artifact this skill writes.
 
@@ -36,12 +36,8 @@ the artifact contract into a prompt.**
 `subagent_type`, `model: "sonnet"`, and the label in `name`. That is the one home for the spawn
 form, and it holds for the first round and every later round.
 
-**Put every round's `Agent` calls in one assistant message.** Calls in separate messages run
-serially, and the whole point of the fan-out is that they do not.
-
-**Each prompt is self-contained.** An agent cannot see this conversation. Give it the entry point,
-the absolute `$RESEARCH_DIR`, and its `<ep-slug>.questions.md` contents — nothing more is needed,
-because the contract lives in the file the agent reads.
+**Each prompt carries** the entry point, the absolute `$RESEARCH_DIR`, and the contents of its
+`<ep-slug>.questions.md`. Nothing more — the contract lives in the file the agent reads.
 
 ## Output
 
@@ -70,8 +66,7 @@ After all agents finish:
 7. **Run the convergence loop** — `references/ref-converge.md` — until research converges.
 8. **Merge the glossary** into `<notes-dir>/GLOSSARY.md` — § Glossary below.
 9. **Write** `$RESEARCH_DIR/INDEX.md` (template below).
-10. **Append worklog entry** to `<notes-dir>/worklog.md` if it exists.
-11. **Print** the research dir path and the count of glossary rows the user approved. Suggest `/dive workflow` to add the navigable TS pseudocode + bindings layer.
+10. **Print** the research dir path and the count of glossary rows the user approved. Suggest `/dive workflow` to add the navigable TS pseudocode + bindings layer.
 
 ## Glossary
 
@@ -98,7 +93,7 @@ Generated: <ISO date>
 | `src/server/index.ts` | server-index | `server-index.md` · `server-index.questions.md` | HTTP request lifecycle from router to response |
 | `HandleRequest` | handle-request | `handle-request.md` · `handle-request.questions.md` | Dispatch + middleware chain |
 
-**Workflow layer:** run `/dive workflow` to add `../workflows/<ep-slug>/<ep-slug>.workflow.ts` + `../workflows/flows.json` (render with `/flow-map`).
+**Workflow layer:** run `/dive workflow` to add `../workflows/<ep-slug>/<ep-slug>.workflow.ts` + `../workflows/flows.json`.
 ```
 
 If the `workflow` route already ran, add its `[workflow]` / `[flows.json]` links to the table.

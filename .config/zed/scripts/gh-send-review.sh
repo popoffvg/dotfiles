@@ -186,7 +186,14 @@ if [ "$assume_yes" -eq 0 ]; then
   esac
 fi
 
-comment_url="$(gh api "repos/$nwo/pulls/$pr/reviews" --input "$payload" --jq .html_url)"
+response="$(gh api "repos/$nwo/pulls/$pr/reviews" --input "$payload" 2>&1)" || {
+  # gh prints GitHub's reason as the JSON body; one open pending review on the PR is the
+  # usual 422: GitHub allows one per user, and it blocks every new review.
+  echo "not sent — the comments stay in the store. GitHub answered:" >&2
+  echo "$response" >&2
+  exit 1
+}
+comment_url="$(printf '%s' "$response" | python3 -c 'import json,sys; print(json.load(sys.stdin)["html_url"])')"
 echo "posted: $comment_url"
 
 session="$repo_root/.tmp/review-session/$(date +%Y%m%d-%H%M%S)"

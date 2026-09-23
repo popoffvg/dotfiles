@@ -7,7 +7,7 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 
 ## `/review <mode>` — full list
 
-| Mode | Does |
+| Mode | Judges the diff against… |
 |---|---|
 | `diff` *(default)* | Judge a loose target against the rule files — the working tree, `last`, a branch, a sha or range, or a PR url. Resolves the target to one revision range, derives the intent sentence from the commit messages as context, then runs the chain. The test gate reports the missing test here and writes nothing. |
 | `todo` | Judge an implemented TODO against the same rule files, plus the TODO's settled decisions as `D<NNN>` rules. A breach there is a Failure with a citation. The chain `/code auto` runs per TODO. |
@@ -40,7 +40,7 @@ Order: `wm-rule-batches.py plan` cuts the rules into batches, then all judging a
 
 Every gate writes its own findings file: `<notes-dir>/review/<target>/<gate>.md` — mutation writes one per batch under `mutation/` — plus the merged `<notes-dir>/review/<target>/report.md`. `<target>` is `TODO-N`, or the resolved range slug in `diff` mode. Each round overwrites, so the files always show the current verdict — a green gate writes its file too, so a missing file means the gate did not run.
 
-Every mode asks one question: **is this built right?** No gate judges the spec — the Outcome, the Surface, and drift belong to `/code verify` before the code exists and the `verifier` agent after it.
+Every mode asks one question: **is this built right?** (`review:ref-gates.md` § No gate judges the spec).
 
 Read-only on source: every gate returns findings and applies none. Two exceptions: the sonnet test gate writes the missing test and leaves it uncommitted, and the mutation gate edits source inside its own throwaway worktree, never the tree you are reviewing.
 

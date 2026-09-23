@@ -63,10 +63,10 @@ Done when you have named exactly one route and started it, or the human has stop
 
 ## Step 5 — record it
 
-Append one line to `<notes-dir>/worklog.md`:
+The notes-dir is a jj repo, so the sign-off is its commit message (`code:ref-jj-notes.md`):
 
 ```
-- YYYY-MM-DD HH:MM: sign-off TODO-N — <accepted | changes requested | spec revised>
+sign-off TODO-N — <accepted | changes requested | spec revised>
 ```
 
 Done when the line is in the file and the notes' jj repo has it (`code:ref-jj-notes.md`).

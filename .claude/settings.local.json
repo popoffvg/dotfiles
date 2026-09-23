@@ -231,7 +231,8 @@
     "commit-index"
   ],
   "skillOverrides": {
-    "prune-text": "on"
+    "prune-text": "on",
+    "board": "on"
   },
   "sandbox": {
     "enabled": false,

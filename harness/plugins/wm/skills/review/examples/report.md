@@ -66,7 +66,7 @@ reviewed: 2026-09-04T11:09:18+02:00
 [GATE] Result: FAIL   (after 2 rounds)
 
 ## Gates
-- lint PASS · rules FAIL · idiom PASS · reuse PASS · correctness PASS · mutation PASS · test PASS
+- lint PASS · rules FAIL · idiom PASS · reuse PASS · correctness PASS · mutation PASS · mutation PASS · test PASS
 
 ## Failures
 - rules · writer/column.py:34 — `rid` reads as a row id in a writer that also writes rows — rename it to `run_id`

@@ -21,8 +21,7 @@ One call, about a second. It parses `spec.md` and both halves of every ledger ro
 countable check with its verdict — the budgets (it runs `budget-sweep.sh` itself), the frontmatter
 ranges, the section sets and their order, the Components tree, the increment sequence, both
 Autotest levels, the wave plan, the rule set, the open questions. **Exit 1 → write the report
-`Result: NEEDS REVISION` with the findings under `## Checks` and stop.** No agent is paid to notice
-an empty field, and no driver reads the corpus to count what a parser counts.
+`Result: NEEDS REVISION` with the findings under `## Checks` and stop.**
 
 Take the remedy each finding names — never a raised budget, never a loosened check. `--json` gives
 the same rows for a caller that merges them into a larger report.
@@ -245,4 +244,4 @@ Decide and transition immediately — no generic follow-up question.
 - **READY** — all blocking checks pass, no critical unknowns → transition the spec frontmatter `status` to `impl`. `jj commit -m "Spec verification passed"` in `<notes-dir>`.
 - **NEEDS REVISION** — ≥1 blocking issue or unclear dependency → stay at `review` with concise feedback. `jj commit -m "Spec verification failed"`. **Any collision from the claim pass is blocking** — two live claims mean the implementer must guess, and a guess is not a spec.
 
-Use `work_transition` if available; else report the next command (`/work:implement` or `/work:spec`) plus the blocking list. Strict on blockers, concise on style nits.
+Report the next command (`/code todo` or `/code impl`) plus the blocking list. Strict on blockers, concise on style nits.

@@ -595,3 +595,88 @@ fn add_names_the_other_files_a_path_also_matches() {
         ""
     );
 }
+
+/// A project with one repository and one file, for the subcommands to run in.
+fn cli_project(name: &str) -> PathBuf {
+    let project = std::env::temp_dir().join(format!("line-comment-{name}-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&project);
+    let file = project.join("cmd").join("flags.go");
+    std::fs::create_dir_all(file.parent().unwrap()).expect("the project is created");
+    std::fs::write(&file, "package flags\n\nfunc Auth() {}\n").expect("the file is written");
+    std::fs::create_dir_all(project.join(".git")).expect("the repository marker is created");
+    project
+}
+
+fn run_cli(project: &Path, arguments: &[&str]) -> String {
+    let ran = Command::new(env!("CARGO_BIN_EXE_line-comment-lsp"))
+        .args(arguments)
+        .current_dir(project)
+        .env("LINE_COMMENT_ZED", "off")
+        .output()
+        .expect("the subcommand runs");
+    assert!(
+        ran.status.success(),
+        "{arguments:?}: {}",
+        String::from_utf8_lossy(&ran.stderr)
+    );
+    String::from_utf8_lossy(&ran.stdout).to_string()
+}
+
+/// Type a body into the one input file under `.tmp/`, as the operator does before saving.
+fn fill_input(project: &Path, body: &str) {
+    let input = std::fs::read_dir(project.join(".tmp"))
+        .expect("the directory is readable")
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .find(|path| {
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.starts_with("line-comment-input-"))
+        })
+        .expect("an input file was handed over");
+    let header = std::fs::read_to_string(&input).expect("the input file is readable");
+    std::fs::write(&input, format!("{header}{body}\n")).expect("the body is typed");
+}
+
+/// With no server running, the next `add` is what reads the saved input file. It must
+/// write that comment to the store before it deletes the file.
+#[test]
+fn a_saved_comment_survives_the_next_add_with_no_server_running() {
+    let project = cli_project("add-twice");
+    run_cli(&project, &["add", "cmd/flags.go:1"]);
+    fill_input(&project, "first comment");
+
+    run_cli(&project, &["add", "cmd/flags.go:3"]);
+
+    let store = std::fs::read_to_string(project.join(".tmp").join("line-comment.json"))
+        .expect("the store is written");
+    assert!(
+        store.contains("first comment"),
+        "the first comment is stored: {store}"
+    );
+}
+
+/// Every change to the store is in the journal, so a store that is gone comes back.
+#[test]
+fn a_lost_store_comes_back_from_the_journal() {
+    let project = cli_project("restore");
+    run_cli(&project, &["add", "cmd/flags.go:1"]);
+    fill_input(&project, "kept by the journal");
+    run_cli(&project, &["list"]);
+    run_cli(&project, &["comment", "cmd/flags.go:3", "second"]);
+    run_cli(&project, &["drop", "cmd/flags.go:3"]);
+    std::fs::remove_file(project.join(".tmp").join("line-comment.json"))
+        .expect("the store is lost");
+
+    let restored = run_cli(&project, &["restore"]);
+
+    let listed = run_cli(&project, &["list"]);
+    assert!(
+        listed.contains("kept by the journal"),
+        "{restored}\n{listed}"
+    );
+    assert!(
+        !listed.contains("second"),
+        "the dropped comment stays dropped: {listed}"
+    );
+}

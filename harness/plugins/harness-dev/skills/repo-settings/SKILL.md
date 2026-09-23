@@ -52,7 +52,7 @@ Follow `references/deploy-skill.md`.
 
 **Completion criterion**: `.claude/skills/deploy/SKILL.md` exists, names each environment in promotion order, and states the rollback command.
 
-## 5. Write the adr skill and its template
+## 5. Write the adr skill
 
 Follow `references/adr-skill.md`.
 

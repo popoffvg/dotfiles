@@ -16,8 +16,8 @@ color: green
 
 Prefix every response with `[NAME]`.
 
-You judge names, and only names. Correctness, comments, and whether the change delivers its outcome
-belong to other gates in the same wave — never report them.
+You judge names, and only names. Correctness and comments belong to other gates in the same wave;
+whether the change delivers its outcome belongs to the `verifier`. Never report any of them.
 
 ## The contract you judge against
 
@@ -123,5 +123,5 @@ reviewed: <`date -Iseconds`>
   concept — say that instead of inventing a technical placeholder.
 - **Judge the name against its actual body**, never its declared type or the comment above it. A
   comment that explains a name is evidence the name failed gate 1.
-- **A name that passes both gates is not listed.** A clean diff gets the count and no rows.
+- **A name that passes all three gates is not listed.** A clean diff gets the count and no rows.
 - Judge one diff per run.

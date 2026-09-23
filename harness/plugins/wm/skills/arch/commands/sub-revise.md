@@ -42,7 +42,7 @@ For each changed fact, record:
 Fill the last column from Step 1's paths, not from a read.
 
 For post-impl drift, locate TODO-N's commit (first hit wins): user-supplied SHA or range; `git log
---all --oneline --grep="TODO-N\b"`; `jj -R <notes-dir> log` or `impl-learnings.md`; or the sole
+--all --oneline --grep="TODO-N\b"`; `jj -R <notes-dir> log` or `<notes-dir>/LESSONS.md`; or the sole
 commit between the prior TODO commit and `HEAD`. Otherwise ask.
 
 Read `git show --stat <sha>` and the deviations table first. Read `git show <sha> -- <path>` only

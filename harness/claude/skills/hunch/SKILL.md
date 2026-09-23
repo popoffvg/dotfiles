@@ -2,20 +2,19 @@
 name: hunch
 description: Use to brainstorm in an unknown field where the first frame is wrong and the good answer is counterintuitive — diverge wide with judgment suspended, sense which probes emerge, then converge on one once the field is knowable. Trigger on "brainstorm", "explore an unknown", "find a non-obvious/counterintuitive way", "I'm stuck", "think laterally", "widen the board", "generate probes/approaches", "what else could solve this", "hunch".
 argument-hint: [the messy situation to explore]
-model-invocation: false
-user-invocation: true
+disable-model-invocation: true
 ---
 
-# hunch — probes over the obvious frame
+# hunch — probe an unknown field, then commit
 
 Brainstorming for unknown fields, then a disciplined commit. A *hunch* is a **probe** — a cheap experiment, not an answer to defend. Diverge wide first, keep judgment suspended, sense which probes emerge; converge only when the field has become knowable. Produce a **decision**, not the build — hand execution off after commit.
 
 Two mental models run together, nested, and one governs the phase you are in:
 
-- **[Cynefin](https://en.wikipedia.org/wiki/Cynefin_framework)** sets the phase. The unknown field is **Complex** — un-analyzable up front — so you **probe → sense → respond**: run many safe-to-fail experiments, sense what emerges, amplify winners. You do not reason the answer out; you let it surface. Sensing *moves* the field: once probes reveal what actually constrains the outcome, the field is now **Complicated** — analyzable — and only *then* do you converge and commit.
-- **[TRIZ](https://en.wikipedia.org/wiki/TRIZ) — contradiction resolution** is one *engine* feeding the divergent phase. It manufactures counterintuitive probes by **refusing the tradeoff** the obvious answer accepts, and by **borrowing** how other fields solved the same contradiction.
+- **Cynefin** sets the phase. The unknown field is **Complex** — un-analyzable up front — so you **probe → sense → respond**: run many safe-to-fail experiments, sense what emerges, amplify winners. You do not reason the answer out; you let it surface. Sensing *moves* the field: once probes reveal what actually constrains the outcome, the field is now **Complicated** — analyzable — and only *then* do you converge and commit.
+- **TRIZ — contradiction resolution** is one *engine* feeding the divergent phase. It manufactures counterintuitive probes by **refusing the tradeoff** the obvious answer accepts, and by **borrowing** how other fields solved the same contradiction.
 
-**TRIZ proposes, Cynefin disposes.** TRIZ wants to converge on the clever answer early; that instinct belongs to the Complicated phase, not the Complex one. Every TRIZ output enters the board **stripped of its "this is the answer" claim** — a candidate probe, never a verdict. That one rule stops the two models from fighting, and stops the board collapsing to the obvious before it is full.
+TRIZ wants to converge on the clever answer early; that instinct belongs to the Complicated phase, not the Complex one. Every TRIZ output enters the board **stripped of its "this is the answer" claim** — a candidate probe, never a verdict. That one rule stops the two models from fighting, and stops the board collapsing to the obvious before it is full.
 
 Run in-session by default: the board lives in the reply. Persist to a `hunch-<slug>.md` scratch file only when it outgrows one reply or resumption is wanted.
 
@@ -64,11 +63,11 @@ Only after emergence (step 6), never before. The transition is legitimate becaus
 
 ## Every move is a thought
 
-A thought is the atom of reasoning ([thought](../thought/SKILL.md)); here a numbered line on the board. Log each move — framing, each probe and its engine, sensing, amplify/dampen, the constraint named, the commit — one line, move + why. In the divergent phase a **dampen needs no kill-reason** (options are kept); every *amplify* records the signal that justified it; in the convergent phase every *kill* names the cell that sank it.
+A thought is the atom of reasoning — the `thought` skill (`wm` plugin); here a numbered line on the board. Log each move — framing, each probe and its engine, sensing, amplify/dampen, the constraint named, the commit — one line, move + why. In the divergent phase a **dampen needs no kill-reason** (options are kept); every *amplify* records the signal that justified it; in the convergent phase every *kill* names the cell that sank it.
 
-## Fog is welcome (in divergence)
+## Fog in divergence
 
-While diverging, **embrace fog**: a half-formed direction is a legitimate probe, because in an unknown field the sharp statement often only appears *after* you poke it. Charter the vague; let sensing sharpen it. The test for a probe is whether it can be **tried cheaply**, not whether it can be stated or judged. (Convergence is the opposite: you commit only what can be stated sharply.)
+While diverging, **a half-formed direction is a legitimate probe**, because in an unknown field the sharp statement often only appears *after* you poke it. Charter the vague; let sensing sharpen it. The test for a probe is whether it can be **tried cheaply**, not whether it can be stated or judged. (Convergence is the opposite: you commit only what can be stated sharply.)
 
 ## Board
 
@@ -115,11 +114,6 @@ Constraint revealed: <the single binding limit> — tie-breakers: Cost · Risk
 
 ## Rules
 
-1. **Diverge before you decide.** Steps 1–5 fill the board with judgment suspended; convergence (step 6) starts only once sensing has revealed the constraint. Naming a constraint early collapses the field to Complicated before you have earned it — the failure this skill exists to prevent.
-2. **Cynefin governs, TRIZ serves.** Every TRIZ probe enters stripped of its verdict claim — a candidate to test, not the answer. Never let the analytic engine collapse the board early.
-3. **Keep the board while diverging.** A dampened probe is retained, not deleted; an unknown field shifts, and the recombination you need may be the idea that showed no signal today. Kill-with-reason belongs only to convergence.
-4. **Wide first.** Do not narrow to a "promising" region before the board is full. Aim past the obvious cluster; most probes must break the first frame.
-5. **Safe-to-fail probes only.** Every probe carries a cheap test and a signal. An idea you cannot try cheaply is a direction to reframe into a probe — but fog is fine in divergence; it need not be stated sharply.
-6. **One board, no privilege.** Agent probes, the obvious baseline, and user-added probes share one board and one sensing. No probe is exempt; none is privileged for its source.
-7. **Converge lexicographically.** When you commit: effect on the constraint first, cost/risk only to break ties — never a weighted sum that lets an off-constraint probe outrank one that moves it.
-8. **Plan, don't do.** Output a committed decision, not the implementation. The pull to just build it is the signal the board is done and it is time to hand off.
+1. **Wide first.** Do not narrow to a "promising" region before the board is full. Aim past the obvious cluster; most probes must break the first frame.
+2. **Safe-to-fail probes only.** Every probe carries a cheap test and a signal. An idea you cannot try cheaply is a direction to reframe into a probe — but fog is fine in divergence; it need not be stated sharply.
+3. **One board, no privilege.** Agent probes, the obvious baseline, and user-added probes share one board and one sensing. No probe is exempt; none is privileged for its source.

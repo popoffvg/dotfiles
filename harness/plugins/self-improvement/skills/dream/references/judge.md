@@ -1,6 +1,6 @@
 # Judge a harvested correction
 
-Run from [[dream]] Step 0.4, with one correction and its transcript in hand. The scan read the human prompts alone — no tool calls, no assistant turns, no repo. You read all of that, and answer two questions per correction, in order: **is it a lesson**, and **what is it worth**.
+Run from `dream` Step 0.4, with one correction and its transcript in hand. The scan read the human prompts alone — no tool calls, no assistant turns, no repo. You read all of that, and answer two questions per correction, in order: **is it a lesson**, and **what is it worth**.
 
 Run this per correction, not per transcript. One transcript can hold two lessons, or none.
 
@@ -12,7 +12,7 @@ All four must hold. One failure drops the correction.
 |---|---|---|
 | **Transfers** | the rule survives without the files it was said about | it names a value, a column, a branch that existed only that day |
 | **Recurs** | you can name a future session where it fires again | the trigger is one migration, one incident, one ad-hoc script |
-| **Corrects** | the assistant did something, and the human said do it differently | the human stated a preference the assistant never got wrong |
+| **Corrects** | the assistant did something and the human said do it differently, or the human stated a method that overrides the default | the human stated a preference that changes no behavior |
 | **Actionable** | a reader can obey it without further judgment | it reads as taste — "be more careful", "think harder" |
 
 **Read what the assistant actually did before judging.** The prompt is the complaint; the tool calls are the defect. A correction whose defect you never found in the transcript is not judged — it is dropped, and the block says the defect was not locatable.
@@ -33,7 +33,7 @@ Then score `impact` and `effort` 1–5 each — the definitions are in `SKILL.md
 
 ## What the block must carry
 
-Beyond the [[to-user]] four fields, a harvest block names:
+Beyond the `to-user` four fields, a harvest block names:
 
 - the **verdict** (`new-skill`, `extend`, `description-rewrite`, `doc`) and the target path,
 - the scan's verdict where it differs, and the one line on why it is overruled,

@@ -6,4 +6,4 @@ argument-hint: [number]
 ---
 !`bash "${CLAUDE_PLUGIN_ROOT}/scripts/store.sh" ${ARGUMENTS:+pop }${ARGUMENTS:-list}`
 
-If a numbered list is shown above, ask which entry to run, then re-run `/list <number>` to pop it. If a single prompt was popped, treat it as the user's next instruction and act on it.
+If a numbered list is shown above, ask which entry to run, then re-run `/hi:list <number>` to pop it. If a single prompt was popped, treat it as the user's next instruction and act on it.

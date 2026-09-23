@@ -10,10 +10,8 @@ user-invocable: false
 
 # commit-message — what a commit says
 
-**The message answers why the commit exists; the diff already answers what it changed.** A reader
-who has the diff open still cannot see the problem that forced it, the state it moves the code to,
-or the option it rejected. Those three facts are lost the moment the author forgets them, so they
-are the message. The subject line only names the change; the **body carries the value**.
+**The message answers why the commit exists; the diff already answers what it changed.** The
+subject line only names the change; the **body carries the value**.
 
 ## Format
 
@@ -35,16 +33,12 @@ are the message. The subject line only names the change; the **body carries the 
 | **Goal** | What is true after the commit that was not true before, in the reader's terms. | Always |
 | **Decision** | Which other way was possible, which one was taken, and the reason it won. | Only when a real choice existed |
 
-**Each part is one paragraph, separated by a blank line, and the parts stay in this order.** Cause
-first, because it is the only part the diff can never show. Goal second, because it is the cause
-answered. Decision last, because it means something only after the reader knows what was at stake.
-Merging the parts into one paragraph hides which sentence is the problem and which is the choice.
+**Each part is one paragraph, separated by a blank line, and the parts stay in this order.**
 
-**Write the Decision part only when the commit rejected a live alternative.** A real choice is one
-where the other way also worked — a different data shape, a different layer, a different failure
-mode. Inventing a rejected option for commits that had none adds noise; the reader learns nothing
-from "the alternative was to not fix it". When the alternative is recorded as a thought note, the
-body restates the reason in its own words — it does not cite the note.
+**Write the Decision part only when the commit rejected a live alternative** — one where the other
+way also worked: a different data shape, a different layer, a different failure mode. When the
+alternative is recorded as a thought note, the body restates the reason in its own words and never
+cites the note.
 
 ## Worked example
 

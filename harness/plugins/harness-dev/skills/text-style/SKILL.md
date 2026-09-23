@@ -11,7 +11,7 @@ description: >
 
 # text-style — the shape of a file an agent runs
 
-The output is a document written for an agent to *run*, not for a human to read: a short spine of ordered steps, reference disclosed behind pointers, and every line earning its load. Five moves, each on the whole file.
+The output is a document written for an agent to *run*, not for a human to read: a short spine of ordered steps, reference disclosed behind pointers, and every line earning its load. Six moves, each on the whole file.
 
 **Rank every piece on the hierarchy.** Three rungs, ordered by how immediately the agent needs the material: the **in-file step** (what it does, in order), the **in-file reference** (rules and definitions consulted on demand — a flat peer-set here is fine, not a smell), and the **disclosed reference** (a sibling file reached by a pointer, loaded only when the pointer fires). Branching decides the rung: inline what every branch needs, disclose what only some branches reach. Push too little and the top bloats; push too much and you hide what the agent needs. Where a skill is a procedure carrying heavy reference, mark the split in the text — steps under one heading first, reference after.
 

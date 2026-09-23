@@ -4,8 +4,7 @@ The contract every `/code` subcommand obeys.
 
 ## Obey RULES.md
 Read `<notes-dir>/RULES.md` before the first step. It says what to raise with the human and what
-to decide alone; it wins over a subcommand's own default. It never lowers a hard gate — the human
-still reads the spec at the `review→impl` gate, destructive git is still confirmed. Missing file →
+to decide alone; it wins over a subcommand's own default, and never lowers a hard gate. Missing file →
 use the defaults in `arch:examples/rules.md` § Per step, and let `new` Step 0.6 write it.
 
 ## Put a batch of questions in a file the human edits

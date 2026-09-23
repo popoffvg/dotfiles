@@ -20,9 +20,9 @@ When a skill in this repo must cite a skill that exists only as a real directory
 
 ### WM Flow
 
-`/wm:work:help` → research → spec → implement (worktree) → verify → `/wm:work:finish`
+`/wm:code:help` lists the pipeline: research → spec → TODO ledger → implement → the review gate chain.
 
-State tracked in `work.settings.json`. Notes in `.notes/` — its own jj repo (history via `jj log`), git-ignored in the parent. Also holds plan + research.
+Notes live in `.notes/` — its own jj repo (history via `jj log`), git-ignored in the parent. It holds the spec, the plan, the research, and the thought notes.
 
 ## Dev Conventions
 

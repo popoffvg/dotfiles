@@ -312,4 +312,15 @@
     "show_summary": false,
     "show_command": false,
   },
+  {
+    "label": "MILAB: new task",
+    "command": "bash",
+    "args": ["-lc", "cd \"$HOME/git/mil/tasks\" && mise run task"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal_target": "center",
+    "hide": "never",
+    "show_summary": false,
+    "show_command": false,
+  },
 ]

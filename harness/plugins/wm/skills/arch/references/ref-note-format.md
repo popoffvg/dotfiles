@@ -1,6 +1,6 @@
 # spec — note format
 
-Owner of the code skill's **thought**-note *format*. What a thought is — the concept and its rules — lives in the `thought` skill; this file specializes it into concrete files. Four types: `question`, `decision`, `fact`, `impl-decision`. A question is asked as a `question` note and answered by a new `decision` or `fact` note; the answered question is archived (§ Resolution). Notes link via `[[wikilinks]]`.
+Owner of the thought-note format. What a thought is — the concept and its rules — lives in the `thought` skill; this file specializes it into concrete files. Four types: `question`, `decision`, `fact`, `impl-decision`. A question is asked as a `question` note and answered by a new `decision` or `fact` note; the answered question is archived (§ Resolution). Notes link via `[[wikilinks]]`.
 
 An **open question** is a thought too: it lives in `thoughts/` as `NNN-question-slug.md`, not as a checklist line in `spec.md`. `spec.md` has no Open Questions section (`ref-write.md` § Artifacts).
 
@@ -38,6 +38,10 @@ date: 2026-06-18T14:30:22
 source: auto | human                  # optional
 todo: TODO-N                          # type: impl-decision only — the row the rule is scoped to
 tags: [topic, subtopic]
+resolved: 2026-06-19T09:12:00         # question only — the moment the answer landed
+superseded_by: "NNN"                  # the live note that replaced this one (§ Superseding)
+links:                                # every [[wikilink]] in the body (§ Back-linking)
+  - "[[NNN-type-slug]]"
 ---
 ```
 
@@ -50,11 +54,9 @@ tags: [topic, subtopic]
   scope works on rotation" is a filename. Never a paraphrase of the title: the title names the
   thought, the description says what it decided or established and, when it fits, why. A note whose
   description could stand for two different answers is unfindable — the reader opens every note again.
-  **On a `decision` or an `impl-decision` it is also the rule text the implementer obeys** —
-  `wm-constraints.py` copies it verbatim into the constraint set (§ Finding the thought for your
-  task), so write it as a rule code can obey: what the code must do, stated in the imperative or as
-  the invariant it holds. There is no second copy of the rule anywhere, so writing a good rule *is*
-  writing this description. What the generated set looks like: `ref-todo-sections.md` § Constraints.
+  **On a `decision` or an `impl-decision` it is also the rule text the implementer obeys**
+  (`ref-todo-sections.md` § Constraints), so write it as a rule code can obey: what the code must
+  do, stated in the imperative or as the invariant it holds.
 - `status` — the lifecycle of the thought. It moves in one direction — `proposed → approved → declined` on a decision, `open → approved | declined` on a question — and these four values are the whole set.
   - `proposed` — on a `decision` or an `impl-decision` only: the choice is drafted, nobody has agreed to it yet. It **carries no rule** — `wm-constraints.py` generates the constraint set from `approved` notes alone — and it **blocks spec readiness** the same way an open question does. Write one when a choice is still being argued, so the draft outlives the session instead of staying in chat.
   - `open` — on a `question` only, and the only value that keeps a question in the live graph.
@@ -124,11 +126,9 @@ into its own answer. Three steps, in this order:
 2. In the question note, set `status: approved` (it was answered), add `superseded_by: "<new NNN>"`,
    and put `Answered by [[NNN-type-slug]]` as the first body line under the title. Keep the rest of
    the body untouched — the question as asked is the trail.
-3. **The move to `thoughts/archived/` is automatic — never `mv` the file yourself.** The
-   `thoughts-archive.sh` PostToolUse hook archives every question note whose `status` is no longer
-   `open`, filename and `NNN` unchanged, and neither is ever reused. Dropping out of `thoughts/` is
-   also what clears the question from the readiness gate — `wm-open-questions.sh` scans at
-   `-maxdepth 1`.
+3. The hook archives the note; never `mv` it yourself (§ Superseding). Any status but `open`
+   archives a question, and dropping out of `thoughts/` is what clears it from the readiness gate —
+   `wm-open-questions.sh` scans at `-maxdepth 1`.
 
 Then re-link (§ Back-linking): repoint every `[[NNN-question-slug]]` wikilink in a live note at the
 answer note. A live note must not depend on an archived one; the hook lists the files still pointing

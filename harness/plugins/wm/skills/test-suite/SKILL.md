@@ -21,17 +21,7 @@ argument-hint: [create, write, verify — full list /test-suite:help]
 
 [`references/ref-readable-output.md`](references/ref-readable-output.md) defines the shape every
 document this skill writes must take, and every subcommand below fills it. Load it before
-`create`, `write`, `case-design`, `bdd`, `tdd`, or `verify`.
-
-Three rules carry it. **Distill the system under test to a function** — inputs, state, results —
-at the top of the document, once. **Split that function into three to seven big cases**, each a
-sentence naming a behaviour, each with a paragraph, each holding its own variants. **Name every
-case after what it asserts** — `expired-token-is-rejected`, never `U-PAIR-1`.
-
-The matrices are yours, not the reader's. A pairwise grid, a decision table, and a transition
-matrix are how you find cases; they never appear in the saved document. What survives the
-derivation is the big cases it produced, the technique that produced them, and a **Not covered**
-list saying in words what you pruned and why.
+`create`, `write`, `case-design`, `bdd`, `tdd`, `review`, or `verify`.
 
 ## Subcommands
 
@@ -43,7 +33,7 @@ list saying in words what you pruned and why.
 | [`case-design`](references/sub-case-design.md) | Derive cases systematically — equivalence partitioning, boundary values, decision tables, state transition, state-combination, property-based. | [`references/sub-case-design.md`](references/sub-case-design.md) |
 | [`bdd`](references/sub-bdd.md) | Shape integration/e2e cases as Cucumber Given/When/Then. | [`references/sub-bdd.md`](references/sub-bdd.md) |
 | [`tdd`](references/sub-tdd.md) | Drive a feature or bug-fix spec-before-code with Red-Green-Refactor. | [`references/sub-tdd.md`](references/sub-tdd.md) |
-| [`harness`](references/sub-harness.md) | Test a harness plugin in isolation — MCP server, unit tests, typecheck, Claude plugin loading (tmux panes). | [`references/sub-harness.md`](references/sub-harness.md) |
+| [`harness`](references/sub-harness.md) | Test a harness plugin in isolation — MCP server, unit tests, typecheck, Claude plugin loading. | [`references/sub-harness.md`](references/sub-harness.md) |
 | [`review`](references/sub-review.md) | Run the verify phase — present results, let the user review an implementation against acceptance criteria. | [`references/sub-review.md`](references/sub-review.md) |
 
 Supporting references (not direct subcommands): [`references/ref-readable-output.md`](references/ref-readable-output.md) — the output

@@ -1,6 +1,6 @@
 > A filled `$RESEARCH_DIR/<ep-slug>.questions.md` — the research agenda one `explorer` agent must
 > answer. Copy the file, replace the questions, delete the `>` lines; each one states the rules for
-> the section above it. The `grill-me` CLI call that generates it is `ref-grill.md`.
+> the section above it. The `grilling` CLI call that generates it is `ref-grill.md`.
 > Agenda generation rules are `references/ref-grill.md`; the result criteria are
 > `references/ref-artifact.md` § Result criteria.
 > The artifact the explorer writes from these answers is `examples/research-artifact.md`; its

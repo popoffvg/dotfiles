@@ -15,8 +15,8 @@ Per-skill buckets:
   UNTRIGGERED the human invokes it by name, the model never picks it up on its
               own. Not a prune candidate — a description that fails to match
               the situations the skill is wanted in. Skills that declare
-              themselves human-only (disable-model-invocation,
-              model-invocable: false) are exempt: for a router that is correct
+              themselves human-only (disable-model-invocation) are exempt:
+              for a router that is correct
   BROKEN      errored under a name it still answers to: the error is inside the
               window AND postdates the file's mtime. An error older than the
               SKILL.md that fixed it is history, not a defect
@@ -140,7 +140,7 @@ def read_frontmatter(skill_md):
             flat = line.strip().replace(" ", "")
             if line.startswith("name:"):
                 name = line.split(":", 1)[1].strip()
-            if flat in ("disable-model-invocation:true", "model-invocable:false"):
+            if flat == "disable-model-invocation:true":
                 human_only = True
             if flat == "user-invocable:false":
                 model_only = True

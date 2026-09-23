@@ -16,11 +16,6 @@ are the steps of [`sub-bdd.md`](sub-bdd.md).
 
 > No production code is written without a failing test first.
 
-Code written before its test costs three things. You never learn whether the test can fail, so a
-false positive can sit there for years. Your test is shaped by the implementation you already
-wrote, so it asserts what the code does rather than what the behaviour requires. And you have
-written legacy code on day one — code whose specification exists only in someone's memory.
-
 ## Order the work by big case
 
 Take the big cases in the order the reader would care about, and finish one before starting the

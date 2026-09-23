@@ -13,14 +13,14 @@ parent project. `jj -R . log` is the history.
 
 | Path | Holds | Written by |
 |------|-------|------------|
-| `spec.md` | Target picture + the ledger (`Layer \| Outcome \| Commit`) + the Plan with its wave table | `/code new`, `/code revise` |
+| `spec.md` | Target picture + the ledger (line roster: `arch:ref-write.md` § Spec-Readiness Checklist) + the Plan with its wave table | `/code new`, `/code revise` |
 | `GLOSSARY.md` | Project ubiquitous language — every term the spec uses | every phase |
 | `RULES.md` | What to raise with the human at each step, and what to decide alone | `/code new` Step 0.6 |
 | `PATTERNS.md` | Implementation patterns + reference files the increments follow — for the implementer, not the human | `/code new` Step 0, then any subcommand that finds a pattern |
 | `CONCEPTS.md` | App architecture, data flow, and the flow this work changes — every diagram, drawn with `show-me` | `/code new` Step 0, when there is structure to draw |
 | `thoughts/` | `NNN-{question,decision,fact,impl-decision}-slug.md` — the thought graph | every phase |
 | `thoughts/archived/` | Answered questions + superseded thoughts — kept for the trail, out of the live graph | a hook, on any note that stops being live |
-| `todos/` | `CLAUDE.md` (the pair convention) + `TODO-N.md` + `TODO-N.agent.md` + `TODO-N.test.md` — one self-contained row per ledger row: the human half (Outcome, Components, Flow changes, Increments, Commit), the test file (Autotest), and the agent half (Files, Pre-reads, Manual test) | `/code new` (the folder + `CLAUDE.md`), `/code todo` (the pairs) |
+| `todos/` | `CLAUDE.md` (the pair convention) + `TODO-N.md` + `TODO-N.agent.md` + `TODO-N.test.md` — one self-contained row per ledger row: the human half (Outcome, Delivers, New terms, Components, Surface, Flow changes, Increments, Commit), the test file (Autotest), and the agent half (Files, Pre-reads, Manual test) | `/code new` (the folder + `CLAUDE.md`), `/code todo` (the pairs) |
 | `research/` | Explore-phase artifacts, ingested into `thoughts/` as facts | `/dive docs` |
 
 ## Read order

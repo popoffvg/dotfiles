@@ -23,7 +23,7 @@ turns out to be a real missing assertion, highest first.
 
 **One edit per mutant.** Two edits at once produce a verdict that names neither.
 
-**Stop at the budget.** The brief names a mutant count (12 by default). Spend it on the operators
+**Stop at the budget.** The brief names the mutant count. Spend it on the operators
 highest in this table that the changed lines actually contain — a file with no arithmetic gets no
 arithmetic mutant, and the slot goes to the next operator down.
 

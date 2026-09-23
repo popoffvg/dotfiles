@@ -20,7 +20,7 @@ and not something the caller has to paste into your prompt.
 |---|---|
 | The entry point | The file, symbol, or URL your path starts at. |
 | `$RESEARCH_DIR` (absolute) | Where `<ep-slug>.md` goes. Write nowhere else. |
-| `<ep-slug>.questions.md` | Read it. Answer every question, in order, in `## Grill answers`. |
+| `<ep-slug>.questions.md` | Read it. Answer the agenda in order — one numbered answer per section, covering its questions, in `## Grill answers`. |
 | Gaps (re-spawn only) | The specific chain steps left thin. **Edit the existing `.md` in place** — never rewrite it. |
 
 If the caller names gaps, you are a second-round explorer: open the existing `<ep-slug>.md`, fill

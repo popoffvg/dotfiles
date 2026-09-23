@@ -1,7 +1,6 @@
 ---
 name: check-answers
 description: Act on what the operator wrote into a file the `to-user` skill handed them — do the work each answer unblocks, and know when the watch is over. Use when a monitor report for a review file lands in chat, when the user says "check my answers", "did I answer yet", "read the file again", or after they say they are done editing.
-version: 0.1.0
 ---
 
 # check-answers
@@ -10,7 +9,7 @@ version: 0.1.0
 
 ## Procedure
 
-1. Branch on the report's `status`. **`NEW`** — act on the answers in the diff, under **Acting on an answer**. **`DONE`** — act on the last answers and say the file is closed out; the watch has already exited.
+1. Branch on the report's `status`. **`NEW`** — act on the answers in the diff, under **Acting on an answer**. **`DONE`** — act on the last answers and say the file is closed out; the watch has already exited. **`ARMED`** and **`QUIET`** carry no new answers — keep working and wait for the next report.
 2. Report in one line what arrived — `2 of 7 answered, acting on 3 and 5`. Never re-dump the review file and never grep it whole; the diff is what the report is for.
 
 **Asked for a status outside a report** — "did I answer yet", or the operator says they are done — run `~/.claude/scripts/answers-since.sh <file>` once. It prints the same report on demand. One call per check: it re-snapshots, so a second call shows this check's edits as already seen.

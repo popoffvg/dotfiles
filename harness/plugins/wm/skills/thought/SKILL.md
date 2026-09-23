@@ -1,6 +1,6 @@
 ---
 name: thought
-description: This skill should be used when a skill, agent, or plan refers to a "thought", a "thought graph", a "thoughts/" note, or an instruction to "record each decision as a thought" — e.g. the code skill's spec notes or the hunch skill's decision chain — or when the user asks what a thought is. Defines the concept (the atom of reasoning); each consumer keeps its own format.
+description: Use when the user asks what a thought is — the atom of reasoning the wm flow and the `hunch` skill both record. Defines the concept and its kinds; each consumer keeps its own format.
 user-invocable: false
 ---
 
@@ -26,5 +26,5 @@ An unanswered question is a thought too: it is recorded where the thoughts live,
 1. **Every decision is a thought.** No silent decision — a decision with no recorded thought is not allowed. Framing, choosing, pruning, committing: each is a thought.
 2. **Record the why.** Decision plus reason, together. A thought without its reason is a fact stripped of its trace.
 3. **No silent kill.** A pruned, superseded, or wrong thought leaves its reason. Deprecate, never delete — the history of wrong decisions is as valuable as the right ones.
-4. **Fix the thought before the artifact.** Code (or a spec, or a plan) corrected without correcting its thought drifts back. A thought corrected without fixing the artifact is philosophy.
+4. **Fix the thought before the artifact.** Code (or a spec, or a plan) corrected without correcting its thought drifts back, and a thought corrected without fixing the artifact changes nothing.
 5. **Thoughts link.** Trace backward to what a thought depends on, forward to what it affects. The graph is self-documenting: a questioned decision shows its alternatives and why they lost.

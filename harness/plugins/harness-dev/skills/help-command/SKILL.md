@@ -15,7 +15,7 @@ A help command is a Claude Code slash command whose body is **static reference c
 
 ```markdown
 ---
-name: <name>-help
+name: <router>:help
 description: Show all /<thing> subcommands with one-line descriptions.
 ---
 
@@ -39,8 +39,7 @@ A slash-command file is injected as a prompt, then the model responds. A soft le
 
 ## Checklist
 
-- Filename is `<router>:help.md` — the colon separates router from subcommand, and the filename alone decides the command name (`name:` frontmatter is ignored). Keep `name:` matching it anyway.
+- Filename is `<router>:help.md` — the colon separates router from subcommand. Keep `name:` matching it.
 - Body = verbatim directive, then the static content. No logic, no `${CLAUDE_PLUGIN_ROOT}` references, no tool use.
 - Keep every help command in the plugin consistent — same directive wording.
-- Editing files under `harness/plugins/<plugin>/` trips the pre-commit hook → that plugin's `plugin.json` minor-bumps on commit. Expected.
 - Reload to test: `/reload-plugins`, then run `/<plugin>:<router>:help`.

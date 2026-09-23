@@ -1,6 +1,6 @@
 ---
 name: terms
-description: Extract domain terms from a set of text sources (skills, docs, specs, code comments, CLAUDE.md) and align them into one glossary. Use when asked to "align terminology", "build a glossary", "extract terms across sources", "find synonyms / duplicate terms", "suggest term renames", "sharpen vague terms", "unify the ubiquitous language", or "check terms are used consistently".
+description: Extract domain terms from a set of text sources (skills, docs, specs, code comments, CLAUDE.md) and align them into one glossary. Use when asked to "align terminology", "build a glossary", "extract terms across sources", "find synonyms / duplicate terms", "suggest term renames", "sharpen vague terms", "unify the glossary", or "check terms are used consistently".
 ---
 
 # Terms

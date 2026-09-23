@@ -24,14 +24,14 @@ The situation arrives in four disguises, and naming yours picks the instrument i
    | Rung | Instrument | Reach for it via |
    |---|---|---|
    | 1 | The real launch — app, CLI, server, the production path | `run` skill; `herdr` when it needs a tty |
-   | 2 | A throwaway test in the project's own runner | `probe-library-behavior-with-a-throwaway-test` |
+   | 2 | A throwaway test in the project's own runner | a test file beside the project's own suite, deleted in step 7 |
    | 3 | A standalone probe script in `~/.claude/scripts/` + its MANIFEST row | — |
    | 4 | Source-read, when nothing executable exists | verdict is labelled **source-read**, never proved |
-3. **Build the input with the project's own producer.** A hand-written literal proves your idea of the input; the builder, fixture factory, or real command proves the input. `stage-fixtures-from-the-real-producer` covers the fixture case.
+3. **Build the input with the project's own producer.** A hand-written literal proves your idea of the input; the builder, fixture factory, or real command proves the input.
 4. **Run it and capture the raw record** — the exact command, the exit code, the output lines you will quote. Long runs go to a background task (`bg-build-and-test`). Paraphrase from memory is not a record.
 5. **Add both controls.** This is where a probe earns the word proof.
    - **Negative control** — break the exact thing the claim says was checked, re-run, and see it fail. Absent this, a PASS may only mean the instrument ran.
-   - **Positive control** — every nothing-found result (no process, no grep hit, empty query, "no precedent") runs the same query against a neighbour known to exist, and finds it. A blind query answers exactly like a query about something gone.
+   - **Positive control** — every nothing-found result (no process, no grep hit, empty query, "no precedent") runs the same query against a neighbour known to exist, and finds it. This is the positive control `CLAUDE.md` requires.
 6. **Rule with one of three verdicts.**
    - **PROVED** — outcome observed, negative control failed as designed.
    - **DISPROVED** — the kill criterion was observed.

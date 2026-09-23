@@ -3,7 +3,7 @@ name: code
 description: >
   Manage spec writing, implementation, and bug fixing.
 argument-hint: help
-model-invocable: false
+disable-model-invocation: true
 ---
 
 # Code — subcommand router
@@ -39,8 +39,6 @@ Reference-type slugs in the last column name the skill that owns the file: **`su
 | `fix` | Close a gap (bug / missing / adjust) by fixing the thought, then the code. Edits source. | `impl:sub-fix.md` |
 | `commit` | When to commit and how a correction lands (fixups) — shared by `impl`, `auto`, `fix`. The message itself: the `commit-message` skill. | `impl:sub-commit.md` · `skill:commit-message` |
 | `help` | This page. | `self:SKILL.md` |
-
-Path by slug: `sub:` files live in this skill's `commands/`; `arch:`, `impl:`, `review:`, and `teach:` in that skill's `commands/` or `references/`; `ref:` in this skill's `references/`; `self` is this SKILL.
 
 ## Pipeline
 

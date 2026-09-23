@@ -36,7 +36,7 @@ A user-invocable skill with many subcommands splits into one **router** and seve
 
 **Cite across skills with the owning skill's prefix** — `arch:ref-write.md`, `impl:sub-commit.md`, `teach:sub-quiz.md`, and `code:<file>` pointing back at the router. The prefix says which skill to open; a bare filename always means a file in the citing skill.
 
-Worker skills need `user-invocable: false` in their frontmatter. That is the key that hides a skill from the slash-command list while leaving the model free to load it by name; `model-invocable: false` is its opposite and belongs on the router, which the user runs and the model does not.
+Worker skills need `user-invocable: false` in their frontmatter. That is the key that hides a skill from the slash-command list while leaving the model free to load it by name; `disable-model-invocation: true` is its opposite and belongs on the router, which the user runs and the model does not. Those two are the only real keys — `model-invocable`, `model-invocation`, and `user-invocation` are silently ignored here and fail hard on upload to claude.ai.
 
 ## Subcommand rosters
 

@@ -222,6 +222,8 @@ The server also writes one line per event to `$TMPDIR/line-comment-lsp.log`
 stderr goes nowhere a person can read. That log answers "did Zed even start it, and what
 did it ask for".
 
+Every change to the store is also appended to `.tmp/line-comment.journal.jsonl` under the workspace root, one JSON event per line: `put` (with the whole comment and the input file it came from), `drop`, `clear`, `anchor` (the list of one file after edits moved its lines), and `snapshot` (a baseline, a store written by another process, or a restore). A comment is journaled before its input file is deleted, so it survives a process that dies before it saves the store. `line-comment-lsp journal` prints the events with their Unix-ms times, and `line-comment-lsp restore [--until <unix-ms>]` rebuilds the store as it stood at that time and saves it.
+
 Then in Zed, by hand:
 
 1. Code actions on a markdown line list `add comment`.

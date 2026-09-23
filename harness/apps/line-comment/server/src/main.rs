@@ -1,6 +1,7 @@
 //! stdio transport: parse LSP messages, hand them to the session, perform its effects.
 
 use std::error::Error;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use line_comment::trace::Trace;
@@ -24,8 +25,12 @@ The subcommands write the same store from a shell, for Claude to place comments:
   drop --all                     remove every comment in the workspace
   list                           print every comment in the export format
   store                          print the path of the store these commands read
+  journal                        print every change the store journal holds, oldest first
+  restore [--until <unix-ms>]    rebuild the store from the journal, as it stood at that
+                                 time or after the last change, and save it
 
-A running server picks the change up through its watch on the store.";
+A running server picks the change up through its watch on the store. Every change to the
+store is appended to .tmp/line-comment.journal.jsonl before it is saved.";
 
 fn main() -> Result<(), Box<dyn Error>> {
     let arguments: Vec<String> = std::env::args().skip(1).collect();
@@ -56,6 +61,15 @@ fn main() -> Result<(), Box<dyn Error>> {
             }),
             "list" => Some(line_comment::cli::list()),
             "store" => Some(line_comment::cli::store_path()),
+            "journal" => Some(line_comment::cli::journal_lines()),
+            "restore" => Some(match rest {
+                [] => line_comment::cli::restore(None),
+                [flag, until] if flag == "--until" => match until.parse::<u128>() {
+                    Ok(until) => line_comment::cli::restore(Some(until)),
+                    Err(_) => Err(format!("`{until}` is not a Unix time in milliseconds")),
+                },
+                _ => Err("usage: line-comment-lsp restore [--until <unix-ms>]".to_string()),
+            }),
             _ => None,
         };
         if let Some(answer) = answered {
@@ -144,11 +158,20 @@ fn await_initialize(connection: &Connection, trace: &mut Trace) -> Option<(Reque
                     ErrorCode::ServerNotInitialized as i32,
                     format!("line-comment expected initialize, got {method}"),
                 );
-                let _ = connection.sender.send(Message::Response(response));
                 if method == "shutdown" {
+                    // Written here, not queued: the process exits next, and the writer
+                    // thread can die with the answer still in its queue. `/dev/stdout`,
+                    // because that thread holds the `std::io::stdout` lock for its lifetime.
+                    if let Ok(mut stdout) =
+                        std::fs::OpenOptions::new().write(true).open("/dev/stdout")
+                    {
+                        let _ = Message::Response(response).write(&mut stdout);
+                        let _ = stdout.flush();
+                    }
                     trace.write("exit before initialize");
                     return None;
                 }
+                let _ = connection.sender.send(Message::Response(response));
             }
             Ok(Message::Notification(notification)) => {
                 trace.write(&format!("before initialize notify {}", notification.method));

@@ -13,8 +13,6 @@ Quint is a typed specification language for describing system behavior formally.
 Use it in plan TODOs to specify state machines, invariants, and edge cases
 that pseudocode cannot express precisely.
 
-Reference: https://quint-lang.org/docs/lang
-
 ## When to use Quint in a plan
 
 - State machines with transitions (auth flows, order lifecycles, connection states)
@@ -67,7 +65,7 @@ module Example {
     if (x < lo) lo else if (x > hi) hi else x
 
   // State-dependent values
-  val isActive = status == Active
+  val isActive = status != Pending
 
   // Actions — state transitions (delayed assignment with ')
   action init = all {
@@ -81,11 +79,15 @@ module Example {
     status' = status,           // unchanged
   }
 
+  action reset = all {
+    counter' = 0,
+    status' = Pending,
+  }
+
   // Non-deterministic choice
   action next = any {
     increment,
     reset,
-    timeout,
   }
 }
 ```
@@ -188,20 +190,3 @@ When writing a Quint spec inside a TODO, keep it focused:
 The spec is a contract: the implementer must satisfy the invariants and
 the runs must pass against the implementation logic.
 
-## Autoresearch rules
-
-**Eval checklist:**
-1. Was Quint used only for stateful/concurrent TODOs (not for linear CRUD or wiring)?
-2. Does each Quint module include at least one invariant and one run?
-3. Are transitions modeled with explicit guards (not implicit assumptions)?
-4. Does the spec define WHAT the system must do, not implementation HOW details?
-
-**Test inputs:**
-- "Specify token rotation with expiry guards and concurrent refresh"
-- "Specify simple CRUD endpoint behavior" (should use pseudocode, not Quint)
-- "Specify leader election protocol with split-brain prevention"
-
-**Can change:** Quint examples, guard/invariant templates, selection criteria, run patterns
-**Cannot change:** WHAT-not-HOW principle, formal spec focus, skip criteria for simple workflows
-**Min sessions before eval:** 5
-**Runs per experiment:** 3

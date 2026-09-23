@@ -26,8 +26,10 @@ Layout:
 
 ```text
 <area>-test-set.md          # the function, big cases, variants, coverage, open questions
-features/<area>.feature     # Given/When/Then bodies, tagged with variant names
 ```
+
+The Gherkin bodies, tagged with variant names, go to the path in
+[`sub-bdd.md`](sub-bdd.md) § Output format.
 
 ## Names join the two artifacts
 

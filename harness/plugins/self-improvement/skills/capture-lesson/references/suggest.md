@@ -25,7 +25,7 @@ In order. Stop at the first that fits:
 | `doc` | the rule is a standing convention with no trigger — it holds in every session, or in every session in one repo | `~/.claude/CLAUDE.md` or the repo's `CLAUDE.md` |
 | `new-skill` | no existing trigger fires on this situation at all | a new `<slug>/SKILL.md` under the right scope |
 
-`covered` is the most valuable verdict this pass can return, and the inventory is what makes it possible. This harness carries 90+ skills, a third of them autocreated (`[auto]` in the inventory) and most of them near-duplicates of each other. Another skill that restates one of those makes the corpus worse, not better — every session pays for it in context and nothing new fires. Prefer `covered` over `extend`, `extend` over `doc`, `doc` over `new-skill`, and only reach the last row when you have checked the inventory and can name what you searched for.
+`covered` is the most valuable verdict this pass can return, and the inventory is what makes it possible. This harness carries many skills, a third of them autocreated (`[auto]` in the inventory) and most of them near-duplicates of each other. Another skill that restates one of those makes the corpus worse, not better — every session pays for it in context and nothing new fires. Prefer `covered` over `extend`, `extend` over `doc`, `doc` over `new-skill`, and only reach the last row when you have checked the inventory and can name what you searched for.
 
 Scope follows the rule, not the repo you happened to be in: `global` when it holds away from these files, `project` when it is true of this repo's tooling, layout or order.
 

@@ -3,11 +3,6 @@ name: show-me
 description: Pick the form that fits what is being shown — pseudocode, a call tree, a Codemap, a component tree, a lifetime tree and type cards for type design, a file tree, a diff, a decision table, a flow diagram (mermaid in md files, ASCII in chat) — and write it into the reply. Use when the user says "show me", "draw it", "sketch that", "what does the flow look like", "where does that live", "show me the types", "review the type design", when a design point is easier pointed at than described, or when prose has grown into a third paragraph about structure. Routes to the drawing skills when the content needs a canvas.
 ---
 
-# MUST FOLLOW
-
-- Use ASD-STE100 for any text in the reply.
-- Write response in architecture decisions record style.
-
 # show-me — one form per kind of content
 
 **The content picks the form, not the size of the system.** Find the row below, draw that form, put one short sentence next to it, and stop.
@@ -21,21 +16,21 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 | a rule, a branch, an algorithm in code that exists | **pseudocode**, one step per line | the reader can restate the rule without the source; every step that exists carries a clickable trailing `# path:line` |
 | a rule or flow before any code exists | **pseudocode** → `flow-sketch` | every branch, failure cause, and open decision is nameable without the source |
 | which function calls which, and in what order | **call tree**, `tree` glyphs | every name is grep-able; path sits as a trailing `# path:line` comment, never on its own line |
-| a code path across files that someone will revisit | a **Codemap** → `codelens` | one question has a pinned, re-anchorable trace |
+| a code path across files that someone will revisit | a **Codemap** → `codelens:codemap` | one question has a pinned, re-anchorable trace |
 | the types of a package, or the types a change adds, before review | **lifetime tree** → § Type design | each type sits at its lifetime level with `new:`, `holds:` and `methods:`, and every review flag is written under the tree |
 | one NEW or CHANGED type in that tree | **type card** → § Type design | every method names what it calls, what it returns, and who calls it |
 | which component owns which, and where state sits | **component tree**, owning path on the root | the state hook and the package boundary are both visible |
 | responsibility across directories | **shallow file tree**, one comment per dir | each comment says what the dir *owns*, not what it holds |
 | a change to any shape above | **`diff`** over that same shape | the surrounding shape is present and unchanged |
 | a shape that is mostly new, or one to copy | **the whole block** | omitting context would hide ownership or order |
-| a path that forks on a condition | **flowchart** — ASCII in chat, mermaid in a file | every branch leaves by a labelled edge |
-| two components talking over time | **sequence diagram** — ASCII in chat, mermaid in a file | each arrow is a real call, named as the code names it |
-| states and the moves between them | **state diagram** — ASCII in chat, mermaid in a file | every terminal state is reachable and marked |
+| a path that forks on a condition | **flowchart** | every branch leaves by a labelled edge |
+| two components talking over time | **sequence diagram** | each arrow is a real call, named as the code names it |
+| states and the moves between them | **state diagram** | every terminal state is reachable and marked |
 | conditions that combine | **decision table**, one row per combination | no combination is missing a row |
 | options being weighed | **comparison table**, one row per option | every column is a dimension that changed someone's mind |
 | numbers, series, distributions | a chart → `dataviz` | — |
 | data at rest and payloads in flight | an interactive diagram → `dataflow` | — |
-| layout, spacing, a colour or state comparison | a rendered SVG → `svg-diagram` | — |
+| layout, spacing, a colour or state comparison | a rendered SVG → `mictx:svg-diagram` | — |
 | boxes the human wants to move | an interactive Artifact → `dataflow` | — |
 | boxes the human must hand-place and keep positioned across sessions | a live board → `board` | — |
 | a design the human must mark up | a board plus rounds → `board` § The round | — |

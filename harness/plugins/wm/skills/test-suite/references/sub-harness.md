@@ -36,9 +36,8 @@ The script starts one headless session with `--plugin-dir` pointed at the source
 session's own `init` record back: where the plugin loaded from, which slash commands, skills, and
 agents it registered, every hook that fired with its exit code, and the model's reply.
 
-`--plugin-dir` **overrides** an installed copy of the same plugin. Probing `wm`, which the
-`local-plugins` marketplace also installs, showed one `wm` entry sourced `wm@inline` at the repo
-path — so the probe reads the working tree with no sync and no reinstall.
+`--plugin-dir` **overrides** an installed copy of the same plugin, so the probe reads the working
+tree with no sync and no reinstall.
 
 Run it in the background (`Bash` with `run_in_background: true`) — a session takes tens of seconds,
 and the `bg-build-and-test` skill governs every run of this length.
@@ -116,8 +115,8 @@ same name, and the probe runs in a fresh temp cwd so no project settings and no 
 answer for the plugin.
 
 **Not isolated:** everything else in the session. Every other installed plugin loads, the user's
-settings load, and the user's global hooks fire — a probe run of a plugin with one hook showed
-fifteen hook records. Read your own marker out of that list; never read the list as the plugin's.
+settings load, and the user's global hooks fire. The hook records of other plugins
+appear beside yours. Read your own marker out of that list; never read the list as the plugin's.
 
 ## Failures and what they mean
 

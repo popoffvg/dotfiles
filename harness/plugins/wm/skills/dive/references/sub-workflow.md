@@ -73,4 +73,4 @@ machine-readable, navigable spec. They must agree on the cited locations.
 6. **Lint:** run `~/.claude/scripts/flow-reveal.mjs check $WORKFLOWS_DIR`. Fix any missing/past-EOF citation before continuing.
 7. **Aggregate** all per-flow workflows into `$WORKFLOWS_DIR/flows.json`. Deduplicate packages by `id`.
 8. **Update** `$RESEARCH_DIR/INDEX.md` — add `[workflow]` links pointing at `../workflows/<ep-slug>/<ep-slug>.workflow.ts` and the `flows.json` line.
-9. **Print** the workflows dir path and suggest `/flow-map` against `$WORKFLOWS_DIR/flows.json` for an interactive HTML view.
+9. **Print** the workflows dir path and `$WORKFLOWS_DIR/flows.json`.

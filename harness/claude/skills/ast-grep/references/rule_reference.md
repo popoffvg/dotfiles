@@ -1,22 +1,12 @@
 # ast-grep Rule Reference
 
-This document provides comprehensive documentation for ast-grep rule syntax, covering all rule types and metavariables.
-
-## Introduction to ast-grep Rules
-
-ast-grep rules are declarative specifications for matching and filtering Abstract Syntax Tree (AST) nodes. They enable structural code search and analysis by defining conditions an AST node must meet to be matched.
-
-### Rule Categories
-
-ast-grep rules are categorized into three types:
+Rules come in three categories:
 
 * **Atomic Rules**: Match individual AST nodes based on intrinsic properties like code patterns (`pattern`), node type (`kind`), or text content (`regex`).
 * **Relational Rules**: Define conditions based on a target node's position or relationship to other nodes (e.g., `inside`, `has`, `precedes`, `follows`).
 * **Composite Rules**: Combine other rules using logical operations (AND, OR, NOT) to form complex matching criteria (e.g., `all`, `any`, `not`, `matches`).
 
 ## Anatomy of an ast-grep Rule Object
-
-The ast-grep rule object is the core configuration unit defining how ast-grep identifies and filters AST nodes. It's typically written in YAML format.
 
 ### General Structure
 
@@ -230,8 +220,6 @@ Metavariables starting with an underscore (`_`) are not captured. They can match
 * **Exclusive Content**: Metavariable text must be the only text within an AST node.
 * **Non-working**: `obj.on$EVENT`, `"Hello $WORLD"`, `a $OP b`, `$jq`.
 
-The ast-grep playground is useful for debugging patterns and visualizing metavariables.
-
 ## Common Patterns and Examples
 
 ### Finding Functions with Specific Content
@@ -290,7 +278,7 @@ rule:
 
 ## Troubleshooting Tips
 
-1. **Rule doesn't match**: Use `dump_syntax_tree` to see the actual AST structure
+1. **Rule doesn't match**: Run `ast-grep run --pattern <code> --lang <lang> --debug-query=cst` to see the actual AST structure
 2. **Relational rule issues**: Ensure `stopBy: end` is set for deep searches
 3. **Wrong node kind**: Check the language's Tree-sitter grammar for correct kind names
 4. **Metavariable not working**: Ensure it's the only content in its AST node

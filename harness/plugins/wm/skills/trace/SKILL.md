@@ -6,8 +6,7 @@ description: >
   split, a Surface shape, a constraint row, an Autotest level set to none, a line of shipped code.
   Spawns one subagent that searches `<notes-dir>/thoughts/` and returns a short decision trace.
   Load it whenever a decision behind a TODO, a spec, or a diff has to be defended, changed, or
-  superseded — `impl:sub-fix.md` Step 1, `arch:sub-revise.md`, a reviewer arguing with an approved
-  shape, or the user asking "why did we do X".
+  superseded — `impl:sub-fix.md` Step 1, `arch:sub-revise.md`, or the user asking "why did we do X".
 ---
 
 # trace — where a decision came from

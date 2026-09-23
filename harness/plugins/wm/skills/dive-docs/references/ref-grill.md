@@ -1,6 +1,6 @@
 # Grill phase — generate questions FOR the explorer
 
-The `explorer` agent works better with a sharp question list. Use `grill-me` not to interview the
+The `explorer` agent works better with a sharp question list. Use `grilling` not to interview the
 user but to **interrogate the entry point itself**: a separate Claude CLI process acts as a paranoid
 reviewer and produces the questions the explorer must answer.
 
@@ -17,7 +17,7 @@ QFILE="$RESEARCH_DIR/$EP_SLUG.questions.md"
 EXAMPLE="$CLAUDE_PLUGIN_ROOT/skills/dive-docs/examples/questions.md"
 
 cat <<PROMPT | claude --model haiku --print --output-format text > "$QFILE"
-/grill-me
+/grilling
 
 You are NOT interviewing a human. You are grilling the codebase entry point below to generate a research agenda for another agent (the "explorer") that will read the code and answer your questions.
 
@@ -37,4 +37,4 @@ matching `explorer` agent.
 
 Notes:
 - `--print` keeps it non-interactive: the CLI generates the question list and exits.
-- If `claude` CLI is unavailable, invoke `grill-me` in-session (sequentially per entry point) to produce the same `.questions.md` files, reading `examples/questions.md` for the required sections.
+- If `claude` CLI is unavailable, invoke `grilling` in-session (sequentially per entry point) to produce the same `.questions.md` files, reading `examples/questions.md` for the required sections.

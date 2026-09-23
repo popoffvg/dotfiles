@@ -41,8 +41,6 @@ carries its own rules as a `>` block underneath: what that piece must do, what i
 it is wrong. Copy the file, replace the content, delete the `>` lines. A rule about one section is
 written there and nowhere else.
 
-Every example carries its rules inline, including both halves of the TODO pair — each `>` block
-states the rule for the piece above it, and that block is the one place the rule is written.
 `references/` holds only what no single piece owns.
 
 `ref-bricks.md` adds the metric and the common structure of each brick. Naming and module home for

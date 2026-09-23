@@ -8,9 +8,9 @@ description: >
 disable-model-invocation: true
 ---
 
-Consolidate the skill corpus that capture-lesson accumulates. That skill writes each new lesson *down* into one skill as a fine-grained piece. `dream` walks the corpus *up*: the inverse pass. Run on demand (`/dream`), not automatically.
+Consolidate the skill corpus that capture-lesson accumulates. That skill routes each new lesson *down* into the cheapest container that enforces it. `dream` walks the corpus *up*: the inverse pass. Run on demand (`/dream`), not automatically.
 
-Before consolidating, `dream` also harvests the sessions the background scan scored high but never turned into lessons — see Step 0 below. Every candidate from both halves — harvest and consolidation — carries a **fast-win score** (below) and reaches the operator as one editable review file written through the [[to-user]] skill. Three consolidation operations, all suggested for review before any write:
+Before consolidating, `dream` also harvests the sessions the background scan scored high but never turned into lessons — see Step 0 below. Every candidate from both halves — harvest and consolidation — carries a **fast-win score** (below) and reaches the operator as one editable review file written through the `to-user` skill. Four consolidation operations, all suggested for review before any write:
 
 - **prune** — drop a rule whose anchor is dead (file/flag/workflow gone) or that never fires. Applies to a whole skill or a single rule inside a body.
 - **unite** — merge rules that share a trigger into the sharper one — whole skills, or bullets within one body.
@@ -39,8 +39,8 @@ The background scan (`capture-lesson:references/score.md`, driven by the Session
 2. **Read the session's suggestion next, if it has one.** `~/.claude/self-improvement/suggestions/<session-id>.md`, pointed at by the record's `suggestion` field. Written by the scan's second pass, it already names a verdict (`covered`, `extend`, `doc`, `new-skill`), a target path, the user's own words as evidence, and the runner-up it rejected — all judged against the harness as it stood that day. Treat it as a first draft by a reader who had the inventory in front of them and the transcript's surrounding context not at all: adopt the target when the evidence holds, and overrule it freely. In particular a `covered` verdict is worth checking hardest, because it is the one that ends the work — open the skill it names and confirm the body really says the rule. A stale suggestion (the target skill has since changed) is normal; the record's `suggested_at` says how old it is.
 3. **Read the transcript's `.env.md` sidecar.** Every archived transcript has one beside it, written by the scan: the session topic and one row per git repo that was in context, with branch and origin remote. Read it before the transcript — it is a few lines, and it is where the scope decision's evidence lives. The archive outlives the working directories, so the sidecar is often the only surviving record of which repo a correction was about; never re-derive that from the cwd you are in now.
 4. **Per transcript, find and judge corrections.** Extract human prompts (`${CLAUDE_PLUGIN_ROOT}/scripts/human-turns.sh <transcript>`), mark the ones that correct behavior, read the surrounding context (`Read` with `offset`/`limit`) to see what the assistant did. Judge each one against `references/judge.md` — the two gates and the harvest scoring anchors. A transcript where nothing passes the gates is harvested with nothing to show for it — delete its `.jsonl` **and its `.env.md`**, move to the next transcript.
-5. **Score each surviving correction, and propose it — do not write it yet.** For each correction that recurs, work [[capture-lesson]] Steps 1–3 far enough to name the scope, the form, and the target skill (extend which file, or a new dir at which path), taking the suggestion from step 2 as the starting proposal rather than beginning from nothing. Feed the sidecar's repo rows into the scope choice. Score it, and hold it as a block for the review file — a harvest block is a suggestion like any other, and nothing is written before the gate.
-6. **Move the transcript only after its block is approved and applied.** Run the rest of [[capture-lesson]] on the approved block, then move the `.jsonl` and its `.env.md` into `~/.claude/self-improvement/lessons/harvested/`, so a transcript is never harvested twice.
+5. **Score each surviving correction, and propose it — do not write it yet.** For each correction that recurs, work `capture-lesson` Steps 1–3 far enough to name the scope, the form, and the target skill (extend which file, or a new dir at which path), taking the suggestion from step 2 as the starting proposal rather than beginning from nothing. Feed the sidecar's repo rows into the scope choice. Score it, and hold it as a block for the review file — a harvest block is a suggestion like any other, and nothing is written before the gate.
+6. **Move the transcript only after its block is approved and applied.** Run the rest of `capture-lesson` on the approved block, then move the `.jsonl` and its `.env.md` into `~/.claude/self-improvement/lessons/harvested/`, so a transcript is never harvested twice.
 7. **Count the harvest** for the review file header — how many transcripts were unharvested, how many produced a block, how many were dropped at the gates, and which repos they came from (from the sidecars).
 
 Then continue to the consolidation flow. Its suggestions and the harvest blocks go into **one** review file, ordered together by fast-win.
@@ -51,7 +51,7 @@ Regenerate `~/.claude/self-improvement/health/rollup.json` (`${CLAUDE_PLUGIN_ROO
 
 - **`bucket: DEAD`** — installed and enabled, zero invocations in the window → prune candidates, ranked by `tokens` (always-resident listing cost). Events reach back only to when collection started, so a DEAD verdict younger than the window is weak — say so in the suggestion.
 - **`bucket: BROKEN`** and the `ghost_skills` rows marked `BROKEN` — a name that still errors → rename or re-point suggestions: something refers to a skill that moved. Rows marked `PROJECT_SCOPED` are a repo's own skill reached from another repo, and `DISABLED` is `skillOverrides` doing its job; neither is a defect and neither is prunable.
-- **`bucket: UNTRIGGERED`** — `by_human` above zero while `by_model` stays zero: the human reaches for the skill by name and the model never picks it up. The rule is wanted, so this is never a prune. It is a `description` that fails to name the situations the skill is for, and the fix is rewriting that trigger against the sessions where the human had to ask. Skills declaring `disable-model-invocation` or `model-invocable: false` are exempt, being human-entry points by design.
+- **`bucket: UNTRIGGERED`** — `by_human` above zero while `by_model` stays zero: the human reaches for the skill by name and the model never picks it up. The rule is wanted, so this is never a prune. It is a `description` that fails to name the situations the skill is for, and the fix is rewriting that trigger against the sessions where the human had to ask. Skills declaring `disable-model-invocation` are exempt, being human-entry points by design.
 - **`interrupt_follow` / `ask_follow`** high relative to `uses` — the skill fires but fights the user. Open the transcript before suggesting anything: a skill whose job *is* interviewing scores here by working, so the count only says which transcript to read.
 
 # Flow
@@ -63,15 +63,15 @@ Regenerate `~/.claude/self-improvement/health/rollup.json` (`${CLAUDE_PLUGIN_ROO
 
 Read in escalating depth — cheap first, deep only where it pays: **descriptions** (all skills) → **bodies** (cluster members) → **aux files + linked docs** (unite/move candidates).
 
-2. **Frame targets by origin.** Autocreated skills carry `metadata.origin: self-improvement` (stamped by [[capture-lesson]]). Those are the prime targets — fine-grained, single-lesson, prone to overlap. Leave hand-authored skills (no marker) alone unless the user says otherwise. Note in each suggestion whether the target is autocreated.
+2. **Frame targets by origin.** Autocreated skills carry `metadata.origin: self-improvement` (stamped by `capture-lesson`). Those are the prime targets — fine-grained, single-lesson, prone to overlap. Leave hand-authored skills (no marker) alone unless the user says otherwise. Note in each suggestion whether the target is autocreated.
 
-3. **Cluster.** Group rules whose triggers overlap or share a theme. Overlap is invisible in a flat list of 80+ skills — clustering is the load-bearing step. A cluster of one is fine (a lone prune candidate). Clustering off descriptions is a *hypothesis* — a shared trigger is not yet a confirmed overlap.
+3. **Cluster.** Group rules whose triggers overlap or share a theme. Overlap is invisible in a flat list of many skills — clustering is the load-bearing step. A cluster of one is fine (a lone prune candidate). Clustering off descriptions is a *hypothesis* — a shared trigger is not yet a confirmed overlap.
 
 4. **Deep read (confirm before suggesting a merge).** For every unite/move candidate cluster, read the **full body of each member plus its aux files** before proposing the operation. A trigger match can hide two genuinely different jobs (an interactive-debugger guide vs a test-failure workflow both fire on "debug"), and a body carries unique content a merge must not drop (a programmatic API absent from the CLI-only sibling). From the deep read, decide: (a) is the overlap real, or do the skills split on backend/purpose? (b) which member is the sharper **survivor**? (c) what unique content from the losers must survive the merge? Record these in the suggestion. Skip deep read only for pure prunes (dead-anchor) — everything that merges or moves rules requires it.
 
 5. **Per cluster, emit suggestions.** For each cluster produce prune / unite / generalize / move suggestions, each with: the target rules (paths), the operation, a one-line reason, its fast-win score, and — for unite/move — the survivor and the unique content to preserve (from step 4). Concrete — name the files, quote the overlapping triggers.
 
-6. **Review gate — write the file, do not present it in chat.** Run the [[to-user]] skill over the whole set, harvest blocks and consolidation suggestions together, with four `dream` specifics:
+6. **Review gate — write the file, do not present it in chat.** Run the `to-user` skill over the whole set, harvest blocks and consolidation suggestions together, with four `dream` specifics:
 
    - The file is `dream-decisions.md`, in the notes dir of the repo the session runs in, or the scratchpad when there is none.
    - **One order: fast-win, highest first.** Not grouped by operation — the operator reads down and stops when they run out of attention, and what they read first is what pays most.
@@ -83,7 +83,7 @@ Read in escalating depth — cheap first, deep only where it pays: **description
    - **unite** → merge bodies into the surviving skill (widen its `description` to cover both triggers), delete the losers.
    - **generalize** → write the broader rule, delete the specifics it subsumes.
    - **move** → cut the rule from the source body, paste into the target skill; widen the target's `description` if the moved rule adds a trigger. If the source body empties, prune the source skill.
-   Preserve the origin marker on survivors. After touching `~/.claude/skills`, no stow step is needed (skills are edited in place there); if editing dotfiles sources, run `mise run stow`.
+   Preserve the origin marker on survivors. Edit and delete in `harness/claude/skills/` — a global skill lives there and reaches `~/.claude/skills` as a stow symlink, so deleting the link leaves the source and the skill returns on the next stow. Run `mise run stow` after a prune or a rename.
 
 # Detection heuristics
 

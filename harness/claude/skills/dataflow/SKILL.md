@@ -16,9 +16,7 @@ This skill owns what counts as a box and what counts as an arrow.
 
 **Publish an interactive Artifact — load the `artifact-design` skill first, as that tool requires.**
 Hold the boxes and arrows as data in the page and compute the routing in JavaScript, so a box the
-reader drags takes its arrows with it. That is the whole reason this beats the alternatives: a
-rendered picture bakes its routes, so every layout complaint becomes a layout fight, and a
-hand-placed grid makes you the layout engine.
+reader drags takes its arrows with it.
 
 What the page owes its reader:
 
@@ -73,34 +71,31 @@ would some data have nowhere to live?** No means it is not a component.
    arrow means you have not read the code yet — go read it. Keep it to a noun phrase: the label
    sits at the arrow's midpoint, so a clause lands on whatever box is in the way, and that alone
    makes a diagram unreadable before anything else about it is wrong.
-5. **One cluster per service.** Give each service a `cluster` so it draws as a titled frame that
-   drags as one thing; `row` and `col` inside it are cluster-local.
-6. **Rows are the kind of box, not a free choice.** Entry points on the top row, the things data
-   rests in below them, requests leaving the system on the bottom row — so data reads downward in
-   every cluster. A band holding more than three boxes takes a second row rather than spilling
+5. **One titled frame per service**, dragged as one thing, with its own grid inside.
+6. **The band is the kind of box, not a free choice.** Entry points along the top, the things data
+   rests in below them, requests leaving the system along the bottom — so data reads downward in
+   every frame. A band holding more than three boxes takes a second row rather than spilling
    sideways, which is also what keeps a hub's arrows short.
 7. **Connect the services.** A call from service A to service B is one arrow from A's api-call box
    to B's entry-point box, labelled with the payload. This is the only kind of arrow that crosses
-   a band, so put those two boxes on the facing edges of their clusters.
-8. **Place to avoid crossings, then read the report.** Two boxes that talk belong on the same row
-   or the same column; an elbow arrow routes around a box only when a corner is free. The page
-   names every arrow that cuts through a third box and every label that lands on one — each is a
-   placement bug, fixed by moving a box.
+   a band, so put those two boxes on the facing edges of their frames.
+8. **Place to avoid crossings.** Two boxes that talk belong on the same row or the same column; an
+   elbow arrow routes around a box only when a corner is free. An arrow that cuts through a third
+   box, and a label that lands on one, are both placement bugs, fixed by moving a box.
 9. **Publish it** as an Artifact per the section above, and say the one thing the picture cannot:
    what you could not find in the code.
 
 ## A hub is what makes a dataflow unreadable
 
 One box that touches five others cannot reach them all along an axis: a cell has four sides, so
-the fifth arrow goes diagonal and cuts a corner box. When the report names crossings that all
-share one endpoint, the layout is not the problem — that box is.
+the fifth arrow goes diagonal and cuts a corner box. When the crossings all share one endpoint, the layout is not the problem — that box is.
 
 Three ways out, in the order to try them:
 
 1. **Give its band a second row**, so its partners sit around it instead of in a line.
 2. **Split the hub** when it is really two responsibilities sharing a name — an entry point that
    also stores state is two boxes.
-3. **Accept the crossing and say which one.** A residual crossing on a cross-cluster return arrow
+3. **Accept the crossing and say which one.** A residual crossing on a cross-service return arrow
    is cheaper than a layout contorted to remove it. Name the crossings you left, the same way you
    name a payload you had to guess.
 
@@ -110,5 +105,4 @@ State every gap out loud: a repository whose writer you never found, an arrow wh
 guessed, a service you saw only from the caller's side. A dataflow diagram that hides a guess is
 worse than no diagram, because the reader trusts the picture over the code.
 
-**Before concluding a component does not exist, run the same search for one you know does.** A
-grep that matches nothing looks exactly like a grep that cannot see anything.
+A component you conclude is absent needs the positive control the always-loaded rules require.

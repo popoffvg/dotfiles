@@ -17,9 +17,9 @@ argument-hint: "[diff (default), todo — full list /review:help] [normal (defau
 the row so the flow reads end to end, and owns nothing about judging.
 
 Both modes ask one question — **is this built right?** — and run the same gates to answer it. They
-differ only in how much the gates can cite. Whether the change is the *right thing* is settled
-outside this skill, by `/code verify` before the code exists and the `verifier` agent after it. The roster — which gate judges what, which agent runs it, at which model tier, and how a
-FAIL routes back — is one file: @references/ref-gates.md. Read it before either mode.
+differ only in how much the gates can cite. The roster — which gate judges what, which agent runs
+it, at which model tier, the wave order, and how a FAIL routes back — is one file:
+@references/ref-gates.md. Read it before either mode.
 
 | Mode | Judges the diff against… | File |
 |---|---|---|
@@ -68,8 +68,6 @@ copies of the checkout, which are thrown away; the checkout never changes.
 `<notes-dir>/review/<target>/`. That is a notes-dir file, not source, and it is not optional — a
 green gate writes it too (@references/ref-gates.md § Every gate writes its report to a file).
 
-**Judges how, never whether.** This skill rules on how the code is built — the rules it obeys, the
-patterns it follows, the inputs that break it. Whether it should have been built at all, whether it
-delivers its Outcome, and whether a rule was right are three other questions, owned by
-`code:sub-verify.md`, the `verifier` agent, and `arch:sub-revise.md`. A gate that reports one of
-them has left its scope.
+**Judges how, never whether.** Whether the code should have been built at all, whether it delivers
+its Outcome, and whether a rule was right are three other questions, owned by `code:sub-verify.md`,
+the `verifier` agent, and `arch:sub-revise.md` (@references/ref-gates.md § No gate judges the spec).

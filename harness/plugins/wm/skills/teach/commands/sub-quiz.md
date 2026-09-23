@@ -4,7 +4,7 @@ Generate a multiple-choice quiz that checks whether **the human** understands th
 grade their answers, report a score. Read-only: quizzes over `spec.md` / the diff, edits no
 artifact. Vocabulary: `wm:GLOSSARY.md`. Spec contract + `status`: `arch:ref-write.md`.
 
-Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
+Obeys the shared subcommand rules — see `code:ref-subcommand-rules.md`.
 
 ## Pick the subject from the phase
 
@@ -27,7 +27,7 @@ No `spec.md` and no diff → nothing to quiz; say so and stop.
 
 Per question:
 - One correct option grounded in the source. Hold the correct answer + its citation (spec section, or `file:line`) — do not reveal it in the option text.
-- 2–3 distractors that are plausible misreadings (a sibling decision, the rejected alternative, an off-by-one boundary), not obvious throwaways. See `dont-game-the-metric` — a distractor no one would pick tests nothing.
+- 2–3 distractors that are plausible misreadings (a sibling decision, the rejected alternative, an off-by-one boundary), not obvious throwaways. A distractor no one would pick tests nothing.
 - Ask via the `to-user` skill — one file, one block per question, the subject area as the block title (`code:ref-subcommand-rules.md` § Put a batch of questions in a file the human edits). Leave **Answer** blank: a pre-filled recommendation would hand the user the answer. List the options under **Original** so the user picks one by writing it in.
 
 ## Grade and report

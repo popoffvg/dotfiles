@@ -18,7 +18,7 @@ Mapping is reading; cutting is judgment. Split the run on that line and fan out 
 
 | Stage | Runs on | Why |
 |---|---|---|
-| Phase 1 map | `prune-mapper`, one per batch of files, always | Bounded read-and-report: named inputs, fixed table, no judgment. The threshold is one file, not eight — the common 3–6 file corpus is exactly where the main model wastes its context naming subjects. |
+| Phase 1 map | `prune-mapper`, one per batch of files, always | Bounded read-and-report: named inputs, fixed table, no judgment. |
 | Phase 2 split | `prune-mapper`, one per file, all in parallel | The same work per file. The main model then reads only the property columns and never loads the prose. |
 | Both tests, and every edit | **The main model** | The no-op test asks whether *the model that will run this file* already behaves that way. A cheaper agent answers about its own defaults, which is the wrong reader. Judge at the tier that will run the pruned file. |
 | After the cuts | `prune-blind-reader`, one per pruned file | It runs the pruned file cold, seeing no original and no cut list, and reports where it had to guess. Each guess is an over-cut. This is the only check that reads the file as a file instead of as a diff — and the only one your own memory of the original cannot bias. |

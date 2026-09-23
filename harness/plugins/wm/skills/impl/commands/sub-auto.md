@@ -11,8 +11,6 @@ tool is available.
 Obeys the shared subcommand rules (`code:ref-subcommand-rules.md`), except **source is written**: `auto`
 drives `impl`, so the project source changes.
 
-`impl` executes exactly one TODO and hands back. `auto` is the loop around it.
-
 ## Step 0 — the goal
 
 /goal every TODO in the notes-dir ledger has status done, the deploy command ran green, and the E2E verification command ran green
@@ -54,7 +52,8 @@ For **every** TODO in the work list, in order — not the first, not the easy on
 6. **Capture the traps the round met outside the fixups** — follow the `capture-gotcha` skill for every
    repeatable trap that produced no fixup: a repo convention the reviewer named, a command that failed in a
    non-obvious way. `LESSONS.md` holds the run; `GOTCHAS.md` holds the traps for every later spec.
-7. **Advance the status** — `verify → done` on every gate green. Commit the notes-dir (`code:ref-jj-notes.md`).
+7. **Commit the notes-dir** (`code:ref-jj-notes.md`). The `review:sub-todo.md` chain already set the
+   TODO `status`; this step writes none.
 
 A gate that exhausts its budget (`review:ref-gates.md` § The gate budget) blocks the TODO: record the
 blocker in `LESSONS.md` and continue with the next TODO that no blocked TODO blocks. A blocked round

@@ -14,7 +14,7 @@ Attack every identifier. A name survives only if it passes both gates; otherwise
 
 **Gate 1 — clear without context.** A reader who sees the name alone, with no surrounding code, knows what it holds or does. Includes unit and boundary where they matter (`timeoutMs`, not `timeout`).
 
-**Gate 2 — domain language.** The name is a term from the problem domain (ubiquitous language), not an implementation or technical term. `placeOrder`, not `insertOrderRow`. One term per concept across the whole diff — no synonyms.
+**Gate 2 — domain language.** The name is a term from the problem domain (ubiquitous language), not an implementation or technical term. `placeOrder`, not `insertOrderRow`. One term per concept — the rule and its tests live in `searchable-names`.
 
 ## Action flow
 

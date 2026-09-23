@@ -9,7 +9,7 @@ judge an **open question** by reading it. Vocabulary: `wm:GLOSSARY.md`.
 - Does not run: no `go build`, no lint, no tests, no codegen, no commits.
 - The diff is the artefact — the user reads it to decide.
 - Scope ≤ 4 files. Beyond that, the implementer stops and reports.
-- Compile breaks at the prototype's edges are expected — leave a `TODO(<TICKET>) prototype:` marker showing the real wiring. Do not "fix" them; that wiring is a downstream TODO's job.
+- Compile breaks at the prototype's edges are expected — leave a `prototype:` marker showing the real wiring. Do not "fix" them; that wiring is a downstream TODO's job.
 
 ## When to use
 
@@ -35,7 +35,7 @@ The report is a navigation aid. Judge from `git -C <repo> diff <files-touched>`.
 
 ## The "valid for a prototype, broken as a contract" smell
 
-Prototypes breed convenience hacks — nullable dependencies, fallback branches, sentinel values, silent no-ops — each a future bug surface if treated as the answer. Before resolving, ask:
+Before resolving, ask:
 
 - A `nil`-tolerant dependency production would never tolerate?
 - A zero-value / sentinel ambiguity (two states that look the same)?

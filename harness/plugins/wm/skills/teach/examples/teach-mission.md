@@ -8,7 +8,7 @@
 
 ## Why
 
-Ivan reviews workflow pull requests today by trusting the author, because he cannot tell a wrong Tengo template from a right one. He wants to review them unaided before the October release, and later own the engine when its current maintainer moves teams.
+Ivan reviews workflow pull requests today by trusting the author, because he cannot tell a wrong Tengo template from a right one. He wants to review them unaided by the end of the quarter, and later own the engine when its current maintainer moves teams.
 
 > Mission-first rules: `teach:commands/sub-teach.md` § The mission comes first.
 

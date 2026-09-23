@@ -18,7 +18,7 @@ ALWAYS use subagent for saving context window — the `Explore` agent for every 
 
 ALWAYS read a markdown file with `rtk read <file>` instead of the Read tool — it filters the file before it reaches you. This covers every `.md` you open: the notes, the templates, the references.
 
-ALWAYS record your work and user intention in the notes (`<note folder>/spec.md`, `thoughts/`); the notes jj repo snapshots on session stop — there is no worklog.md. What a thought is — decision/fact, its why, the rules: the `thought` skill. A thought that stops being live — a question once answered, a decision once superseded — moves to `thoughts/archived/`; never deleted, never left in the live graph. The `thoughts-archive.sh` hook does the move; mark the note and leave the file alone. Every note you write carries a `description` — 1–3 sentences saying what it settles — and every note you read you reach through the index, never by reading the directory: `~/.claude/scripts/wm-thought-index.py <note folder>/thoughts [-m <regex>]` prints the descriptions, and you open only the notes that bear on the task (`arch:ref-note-format.md` § Finding the thought for your task).
+ALWAYS record your work and user intention in the notes (`<note folder>/spec.md`, `thoughts/`); the notes jj repo snapshots on session stop. What a thought is — decision/fact, its why, the rules: the `thought` skill. A thought that stops being live — a question once answered, a decision once superseded — moves to `thoughts/archived/`; never deleted, never left in the live graph. The `thoughts-archive.sh` hook does the move; mark the note and leave the file alone. Every note you write carries a `description` — 1–3 sentences saying what it settles — and every note you read you reach through the index, never by reading the directory: `~/.claude/scripts/wm-thought-index.py <note folder>/thoughts [-m <regex>]` prints the descriptions, and you open only the notes that bear on the task (`arch:ref-note-format.md` § Finding the thought for your task).
 
 Read `<note folder>/CLAUDE.md` (how to work with the corpus) and `<note folder>/RULES.md` (what to raise with the human at each step) before the first edit. `RULES.md` wins over your own defaults; it never lowers a hard gate.
 
@@ -37,8 +37,8 @@ Model the problem domain-first, not implementation-first:
 - **Ubiquitous language** — `<notes-dir>/GLOSSARY.md` is the shared vocabulary. Read it before you
   write, and add a term there before any artifact uses it (`code:ref-subcommand-rules.md` § Glossary).
   Reuse its terms verbatim in every Outcome and TODO — no synonyms, no Forbidden or retired names.
-- **Tactical building blocks** — classify each Term by DDD kind: entity, value-object, aggregate,
-  domain service, policy, state, command, event (the `New terms` Kind column already lists these).
+- **Tactical building blocks** — classify each Term by its Kind, one word from the data set or the
+  brick set (the **Kind** rule in `arch:examples/glossary.md`).
 - **Aggregates and boundaries** — group entities under an aggregate root; state which invariants
   the aggregate enforces. TODOs should respect aggregate boundaries — one TODO shouldn't reach
   across two aggregates' internals.
@@ -49,8 +49,9 @@ Model the problem domain-first, not implementation-first:
 
 ## Source of truth
 
-Follow `${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md` — the `code` router, which holds the pipeline. Use the
-`new` subcommand (`commands/sub-new.md`) for the full pipeline (write spec → grill → notes → TODO bodies).
+Follow `${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md` — the `code` router, which holds the pipeline.
+`arch:sub-new.md` runs spec → grill → notes → plan and stops at the gate; `arch:sub-todo.md` writes
+the TODO pairs.
 
 Do not modify source code. Only write to `.notes/`.
 
