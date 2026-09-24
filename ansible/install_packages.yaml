@@ -41,6 +41,7 @@
       - languagetool
       - patchutils
       - dust
+      - scc
       - procs
       - htop
       - tree
@@ -158,6 +159,13 @@
       register: nb_font
       changed_when: "'Installing' in nb_font.stdout"
       failed_when: false
+
+    # Quint is a specification language. Helix ships the grammar and expects the
+    # server binary on PATH; the CLI runs and verifies the spec the server checks.
+    - name: Install the Quint toolchain globally via npm
+      ansible.builtin.shell:
+        cmd: npm install -g @informalsystems/quint @informalsystems/quint-language-server
+      changed_when: false
 
     - name: Install git-split-diffs globally via npm
       ansible.builtin.shell:

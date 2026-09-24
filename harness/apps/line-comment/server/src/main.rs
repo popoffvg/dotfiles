@@ -525,7 +525,10 @@ impl Server {
             let _ = std::fs::create_dir_all(parent);
         }
         if let Err(error) = std::fs::write(&path, contents) {
-            self.show(true, format!("line-comment: cannot write {} ({error})", path.display()));
+            self.show(
+                true,
+                format!("line-comment: cannot write {} ({error})", path.display()),
+            );
             return;
         }
         self.trace.write(&format!("{what} {}", path.display()));

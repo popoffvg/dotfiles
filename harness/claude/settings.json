@@ -157,12 +157,8 @@
         ]
       },
       {
-        "matcher": "Write|Edit",
+        "matcher": "*",
         "hooks": [
-          {
-            "type": "command",
-            "command": "node $HOME/.claude/hooks/comment-check.mjs"
-          },
           {
             "type": "command",
             "command": "node $HOME/.claude/hooks/name-reminder.mjs"
@@ -170,7 +166,6 @@
         ]
       }
     ],
-    "PreCompact": [],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -178,21 +173,7 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/block-branch-change.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/skill-trace.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
+          },
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/guard-uncommitted-loss.sh"
@@ -218,47 +199,7 @@
         ]
       }
     ],
-    "SessionStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/scripts/read-claude-local-subrepos.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $HOME/.claude/hooks/herdr-agent-state.sh session",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
     "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node $HOME/.claude/hooks/coach.mjs"
-          }
-        ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 $HOME/.claude/hooks/herdr-auto-title.py",
-            "timeout": 10
-          }
-        ]
-      },
       {
         "matcher": "",
         "hooks": [
@@ -320,9 +261,9 @@
     "codemap@codelens": false,
     "codelens@codelens": true,
     "cc-plugin-you-should-know@builtin": true,
-    "hi@local-plugins": true,
     "line-comment@local-plugins": true,
-    "smart-commit@local-plugins": true
+    "smart-commit@local-plugins": true,
+    "quint@quint": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -367,6 +308,12 @@
       "source": {
         "source": "directory",
         "path": "/Users/vitaliipopov/git/codelens"
+      }
+    },
+    "quint": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/quint-co/quint.git"
       }
     }
   },

@@ -309,16 +309,24 @@ impl Session {
                 }
                 continue;
             }
-            // Journaled before the file goes: from here the journal is the only copy until
-            // the caller persists the store.
-            self.upsert_comment_from(
+            let comment = self.comment_for(
                 &target.file,
                 target.line,
                 target.end_line,
                 with_revision(body, target.commit.as_deref()),
                 Author::Human,
-                &path.to_string_lossy(),
             );
+            // The hand-over writes the file, and the watch reports that write before the
+            // editor has opened the path. `edit comment` puts the stored text in the file,
+            // so this read repeats a comment already held — storing it here would delete
+            // the file under the editor and hand the operator an empty buffer.
+            if saved != Some(path.as_path()) && self.store.comments(&target.file).contains(&comment)
+            {
+                continue;
+            }
+            // Journaled before the file goes: from here the journal is the only copy until
+            // the caller persists the store.
+            self.upsert_comment_from(&comment, &target.file, &path.to_string_lossy());
             let _ = std::fs::remove_file(&path);
             stored = true;
         }
@@ -363,19 +371,19 @@ impl Session {
         text: String,
         author: Author,
     ) {
-        self.upsert_comment_from(key, line, end_line, text, author, "comment");
+        let comment = self.comment_for(key, line, end_line, text, author);
+        self.upsert_comment_from(&comment, key, "comment");
     }
 
-    /// `upsert_comment`, with `source` naming the writer in the journal.
-    fn upsert_comment_from(
-        &mut self,
+    /// The comment a hand-over would store, anchored to the line as it reads now.
+    fn comment_for(
+        &self,
         key: &str,
         line: usize,
         end_line: usize,
         text: String,
         author: Author,
-        source: &str,
-    ) {
+    ) -> Comment {
         let document = self.text_of(key);
         let lines = anchor::lines(&document);
         let line = line.max(1);
@@ -388,12 +396,17 @@ impl Session {
             author,
         };
         comment.cover(line, end_line);
+        comment
+    }
+
+    /// Put the comment in the store, with `source` naming the writer in the journal.
+    fn upsert_comment_from(&mut self, comment: &Comment, key: &str, source: &str) {
         self.record(StoreEvent::Put {
             file: key.to_string(),
             comment: comment.clone(),
             source: source.to_string(),
         });
-        self.store.upsert(key, comment);
+        self.store.upsert(key, comment.clone());
     }
 
     /// Remove the comment starting on `line`; false when there was none.

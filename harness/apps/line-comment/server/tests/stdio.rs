@@ -150,7 +150,6 @@ impl Drop for Server {
     }
 }
 
-
 /// The one input file the server minted under `.tmp/`, once it lands on disk.
 fn wait_for_input(tmp: &Path) -> PathBuf {
     for _ in 0..200 {

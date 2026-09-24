@@ -1,6 +1,10 @@
 #!/usr/bin/env node
-// PostToolUse hook (Write|Edit) — raise the naming rules once every N source edits.
-// Stdin: { session_id, tool_name, tool_input: {file_path, ...}, ... }
+// PostToolUse hook (every tool) — raise the naming rules once every N source edits.
+// Stdin: { session_id, tool_name, tool_input: {...}, ... }
+//
+// A source edit arrives through any tool: Write and Edit name the file directly, and a
+// shell edit (sed -i, perl -i, tee, a heredoc redirect, cp, mv) names it inside the
+// command. A tool call that only reads must not spend the budget.
 // Config at ~/.claude/name-reminder.json:
 //   mode  — off | async (count, stay silent) | warn (default)
 //   every — source edits between reminders (default 50)
@@ -39,6 +43,24 @@ Read the names this session has written, against the \`searchable-names\` skill:
 Load the skill for the rule you need. Rename in this commit, not a later one — the rules
 say a rename rides with the change that made the old name wrong.`;
 
+// The shell verbs that write a file. A reader (cat, head, grep) is absent on purpose.
+const SHELL_WRITE = /(^|[|;&(]\s*)(sed\s+(-[^\s]*\s+)*-i|perl\s+(-[^\s]*\s+)*-i|tee|cp|mv|install|gofmt\s+-w|patch)\b|>>?\s*\S/;
+
+// Return the source file this tool call wrote, or "" when it wrote none. Markdown, JSON,
+// and every other non-source extension return "" — a run of them must not spend the
+// budget, or the reminder lands in a session that wrote no names at all.
+function editedSourceFile(input) {
+  const named = input.file_path || input.notebook_path || "";
+  if (named) return CODE_EXT.has(extname(named)) ? named : "";
+
+  const command = input.command || "";
+  if (!command || !SHELL_WRITE.test(command)) return "";
+  for (const token of command.split(/[\s'"`<>|;&()]+/)) {
+    if (CODE_EXT.has(extname(token))) return token;
+  }
+  return "";
+}
+
 function counterPath(sessionId) {
   const dir = join(io.paths.lastFile, "..", "counts");
   mkdirSync(dir, { recursive: true });
@@ -66,10 +88,8 @@ async function main() {
   const cfg = io.loadCfg();
   if (cfg.mode === "off") process.exit(0);
 
-  // Only source edits count. A run of markdown or JSON edits must not spend the
-  // budget, or the reminder lands in a session that wrote no names at all.
-  const file = payload.tool_input?.file_path || "";
-  if (!CODE_EXT.has(extname(file))) process.exit(0);
+  const file = editedSourceFile(payload.tool_input || {});
+  if (!file) process.exit(0);
 
   const path = counterPath(payload.session_id);
   const count = bump(path);

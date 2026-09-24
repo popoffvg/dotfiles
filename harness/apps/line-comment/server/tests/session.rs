@@ -1335,3 +1335,26 @@ fn a_comment_in_a_diff_view_of_a_repo_inside_a_project_lands_in_the_project_stor
     assert_eq!(stored.comments("pl/docs/spec.md").len(), 1);
     assert!(!repo.join(".tmp").exists());
 }
+
+#[test]
+fn the_hand_over_write_leaves_the_edit_file_for_the_operator() {
+    let (mut session, _root, uri) = open("# Title\n\n## Design\n");
+    add(&mut session, &uri, 2, "first line");
+
+    let (path, contents) = handed_over(&mut session, &uri, 2);
+    // The hand-over puts the pre-filled text on disk, and the watch reports that write
+    // before the editor has opened the path.
+    write_input(&path, &contents);
+    let effects = session.drain_input();
+
+    assert!(effects.is_empty(), "the pre-fill stores nothing new");
+    assert!(path.exists(), "the editor must find the file it is sent to");
+
+    // The same watch stores the text the operator then types over the pre-fill.
+    let header = contents.lines().next().unwrap_or_default();
+    write_input(&path, &format!("{header}\n\nsecond line\n"));
+    session.drain_input();
+
+    assert_eq!(comment(&session, 0).text, "second line");
+    assert!(!path.exists());
+}
