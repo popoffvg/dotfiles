@@ -57,7 +57,7 @@ Every route that fans out over entry points spawns its subagents the same way. T
 | Field | Value | Why |
 |---|---|---|
 | `subagent_type` | `"wm:explorer"` or `"wm:explore-critic"` | The plugin prefix is what resolves the definition. Without it the call falls back to a generic agent, and the agent's own `model: sonnet` never applies. |
-| `model` | `"sonnet"` | Repeat it on the call even though the definition already says sonnet. A call that omits `model` inherits the orchestrator's model, so a dropped field silently buys an opus agent. |
+| `model` | `"sonnet"` | Repeat it on the call even though the definition already says sonnet. The explicit argument keeps the pin if the definition's default moves. |
 | `name` | `"explorer-<ep-slug>"` or `"critic-<ep-slug>-r<round>"` | The progress label. Name the agent here — never by inventing a new `subagent_type`, which throws the definition away. |
 
 **Never invent an agent type for a `docs` fan-out.** `dive-critic`, `explorer-rotation`, and every other made-up type is an agent with no definition: no contract, no tool list, and no model of its own. Use `name` for the per-entry-point label and keep `subagent_type` at one of the two real values.

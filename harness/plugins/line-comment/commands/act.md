@@ -122,4 +122,4 @@ pattern candidates: <N> saved to <notes-dir>/patterns/
 
 Close with the session path on its own line, so the record is reachable.
 
-The `→` line is the fork's own line for that comment, not a rewrite of it. No investigation narrative, no account of how the referent was located, no closing summary, no restatement of the comments before acting, nothing about which agent did what. Do the work first, print the outcome. The grilling session's own output contract (summary, decision log, unknowns, next actions) is replaced by this block — do not print it.
+The `→` line is the fork's own line for that comment, not a rewrite of it. This block replaces the grilling session's own output contract (summary, decision log, unknowns, next actions).

@@ -52,8 +52,10 @@ frontmatter `description` is the rule text the implementer reads:
   repointed at a different rule.
 - **One note per decision** — the rule set cannot hold a duplicate, because two TODOs obeying one
   decision still read one note.
-- A decision that changes is an **edit to that note's description**. A decision that is reversed is
-  `status: declined` + `superseded_by:`, and the archive hook removes it from the rule set.
+- A decision is **never edited in place**. A changed or reversed decision is a new note, plus
+  `status: declined` + `superseded_by:` on the old one, and the archive hook removes the old note from
+  the rule set. A term rename is the one in-place change, and `~/.claude/scripts/rename-token.sh`
+  makes it, not the agent.
 - A decision no increment anywhere can violate is not a constraint. Write it as a `fact` note — the
   generator skips those, and the `trace` skill still finds it.
 

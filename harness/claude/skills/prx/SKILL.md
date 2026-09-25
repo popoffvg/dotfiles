@@ -94,7 +94,7 @@ prx does not post. On `/prx post`:
 - `~/.claude/scripts/prx-comments.sh` — carries notes between runs: restores the
   saved ones into a new session and drops the ones already on the PR. It never
   posts. Called by the shell function, not by this skill.
-- `/pr-review` — the older path to the same session; it needs `origin` to be
-  readable, which does not hold here.
+- `/pr-review` — opens the same session, but needs a readable `origin`. A prx
+  worktree has none, so do not use it here.
 - `hunk-review` skill — the same `comment apply` batch for findings a review gate
   produced instead of the user.

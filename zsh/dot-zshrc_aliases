@@ -489,7 +489,7 @@ _claudex_run() {
     sonnet*) name='Claude Sonnet 5'; description='Claude Sonnet 5 is a smart, efficient model for everyday use.' ;;
     haiku*)  name='Claude Haiku 4.5'; description='Claude Haiku 4.5 is the fastest model, for quick focused tasks.' ;;
     fable*)  name='Claude Fable 5'; description='Claude Fable 5 is a model for creative and open-ended work.' ;;
-    *)       name='Claude Opus 5'; description='Claude Opus 5 is a powerful model for complex challenges.' ;;
+    *)       name='Claude Opus 5.5'; description='Claude Opus 5.5 is a powerful model for complex challenges.' ;;
   esac
   if [[ -r "$sysprompt_file" ]]; then
     sysprompt=(--system-prompt "$(sed \

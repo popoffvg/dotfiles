@@ -306,7 +306,7 @@ rather than a row of its own — is `ref-write.md` § Merges that fall out of th
 2. **Strong verbs.** *rename X to Y, add field Z to type T, delete function F* — never *improve, handle, refactor stuff, clean up*.
 3. **Every section is a checklist to tick off.** Prose → bullets, a table, or a code block.
 4. **One TODO = one deliverable = one or more commits.** One outcome a user can observe; group the edits that deliver it, nothing else. Each commit has a clear border: it builds, its tests pass, and its message states one cause. An `L` row — over 8 files or over 6 increments — is asked about before it is written.
-5. **The surface ships as a diff; the logic ships as a sketch.** Every changed type, field, signature, and setting is a unified diff in the increment that lands it, never prose the implementer translates. Every body — the code behind those signatures — is pseudocode (the `flow-sketch` skill) the implementer writes from. Neither substitutes for the other, and a body pasted as a diff is the one shape both rules reject (§ A diff carries the surface, not a body).
+5. **The surface ships as a diff; the logic ships as a sketch.** Every changed type, field, signature, and setting is a unified diff in the increment that lands it, never prose the implementer translates. Every body — the code behind those signatures — is pseudocode (the `flow-sketch` skill) the implementer writes from. Neither substitutes for the other, and a body pasted as a diff is the one shape both rules reject (`ref-todo-sections.md` § A diff carries the surface, not a body).
 6. **No outward links** — reference other TODOs only via `Depends on`.
 7. **Pre-reads are mandatory** — every file to understand before editing.
 8. **New terms are defined, not assumed** — a domain term missing from `GLOSSARY.md` gets a `## New terms` row (see § New terms below).
@@ -423,7 +423,7 @@ What `verify` checks before any of that — both sections' shape, and that neith
 half: `code:sub-verify.md` § Phase 0 — static gate.
 
 **The `trace` skill is not a link in the chain — it is what you run to break one.** The chain asks
-whether the seven elements agree with each other. A trace answers a different question: whether any
+whether the eight elements agree with each other. A trace answers a different question: whether any
 of them *had* to be that way. A reviewer who accepts the Outcome never runs it; a reviewer who wants
 to argue with the Outcome, a Components split, an increment's diff, or an `E2E: none` runs it against
 that anchor and gets back the decision that produced it, cited to the note or document holding the

@@ -128,5 +128,5 @@ else
   echo "TODO ledger: no todos/TODO-N.md + TODO-N.agent.md rows yet"
 fi
 echo "NEXT: $next"
-echo "Read the /code skill (wm:code) and the files named above rather than trusting recalled state."
+echo "Read ${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md and the files named above rather than trusting recalled state."
 exit 0

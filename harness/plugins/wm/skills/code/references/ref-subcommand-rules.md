@@ -35,7 +35,7 @@ code can answer it, read the code instead and write `source: auto`.
 Run `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` before writing or judging any code.
 It prints one row per settled decision an increment can violate, and each row's text is the
 decision note's `description` — the **one** home for that rule: no TODO copies a row, and no
-subcommand restates one. A decision that changes is an edit to that note, once. Why a rule exists
+subcommand restates one. A decision that changes is a new note that supersedes the old one. Why a rule exists
 is not in the table: run the `trace` skill when a rule has to be argued with rather than obeyed.
 
 ## Archive a thought that stops being live

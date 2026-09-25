@@ -48,7 +48,7 @@ Identify every consumer **before** editing:
 
 **Never `rm -rf` a generated directory.** Re-run codegen in place. If output looks stale, delete only files the generator owns and re-emit. Generated files belong in the **same commit** as the `.proto` change.
 
-**Never pause mid-task** to ask "shall I proceed?" once intent is clear. Only stop on destructive ambiguity (e.g., the field number you want is in a `reserved` range).
+Stop to ask only on destructive ambiguity (e.g., the field number you want is in a `reserved` range).
 
 ## PHASE 3: Implementation
 

@@ -8,7 +8,7 @@ user-invocable: true
 
 The output is a document in the house style the `text-style` skill defines. Three phases, in order — **dedup**, **cut**, **reshape**. Out of order you compress paragraphs phase 1 deletes whole, and you shape prose phase 2 removes.
 
-**The default verdict is cut.** A line survives by naming the reader action that breaks without it. "It is useful", "it adds context", "it reads well" are not survivals. Expect to remove a third of a mature file; a pass that cuts two paragraphs found nothing.
+**The default verdict is cut.** A line survives by naming the reader action that breaks without it. "It is useful", "it adds context", "it reads well" are not survivals.
 
 Every map is a file under `<scratchpad>/prune/`, never a message: `topic-map.md` (phase 1), `props-<slug>.md` (one per file), `cuts.md` (every cut with its class). A fan-out agent writes its own batch file and returns the path — returning the map refills the context the fan-out protected. The reply carries verdicts, never rows.
 

@@ -113,7 +113,7 @@ $(cat "$rubric")
 Apply the rubric above to the prompts below. They are the prompts one person
 typed in one session, separated by \`---\`, in order. They are the only evidence
 you get: there is no assistant turn, no tool output, and no session title here,
-and you must not ask for any. Return one line of JSON and nothing else.
+and you must not ask for any.
 
 $prompts
 EOF
@@ -122,10 +122,13 @@ EOF
 # which would launch another child. The hook exits on seeing this.
 export SELF_IMPROVE_CHILD=1
 
+verdict_schema='{"type":"object","properties":{"score":{"type":"integer","minimum":0,"maximum":10},"scope":{"type":"string","enum":["global","project","none"]},"why":{"type":"string"}},"required":["score","scope","why"],"additionalProperties":false}'
 verdict=$(printf '%s' "$request" | claude -p \
   --model haiku \
+  --output-format json \
+  --json-schema "$verdict_schema" \
   --disallowedTools Bash Read Edit Write Glob Grep Task WebFetch WebSearch \
-  2>/dev/null | tr -d '\r' | grep -o '{.*}' | tail -n 1) || verdict=''
+  2>/dev/null | jq -c '.structured_output // empty' 2>/dev/null) || verdict=''
 
 score=$(printf '%s' "$verdict" | jq -r 'if (.score|type) == "number" then (.score|floor) else empty end' 2>/dev/null || true)
 scope=$(printf '%s' "$verdict" | jq -r '.scope // empty' 2>/dev/null || true)

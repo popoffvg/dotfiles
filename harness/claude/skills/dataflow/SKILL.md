@@ -33,8 +33,7 @@ What the page owes its reader:
 - **A payload list for the selected box**, in the same two colours as the canvas, so the rail and
   the picture agree.
 
-The strict Artifact CSP blocks every external host, so no diagram library, no font CDN, no WASM
-from a CDN. Vanilla SVG and one `<script>` is the whole budget, and it is enough.
+Draw it in vanilla SVG with one `<script>`. A diagram library adds weight and gives the page nothing it needs.
 
 **Reach for `board` only when the human must hand-place the boxes** and keep those
 positions — it owns a seed format, a grid, and a live editor that writes back to disk. It costs a

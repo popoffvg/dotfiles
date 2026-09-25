@@ -73,7 +73,8 @@ thought.
   the note must be written before the decision is made. Never reconstruct the chain by reading.
 - Refine a **fact** or non-semantic wording in place. Add `Revised:` only when its meaning changed.
 - For a changed **decision rule**, write a replacement decision note, then supersede the old note;
-  never edit its rule text in place.
+  never edit its rule text in place. A term rename is the one exception, and `~/.claude/scripts/rename-token.sh`
+  makes it.
 - Write a new fact or decision only for a genuinely new fact or choice.
 - Re-link edited notes and the archive hook's reported live-link worklist in one run
   (`wm:TOOLS.md` § Patch an artifact) — one edge line per link. A whole-graph link audit belongs to

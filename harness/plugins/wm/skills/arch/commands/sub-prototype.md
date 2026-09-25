@@ -24,7 +24,7 @@ Read the open question note (list them: `~/.claude/scripts/wm-open-questions.sh 
 The question note lists candidates as `(a) / (b) / (c)`, one line each, so feedback is unambiguous ("reject (b), do (c)"). Recommend a default; the user overrides. "Let's try option X" is binding for the pass.
 
 ### 3. Brief the implementer in full
-A fresh agent with no planning context. The prompt carries: working dir (absolute); current tree state (instruct `git diff` / `git status` first); the shape by option letter; exact files + line numbers from `<notes-dir>/research/`; step-by-step changes with verbatim type snippets where the type system is load-bearing; non-goals (no build/lint/test/commit/codegen, ≤ N files); expected compile breaks named so they aren't "fixed"; deliverable format (< 250 words: `git diff --stat`, key code blocks inline, compile breaks with file:line).
+A fresh agent with no planning context. The prompt carries: working dir (absolute); current tree state (instruct `git diff` / `git status` first); the shape by option letter; exact files + line numbers from `<notes-dir>/research/`; step-by-step changes with verbatim type snippets where the type system is load-bearing; non-goals (no build/lint/test/commit/codegen, ≤ N files); expected compile breaks named so they aren't "fixed"; deliverable format (`git diff --stat`, key code blocks inline, compile breaks with file:line — nothing the diff already shows).
 
 ### 4. Read the diff, not the report
 The report is a navigation aid. Judge from `git -C <repo> diff <files-touched>`. Report claims disagree with the diff → push back or re-spawn.

@@ -77,11 +77,9 @@ If `firecrawl` command is not found after installation:
 
 If you get permission errors during installation:
 
-```bash
-# Option 1: Use sudo (not recommended)
-sudo npm install -g firecrawl-cli
+Point npm's global prefix at a user directory:
 
-# Option 2: Fix npm permissions (recommended)
+```bash
 mkdir ~/.npm-global
 npm config set prefix '~/.npm-global'
 export PATH=~/.npm-global/bin:$PATH

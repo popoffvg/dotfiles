@@ -31,7 +31,7 @@ Scope follows the rule, not the repo you happened to be in: `global` when it hol
 
 ## Output contract
 
-Write the markdown document below to stdout and nothing else — no preamble, no code fence around the whole document, no closing remark. Keep it under 40 lines: a suggestion a human will not read is a suggestion that does not land.
+Write the markdown document below to stdout and nothing else — no preamble, no code fence around the whole document, no closing remark. Fill the template and nothing more: a suggestion a human will not read is a suggestion that does not land.
 
 ```
 # <the lesson in one line, in the imperative>

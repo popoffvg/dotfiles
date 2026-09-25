@@ -11,7 +11,7 @@ sees this skill.
 
 | Gate | Judges | Agent | Model |
 |---|---|---|---|
-| lint | the repo's linter over the changed files | @lint-tester | haiku |
+| lint | the repo's linter over the changed files | none — the caller (§ The lint gate runs in the caller) | — |
 | rules | every rule in the rule files, against each changed file in the rule's scope — comments, names, test worth, tables, language rules, the TODO's decisions | @rule-checker per batch, then one @rule-reducer | haiku; reducer sonnet |
 | idiom | every changed line — is it written the way its language and pinned version expect | @idiom-critic | sonnet |
 | reuse | every new symbol and changed body — does it write again a job the repo or its dependencies already do; `PATTERNS.md` § Need → use is its contract | @reuse-critic | sonnet |
@@ -230,6 +230,7 @@ writes `<notes-dir>/review/<target>/toolchain.json`. No gate re-runs a command t
   "at": "2026-09-04T11:05:12+02:00",
   "commands": {
     "build": { "command": "go build ./...",       "exit": 0, "output": "toolchain/build.log" },
+    "lint":  { "command": "golangci-lint run ./pkg/auth/...", "exit": 0, "output": "toolchain/lint.log" },
     "Unit":  { "command": "go test ./pkg/auth/...", "exit": 1, "output": "toolchain/unit.log" },
     "E2E":   { "command": "none",                  "exit": null, "output": null }
   }
@@ -248,6 +249,38 @@ whose key is absent, reports `n/a`, never a run of its own.
 | test | the sole executor of build and the test suite in the working tree |
 | correctness (and its checkers) | never executes; may cite `toolchain.json` |
 | rules, idiom, reuse | never execute, and get no toolchain input |
+
+### The lint gate runs in the caller
+
+Its output is fixed by its inputs — one linter exit and two recorded Autotest exits — so no agent
+runs it. The caller does, in the toolchain step, before it spawns the wave:
+
+1. **Run the linter** the repo configures (`golangci-lint run <pkgs>`, `eslint`, `ruff`,
+   `shellcheck` — read the repo config, never guess a tool that is not configured) over the changed
+   files only. Record it as the `lint` entry of `toolchain.json`. A repo with no linter gets
+   `"command": "none"` and a null exit.
+2. **Write `<notes-dir>/review/<target>/lint.md`** in the shape below. Paste the linter output and
+   the `toolchain.json` entries verbatim. Any non-zero `lint`, `Unit`, or `E2E` exit is **FAIL**. An
+   Autotest level that this round did not run — an increment under `impl`, or a `diff` run with no
+   `## Autotest` — is `n/a` with the reason, never a dropped row.
+
+```
+---
+reviewed: <`date -Iseconds`>
+---
+
+[LINT] Result: PASS | FAIL
+
+## Covered
+| Rule | Command | Verdict |
+|---|---|---|
+| Linter over the changed files | | |
+| Autotest · Unit (from `toolchain.json`) | | |
+| Autotest · E2E (from `toolchain.json`) | | |
+
+## Failures        (omit when PASS)
+- <file:line> — <the exact lint message or test failure, verbatim>
+```
 
 ## Every report names the rules that gate ran
 

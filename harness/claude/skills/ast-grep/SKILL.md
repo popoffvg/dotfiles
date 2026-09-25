@@ -1,6 +1,6 @@
 ---
 name: ast-grep
-description: Guide for writing ast-grep rules to perform structural code search and analysis. Use when users need to search codebases using Abstract Syntax Tree (AST) patterns, find specific code structures, or perform complex code queries that go beyond simple text search. This skill should be used when users ask to search for code patterns, find specific language constructs, or locate code with particular structural characteristics.
+description: Write and test ast-grep rules for structural code search — match code by its syntax tree when a text search cannot express the shape, such as a call inside a function or a construct that lacks a guard. Use when the user asks to find code patterns, language constructs, or structural matches across a codebase.
 ---
 
 # ast-grep Code Search
@@ -11,24 +11,7 @@ Follow this process to help users write effective ast-grep rules:
 
 ### Step 1: Understand the Query
 
-Clearly understand what the user wants to find. Ask clarifying questions if needed:
-- What specific code pattern or structure are they looking for?
-- Which programming language?
-- Are there specific edge cases or variations to consider?
-- What should be included or excluded from matches?
-
-Before writing a rule, restate the query as a **testable assumption** and verify it with the user when scope is ambiguous.
-
-Required restatement template:
-- Scope: `<repo/path or package>`
-- Language: `<go|ts|...>`
-- Match shape: `<AST structure>`
-- Exclusions: `<what must not match>`
-
-If the request comes from a code-review comment, extract and confirm:
-1. Exact file path(s)
-2. Target line range (if provided)
-3. Whether the user wants one location fixed or all similar patterns in the codebase
+Pin down the language, the path scope, the AST shape to match, and what must not match. Ask the user only for what the request and the code leave open. When the request comes from a review comment, settle whether it wants the one location or every similar one.
 
 ### Step 2: Create Example Code
 
@@ -254,29 +237,6 @@ ast-grep scan --inline-rules 'rule: {pattern: "console.log($ARG)"}' .
 ```
 
 ## Common Use Cases
-
-### Go: Find functions that take both context and tx
-
-Use this pattern when the request is: "find places where tx and ctx are function parameters together".
-
-```bash
-ast-grep scan --inline-rules "id: go-ctx-tx-params
-language: go
-rule:
-  kind: function_declaration
-  has:
-    kind: parameter_list
-    all:
-      - has:
-          pattern: \$CTX context.Context
-          stopBy: end
-      - has:
-          regex: '(?i)\\btx\\b'
-          stopBy: end
-    stopBy: end" /path/to/repo
-```
-
-Then narrow scope to controller paths (for example `controllers/workflow/`) and inspect exact matches.
 
 ### Find Code Missing Expected Patterns
 

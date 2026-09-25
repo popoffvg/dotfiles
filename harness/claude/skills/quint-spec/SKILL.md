@@ -97,7 +97,7 @@ module Example {
 #### Guards (preconditions)
 
 ```quint
-action withdraw(amount: int) = all {
+action withdraw(amount: int): bool = all {
   amount > 0,                    // guard: positive amount
   balance >= amount,             // guard: sufficient funds
   balance' = balance - amount,
@@ -151,7 +151,7 @@ S.exists(x => P)        // ∃ x ∈ S: P
 S.forall(x => P)        // ∀ x ∈ S: P
 S.filter(x => P)        // { x ∈ S | P }
 S.map(x => e)           // { e | x ∈ S }
-S.fold(init, (acc, x => e))
+S.fold(init, (acc, x) => e)
 S.size()
 
 // Maps
@@ -168,7 +168,7 @@ l.head()                // first element
 l.tail()                // all but first
 l.append(e)             // add to end
 l.length()
-l.foldl(init, (acc, x => e))
+l.foldl(init, (acc, x) => e)
 l[i]                    // 0-indexed access
 
 // Records

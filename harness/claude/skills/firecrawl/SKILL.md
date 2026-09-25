@@ -204,7 +204,7 @@ firecrawl map https://example.com --include-subdomains -o .firecrawl/all-urls.tx
 
 ## Reading Scraped Files
 
-NEVER read entire firecrawl output files at once unless explicitly asked or required - they're often 1000+ lines. Instead, use grep, head, or incremental reads. Determine values dynamically based on file size and what you're looking for.
+Read a firecrawl output file in parts — `wc -l`, `head`, `grep`, or `Read` with `offset`/`limit` — because one file often runs past 1000 lines. Read it whole only when the user asks or the task needs every line.
 
 Examples:
 
@@ -260,15 +260,9 @@ jq -r '.data.news[] | "[\(.date)] \(.title)"' .firecrawl/search-news.json
 
 ## Parallelization
 
-**ALWAYS run multiple scrapes in parallel, never sequentially.** Check `firecrawl --status` for concurrency limit, then run up to that many jobs using `&` and `wait`: Send the whole batch as one `Bash` call with `run_in_background: true`.
+Run independent scrapes in parallel, up to the concurrency limit that `firecrawl --status` prints. Send the whole batch as one `Bash` call with `run_in_background: true`: put `&` after each job and `wait` at the end.
 
 ```bash
-# WRONG - sequential (slow)
-firecrawl scrape https://site1.com -o .firecrawl/1.md
-firecrawl scrape https://site2.com -o .firecrawl/2.md
-firecrawl scrape https://site3.com -o .firecrawl/3.md
-
-# CORRECT - parallel (fast)
 firecrawl scrape https://site1.com -o .firecrawl/1.md &
 firecrawl scrape https://site2.com -o .firecrawl/2.md &
 firecrawl scrape https://site3.com -o .firecrawl/3.md &

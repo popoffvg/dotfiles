@@ -23,12 +23,10 @@ links:
 > shapes how later TODOs are written — fresh reasoning beats reconstructed reasoning. Do not write
 > one when a settled decision already covers it; link that note instead.
 > One note per decision, never a bundle.
-> **Sharpen by editing, reverse by superseding.** While later TODOs are written, adding a case the
-> wording missed or tightening the rule text is an edit to this note — same `NNN`, no second note.
-> Choosing differently is not: a reversal leaves the old rule live and generating a constraint
-> nobody obeys, so it goes through `arch:ref-note-format.md` § Superseding — new note, `status:
-> declined` plus `superseded_by:` here. The test is the `description`: if the implementer would now
-> write different code, it is a reversal.
+> **Never edit a settled decision; supersede it.** Any change to the rule — a missed case, tighter
+> wording, or a reversal — goes through `arch:ref-note-format.md` § Superseding: a new note, and
+> `status: declined` plus `superseded_by:` here. A term rename is the one in-place change, and
+> `~/.claude/scripts/rename-token.sh` makes it, not the agent.
 > The prose follows `i-have-adhd skill`.
 
 > The title names the thought as a statement — imperative or declarative — in at most 60

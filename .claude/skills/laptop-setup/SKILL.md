@@ -7,13 +7,13 @@ description: This skill should be used when the user says "install <something>",
 
 Manage the dotfiles-based laptop provisioning via `ansible/install_packages.yaml`.
 
-**Dotfiles repo:** `~/Documents/git/dotfiles`
+**Dotfiles repo:** `~/git/dotfiles`
 
 ## Architecture
 
 All setup is declared in `ansible/install_packages.yaml`:
-- `brew_packages` — CLI tools installed via Homebrew
-- `brew_casks` — GUI apps installed via Homebrew Cask
+- `brew_packages` — CLI tools, installed one by one with nanobrew (`nb`)
+- `brew_casks` — GUI apps, installed with `nb install --cask`
 - `home_symlinks` — files from dotfiles root symlinked to `$HOME`
 - `config_symlinks` — dirs from `.config/` symlinked to `~/.config/`
 - Tasks section — ordered setup steps (brew, symlinks, git hooks, mise, cleanup)
@@ -44,11 +44,10 @@ Edit `ansible/install_packages.yaml` with the minimal change needed.
 ### Rules
 
 - **Categories**: brew packages are grouped by comment (`# shell`, `# tools`, `# git`, `# dev`, `# terminal`, `# apps`). Place new entries under the correct category.
-- **Alphabetical within category**: keep packages sorted alphabetically within each category group.
 - **One change at a time**: don't combine adding a package with restructuring the playbook.
 - **Matching files**: if adding a symlink, ensure the source file/dir exists in the dotfiles repo. Create it if needed.
 - **No orphans**: if removing a tool, also remove its config files, symlinks, and any related zshrc sourcing.
-- **Test after change**: run `ansible-playbook ansible/install_packages.yaml --check --diff` to verify syntax.
+- **Test after change**: run the Step 4 dry run.
 
 ## Step 4: Verify
 
@@ -62,7 +61,4 @@ ansible-playbook ansible/install_packages.yaml --check --diff -c local -i localh
 ```bash
 # Full provisioning run
 ansible-playbook ansible/install_packages.yaml -c local -i localhost,
-
-# Just install packages (skip symlinks, hooks, etc.)
-ansible-playbook ansible/install_packages.yaml -c local -i localhost, --tags packages
 ```

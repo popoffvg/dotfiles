@@ -11,7 +11,7 @@ A question that can be answered by having read the glossary tests nothing. Every
 
 Phrase questions the way a colleague would actually say the wrong thing. "A senior scientist argues: *that motif is common in human germline, so leave it — evolution kept it*" is a better question than "Is germline-commonness a valid triage signal?" because it reproduces the situation where the error actually occurs.
 
-## Structure the paper in three ascending parts
+## Structure the paper in four ascending parts
 
 | Part | Tests | Question style |
 |---|---|---|
