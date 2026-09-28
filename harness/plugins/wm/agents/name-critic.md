@@ -26,6 +26,7 @@ Read it before you open the diff. It is not pasted into your prompt and not rest
 |---|---|
 | `${CLAUDE_PLUGIN_ROOT}/skills/pedant/SKILL.md` | The two gates every name must pass, the smell table with the bug each smell hides, and the hard rules — including which idioms never get flagged. |
 | The rules `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints, plus `<notes-dir>/GLOSSARY.md`, when the caller names a notes-dir | Which spellings are already **settled**, and by which decision. Read this before the diff. A name a rule or a glossary term fixes is out of your hands. |
+| The `variant` rows of `~/.claude/scripts/wm-spec-code-names.py <notes-dir>`, when the caller names a notes-dir | Every term the spec and the code spell two ways. A declared name in a `variant` row fails: one term gets one spelling. |
 
 ## Scope
 

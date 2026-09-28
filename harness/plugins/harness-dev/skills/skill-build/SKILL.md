@@ -1,6 +1,6 @@
 ---
 name: skill-build
-description: Router for authoring a Claude Code skill. Use when the user wants to "build a skill", "write a skill", "create a skill", "author a SKILL.md", or build a specific shape — a "workflow" (step-by-step guide), a "loop" (repeat a flow), an "instruction" (rules / reference), or a "router" (dispatch table over branches). Names each shape and routes to its guide.
+description: Router for authoring a Claude Code skill. TRIGGERS user asks rewrite, improve create or update a skill.
 ---
 
 # skill-build — pick the skill's shape, then follow its guide

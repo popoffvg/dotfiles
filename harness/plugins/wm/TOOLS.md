@@ -26,6 +26,14 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 | The rules scoped to one row | `wm-constraints.py <notes> --todo TODO-2` | the same, minus impl-decisions of other rows |
 | A rule with no text | `wm-constraints.py <notes> --check` | exit 3 and the offending notes |
 
+## Match spec names to code
+
+| Need | Invocation | Returns |
+|---|---|---|
+| Which spec names the Go, Rust, JS, or TS code lacks or spells differently | `wm-spec-code-names.py <notes>` | one row per name the corpus uses, worst first: `variant`, `missing` (with the nearest code name), `scope-differs`, `pending-remove`, `pending-change`, `planned`, `landed`, `match`, `removed`. Exit 1 = a `variant`, `missing`, or `scope-differs` row |
+| Whether one TODO's names landed | `wm-spec-code-names.py <notes> --todo 2` | the same rows from the `TODO-2` pair only. Done = only `landed`, `removed`, `match` |
+| The rows as data, or more of the corpus | `wm-spec-code-names.py <notes> --json [--all] [--include 'research/*.md']` | the records; `--all` adds `external` (a name the code uses but does not declare) and `word` (one lowercase word). The default corpus is `spec.md`, `GLOSSARY.md`, `todos/`, `thoughts/` |
+
 ## Ask why it is this way
 
 | Need | Invocation | Returns |

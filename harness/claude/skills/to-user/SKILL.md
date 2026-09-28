@@ -1,116 +1,118 @@
 ---
 name: to-user
-description: This skill should be used when work belongs in a file the operator edits in their own editor rather than in chat — either a batch of items each needing a decision, edit, or reply, or a draft they will rewrite in their own words (a spec section, a PR description, a changelog, an email). Trigger on "write it to a file for me to edit", "list the PR comments with recommended answers", "prepare answers for me to review", "put the review threads in a file", "draft replies I can fill in", "give me a file to decide on each", "draft it and I'll edit it", "let me rewrite it myself". Also trigger before building an artifact, page, deck, or design when the build carries a batch of open choices (palette, typefaces, navigation model, theme, fidelity to a source file) — write the choices out as answerable blocks instead of resolving them inside the build.
-version: 0.1.0
+description: Hand work to the operator as a self-contained file they read cold and edit in their own editor, not in chat. Use for a batch of items that each need a verdict or reply ("list the PR comments with recommended answers", "give me a file to decide on each"), a findings or status handoff ("write up what you found", "explain it to me in a file"), a draft they rewrite in their own words ("draft it and I'll edit it"), and the open choices of an artifact, page, deck, or design before you build it — palette, typefaces, navigation, theme, fidelity to a source file.
+version: 0.2.0
 ---
 
 # to-user
 
-Write a review file the operator edits in their own editor, one block per item. Each block carries: a link/anchor to the source, the original text, and a recommended answer/action.
+**The operator reads the file cold.** They did not see the code, the chat, or the research. The file carries that context in words and in `show-me` figures before it asks anything, and each block stands alone.
 
-## When
+## Steps
 
-A batch of items each needs a per-item human verdict or reply: PR/review comments, open questions, decisions, translation strings, triage items. Chat is wrong for this — the operator wants to edit in place and answer at their pace.
+1. **Write the file** to the repo, or to the scratchpad when no repo owns it. Name it for the task: `pr-answers.md`, `decisions.md`, `findings.md`. Use **File shape** for a batch, **Prose** for a draft. Fill each field from a source you read — the thread, the diff, the code. A fact you could not read goes under Not checked, never into a field. Done when every item has a block, every field rests on a read source, every term is in Terms or glossed where it first appears, and no `[decide]` block is a bare question — each carries a Detail paragraph and, past a one-sentence set of options, a `show-me` figure.
+2. **Open it** with `~/.claude/scripts/open-file.sh <file>`. Tell the operator the path, how many items need an answer, and how to answer: the option letter or the reply on the `Answer:` line.
+3. **In the same turn, arm the watch**: `Monitor` with `command: ~/.claude/scripts/watch-answers.sh <file>`, `persistent: true`, and a description that names the file. Keep working; `check-answers` owns each report. A file with only `[info]` items gets no watch. When the next step cannot start until the operator finishes, use `open-file.sh --wait` instead.
 
-Open design decisions count as such a batch. Before building an artifact, page, deck, or visual design, the build carries choices the operator owns — palette, typefaces, navigation model, light/dark commit, how far to deviate from a source file. Write them as blocks and build from the answers. Two failure modes this replaces: burying the choices in the build (the operator discovers them as finished code), and listing them in chat (unanswerable at their pace, no place to edit). A design-plan step inside another skill is not an exemption — the plan's decisions still route here.
+Open design choices before a build go through these steps too, including a design-plan step inside another skill. Build from the answers.
 
-## Procedure
-
-1. Write the file to the repo (or scratchpad if not repo-bound). Name it for the task: `pr-answers.md`, `review-replies.md`, `decisions.md`.
-2. One block per item. Every block has four fields:
-   - **Source** — clickable link or `file:line` anchor to where the item lives.
-   - **Original** — the comment/question/text verbatim, quoted.
-   - **Detail** — what the operator needs to decide, written under **Detail per block** below.
-   - **Recommended** — the answer itself plus why it is the answer, under **Recommended carries the answer** below.
-3. Leave the `**Answer:**` line **empty**. The slot is where the operator writes; an empty slot means they have not answered yet.
-4. Open the file with `~/.claude/scripts/open-file.sh <file>`, then tell the operator the path and how to edit (write the option letter or the reply on the `Answer:` line). The script picks the host — Zed window, herdr split pane, or path only. Never call an editor directly.
-5. **Arm the watch in the same turn you open the file**: `Monitor` with `command: ~/.claude/scripts/watch-answers.sh <file>`, `persistent: true`, and a description naming the file. Keep working; the `check-answers` skill owns what to do with a report and when the watch is over.
-
-## Language of the file
-
-**Write every field in B1 English, under the ASD-STE100 technical writing standard.** The operator reads the file fast, and often in a second language. A sentence they must read twice costs them the decision.
-
-- **Common words.** Use the word most people know, not the exact rare one. One meaning per word, one word per meaning.
-- **Short sentences.** Keep an instruction to 20 words, a description to 25. One idea per sentence.
-- **Active voice, present tense.** Name who does what: "the test fails", not "a failure was observed".
-- **Same name every time.** A synonym reads as a new thing.
-- **No metaphor.** Write the literal fact.
-
-**The operator has no context.** They did not read the code, the chat, or the block above. So each block stands alone:
-
-- **Spell out every term the block uses.** Give a codebase symbol one short gloss on first use: what it is, what it does.
-- **Repeat the facts the block needs.** Do not point back at an earlier block for them.
-- **State where the item comes from** in words, not only as a link. The link is proof; the words are the context.
-
-## Detail per block
-
-**The operator must be able to answer a block without opening anything else.** Detail closes that gap, under two skills.
-
-**Words: `i-have-adhd` and the language rules above, applied to every field.** Their rules hold as written; two land specially here. Detail's first line names the decision, because the operator skimming ten blocks reads that line and the bold phrase in each. Detail carries no restatement of Original — it says something the quoted text does not, or it is cut.
-
-**Figure: `show-me`, one row from its table.** Whenever the choice is about structure, draw the form that row names. Two adaptations: the review file is read as text, so a forking path is **ASCII, never mermaid**; options being weighed are a **comparison table with lettered rows**, which doubles as the thing the operator answers by name. **The test for structural: write each option as one sentence. If the sentences lose something the operator decides on, draw the form; if they carry it, that sentence is the whole Detail.**
-
-## Recommended carries the answer
-
-**Recommended is the answer the operator would give if they did the work themselves, plus the reason it beat the alternative.** It is a real draft, acceptable as written, never a placeholder. The empty `**Answer:**` line below it is theirs alone — a slot pre-filled with the recommendation destroys the signal: nothing in the file then tells consent apart from silence.
-
-So the field carries two parts:
-
-- **The answer** — the option letter, or the reply text ready to send as written.
-- **Why** — the fact that decided it, and what picking the runner-up costs. One short paragraph, not an argument; the operator reads it to disagree, so it must name the thing they would disagree with.
-
-An operator who agrees leaves the block alone or writes the letter. An operator who disagrees now knows which fact to attack.
-
-## Block template
+## File shape
 
 ```markdown
-### 1. <short title>
+# <task in plain words>
 
-- **Source:** [thread](<url>) · `path/to/file.go:42`
-- **Original:** > <verbatim comment text>
-- **Detail:** <one front-loaded sentence naming the decision>
+## Context
+
+<what this is and where it comes from>
+<the current state: what works, what does not>
+<what the operator must do here: "Answer 3 of 5 items; 2 are for your information.">
+
+<one show-me figure of the whole>
+
+## Terms
+
+- **<term>** — <what it is and what it does>
+
+## Items
+
+<blocks, [decide] first, then [review], then [info]>
+
+## Not checked
+
+- <what was not opened, run, or verified>
+```
+
+- **Context** lets the operator explain the task to a colleague after one read, with no link opened.
+- **Terms** lists every codebase symbol, project word, and abbreviation the file uses. Omit it when there are none.
+- **Not checked** is required: it is how far the operator can trust the file.
+
+## Item kinds
+
+| Kind | Title tag | Slot | Empty slot means |
+| --- | --- | --- | --- |
+| Decide — pick an option, or send a reply (every review comment that needs one) | `[decide]` | `**Answer:**` | not answered yet |
+| Review — the work is done, check it | `[review]` | `**Comment:**` | accept |
+| Inform — a fact to know, no action | `[info]` | none | — |
+
+## Block
+
+```markdown
+### 1. [decide] <short title>
+
+- **Source:** [thread](<url>) · `path/to/file.go:42` — <where this comes from, in words>
+- **Original:** > <verbatim text>
+- **Detail:** <first sentence names the decision>
+
+  <what the item touches and how it works today>
+
+  <show-me figure>
 
   | Option | <dimension> | <dimension> |
   | --- | --- | --- |
   | A — <name> | … | … |
   | B — <name> | … | … |
 
-  <one clause on what was not opened, if anything>
-- **Recommended:** <A / the drafted reply>
+- **Recommended:** <A, or the reply ready to send>
 
-  <why this one — the fact that decides it, and what the runner-up costs>
+  <the fact that decides it, and what the runner-up costs>
 
 **Answer:**
 
 ---
 ```
 
-Keep every source anchor clickable — `file:line` or URL.
+- **Source** — a clickable link or `file:line`, plus words on where the item comes from. The link is proof; the words are the context.
+- **Original** — verbatim. Omit it when the item has no source text.
+- **Detail** — enough to answer with nothing else open. It adds what Original does not say. It glosses each symbol on first use and repeats any fact it needs from another block.
+- **Recommended** — the answer the operator would give after doing the work, acceptable as written. The reason names the fact they would attack if they disagree. The slot below stays empty, so an answer tells consent apart from silence.
+- `[review]` replaces Recommended with **Done**: the change as a `diff` or a short list. `[info]` carries Source and Detail only.
 
-## Prose the operator edits in place
+## Figures
 
-**Not every handoff is a batch of slots.** A draft the operator rewrites in their own words — a spec section, a PR description, a changelog entry, an email, a design rationale — goes out as prose in a file, not as blocks with `**Answer:**` lines. Forcing continuous text into per-item slots gives them a form to fill where they wanted a paragraph to edit.
+**Pick every figure with `show-me`**, with two changes for a file read as text in an editor: flows, sequences, and states are ASCII in a fenced block; options are a comparison table with lettered rows the operator answers by. Context gets one figure of the whole, always. A block gets one whenever writing each option as one sentence would lose something the operator decides on — which is most blocks with more than two options, or any option that touches more than one file.
 
-Pick the shape by what comes back:
+## Language
 
-| What the operator returns | Shape |
+Apply `i-have-adhd` to every field. **Use the same name every time** — a synonym reads as a new thing.
+
+## Prose
+
+A draft the operator rewrites — a spec section, a PR description, a changelog entry, an email — goes out as prose.
+
+| The operator returns | Shape |
 | --- | --- |
-| A verdict per item — accept, reject, pick B | blocks with empty `**Answer:**` slots |
-| Rewritten sentences | the prose itself, in the file |
-| Both — prose plus a few open choices | prose, with the choices as blocks under a `## Open` heading |
+| a verdict per item | blocks with empty slots |
+| rewritten sentences | the prose, under Context and above Not checked |
+| both | the prose, then the choices as blocks under `## Open` |
 
-The procedure and the language rules above hold unchanged for the prose form. One thing is added: **mark what you are unsure of** — bracket the passages you want their eye on, rather than leaving them to find the soft spots.
+Bracket the passages you are unsure of, so the operator reads those first.
 
-Use `--wait` on `open-file.sh` instead of the watch when the next step cannot start until they have finished editing — `--wait` blocks the turn, the watch lets it continue.
+## Deck review
 
-## Special case: a per-slide deck review
+One `[review]` block per slide, for the words the audience sees. The deck markdown format belongs to `slides-in-reveal-markdown`.
 
-A slide deck is a batch — one block per slide, each needing the operator's verdict on the words that will be projected. Use this shape, with the deck's own specializations:
-
-- **Source** is the slide's anchor in the rendered deck (`deck.html:295`), not the outline it came from. The operator is approving what the audience sees.
-- **Original** is the **on-screen text only**. Speaker notes are not reproduced — say so in the header, and offer to include them.
-- **Recommended** is the slide as built. The quoted text *is* the recommendation, so the block carries a single empty `**Comment:**` slot instead of a separate Recommended field, and empty means accept.
-- Where the source outline and the rendered deck have drifted apart, mark that block **⚠ Divergence** and give the operator lettered options as a comparison table. A divergence needs a decision, not a comment — silently reconciling it discards their edit.
-- Note per block what was **cut to make the slide fit**, and where it went (usually the speaker notes). Otherwise the operator cannot tell a deliberate cut from an omission.
-
-Slide *format* is a separate concern — see the `slides-in-reveal-markdown` skill for what the deck markdown itself must look like. This skill owns the review file; that one owns the deck.
+- **Source** is the slide's anchor in the rendered deck (`deck.html:295`), not the outline.
+- **Original** is the on-screen text. Say in Context that speaker notes are left out, and offer to add them.
+- The quoted slide is the recommendation, so the block has no Recommended field. Empty `**Comment:**` means accept.
+- Where the outline and the rendered deck differ, make the block `[decide]`, mark it **⚠ Divergence**, and give lettered options. The operator's edit wins only if they see the conflict.
+- Say per block what was cut to fit the slide, and where it went.

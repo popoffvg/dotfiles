@@ -1,5 +1,6 @@
 ---
 name: capture-lesson
+disable-model-invocation: true
 description: >
   Turn every captured lesson into a skill — extend an existing skill whose
   trigger already covers it, or write a new one. Use after a user correction,

@@ -26,6 +26,8 @@ covered it.
 2. **Missing parts** — work the Goal implies but no TODO covers.
 3. **Edge cases** — inputs and states the Outcomes ignore.
 
+Run `~/.claude/scripts/wm-spec-code-names.py <notes-dir>` first. Each `variant`, `missing`, or `scope-differs` row is a contradiction: the spec names a symbol the code does not have, or spells it differently. `planned` and `pending-*` rows are the work still to do, not findings.
+
 For each finding: name the exact TODO/section, give the concrete scenario that fails, and the
 edit that closes it. A finding without a reproducing scenario is a style nit, not a blocker.
 

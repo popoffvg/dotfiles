@@ -94,6 +94,23 @@ cleared, so no gate result survives a fixup.
 uncommitted; the implementer folds them into the TODO's commit and the chain restarts at the wave —
 a new test file can break lint, and `test worth` judges it on that second pass.
 
+### From round 2, a red wave goes to the triage judge first
+
+A late round fails mostly on taste, and each taste finding costs a fixup round that moves no
+behaviour. The **triage judge** — one opus agent — reads the diff and marks each finding
+**blocking** or **nit**.
+
+| Kind | Findings |
+|---|---|
+| blocking | a correctness bug, a lint or test failure, a broken repo rule, a name or comment that states something false, a test that asserts nothing |
+| nit | a style preference, a clearer name for a name that is not wrong, wording, ordering, a redundant but harmless test — any fix that changes no behaviour and hides no bug |
+
+A finding the judge is not sure of is blocking. **All nits → `ALLOW`:** the wave counts as green and
+the chain goes on to the test gate; record the waived nits in the report. **Any blocking → `BLOCK`:**
+the fixup runs as above. The judge writes `judge.md` beside the gate reports and judges only the
+wave — a red test gate is a missing or failing test, never a nit.
+
+
 ## The gate budget
 
 `auto` passes a budget (three rounds per gate by default). A gate that fails that many rounds ends
@@ -119,7 +136,7 @@ its own path, so two gates can never collide and the caller always knows where t
 `<target>` is `TODO-N` in `todo` mode, `TODO-N/inc-<k>` when `impl` runs the wave over one increment
 (`impl:sub-impl.md` § The per-increment wave), and the resolved range's slug in `diff` mode — the
 branch name, the short sha, `pr-<n>`, or `worktree`. The gate slugs are the roster's Gate column with the
-space as a dash: `lint`, `comment`, `name`, `test-worth`, `test`, `standards`. The mutation gate is
+space as a dash: `lint`, `comment`, `name`, `test-worth`, `test`, `standards`, and `judge` for the triage judge. The mutation gate is
 a batch, so it writes one file per batch under `mutation/` and the caller merges them into
 `mutation.md` beside the other gate files.
 

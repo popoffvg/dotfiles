@@ -36,8 +36,8 @@ An empty work list skips to Step 3.
 
 For **every** TODO in the work list, in order — not the first, not the easy ones:
 
-1. **Read `<notes-dir>/LESSONS.md` in full.** Mandatory, every round, before any edit. It carries what
-   the earlier rounds already cost.
+1. **Read `<notes-dir>/LESSONS.md` and `<notes-dir>/GOTCHAS.md` in full.** Mandatory, every round,
+   before any edit. They carry what the earlier rounds and the earlier specs already cost.
 2. **Implement one TODO** — follow `sub-impl.md`, with one change: it runs as `approve: none`
    (its § Approval) whatever the spec's or the TODO's key says. Nobody is watching. Apply each increment, keep the one-commit-per-TODO
    rule, and pass the lessons entries that touch this TODO's **Files** in the @implementer brief.
@@ -51,10 +51,9 @@ For **every** TODO in the work list, in order — not the first, not the easy on
 5. **Append to `<notes-dir>/LESSONS.md`** — what this round taught: findings that were real, findings
    rejected plus the command that settled them, gaps carried to a later TODO, process facts. Group by
    when the lesson bites, not by which gate produced it.
-6. **Capture what the round taught outside the fixups** — invoke the `capture-lesson` skill
-   (`self-improvement` plugin) on every lesson that produced no fixup: a finding a gate rejected and the
-   command that settled it, a repo convention the reviewer named, a gap carried forward. `LESSONS.md`
-   holds them for this run; a skill holds them for every future one.
+6. **Capture the traps the round met outside the fixups** — follow the `capture-gotcha` skill for every
+   repeatable trap that produced no fixup: a repo convention the reviewer named, a command that failed in a
+   non-obvious way. `LESSONS.md` holds the run; `GOTCHAS.md` holds the traps for every later spec.
 7. **Advance the status** — `verify → done` on every gate green. Commit the notes-dir (`code:ref-jj-notes.md`).
 
 A gate that exhausts its budget (`review:ref-gates.md` § The gate budget) blocks the TODO: record the

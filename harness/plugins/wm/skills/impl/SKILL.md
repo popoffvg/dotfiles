@@ -24,9 +24,9 @@ this skill.
 |---|---|---|
 | `impl` | Execute one TODO — read context, replan guard, apply the increments and show them for approval as the `approve` key asks, autotest, commit, report. | `commands/sub-impl.md` |
 | — | How a shown diff is announced: the nine change types, the typed table per increment, the start point for a whole-TODO read. | `references/ref-change-types.md` |
-| `auto` | Unattended run of the whole ledger: arm the `/goal` Stop hook → per TODO (read `LESSONS.md` → impl → the `review:sub-todo.md` gate chain → `squash` the round's fixups → append `LESSONS.md` → `capture-lesson`) → optional deploy → verify E2E. No per-increment approval. | `commands/sub-auto.md` |
+| `auto` | Unattended run of the whole ledger: arm the `/goal` Stop hook → per TODO (read `LESSONS.md` → impl → the `review:sub-todo.md` gate chain → `squash` the round's fixups → append `LESSONS.md` → `capture-gotcha`) → optional deploy → verify E2E. No per-increment approval. | `commands/sub-auto.md` |
 | `fix` | Close a gap (bug / missing / adjust) by fixing the thought, then the code. | `commands/sub-fix.md` |
-| `squash` | Read the fixup trail → distill lessons into skills (`capture-lesson`) → squash the scope as one commit, and merge the worktree branch when the spec ran under `where: worktree`. Called by hand after such a run, and by `auto` per TODO. | `commands/sub-squash.md` |
+| `squash` | Read the fixup trail → distill gotchas into `GOTCHAS.md` (`capture-gotcha`) → squash the scope as one commit, and merge the worktree branch when the spec ran under `where: worktree`. Called by hand after such a run, and by `auto` per TODO. | `commands/sub-squash.md` |
 | `commit` | When to commit and how a correction lands (fixups) — shared by `impl`, `auto`, `fix`. The message itself: the `commit-message` skill. | `commands/sub-commit.md` |
 
 ## Examples

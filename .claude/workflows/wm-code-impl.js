@@ -6,6 +6,7 @@ export const meta = {
     { title: 'Intent', detail: 'diff mode only — resolve the range and derive the intent sentence', model: 'haiku' },
     { title: 'Implement', detail: 'wm:implementer (sonnet) writes + commits, and fixes every gate finding', model: 'sonnet' },
     { title: 'Checks', detail: 'lint-tester + comment-critic + name-critic + test-critic + reviewer, in parallel', model: 'haiku + opus' },
+    { title: 'Judge', detail: 'from round 2, a red checks wave goes to an opus judge that waives it when every finding is a nit', model: 'opus' },
     { title: 'Test', detail: 'wm:tester (sonnet) gates the Autotest contract', model: 'sonnet' },
   ],
 }
@@ -104,6 +105,20 @@ const INTENT = {
   },
 }
 
+const JUDGE = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['verdict', 'blocking'],
+  properties: {
+    verdict: { enum: ['ALLOW', 'BLOCK'] },
+    blocking: { type: 'array', items: { type: 'string' }, description: 'the findings verbatim that are not nits; empty on ALLOW' },
+    reason: { type: 'string', description: 'one line per finding: nit or blocking, and why' },
+  },
+}
+
+// A checks wave still red on this round goes to the judge instead of straight to another fixup.
+const JUDGE_FROM_ROUND = 2
+
 // ── the subject of every prompt ──────────────────────────────────────────────
 const PLUGIN = '${CLAUDE_PLUGIN_ROOT}'
 // Two entries are obeyed for different reasons. A CODE lesson is about the files this TODO edits,
@@ -112,12 +127,14 @@ const PLUGIN = '${CLAUDE_PLUGIN_ROOT}'
 // the machine, not the change. Scoping both by Files hides the environment ones from every round
 // that needs them, which is how a known "use the pinned Node" lesson still let a TODO fail three
 // rounds on that exact Node.
-const lessonsClause = lessonsFile
+const lessonsClause =
+  `Read ${notesDir}/GOTCHAS.md when it exists and obey every entry — the traps earlier TODOs already met. ` +
+  (lessonsFile
   ? `FIRST read ${lessonsFile} in full — every round, before any command or edit. Obey every entry ` +
     `whose Files overlap this TODO's Files, AND every entry about the environment or toolchain ` +
     `(which runtime or version to use, which command runner wraps it, how to invoke the suite or ` +
     `the linter) — those apply to every TODO whatever its Files say. `
-  : ''
+  : '')
 
 // Nobody is watching this run, so the blast radius of a "just bootstrap it" reflex is unbounded.
 // A setup task is written for a fresh machine: it provisions credentials and writes to stores that
@@ -378,6 +395,26 @@ function oscillation() {
   return null
 }
 
+// A late round fails mostly on taste: a clearer name, a shorter comment, a test that is only
+// redundant. Each costs a full implementer round and moves no behaviour. The judge lets the chain
+// go on when nothing but nits is left, and names the findings that still block when something is.
+function judgePrompt(findings) {
+  return (
+    lessonsClause +
+    scopeClause +
+    `Triage judge for ${subjectClause()}, round ${round}. The checks wave is red again. Read the ` +
+    `real diff and each finding below, and classify every finding:\n` +
+    `- BLOCKING: a correctness bug, a lint or test failure, spec drift, a broken repo rule, a name ` +
+    `or comment that states something false, a test that asserts nothing.\n` +
+    `- NIT: a style preference, a clearer name for a name that is not wrong, wording, ordering, a ` +
+    `redundant but harmless test, anything whose fix changes no behaviour and hides no bug.\n` +
+    `When you are not sure, it is BLOCKING. Return verdict ALLOW only when every finding is a NIT; ` +
+    `otherwise BLOCK with the blocking findings verbatim. Change no file, commit nothing.\n\n` +
+    `Findings:\n` +
+    findings.map((f) => `- ${f}`).join('\n')
+  )
+}
+
 // ── loop ─────────────────────────────────────────────────────────────────────
 let round = 0
 const history = []
@@ -444,7 +481,24 @@ while (round < MAX_ROUNDS) {
 
   // One fixup carries every failing check's findings — separate fixups would each invalidate the
   // next gate's read of the diff.
-  const checksFails = checksRuns.filter(({ out }) => out.result === 'FAIL')
+  let checksFails = checksRuns.filter(({ out }) => out.result === 'FAIL')
+  if (checksFails.length > 0 && round >= JUDGE_FROM_ROUND) {
+    const findings = checksFails.flatMap(({ gate, out }) => (out.failures || []).map((f) => `[${gate.key}] ${f}`))
+    phase('Judge')
+    const ruling = await agent(judgePrompt(findings) + reportClause('judge'), {
+      agentType: 'general-purpose',
+      model: 'opus',
+      phase: 'Judge',
+      schema: JUDGE,
+      label: `judge:r${round}`,
+    })
+    if (!ruling) return { result: 'ERROR', mode, todo, stage: 'judge', round, history }
+    history.push({ round, gate: 'judge', result: ruling.verdict, failures: ruling.blocking || [], waived: ruling.verdict === 'ALLOW' ? findings : [], ran: ruling.reason || '' })
+    if (ruling.verdict === 'ALLOW') {
+      log(`round ${round}: judge waived ${findings.length} nit(s) from ${checksFails.map(({ gate }) => gate.key).join('+')} → checks count as green`)
+      checksFails = []
+    }
+  }
   if (checksFails.length > 0) {
     failed = {
       gate: { key: checksFails.map(({ gate }) => gate.key).join('+') },
@@ -480,7 +534,7 @@ while (round < MAX_ROUNDS) {
 
   if (!failed && !uncommitted) {
     log(`${mode === 'todo' ? `TODO-${todo}` : range} green on every gate after ${round} round(s)`)
-    return { result: 'PASS', mode, todo, range: mode === 'diff' ? range : undefined, intent, round, summary: impl ? impl.summary : undefined, history }
+    return { result: 'PASS', mode, todo, range: mode === 'diff' ? range : undefined, intent, round, summary: impl ? impl.summary : undefined, waived: history.flatMap((h) => h.waived || []), history }
   }
 
   if (uncommitted) {

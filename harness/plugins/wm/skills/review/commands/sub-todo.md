@@ -38,6 +38,9 @@ every finding routes back to `impl`, which is the only skill that edits.
    `<notes-dir>/RULES.md`, and `<notes-dir>/PATTERNS.md` — the rule sources the pair points at — and
    never the Outcome or the Surface. Tell it the other gates run beside it, so it reports none of
    what they judge.
+
+   From round 2, a red wave goes to the triage judge before the fixup (§ From round 2, a red wave goes
+   to the triage judge first) — a `general-purpose` agent on `opus`, `report: <notes-dir>/review/TODO-N/judge.md`.
 5. **Run the test gate** — @tester in TODO mode, `report: <notes-dir>/review/TODO-N/test.md`, once
    the wave is green. The one question: does a test assert this TODO's `## Autotest` contract, both
    `Unit` and `E2E`? No → it writes that test and returns the files.

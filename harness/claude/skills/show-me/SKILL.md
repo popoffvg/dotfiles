@@ -37,7 +37,7 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 | boxes the human wants to move | an interactive Artifact → `dataflow` | — |
 | boxes the human must hand-place and keep positioned across sessions | a live board → `board` | — |
 | a design the human must mark up | a board plus rounds → `board` § The round | — |
-| a batch of choices the human must answer | an editable file → `to-user` | — |
+| a batch of choices, or a handoff the human reads cold and answers | an editable file → `to-user` | — |
 | a corpus someone must learn | lessons or a deck → `lessons`, `deck-as-code` | — |
 
 The bold forms are fenced blocks in the reply and answer most questions. A routed row costs a canvas, a browser, or a publish, and is done when the skill it names is done — that skill states its own criterion. **Take a routed row only by naming what the inline form could not carry: pixels, motion, the human's hands, or a page of its own.**

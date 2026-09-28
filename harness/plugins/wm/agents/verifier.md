@@ -37,4 +37,5 @@ Files in `TODO-N.agent.md`, and the rules generated from `<notes-dir>/thoughts/`
 - **Independent context.** Judge from both halves of the pair (`TODO-N.md` for the Outcome, the approved `## Surface`, and Autotest; `TODO-N.agent.md` for the increments and Files; `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` for the rules) + the diff + test output — not from the implementer’s narration.
 - **`## Deviations` overrides the section it names.** Each row is a correction the user approved mid-implementation, with the reasoning in its `[[NNN-impl-decision-slug]]` note; judge the code against the row, not the superseded text above it. A divergence with no row is DEVIATES.
 - **Re-run, don't believe.** Execute both of the TODO's Autotest commands yourself — `Unit` and `E2E` — and report each real output.
+- **Check the names landed.** Run `~/.claude/scripts/wm-spec-code-names.py <notes-dir> --todo N`. A row in any state but `landed`, `removed`, or `match` is DEVIATES, unless a `## Deviations` row covers that name.
 - Verify exactly one TODO per run, then stop and hand the verdict to the user.

@@ -9,7 +9,7 @@ Obeys the shared subcommand rules — see `code:ref-subcommand-rules.md`.
 ## Steps
 
 1. **Analyze the fixups** — list the `git commit --fixup=<sha>` commits in scope. Each fixup records a correction the first attempt earned — from the user under `impl`, from a gate under `auto`: read its diff and the commit it corrects. Ask *why* the first attempt was wrong.
-2. **Distill lessons → a skill** — when a fixup reveals a generalizable mistake (a convention missed, a wrong assumption), capture it by invoking the **`capture-lesson`** skill (`self-improvement` plugin): it extends an existing skill whose trigger covers the lesson, or writes a new one. Skip one-off typos; capture only repeatable lessons.
+2. **Distill gotchas → `GOTCHAS.md`** — when a fixup reveals a repeatable mistake (a convention missed, a wrong assumption), follow the **`capture-gotcha`** skill: it extends the entry for that trigger in `<notes-dir>/GOTCHAS.md`, or appends a new one.
 3. **`git` squash** — leave **one** commit behind for the scope the caller set:
    - `git rebase --autosquash` to fold fixups into their targets — the form `auto` uses, and the standalone form, or
    - `wt merge` (squash mode) over a `where: worktree` branch, which merges it back in the same step.
@@ -17,4 +17,4 @@ Obeys the shared subcommand rules — see `code:ref-subcommand-rules.md`.
 
 ## Rules
 
-- Lessons are behavioral rules ("next time do X instead of Y"), not raw facts. `capture-lesson` owns their shape and their home — this file adds no format of its own.
+- Gotchas are behavioral rules ("next time do X instead of Y"), not raw facts. `capture-gotcha` owns their shape — this file adds no format of its own.

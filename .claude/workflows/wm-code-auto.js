@@ -4,9 +4,9 @@ export const meta = {
   whenToUse: 'Running /code auto deterministically: read the ledger, run wm-code-impl per open TODO in wave order, carry LESSONS.md between rounds, block a stuck TODO and drop its dependents, then deploy (optional) and verify end-to-end. The gates replace the human — nothing pauses for approval.',
   phases: [
     { title: 'Ledger', detail: 'read spec.md + every todos/TODO-N.md → the work list', model: 'haiku' },
-    { title: 'Squash', detail: "fold the round's fixups into the TODO's one commit, distilling them into skills" },
+    { title: 'Squash', detail: "fold the round's fixups into the TODO's one commit, distilling them into GOTCHAS.md" },
     { title: 'Lessons', detail: 'append what the round taught to LESSONS.md', model: 'haiku' },
-    { title: 'Capture', detail: 'capture-lesson on what the round taught outside the fixups' },
+    { title: 'Capture', detail: 'capture-gotcha on the traps the round met outside the fixups' },
     { title: 'Status', detail: 'verify→done | blocked, ledger row, jj commit the notes-dir', model: 'haiku' },
     { title: 'Deploy', detail: 'the project deploy task — skipped when absent or turned off', model: 'haiku' },
     { title: 'Verify', detail: "the last ledger TODO's E2E command", model: 'haiku' },
@@ -200,7 +200,7 @@ for (const item of workList) {
         `Squash the fixup trail of ${notesDir}/todos/TODO-${item.todo}.md: follow ${PLUGIN}/skills/impl/commands/sub-squash.md, scoped to THIS TODO only.\n` +
         `Fold every --fixup commit this round produced into the TODO's own commit (git rebase --autosquash), so the TODO leaves exactly one commit behind. ` +
         `Touch no commit that belongs to an earlier TODO.\n` +
-        `Its distill step is where a fixup becomes a skill — invoke the capture-lesson skill on every repeatable mistake the fixups reveal, and skip the one-off typos.\n` +
+        `Its distill step is where a fixup becomes a gotcha — follow the capture-gotcha skill (${PLUGIN}/skills/capture-gotcha/SKILL.md) on every repeatable mistake the fixups reveal, and skip the one-off typos.\n` +
         `Gate history (JSON): ${JSON.stringify(round && round.history ? round.history : [])}`,
       { agentType: 'wm:implementer', phase: 'Squash', label: `squash:TODO-${item.todo}` },
     )
@@ -232,13 +232,13 @@ for (const item of workList) {
   if (scribe) lessons.push(...(scribe.appended || []))
   else log(`TODO-${item.todo}: the lessons scribe returned nothing — this round taught ${lessonsFile} nothing`)
 
-  // 2.6 — LESSONS.md holds the round for this run; a skill holds it for every future one.
+  // 2.6 — LESSONS.md holds the round for this run; GOTCHAS.md holds the traps for every later spec.
   phase('Capture')
   await agent(
-    `Invoke the capture-lesson skill (self-improvement plugin) on what implementing ${notesDir}/todos/TODO-${item.todo}.md taught OUTSIDE its fixups — ` +
-      `a finding a gate rejected plus the command that settled it, a repo convention a gate named, a gap carried to a later TODO. ` +
+    `Follow the capture-gotcha skill (${PLUGIN}/skills/capture-gotcha/SKILL.md) on the traps that implementing ${notesDir}/todos/TODO-${item.todo}.md met OUTSIDE its fixups — ` +
+      `a repo convention a gate named, a command that failed in a non-obvious way. ` +
       `The fixups themselves were already captured by the squash step; do not file them twice.\n` +
-      `Follow the skill's own bar: a lesson that overrides no default is skipped, not filed.\n` +
+      `Follow the skill's own bar: a one-off, a status, or a fact the code already shows is skipped, not filed.\n` +
       `Gate history (JSON): ${JSON.stringify(round && round.history ? round.history : [])}\n` +
       `Lines just appended to ${lessonsFile}: ${JSON.stringify(scribe ? scribe.appended || [] : [])}`,
     { agentType: 'general-purpose', phase: 'Capture', label: `capture:TODO-${item.todo}` },
@@ -294,7 +294,7 @@ async function fix(what, run) {
   return agent(
     safetyClause +
       `The ${what} command came back red. Close it as a gap: follow ${PLUGIN}/skills/impl/commands/sub-fix.md — fix the thought in ${notesDir} first, then the code — and commit per ${PLUGIN}/skills/impl/commands/sub-commit.md. ` +
-      `Read ${lessonsFile} in full before you edit.\n` +
+      `Read ${lessonsFile} and ${notesDir}/GOTCHAS.md in full before you edit.\n` +
       `Command: ${run ? run.ran : '(agent died)'}\nOutput:\n${run ? run.output || '(none reported)' : '(none)'}`,
     { agentType: 'wm:implementer', phase: 'Fix', label: `fix:${what}` },
   )
