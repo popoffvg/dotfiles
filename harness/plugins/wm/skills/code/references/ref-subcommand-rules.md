@@ -26,6 +26,8 @@ somewhere the user has to go looking. Write it in plain words: the short word ov
 one meaning per word, no term the user has not used first. An option is a label of 1–5 words plus a
 description that names the cost of picking it, never the mechanism behind it.
 
+**Never ask what a written rule already answers.** Before you write a question, check the pair, the printed rule table, and this skill's commands. When one of them decides it, obey it and name the rule in the report. Example: "Which files outside **Files** may increment 1 edit?" is not a question. `impl:sub-impl.md` step 5.1 already says any file the **Do** needs.
+
 The answer becomes a `decision` note with `source: human` (`arch:ref-note-format.md` § Frontmatter),
 so a question the human answered from a thin summary records a choice nobody really made. When the
 code can answer it, read the code instead and write `source: auto`.

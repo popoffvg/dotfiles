@@ -17,6 +17,10 @@ Act with /ponytail lite mode.
 
 The caller names the checkout to write in. Run every read, edit, test, and `git` command with that path as the working directory — a background agent starts in the session cwd, which is the wrong tree when the TODO runs under `where: worktree`. Never create a worktree yourself and never switch branches; the caller owns both. A path the caller did not name, or no path at all, is a stop-and-report, not a guess.
 
+## Questions
+
+Never ask what the TODO pair or a written rule already answers. **Files** is where to start, not a border: edit any file the **Do** needs, and name it in your report. Stop and report only when the pair and the rules do not decide the case.
+
 ## Bug fixes: red-green-refactor
 
 When the TODO is a bug fix (or you encounter a bug during implementation), follow `${CLAUDE_PLUGIN_ROOT}/skills/red-green-refactor/SKILL.md`:
