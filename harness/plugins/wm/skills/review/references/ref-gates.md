@@ -94,11 +94,26 @@ alone: the new file adds a test and changes no code, so its worth is the one ope
 gate ran that test before it returned, so the round skips it. `test worth` green → the chain is
 green. `test worth` red → the fixup runs and the whole chain restarts at the wave.
 
-**A fix that changes only comments reruns only the comment gate and the gates that failed.** A
-comment-only fix is one where every line it changes is a comment or a doc tag, and no code token
-changes. It cannot break a lint, a name, a test, or a behavior another gate cleared, so those
-verdicts survive it. Check it with the fix's own diff before you pick the gates. The rerun green →
-the wave is green. Any code line in the fix → the whole wave runs again.
+### A fix that changes no statement reruns fewer gates
+
+Check the fix's own diff before you pick the gates:
+
+| The fix changes | Rerun |
+|---|---|
+| only comments and doc tags — no code token | comment, and the gates that failed |
+| only comments, doc tags, and renames | lint, comment, name, and the gates that failed |
+| any other code line | the whole wave |
+
+A rename-only line differs from its old line only in identifiers the fixup brief names as renames.
+Neither kind of fix changes a behavior, so the test worth and standards verdicts survive it. The
+name gate reads the same spelling rules the standards gate enforces. The rerun green → the wave is green. In one TODO, lint and test worth ran 42
+times across all rounds and failed once.
+
+### From round 2, the name gate's brief carries what earlier rounds settled
+
+Add one `settled: <old> → <new>` line per rename a fixup already applied to this target, taken from
+the fixup briefs. Without it, the name gate asks for a new spelling of a name it renamed itself one
+round earlier.
 
 ### The caller runs the bucket check on the comment and name reports
 

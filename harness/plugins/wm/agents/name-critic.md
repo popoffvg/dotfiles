@@ -112,6 +112,11 @@ reviewed: <`date -Iseconds`>
   one real run flipped `idP` and `methodId` for four rounds and landed an empty net diff. You still
   get to disagree — say it as a **nit** citing the rule and the term, so a human can reopen the
   decision. Never as a failure.
+- **A rename an earlier round asked for is settled too.** From round 2 the brief carries
+  `settled: <old> → <new>` lines, or your own record of earlier rounds. Fail a settled name again
+  only for a smell no earlier round raised, and name that smell. One real run renamed
+  `shareValidation` to `joinValidationPerDocumentState`, back to `shareValidationPerDocumentState`,
+  and was then asked for `deduplicate…`: three rounds, no behavior changed.
 - **Run the bucket check last.** After you write the report, run
   `${CLAUDE_PLUGIN_ROOT}/bin/gate-bucket-check.py <report>`. It moves each Failure with a nit smell to
   Nits and corrects the `Result:` line.

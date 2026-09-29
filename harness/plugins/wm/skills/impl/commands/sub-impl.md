@@ -66,12 +66,13 @@ only skill that edits source.
    @reviewer, each with `report: <notes-dir>/review/TODO-N/inc-<k>/<gate>.md`, where `<k>` is the
    increment's position in `## Changes`. The brief is the one `review:sub-todo.md` step 2 names: the
    rule-file paths, never their pasted content.
-3. **Fix every Failure, then re-run the whole wave.** First run `bin/gate-bucket-check.py` on
+3. **Fix every Failure, then re-run the wave.** First run `bin/gate-bucket-check.py` on
    `comment.md` and `name.md`, and route only the Failures it leaves (`review:ref-gates.md` § The
-   caller runs the bucket check). A fix can break what another gate already
-   cleared, so no verdict survives an edit (`review:ref-gates.md` § Any FAIL restarts the whole
-   chain). The one exception: a fix that changes only comments re-runs only @comment-critic and
-   the gates that failed (same section). Nits are reported to the human at 5.3 and block nothing.
+   caller runs the bucket check). A fix can break what another gate already cleared, so no verdict
+   survives an edit (§ Any FAIL restarts the whole chain). A fix that changes only comments or
+   renames reruns fewer gates (§ A fix that changes no statement reruns fewer gates). From round 2,
+   give @name-critic the `settled:` lines (§ From round 2, the name gate's brief carries what
+   earlier rounds settled). Nits are reported to the human at 5.3 and block nothing.
 4. **Stop at three rounds per gate** (`review:ref-gates.md` § The gate budget). A gate that spends
    its budget stops the increment: set `status: blocked`, report the last findings and the round
    count, and apply nothing after it. Never show a human a diff a gate still rejects — a blocked

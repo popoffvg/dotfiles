@@ -1,7 +1,7 @@
 export const meta = {
   name: 'wm-code-impl',
   description: 'Run the review gate chain until every gate passes — over one wm TODO it implements first, or over a diff no TODO pair covers',
-  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — one parallel checks batch (lint, comments, names, test worth, and the opus outcome gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks (after a comment-only fixup, only the comment check and the checks that failed). wm-code-auto calls this once per TODO.",
+  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — one parallel checks batch (lint, comments, names, test worth, and the opus outcome gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks (after a comment-only fixup, only the comment check and the checks that failed; after a rename-only fixup, lint, comment, name, and the checks that failed). wm-code-auto calls this once per TODO.",
   phases: [
     { title: 'Intent', detail: 'diff mode only — resolve the range and derive the intent sentence', model: 'haiku' },
     { title: 'Implement', detail: 'wm:implementer (sonnet, opus for a red TODO) writes + commits, and fixes every gate finding', model: 'sonnet' },
@@ -95,6 +95,7 @@ const IMPL = {
     summary: { type: 'string', description: 'what shipped + the commit sha' },
     blocker: { type: 'string', description: 'set only when blocked: what was tried + why stopped' },
     commentOnly: { type: 'boolean', description: 'correction round only: true when every line the fixup changes is a comment or a doc tag and no code token changed, checked with git show on the fixup' },
+    renameOnly: { type: 'boolean', description: 'correction round only: true when every changed code line differs from its old line only in identifiers the failures asked to rename, checked with git show on the fixup; comments may change too' },
   },
 }
 const INTENT = {
@@ -190,7 +191,8 @@ function implPrompt(failures, extra) {
     `${base}\n\nCORRECTION round — a gate failed. Address these failures, then commit a FIXUP ` +
     `(git commit --fixup=<sha-being-corrected>), never a plain commit:\n` +
     failures.map((f) => `- ${f}`).join('\n') +
-    `\n\nSet commentOnly:true only when git show on your fixup changes comments and doc tags and nothing else.`
+    `\n\nSet commentOnly:true only when git show on your fixup changes comments and doc tags and nothing else. ` +
+    `Set renameOnly:true only when every code line it changes differs from the old line only in identifiers the failures asked to rename.`
   )
 }
 
@@ -611,9 +613,14 @@ while (round < MAX_ROUNDS) {
   if (!impl || impl.status === 'blocked') return blocked(`${failed.gate.key}-fixup`, impl)
   // A fixup can break what an earlier gate already cleared → restart the chain, never resume.
   // A comment-only fixup cannot, so only the comment gate and the gates that failed run again.
+  // A rename changes no behaviour, so test worth and standards keep their verdicts; lint still
+  // runs because a missed call site fails the build.
   if (impl.commentOnly) {
     rerunOnly = new Set(['comment', ...failed.gate.key.split('+')])
     log(`round ${round}: fixup changed comments only → next checks: ${[...rerunOnly].join('+')}`)
+  } else if (impl.renameOnly) {
+    rerunOnly = new Set(['lint', 'comment', 'name', ...failed.gate.key.split('+')])
+    log(`round ${round}: fixup changed comments and renames only → next checks: ${[...rerunOnly].join('+')}`)
   }
 }
 
