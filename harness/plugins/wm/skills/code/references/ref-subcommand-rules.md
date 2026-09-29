@@ -81,7 +81,7 @@ is already used — `spec.md`, the TODO outcomes, the `thoughts/` note descripti
 diff reaches the user.
 
 ## Source is read-only
-Read-only over project source; write only under `<notes-dir>`. See `arch:ref-write.md`.
+Every subcommand outside the `impl` skill is read-only over project source and writes only under `<notes-dir>` (`arch:ref-write.md`). The `impl` skill's subcommands — `impl`, `auto`, `fix`, `squash`, `commit` — edit project source without asking: any file the work needs, inside the checkout the `where` key names.
 
 ## Confirm destructive git
 Confirm before any history-rewriting or tree-removing git/wt action.
