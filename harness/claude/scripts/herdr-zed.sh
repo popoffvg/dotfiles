@@ -10,6 +10,7 @@ TITLE_POLL_SECONDS="${HERDR_ZED_TITLE_POLL:-1}"
 DONE_ICON="${HERDR_ZED_DONE_ICON:-●}"
 REVIEW_ICON="${HERDR_ZED_REVIEW_ICON:-◆}"
 QUESTION_ICON="${HERDR_ZED_QUESTION_ICON:-△}"
+PROGRESS_ICON="${HERDR_ZED_PROGRESS_ICON:-▷}"
 read -r -a BUSY_FRAMES <<<"${HERDR_ZED_BUSY_FRAMES:-◰ ◳ ◲ ◱}"
 
 if [[ ! -r "$CONFIG" ]]; then
@@ -91,6 +92,7 @@ restyle_icon() {
     return
     ;;
   blocked | question) printf -v styled "%s %s" "$QUESTION_ICON" "$3" ;;
+  progress) printf -v styled "%s %s" "$PROGRESS_ICON" "$3" ;;
   review) printf -v styled "%s %s" "$REVIEW_ICON" "$3" ;;
   done) printf -v styled "%s %s" "$DONE_ICON" "$3" ;;
   *) styled=$3 ;;

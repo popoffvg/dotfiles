@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Turn triage: the session model tags its final reply with `triage: done|review|question`.
+"""Turn triage: the session model tags its final reply with `triage: done|progress|review|question`.
 
 UserPromptSubmit asks for the tag and clears the herdr pane token `triage`. Stop reads the tag
 and writes it to that token; herdr-zed.sh turns it into the tab icon. A reply with no tag
@@ -18,16 +18,18 @@ from pathlib import Path
 SOURCE = "herdr-turn-triage"
 TOKEN = "triage"
 FALLBACK = "review"
-TAG_RE = re.compile(r"^\W*triage:\s*(done|review|question)\W*$", re.IGNORECASE)
+TAG_RE = re.compile(r"^\W*triage:\s*(done|progress|review|question)\W*$", re.IGNORECASE)
 
 RULE = (
     "End your final reply of this turn with one last line `triage: <state>`, where <state> is:\n"
     "question - you ask the user something, offer options, or need a decision, a confirmation, "
     "or information before the work can continue;\n"
+    "progress - the turn ends but the work goes on without the user: a background task, agent, or "
+    "workflow still runs and will resume this session when it exits;\n"
     "review - the work stopped and the user must look at it: files changed, a result to check, "
     "a failed or blocked step, or work only partly done;\n"
     "done - the request is fully answered or finished, and nothing needs a check or a reply.\n"
-    "If question applies, write question. Else if review applies, write review."
+    "If question applies, write question. Else if progress applies, write progress. Else if review applies, write review."
 )
 
 
