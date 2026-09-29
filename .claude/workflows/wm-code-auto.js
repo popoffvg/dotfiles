@@ -66,6 +66,7 @@ const LEDGER = {
           wave: { type: 'string' },
           status: { type: 'string' },
           dependsOn: { type: 'array', items: { type: 'string' }, description: 'the N of each depends_on TODO' },
+          risk: { type: 'string', description: 'the risk frontmatter value without its # comment: red, yellow, green, or a legacy 1-5' },
         },
       },
     },
@@ -147,7 +148,7 @@ const ledger = await agent(
     `1. Read ${notesDir}/spec.md (frontmatter, the ledger, the ## Plan wave table) and every ${notesDir}/todos/TODO-N.md.\n` +
     `2. Return every TODO whose frontmatter status is not "done", ordered by the wave table (widest wave first) ` +
     `and, inside a wave, by ascending layer — the order ${PLUGIN}/skills/arch/references/ref-write.md § TODO ordering and waves defines. ` +
-    `Carry each one's depends_on as the bare TODO numbers.\n` +
+    `Carry each one's depends_on as the bare TODO numbers, and its risk value.\n` +
     `3. Return e2eCommand: the E2E command from the ## Autotest of the LAST TODO in the ledger (the literal string "none" if that level is written none), and e2eTodo.\n` +
     `4. Return deployTask: the project's deploy command if one is configured (read ${notesDir}/CLAUDE.md, then mise tasks / Makefile / package.json scripts — do not invent one), else null.\n` +
     `5. Create ${lessonsFile} if it is missing and set lessonsCreated. Do NOT leave it empty — the first TODO ` +
@@ -184,7 +185,7 @@ for (const item of workList) {
   // A child that throws blocks its TODO — it never ends the run (sub-auto.md Step 2, last rule).
   let round = null
   try {
-    round = await workflow('wm-code-impl', { todo: item.todo, notesDir, lessonsFile, maxGateFails })
+    round = await workflow('wm-code-impl', { todo: item.todo, risk: item.risk, notesDir, lessonsFile, maxGateFails })
   } catch (err) {
     round = { result: 'ERROR', stage: 'child-workflow', blocker: `wm-code-impl threw: ${err && err.message ? err.message : err}` }
     log(`TODO-${item.todo}: ${round.blocker}`)

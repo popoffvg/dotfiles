@@ -78,7 +78,10 @@ Back-fill `Affects` and populate `links` per `ref-note-format.md` § Back-linkin
 #### 2. Confirm spec.md reflects every resolution
 Every decision is a `thoughts/NNN-decision-*.md` note — **not** a spec section (`spec.md` has no Design Decisions); a decision an increment can violate is a `decision` note whose `description` states the rule the generator prints (`ref-todo-sections.md` § Constraints); routine picks land in GLOSSARY.md / scope instead; new out-of-scope items in What we're NOT doing. **No `status: open` question note left** (`~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0; any open one = NOT READY), and **no `status: proposed` decision left** (`~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --check` exits 0; a proposed decision generates no rule, so the implementer would never see the choice). Advance the frontmatter `status: init → review`. Self-check against `ref-write.md` § Spec-Readiness Checklist.
 
-#### 3. Compile the plan
+#### 3. Draft the main user flow
+Spawn `wm:tester` with the spec path, `<notes-dir>/research/`, and `<notes-dir>/workflows/`. It writes the flow the product MUST keep working as the `main` flow of `<notes-dir>/workflows/flows.json` (`dive:sub-workflow.md` § Rules — `flows.json`), each step an E2E scenario, and updates the entry when one exists. Work that changes no user-visible flow gets no `main` flow; the tester says so. The human approves the flow at the `review→impl` gate — it is what every TODO's `risk` cites (`examples/todo.md`).
+
+#### 4. Compile the plan
 Write a `## Plan` at the bottom of spec.md — 3–5 sentences (one per major branch) plus the **wave** table. No decision-trail table: the graph lives in `thoughts/`, the rules it settled are printed by `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts`, and a reader who wants the reasoning behind either runs the `trace` skill.
 
 ```markdown
@@ -96,7 +99,7 @@ Write a `## Plan` at the bottom of spec.md — 3–5 sentences (one per major br
 Build the waves per `ref-write.md` § Waves — group for maximum parallelism: compute the real edges, put every edge-free TODO in `W1`, keep one wave's **Files** sets disjoint, and prefer a split that removes an edge over one that adds a chain. A spec whose waves are all one TODO wide is a serialized spec — re-check whether those edges are real.
 
 ### Step 2. Commit + report
-`jj commit -m "<what was grilled, decisions added, questions closed, note count>"` in `<notes-dir>`. Then print: shared-understanding summary (2–3 sentences), note count (N decisions, M facts, K questions still open — 0 for READY), the wave table, and the next action — **review the spec, then `/code todo`**.
+`jj commit -m "<what was grilled, decisions added, questions closed, note count>"` in `<notes-dir>`. Then print: shared-understanding summary (2–3 sentences), the main user flow steps (or "no main user flow"), note count (N decisions, M facts, K questions still open — 0 for READY), the wave table, and the next action — **review the spec, then `/code todo`**.
 
 ## Stop at the gate
 

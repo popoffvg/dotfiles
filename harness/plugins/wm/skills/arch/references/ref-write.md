@@ -123,6 +123,10 @@ existed. A spec set to `inherit` is invalid — the spec is the level that has n
 can ask for `none`. Write the reason as a trailing comment on the key, the way `risk` carries its
 justification — an override with no reason is the one a reviewer cannot judge.
 
+**`risk: red` raises the result to `increment`**, whatever either key says: a red TODO breaks the
+main user flow or core code, so the human reads each step. Only `auto` still runs as `none`,
+as below.
+
 Neither level lowers a hard gate: the human still reads the spec at the `review→impl` boundary, and
 destructive git actions are still confirmed. `auto` runs as `none` whatever either key says, because
 nobody is watching it.

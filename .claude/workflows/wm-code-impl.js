@@ -4,7 +4,7 @@ export const meta = {
   whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — one parallel checks batch (lint, comments, names, test worth, and the opus outcome gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks. wm-code-auto calls this once per TODO.",
   phases: [
     { title: 'Intent', detail: 'diff mode only — resolve the range and derive the intent sentence', model: 'haiku' },
-    { title: 'Implement', detail: 'wm:implementer (sonnet) writes + commits, and fixes every gate finding', model: 'sonnet' },
+    { title: 'Implement', detail: 'wm:implementer (sonnet, opus for a red TODO) writes + commits, and fixes every gate finding', model: 'sonnet' },
     { title: 'Checks', detail: 'lint-tester + comment-critic + name-critic + test-critic + reviewer, in parallel', model: 'haiku + opus' },
     { title: 'Judge', detail: 'from round 2, a red checks wave goes to an opus judge that waives it when every finding is a nit', model: 'opus' },
     { title: 'Test', detail: 'wm:tester (sonnet) gates the Autotest contract', model: 'sonnet' },
@@ -12,7 +12,7 @@ export const meta = {
 }
 
 // ── args ─────────────────────────────────────────────────────────────────────
-// todo mode: { todo: <N>, notesDir?: ".notes", lessonsFile?, maxGateFails? }
+// todo mode: { todo: <N>, risk?: "red" | "yellow" | "green", notesDir?: ".notes", lessonsFile?, maxGateFails? }
 // diff mode: { mode: "diff", range?: "HEAD", intent?, notesDir?, lessonsFile?, maxGateFails? }
 //
 // A slash invocation delivers args as TEXT, not as the object the caller wrote: real runs arrived
@@ -66,6 +66,8 @@ const lessonsFile = parsed.lessonsFile || null
 // null = unbounded-until-green, the standalone `/code impl` contract. wm-code-auto
 // passes 3 — sub-auto.md's "three failed rounds on one gate → status: blocked".
 const maxGateFails = parsed.maxGateFails || null
+
+const implementerModel = parsed.risk === 'red' ? 'opus' : 'sonnet'
 
 // Backstop only, for the unbounded case: real termination is a gate budget or the
 // implementer's own hard-stop returning status:"blocked". Logged if ever hit
@@ -426,7 +428,7 @@ function blocked(stage, impl) {
 let impl = null
 if (mode === 'todo') {
   phase('Implement')
-  impl = await agent(implPrompt(), { agentType: 'wm:implementer', phase: 'Implement', schema: IMPL, label: `impl:TODO-${todo}` })
+  impl = await agent(implPrompt(), { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `impl:TODO-${todo}` })
   if (!impl || impl.status === 'blocked') return blocked('initial', impl)
 } else {
   // review:sub-diff.md steps 1-2 — resolve the range and derive the intent, because the
@@ -547,7 +549,7 @@ while (round < MAX_ROUNDS) {
       implPrompt(null, `The ${uncommitted.gate.key} gate wrote these test files and left them uncommitted:\n` +
         files.map((f) => `- ${f}`).join('\n') +
         `\nFold them into the commit under review (git commit --amend, or a fixup if the commit was already corrected once). Change nothing else.`),
-      { agentType: 'wm:implementer', phase: 'Implement', schema: IMPL, label: `commit-tests:r${round}` },
+      { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `commit-tests:r${round}` },
     )
     if (!impl || impl.status === 'blocked') return blocked('commit-tests', impl)
     foldedTests = true
@@ -596,7 +598,7 @@ while (round < MAX_ROUNDS) {
   }
 
   phase('Implement')
-  impl = await agent(implPrompt(failures), { agentType: 'wm:implementer', phase: 'Implement', schema: IMPL, label: `fixup-${failed.gate.key}:r${round}` })
+  impl = await agent(implPrompt(failures), { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `fixup-${failed.gate.key}:r${round}` })
   if (!impl || impl.status === 'blocked') return blocked(`${failed.gate.key}-fixup`, impl)
   // A fixup can break what an earlier gate already cleared → restart the chain, never resume.
 }

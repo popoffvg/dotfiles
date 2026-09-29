@@ -33,6 +33,12 @@ Every `from`/`to` references a package `id`. Every `source` is a verified `path:
 `packages[].id` from the cited source files inside each `<ep-slug>` artifact (top-level dir or repo
 package of the cited file).
 
+**One flow may carry `"main": true`** — the main user flow: the steps a user MUST pass to get the main
+result of the product. Its edges are those steps in order, and each `via` is the step name a TODO's
+`risk` cites. A step the code does not have yet carries `"source": "planned"` in place of a
+`path:line`; the implementing TODO replaces it. `wm:tester` writes this flow in `arch:sub-new.md`
+§ Exit contract.
+
 ## Verify + autocomplete plumbing
 
 - **Verify every citation.** Open each `@source` and each `bindings.json` `source` before writing it. Then run the lint:

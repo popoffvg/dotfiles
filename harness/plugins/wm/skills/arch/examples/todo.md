@@ -2,7 +2,7 @@
 status: todo                # todo → impl → verify → done (blocked: dep unmet / verify DEVIATES). Machine: ref-write.md § Status
 type: new behavior          # the change kind — one of the nine in impl:ref-change-types.md, never a brick
 depends_on: []              # [TODO-M, …] real edges only; each must reach status: done first
-risk: 3                     # changes the existing Refresh signature; retest the auth middleware and every caller of Refresh, not just the new rotation path
+risk: red                   # reach: changes the Refresh signature, every caller retests; flow: breaks main user flow step `POST /auth/refresh`; recovery: none, a user who fails refresh is logged out
 approve: increment          # inherit | increment | todo | none — override the spec, with the reason: every caller of Refresh moves, so the human reads each step. ref-write.md § Approval
 where: inherit              # inherit | in-place | worktree — the checkout impl writes into; override the spec with the reason. ref-write.md § Where the work happens
 increment: 0/4              # <approved>/<total> — impl stamps it after each increment lands; `todo` writes `0/<total>`. ref-write.md § Progress
@@ -19,19 +19,28 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 > introduces, a test that cannot pass before M lands. "Feels later" is not an edge — a false one
 > serializes the spec, because this list computes the waves.
 >
-> **`risk`** — a 1–5 score for **reach**: the surface a regression forces you to retest, not effort.
-> A one-line edit to a shared type is a 5; a large isolated new module is a 1.
+> **`risk`** — `red`, `yellow`, or `green`: the **worst** answer to three questions. No default:
+> choose one, and the comment gives the answer to each question, naming the consumers reach retests.
 >
-> | Score | Reach | Retest |
-> |-------|-------|--------|
-> | 1 | local, additive — new path, no existing behavior touched | just the new path |
-> | 2 | one component, isolated edit | that component |
-> | 3 | modifies behavior others call | component + its callers |
-> | 4 | shared/utility code, several consumers | every consumer |
-> | 5 | core contracts many modules depend on | cross-module regression pass |
+> | Question | red | yellow | green |
+> |----------|-----|--------|-------|
+> | **reach** — what a regression forces you to retest | changes a shape or behavior that 30% or more of the codebase's modules read | changes a shape or behavior that fewer modules read; they retest | the new path only; an added field other modules ignore is here too |
+> | **flow** — the main user flow | breaks a step of it | breaks a step in some cases | leaves it working |
+> | **recovery** — the user's way around a broken feature | none | a slow one | a backdoor, or the user can wait days or weeks |
 >
-> Score ≥ 3 → Autotest/Manual test covers the callers, not just the new code. A high score signals
-> keep-it-small, not blocked.
+> **flow** cites a step of the main user flow — the `main` flow in `<notes-dir>/workflows/flows.json`
+> (`dive:sub-workflow.md` § Rules — `flows.json`). A **flow** or **recovery** answer the spec does
+> not state carries its color and `assumed` — `recovery: green, assumed`. An `assumed` green counts as yellow until the human confirms it.
+>
+> What each color changes in `impl`:
+>
+> | Color | Approval | Autotest + Manual test cover | First pass |
+> |-------|----------|------------------------------|------------|
+> | red | `increment`, whatever `approve` says (`ref-write.md` § Approval) | every consumer, and the main user flow end to end | opus `@implementer` |
+> | yellow | as `approve` says | the component and its callers | sonnet `@implementer` |
+> | green | as `approve` says | the new path | sonnet `@implementer` |
+>
+> A red TODO is a signal to keep it small, not a block.
 >
 # TODO-1: Rotate refresh tokens on /auth/refresh
 

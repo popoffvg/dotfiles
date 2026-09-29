@@ -35,6 +35,8 @@ TYPES = {
 }
 APPROVALS = {"inherit", "increment", "todo", "none"}
 WORKSPACES = {"inherit", "in-place", "worktree"}
+RISK_COLORS = {"red", "yellow", "green"}
+LEGACY_RISK_SCORES = {"1", "2", "3", "4", "5"}
 MAX_INCREMENTS = 10
 
 HUMAN_ORDER = ["Outcome", "Delivers", "Components", "Surface", "Autotest", "Commit"]
@@ -395,9 +397,9 @@ def check_human(n, path, lines, pairs, f, checks):
         if key not in fm:
             f.fail(row, label, f"frontmatter key `{key}` missing", "required always")
     if "risk" in fm:
-        score = fm["risk"].split("#")[0].strip()
-        if score not in {"1", "2", "3", "4", "5"}:
-            f.fail(row, label, f"risk `{score}` is not 1-5", "score the reach")
+        color = fm["risk"].split("#")[0].strip()
+        if color not in RISK_COLORS | LEGACY_RISK_SCORES:
+            f.fail(row, label, f"risk `{color}` is not red, yellow, or green", "take the worst of reach, flow, recovery")
     if "approve" in fm:
         value = fm["approve"].split("—")[0].split("#")[0].strip()
         if value not in APPROVALS:
@@ -680,7 +682,7 @@ def run(notes, as_json=False, quiet=False):
     check_glossary(notes, pairs, f)
 
     checks = {
-        "B3": f.check("B3", "human half frontmatter — keys, risk 1-5, approve, where, type, depends_on"),
+        "B3": f.check("B3", "human half frontmatter — keys, risk color, approve, where, type, depends_on"),
         "B4": f.check("B4", "human half sections — present, ordered, link out, deviations named a note"),
         "B5": f.check("B5", "Components — brick, touch, exactly one main"),
         "B6": f.check("B6", "Surface carries the diff"),
