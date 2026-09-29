@@ -22,12 +22,12 @@ reviewed: 2026-09-04T11:07:52+02:00
 ## Covered
 | Rule | Verdict |
 |---|---|
-| Clear without context — the unit and the boundary carried | 1 failure |
+| Clear without context — the unit and the boundary carried | clean |
 | Domain language — no implementation word | clean |
-| One term per concept, across the whole diff — synonym drift, homonym | n/a — every concept in this diff is declared once |
+| One term per concept, across the whole diff — synonym drift, homonym | 1 failure |
 
 ## Failures
-- writer/column.py:34 — `rid` — an abbreviation that reads as a row id in a writer that also writes rows — → `run_id`
+- writer/column.py:34 — `rid` — homonym — reads as a row id in a writer that also writes rows — → `run_id`
 ```
 
 > **The path comes from the brief, never from the gate.** The caller's `report:` line names it; the

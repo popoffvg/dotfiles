@@ -100,6 +100,14 @@ changes. It cannot break a lint, a name, a test, or a behavior another gate clea
 verdicts survive it. Check it with the fix's own diff before you pick the gates. The rerun green →
 the wave is green. Any code line in the fix → the whole wave runs again.
 
+### The caller runs the bucket check on the comment and name reports
+
+`bin/gate-bucket-check.py <report>` moves each comment Failure that cites a nit row, and each name
+Failure with a nit smell, to Nits, and corrects the `Result:` line. The two gates
+run it themselves before they return. Run it again on `comment.md` and `name.md` before you route a FAIL or
+merge; it changes nothing the second time. Route the verdict it prints. In one TODO it moved 23 misfiled
+Failures and turned 7 of 20 red verdicts green.
+
 ### From round 2, a red wave goes to the triage judge first
 
 A late round fails mostly on taste, and each taste finding costs a fixup round that moves no

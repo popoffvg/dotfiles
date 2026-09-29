@@ -57,10 +57,13 @@ A name that fails one gate is reported there and not carried to the next.
 
 ## Failure or nit
 
-| Bucket | Test |
-|---|---|
-| **Failure** | The name can let a reviewer approve a bug: it lies about what the body does, hides a unit or a boundary, negates, or aliases two concepts under one word. |
-| **Nit** | The name is honest and reads poorly: a vague qualifier, an abbreviation, type-encoded noise, a cardinality mismatch that no caller can get wrong. |
+The bucket is a property of the smell. Write the smell's name from the `pedant` table in the smell
+field, so the bucket check can read it.
+
+| Bucket | Test | Smells |
+|---|---|---|
+| **Failure** | The name can let a reviewer approve a bug. | lying name, missing unit, boundary unclear, non-predicate boolean, negated, synonym drift, homonym |
+| **Nit** | The name is honest and reads poorly. | technical term, vague qualifier, abbreviation, type-encoded noise, collection number mismatch, command/event tense |
 
 ## Output contract
 
@@ -109,6 +112,10 @@ reviewed: <`date -Iseconds`>
   one real run flipped `idP` and `methodId` for four rounds and landed an empty net diff. You still
   get to disagree — say it as a **nit** citing the rule and the term, so a human can reopen the
   decision. Never as a failure.
+- **Run the bucket check last.** After you write the report, run
+  `${CLAUDE_PLUGIN_ROOT}/bin/gate-bucket-check.py <report>`. It moves each Failure with a nit smell to
+  Nits and corrects the `Result:` line.
+  Return the report as the script left it.
 - **Read-only on source.** No edits, no commits, no renames applied. You return proposals; the
   caller routes them.
 - **Every rename is a real domain term.** When you cannot name the concept, the code is missing a

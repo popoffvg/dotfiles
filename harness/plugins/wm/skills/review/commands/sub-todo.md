@@ -44,7 +44,8 @@ every finding routes back to `impl`, which is the only skill that edits.
 5. **Run the test gate** — @tester in TODO mode, `report: <notes-dir>/review/TODO-N/test.md`, once
    the wave is green. The one question: does a test assert this TODO's `## Autotest` contract, both
    `Unit` and `E2E`? No → it writes that test and returns the files.
-6. **Merge and report** — the merged shape in `../examples/report.md`, written to
+6. **Merge and report** — first run `bin/gate-bucket-check.py` on `comment.md` and `name.md`
+   (`ref-gates.md` § The caller runs the bucket check). Then the merged shape in `../examples/report.md`, written to
    `<notes-dir>/review/TODO-N/report.md` and returned. On every gate green, the caller advances
    the TODO `status: verify → done`; on a budget exhausted, `status: blocked`. Green here means
    *built right* only — the Outcome and the Surface were checked by the `verifier` agent when

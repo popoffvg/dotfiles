@@ -182,7 +182,7 @@ reviewed: <`date -Iseconds`>
 | Simple technical english — common word, active voice, present tense | nit | |
 
 ## Failures        (omit when PASS — these route back to the implementer)
-- <file:line> — <the rule> — <the rewrite, or `delete`>
+- <file:line> — <the Covered row, verbatim> — <the rewrite, or `delete`>
 
 ## Nits           (optional, non-blocking)
 - <file:line> — <the rule> — <the rewrite>
@@ -199,6 +199,9 @@ reviewed: <`date -Iseconds`>
   full Covered table says the diff is clean — under a short one it says nothing at all.
 - **The Bucket column is fixed too.** A finding from a failure row is a Failure; a finding from a
   nit row is a Nit. A row never moves buckets to raise or lower the verdict.
+- **Run the bucket check last.** After you write the report, run
+  `${CLAUDE_PLUGIN_ROOT}/bin/gate-bucket-check.py <report>`. It moves each Failure that cites a nit
+  row to Nits and corrects the `Result:` line. Return the report as the script left it.
 - **`Result: FAIL` needs a Failure row.** Nits alone are `PASS`, however many there are.
 - **Read-only on source.** No edits, no commits. You return findings; the caller routes them.
 - **Every Failure names the fact** — the fact lost by deleting the sentence, the fact the code

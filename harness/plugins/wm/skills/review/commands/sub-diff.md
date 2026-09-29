@@ -45,7 +45,8 @@ mode reports and stops — it runs no fixup loop, because a human is reading the
    test assert the behavior this diff changed? It names the gap in its report and **writes no test**
    here — there is no implementer to fold one into and no commit to amend. The report file it always
    writes.
-6. **Report** — the merged shape in `../examples/report.md`, with the resolved range and the derived intent sentence
+6. **Report** — first run `bin/gate-bucket-check.py` on `comment.md` and `name.md`
+   (`ref-gates.md` § The caller runs the bucket check). Then the merged shape in `../examples/report.md`, with the resolved range and the derived intent sentence
    at the top, written to `<notes-dir>/review/<slug>/report.md` and returned.
 
 ## No pair: what the standards gate loses

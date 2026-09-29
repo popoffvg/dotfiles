@@ -60,6 +60,12 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 | Re-link the notes an edit touched | `wm-backlink-thoughts.py <thoughts> <edge-file>` — lines `<id>\|<section>\|<target-id>\|<annotation>` | appends the bullet under `## <section>` and syncs frontmatter `links:`. Idempotent. The `.sh` twin skips the frontmatter sync |
 | Reshape a pre-split TODO | `wm-todo-split-agent.py <todos/TODO-N.md>... [--dry-run]` | the pair, agent half left failing `budget-check` until a human hoists each increment's surface |
 
+## Route a gate verdict
+
+| Need | Invocation | Returns |
+|---|---|---|
+| A comment or name report with every Failure in the right bucket | `bin/gate-bucket-check.py <report.md> [--gate comment\|name]` | rewrites the report in place, prints `Result:` and the moved count. Exit 0 on PASS, 1 on FAIL, 2 on a report it cannot read |
+
 ## Judge the tests a diff already has
 
 | Need | Invocation | Returns |

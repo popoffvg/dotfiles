@@ -66,7 +66,9 @@ only skill that edits source.
    @reviewer, each with `report: <notes-dir>/review/TODO-N/inc-<k>/<gate>.md`, where `<k>` is the
    increment's position in `## Changes`. The brief is the one `review:sub-todo.md` step 2 names: the
    rule-file paths, never their pasted content.
-3. **Fix every Failure, then re-run the whole wave.** A fix can break what another gate already
+3. **Fix every Failure, then re-run the whole wave.** First run `bin/gate-bucket-check.py` on
+   `comment.md` and `name.md`, and route only the Failures it leaves (`review:ref-gates.md` § The
+   caller runs the bucket check). A fix can break what another gate already
    cleared, so no verdict survives an edit (`review:ref-gates.md` § Any FAIL restarts the whole
    chain). The one exception: a fix that changes only comments re-runs only @comment-critic and
    the gates that failed (same section). Nits are reported to the human at 5.3 and block nothing.
