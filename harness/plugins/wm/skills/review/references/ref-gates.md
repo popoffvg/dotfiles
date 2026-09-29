@@ -208,7 +208,7 @@ never looked. So every gate report carries a `## Covered` table above its findin
 that gate owns, and the rows are fixed: the same list every run, whatever the diff holds.
 
 **Each gate's row set lives in its own agent file**, in the template under its Output contract —
-`comment-critic` lists ten rows over its seven prose gates — six that fail and four that nit;
+`comment-critic` lists eleven rows over its eight prose gates — seven that fail and four that nit;
 `name-critic` its three, `test-critic` its six drop-table rows, `mutation-tester` its ten operators,
 `lint-tester` the commands it ran, `tester` its five case categories, `reviewer` its five hunts and
 the sources it read. An agent is a

@@ -28,7 +28,16 @@ const io = makeHookIO("comment-check", {
 
 // Prose that states an invariant, an assumption, or a rejected alternative uses
 // one of these. Their absence is what separates a reason from a paraphrase.
-const REASON = /\b(because|since|so|hence|therefore|otherwise|unless|but|not|never|no|cannot|can't|must|would|could|only|instead|rather|deliberately|on purpose|beware|caution|assumes?|invariant|breaks?|fails?|prevents?|stops?|avoids?|guards?|else)\b/i;
+const REASON = /\b(because|since|so|hence|therefore|otherwise|unless|but|not|never|no|cannot|can't|must|would|could|only|instead|deliberately|on purpose|beware|caution|assumes?|invariant|breaks?|fails?|prevents?|stops?|avoids?|guards?|else)\b/i;
+
+// A contrast word also makes a claudism look like a reason, so these are
+// checked before REASON and reported whatever the comment shares with the code.
+const CLAUDISM = [
+  [/\brather than\b/i, "contrast with an option nobody proposed (\"rather than\")"],
+  [/\bneither\b[^.]*\bnor\b/i, "definition by negation (\"neither … nor\")"],
+  [/,\s*not (that|because|just|only|merely)\b/i, "trailing contrast clause (\", not that …\")"],
+  [/\bnot (just|only|merely)\b[^.]*\bbut\b/i, "\"not only … but\" framing"],
+];
 
 // Whole-line comments only. A trailing `#` or `//` inside a string literal is
 // not worth the parser it would take to exclude.
@@ -106,6 +115,13 @@ function analyze(text, cfg) {
     // A divider or banner has no sentence to judge.
     if (/^[\s─=\-*#]+$/.test(body)) continue;
 
+    const claudism = CLAUDISM.find(([re]) => re.test(body));
+    if (claudism) {
+      findings.push({ line: unit.start + 1, kind: "claudism", head, form: claudism[1],
+                      anchor: unit.lines[0].trim() });
+      continue;
+    }
+
     const window = codeWindow(lines, unit.start + unit.lines.length, cfg.window);
     if (!window.length) continue;              // trailing comment, nothing under it
 
@@ -138,10 +154,14 @@ function addedText(input, toolName) {
 }
 
 function format(findings, file) {
-  const lines = ["⚠ comment-check — a comment here repeats what the code says."];
+  const lines = ["⚠ comment-check — a comment here repeats the code or frames a fact as a contrast."];
   for (const f of findings) {
     lines.push("");
-    if (f.kind === "empty doc tag") {
+    if (f.kind === "claudism") {
+      lines.push(`  ${file}:${f.line} — ${f.form}:`);
+      lines.push(`    comment: ${f.head}`);
+      lines.push("    State each fact as it is, one per sentence. Name an alternative only when a reader would choose it.");
+    } else if (f.kind === "empty doc tag") {
       lines.push(`  ${file}:${f.line} — the tag states only the name and the type:`);
       lines.push(`    ${f.head}`);
     } else {
