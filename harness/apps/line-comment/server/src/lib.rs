@@ -2,6 +2,7 @@
 
 pub mod anchor;
 pub mod cli;
+pub mod diff_view;
 pub mod export;
 pub mod input;
 pub mod reveal;
@@ -17,6 +18,7 @@ use std::path::{Path, PathBuf};
 
 use serde_json::{json, Value};
 
+use crate::diff_view::{DiffFile, DiffView};
 use crate::input::Target;
 use crate::store::{Author, Comment, LoadError, Store};
 use crate::wire::{
@@ -69,6 +71,8 @@ pub enum Effect {
 pub struct Session {
     root: PathBuf,
     store: Store,
+    /// Set when the root is inside a `zed-diff.sh` work dir; the root is then its repo.
+    diff_view: Option<DiffView>,
     documents: HashMap<String, String>,
     /// Files we last published diagnostics for, so they can be cleared when emptied.
     published: HashSet<String>,
@@ -79,6 +83,10 @@ pub struct Session {
 impl Session {
     /// Load the store for `root`, falling back to an empty store when it cannot be read.
     pub fn new(root: PathBuf) -> (Session, Vec<Effect>) {
+        let diff_view = DiffView::find(&root);
+        let root = diff_view
+            .as_ref()
+            .map_or(root, |view| view.repo().to_path_buf());
         let path = root.join(".tmp").join("line-comment.json");
         let (store, effects) = match Store::load(&path) {
             Ok(store) => (store, Vec::new()),
@@ -102,6 +110,7 @@ impl Session {
         };
         let mut session = Session {
             root,
+            diff_view,
             store,
             documents: HashMap::new(),
             published: HashSet::new(),
@@ -362,7 +371,7 @@ impl Session {
         let mut current = HashSet::new();
 
         for (key, comments) in &self.store.files {
-            let uri = path_to_uri(&self.path_of(key));
+            let uris = self.client_uris(key);
             let text = self.current_text(key).unwrap_or_default();
             let lines = anchor::lines(&text);
             let diagnostics = comments
@@ -386,9 +395,14 @@ impl Session {
                         message: message_of(comment),
                     }
                 })
-                .collect();
-            current.insert(uri.clone());
-            payloads.push(PublishDiagnostics { uri, diagnostics });
+                .collect::<Vec<_>>();
+            for uri in uris {
+                current.insert(uri.clone());
+                payloads.push(PublishDiagnostics {
+                    uri,
+                    diagnostics: diagnostics.clone(),
+                });
+            }
         }
 
         for stale in self.published.difference(&current) {
@@ -399,6 +413,20 @@ impl Session {
         }
         self.published = current;
         payloads
+    }
+
+    /// The URIs a key's comments are shown on: the file the key names, and every open
+    /// diff-tree copy of it, since the client only shows what it opened.
+    fn client_uris(&self, key: &str) -> Vec<String> {
+        let mut uris = vec![path_to_uri(&self.path_of(key))];
+        let mut copies: Vec<&String> = self
+            .documents
+            .keys()
+            .filter(|uri| self.diff_file(uri).is_some() && self.key(uri).as_deref() == Some(key))
+            .collect();
+        copies.sort();
+        uris.extend(copies.into_iter().cloned());
+        uris
     }
 
     /// The path a store key names.
@@ -416,7 +444,9 @@ impl Session {
         let open = self
             .documents
             .iter()
-            .find(|(uri, _)| self.key(uri).as_deref() == Some(key))
+            .find(|(uri, _)| {
+                self.snapshot_revision(uri).is_none() && self.key(uri).as_deref() == Some(key)
+            })
             .map(|(_, text)| text.clone());
         match open {
             Some(text) => Some(text),
@@ -453,6 +483,7 @@ impl Session {
     /// refused, so a comment never lands on the input file or the export.
     pub fn key(&self, uri: &str) -> Option<String> {
         let path = uri_to_path(uri)?;
+        let path = self.diff_file(uri).map_or(path, |file| file.repo_path);
         let relative = path.strip_prefix(&self.root).ok();
         if let Some(relative) = relative {
             if relative.starts_with(".tmp") {
@@ -463,11 +494,24 @@ impl Session {
         Some(path.to_string_lossy().replace('\\', "/"))
     }
 
+    fn diff_file(&self, uri: &str) -> Option<DiffFile> {
+        self.diff_view.as_ref()?.locate(&uri_to_path(uri)?)
+    }
+
+    /// The short sha a diff-tree document was read from. Its text is not the working
+    /// tree's, so it never moves an anchor and never supplies a hash.
+    fn snapshot_revision(&self, uri: &str) -> Option<String> {
+        self.diff_file(uri)?.revision
+    }
+
     pub fn did_open(&mut self, uri: &str, text: String) -> Vec<Effect> {
         let Some(key) = self.key(uri) else {
             return Vec::new();
         };
         self.documents.insert(uri.to_string(), text);
+        if self.snapshot_revision(uri).is_some() {
+            return vec![Effect::PublishDiagnostics];
+        }
         let text = self.documents.get(uri).cloned().unwrap_or_default();
         let before = self.store.comments(&key).to_vec();
         if let Some(comments) = self.store.files.get_mut(&key) {
@@ -491,6 +535,13 @@ impl Session {
         };
         let before = self.store.comments(&key).to_vec();
         let mut text = self.documents.get(uri).cloned().unwrap_or_default();
+        if self.snapshot_revision(uri).is_some() {
+            for change in changes {
+                anchor::apply_change(&mut text, change.range, &change.text);
+            }
+            self.documents.insert(uri.to_string(), text);
+            return Vec::new();
+        }
 
         for change in changes {
             match change.range {
@@ -570,7 +621,12 @@ impl Session {
             .find(|comment| comment.line == line)
             .map(|comment| comment.text.clone())
             .unwrap_or_default();
-        let document = self.text_of(&key);
+        // The quote is what the operator sees, so a diff-tree copy quotes its own text.
+        let document = self
+            .documents
+            .get(uri)
+            .cloned()
+            .unwrap_or_else(|| self.text_of(&key));
         let lines = anchor::lines(&document);
         let quoted = lines
             .get(line - 1..end_line.min(lines.len()))
@@ -725,7 +781,13 @@ impl Session {
                     .get(2)
                     .and_then(Value::as_u64)
                     .map_or(line, |end| end as usize);
-                let Some(contents) = self.input_for(uri, line, end_line, &[], None) else {
+                let Some(contents) = self.input_for(
+                    uri,
+                    line,
+                    end_line,
+                    &[],
+                    self.snapshot_revision(uri).as_deref(),
+                ) else {
                     return Vec::new();
                 };
                 let path = self.take_input_path();

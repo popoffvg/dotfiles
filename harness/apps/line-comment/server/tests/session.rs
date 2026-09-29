@@ -1244,3 +1244,59 @@ fn a_revision_alone_is_not_a_comment() {
     assert!(session.store().comments("docs/spec.md").is_empty());
 }
 
+
+/// A `zed-diff.sh` work dir mirroring `repo`, with `docs/spec.md` in a snapshot tree and
+/// the live tree. Returns the work dir.
+fn diff_work_dir(repo: &PathBuf, base: &str, live: &str) -> PathBuf {
+    let work_dir = root();
+    std::fs::write(
+        work_dir.join(line_comment::diff_view::REPO_MARKER),
+        format!("{}\n", repo.display()),
+    )
+    .unwrap();
+    for (tree, text) in [("abc1234", base), (line_comment::diff_view::LIVE_TREE, live)] {
+        let file = work_dir.join(tree).join("docs").join("spec.md");
+        std::fs::create_dir_all(file.parent().unwrap()).unwrap();
+        std::fs::write(file, text).unwrap();
+    }
+    work_dir
+}
+
+#[test]
+fn a_comment_in_a_diff_view_is_stored_against_the_repo_file() {
+    let repo = root();
+    let live = "# Title\n\n## Design\n";
+    std::fs::create_dir_all(repo.join("docs")).unwrap();
+    std::fs::write(repo.join("docs").join("spec.md"), live).unwrap();
+    let work_dir = diff_work_dir(&repo, "# Old title\n\n## Design\n", live);
+    let live_file = work_dir.join("working-tree").join("docs").join("spec.md");
+    let base_uri = line_comment::path_to_uri(&work_dir.join("abc1234").join("docs").join("spec.md"));
+    let live_uri = line_comment::path_to_uri(&live_file);
+
+    let (mut session, _) = Session::new(live_file.parent().unwrap().to_path_buf());
+    assert_eq!(session.root(), repo.as_path());
+    session.did_open(&base_uri, "# Old title\n\n## Design\n".to_string());
+    session.did_open(&live_uri, live.to_string());
+
+    add(&mut session, &live_uri, 2, "needs a source");
+    let (path, contents) = handed_over(&mut session, &base_uri, 0);
+    assert!(contents.contains("# Old title"));
+    write_input(&path, &format!("{contents}why rename\n"));
+    session.drain_input();
+    session.persist().unwrap();
+
+    let stored = Store::load(&repo.join(".tmp").join("line-comment.json")).unwrap();
+    let comments = stored.comments("docs/spec.md");
+    assert_eq!(comments.len(), 2);
+    assert_eq!(comments[0].line, 1);
+    assert_eq!(comments[0].text, "why rename\n\nread on abc1234");
+    assert_eq!(comments[0].hash, anchor::line_hash("# Title"));
+    assert_eq!(comments[1].text, "needs a source");
+    assert!(!work_dir.join("working-tree").join("docs").join(".tmp").exists());
+
+    let hints = session.inlay_hints(&base_uri, whole_file());
+    assert_eq!(hints.len(), 2);
+    let published: Vec<String> = session.diagnostics().into_iter().map(|p| p.uri).collect();
+    assert!(published.contains(&base_uri));
+    assert!(published.contains(&live_uri));
+}

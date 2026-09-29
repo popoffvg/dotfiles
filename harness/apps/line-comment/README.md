@@ -142,6 +142,8 @@ rebound there instead: it copies `<file>:<line>` from the diff and runs
 second half alone, for a location copied some other way. The comment then lands on the working tree's file at that line — on the tip commit that
 is the line you were looking at, on an older one check it before you trust it.
 
+In a **`zed --diff` view** opened by `zed-diff.sh`, the code action works as usual, and the comment lands in the real repo's `.tmp/line-comment.json` under the repo-relative path. A comment written on the base side is stored against the same working-tree line and ends with `read on <sha>`.
+
 The path a commit view copies is relative to the git repository, so `add` looks for it inside
 each repository under the project root. Two worktrees of one repository hold the same path, and
 nothing in that view says which commit you were reading — so the first in path order is taken

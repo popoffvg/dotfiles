@@ -79,6 +79,8 @@ if [[ -z $changed ]]; then
 fi
 
 work_dir=$(mktemp -d "${TMPDIR:-/tmp}/zed-diff.XXXXXX")
+# line-comment-lsp reads this to store a comment on a tree file against the repo file.
+printf '%s\n' "$repo_root" >"$work_dir/.line-comment-repo"
 left_tree="$work_dir/$(git rev-parse --short "$base_commit")"
 right_tree="$work_dir/$right_label"
 
