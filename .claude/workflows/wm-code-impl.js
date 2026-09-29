@@ -1,7 +1,7 @@
 export const meta = {
   name: 'wm-code-impl',
   description: 'Run the review gate chain until every gate passes — over one wm TODO it implements first, or over a diff no TODO pair covers',
-  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — one parallel checks batch (lint, comments, names, test worth, and the opus outcome gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks. wm-code-auto calls this once per TODO.",
+  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — one parallel checks batch (lint, comments, names, test worth, and the opus outcome gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks (after a comment-only fixup, only the comment check and the checks that failed). wm-code-auto calls this once per TODO.",
   phases: [
     { title: 'Intent', detail: 'diff mode only — resolve the range and derive the intent sentence', model: 'haiku' },
     { title: 'Implement', detail: 'wm:implementer (sonnet, opus for a red TODO) writes + commits, and fixes every gate finding', model: 'sonnet' },
@@ -94,6 +94,7 @@ const IMPL = {
     status: { enum: ['done', 'blocked'] },
     summary: { type: 'string', description: 'what shipped + the commit sha' },
     blocker: { type: 'string', description: 'set only when blocked: what was tried + why stopped' },
+    commentOnly: { type: 'boolean', description: 'correction round only: true when every line the fixup changes is a comment or a doc tag and no code token changed, checked with git show on the fixup' },
   },
 }
 const INTENT = {
@@ -188,7 +189,8 @@ function implPrompt(failures, extra) {
   return (
     `${base}\n\nCORRECTION round — a gate failed. Address these failures, then commit a FIXUP ` +
     `(git commit --fixup=<sha-being-corrected>), never a plain commit:\n` +
-    failures.map((f) => `- ${f}`).join('\n')
+    failures.map((f) => `- ${f}`).join('\n') +
+    `\n\nSet commentOnly:true only when git show on your fixup changes comments and doc tags and nothing else.`
   )
 }
 
@@ -418,6 +420,7 @@ function judgePrompt(findings) {
 // ── loop ─────────────────────────────────────────────────────────────────────
 let round = 0
 let foldedTests = false
+let rerunOnly = null
 const history = []
 const fails = { lint: 0, comment: 0, name: 0, testWorth: 0, test: 0, outcome: 0 }
 
@@ -462,11 +465,17 @@ while (round < MAX_ROUNDS) {
   let uncommitted = null
   const testsOnly = foldedTests
   foldedTests = false
+  const onlyKeys = rerunOnly
+  rerunOnly = null
 
   // The checks: the gates over the same diff, in one parallel batch. They share no state, so the
   // wall clock is the slowest of them instead of their sum.
   phase('Checks')
-  const CHECKS = testsOnly ? checks().filter((g) => g.key === 'testWorth') : checks()
+  const CHECKS = testsOnly
+    ? checks().filter((g) => g.key === 'testWorth')
+    : onlyKeys
+      ? checks().filter((g) => onlyKeys.has(g.key))
+      : checks()
   const checksOut = await parallel(
     CHECKS.map((gate) => () =>
       agent(gate.prompt + reportClause(gate.key) + historyClause(gate.key), {
@@ -601,6 +610,11 @@ while (round < MAX_ROUNDS) {
   impl = await agent(implPrompt(failures), { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `fixup-${failed.gate.key}:r${round}` })
   if (!impl || impl.status === 'blocked') return blocked(`${failed.gate.key}-fixup`, impl)
   // A fixup can break what an earlier gate already cleared → restart the chain, never resume.
+  // A comment-only fixup cannot, so only the comment gate and the gates that failed run again.
+  if (impl.commentOnly) {
+    rerunOnly = new Set(['comment', ...failed.gate.key.split('+')])
+    log(`round ${round}: fixup changed comments only → next checks: ${[...rerunOnly].join('+')}`)
+  }
 }
 
 log(`${mode === 'todo' ? `TODO-${todo}` : range}: hit MAX_ROUNDS=${MAX_ROUNDS} without every gate green — stopping (backstop, not a silent truncation)`)

@@ -68,7 +68,8 @@ only skill that edits source.
    rule-file paths, never their pasted content.
 3. **Fix every Failure, then re-run the whole wave.** A fix can break what another gate already
    cleared, so no verdict survives an edit (`review:ref-gates.md` § Any FAIL restarts the whole
-   chain). Nits are reported to the human at 5.3 and block nothing.
+   chain). The one exception: a fix that changes only comments re-runs only @comment-critic and
+   the gates that failed (same section). Nits are reported to the human at 5.3 and block nothing.
 4. **Stop at three rounds per gate** (`review:ref-gates.md` § The gate budget). A gate that spends
    its budget stops the increment: set `status: blocked`, report the last findings and the round
    count, and apply nothing after it. Never show a human a diff a gate still rejects — a blocked

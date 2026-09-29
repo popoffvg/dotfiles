@@ -25,7 +25,7 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 | test | does a test assert the contract — and writes it when none does | sonnet |
 | standards | the repo's written rules, the patterns already in use, the language idiom, correctness | opus |
 
-Order: all six judging gates run as one parallel wave — the four haiku gates, the opus standards gate, and the mutation gate as one agent per changed-source batch, each in its own git worktree. Then the sonnet test gate runs alone, because it writes. Any FAIL merges into one fixup brief for `/code fix` and restarts the chain at the wave.
+Order: all six judging gates run as one parallel wave — the four haiku gates, the opus standards gate, and the mutation gate as one agent per changed-source batch, each in its own git worktree. Then the sonnet test gate runs alone, because it writes. Any FAIL merges into one fixup brief for `/code fix` and restarts the chain at the wave. A fixup that changes only comments re-runs only the comment gate and the gates that failed.
 
 Every gate writes its own findings file: `<notes-dir>/review/<target>/<gate>.md` — mutation writes one per batch under `mutation/` — plus the merged `<notes-dir>/review/<target>/report.md`. `<target>` is `TODO-N`, or the resolved range slug in `diff` mode. Each round overwrites, so the files always show the current verdict — a green gate writes its file too, so a missing file means the gate did not run.
 

@@ -94,6 +94,12 @@ alone: the new file adds a test and changes no code, so its worth is the one ope
 gate ran that test before it returned, so the round skips it. `test worth` green → the chain is
 green. `test worth` red → the fixup runs and the whole chain restarts at the wave.
 
+**A fix that changes only comments reruns only the comment gate and the gates that failed.** A
+comment-only fix is one where every line it changes is a comment or a doc tag, and no code token
+changes. It cannot break a lint, a name, a test, or a behavior another gate cleared, so those
+verdicts survive it. Check it with the fix's own diff before you pick the gates. The rerun green →
+the wave is green. Any code line in the fix → the whole wave runs again.
+
 ### From round 2, a red wave goes to the triage judge first
 
 A late round fails mostly on taste, and each taste finding costs a fixup round that moves no
