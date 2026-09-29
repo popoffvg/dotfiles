@@ -167,7 +167,17 @@ fn await_initialize(connection: &Connection, trace: &mut Trace) -> Option<(Reque
 }
 
 /// `workspaceFolders[0]`, then `rootUri`, then `rootPath`; a temporary directory otherwise.
+/// Zed opens each file of a `zed --diff` view as a single-file worktree, so the folder can
+/// be a file — its parent directory is the root then.
 fn workspace_root(params: &Value) -> PathBuf {
+    let root = workspace_folder(params);
+    match root.parent() {
+        Some(parent) if root.is_file() => parent.to_path_buf(),
+        _ => root,
+    }
+}
+
+fn workspace_folder(params: &Value) -> PathBuf {
     let folder = params
         .get("workspaceFolders")
         .and_then(Value::as_array)
@@ -566,5 +576,22 @@ fn to_value<T: serde::Serialize>(value: Option<T>) -> Value {
     match value {
         Some(value) => serde_json::to_value(value).unwrap_or(Value::Null),
         None => Value::Null,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn workspace_root_is_the_parent_of_a_file_folder() {
+        let dir = std::env::temp_dir().join(format!("line-comment-root-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("installation_rollout.go");
+        std::fs::write(&file, "package lifecycle\n").unwrap();
+        let params = json!({ "workspaceFolders": [{ "uri": format!("file://{}", file.display()), "name": "f" }] });
+        assert_eq!(workspace_root(&params), dir);
+        let params = json!({ "workspaceFolders": [{ "uri": format!("file://{}", dir.display()), "name": "d" }] });
+        assert_eq!(workspace_root(&params), dir);
     }
 }
