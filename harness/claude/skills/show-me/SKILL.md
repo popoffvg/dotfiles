@@ -1,6 +1,6 @@
 ---
 name: show-me
-description: Pick the form that fits what is being shown — pseudocode, a call tree, a Codemap, a component tree, a file tree, a diff, a decision table, a flow diagram (mermaid in md files, ASCII in chat) — and write it into the reply. Use when the user says "show me", "draw it", "sketch that", "what does the flow look like", "where does that live", when a design point is easier pointed at than described, or when prose has grown into a third paragraph about structure. Routes to the drawing skills when the content needs a canvas.
+description: Pick the form that fits what is being shown — pseudocode, a call tree, a Codemap, a component tree, a lifetime tree and type cards for type design, a file tree, a diff, a decision table, a flow diagram (mermaid in md files, ASCII in chat) — and write it into the reply. Use when the user says "show me", "draw it", "sketch that", "what does the flow look like", "where does that live", "show me the types", "review the type design", when a design point is easier pointed at than described, or when prose has grown into a third paragraph about structure. Routes to the drawing skills when the content needs a canvas.
 ---
 
 # MUST FOLLOW
@@ -22,6 +22,8 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 | a rule or flow before any code exists | **pseudocode** → `flow-sketch` | every branch, failure cause, and open decision is nameable without the source |
 | which function calls which, and in what order | **call tree**, `tree` glyphs | every name is grep-able; path sits as a trailing `# path:line` comment, never on its own line |
 | a code path across files that someone will revisit | a **Codemap** → `codelens` | one question has a pinned, re-anchorable trace |
+| the types of a package, or the types a change adds, before review | **lifetime tree** → § Type design | each type sits at its lifetime level with `new:`, `holds:` and `methods:`, and every review flag is written under the tree |
+| one NEW or CHANGED type in that tree | **type card** → § Type design | every method names what it calls, what it returns, and who calls it |
 | which component owns which, and where state sits | **component tree**, owning path on the root | the state hook and the package boundary are both visible |
 | responsibility across directories | **shallow file tree**, one comment per dir | each comment says what the dir *owns*, not what it holds |
 | a change to any shape above | **`diff`** over that same shape | the surrounding shape is present and unchanged |
@@ -97,6 +99,67 @@ Use a Codemap only for a code path across files that someone will revisit. `code
 Same flow as **Pseudocode** above, same locations as a **call tree** — the step names carry the rule, the nesting carries the calls, and the pin makes both re-checkable months later.
 
 `#` is the question, `@` the commit pin, `>` an entry point, `-` a stage or `path:line:symbol` Node, and `|` a fact the code alone does not say. Indentation means part of the current step, not necessarily a direct call; expand a location once and repeat it bare thereafter.
+
+## Type design
+
+**The big picture is a lifetime tree. A zoom on one type is a type card.** Show the tree before any code for the types exists, so the human changes a type before the review does.
+
+### Lifetime tree
+
+One level per lifetime, longest first: session, then one per entity, then one per operation. The edge between levels names the method that creates the lower type. Plain data types with no methods and no ports go on one `VALUES` line at the end. Do not draw a graph of links: the levels and the `holds:` lines carry them.
+
+```
+SESSION — main.go builds one
+Installations                                          # installations.go:14
+│  new:     NewInstallations(lister, documents, engine, runs, secrets)
+│  holds:   lister · installationPorts{engine, documents, runs, secrets, now}
+│  methods: List · New · EngineName · WithClock
+│
+└─ List, New ──creates one per listed installation──▶
+   INSTALLATION — one per row on the list
+   Installation                                        # installation.go:27
+   │  new:     installationPorts.installation(listed, loaded, storedAt, loadErr, rollout)
+   │           NewInstallation(engine, loaded, listed, rollout)
+   │  data:    Name Phase Cloud Engine LastApply Version   ← the gateway fills these
+   │  state:   loaded{Current, Stored} · storedAt · rollout
+   │  holds:   installationPorts (shared with the session)
+   │  methods: Deploy · RejoinRollout · PlanInstallation · Settings · Rollout
+   │
+   └─ Deploy ──NewDeployRollout──▶
+      ROLLOUT — one per deploy or rejoin
+      Rollout                                          # rollout.go:66
+         new:     NewDeployRollout(ports, document, identity)
+         state:   running{Identity, LeaseExpiresAt} · version · machine
+         holds:   RolloutPorts{Engine, Runs, Now, Wait}
+         methods: Record · Apply · Rejoin · Close · State
+
+VALUES — no methods, no ports
+InstallationSettings{Current, Stored}   RunIdentity   RunningRollout   Plan
+```
+
+Mark each type `NEW`, `CHANGED`, or leave it bare when it exists. A proposed type carries no `# path:line`.
+
+**Review flags.** Write one line under the tree for each hit:
+
+- a type with more than one `new:`;
+- a type that a lower layer builds half-made (`data:` filled by a gateway, the rest filled later);
+- a port that more than one level holds;
+- a method with no caller;
+- a NEW type that names no invariant and replaces no primitive or existing type.
+
+### Type card
+
+One card per NEW or CHANGED type, in the language's own syntax, with no bodies. Fields first, then methods. Each method names what it calls, what it returns, and who calls it; a method with no `called by` is cut.
+
+```go
+type SaveService struct {                         // NEW
+    cache *Cache
+    store Store
+}
+func (s *SaveService) Save(c string) SaveResult   // calls → Cache.Get, Store.Write
+                                                  // returns → SaveResult
+                                                  // called by ← Handler.Post  handler.go:40
+```
 
 ## Three rules for every form
 
