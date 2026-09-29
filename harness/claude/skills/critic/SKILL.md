@@ -1,53 +1,44 @@
 ---
 name: critic
-description: Build the strongest case AGAINST a decision that already looks right — hunt the unknown unknowns, walk to the border of the field where the decision stops holding, grill the owner for what only they know, and settle every attack with evidence. Trigger on "criticize this", "argue against it", "why is this wrong", "poke holes", "red team this", "what am I missing", "devil's advocate", "stress-test the decision", or before committing to a hard-to-reverse choice.
+description: Build the strongest case AGAINST a decision that already looks right — up to three opus critics run in sequence, each one MUST find an attack the earlier ones missed, and every attack is settled with evidence. Trigger on "criticize this", "argue against it", "why is this wrong", "poke holes", "red team this", "what am I missing", "devil's advocate", "stress-test the decision", or before you commit to a hard-to-reverse choice, as a second opinion.
 argument-hint: [the decision to attack]
-model-invocation: false
-user-invocation: true
 ---
 
 # critic — the case against the decision
 
-The decision arrives already defended: its owner has the reasons, the happy path, and the sunk thought. This skill supplies the other side. Your job is **not** balance — it is to produce the single strongest argument the decision fails, and to back it with evidence a reasonable owner would accept.
+The decision arrives already defended: its owner has the reasons and the happy path. This skill supplies the other side. The method lives in the `critic` agent; this skill runs it up to three times and merges the result.
 
-Two failure modes bound the work:
-
-- **Cheap criticism** — attacks that sound sharp and cite nothing. Every attack here dies or survives on evidence.
-- **In-frame criticism** — attacks that accept the decision's own frame, so they can only find bugs inside it, never the reason the frame is wrong. Steps 2 and 3 exist to leave the frame.
-
-You attack the decision, never the person who made it.
+One critic stops at the attacks it finds first. Each later round reads the earlier reports and MUST find an attack they missed, so the rounds together cover more of the field than one long round.
 
 ## Flow
 
-1. **Steelman it first.** Restate the decision as its owner would at their sharpest: what it claims, what it buys, why the obvious objections already lose. Then write the **bet** underneath it — the list of things that must be true for it to be right. An attack that hits nothing on this list is noise; an attack on a line of this list is the whole game.
-2. **Hunt unknown unknowns.** Known risks are already priced in. Ask what *class* of fact this decision is structurally unable to notice:
-   - **Who is not in the room?** The consumer, the operator, the future maintainer, the failing region — whose evidence never reaches this table?
-   - **What did we not measure because we never thought to?** Name the instrument that does not exist.
-   - **What would we call a success even if it failed?** If the outcome and its opposite both look like "working", the decision is untestable and that is the finding.
-   - **Where does the reasoning use a word nobody has defined?** Undefined words are where unknown unknowns hide.
-   Turn each into a concrete thing to look for. An unknown unknown that stays abstract cannot be checked.
-3. **Walk to the border of the field.** Every decision holds inside a range and breaks outside it. Find the outside:
-   - **Extremes** — 100× the load, 1 user, zero data, everything concurrent, the network gone.
-   - **Time** — right on day one, wrong in a year; what it costs to reverse after it sets.
-   - **Adjacent discipline** — how would security / ops / a lawyer / a support engineer / a beginner describe this same decision? Borrow their vocabulary and re-read it.
-   - **Prior art at the border** — who already tried this and what killed them. Find the neighbour who failed, not the one who succeeded.
-   - **Invert** — assume it already failed in six months; write the post-mortem's first line, then work backwards to the cause.
-4. **Grill for what only the owner knows.** Some attacks cannot be settled from the code or the docs — they turn on intent, constraint, or a fact only the human holds. Route those through the `grilling` skill: one file, one block per question, each carrying the attack it belongs to and a recommended answer. Do not ask the human anything the codebase can answer.
-5. **Collect evidence, attack by attack.** Each attack is a claim to be tested, not stated. Read the code, run the command, read the doc, check the history. Record what you actually observed, with `file:line`, command output, or a citation — never a paraphrase from memory.
-   - **A negative finding needs a positive control.** "No caller does this" is worthless until the same query finds a caller you know exists. A query that cannot see anything answers exactly like a query about something gone.
-   - Evidence that *supports* the decision is recorded too, on the same table. Attacks you killed yourself are the reason the surviving ones are credible.
-6. **Rule.** Rank the surviving attacks by damage, not by how clever they are. Deliver the **one** strongest argument against, the attacks that died and what killed them, the **kill criterion** (the observation that would settle it either way), and the cheapest probe that produces it. If nothing survived evidence, say the decision holds — a critic who never clears anything is not being read next time.
+1. **Fix the decision.** Write the decision in one or two sentences. List the files, links, and conversation facts it rests on. If the decision is unclear, ask the user before you spawn anything. Pick a report dir: `<scratchpad>/critic-<slug>/`.
+2. **Run the critic loop.** Start with `N = 1` and an empty `prior` list.
+
+   ```
+   loop:
+     spawn a fresh `critic` agent:
+       decision: <step 1>
+       round:    N
+       prior:    <every report path in the prior list>
+       report:   <dir>/round-N.md
+     wait for it to finish
+     append <dir>/round-N.md to prior
+     if round N has no NEW attack with verdict SURVIVES: stop
+     if N = 3: stop
+     N = N + 1
+   ```
+
+   The rounds run in sequence, never in parallel: each round needs the earlier reports to know what is not new.
+3. **Grill the owner.** Collect the **Ask the owner** questions from the reports. Drop each question that the evidence in a later round already answers. Ask the rest through the `grilling` skill. Mark each attack its answer settles.
+4. **Rule.** Merge the round reports into one. Rank the surviving attacks by damage, not by how clever they are. If nothing survived the evidence, say the decision holds. A critic that never clears a decision is not read next time.
 
 ## Rules
 
-1. **Evidence or withdraw.** An attack with no evidence column is deleted before the report, not shipped as a "concern".
-2. **Attack the bet, not the wording.** Every finding must name the line of step 1's bet it breaks. Style, taste, and naming belong to other skills.
-3. **Steelman before you swing.** If your restatement is one the owner would not sign, you are attacking a decision nobody made.
-4. **Leave the frame at least once.** At minimum one attack must come from step 2 or 3 — outside the decision's own terms. Otherwise this is a code review.
-5. **A killed attack is reported.** What you tried and could not make stick is the proof the surviving attacks are not cheap.
-6. **Name the kill criterion.** An argument nobody can settle by observation is a preference. Say what would change your mind, and what would change theirs.
-7. **Cost the alternative.** "This is wrong" without what it costs to do otherwise is not actionable. If you have no alternative, say the decision may be the least-bad and attack it anyway.
-8. **Rule, don't rewrite.** Output the case; the owner decides. Implementing the alternative is a separate ask.
+1. **Fresh agent per round.** Do not continue an earlier round with SendMessage. A round that remembers its own reasoning repeats it.
+2. **Do not filter the rounds.** Carry every attack, the killed ones too, into the merged report. The killed attacks prove that the surviving ones are not cheap.
+3. **Cost the alternative.** "This is wrong" is not actionable without the cost of the other way. If there is no alternative, say the decision may be the least-bad option.
+4. **Rule, don't rewrite.** Output the case; the owner decides. Implementing the alternative is a separate request.
 
 ## Report
 
@@ -62,11 +53,15 @@ You attack the decision, never the person who made it.
 - B2 <must-be-true>
 
 ## Attacks
-| # | Attack | Breaks | Origin | Evidence | Verdict |
-|---|--------|:------:|--------|----------|---------|
-| A1 | <claim> | B2 | border:extremes | `src/x.rs:88` — <what was observed> | SURVIVES |
-| A2 | <claim> | B1 | unknown-unknown:who-is-absent | grill Q3: owner confirmed <> | SURVIVES |
-| A3 | <claim> | B1 | in-frame | positive control found the caller — claim false | KILLED |
+| # | Attack | Breaks | Round | Origin | Evidence | Verdict |
+|---|--------|:------:|:-----:|--------|----------|---------|
+| A1 | <claim> | B2 | 1 | border:extremes | `src/x.rs:88` — <what was observed> | SURVIVES |
+| A2 | <claim> | B1 | 3 | unknown-unknown:who-is-absent | grill Q3: owner confirmed <> | SURVIVES |
+| A3 | <claim> | B1 | 2 | in-frame | positive control found the caller — claim false | KILLED |
+
+## What each round added
+- Round 2: <the attacks round 1 missed — or: not run, round 1 found nothing new>
+- Round 3: <the attacks rounds 1–2 missed — or: not run, round <N> found nothing new>
 
 ## The strongest argument against
 <one paragraph — the attack that does the most damage, and the damage>
@@ -83,6 +78,6 @@ You attack the decision, never the person who made it.
 
 ## Related
 
-- `grilling` — the interview mechanics for step 4; `to-user` for the answerable-block file shape.
-- `hunch` — when the output is "the decision is wrong and we have no replacement", that is a hunch's starting mess.
+- `grilling` — the interview mechanics for step 3; `to-user` for the file shape of the questions.
+- `hunch` — when the output is "the decision is wrong and we have no replacement", start a hunch from it.
 - `thought` — record the surviving argument as a decision note if it changes the decision.
