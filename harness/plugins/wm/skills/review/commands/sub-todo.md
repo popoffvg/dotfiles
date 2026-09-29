@@ -15,9 +15,10 @@ every finding routes back to `impl`, which is the only skill that edits.
 1. **Name the revision.** The diff under judgment is the TODO's commit plus every fixup on top of
    it — `git log --oneline` from the TODO's commit to `HEAD`. Pass that revision range to every
    gate; a gate that picks its own range judges a different diff from its siblings.
-2. **Name the rule sources.** Every gate gets the command and the paths, never the pasted content:
-   `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N`, which prints the rules the code must
-   obey, plus `<notes-dir>/RULES.md` and `<notes-dir>/PATTERNS.md` for the patterns it must follow,
+2. **Name the rule sources.** Every gate gets paths, never the pasted content:
+   `<notes-dir>/review/TODO-N/constraints.md`, the rules the code must obey — write it when it is
+   absent or stale (`../references/ref-gates.md` § One rule file per TODO) — plus
+   `<notes-dir>/RULES.md` and `<notes-dir>/PATTERNS.md` for the patterns it must follow,
    plus `<notes-dir>/todos/TODO-N.md` (Autotest) and `<notes-dir>/todos/TODO-N.agent.md` (Files) for
    the two gates that need them. The generator is the only reader of `thoughts/` here: no gate
    judges why a rule exists.
@@ -34,8 +35,9 @@ every finding routes back to `impl`, which is the only skill that edits.
    Autotest), and @test-critic needs `## Autotest` so it can tell a case the human asked for from one
    the implementer invented; the comment, name, and mutation gates never read the pair, because a
    comment is judged against the code under it, a name against its own body, and a mutant against the
-   test that fails to catch it. @reviewer's brief names the constraint command,
-   `<notes-dir>/RULES.md`, and `<notes-dir>/PATTERNS.md` — the rule sources the pair points at — and
+   test that fails to catch it. @reviewer's brief carries the
+   `constraints: <notes-dir>/review/TODO-N/constraints.md` line and names `<notes-dir>/RULES.md` and
+   `<notes-dir>/PATTERNS.md` — the rule sources the pair points at — and
    never the Outcome or the Surface. Tell it the other gates run beside it, so it reports none of
    what they judge.
 

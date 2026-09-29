@@ -160,6 +160,7 @@ its own path, so two gates can never collide and the caller always knows where t
 <notes-dir>/review/<target>/<gate>.md              one file per gate
 <notes-dir>/review/<target>/mutation/<batch>.md   one file per mutation batch
 <notes-dir>/review/<target>/report.md      the merged report, written by the caller
+<notes-dir>/review/TODO-N/constraints.md  the TODO's rule set, written once (§ One rule file per TODO)
 ```
 
 `<target>` is `TODO-N` in `todo` mode, `TODO-N/inc-<k>` when `impl` runs the wave over one increment
@@ -225,6 +226,24 @@ entry is stale and the gate reports `n/a`, never a run of its own.
 | test worth, name, comment | never executes, and gets no toolchain input at all — their questions do not depend on green or red |
 
 ## Every report names the rules that gate ran
+## One rule file per TODO
+
+The rule set changes only when a note under `thoughts/` changes, so the standards gate does not
+run the generator in every round. The caller writes the set to a file once, before the first wave
+over the TODO:
+
+```sh
+mkdir -p <notes-dir>/review/TODO-N
+~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N > <notes-dir>/review/TODO-N/constraints.md
+```
+
+The standards gate's brief names it on a `constraints:` line, beside `report:`. Every round and every
+increment wave over TODO-N reads the same file. An empty file means no rule matched (exit 1).
+
+**A newer note makes the file stale.** A fixup that records a deviation writes an `impl-decision`
+note, and that note is a rule for this TODO. When a file under `<notes-dir>/thoughts/` is newer than
+`constraints.md`, write the file again before the next wave. `diff` mode has no TODO and no rule file.
+
 
 A report with an empty Failures section says one of two things — the diff is clean, or the gate
 never looked. So every gate report carries a `## Covered` table above its findings, one row per rule

@@ -5,6 +5,7 @@ export const meta = {
   phases: [
     { title: 'Intent', detail: 'diff mode only — resolve the range and derive the intent sentence', model: 'haiku' },
     { title: 'Implement', detail: 'wm:implementer (sonnet, opus for a red TODO) writes + commits, and fixes every gate finding', model: 'sonnet' },
+    { title: 'Rules', detail: "todo mode only — write the TODO's rule set to review/TODO-N/constraints.md once, and again after a fixup that changes thoughts/", model: 'haiku' },
     { title: 'Checks', detail: 'lint-tester + comment-critic + name-critic + test-critic + reviewer, in parallel', model: 'haiku + opus' },
     { title: 'Judge', detail: 'from round 2, a red checks wave goes to an opus judge that waives it when every finding is a nit', model: 'opus' },
     { title: 'Test', detail: 'wm:tester (sonnet) gates the Autotest contract', model: 'sonnet' },
@@ -96,6 +97,16 @@ const IMPL = {
     blocker: { type: 'string', description: 'set only when blocked: what was tried + why stopped' },
     commentOnly: { type: 'boolean', description: 'correction round only: true when every line the fixup changes is a comment or a doc tag and no code token changed, checked with git show on the fixup' },
     renameOnly: { type: 'boolean', description: 'correction round only: true when every changed code line differs from its old line only in identifiers the failures asked to rename, checked with git show on the fixup; comments may change too' },
+    thoughtsChanged: { type: 'boolean', description: 'true when this round added or edited a file under the notes-dir thoughts/' },
+  },
+}
+const RULES = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['exit'],
+  properties: {
+    exit: { type: 'integer', description: 'the exit code of wm-constraints.py' },
+    lines: { type: 'integer', description: 'the line count of the file it wrote' },
   },
 }
 const INTENT = {
@@ -192,7 +203,8 @@ function implPrompt(failures, extra) {
     `(git commit --fixup=<sha-being-corrected>), never a plain commit:\n` +
     failures.map((f) => `- ${f}`).join('\n') +
     `\n\nSet commentOnly:true only when git show on your fixup changes comments and doc tags and nothing else. ` +
-    `Set renameOnly:true only when every code line it changes differs from the old line only in identifiers the failures asked to rename.`
+    `Set renameOnly:true only when every code line it changes differs from the old line only in identifiers the failures asked to rename. ` +
+    `Set thoughtsChanged:true when this round added or edited a file under ${notesDir}/thoughts/.`
   )
 }
 
@@ -288,7 +300,8 @@ function checks() {
         (mode === 'todo'
           ? `Outcome gate for ${subject}. Follow the wm:reviewer contract: judge from the TODO pair ` +
             `(Outcome, Surface, Constraints, Changes) + the real diff whether the Outcome is delivered ` +
-            `without correctness bugs or spec drift. `
+            `without correctness bugs or spec drift. constraints: ${rulesPath} — the rule set of this ` +
+            `TODO, written once for the whole chain. Read it for source 3; never run wm-constraints.py yourself. `
           : `Standards gate for ${subject}. Follow the wm:reviewer contract with no pair to cite: the ` +
             `rules come from the repo's CLAUDE.md files, the house style docs, the code around the ` +
             `diff, and the language idiom. The intent sentence is context, never a contract — never ` +
@@ -334,6 +347,23 @@ function serial() {
 // four of the five wrote to a path they guessed, and one invented a different path from its
 // siblings, so the run left no readable record where the next run looks for it.
 const reportDir = mode === 'todo' ? `${notesDir}/review/TODO-${todo}` : `${notesDir}/review/diff`
+const rulesPath = `${reportDir}/constraints.md`
+
+// The rule set changes only when a note under thoughts/ changes. Written here, the opus gate reads
+// one file per round instead of running the generator in each one.
+async function writeRules() {
+  phase('Rules')
+  const out = await agent(
+    `Write the rule set of TODO-${todo} to a file. Run exactly this command:\n` +
+      `mkdir -p ${reportDir} && ~/.claude/scripts/wm-constraints.py ${notesDir}/thoughts --todo TODO-${todo} > ${rulesPath}\n` +
+      `Exit 1 means no rule matched and leaves the file empty: that is a result, not an error. ` +
+      `Change no other file, commit nothing. Return the exit code and the line count of ${rulesPath}.`,
+    { agentType: 'general-purpose', model: 'haiku', phase: 'Rules', schema: RULES, label: `rules:TODO-${todo}` },
+  )
+  if (out && out.exit > 1) log(`rules: wm-constraints.py exited ${out.exit} — the standards gate gets an empty rule file`)
+  return out
+}
+
 function reportClause(gateKey) {
   return ` report: ${reportDir}/${gateKey}.md`
 }
@@ -435,6 +465,7 @@ if (mode === 'todo') {
   phase('Implement')
   impl = await agent(implPrompt(), { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `impl:TODO-${todo}` })
   if (!impl || impl.status === 'blocked') return blocked('initial', impl)
+  if (!(await writeRules())) return { result: 'ERROR', mode, todo, stage: 'rules', round, history }
 } else {
   // review:sub-diff.md steps 1-2 — resolve the range and derive the intent, because the
   // outcome gate has nothing approved to judge against without them.
@@ -611,6 +642,7 @@ while (round < MAX_ROUNDS) {
   phase('Implement')
   impl = await agent(implPrompt(failures), { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `fixup-${failed.gate.key}:r${round}` })
   if (!impl || impl.status === 'blocked') return blocked(`${failed.gate.key}-fixup`, impl)
+  if (mode === 'todo' && impl.thoughtsChanged && !(await writeRules())) return { result: 'ERROR', mode, todo, stage: 'rules', round, history }
   // A fixup can break what an earlier gate already cleared → restart the chain, never resume.
   // A comment-only fixup cannot, so only the comment gate and the gates that failed run again.
   // A rename changes no behaviour, so test worth and standards keep their verdicts; lint still
