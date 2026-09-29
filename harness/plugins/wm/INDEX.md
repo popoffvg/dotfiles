@@ -97,7 +97,7 @@ content, delete the `>` lines.
 | `wm:commands/review:help.md` | The `/review:help` page — the same mode roster plus the gate table, printed verbatim. Mirrors `SKILL.md`; a mode change lands in both. |
 | `references/ref-gates.md` | **The gate roster** — the seven gates, the `<notes-dir>/review/<target>/` report files each one writes, what each judges, its agent, its model tier and why that tier; the three test-reading gates (`test worth` drops the tests the diff wrote, `mutation` breaks the code to see whether the rest assert anything, `test` writes the one the diff left missing); the one-wave-then-the-gate-that-writes order, and the mutation gate's per-batch worktree fan-out; the FAIL-restarts-the-chain rule; the per-gate budget; the `toolchain.json` schema and what makes an entry stale; who merges the report. The single source; no caller restates a row. |
 | `examples/report.md` | The two report files filled — one gate's own file and the merged `report.md` — each piece carrying its own rules: the `reviewed:` frontmatter, the fixed `## Covered` rows and their verdict enum, the one-line gate roll-up, and the finding line that ends in the edit that closes it. |
-| `commands/sub-todo.md` | `review todo` — the chain over one implemented TODO, and what the pair gives a gate that a loose diff cannot: the generated rule set turning taste into a citable rule, `PATTERNS.md` naming the pattern, § Files bounding the diff, and the deviation route for an Autotest case `test-critic` drops. |
+| `commands/sub-todo.md` | `review todo` — the chain over one implemented TODO, and what the pair gives a gate that a loose diff cannot: the generated rule set turning taste into a citable rule, `PATTERNS.md` naming the pattern, § Files naming the expected reach, and the deviation route for an Autotest case `test-critic` drops. |
 | `commands/sub-diff.md` | `review diff` — resolving a loose target into one revision range, deriving the intent sentence that gives the gates context, and which rule sources the standards gate falls back to with no generated rule set and no `PATTERNS.md`. |
 
 ### `teach` — the human's understanding
@@ -125,6 +125,7 @@ Independent of the `/code` flow, each with its own entry point.
 | `pedant` | no | **Attacking the names a finished diff already declares** — rejects the ones that read unclearly. The contract the `name-critic` gate reads. |
 | `mutation` | no | **Judging a test set by breaking the code it covers** — one behavior-changing edit at a time, re-run the covering tests, report every mutant that survived as the assertion nobody wrote. Fans out one `mutation-tester` per changed-source batch, each in its own git worktree. No external mutation tool: the model writes the edit. The contract the `mutation` gate reads. |
 | `red-green-refactor` | no | The failing-test-first cycle a bug fix follows. Loaded by `impl:sub-impl.md`. |
+| `impl-background` | no | **`/code impl` for one TODO under `approve: none`, in a background fork** — the calling session stays free. Turns every question `impl:sub-impl.md` asks the user into a line in the report. Loaded by the `code` router's `impl` row. |
 
 ### `mutation` — the test set under attack
 

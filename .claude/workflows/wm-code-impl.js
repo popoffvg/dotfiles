@@ -255,9 +255,8 @@ function checks() {
         `(file:line — name — smell — the bug it hides — rename).`,
     },
     // The two test gates are opposites and both are needed: this one drops the tests the diff wrote
-    // that buy no failure mode, the serial one writes the test the diff left missing. Running in the
-    // wave puts it on the second pass over every test the serial gate wrote, since folding a written
-    // test in restarts the chain here.
+    // that buy no failure mode, the serial one writes the test the diff left missing. It is the only
+    // gate the round after a folded test runs.
     {
       key: 'testWorth',
       agentType: 'wm:test-critic',
@@ -273,8 +272,7 @@ function checks() {
     },
     // The standards gate runs in the wave, not after it. It reads the diff and shares no state with
     // the cheap gates, so serialising it only added its own latency to the round. A test the test
-    // gate writes still reaches it: folding that test in restarts the whole chain at the wave, so
-    // the last wave an accepted run ever does is over the final diff.
+    // gate writes never reaches it: that round runs the test-worth gate alone.
     {
       key: 'outcome',
       agentType: 'wm:reviewer',
@@ -417,6 +415,7 @@ function judgePrompt(findings) {
 
 // ── loop ─────────────────────────────────────────────────────────────────────
 let round = 0
+let foldedTests = false
 const history = []
 const fails = { lint: 0, comment: 0, name: 0, testWorth: 0, test: 0, outcome: 0 }
 
@@ -459,11 +458,13 @@ while (round < MAX_ROUNDS) {
   round++
   let failed = null
   let uncommitted = null
+  const testsOnly = foldedTests
+  foldedTests = false
 
-  // The checks: four gates over the same diff, in one parallel batch. They share no state, so the
-  // wall clock is the slowest of the four instead of their sum.
+  // The checks: the gates over the same diff, in one parallel batch. They share no state, so the
+  // wall clock is the slowest of them instead of their sum.
   phase('Checks')
-  const CHECKS = checks()
+  const CHECKS = testsOnly ? checks().filter((g) => g.key === 'testWorth') : checks()
   const checksOut = await parallel(
     CHECKS.map((gate) => () =>
       agent(gate.prompt + reportClause(gate.key) + historyClause(gate.key), {
@@ -507,8 +508,9 @@ while (round < MAX_ROUNDS) {
     for (const { gate } of checksFails) fails[gate.key] += 1
   }
 
-  // The serial gates, in order, only once the checks are green.
-  if (!failed) {
+  // The serial gates, in order, only once the checks are green. The tester already ran the tests it
+  // wrote, so the round that judges them skips it.
+  if (!failed && !testsOnly) {
     for (const gate of serial()) {
       phase(gate.phase)
       const out = await agent(gate.prompt + reportClause(gate.key) + historyClause(gate.key), {
@@ -548,7 +550,8 @@ while (round < MAX_ROUNDS) {
       { agentType: 'wm:implementer', phase: 'Implement', schema: IMPL, label: `commit-tests:r${round}` },
     )
     if (!impl || impl.status === 'blocked') return blocked('commit-tests', impl)
-    continue // a new test file can break lint → restart the chain at the cheap gate
+    foldedTests = true
+    continue
   }
 
   // Before spending another implementation round: is this round undoing an earlier one? A reversal

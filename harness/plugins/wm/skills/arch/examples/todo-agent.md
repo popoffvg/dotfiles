@@ -17,7 +17,7 @@
 
 ## Constraints
 
-Obey every rule that `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints.
+Obey every rule that `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N` prints.
 
 > The fixed command is always present and is the only constraint text in this half. Its source and
 > the rule for Autotest coverage are `arch:ref-todo-sections.md` § Constraints.
@@ -39,7 +39,7 @@ Obey every rule that `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` 
 > |--------|----------|---------|
 > | **Landed** | always | `yes` or `no` — whether this increment is already in the commit. `todo` writes `no` on every increment; `impl` flips one to `yes` after the amend |
 > | **Change** | always | the increment's change kind — one of the nine in `impl:ref-change-types.md`, the same roster the TODO's `type:` uses |
-> | **Files** | always | the repo-relative paths this increment alone touches — a subset of `## Files` |
+> | **Files** | always | the repo-relative paths this increment is expected to touch — a subset of `## Files`. Where to start reading, not a border |
 > | **Surface** | always | which part of the human half's `## Surface` this increment lands, named by symbol — or `none` when it adds no surface (a body-only file, a wiring change) |
 > | **Do** | always | one to four imperative sentences: the work, in words. What to write, what to migrate, what to delete. No code, no fenced block, no pasted signature |
 > | **Blast radius** | always | the **predicted** reach: the symbols, callers, and consumers a mistake here forces you to retest. Name them; `"low"` is not a blast radius |
@@ -177,7 +177,9 @@ function releaseCheck(): 0 | 1 {
 - `scripts/release-check.sh` — create
 - `test/e2e/auth_refresh_test.go` — create
 
-> Every repo-relative path the increments touch, one line each, marked `create` or `modify`.
+> Every repo-relative path the increments are expected to touch, one line each, marked `create` or `modify`.
+>
+> **Recommended reading, not a border.** The list is where the implementer starts. The implementer MAY change a file outside it when the work needs it, and names that file in the increment report.
 >
 > Every non-test path maps to a `## Components` row in the human half — except a file changed only as
 > a consequence of another row's decision, which carries no row of its own.
@@ -221,19 +223,18 @@ function releaseCheck(): 0 | 1 {
 
 ## Definition of done
 
-- [ ] All files in **Files** modified/created as specified
-- [ ] Every rule `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints holds in the shipped code
+- [ ] Every rule `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N` prints holds in the shipped code
 - [ ] Both Autotest commands pass — Unit and E2E (or the level is `none` with its stated reason)
 - [ ] Manual test steps produce **Expected** outcomes
-- [ ] No edits outside **Files** without recording it in the notes (jj snapshots on session stop)
+- [ ] Every file changed outside **Files** is named in the increment report
 - [ ] Every symbol in `TODO-1.md` § Surface has its declared shape in the shipped code
 - [ ] Commit created with the `TODO-1.md` **Commit** message
 
 > The checklist the implementer ticks before advancing `status` to `verify` and filling the ledger's
-> Commit: Files, constraints, Autotest, Manual test, scope discipline, Surface, Commit.
+> Commit: constraints, Autotest, Manual test, the files changed outside Files, Surface, Commit.
 >
 > Add items only for unusual post-conditions — "migration applied on staging", a feature flag to flip.
 >
-> **It sits in the agent half, so it points at this file where it can.** The Files row names a section
+> **It sits in the agent half, so it points at this file where it can.** The scope row names a section
 > above it and the constraints row names the generator. The one thing it cannot restate is the commit
 > message: that row cites the human half by name.

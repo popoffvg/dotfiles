@@ -41,7 +41,7 @@ it over its own defaults. Hard gates stand regardless: the human reads the spec 
 | `new` | Scope, the Goal, anything in What we're NOT doing, every open question, any decision that changes the target picture | Facts the codebase answers, wording, note numbering, glossary terms |
 | `todo` | A ledger row that must split or merge, an outcome the body cannot deliver | Body wording, file lists, test names, wave grouping that follows the real edges |
 | `verify` | Nothing — report the verdict | The whole audit |
-| `impl` | Any file outside the TODO's **Files**, and any new dependency. What else it shows is the `approve` key, not a row here | Code shape inside the TODO's Files, refactors the outcome needs |
+| `impl` | Any new dependency. What else it shows is the `approve` key, not a row here | Code shape, a file outside the TODO's **Files** the work needs, refactors the outcome needs |
 | `revise` | Outcome shifts, dropped steps, superseding a decision I made | Drift edits where the outcome holds, back-links, archive moves |
 | `fix` | The root cause, when two fixes are both defensible | The fix once the root cause is agreed |
 | `commit` | History-rewriting or tree-removing git actions | Commit message wording |

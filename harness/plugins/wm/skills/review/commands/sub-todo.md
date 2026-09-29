@@ -16,7 +16,7 @@ every finding routes back to `impl`, which is the only skill that edits.
    it — `git log --oneline` from the TODO's commit to `HEAD`. Pass that revision range to every
    gate; a gate that picks its own range judges a different diff from its siblings.
 2. **Name the rule sources.** Every gate gets the command and the paths, never the pasted content:
-   `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts`, which prints the rules the code must
+   `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N`, which prints the rules the code must
    obey, plus `<notes-dir>/RULES.md` and `<notes-dir>/PATTERNS.md` for the patterns it must follow,
    plus `<notes-dir>/todos/TODO-N.md` (Autotest) and `<notes-dir>/todos/TODO-N.agent.md` (Files) for
    the two gates that need them. The generator is the only reader of `thoughts/` here: no gate
@@ -65,9 +65,9 @@ no thought graph to generate from and the same finding lands as a Nit.
 infers the pattern from the neighbouring files, which is weaker: a package that is itself
 inconsistent gives it nothing to cite.
 
-**`TODO-N.agent.md` § Files bounds the diff.** The gate knows which files the change was supposed to
-touch, so a file changed outside that list is worth a line — as a rule question for the human, never
-as drift the gate rules on.
+**`TODO-N.agent.md` § Files names the expected reach, not a border.** The implementer MAY change a
+file outside that list when the work needs it. Such a file is not a finding by itself: the gate
+judges it like every other changed file.
 
 **An Autotest case the human wrote is still droppable.** @test-critic judges the test the diff
 wrote, not the case that asked for it, so a listed `## Autotest` case whose code has no condition

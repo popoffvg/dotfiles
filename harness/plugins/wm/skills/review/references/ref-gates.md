@@ -67,10 +67,8 @@ a standalone `mutation` run.
 
 **The standards gate runs in the wave despite its tier.** It is the expensive gate, but it reads the
 same diff as the cheap four and needs nothing they produce, so putting it after them only added its
-own latency to every round. A test written later still reaches it: folding that test in restarts the
-whole chain at the wave (§ A gate that writes a test), so the last wave of an accepted run always
-judges the final diff. The cost is one wasted opus run per restart, paid to take the opus latency
-out of the round.
+own latency to every round. A test the test gate writes later never reaches it (§ A gate that writes
+a test).
 
 **The wave has a third caller, and it runs the five judges without the test gate and without
 mutation.** `impl` runs it over each increment before the human approves that increment
@@ -91,8 +89,10 @@ commit), then run the wave again from the start. A fixup can break what a later 
 cleared, so no gate result survives a fixup.
 
 **A gate that writes a test is not a FAIL.** The test gate returns the files it wrote and left
-uncommitted; the implementer folds them into the TODO's commit and the chain restarts at the wave —
-a new test file can break lint, and `test worth` judges it on that second pass.
+uncommitted, and the implementer folds them into the TODO's commit. The next round runs `test worth`
+alone: the new file adds a test and changes no code, so its worth is the one open question. The test
+gate ran that test before it returned, so the round skips it. `test worth` green → the chain is
+green. `test worth` red → the fixup runs and the whole chain restarts at the wave.
 
 ### From round 2, a red wave goes to the triage judge first
 

@@ -158,9 +158,10 @@
   "agent_servers": {
     "cursor": {
       "default_config_options": {
+        "reasoning_effort": "medium",
         "effort": "medium",
         "fast": "false",
-        "model": "grok-4.6",
+        "model": "grok-4.7",
       },
       "favorite_config_option_values": {
         "model": ["composer-2.5[fast=true]"],

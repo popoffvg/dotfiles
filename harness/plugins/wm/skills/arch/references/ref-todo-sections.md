@@ -29,7 +29,7 @@ read by an implementer and is not bound by it.
 The rules every increment obeys are **generated** from `<notes-dir>/thoughts/`, never written by
 hand. The agent half carries the command that prints them and never a rule
 (`examples/todo-agent.md` § Constraints). Run
-`~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` to see the set a TODO is bounded by; no
+`~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N` to see the set a TODO is bounded by; no
 file in the corpus holds it.
 
 **One row per note that is live, `status: approved`, and of type `decision` or `impl-decision`.** A

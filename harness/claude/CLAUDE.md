@@ -7,6 +7,7 @@
 <when="writing code">
 - Short sentences. RFC 2119 keywords for obligations. Commit = imperative subject; body only for a fact the diff cannot show. Comments only where code needs clarification — never narration.
 - Every name, string, and comment is read by a plain-text search, and read once. Put each fact where that search lands, in the shortest form that still forces the behavior.
+- Forbidden words — MUST NOT appear in a name, a string, a comment, or a commit message: `held`.
 </when>
 <when="naming anything — a type, a function, a field, a file, a module, a test, a metric, an event, an error message">
 - Load the `searchable-names` skill (`wm` plugin). It owns every rule about the name itself: one term per concept, the 2–4 word public name, one concept per file, the domain concept in a type, and the whole string literal.
@@ -61,4 +62,3 @@ skill for what stays in the foreground and how to wait for the exit.
 ---
 
 @OPEN-FILE.md
-@RTK.md

@@ -127,6 +127,7 @@
       "/tmp"
     ]
   },
+  "model": "opus",
   "skillOverrides": {
     "ast-grep": "off",
     "domain-modeling": "off",
@@ -189,15 +190,6 @@
     ],
     "PreCompact": [],
     "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/rtk-rewrite.sh"
-          }
-        ]
-      },
       {
         "matcher": "Bash",
         "hooks": [
@@ -448,7 +440,8 @@
         "~/.notes",
         "~/.npm",
         "~/.pnpm",
-        "~/Library/Caches/gopls",
+        "~/.cache",
+        "~/Library/Caches",
         "~/ctx",
         "~/go"
       ]
@@ -518,6 +511,5 @@
       "routine under harness/extensions/ prefix: adding files there requires a matching ansible deploy-loop entry (per repo skill), not a blanket permission"
     ]
   },
-  "enableWeakerNestedSandbox": true,
-  "advisorModel": "opus"
+  "enableWeakerNestedSandbox": true
 }
