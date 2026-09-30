@@ -6,7 +6,7 @@ description: >
   loose diff, branch, PR, or working tree with no TODO pair (diff). Owns which gate judges what,
   which agent runs it, and at which model tier. Invoke as `/review <todo|diff>` (default `diff`);
   `/code review` is the same skill under its old name. Never edits source and never commits.
-argument-hint: "[diff (default), todo — full list /review:help] + the target to judge"
+argument-hint: "[diff (default), todo — full list /review:help] [normal (default), fast] + the target to judge"
 ---
 
 # review — subcommand router
@@ -30,6 +30,17 @@ FAIL routes back — is one file: @references/ref-gates.md. Read it before eithe
 Pick `todo` when a `<notes-dir>/todos/TODO-N.md` covers the diff, `diff` when none does. A TODO
 whose pair the diff has outgrown is still `todo` — the pair's rule files apply either way, and the
 mismatch itself is for `/code verify`, not for a gate here.
+
+## Speed — `normal` or `fast`
+
+The second argument sets which gates run, in either mode. No speed named → `normal`.
+
+| Speed | Runs | Caller |
+|---|---|---|
+| `normal` *(default)* | the whole chain: the wave with the mutation gate, then the test gate | `/code impl` TODO review under `approve: todo` and `none`, `/code auto`, a human |
+| `fast` | the five judges over the diff the caller names — no mutation gate, no test gate | `/code impl` increment review under `approve: increment` |
+
+A `fast` run is never a TODO's verdict: its caller sets no `status` from it.
 
 ## Examples
 

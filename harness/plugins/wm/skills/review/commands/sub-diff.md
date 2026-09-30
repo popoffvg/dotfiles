@@ -29,7 +29,7 @@ mode reports and stops — it runs no fixup loop, because a human is reading the
 3. **Batch the mutation gate.** Split the range's changed source files into batches and derive each
    batch's narrowed test command, following `mutation:SKILL.md` § Run it. A range with no changed
    source file, or none a test covers, produces no batch and the gate reports `n/a` — never a green
-   run.
+   run. Under `fast` (`../SKILL.md` § Speed), skip this step and spawn no @mutation-tester in step 4.
 4. **Run the wave** — @lint-tester, @comment-critic, @name-critic, @test-critic, @reviewer, and one
    @mutation-tester per batch from step 3, in **one message**, each with its own
    `report: <notes-dir>/review/<slug>/<gate>.md` line, where `<slug>` is the range resolved in step 1
@@ -44,7 +44,7 @@ mode reports and stops — it runs no fixup loop, because a human is reading the
    `report: <notes-dir>/review/<slug>/test.md`, once the wave is green. The question becomes: does a
    test assert the behavior this diff changed? It names the gap in its report and **writes no test**
    here — there is no implementer to fold one into and no commit to amend. The report file it always
-   writes.
+   writes. Under `fast`, skip this step.
 6. **Report** — first run `bin/gate-bucket-check.py` on `comment.md` and `name.md`
    (`ref-gates.md` § The caller runs the bucket check). Then the merged shape in `../examples/report.md`, with the resolved range and the derived intent sentence
    at the top, written to `<notes-dir>/review/<slug>/report.md` and returned.

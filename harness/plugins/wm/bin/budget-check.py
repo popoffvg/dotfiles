@@ -20,7 +20,7 @@ Checked, by file kind:
                           each ## Surface diff <= 150 changed lines, unless that file
                           declares a `**Compile floor:**`
                           no agent-half section present (Constraints, Changes, Files,
-                          Pre-reads, Manual test, Definition of done)
+                          Pre-reads, Manual test, Definition of done, Gotchas)
 
   todos/TODO-N.agent.md   agent half - NO line budget, by design
                           NO ```diff block anywhere - the diff is the human half's
@@ -82,6 +82,7 @@ AGENT_SECTIONS = {
     "Pre-reads (MUST read before editing)",
     "Manual test",
     "Definition of done",
+    "Gotchas",
 }
 
 H2 = re.compile(r"^## +(.+?)\s*$")

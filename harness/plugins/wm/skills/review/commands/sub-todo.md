@@ -1,8 +1,8 @@
 # review — todo
 
 Judge one implemented TODO against the pair the human approved. This is the gate chain
-`impl:sub-auto.md` Step 2 runs per TODO, and the one `/code impl` runs when the resolved `approve` key
-is `none`.
+`impl:sub-auto.md` Step 2 runs per TODO, and the one `/code impl` runs as its increment review
+(`fast`) and its TODO review (`normal`) — `impl:sub-impl.md` § Increment review and TODO review.
 
 The roster — the gates, their tiers, the wave order, the FAIL routing, the budget, and the report
 shape — is @../references/ref-gates.md. This file adds only what makes the gates judge a TODO.
@@ -14,7 +14,8 @@ every finding routes back to `impl`, which is the only skill that edits.
 
 1. **Name the revision.** The diff under judgment is the TODO's commit plus every fixup on top of
    it — `git log --oneline` from the TODO's commit to `HEAD`. Pass that revision range to every
-   gate; a gate that picks its own range judges a different diff from its siblings.
+   gate; a gate that picks its own range judges a different diff from its siblings. A caller MAY
+   name a narrower diff — `impl` names one increment's diff under `fast`.
 2. **Name the rule sources.** Every gate gets paths, never the pasted content:
    `<notes-dir>/review/TODO-N/constraints.md`, the rules the code must obey — write it when it is
    absent or stale (`../references/ref-gates.md` § One rule file per TODO) — plus
@@ -26,14 +27,14 @@ every finding routes back to `impl`, which is the only skill that edits.
    `TODO-N.agent.md` § Files — into batches, and take each batch's narrowed test command from the
    `## Autotest` entry in `toolchain.json`, following `mutation:SKILL.md` § Run it. A TODO whose
    changed files no test covers produces no batch and the gate reports `n/a`; the missing test is the
-   test gate's finding in step 5.
+   test gate's finding in step 5. Under `fast`, skip this step.
 4. **Run the wave** — @lint-tester, @comment-critic, @name-critic, @test-critic, @reviewer, and one
    @mutation-tester per batch from step 3, in **one message**, each with its own
    `report: <notes-dir>/review/TODO-N/<gate>.md` line (§ Every gate writes its report to a file).
    Every mutation agent is spawned with `isolation: "worktree"` and writes to
    `<notes-dir>/review/TODO-N/mutation/<batch-slug>.md`. The lint gate needs the pair (Files,
    Autotest), and @test-critic needs `## Autotest` so it can tell a case the human asked for from one
-   the implementer invented; the comment, name, and mutation gates never read the pair, because a
+   the implementer invented; under `fast`, spawn no @mutation-tester. The comment, name, and mutation gates never read the pair, because a
    comment is judged against the code under it, a name against its own body, and a mutant against the
    test that fails to catch it. @reviewer's brief carries the
    `constraints: <notes-dir>/review/TODO-N/constraints.md` line and names `<notes-dir>/RULES.md` and
@@ -45,11 +46,12 @@ every finding routes back to `impl`, which is the only skill that edits.
    to the triage judge first) — a `general-purpose` agent on `opus`, `report: <notes-dir>/review/TODO-N/judge.md`.
 5. **Run the test gate** — @tester in TODO mode, `report: <notes-dir>/review/TODO-N/test.md`, once
    the wave is green. The one question: does a test assert this TODO's `## Autotest` contract, both
-   `Unit` and `E2E`? No → it writes that test and returns the files.
+   `Unit` and `E2E`? No → it writes that test and returns the files. Under `fast`, skip this step.
 6. **Merge and report** — first run `bin/gate-bucket-check.py` on `comment.md` and `name.md`
    (`ref-gates.md` § The caller runs the bucket check). Then the merged shape in `../examples/report.md`, written to
    `<notes-dir>/review/TODO-N/report.md` and returned. On every gate green, the caller advances
-   the TODO `status: verify → done`; on a budget exhausted, `status: blocked`. Green here means
+   the TODO `status: verify → done`; on a budget exhausted, `status: blocked`. Under `fast` the caller
+   advances no `status`. Green here means
    *built right* only — the Outcome and the Surface were checked by the `verifier` agent when
    `status` reached `verify`, not by this chain.
 

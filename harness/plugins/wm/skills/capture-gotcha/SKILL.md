@@ -4,7 +4,7 @@ description: Append a repeatable trap of this project to `<notes-dir>/GOTCHAS.md
 user-invocable: false
 ---
 
-`<notes-dir>/GOTCHAS.md` holds the traps of this project that outlive one TODO. `LESSONS.md` holds what one run taught — rejected findings, carried gaps, status. A gotcha is a trap the next TODO falls into again. Every wm subcommand that writes source reads `GOTCHAS.md` before its first edit.
+`<notes-dir>/GOTCHAS.md` holds the traps of this project that outlive one TODO. `LESSONS.md` holds what one run taught — rejected findings, carried gaps, status. A gotcha is a trap the next TODO falls into again. A trap found during one TODO lands first in its `TODO-N.agent.md` `## Gotchas`; `squash` promotes it here. Every wm subcommand that writes source reads `GOTCHAS.md` before its first edit.
 
 ## Steps
 

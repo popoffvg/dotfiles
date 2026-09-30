@@ -27,6 +27,7 @@
       - sd
       - yq
       - ripgrep
+      - cgrep
       - delta
       - tldr
       - stow

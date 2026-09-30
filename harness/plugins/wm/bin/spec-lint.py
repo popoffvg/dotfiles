@@ -43,7 +43,9 @@ HUMAN_ORDER = ["Outcome", "Delivers", "Components", "Surface", "Autotest", "Comm
 AGENT_ORDER = [
     "Constraints", "Changes", "Files",
     "Pre-reads (MUST read before editing)", "Manual test", "Definition of done",
+    "Gotchas",
 ]
+AGENT_OPTIONAL = {"Gotchas"}
 SPEC_BANNED = ["Design Decisions", "Open Questions", "Implementation Guidelines"]
 
 # A skip or a `none` level that names no concrete reason. Lowercased substring match.
@@ -586,7 +588,7 @@ def check_agent(n, path, lines, f, checks):
                f"**Design:** [TODO-{n}.md](TODO-{n}.md)")
     found = [t for _, t in headings(lines)]
     for name in AGENT_ORDER:
-        if name not in found:
+        if name not in found and name not in AGENT_OPTIONAL:
             alt = name.split(" (")[0]
             if alt not in found:
                 f.fail(row, where, f"`## {name}` missing", "required always")

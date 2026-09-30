@@ -18,7 +18,7 @@ Spec contract + the gate: `ref-write.md`. Vocabulary: `wm:GLOSSARY.md`.
 | File | Read by | Holds | Length |
 |------|---------|-------------|--------|
 | `TODO-N.md` | the human, repo closed | frontmatter, Outcome, Delivers, New terms, Components, **Surface (the diff)**, Autotest, Commit | ≤ 550 lines, New terms + Components uncounted |
-| `TODO-N.agent.md` | the implementer | Constraints (the generator command), Changes (the increments, **described — no diff**), Files, Pre-reads, Manual test, Definition of done | **unlimited** |
+| `TODO-N.agent.md` | the implementer | Constraints (the generator command), Changes (the increments, **described — no diff**), Files, Pre-reads, Manual test, Definition of done, Gotchas | **unlimited** |
 
 The split is by audience, not by size. `TODO-N.md` is the design a human approves — what the system
 will be able to do, which symbols move, **what those symbols become**, what proves it, and what the
@@ -299,6 +299,7 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 | 6 | `Pre-reads (MUST read before editing)` | H2 | always |
 | 7 | `Manual test` | H2 | always |
 | 8 | `Definition of done` | H2 | always |
+| 9 | `Gotchas` | H2 | always — `todo` writes `none yet`; `impl` appends the traps it finds, so they survive a compact or a handoff |
 
 Missing any always field/element → invalid. A section in the wrong file is also invalid, and the
 `budget-check` hook reports it: `## Changes` or `## Constraints` in the human half, `## Outcome` /
@@ -440,6 +441,7 @@ own file against a rule already counted.
 - [ ] Every `create` row's symbol appears as new surface in a `## Changes` diff or **Interface**, and every `delete` row's symbol is gone from the code the diffs leave behind — a Touch the diffs contradict is a wrong Touch
 - [ ] Every **Files** / **Pre-reads** path exists (or is marked `create`); every non-test **Files** path maps to a **Components** row
 - [ ] **Manual test** Steps/Expected aligned 1:1
+- [ ] `## Gotchas` is last and holds the single line `none yet`
 
 ### The ledger
 

@@ -187,7 +187,7 @@ function implPrompt(failures, extra) {
       ? `Implement exactly one TODO: ${todoPath} (notes-dir ${notesDir}). ` +
         `Follow ${PLUGIN}/skills/impl/commands/sub-impl.md steps 1-4, 6, 7 (read context, dependency gate, ` +
         `replan guard, every increment in order, glossary, autotest) as if the resolved approve key were ` +
-        `"none": the per-increment wave (step 5.2) and the show + approval loop (steps 5.3-5.4) do not run — ` +
+        `"none": the increment review (step 5.2), the show + approval loop (steps 5.3-5.4), and the TODO review do not run — ` +
         `nobody is watching, and this workflow runs the gate chain itself once the TODO is committed. ` +
         `Both ## Autotest commands green before committing. `
       : `Correct the code already in ${range} (notes-dir ${notesDir}) — no TODO pair covers it, its ` +

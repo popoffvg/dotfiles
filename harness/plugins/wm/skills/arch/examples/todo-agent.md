@@ -238,3 +238,22 @@ function releaseCheck(): 0 | 1 {
 > **It sits in the agent half, so it points at this file where it can.** The scope row names a section
 > above it and the constraints row names the generator. The one thing it cannot restate is the commit
 > message: that row cites the human half by name.
+
+## Gotchas
+
+- **inc 2 — `go test ./pkg/auth/...` passes with a stale Redis mock** — run `make mocks` before the test; the mock is generated and not in git. Evidence: `handler_test.go:41` failed only after `make mocks`.
+- **inc 3 — `middleware.go` calls `Refresh` through an interface in `pkg/auth/iface.go`** — change the interface too; **Files** did not list it. Evidence: `go build ./...` → `iface.go:12: missing method Refresh`.
+
+> **The implementer's memory for this TODO.** A context compact or a handoff to a new session loses
+> every finding that lives only in the conversation. This section is the file the next session reads.
+>
+> `todo` writes the heading with the single line `none yet`. `impl` and every @implementer append one
+> bullet **the moment a trap is found** — before the next edit, never at the end of the increment.
+>
+> One bullet: `- **inc <n> — <trigger>** — <what to do instead>. Evidence: <file:line, or the command and its output>.`
+> The same shape as `<notes-dir>/GOTCHAS.md` (`capture-gotcha` skill), plus the increment number.
+>
+> Keep a wrong assumption, a command that fails in a non-obvious way, a file **Files** missed, a
+> fact about the code the pair did not state. Skip a status, a typo, and a fact the diff shows.
+>
+> `squash` promotes each bullet a later TODO can meet to `GOTCHAS.md`. The section stays in the file.

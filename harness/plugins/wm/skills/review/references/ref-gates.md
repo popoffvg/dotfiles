@@ -70,9 +70,9 @@ same diff as the cheap four and needs nothing they produce, so putting it after 
 own latency to every round. A test the test gate writes later never reaches it (§ A gate that writes
 a test).
 
-**The wave has a third caller, and it runs the five judges without the test gate and without
-mutation.** `impl` runs it over each increment before the human approves that increment
-(`impl:sub-impl.md` § The per-increment wave). The five judges read a diff and return findings, so
+**A `fast` run is the five judges without the test gate and without mutation** (`../SKILL.md` §
+Speed). `impl` runs it over each increment before the human approves that increment, under
+`approve: increment` (`impl:sub-impl.md` § Increment review and TODO review). The five judges read a diff and return findings, so
 they work over an increment unchanged. The test gate writes files, which cannot land in an increment
 still waiting for approval. The mutation gate needs a green suite and a real build, which an
 increment mid-TODO does not have. Both stay per TODO.
@@ -164,7 +164,7 @@ its own path, so two gates can never collide and the caller always knows where t
 ```
 
 `<target>` is `TODO-N` in `todo` mode, `TODO-N/inc-<k>` when `impl` runs the wave over one increment
-(`impl:sub-impl.md` § The per-increment wave), and the resolved range's slug in `diff` mode — the
+(`impl:sub-impl.md` § Increment review and TODO review), and the resolved range's slug in `diff` mode — the
 branch name, the short sha, `pr-<n>`, or `worktree`. The gate slugs are the roster's Gate column with the
 space as a dash: `lint`, `comment`, `name`, `test-worth`, `test`, `standards`, and `judge` for the triage judge. The mutation gate is
 a batch, so it writes one file per batch under `mutation/` and the caller merges them into
@@ -225,7 +225,6 @@ entry is stale and the gate reports `n/a`, never a run of its own.
 | standards (`reviewer`) | never executes; may **cite** `toolchain.json` for a finding that depends on whether the diff compiles |
 | test worth, name, comment | never executes, and gets no toolchain input at all — their questions do not depend on green or red |
 
-## Every report names the rules that gate ran
 ## One rule file per TODO
 
 The rule set changes only when a note under `thoughts/` changes, so the standards gate does not
@@ -244,6 +243,7 @@ increment wave over TODO-N reads the same file. An empty file means no rule matc
 note, and that note is a rule for this TODO. When a file under `<notes-dir>/thoughts/` is newer than
 `constraints.md`, write the file again before the next wave. `diff` mode has no TODO and no rule file.
 
+## Every report names the rules that gate ran
 
 A report with an empty Failures section says one of two things — the diff is clean, or the gate
 never looked. So every gate report carries a `## Covered` table above its findings, one row per rule

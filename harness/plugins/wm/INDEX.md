@@ -70,7 +70,7 @@ Four files at the plugin root, shared by all five skills.
 | `examples/spec.md` | The notes-dir `spec.md` — the filled artifact, with the rules for each section beside it: Description, Goal, What we're NOT doing, the ledger (`Layer` / `Outcome` / the `Today \| After` table / `Done when` / `Commit` / `Why`), and the Plan with its wave table. The contract around it is `arch:ref-write.md`. |
 | `examples/note-{question,decision,fact,impl-decision}.md` | The four thought notes. |
 | `examples/todo.md` | The TODO **human half** (`TODO-N.md`) — Outcome, New terms, Components, **Surface** (the one diff), Autotest, Commit, **Deviations** (written by `impl`, never by `todo`) — and the worked example of it, including the plain contract block a file that is all body carries instead of a diff. |
-| `examples/todo-agent.md` | The TODO **agent half** (`TODO-N.agent.md`) — Constraints (the fixed line naming `wm-constraints.py`, never a rule), Changes (increments as Files + Surface + Do + Blast radius, no diff), Files, Pre-reads, Manual test, Definition of done — and the worked example of it, including the `Surface: none` + Behavior shape an increment uses when the deliverable is a whole body. |
+| `examples/todo-agent.md` | The TODO **agent half** (`TODO-N.agent.md`) — Constraints (the fixed line naming `wm-constraints.py`, never a rule), Changes (increments as Files + Surface + Do + Blast radius, no diff), Files, Pre-reads, Manual test, Definition of done, Gotchas (the traps `impl` appends so they survive a compact or a handoff) — and the worked example of it, including the `Surface: none` + Behavior shape an increment uses when the deliverable is a whole body. |
 
 `references/` holds the rules that apply across artifacts; `examples/` holds one file per artifact.
 Every file in `examples/` is the finished artifact filled with real content, and it carries its own
@@ -93,7 +93,8 @@ content, delete the `>` lines.
 
 | File | Owns |
 |---|---|
-| `SKILL.md` | The mode table — `diff` (the repo's own rules, the default) and `todo` (plus the pair's rule files) — the one question both ask, the read-only rule both obey, and the `/code review` alias. |
+| `SKILL.md` | The mode table — `diff` (the repo's own rules, the default) and `todo` (plus the pair's rule files) — the speed table (`normal`, the whole chain; `fast`, the five judges only), the one question both ask, the read-only rule both obey, and the `/code review` alias. |
+| `wm:commands/code:review.md` | The `/wm:code:review` command — loads this skill with the user's mode, speed, and target. |
 | `wm:commands/review:help.md` | The `/review:help` page — the same mode roster plus the gate table, printed verbatim. Mirrors `SKILL.md`; a mode change lands in both. |
 | `references/ref-gates.md` | **The gate roster** — the seven gates, the `<notes-dir>/review/<target>/` report files each one writes, what each judges, its agent, its model tier and why that tier; the three test-reading gates (`test worth` drops the tests the diff wrote, `mutation` breaks the code to see whether the rest assert anything, `test` writes the one the diff left missing); the one-wave-then-the-gate-that-writes order, and the mutation gate's per-batch worktree fan-out; the FAIL-restarts-the-chain rule; the per-gate budget; the `toolchain.json` schema and what makes an entry stale; the `constraints.md` rule file written once per TODO; who merges the report. The single source; no caller restates a row. |
 | `examples/report.md` | The two report files filled — one gate's own file and the merged `report.md` — each piece carrying its own rules: the `reviewed:` frontmatter, the fixed `## Covered` rows and their verdict enum, the one-line gate roll-up, and the finding line that ends in the edit that closes it. |

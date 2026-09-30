@@ -13,6 +13,13 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 | `todo` | Judge an implemented TODO with the rule sources its `TODO-N.md` + `TODO-N.agent.md` pair points at — the rules `~/.claude/scripts/wm-constraints.py` prints, plus `RULES.md` and `PATTERNS.md`. A breach there is a Failure with a citation. The chain `/code auto` runs per TODO. |
 | `help` | This page. |
 
+## Speed — the second argument
+
+| Speed | Runs |
+|---|---|
+| `normal` *(default)* | The whole chain: the wave with the mutation gate, then the test gate. `/code impl` runs it as the TODO review under `approve: todo` and `none`. |
+| `fast` | The five judges over the named diff — no mutation gate, no test gate. `/code impl` runs it over each increment under `approve: increment`. Sets no TODO `status`. |
+
 ## The gates each mode runs
 
 | Gate | Judges | Model |
@@ -33,4 +40,4 @@ Every mode asks one question: **is this built right?** No gate judges the spec �
 
 Read-only on source: every gate returns findings and applies none. Two exceptions: the sonnet test gate writes the missing test and leaves it uncommitted, and the mutation gate edits source inside its own throwaway worktree, never the tree you are reviewing.
 
-`/code review <mode>` is an alias — same modes, same gates.
+`/code review <mode>` and `/wm:code:review <mode> [speed]` are aliases — same modes, same gates.
