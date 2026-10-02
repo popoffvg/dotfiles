@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PostToolUse (Edit|Write): hold a spec artifact to the budgets its skill states.
 #
-# Matches both files of a ledger row — `TODO-N.md`, `TODO-N.agent.md` — plus spec.md.
+# Matches the three files of a ledger row — `TODO-N.md`, `TODO-N.agent.md`, `TODO-N.test.md` — plus spec.md.
 # budget-check.py tells them apart and applies each one's own budgets.
 #
 # Why PostToolUse and not guard.sh: an Edit call carries only its new_string, so the

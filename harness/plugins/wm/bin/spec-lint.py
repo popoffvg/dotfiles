@@ -3,7 +3,8 @@
 
 `code:sub-verify.md` § Phase 0 lists the checks a spec must pass before the adversarial
 fan-out is worth paying for. Most of them are field inspection - a heading missing, a
-frontmatter key out of range, an increment number skipped, an Autotest level left empty.
+frontmatter key out of range, an increment number skipped, an Autotest level left empty in
+the test file.
 A driver that reads the corpus and judges those by hand pays the whole corpus in context
 and answers differently on two runs. This script is the same rules, parsed.
 
@@ -39,7 +40,9 @@ RISK_COLORS = {"red", "yellow", "green"}
 LEGACY_RISK_SCORES = {"1", "2", "3", "4", "5"}
 MAX_INCREMENTS = 10
 
-HUMAN_ORDER = ["Outcome", "Delivers", "Components", "Surface", "Autotest", "Commit"]
+HUMAN_ORDER = ["Outcome", "Components", "Surface", "Flow changes", "Commit"]
+FLOW_MARKER = re.compile(r"^\s*\d+\.\s+\*\*(\+ step|\+ check|\+ branch|~ step|- step|moved)\*\*")
+FLOW_STEP = re.compile(r"^\s*\d+\.\s+\S")
 AGENT_ORDER = [
     "Constraints", "Changes", "Files",
     "Pre-reads (MUST read before editing)", "Manual test", "Definition of done",
@@ -212,11 +215,11 @@ def todo_pairs(notes):
     root = todos if os.path.isdir(todos) else notes
     pairs = {}
     for name in sorted(os.listdir(root)):
-        m = re.fullmatch(r"TODO-(\d+)(\.agent)?\.md", name)
+        m = re.fullmatch(r"TODO-(\d+)(?:\.(agent|test))?\.md", name)
         if not m:
             continue
         n = int(m.group(1))
-        slot = "agent" if m.group(2) else "human"
+        slot = m.group(2) or "human"
         pairs.setdefault(n, {})[slot] = os.path.join(root, name)
     return pairs
 
@@ -381,6 +384,8 @@ def check_pairs_exist(notes, pairs, f):
             f.fail(row, f"TODO-{n}", "agent half with no human half", "the work nobody approved")
         if "agent" not in pairs[n]:
             f.fail(row, f"TODO-{n}", "human half with no agent half", "unimplementable as written")
+        if "test" not in pairs[n]:
+            f.fail(row, f"TODO-{n}", "no test file", f"write TODO-{n}.test.md with the ## Autotest section")
     ledger = ledger_rows(notes)
     if ledger is None:
         return
@@ -448,6 +453,9 @@ def check_human(n, path, lines, pairs, f, checks):
     if not tail or "TODO-%d.agent.md" % n not in tail[-1]:
         f.fail(row, label, "last line is not the link to the agent half",
                f"**Increments:** [TODO-{n}.agent.md](TODO-{n}.agent.md)")
+    if not any(f"TODO-{n}.test.md" in l for l in tail[-3:]):
+        f.fail(row, label, "no link to the test file above the agent-half link",
+               f"**Tests:** [TODO-{n}.test.md](TODO-{n}.test.md)")
 
     row = checks["B5"]
     comp_rows = table_rows(section(body, "Components"))
@@ -476,8 +484,36 @@ def check_human(n, path, lines, pairs, f, checks):
     if not any(l.strip().startswith("```diff") for l in surface):
         f.fail(row, label, "`## Surface` carries no ```diff block", "one diff per file")
 
+    row = checks["B12"]
+    flow = [l for l in section(body, "Flow changes") if l.strip() and not l.lstrip().startswith(">")]
+    head = flow[0].strip() if flow else ""
+    if head.lower().startswith("none"):
+        if not has_reason(head):
+            f.fail(row, label, f"Flow changes: `none` with no concrete reason — `{head[:60]}`",
+                   "name why no running path changes")
+    elif not any(H3.match(l) for l in flow):
+        f.fail(row, label, "`## Flow changes` has no `### <flow>` heading", "one H3 per flow, or `none — <reason>`")
+    elif not any(FLOW_STEP.match(l) for l in flow):
+        f.fail(row, label, "`## Flow changes` has no numbered step", "one numbered line per step")
+    elif not any(FLOW_MARKER.match(l) for l in flow):
+        f.fail(row, label, "`## Flow changes` marks no step as changed",
+               "open each changed step with **+ step**, **+ check**, **+ branch**, **~ step**, **- step**, or **moved** — or write `none — <reason>`")
+
+
+def check_tests(n, path, lines, pairs, f, checks):
+    label = os.path.basename(path)
+    row = checks["B13"]
+    if lines and lines[0].strip() == "---":
+        f.fail(row, label, "test file has frontmatter", "status lives in the human half alone")
+    first = next((l for l in lines if l.strip() and not l.startswith("# ")), "")
+    if f"TODO-{n}.md" not in first:
+        f.fail(row, label, "first line under the title is not the link back to the human half",
+               f"**Design:** [TODO-{n}.md](TODO-{n}.md)")
+    if not any(t == "Autotest" for _, t in headings(lines)):
+        f.fail(row, label, "`## Autotest` missing", "the test file holds it, always")
+
     row = checks["E1"]
-    auto = section(body, "Autotest")
+    auto = section(lines, "Autotest")
     levels = {}
     current = None
     for line in auto:
@@ -688,6 +724,8 @@ def run(notes, as_json=False, quiet=False):
         "B4": f.check("B4", "human half sections — present, ordered, link out, deviations named a note"),
         "B5": f.check("B5", "Components — brick, touch, exactly one main"),
         "B6": f.check("B6", "Surface carries the diff"),
+        "B12": f.check("B12", "Flow changes — flows with numbered steps and a marked change, or `none` with a reason"),
+        "B13": f.check("B13", "test file — no frontmatter, link back, holds ## Autotest"),
         "E1": f.check("E1", "Autotest — Unit and E2E, command + cases or a real reason"),
         "B7": f.check("B7", "agent half sections — present, ordered, no frontmatter, link back"),
         "B8": f.check("B8", "Constraints is the generator pointer, never a rule table"),
@@ -704,6 +742,9 @@ def run(notes, as_json=False, quiet=False):
         if agent:
             lines = read(agent) or []
             check_agent(n, agent, lines, f, checks)
+        tests = pairs[n].get("test")
+        if tests:
+            check_tests(n, tests, read(tests) or [], pairs, f, checks)
         if human and agent:
             check_progress(n, human, read(human) or [], read(agent) or [], f, checks)
 

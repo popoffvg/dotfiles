@@ -74,5 +74,5 @@ own rules as a `>` block underneath: what that piece must do, what it must conta
 wrong. Copy the file, replace the content, delete the `>` lines. A rule about one section is
 written there and nowhere else; `references/` holds only what no single piece owns.
 
-Per-TODO output goes into `## Autotest` in `<notes-dir>/todos/TODO-N.md` and `## Manual test` in `<notes-dir>/todos/TODO-N.agent.md` (follow the `arch` skill's
+Per-TODO output goes into `## Autotest` in `<notes-dir>/todos/TODO-N.test.md` and `## Manual test` in `<notes-dir>/todos/TODO-N.agent.md` (follow the `arch` skill's
 `todo` subcommand) — cases as sentences, never test source; task-wide output goes to `<notes-dir>/test-strategy.md`.

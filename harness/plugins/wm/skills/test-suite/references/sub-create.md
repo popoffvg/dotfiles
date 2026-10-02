@@ -26,7 +26,7 @@ live together under the big case whose behaviour they prove.
 
 ## Where the output lives
 
-- **Per-TODO scope** — into `## Autotest` (unit + integration) in `<notes-dir>/todos/TODO-N.md` and
+- **Per-TODO scope** — into `## Autotest` (unit + integration) in `<notes-dir>/todos/TODO-N.test.md` and
   `## Manual test` in `<notes-dir>/todos/TODO-N.agent.md`. Follow the `arch` skill's `todo` subcommand
   for the format: every case is a sentence, never test source.
 - **Task-wide scope** — `<notes-dir>/test-strategy.md`, referenced from `<notes-dir>/spec.md`

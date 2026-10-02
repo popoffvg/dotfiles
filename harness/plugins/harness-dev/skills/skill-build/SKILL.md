@@ -3,21 +3,18 @@ name: skill-build
 description: Router for authoring a Claude Code skill. TRIGGERS user asks rewrite, improve create or update a skill.
 ---
 
-# skill-build — pick the skill's shape, then follow its guide
+# skill-build — pick the shape, then write under its guide
 
-A skill is one `SKILL.md` with `name:` + `description:` frontmatter, plus optional `references/`. The frontmatter earns invocation; the body earns predictability — the agent taking the **same process** every run, rather than producing the same output.
+A skill is one `SKILL.md` (`name:` + `description:` frontmatter) plus optional `references/`. The frontmatter earns invocation; the body earns the agent taking the same process every run. A skill is **token-efficient**: the description is the line every turn pays for — one leading word, one trigger per branch, nothing the body already carries. In the body a sentence stays only when deleting it changes behaviour, a block the house uses in its public form becomes a golden word, and lookups the agent needs on some paths only go behind a `references/` pointer.
 
-Read `references/foundations.md` first, whatever the shape. It settles the frontmatter fields and the invocation choice every skill needs, and it holds the vocabulary the shape guides assume: the two loads, the information hierarchy, completion criteria, leading words, and pruning.
+1. Read `references/foundations.md`. Done when `name`, `description`, and the invocation axes are decided.
+2. Pick one row below by what the body mostly *is*, and load that guide only. A skill that matches two rows is two skills — split it. Done when exactly one row matches.
+3. Write the body under the guide. For a new skill, start from golden words: name the public form each rule block copies, keep the house deltas as plain rules, and verify on a real input — `references/golden-words.md`. Done when every block that names a form has passed the two-arm check or kept its rules.
+4. Run one `prune-text` pass over the files touched and apply its cuts. Done when the description is at most one leading word plus one trigger per branch, and `SKILL.md` holds only what the agent needs on every path.
 
-## Skill shapes
-
-Pick the shape by what the body mostly *is*: ordered actions, a repeated flow, consulted rules, or a dispatch. Load the one matching guide; ignore the others.
-
-| Shape | Use when the skill is… | Guide |
+| Shape | Use when the body is… | Guide |
 |---|---|---|
-| `workflow` | An ordered sequence of steps run once — a procedure, checklist, or guide. Each step ends on a checkable completion criterion. | `references/workflow.md` |
-| `loop` | A control that repeats a flow — accumulate, page, retry-until-dry. Names the flow, does not restate it. | `references/loop.md` |
-| `instruction` | A flat set of rules / definitions / facts consulted on demand — a review checklist, a style guide, a glossary. No ordered steps. | `references/instruction.md` |
-| `router` | A thin dispatch table over branches — subcommands or shapes. Names each branch, matches the request, loads one branch's guide. This skill is one. | `references/router.md` |
-
-A skill that matches two rows holds two jobs: split it, and let each half take its own shape.
+| `workflow` | Ordered steps run once, each ending on a checkable completion criterion. | `references/workflow.md` |
+| `loop` | A control that repeats a named flow — accumulate, page, retry-until-dry. | `references/loop.md` |
+| `instruction` | A flat set of rules or facts consulted on demand — a checklist, a style guide, a glossary. | `references/instruction.md` |
+| `router` | A dispatch table over branches — subcommands or shapes. This skill is one. | `references/router.md` |

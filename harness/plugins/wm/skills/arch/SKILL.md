@@ -21,7 +21,7 @@ The `code` skill routes here; it holds no design procedure of its own.
 | Operation | Does | File |
 |---|---|---|
 | `new` | Spec pipeline: init the corpus (`CLAUDE.md`, `RULES.md`), write `spec.md` → grill until no open question note is left → compile the plan with its wave table → **stop at the gate**. Writes no TODO bodies. | `commands/sub-new.md` |
-| `todo` | Author the self-contained `todos/TODO-N.md` + `TODO-N.agent.md` pair from a reviewed `spec.md` + `thoughts/`. Runs only past the gate. | `commands/sub-todo.md` |
+| `todo` | Author the self-contained `todos/TODO-N.md` + `TODO-N.agent.md` pair and the `TODO-N.test.md` test file from a reviewed `spec.md` + `thoughts/`. Runs only past the gate. | `commands/sub-todo.md` |
 | `revise` | Settle drift from a delta manifest, patching only stale notes and spec sections; reset `spec.md` to `review`. Notes-only. | `commands/sub-revise.md` |
 | `prototype` | Settle an OPEN decision with the smallest visible code diff — read the diff, not a report. | `commands/sub-prototype.md` |
 

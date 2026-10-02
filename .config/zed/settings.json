@@ -245,7 +245,7 @@
     },
     "inline_assistant_model": {
       "provider": "zed.dev",
-      "model": "gemini-3.5-flash",
+      "model": "gemini-3.8-flash",
       "enable_thinking": false,
     },
     "show_turn_stats": true,
@@ -271,7 +271,7 @@
       },
       {
         "provider": "zed.dev",
-        "model": "gemini-3.5-flash",
+        "model": "gemini-3.8-flash",
         "enable_thinking": true,
         "effort": "MEDIUM"
       }

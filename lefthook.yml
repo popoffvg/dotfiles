@@ -6,3 +6,6 @@ pre-commit:
     bump-plugin-version:
       glob: "harness/plugins/*/**"
       run: bash harness/scripts/bump-plugin-version.sh
+    sync-subcommand-commands:
+      glob: "harness/plugins/*/commands/*:help.md"
+      run: python3 harness/scripts/sync-subcommand-commands.py && git add harness/plugins/*/commands

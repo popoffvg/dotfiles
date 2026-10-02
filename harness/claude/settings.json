@@ -481,7 +481,7 @@
   "effortLevel": "medium",
   "modelSettings": {
     "claude-opus-5-5": {
-      "effortLevel": "xhigh"
+      "effortLevel": "medium"
     },
     "claude-sonnet-5": {
       "effortLevel": "high"

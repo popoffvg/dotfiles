@@ -40,7 +40,7 @@ Per-TODO:
 ```
 Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
   "[VERIFY TODO-N] Hunt contradictions / missing-parts / edge-cases in the <notes-dir>/todos/TODO-N.md
-   + TODO-N.agent.md pair. Read only those two + the rules `~/.claude/scripts/wm-constraints.py
+   + TODO-N.agent.md pair and TODO-N.test.md. Read only those three + the rules `~/.claude/scripts/wm-constraints.py
    <notes-dir>/thoughts --todo TODO-N` prints + the pair's Files (source). Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md
    § Mission and § What the script cannot judge — the countable checks already ran, so report none of them.
    Run the claim pass first and return the claim table with your findings.")
@@ -157,7 +157,7 @@ the closed files is a missing restatement, named as the finding.
 
 **Readable at one pass — the human half only.** `TODO-N.md` is written under the `i-have-adhd` skill
 (`arch:ref-todo-sections.md` § Every prose line). Read its rules —
-`~/.claude/skills/i-have-adhd/SKILL.md` — then judge every prose line against them: Outcome, `Delivers`,
+`~/.claude/skills/i-have-adhd/SKILL.md` — then judge every prose line against them: Outcome,
 `New terms` **Meaning**, `Components` **Role**, `Autotest` cases, `Commit.Body`. Apply its own test:
 read the first sentence of each section, then the bold phrases, and rule whether that skim carries
 the approval decision. Two ideas in one sentence, a stacked clause chain, a metaphor standing in for
@@ -194,9 +194,9 @@ behavior.
 | UI / frontend | `.vue`, `.tsx`, `.svelte`, css | manual test with screenshot or browser steps |
 
 **An E2E deferral is legal only when the named TODO carries the case.** `none — observable only via
-TODO-3` binds TODO-3's `## Autotest` `E2E` to a case that asserts this path; a deferral to a TODO
+TODO-3` binds TODO-3's `TODO-3.test.md` `## Autotest` `E2E` to a case that asserts this path; a deferral to a TODO
 whose E2E never mentions it is an untested path with a citation. Deferring to a `Manual test` never
-counts (`arch:examples/todo.md` § Autotest).
+counts (`arch:examples/todo-test.md` § Autotest).
 
 ## Output contract
 

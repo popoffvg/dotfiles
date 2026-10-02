@@ -1,6 +1,6 @@
 ---
 name: go-component-structure
-description: Go constructor and field rules — every set-up step runs inside the constructor, callers wait for every constructor input, entry points check outside input first, and a non-pointer field with a plain getter becomes an exported field. Use when you write or change a Go type, its constructor, its fields, or the file that holds it.
+description: Go constructor and field rules — every set-up step runs inside the constructor, callers wait for every constructor input, entry points check outside input first, a non-pointer field with a plain getter becomes an exported field, and a type calls no private method of another type. Use when you write or change a Go type, its constructor, its fields, or the file that holds it.
 paths:
   - "**/*.go"
 ---
@@ -28,3 +28,8 @@ paths:
   - good: `rollout *Rollout`, which `rolloutMu` guards and `Rollout()` reads.
 - When a field becomes exported, the type doc MUST still be true. Correct every sentence about "the exported fields".
 
+## Calls between types
+
+- A type SHOULD NOT call a private method of another type, even when Go allows it inside one package. Call an exported method, or move the logic to the type that owns the data.
+  - good: `Installation` calls `rollout.Status()`.
+  - bad: `Installation` calls `rollout.status()`.

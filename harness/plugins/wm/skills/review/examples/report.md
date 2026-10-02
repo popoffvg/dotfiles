@@ -45,8 +45,8 @@ reviewed: 2026-09-04T11:07:52+02:00
 >
 > **The rows above are `name-critic`'s three.** Take the rows for the gate you are writing from its
 > agent file — `wm:agents/name-critic.md`, `wm:agents/comment-critic.md`,
-> `wm:agents/test-critic.md`, `wm:agents/lint-tester.md`, `wm:agents/reviewer.md` — and never from
-> this example. A gate whose verdict needs a third column adds it there too: `lint-tester` carries
+> `wm:agents/test-critic.md`, `wm:agents/idiom-critic.md`, `wm:agents/lint-tester.md`,
+> `wm:agents/reviewer.md` — and never from this example. A gate whose verdict needs a third column adds it there too: `lint-tester` carries
 > `| Rule | Command | Verdict |`, because the command it ran is the evidence for its row.
 >
 > **A Failure line ends in the edit that closes it.** The finding's own middle fields are the gate's
@@ -63,7 +63,7 @@ reviewed: 2026-09-04T11:09:18+02:00
 [GATE] Result: FAIL   (after 2 rounds)
 
 ## Gates
-- lint PASS · comment PASS · name FAIL · test worth PASS · test PASS · standards PASS
+- lint PASS · comment PASS · name FAIL · test worth PASS · idiom PASS · mutation PASS · test PASS · standards PASS
 
 ## Failures
 - name · writer/column.py:34 — `rid` reads as a row id in a writer that also writes rows — rename it to `run_id`

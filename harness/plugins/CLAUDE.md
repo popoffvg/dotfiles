@@ -44,6 +44,8 @@ A router skill (`code`, `dive`, `test-suite`, `work`, …) keeps its subcommand 
 
 **Any change to a roster lands in both files in the same commit.** Adding, removing, or renaming a subcommand, and any edit to a subcommand's one-line description, is incomplete until `<router>:help.md` says the same thing. The help command is what the user reads before choosing; a roster that disagrees with it sends the user to a subcommand that no longer exists.
 
+Every row also becomes a command: `harness/scripts/sync-subcommand-commands.py` writes `commands/<router>:<sub>.md` for each row of a `<router>:help.md` table headed `Subcommand` or `Mode`, and deletes the file when the row is gone. The pre-commit hook runs it. Never edit a file that carries its `generated-by` key; edit the help row. A command file without that key is hand-written, and the script leaves it alone.
+
 The two tables carry different columns — `SKILL.md` adds the reference column pointing at the command file, `<router>:help.md` does not. Mirror the rows and the descriptions, not the columns.
 
 ## Command names: colon separates router from subcommand

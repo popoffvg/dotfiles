@@ -1,18 +1,21 @@
 ---
 name: to-user
 description: Hand work to the operator as a self-contained file they read cold and edit in their own editor, not in chat. Use for a batch of items that each need a verdict or reply ("list the PR comments with recommended answers", "give me a file to decide on each"), a findings or status handoff ("write up what you found", "explain it to me in a file"), a draft they rewrite in their own words ("draft it and I'll edit it"), and the open choices of an artifact, page, deck, or design before you build it — palette, typefaces, navigation, theme, fidelity to a source file.
-version: 0.2.0
+allowed-tools: Bash(~/.claude/scripts/open-file.sh:*)
+version: 0.4.0
 ---
 
 # to-user
+
+Host: !`~/.claude/scripts/open-file.sh --host`
 
 **The operator reads the file cold.** They did not see the code, the chat, or the research. The file carries that context in words and in `show-me` figures before it asks anything, and each block stands alone.
 
 ## Steps
 
-1. **Write the file** to the repo, or to the scratchpad when no repo owns it. Name it for the task: `pr-answers.md`, `decisions.md`, `findings.md`. Use **File shape** for a batch, **Prose** for a draft. Fill each field from a source you read — the thread, the diff, the code. A fact you could not read goes under Not checked, never into a field. Done when every item has a block, every field rests on a read source, every term is in Terms or glossed where it first appears, and no `[decide]` block is a bare question — each carries a Detail paragraph and, past a one-sentence set of options, a `show-me` figure.
-2. **Open it** with `~/.claude/scripts/open-file.sh <file>`. Tell the operator the path, how many items need an answer, and how to answer: the option letter or the reply on the `Answer:` line.
-3. **In the same turn, arm the watch**: `Monitor` with `command: ~/.claude/scripts/watch-answers.sh <file>`, `persistent: true`, and a description that names the file. Keep working; `check-answers` owns each report. A file with only `[info]` items gets no watch. When the next step cannot start until the operator finishes, use `open-file.sh --wait` instead.
+1. **Write the file** to the repo, or to the scratchpad when no repo owns it. Name it for the task: `pr-answers.md`, `decisions.md`, `findings.md`. Use **File shape** for a batch, **Prose** for a draft. Fill each field from a source you read — the thread, the diff, the code. A fact you could not read goes under Not checked, never into a field. Done when every item has a block, every field rests on a read source, every term is in Terms or glossed where it first appears, and no `[decide]` block is a bare question — each carries Why asked, a Detail paragraph, and, past a one-sentence set of options, a `show-me` figure. Test each `[decide]` block: a reader who sees only that block can say why it exists and what each option changes.
+2. **Open it.** When Host is `zed`, run `~/.claude/scripts/zed-edit-return.sh <file>` with Bash `run_in_background: true` and `dangerouslyDisableSandbox: true`. When the operator closes the tab, focus goes back to the chat and the task exit starts your next turn: run `check-answers` then. In any other host, run `~/.claude/scripts/open-file.sh <file>`. Tell the operator the path, how many items need an answer, and how to answer: the option letter or the reply on the `Answer:` line.
+3. **When Host is not `zed`, arm the watch in the same turn**: `Monitor` with `command: ~/.claude/scripts/watch-answers.sh <file>`, `persistent: true`, and a description that names the file. Keep working; `check-answers` owns each report. A file with only `[info]` items gets no watch. When the next step cannot start until the operator finishes, use `open-file.sh --wait` instead.
 
 Open design choices before a build go through these steps too, including a design-plan step inside another skill. Build from the answers.
 
@@ -57,20 +60,21 @@ Open design choices before a build go through these steps too, including a desig
 ## Block
 
 ```markdown
-### 1. [decide] <short title>
+### 1. [decide] <the question, in plain words, ending with "?">
 
 - **Source:** [thread](<url>) · `path/to/file.go:42` — <where this comes from, in words>
 - **Original:** > <verbatim text>
-- **Detail:** <first sentence names the decision>
+- **Why asked:** <the fact that forced this question>. <the work that waits on the answer>. <what you do if the slot stays empty>.
+- **Detail:** <how the thing works today, in plain words, before any symbol>
 
-  <what the item touches and how it works today>
+  <what each option changes, and for whom>
 
   <show-me figure>
 
-  | Option | <dimension> | <dimension> |
+  | Option | What changes | <plain-word dimension> |
   | --- | --- | --- |
-  | A — <name> | … | … |
-  | B — <name> | … | … |
+  | A — <name> | <effect the operator sees> | … |
+  | B — <name> | <effect the operator sees> | … |
 
 - **Recommended:** <A, or the reply ready to send>
 
@@ -83,7 +87,9 @@ Open design choices before a build go through these steps too, including a desig
 
 - **Source** — a clickable link or `file:line`, plus words on where the item comes from. The link is proof; the words are the context.
 - **Original** — verbatim. Omit it when the item has no source text.
-- **Detail** — enough to answer with nothing else open. It adds what Original does not say. It glosses each symbol on first use and repeats any fact it needs from another block.
+- **Why asked** — why this item is in the file at all. Name the trigger (a conflict, a gap, two valid paths, a reviewer request), the work it blocks, and the default if nobody answers. Never "needs a decision" — say which fact makes the choice open.
+- **Detail** — enough to answer with nothing else open. It adds what Original does not say. Start from the behavior today in plain words; give the symbol after the words, never instead of them. It glosses each symbol on first use and repeats any fact it needs from another block.
+- **Options table** — each column header is a plain question the operator compares on ("Files touched", "Breaks callers?"), never a bare term. Each cell is a value read with no lookup; a cell that needs a sentence gets that sentence under the table, keyed by the option letter.
 - **Recommended** — the answer the operator would give after doing the work, acceptable as written. The reason names the fact they would attack if they disagree. The slot below stays empty, so an answer tells consent apart from silence.
 - `[review]` replaces Recommended with **Done**: the change as a `diff` or a short list. `[info]` carries Source and Detail only.
 

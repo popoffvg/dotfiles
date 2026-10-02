@@ -1,8 +1,9 @@
 # arch — what cuts across the TODO pair
 
 **The rules for each section live in the filled artifacts**, one `>` block under the piece it governs:
-[`examples/todo.md`](../examples/todo.md) (human half) and
-[`examples/todo-agent.md`](../examples/todo-agent.md) (agent half). Open the half you are writing and
+[`examples/todo.md`](../examples/todo.md) (human half),
+[`examples/todo-agent.md`](../examples/todo-agent.md) (agent half), and
+[`examples/todo-test.md`](../examples/todo-test.md) (test file). Open the half you are writing and
 read the block under each heading — there is no second copy of a section rule anywhere.
 
 This file holds only what no single section owns: the prose rule both halves obey, where the
@@ -13,14 +14,15 @@ pre-save checklist. Which half each heading lives in: `sub-todo.md` § Required 
 | Section | Half | Its rules |
 |---|---|---|
 | frontmatter (`status`, `type`, `depends_on`, `risk`, `approve`, `increment`) | `TODO-N.md` | `examples/todo.md` |
-| Outcome, New terms, Components, Surface, Autotest, Commit, Deviations | `TODO-N.md` | `examples/todo.md` |
+| Outcome, New terms, Components, Surface, Flow changes, Commit, Deviations | `TODO-N.md` | `examples/todo.md` |
+| Autotest | `TODO-N.test.md` | `examples/todo-test.md` |
 | Constraints, Changes, Files, Pre-reads, Manual test, Definition of done | `TODO-N.agent.md` | `examples/todo-agent.md` |
 
 ## Every prose line
 
-**Every prose line of `TODO-N.md` obeys the `i-have-adhd` skill.** The human half is read once, by a
-person deciding whether to approve it — Outcome, Delivers, New terms **Meaning**, Components **Role**, Autotest
-cases, `Commit.Body`, and any sentence beside a table. Load that skill and write under its rules: one
+**Every prose line of `TODO-N.md` and `TODO-N.test.md` obeys the `i-have-adhd` skill.** The human half is read once, by a
+person deciding whether to approve it — Outcome, New terms **Meaning**, Components **Role**, flow steps,
+Autotest cases, `Commit.Body`, and any sentence beside a table. Load that skill and write under its rules: one
 idea per sentence, short sentences, front-loaded, literal words, no restatement. The agent half is
 read by an implementer and is not bound by it.
 

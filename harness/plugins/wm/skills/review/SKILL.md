@@ -38,7 +38,7 @@ The second argument sets which gates run, in either mode. No speed named → `no
 | Speed | Runs | Caller |
 |---|---|---|
 | `normal` *(default)* | the whole chain: the wave with the mutation gate, then the test gate | `/code impl` TODO review under `approve: todo` and `none`, `/code auto`, a human |
-| `fast` | the five judges over the diff the caller names — no mutation gate, no test gate | `/code impl` increment review under `approve: increment` |
+| `fast` | the six judges over the diff the caller names — no mutation gate, no test gate | `/code impl` increment review under `approve: increment` |
 
 A `fast` run is never a TODO's verdict: its caller sets no `status` from it.
 
@@ -54,8 +54,8 @@ must contain, and when it is wrong. Copy the one you are writing, replace the co
 **Read-only on source, always.** Every gate returns findings; the caller routes them back to
 `impl`. No gate edits source, and no gate commits — with two named exceptions the roster states.
 The test gate writes the missing test and leaves it uncommitted for the implementer to fold in. The
-mutation gate edits source on purpose — that is how it measures the tests — but only inside its own
-git worktree, which is thrown away; the working tree it was pointed at never changes.
+mutation gate edits source on purpose — that is how it measures the tests — but only inside sandbox
+copies of the checkout, which are thrown away; the checkout never changes.
 
 **Every gate does write its own report**, to the `report:` path the caller names under
 `<notes-dir>/review/<target>/`. That is a notes-dir file, not source, and it is not optional — a

@@ -12,16 +12,18 @@ contiguous, one pair per row in the `spec.md` ledger. Written by `/code todo`.
 
 | File | Read by | Holds | Length |
 |------|---------|-------|--------|
-| `TODO-N.md` | the human, repo closed | frontmatter, Outcome, Delivers, New terms, Components, **Surface** — the one diff in the pair, Autotest, Commit, Deviations | ≤ 550 lines |
+| `TODO-N.md` | the human, repo closed | frontmatter, Outcome, New terms, Components, **Surface** — the one diff in the pair, **Flow changes**, Commit, Deviations | ≤ 550 lines |
+| `TODO-N.test.md` | the human at the gate, then the implementer | Autotest — Unit and E2E | unlimited |
 | `TODO-N.agent.md` | the implementer | Constraints, Changes — the increments, described, Files, Pre-reads, Manual test, Definition of done | unlimited |
 
 The split is by audience. `TODO-N.md` is the design a human approves: what the system will be able to
-do, which symbols move, what they become, what proves it, and what the commit says. `TODO-N.agent.md`
+do, which symbols move, what they become, which running paths gain a step or a check, and what the
+commit says. `TODO-N.test.md` is what proves it. `TODO-N.agent.md`
 is how to get there: the order of the work, what to do at each step, and the rules that bound it.
 
 ## Read order
 
-1. `TODO-N.md` — what to build and what proves it.
+1. `TODO-N.md` — what to build; `TODO-N.test.md` — what proves it.
 2. `~/.claude/scripts/wm-constraints.py ../thoughts` — the rules the code must satisfy. No pair copies
    a rule; the agent half names this command instead.
 3. `TODO-N.agent.md` — how, one increment at a time.
@@ -30,7 +32,7 @@ Self-contained means the **pair plus those generated rules**. Implement from the
 
 ## Write rules
 
-- **Both halves are written, renumbered, and deleted together.** One author per row; the two are
+- **All three files are written, renumbered, and deleted together.** One author per row; the two are
   written against each other — `## Components` is the map `## Changes` walks.
 - **One status per pair**, in `TODO-N.md` frontmatter: `todo → impl → verify → done`, with `blocked`
   as the failure branch. `TODO-N.agent.md` carries no frontmatter.

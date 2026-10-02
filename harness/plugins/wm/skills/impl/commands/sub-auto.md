@@ -77,7 +77,7 @@ skip with its reason, never left silent — an unmentioned deploy reads as a gre
 
 ## Step 4 — verify end-to-end
 
-Run the `E2E` command from the `## Autotest` of the last TODO in the ledger (`none` → skip, and say
+Run the `E2E` command from the `TODO-N.test.md` `## Autotest` of the last TODO in the ledger (`none` → skip, and say
 which TODO declared it). Red → `sub-fix.md`, then re-run: **from Step 3 when the deploy ran**, from
 Step 4 when it was skipped. Nothing waits on a step that never ran. Green → the goal condition holds
 and the Stop hook clears itself.

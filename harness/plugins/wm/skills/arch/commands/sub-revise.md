@@ -91,7 +91,7 @@ section the manifest named.
 - Update only the `spec.md` rows and sections listed by the manifest, then set `status: review`.
 - Update `GLOSSARY.md` only for a changed term or definition.
 - For each affected pair, update only the stale section: `Surface` for signatures; `Components`
-  for changed symbols; `Autotest` for changed behavior or coverage; `Changes` or `Files` for
+  for changed symbols; `Flow changes` for a changed step or check; `TODO-N.test.md` `Autotest` for changed behavior or coverage; `Changes` or `Files` for
   changed implementation steps or paths.
 - Fold each consumed `## Deviations` row into its named section, then remove that table when no row
   remains. **Check every row carries its `[[NNN-impl-decision-slug]]` before you delete one.**

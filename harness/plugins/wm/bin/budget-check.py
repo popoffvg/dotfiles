@@ -6,14 +6,15 @@ The budgets are written as prose and as checklist rows in `arch:sub-todo.md`,
 ticked by the model that wrote the file, so a body can pass review at three times its
 budget. This script is the same rule, counted.
 
-One ledger row is a PAIR of files split by audience (`arch:sub-todo.md` § One ledger row,
-two halves). The rules both halves obey live outside the pair, in `thoughts/`, and are
+One ledger row is three files split by audience: the human half, the agent half, and the
+test file (`arch:sub-todo.md` § One ledger row, three files). The rules both halves obey live outside the pair, in `thoughts/`, and are
 printed by `wm-constraints.py` - there is no rules file to check. Each file is checked against its own budgets, and each is checked for
 sections that belong to another - a misplaced section means the split was never made.
 
 Checked, by file kind:
 
   todos/TODO-N.md         human half - carries the ONE diff, in ## Surface
+                          ## Autotest is not here - it is the test file's
                           body <= 550 lines            (arch:sub-todo.md - Budget)
                           ## New terms and ## Components are UNCOUNTED - both are
                           rosters, one row per term and per symbol, unlimited in length
@@ -33,6 +34,10 @@ Checked, by file kind:
                           Components, Surface, Autotest, Commit)
                           ## Constraints holds the wm-constraints.py command, never a rule
                           table - a rule copied here is the second copy that drifts
+
+  todos/TODO-N.test.md    test file - ## Autotest alone, NO line budget, by design
+                          no frontmatter
+                          no section that belongs to either half
 
   spec.md                 <= 200 lines                 (arch:ref-write.md - Spec-Readiness)
 
@@ -66,14 +71,14 @@ UNCOUNTED_SECTIONS = ("New terms", "Components")
 # author wrote one file where the contract asks for two.
 HUMAN_SECTIONS = {
     "Outcome",
-    "Delivers",
     "New terms",
     "Components",
     "Surface",
-    "Autotest",
+    "Flow changes",
     "Commit",
     "Deviations",
 }
+TEST_SECTIONS = {"Autotest"}
 AGENT_SECTIONS = {
     "Constraints",
     "Changes",
@@ -136,8 +141,8 @@ def misplaced(found, wrong_sections, here, there):
     for name in found:
         if name in wrong_sections:
             out.append(
-                f"`## {name}` belongs in the {there}, not the {here}. One ledger row is two "
-                "halves and a trace, each with its own reader: move the section to the file "
+                f"`## {name}` belongs in the {there}, not the {here}. One ledger row is "
+                "three files, each with its own reader: move the section to the file "
                 "that owns it and leave a link, never a copy (`arch:sub-todo.md` § Required "
                 "elements)."
             )
@@ -211,7 +216,7 @@ def check_todo_human(lines, violations, path):
             f"the human half is {counted} counted lines, budget is {TODO_HUMAN_LINES} "
             f"({counted / TODO_HUMAN_LINES:.1f}x over; `## New terms` and `## Components` are "
             "not counted). This budget is a ceiling, set far "
-            "above what Outcome, Autotest and Commit need on a real "
+            "above what Outcome, Flow changes and Commit need on a real "
             "row - so reaching it means the ledger row carries two deliverables. Split it "
             "(TODO-N.1, TODO-N.2). Never compress the prose to fit, and never move content "
             "to the agent half: the halves are split by audience, not by size."
@@ -219,6 +224,9 @@ def check_todo_human(lines, violations, path):
 
     violations.extend(
         misplaced(found, AGENT_SECTIONS, "human half", "agent half (`TODO-N.agent.md`)")
+    )
+    violations.extend(
+        misplaced(found, TEST_SECTIONS, "human half", "test file (`TODO-N.test.md`)")
     )
     if "Surface" in found:
         s_start, s_end = found["Surface"]
@@ -250,6 +258,9 @@ def check_todo_agent(lines, violations, path):
     found = sections(body)
     violations.extend(
         misplaced(found, HUMAN_SECTIONS, "agent half", "human half (`TODO-N.md`)")
+    )
+    violations.extend(
+        misplaced(found, TEST_SECTIONS, "agent half", "test file (`TODO-N.test.md`)")
     )
     if "Constraints" in found:
         c_start, c_end = found["Constraints"]
@@ -319,6 +330,18 @@ def check_todo_agent(lines, violations, path):
             )
 
 
+def check_todo_test(lines, violations, path):
+    # No line budget by design: one case per promise the Outcome makes, however many.
+    if has_frontmatter(lines):
+        violations.append(
+            "the test file carries a `---` frontmatter block. `status` lives in `TODO-N.md` "
+            "alone (`arch:ref-write.md` § Status). Delete the block."
+        )
+    found = sections(strip_frontmatter(lines))
+    violations.extend(misplaced(found, HUMAN_SECTIONS, "test file", "human half (`TODO-N.md`)"))
+    violations.extend(misplaced(found, AGENT_SECTIONS, "test file", "agent half (`TODO-N.agent.md`)"))
+
+
 def check_spec(lines, violations, path):
     body = strip_frontmatter(lines)
     if len(body) > SPEC_LINES:
@@ -336,6 +359,8 @@ def kind_of(path):
     if os.path.basename(d) == "todos" and base.startswith("TODO-"):
         if base.endswith(".agent.md"):
             return "todo-agent"
+        if base.endswith(".test.md"):
+            return "todo-test"
         if base.endswith(".md"):
             return "todo"
         return None
@@ -349,6 +374,7 @@ def kind_of(path):
 CHECKS = {
     "todo": check_todo_human,
     "todo-agent": check_todo_agent,
+    "todo-test": check_todo_test,
     "spec": check_spec,
 }
 

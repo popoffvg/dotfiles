@@ -54,54 +54,49 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 > `## Deviations` is shown filled, as `impl` leaves it — a file written by `todo` has no such section.
 > The prose follows `harness-dev:text-style`, and — because a human reads this file to decide whether
 > to approve it — the `i-have-adhd` rules.
+>
+> **Rules every section shares.** A section's own `>` block states only what is specific to it.
+>
+> - **Symbols, not paths.** Name a symbol as `## Components` does (`pkg/auth.Handler`) and write a
+>   `GLOSSARY.md` term verbatim. A file path belongs in the agent half's **Files**, never in this half.
+> - **A required section with nothing to say writes one line: `none — <concrete reason>`.** A section
+>   marked *optional* is omitted instead, never written with `none` under it.
+> - **Tables are unlimited.** No row cap, and the 550-line budget does not count a table
+>   (`arch:sub-todo.md` § Budget). A row left out to keep a section short is a fact the implementer guesses.
+> - **A size cap is a split signal.** Past the cap the ledger row does two things — split the row, do
+>   not shorten the section.
+> - **Each section stands on its own** for a reader with the repo closed and the agent half shut.
 
 ## Outcome
 
-A `User` can issue `RotateToken` to exchange a valid refresh token for a new `TokenPair`. On success the `Session` emits `TokenRotated` and the prior refresh token becomes invalid immediately. If the refresh token has already been used, the `Session` is revoked and the `User` must re-authenticate.
+- A `User` can issue `RotateToken` to exchange a valid refresh token for a new `TokenPair` — a public method on `pkg/auth.Handler`.
+- On success the `Session` emits `TokenRotated` and the prior refresh token becomes invalid immediately — a state machine on `Session`: active → rotated → revoked.
+- If the refresh token has already been used, the `Session` is revoked and the `User` must re-authenticate — reuse is the trap state.
+- The refresh TTL is a setting, 15 minutes by default — a config key.
 
-> **Capability, not implementation.** Answers *"what new can the system do once this lands?"* in
-> use-case language.
+> **One feature per bullet, capability first.** Answers *"what new can the system do once this
+> lands, and what lands to do it?"* The reviewer reads this list, then knows what `## Components`
+> and `## Surface` below will show before scrolling to them.
 >
-> Phrasing: `<actor> can <capability> [when <condition>]`, or `<aggregate> emits <event> when
-> <command> succeeds`. Present tense, active.
+> Each bullet is `<actor> can <capability> [when <condition>]` or `<aggregate> emits <event> when
+> <command> succeeds`, present tense, active — then an em dash and what lands: `<plain-words kind>
+> on <symbol>`. The kind is free text, not a roster: a public method, a state machine, an event, an
+> endpoint, a config key, a migration, a script. Name a symbol as `## Components` does; a bullet
+> with no new thing behind it ends at the capability.
 >
-> Two to five sentences: the first is the capability, the rest give a reader without context the
-> trigger, the state change, and the failure. Past five, the TODO is too big — split it. `GLOSSARY.md`
-> names verbatim.
+> **Two to seven bullets, one sentence each, biggest first.** The first is the capability; the
+> rest give the trigger, the state change, and the failure. Don't restate the spec Goal — scope to
+> *this* TODO's slice.
 >
-> **Banned:** file paths, function/struct names, routes, package names, libraries, "add a field",
-> "wire up". Don't restate the spec Goal — scope to *this* TODO's slice.
+> **Banned:** paths, routes, libraries, "add a field", "wire up".
 >
-> Good: *"A `User` can issue `RotateToken`; on success the `Session` emits `TokenRotated` and the
-> prior refresh token becomes invalid."*
-> Bad: *"Add a `/auth/refresh` handler in `pkg/auth/handler.go`"* (paths) · *"Introduce a
-> `RefreshRequest` struct"* (types, not capability).
+> Good: *"A `User` can issue `RotateToken`; on success the `Session` emits `TokenRotated` — a public
+> method on `pkg/auth.Handler`."*
+> Bad: *"Add a `/auth/refresh` handler in `pkg/auth/handler.go`"* (path, no capability) ·
+> *"Introduce a `RefreshRequest` struct"* (type, not capability).
 >
-> A pure refactor with no new capability says so: *"No new capability; reshapes the `Session`
-> aggregate so future `RotateToken` variants share a path."* Still in terms, not paths.
-
-## Delivers
-
-- a public method on `pkg/auth.Handler` — one call swaps a live refresh token for a new pair
-- a state machine on `Session` — active → rotated → revoked, with reuse as the trap state
-- a config key for the refresh TTL — 15 minutes by default
-
-> **What the TODO brings, as a tip for the reviewer on what to read.** One bullet per thing that
-> lands, biggest first. The reviewer reads this list, then knows what `## Components` and
-> `## Surface` below will show before scrolling to them.
->
-> Each bullet is `<what kind of thing> on <symbol> — <one clause on what it does>`. The kind is
-> plain words, not a roster: a public method, a state machine, an event, an endpoint, a config key,
-> a migration, a script. Free text on purpose — this section talks to a person, not to a checker.
->
-> Name a symbol the way `## Components` does (`pkg/auth.Handler`), never a file path.
->
-> **Three to seven bullets.** Past seven, the TODO brings more than one deliverable — split the
-> ledger row. Under three is normal for a small slice.
->
-> **Always present.** A TODO that brings nothing a reviewer would look for writes one line:
-> `none — <concrete reason>`, the same shape the Autotest levels use. A pure refactor is the usual
-> case: `none — reshapes the Session aggregate; no new surface`.
+> A pure refactor with no new capability says so in one bullet: *"No new capability; reshapes the
+> `Session` aggregate so future `RotateToken` variants share a path."*
 
 ## New terms
 
@@ -109,7 +104,7 @@ A `User` can issue `RotateToken` to exchange a valid refresh token for a new `To
 |------|------|-------------|
 | TokenJar | entity | Per-user container of active refresh tokens; bounded to 5, LRU-evicted |
 
-> One row per domain term this TODO adds that `GLOSSARY.md` does not already carry.
+> **Optional** — one row per domain term this TODO adds that `GLOSSARY.md` does not already carry.
 >
 > **Every row here is `new` by definition** — that is what the section is — and it reaches
 > `GLOSSARY.md` with `Status: new`. A term the code already carries belongs in `GLOSSARY.md` as
@@ -121,12 +116,6 @@ A `User` can issue `RotateToken` to exchange a valid refresh token for a new `To
 > **The row reaches `GLOSSARY.md` as an entry, but the pair's author does not merge it** — the row is returned and
 > the caller merges it (`arch:sub-todo.md` § Execution, step 3), because one shared table written by a
 > wave of forks loses rows.
->
-> **Unlimited — no row cap, and the 550-line budget does not count it** (`arch:sub-todo.md` § Budget).
-> Every term the TODO adds gets its row; a term left out to keep the section short is a term the
-> implementer has to guess.
->
-> A TODO that adds no term omits the whole section. Never write `## New terms` with `none` under it.
 
 ## Components
 
@@ -140,8 +129,7 @@ A `User` can issue `RotateToken` to exchange a valid refresh token for a new `To
 > reader who never opens the agent half.
 >
 > **Component** — `package.Class` in the project's own notation (`pkg/auth.Handler`,
-> `blocks/upload/model.UploadState`). A symbol, never a bare file path — paths live in the agent
-> half's **Files**.
+> `blocks/upload/model.UploadState`).
 >
 > **Touch** — `create | modify | delete`. **It types the symbol, not the file**: a `create` component
 > may land in a file **Files** marks `modify`, and a `modify` component may need a new file. A
@@ -164,10 +152,7 @@ A `User` can issue `RotateToken` to exchange a valid refresh token for a new `To
 > is named by at least one increment in `## Changes`, and no increment there names a component missing
 > from this table.
 >
-> **Unlimited — no row cap, and the 550-line budget does not count it** (`arch:sub-todo.md` § Budget).
-> One row per symbol touched, however many that is: a reach stated short is a reach the human approves
-> blind. A wide table is not a split signal — two `main` candidates and an over-budget `## Surface`
-> are.
+> **A wide table is not a split signal** — two `main` candidates and an over-budget `## Surface` are.
 
 ## Surface
 
@@ -210,6 +195,13 @@ exit 1  → first failed check on stderr, prefixed `FAIL: `
 > signatures, and settings — config keys, flags, defaults — with their real values. New surface is
 > all-`+` in real syntax, and no field or signature is ever elided.
 >
+> **An interface implementation shows the interface, not its methods.** A type that implements an
+> interface carries one assertion line per interface (`var _ lifecycle.SettingsStore = (*InstallationsDirectory)(nil)`)
+> and lists only the public methods that no interface declares, plus its constructor. The interface
+> declaration already shows every method it requires, so listing them again is the same signature
+> twice. A method the interface declares is new surface only when the TODO changes that interface;
+> then it goes in the diff of the file that declares the interface.
+>
 > **Why the human half.** This is what a reviewer approves before any code exists: Components says
 > *which* symbols move, Surface says *what they become*. Approving one without the other approves a
 > rename. It is also why this half's budget is 550 lines rather than a hundred — the diff needs the
@@ -232,108 +224,61 @@ exit 1  → first failed check on stderr, prefixed `FAIL: `
 > a body — are `arch:ref-todo-sections.md` § A diff carries the change, not what the change forces
 > and § A diff carries the surface, not a body.
 
-## Autotest
+## Flow changes
 
-### Unit
+### `POST /auth/refresh` — `pkg/auth.Handler.Refresh` — main flow step 4
 
-- **Under test:** `pkg/auth.Handler.Refresh`, `pkg/auth.TokenMinter.mintTokens` — one refresh swaps a live token for a new pair and kills the token it replaces.
-- **Target files:** `pkg/auth/handler_test.go` (create), `pkg/auth/token_test.go` (modify)
-- **Happy path:**
-  - **Rotation mints exactly one new pair** — a valid token returns a fresh pair and the old token leaves the store.
-    - property: `refresh(t) -> (t', pair)` where `t' != t` and Redis key `auth:<t>` is gone
-    - over: any unexpired refresh token; pinned: token at exactly its TTL boundary
-- **Error cases:**
-  - **An expired token is rejected** — a token past its TTL mints nothing.
-    - refresh token past its 15-minute TTL → 401
-  - **A reused token is rejected without minting** — the second use of one token fails and leaves the store as it was.
-    - second refresh with the same token → 409, and no new pair exists
-- **Command:** `go test ./pkg/auth/...`
+```
+pkg/auth.Handler.Refresh
+├── decode the body into a RefreshRequest
+│   └── malformed → 400
+├── look up the refresh token in the store
+│   └── missing or expired → 401
+├── + check the token was already used
+│   └── revoke the Session → 409
+├── ~ step mint a TokenPair for the user id — was: one access token
+│   ├── sign the access token
+│   └── + step sign the refresh token
+├── + step delete the old refresh token from the store
+├── + step emit TokenRotated
+└── return the pair → 200
+```
 
-### E2E
-
-- **Under test:** `POST /auth/refresh` on the running server — a client keeps a working session across a refresh, and a retired token buys nothing.
-- **Target files:** `test/e2e/auth_refresh_test.go` (create)
-- **Entry point:** `POST /auth/refresh` on the running server, same as a real SDK client
-- **Happy path:**
-  - **A refreshed session keeps working** — the pair a refresh returns authorizes the next call.
-    - log in
-    - refresh
-    - call `GET /me` with the returned access token → 200
-- **Error cases:**
-  - **Reuse punishes the stale token, never the live session** — replaying the first refresh token fails and the live pair still works.
-    - log in
-    - refresh
-    - refresh again with the *first* refresh token → 409
-    - call `GET /me` with the second pair's access token → 200
-  - **Expiry ends access on both tokens** — once the TTL passes, neither token of the old pair works.
-    - log in
-    - wait past the TTL
-    - refresh → 401
-    - call `GET /me` with the old access token → 401
-- **Command:** `go test -tags e2e ./test/e2e/ -run TestAuthRefresh`
-
-> **Two levels, both required.** One TODO ships the behavior *and* the proof at both scales — that is
-> what makes it self-contained. Neither level is optional by default. What the change *proves* is a
-> design question the reviewer answers at the gate: a capability nobody can assert is a capability
-> nobody agreed to.
+> **Which running paths this TODO changes, and how, step by step.** `## Surface` shows what the
+> symbols become. This section shows what a call does, in order, and which steps are new. A reviewer
+> reads it to see every new step and every new check before any code exists.
 >
-> | Level | Proves | Scope |
-> |-------|--------|-------|
-> | `Unit` | the changed unit behaves, in isolation | the new/edited function, type, or component; no network, no DB, no process boundary |
-> | `E2E` | the **Outcome** holds through the real entry point | the request/command enters where a user or caller enters it and the observable result is asserted |
+> **One H3 per flow.** A flow is one path a call takes from its entry point to its result: a request
+> handler, a CLI command, a job, an event consumer. Name the entry point the way a caller enters it,
+> then the `package.Class.method` that runs it. When the flow is a step of the `main` flow in
+> `<notes-dir>/workflows/flows.json`, add `— main flow step <n>`.
 >
-> Each level carries, on its own bullets:
+> **Steps as a tree, in the order they run.** One fenced block per flow. The root is the
+> `package.Class.method`; each step is one line, drawn as the Linux `tree` command draws it: `├── ` for a
+> step, `└── ` for the last step at its level, `│   ` in front of each line one level deeper. A step that
+> runs sub-steps or stops the flow holds them as its children. One line per step, in domain words:
+> what happens, and what the caller gets when the step stops the flow (`→ 401`). No code; a symbol
+> only when it is a `## Components` row.
 >
-> - **Under test** — opens the level, above **Target files**: the symbol or symbols the level
->   exercises, then one clause naming the behaviour the whole block proves. A reader knows what is
->   verified before reading a single case.
-> - **Target files** — the test file path, `create` if new.
-> - **Entry point** — `E2E` only: where the request or command enters, named as a caller enters it
->   (`POST /auth/refresh` on the running server), so each case asserts the Outcome as an observer sees
->   it rather than as the implementation sees it.
-> - **Cases** — **two groups, always**: every case nests under `- **Happy path:**` or
->   `- **Error cases:**`, never flat. Happy path holds the successes, including a success that must
->   stay unchanged; error cases hold the refusals and the error codes. Omit a group that would be
->   empty.
+> **Each changed step opens with its marker**, right after the branch characters. A step with no marker is unchanged context.
 >
->   Each case carries a short bold label plus a description of what it tests, and traces to the
->   Outcome or to a generated rule this TODO can violate, both directions — an Outcome promise with
->   no case is a coverage gap, a case the Outcome never made is scope creep.
+> | Marker | Means | The line also says |
+> |--------|-------|--------------------|
+> | `+ step` | a new step | what it does |
+> | `+ check` | a new guard that can stop the flow | what it rejects and what the caller gets |
+> | `+ branch` | a new path the flow can take | the condition that takes it |
+> | `~ step` | a step that now does something else | what it did before, after `— was:` |
+> | `- step` | a step that is gone | nothing more; the line stays so the gap shows |
+> | `moved` | a step that runs at a new position | the parent and the step it ran after before, after `— was:` |
 >
->   Each case is backed one of two ways: **examples**, as `input → expected` bullets under the case;
->   or **a property**, when the case has algebraic shape (round trip, inverse, idempotence, invariant
->   — catalog in `test-suite:ref-property-based.md`), written as `property: <formula>` then
->   `over: <input domain>; pinned: <known edges>`. The pinned edges are that case's examples; no
->   separate example bullets beside a property.
+> **Show the whole tree up to 12 lines.** Past 12, keep each changed step, its parent chain, and one
+> unchanged sibling on each side, and write `…` for the lines between.
 >
->   **One step, one bullet.** A case that runs through several steps writes one bullet per step, in
->   order — never a chain joined by `;` or `→`. A step in the user's source list stays one step: do
->   not merge two, do not split one.
-> - **Command** — one runnable shell command. Never "run the relevant tests".
+> **Every marked step has a case in `TODO-N.test.md` `## Autotest`.** A `+ check` or a `+ branch`
+> with no error case is a path nobody tests.
 >
-> **Cases, never the test.** This is the only place a test appears in the pair, and it appears as
-> sentences: no assertion source, no fixture, no table of literal expected values, no shell. A test
-> that *cannot* be written from the case means the case is too vague, and the fix is a sharper
-> sentence, not a paste. When the test file itself is the deliverable, it is an increment with a
-> **Behavior** sketch in the agent half.
->
-> A level that genuinely cannot exist is written `none — <one-line concrete reason>`, and the reason
-> names what makes it impossible. Auto-reject: "covered by the unit test", "trivial", "no e2e harness"
-> (name the missing harness and add a TODO for it instead). A pure refactor may set `E2E: none — no
-> observable behavior changes; unit suite pins the reshaped API`, but only when the Outcome itself
-> claims no new capability.
->
-> A TODO whose Outcome is not observable end-to-end alone defers: `none — observable only via TODO-3;
-> its E2E case asserts this path`. Three rules bind that deferral:
->
-> - **The named TODO must exist in the ledger**, and its `## Autotest` `E2E` must carry a case that
->   asserts this path. A deferral to a TODO whose E2E never mentions it is an untested path with a
->   citation.
-> - **Deferring to a Manual test does not count.** `Manual test` catches what no suite can see; it is
->   not the automated cover this level claims.
-> - **The shape is rare.** An enabler with one consumer is increment 1 of that consumer, so it has no
->   `E2E` of its own to defer. What is left is the genuinely separate row: another repo, or an
->   interface with two or more consumers.
+> A new flow is all `+ step`. The usual `none` is a rename: `none — renames Session fields; every
+> step runs as before`.
 
 ## Commit
 
@@ -398,6 +343,9 @@ idle user on a normal day, and the stolen token stays usable until it expires.
 
 ---
 
+**Tests:** [TODO-1.test.md](TODO-1.test.md)
+
 **Increments:** [TODO-1.agent.md](TODO-1.agent.md)
 
-> The pair is two files, and each half links the other by name.
+> One row is three files. This half links the other two by name, on the last two lines; each of them
+> links back on its first line.

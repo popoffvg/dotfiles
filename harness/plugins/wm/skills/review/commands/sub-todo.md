@@ -20,7 +20,7 @@ every finding routes back to `impl`, which is the only skill that edits.
    `<notes-dir>/review/TODO-N/constraints.md`, the rules the code must obey — write it when it is
    absent or stale (`../references/ref-gates.md` § One rule file per TODO) — plus
    `<notes-dir>/RULES.md` and `<notes-dir>/PATTERNS.md` for the patterns it must follow,
-   plus `<notes-dir>/todos/TODO-N.md` (Autotest) and `<notes-dir>/todos/TODO-N.agent.md` (Files) for
+   plus `<notes-dir>/todos/TODO-N.test.md` (Autotest) and `<notes-dir>/todos/TODO-N.agent.md` (Files) for
    the two gates that need them. The generator is the only reader of `thoughts/` here: no gate
    judges why a rule exists.
 3. **Batch the mutation gate.** Split the TODO's changed source files — bounded by
@@ -28,15 +28,15 @@ every finding routes back to `impl`, which is the only skill that edits.
    `## Autotest` entry in `toolchain.json`, following `mutation:SKILL.md` § Run it. A TODO whose
    changed files no test covers produces no batch and the gate reports `n/a`; the missing test is the
    test gate's finding in step 5. Under `fast`, skip this step.
-4. **Run the wave** — @lint-tester, @comment-critic, @name-critic, @test-critic, @reviewer, and one
-   @mutation-tester per batch from step 3, in **one message**, each with its own
+4. **Run the wave** — @lint-tester, @comment-critic, @name-critic, @test-critic, @idiom-critic,
+   @reviewer, and one @mutation-tester per batch from step 3, in **one message**, each with its own
    `report: <notes-dir>/review/TODO-N/<gate>.md` line (§ Every gate writes its report to a file).
-   Every mutation agent is spawned with `isolation: "worktree"` and writes to
+   Every mutation agent gets the `checkout:` line (`mutation:SKILL.md` § 3), no `isolation`, and writes to
    `<notes-dir>/review/TODO-N/mutation/<batch-slug>.md`. The lint gate needs the pair (Files,
    Autotest), and @test-critic needs `## Autotest` so it can tell a case the human asked for from one
-   the implementer invented; under `fast`, spawn no @mutation-tester. The comment, name, and mutation gates never read the pair, because a
-   comment is judged against the code under it, a name against its own body, and a mutant against the
-   test that fails to catch it. @reviewer's brief carries the
+   the implementer invented; under `fast`, spawn no @mutation-tester. The comment, name, idiom, and mutation gates never read the pair, because a
+   comment is judged against the code under it, a name against its own body, a line against its
+   language, and a mutant against the test that fails to catch it. @reviewer's brief carries the
    `constraints: <notes-dir>/review/TODO-N/constraints.md` line and names `<notes-dir>/RULES.md` and
    `<notes-dir>/PATTERNS.md` — the rule sources the pair points at — and
    never the Outcome or the Surface. Tell it the other gates run beside it, so it reports none of
@@ -78,4 +78,4 @@ judges it like every other changed file.
 wrote, not the case that asked for it, so a listed `## Autotest` case whose code has no condition
 comes back as a Failure. Dropping it contradicts the approved pair, which makes it a **deviation**:
 the implementer records the `impl-decision` note and the `## Deviations` row, and never edits the
-Autotest table (`arch:examples/todo.md` § Autotest).
+Autotest table (`arch:examples/todo-test.md` § Autotest).

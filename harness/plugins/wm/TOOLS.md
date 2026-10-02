@@ -60,6 +60,13 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 | Re-link the notes an edit touched | `wm-backlink-thoughts.py <thoughts> <edge-file>` — lines `<id>\|<section>\|<target-id>\|<annotation>` | appends the bullet under `## <section>` and syncs frontmatter `links:`. Idempotent. The `.sh` twin skips the frontmatter sync |
 | Reshape a pre-split TODO | `wm-todo-split-agent.py <todos/TODO-N.md>... [--dry-run]` | the pair, agent half left failing `budget-check` until a human hoists each increment's surface |
 
+## Judge how a diff is built
+
+| Need | Invocation | Returns |
+|---|---|---|
+| Whether one place the reviewer suspects is really wrong | `wm:agents/reviewer.md` § Steps → one `Agent(subagent_type: "wm:hypothesis-checker")` per hypothesis, all in one message | `CONFIRMED \| REFUTED \| UNSURE` with quoted `file:line` evidence; a CONFIRMED correctness verdict adds the failing input and the edit |
+| Whether the changed lines use their language the way it expects | the `review` wave → `Agent(subagent_type: "wm:idiom-critic")` with a `report:` line | `PASS \| FAIL` with seven fixed rows; each finding names the guide § section and the idiomatic rewrite in the pinned version |
+
 ## Route a gate verdict
 
 | Need | Invocation | Returns |
@@ -70,8 +77,8 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 
 | Need | Invocation | Returns |
 |---|---|---|
-| Whether the existing tests assert anything | the `mutation` skill → one `Agent(subagent_type: "wm:mutation-tester", isolation: "worktree")` per changed-source batch | `PASS \| FAIL \| n/a` per batch, plus every surviving mutant as `file:line — the edit — the assertion to write`. A red or unbuildable baseline returns `n/a`, never PASS |
-| Run a batch of mutants and report the survivors | `go-mutation-check.sh <worktree> <mutants-file>` — TAB-separated `<label>\t<file>\t<perl-expr>\t<test-command>` | one line per mutant — `killed`, `SURVIVED`, or `NO-OP` when the expression matched nothing — then the counts. Restores each file after every run. Exit 1 when anything survived or no-opped |
+| Whether the existing tests assert anything | the `mutation` skill → one `Agent(subagent_type: "wm:mutation-tester")` per changed-source batch, with a `checkout:` line and no `isolation` | `PASS \| FAIL \| n/a` per batch, plus every surviving mutant as `file:line — the edit — the assertion to write`. A red or unbuildable baseline returns `n/a`, never PASS |
+| Run a batch of mutants and report the survivors | `go-mutation-check.sh [-j N] [-t DURATION] [-n] [-F] <checkout> <mutants-file>` — TAB-separated `<label>\t<file>[:<line>]\t<perl-expr>\t<test-command>` | a `progress:` line on stderr as each mutant ends, then one line per mutant — `killed`, `timeout`, `SURVIVED`, `UNCOVERED`, `NO-OP`, `MISPLACED`, or `invalid` — then the `killed=N …` tally. Edits only sandbox copies, never the checkout. Exit 1 when anything survived, was uncovered, no-opped, or was misplaced; 2 when the unmutated command fails; 3 when a run over the same files is still going |
 
 ## Check the corpus
 

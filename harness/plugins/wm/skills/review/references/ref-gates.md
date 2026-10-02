@@ -15,9 +15,10 @@ never sees this skill.
 | comment | every comment, doc line, and doc tag the diff adds or changes — fails the useless one, nits the rest | @comment-critic | haiku |
 | name | every name the diff declares — the `pedant` smell table | @name-critic | haiku |
 | test worth | every test the diff adds — and rejects the ones asserting nothing the code can get wrong | @test-critic | haiku |
+| idiom | every line the diff adds or changes — is it written the way its language and pinned version expect. The only gate that judges the language | @idiom-critic | sonnet |
 | mutation | whether the tests that exist assert anything — breaks the code and reports every test that stayed green | @mutation-tester | sonnet |
 | test | does a test assert the contract — and writes it when none does | @tester | sonnet |
-| standards | the repo's written rules, the patterns already in use, the language idiom, correctness | @reviewer | opus |
+| standards | the repo's written rules, the patterns already in use, correctness | @reviewer, with one @hypothesis-checker per hypothesis | opus; checkers sonnet |
 
 **Three gates read the tests, and none stands in for another.** `test worth` reads the tests the
 diff **wrote** and drops the ones that buy no failure mode. `mutation` reads the tests that **exist**
@@ -34,10 +35,11 @@ built right. A gate that reports drift is reporting something it was not asked t
 
 **The tier follows the kind of judgment, not the importance of the gate.** The four haiku gates
 each run a written table over the diff — a linter's output, the comment rules, the smell rows, the
-drop table — and a bigger model reaches the same rows more expensively. The three serious gates do
+drop table — and a bigger model reaches the same rows more expensively. The four serious gates do
 not have a table they can read off: the test gate has to design and write the missing test; the
-standards gate has to rank six sources of rules against each other and then find the concrete input
-that breaks the code; and the mutation gate has a table of operators but must still decide whether a
+idiom gate has to know the language and its pinned version to see the form its readers expect; the
+standards gate has to rank five sources of rules against each other and then guess where the code
+breaks; and the mutation gate has a table of operators but must still decide whether a
 surviving mutant is a real gap or an equivalent one, and name the assertion that closes it. Those
 are the judgments no checklist replaces.
 
@@ -48,31 +50,35 @@ are the judgments no checklist replaces.
         │ comment              │
 diff ──▶┤ name                 ├──▶ test (sonnet) ──▶ PASS
         │ test worth           │
+        │ idiom                │
         │ standards            │
         │ mutation × <batches> │
         └──────────────────────┘
                 one wave
 ```
 
-**All six judging gates run as one wave, in a single message.** They read the same diff, share no
-state, and each returns its own findings, so the wall clock is the slowest of the six instead of
-their sum. Spawn all of them in one message — never one at a time.
+**All seven judging gates run as one wave, in a single message.** They read the same diff, share
+no state, and each returns its own findings, so the wall clock is the slowest of the seven instead
+of their sum. Spawn all of them in one message — never one at a time.
 
 **The mutation gate is a batch, not one agent.** The caller splits the diff's changed source files
 into batches and spawns one `mutation-tester` per batch, in that same message
-(`mutation:SKILL.md` § Run it). Every batch runs in its own git worktree — spawn with
-`isolation: "worktree"` — so the working tree the other five gates are reading is never mutated. A
-single-batch diff still takes a worktree inside the wave, for the same reason; in place is only for
-a standalone `mutation` run.
+(`mutation:SKILL.md` § Run it). Every mutant lands in a sandbox copy of the checkout, so the working
+tree the other six gates are reading never changes (`mutation:SKILL.md` § 3).
 
 **The standards gate runs in the wave despite its tier.** It is the expensive gate, but it reads the
-same diff as the cheap four and needs nothing they produce, so putting it after them only added its
+same diff as the other judges and needs nothing they produce, so putting it after them only added its
 own latency to every round. A test the test gate writes later never reaches it (§ A gate that writes
 a test).
 
-**A `fast` run is the five judges without the test gate and without mutation** (`../SKILL.md` §
+**The standards gate asks in opus and answers in sonnet.** The reviewer writes each place the code
+may be wrong as one yes/no hypothesis and spawns one sonnet `hypothesis-checker` per hypothesis, in
+one message, so the gate's wall clock is the opus read plus the slowest checker. The procedure is
+`wm:agents/reviewer.md` § Steps.
+
+**A `fast` run is the six judges without the test gate and without mutation** (`../SKILL.md` §
 Speed). `impl` runs it over each increment before the human approves that increment, under
-`approve: increment` (`impl:sub-impl.md` § Increment review and TODO review). The five judges read a diff and return findings, so
+`approve: increment` (`impl:sub-impl.md` § Increment review and TODO review). The six judges read a diff and return findings, so
 they work over an increment unchanged. The test gate writes files, which cannot land in an increment
 still waiting for approval. The mutation gate needs a green suite and a real build, which an
 increment mid-TODO does not have. Both stay per TODO.
@@ -166,7 +172,7 @@ its own path, so two gates can never collide and the caller always knows where t
 `<target>` is `TODO-N` in `todo` mode, `TODO-N/inc-<k>` when `impl` runs the wave over one increment
 (`impl:sub-impl.md` § Increment review and TODO review), and the resolved range's slug in `diff` mode — the
 branch name, the short sha, `pr-<n>`, or `worktree`. The gate slugs are the roster's Gate column with the
-space as a dash: `lint`, `comment`, `name`, `test-worth`, `test`, `standards`, and `judge` for the triage judge. The mutation gate is
+space as a dash: `lint`, `comment`, `name`, `test-worth`, `idiom`, `test`, `standards`, and `judge` for the triage judge. The mutation gate is
 a batch, so it writes one file per batch under `mutation/` and the caller merges them into
 `mutation.md` beside the other gate files.
 
@@ -220,10 +226,10 @@ entry is stale and the gate reports `n/a`, never a run of its own.
 | Gate | Toolchain |
 |---|---|
 | lint | runs the linter itself, over the changed files only; reads Autotest's outcome from `toolchain.json` — never runs Autotest |
-| mutation | reads the test command from `toolchain.json`, narrows it to the covering tests, and runs **that** inside its own worktree — never the caller's tree, and never the whole suite |
+| mutation | reads the test command from `toolchain.json`, narrows it to the covering tests, and runs **that** in sandbox copies of the checkout — never edits the caller's tree, and never runs the whole suite |
 | test | the sole executor of build and the test suite in the working tree |
-| standards (`reviewer`) | never executes; may **cite** `toolchain.json` for a finding that depends on whether the diff compiles |
-| test worth, name, comment | never executes, and gets no toolchain input at all — their questions do not depend on green or red |
+| standards (`reviewer` and its checkers) | never executes; may **cite** `toolchain.json` for a finding that depends on whether the diff compiles |
+| test worth, name, comment, idiom | never executes, and gets no toolchain input at all — their questions do not depend on green or red |
 
 ## One rule file per TODO
 
@@ -251,9 +257,9 @@ that gate owns, and the rows are fixed: the same list every run, whatever the di
 
 **Each gate's row set lives in its own agent file**, in the template under its Output contract —
 `comment-critic` lists eleven rows over its eight prose gates — seven that fail and four that nit;
-`name-critic` its three, `test-critic` its six drop-table rows, `mutation-tester` its ten operators,
-`lint-tester` the commands it ran, `tester` its five case categories, `reviewer` its five hunts and
-the sources it read. An agent is a
+`name-critic` its three, `test-critic` its six drop-table rows, `idiom-critic` its seven, `mutation-tester` its ten operators,
+`lint-tester` the commands it ran, `tester` its five case categories, `reviewer` its four hunts,
+the sources it read, and the hypotheses it sent. An agent is a
 separate prompt that never sees this page, so the rows are written where the agent reads them.
 
 **A gate may carry a column the others do not.** `Rule | Verdict` is the minimum; `lint-tester`

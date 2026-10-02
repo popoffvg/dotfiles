@@ -15,7 +15,7 @@ Read them from the artifacts that hold them, in this order:
 | Source | What it gives |
 |---|---|
 | `<notes-dir>/spec.md` | The ledger row for this TODO — its `Outcome` and `Concretely` lines, which are what the human aligned on before any body existed. |
-| `<notes-dir>/todos/TODO-N.md` | `Outcome`, `Surface`, and `Autotest` — the human half of the pair, restating the ledger outcome verbatim at the top. |
+| `<notes-dir>/todos/TODO-N.md` + `TODO-N.test.md` | `Outcome`, `Surface`, `Flow changes`, and `Autotest` — the human half and the test file, restating the ledger outcome verbatim at the top. |
 | `<notes-dir>/review/TODO-N/report.md` | The merged gate verdict, if the gate chain ran. |
 
 The artifact set is `arch:ref-write.md` § Artifacts. Done when every criterion you will report traces

@@ -81,11 +81,11 @@ export PATH=$PATH:~/local/bin
 export PATH=$PATH:/opt/nanobrew/prefix/bin
 
 
-export EDITOR=hx
-# if [[ $ZED_TERM == true ]]; then
-  # export EDITOR="zed --wait"
-  # export VISUAL="zed --wait"
-# fi
+if [[ $ZED_TERM == true ]]; then
+  export EDITOR=~/.claude/scripts/zed-edit-return.sh
+else
+  export EDITOR=hx
+fi
 autoload -z edit-command-line
 function edit-command-line-trim() {
   edit-command-line

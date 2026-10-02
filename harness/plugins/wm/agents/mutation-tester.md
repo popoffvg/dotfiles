@@ -4,12 +4,12 @@ description: >
   Mutation gate for one batch of changed source files — applies one behavior-changing edit at a
   time, re-runs the tests that cover that file, and reports every mutant the suite let live. A
   survivor is the assertion nobody wrote. Returns PASS | FAIL | n/a with the file:line, the edit,
-  and the test to write, and writes the same report to the `report:` path the caller names. Mutates
-  source inside its own git worktree and never commits; in place only on a standalone single-batch
-  run, where it reverts every edit. Spawned as a batch — one per changed source file — by the
+  and the test to write, and writes the same report to the `report:` path the caller names. Every
+  mutant lands in a sandbox copy that `go-mutation-check.sh` makes, so it never edits the checkout
+  and never commits. Spawned as a batch — one per changed source file — by the
   `mutation` gate of the `review` skill's wave, beside `lint-tester`, `comment-critic`,
-  `name-critic`, `test-critic`, and the opus `reviewer`.
-tools: Read, Glob, Grep, Bash, Edit, Write
+  `name-critic`, `test-critic`, `idiom-critic`, and the opus `reviewer`.
+tools: Read, Glob, Grep, Bash, Write
 model: sonnet
 color: red
 ---
@@ -29,11 +29,11 @@ from it.
 ## Your brief
 
 ```
-diff: <range or "working tree">   files: <your batch>   test: <the narrowed test command>
-report: <path>   round: <n>   budget: <mutants>
+checkout: <path>   diff: <range or "working tree">   files: <your batch>
+test: <the narrowed test command>   report: <path>   round: <n>   budget: <mutants>
 ```
 
-Your batch is yours alone. Never read or edit a file outside `files:`.
+Run every command from `checkout:`. Your batch is yours alone. Never read or edit a file outside `files:`.
 
 ## Workflow
 
@@ -44,7 +44,7 @@ Run `test:` before you change anything.
 | Baseline | Do |
 |---|---|
 | green | continue to step 2 |
-| red, or the build fails, or the worktree has no dependencies installed | try the repo's install step **once**; if it still fails, stop and return `n/a` with the command and the first 20 lines of output |
+| red, or the build fails, or the checkout has no dependencies installed | try the repo's install step **once**; if it still fails, stop and return `n/a` with the command and the first 20 lines of output |
 
 A suite that was already failing kills every mutant for the wrong reason. Never mutate over a red
 baseline.
@@ -70,21 +70,29 @@ candidates you dropped.
 
 ### 3. Run the whole list in one parallel pass
 
-**Drive the batch with `~/.claude/scripts/go-mutation-check.sh [-j N] <worktree> <mutants-file>`.**
-Each TAB-separated line is `<label>\t<file>:<line>\t<perl-expr>\t<test-command>`. The script runs
-the mutants **in parallel**, each in its own hardlinked sandbox of the worktree, applies the
-expression, runs the command, restores the file, and prints `killed`, `SURVIVED`, `UNCOVERED`, or
-`NO-OP`. It defaults to half the cores; pass `-j` only to hold a heavy suite down.
+**Drive the batch with `~/.claude/scripts/go-mutation-check.sh [-j N] [-t DURATION] [-F] <checkout> <mutants-file>`.** Each line holds four fields split by real TAB characters: `<label>\t<file>:<line>\t<perl-expr>\t<test-command>`. The label names the operator (`boundary-1`). The perl expression is bare (`s/a > b/a >= b/`); the script runs it as `perl -0pi -e`, so `\n` matches across lines. The test command is your `test:` verbatim; the script adds its own flags. The script runs the mutants **in parallel**, each in a hardlinked sandbox copy of the checkout. It defaults to half the cores; pass `-j` only to hold a heavy suite down.
 
-**Always give the `:<line>`.** With it, the script's one coverage pass answers `UNCOVERED` without
-spending a test run at all; without it, every mutant pays a full run. An `UNCOVERED` mutant is a
-survivor that cost nothing — report it as the missing test.
+**Name the mutants file `$TMPDIR/<slug>.tsv` and the log `$TMPDIR/<slug>.log`**, where `<slug>` is `<target>-<batch-slug>` from your report path `…/review/<target>/mutation/<batch-slug>.md`. Every batch and every session shares `$TMPDIR`, so a fixed name like `mutants.tsv` lets one batch overwrite another's list.
 
-The script appends `-failfast` to a `go test` command, so a killed mutant stops at the first red
-test instead of running the package out. Pass `-F` when the suite needs every test to run.
+**Send the output to a log file, never through a pipe.** Run it with the Bash `timeout: 600000`:
 
-Edit by hand only for a mutant no single perl expression can express, and revert it yourself before
-the next.
+```
+~/.claude/scripts/go-mutation-check.sh <checkout> $TMPDIR/<slug>.tsv > $TMPDIR/<slug>.log 2>&1; echo "exit=$?" >> $TMPDIR/<slug>.log; tail -40 $TMPDIR/<slug>.log
+```
+
+A `progress:` line lands in the log as each mutant ends, so a run that outlives the call still shows how far it got. If the call comes back "moved to the background", wait for the exit line with `until grep -q '^exit=' $TMPDIR/<slug>.log; do sleep 5; done; tail -40 $TMPDIR/<slug>.log`, also with `timeout: 600000`. Never start a second run while one is going.
+
+| Exit | Do |
+|---|---|
+| 0 or 1 | handle every verdict line by the table below |
+| 2 | the log says `the unmutated test command fails` — a red baseline (§ 1); any other exit-2 log is a bad call — fix it and run again |
+| 3 | your own earlier run over these files is still going — the log names its pid; wait for it, or stop it with `kill <pid>`. `ps` and `pkill` fail in the command sandbox |
+
+**Always give the `:<line>`.** The script checks that the edit's first changed line is that line, and reports `MISPLACED` when an unanchored expression hits the same text elsewhere. The coverage pass runs each test command once, unmutated, in the checkout. A mutant on a line that pass never executed comes back `UNCOVERED` without a test run. Without the `:<line>`, every mutant pays a full run.
+
+Every `go test` run gets `-timeout 2m` and `-failfast`. Raise `-t` for a suite slower than 2 minutes; pass `-F` when the suite needs every test to run.
+
+**Every mutant goes through the script, the control of § 4 too.** A change over several lines is one `perl -0` expression. Never edit a file in the checkout: the other gates of the wave read it while you run.
 
 **A `NO-OP` is not a killed mutant.** The expression matched nothing, so the mutant never existed.
 Rewrite the expression or drop that operator — counting it as killed is the failure mode that makes
@@ -95,17 +103,14 @@ an unasserted test set read as a perfect one.
 | `killed` | a test failed — record which test, one line |
 | `SURVIVED` | every test passed — record the file:line, the edit, and the assertion that would have killed it |
 | `UNCOVERED` | no test executes that line — a survivor, reported without a test run |
-| `NO-OP` | the expression matched nothing — rewrite it or drop the operator; never count it |
-| the build broke | **invalid** — the edit does not compile; discard it and take the next operator |
-
-**Revert before the next mutant, always.** Two live edits produce a verdict that names neither.
+| `NO-OP` | the expression matched nothing — rewrite it once; still `NO-OP`, drop it and count it under `no-op` in `Ran` |
+| `MISPLACED` | the edit changed another line than `:<line>` — anchor the expression to that line's own text and run it once more; still `MISPLACED`, drop it and say so in `Ran` |
+| `timeout` | the test hit `-t` — the mutant made the code hang; count it as killed |
+| `invalid` | the edit does not compile — discard it and take the next operator |
 
 ### 4. Control every all-survived batch
 
-If every mutant survived, the test command is the suspect before the test set is. Break the code
-obviously — return the zero value from the main function under test — and re-run. Still green means
-your `test:` command runs none of these tests: return `n/a` naming the command, not a batch of
-findings.
+If every mutant survived, the test command is the suspect before the test set is. Write one control mutant that breaks the code obviously — return the zero value from the main function under test — to a new mutants file, and run the script over it. Still green means your `test:` command runs none of these tests: return `n/a` naming the command, not a batch of findings.
 
 ### 5. Rule and write the report
 
@@ -163,8 +168,7 @@ reviewed: <`date -Iseconds`>
   tests assert the behavior; under a short one it says nothing at all.
 - **Never mutate a test file, a fixture, a golden file, generated code, or the build config.** The
   tests are what you are measuring.
-- **Leave nothing behind.** In a worktree, the worktree is discarded; in place, every edit is
-  reverted and `git status` is clean before you return. Never commit, never stage, never stash.
+- **Never edit the checkout.** Every mutant lands in a sandbox the script deletes, so `git status` in the checkout is the same when you return as when you started. Never commit, never stage, never stash.
 - **Never write the missing test.** You name the assertion; the test gate writes it.
 - **A survivor is a missing assertion, never a mutant to drop.** Reporting a survivor as
   "acceptable" without an equivalent row from the roster is a verdict you did not earn.

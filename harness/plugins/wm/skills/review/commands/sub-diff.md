@@ -30,15 +30,16 @@ mode reports and stops — it runs no fixup loop, because a human is reading the
    batch's narrowed test command, following `mutation:SKILL.md` § Run it. A range with no changed
    source file, or none a test covers, produces no batch and the gate reports `n/a` — never a green
    run. Under `fast` (`../SKILL.md` § Speed), skip this step and spawn no @mutation-tester in step 4.
-4. **Run the wave** — @lint-tester, @comment-critic, @name-critic, @test-critic, @reviewer, and one
-   @mutation-tester per batch from step 3, in **one message**, each with its own
+4. **Run the wave** — @lint-tester, @comment-critic, @name-critic, @test-critic, @idiom-critic,
+   @reviewer, and one @mutation-tester per batch from step 3, in **one message**, each with its own
    `report: <notes-dir>/review/<slug>/<gate>.md` line, where `<slug>` is the range resolved in step 1
-   (§ Every gate writes its report to a file). Every mutation agent is spawned with
-   `isolation: "worktree"` and writes to `<notes-dir>/review/<slug>/mutation/<batch-slug>.md`. All of
+   (§ Every gate writes its report to a file). Every mutation agent gets the `checkout:` line
+   (`mutation:SKILL.md` § 3), no `isolation`, and writes to `<notes-dir>/review/<slug>/mutation/<batch-slug>.md`. All of
    them work unchanged without a pair: the linter reads the repo config, the comment gate judges each
    comment against the code under it, the name gate judges each name against its own body,
-   @test-critic judges each added test against the body it calls, @mutation-tester judges the tests
-   that already exist against the code it breaks, and @reviewer gets § No pair below in its brief.
+   @test-critic judges each added test against the body it calls, @idiom-critic judges each changed
+   line against its language, @mutation-tester judges the tests that already exist against the code
+   it breaks, and @reviewer gets § No pair below in its brief.
    The lint gate runs the tests covering the changed files, since no `## Autotest` command exists.
 5. **Run the test gate** — @tester over the diff, not in TODO mode,
    `report: <notes-dir>/review/<slug>/test.md`, once the wave is green. The question becomes: does a
@@ -56,8 +57,8 @@ in both modes (`ref-gates.md` § No gate judges the spec), so `diff` mode loses 
 loses citations.
 
 **The repo's own files carry the whole rule load.** With no generated rule set and no `PATTERNS.md`,
-the standards gate falls to sources 1, 2, 5, and 6 of its list: the `CLAUDE.md` files, the house
-style docs, the code around the diff, and the language idiom. A breach it would have cited as
+the standards gate falls to sources 1, 2, and 5 of its list: the `CLAUDE.md` files, the house
+style docs, and the code around the diff. A breach it would have cited as
 `D<NNN>` now cites a neighbouring file instead, which makes it a Nit more often.
 
 **Correctness is unchanged.** It is read from the code alone, so it needs no pair: off-by-one, nil

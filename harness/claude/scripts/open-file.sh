@@ -16,12 +16,13 @@ set -euo pipefail
 usage() {
 	cat >&2 <<'EOF'
 usage: open-file.sh [--wait] <file> [file...]
+       open-file.sh --host                   # print zed, herdr, or none
 
   open-file.sh notes.md                 # open, return at once
-  open-file.sh --wait answers.md        # block until the operator closes it
+  open-file.sh --wait answers.md        # block until the operator is done
 
---wait blocks until the file is closed, for a batch the operator must answer
-before the caller can read it back.
+--wait blocks until the operator is done: in a herdr pane, until the editor
+closes; in Zed, until a save followed by 3 s with no save.
 
 Env: EDITOR picks the editor for the herdr pane (default: hx).
 EOF
@@ -33,24 +34,51 @@ wait_for_close=0
 [[ $# -ge 1 ]] || usage
 [[ $1 == --help || $1 == -h ]] && usage
 
+in_zed() { [[ -n ${ZED_TERM:-} || ${TERM_PROGRAM:-} == zed ]] && command -v zed >/dev/null; }
+in_herdr() { [[ -n ${HERDR_PANE_ID:-} ]] && command -v herdr >/dev/null; }
+
+if [[ $1 == --host ]]; then
+	if in_zed; then echo zed; elif in_herdr; then echo herdr; else echo none; fi
+	exit 0
+fi
+
 for f in "$@"; do
 	[[ -e $f ]] || { printf 'no such file: %s\n' "$f" >&2; exit 1; }
 done
 
-in_zed() { [[ -n ${ZED_TERM:-} || ${TERM_PROGRAM:-} == zed ]] && command -v zed >/dev/null; }
-in_herdr() { [[ -n ${HERDR_PANE_ID:-} ]] && command -v herdr >/dev/null; }
-
 print_paths() { printf '%s\n' "$@"; }
 
+mtimes() { stat -f %m "$@"; }
+
+# zed --wait returns while the tab stays open, so a Zed wait polls the files:
+# it ends after a save followed by settle_seconds with no further save.
+wait_for_save() {
+	local settle_seconds=3 before now last_save=-1
+	before=$(mtimes "$@")
+	for _ in $(seq 1 7200); do
+		sleep 1
+		now=$(mtimes "$@")
+		if [[ $now != "$before" ]]; then
+			before=$now
+			last_save=$SECONDS
+		elif (( last_save >= 0 && SECONDS - last_save >= settle_seconds )); then
+			return 0
+		fi
+	done
+	printf 'no save after 2h: %s\n' "$*" >&2
+	return 1
+}
+
 if in_zed; then
-	# --existing reuses the open window; --wait returns only when the tab closes.
-	if (( wait_for_close )); then
-		zed --existing --wait -- "$@"
-	else
-		zed --existing -- "$@"
-	fi
+	# Zed answers over a Mach port; a sandboxed caller fails with "Unknown Mach error".
+	zed --existing -- "$@" || {
+		printf 'zed --existing failed — run open-file.sh outside the sandbox\n' >&2
+		exit 1
+	}
 	print_paths "$@"
-	exit 0
+	(( wait_for_close )) || exit 0
+	wait_for_save "$@"
+	exit
 fi
 
 if in_herdr; then

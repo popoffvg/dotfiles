@@ -1,6 +1,6 @@
 # TODO-1 — increments
 
-**Design:** [TODO-1.md](TODO-1.md) — Outcome, Components, **Surface** (the diff), Autotest, Commit.
+**Design:** [TODO-1.md](TODO-1.md) — Outcome, Components, **Surface** (the diff), Flow changes, Commit. Tests: [TODO-1.test.md](TODO-1.test.md).
 
 > A filled `<notes-dir>/todos/TODO-N.agent.md` — **the agent half of the pair**. Copy the section
 > order and the shape of each increment, and delete the `>` lines — each one states the rules for the
@@ -9,7 +9,7 @@
 > **No frontmatter here.** `status` has one home, the human half, and a second copy of it drifts
 > (`arch:sub-todo.md` § Required elements, which also carries the element list and order).
 >
-> `**Design:**` is the first line: the pair is two files, and each half links the other by name.
+> `**Design:**` is the first line: the one link back to the human half, which links this file and the test file.
 >
 > The procedure around the file — the fan-out, the budgets, the verification chain, the pre-save
 > checklist — is `arch:sub-todo.md`; the rules that cut across sections rather than sitting in one are
@@ -224,7 +224,7 @@ function releaseCheck(): 0 | 1 {
 ## Definition of done
 
 - [ ] Every rule `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N` prints holds in the shipped code
-- [ ] Both Autotest commands pass — Unit and E2E (or the level is `none` with its stated reason)
+- [ ] Both `TODO-1.test.md` Autotest commands pass — Unit and E2E (or the level is `none` with its stated reason)
 - [ ] Manual test steps produce **Expected** outcomes
 - [ ] Every file changed outside **Files** is named in the increment report
 - [ ] Every symbol in `TODO-1.md` § Surface has its declared shape in the shipped code

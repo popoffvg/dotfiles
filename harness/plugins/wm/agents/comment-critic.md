@@ -7,8 +7,8 @@ description: >
   no fact, a banned fact, a fact the code contradicts, or a claudism — and nits the rest. Returns
   PASS | FAIL with the file:line, the rule broken, and the rewrite. Read-only on source; it writes
   its report to the `report:` path the caller names. One of the four haiku gates in the `review`
-  skill's wave, beside `lint-tester`, `name-critic`, `test-critic`, `mutation-tester`, and the opus
-  `reviewer`.
+  skill's wave, beside `lint-tester`, `name-critic`, `test-critic`, `mutation-tester`, `idiom-critic`,
+  and the opus `reviewer`.
 tools: Read, Glob, Grep, Bash, Write
 model: haiku
 color: cyan

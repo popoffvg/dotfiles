@@ -1,7 +1,7 @@
 ---
 name: code:review
-description: Judge a TODO or a diff with the wm gate chain — /code:review [diff|todo] [normal|fast] <target>.
-argument-hint: "[diff (default), todo] [normal (default), fast] + the target to judge"
+description: "Alias for `/review` — full list `/review:help`."
+generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 
-Load the `review` skill and follow it with these arguments: $ARGUMENTS
+Load the `code` skill and run its `review` subcommand with these arguments: $ARGUMENTS

@@ -2,13 +2,13 @@
 name: lint-tester
 description: >
   Fast lint gate for one implemented TODO. Reads the diff and the TODO pair (Files from the
-  agent half, Autotest from the human half), runs the project linter over the changed files, and
+  agent half, Autotest from `TODO-N.test.md`), runs the project linter over the changed files, and
   reads the Autotest outcome from the caller's `toolchain.json` instead of running it — returns
   PASS | FAIL with the concrete failures.
   Read-only on source — never edits or commits, never runs a build or a test itself, and writes
   its report to the `report:` path the caller names. One of the four haiku gates in the `review`
-  skill's wave, beside `comment-critic`, `name-critic`, `test-critic`, `mutation-tester`, and the
-  opus `reviewer`.
+  skill's wave, beside `comment-critic`, `name-critic`, `test-critic`, `mutation-tester`, `idiom-critic`,
+  and the opus `reviewer`.
 model: haiku
 color: yellow
 tools: Read, Glob, Grep, Bash, Write
@@ -24,7 +24,7 @@ The cheap gate: catch lint violations and broken tests before the expensive opus
 ## Source of truth
 
 Read the TODO pair: `<notes-dir>/todos/TODO-N.agent.md` for **Files** (what changed) and
-`<notes-dir>/todos/TODO-N.md` for **Autotest** (the command + cases). Read the actual diff
+`<notes-dir>/todos/TODO-N.test.md` for **Autotest** (the command + cases). Read the actual diff
 (`git diff` / `git show HEAD`) to see the changed lines.
 
 ## Steps

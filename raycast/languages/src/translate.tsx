@@ -1,37 +1,26 @@
 import {
   Action,
   ActionPanel,
-  Clipboard,
   Form,
   Icon,
   Toast,
-  getSelectedText,
   showToast,
   useNavigation,
 } from "@raycast/api";
 import { useEffect, useState } from "react";
-import { CheckResultView } from "./check-result";
-import { checkGrammar, prefillEnabled } from "./grammar";
+import { candidateText } from "./candidate-text";
+import { languagesPreferences } from "./preferences";
+import { TranslateResultView } from "./translate-result";
+import { translateWithVocab } from "./vocab";
 
-async function candidateText(): Promise<string> {
-  try {
-    const selected = await getSelectedText();
-    if (selected.trim()) return selected;
-  } catch {
-    // No frontmost selection — fall back to the clipboard.
-  }
-  const clipboard = await Clipboard.readText();
-  return clipboard?.trim() ? clipboard : "";
-}
-
-export default function CheckGrammarCommand() {
+export default function TranslateCommand() {
   const { push } = useNavigation();
   const [text, setText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
   useEffect(() => {
-    if (!prefillEnabled()) return;
+    if (!languagesPreferences().prefill) return;
     let cancelled = false;
     candidateText().then((value) => {
       if (!cancelled && value) setText(value);
@@ -49,16 +38,20 @@ export default function CheckGrammarCommand() {
     setError(undefined);
     setIsLoading(true);
 
-    const toast = await showToast({ style: Toast.Style.Animated, title: "Checking grammar…" });
+    const toast = await showToast({
+      style: Toast.Style.Animated,
+      title: "Translating…",
+    });
     try {
-      const result = await checkGrammar(text);
+      const pair = await translateWithVocab(text.trim());
       toast.style = Toast.Style.Success;
-      toast.title = result.fixes.length === 0 ? "No mistakes found" : `${result.fixes.length} fix topic(s)`;
-      push(<CheckResultView result={result} />);
+      toast.title = pair.dup ? "Already in vocab" : "Added to vocab";
+      push(<TranslateResultView pair={pair} />);
     } catch (failure) {
       toast.style = Toast.Style.Failure;
-      toast.title = "Check failed";
-      toast.message = failure instanceof Error ? failure.message : String(failure);
+      toast.title = "Translation failed";
+      toast.message =
+        failure instanceof Error ? failure.message : String(failure);
     } finally {
       setIsLoading(false);
     }
@@ -67,17 +60,21 @@ export default function CheckGrammarCommand() {
   return (
     <Form
       isLoading={isLoading}
-      navigationTitle="Check Grammar"
+      navigationTitle="Translate"
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Check" icon={Icon.Check} onSubmit={submit} />
+          <Action.SubmitForm
+            title="Translate"
+            icon={Icon.Globe}
+            onSubmit={submit}
+          />
         </ActionPanel>
       }
     >
       <Form.TextArea
         id="text"
         title="Text"
-        placeholder="Paste the text to check — multiple lines are kept as they are"
+        placeholder="Paste English or Russian text"
         value={text}
         error={error}
         onChange={(value) => {
@@ -87,7 +84,7 @@ export default function CheckGrammarCommand() {
         enableMarkdown={false}
         autoFocus
       />
-      <Form.Description text="Runs claude -p with the haiku model and appends every fix topic to the topic log." />
+      <Form.Description text="vocab translates RU↔EN with Google Translate and appends the pair to the vocab file." />
     </Form>
   );
 }

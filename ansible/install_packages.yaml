@@ -38,6 +38,7 @@
       - sq
       - pamburus/tap/hl
       - difftastic
+      - languagetool
       - patchutils
       - dust
       - procs
