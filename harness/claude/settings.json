@@ -148,10 +148,6 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/bash-tool-bypass-notify.sh"
-          },
-          {
-            "type": "command",
-            "command": "$HOME/.bun/bin/bash-history-mcp hook"
           }
         ]
       },

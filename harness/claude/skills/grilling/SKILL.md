@@ -1,6 +1,6 @@
 ---
 name: grilling
-description: This skill should be used when a plan, design, or a batch of unclear items must be settled by interviewing the user branch by branch until nothing is open — "grill me", "stress-test this plan", "interview me about the design", "these comments are unclear, ask me". The questions land in a file the user edits, one block per question with a recommended answer. Callers: the wm spec pipeline (`arch:sub-new.md`) and the `line-comment` plugin's act command.
+description: This skill should be used when a plan, design, or a batch of unclear items must be settled by interviewing the user branch by branch until nothing is open — "grill me", "stress-test this plan", "interview me about the design", "these comments are unclear, ask me". The questions land in a file the user edits, one block per question with a recommended answer. Callers are the wm spec pipeline (`arch:sub-new.md`) and the `line-comment` plugin's act command.
 version: 0.2.0
 ---
 
