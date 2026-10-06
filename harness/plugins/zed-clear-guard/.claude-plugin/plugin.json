@@ -1,0 +1,5 @@
+{
+  "name": "zed-clear-guard",
+  "version": "0.2.0",
+  "description": "Blocks /clear when Claude Code runs in a Zed terminal"
+}

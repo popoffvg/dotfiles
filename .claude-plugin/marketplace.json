@@ -45,6 +45,12 @@
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
       "version": "2.82.0"
+    },
+    {
+      "name": "zed-clear-guard",
+      "source": "./harness/plugins/zed-clear-guard",
+      "description": "Blocks /clear when Claude Code runs in a Zed terminal",
+      "version": "0.2.0"
     }
   ]
 }
