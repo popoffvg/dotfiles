@@ -119,10 +119,10 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 
 ## Components
 
-| Component | Touch | Type | Part | Role |
-|-----------|-------|------|------|------|
-| `pkg/auth.Handler` | modify | server | main | Exchanges a valid refresh token for a new pair and invalidates the old one |
-| `pkg/auth.TokenMinter` | modify | command | supporting | Mints an access/refresh pair for a user id |
+| Component | Touch | Type | Part | Role | Change |
+|-----------|-------|------|------|------|--------|
+| `pkg/auth.Handler` | modify | server | main | Exchanges a valid refresh token for a new pair | Takes a `RefreshRequest`, returns a `TokenPair`, and invalidates the old refresh token. |
+| `pkg/auth.TokenMinter` | modify | command | supporting | Mints an access/refresh pair for a user id | Returns a `TokenPair` instead of one token string. |
 
 > The `package.Class` set this TODO touches, one row each, **main part first**. A human reads this
 > create/modify/delete list *instead of* any diff: it is the whole reach of the change, stated for a
@@ -146,6 +146,9 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 > Outcome's behavior. Two candidates means the TODO does two things.
 >
 > **Role** — one sentence, this TODO's slice of the component's job. Not the component's full purpose.
+>
+> **Change** — one sentence, what this TODO changes in the component. A `create` row says what the new
+> symbol adds; a `delete` row says what replaces it.
 >
 > Every row maps to at least one path in the agent half's **Files**, and every non-test path there
 > belongs to a row — except a file changed only as a consequence of another row's decision. Every row

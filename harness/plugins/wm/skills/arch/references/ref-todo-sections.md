@@ -21,7 +21,7 @@ pre-save checklist. Which half each heading lives in: `sub-todo.md` § Required 
 ## Every prose line
 
 **Every prose line of `TODO-N.md` and `TODO-N.test.md` obeys the `i-have-adhd` skill.** The human half is read once, by a
-person deciding whether to approve it — Outcome, New terms **Meaning**, Components **Role**, flow steps,
+person deciding whether to approve it — Outcome, New terms **Meaning**, Components **Role** and **Change**, flow steps,
 Autotest cases, `Commit.Body`, and any sentence beside a table. Load that skill and write under its rules: one
 idea per sentence, short sentences, front-loaded, literal words, no restatement. The agent half is
 read by an implementer and is not bound by it.

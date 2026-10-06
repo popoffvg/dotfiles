@@ -463,9 +463,9 @@ def check_human(n, path, lines, pairs, f, checks):
         f.fail(row, label, "`## Components` has no table", "one row per package.Class")
     mains = 0
     for cells in comp_rows:
-        if len(cells) < 5:
-            f.fail(row, label, f"component row has {len(cells)} columns, needs 5",
-                   "Component | Touch | Type | Part | Role")
+        if len(cells) < 6:
+            f.fail(row, label, f"component row has {len(cells)} columns, needs 6",
+                   "Component | Touch | Type | Part | Role | Change")
             continue
         name, touch, brick, part = cells[0], cells[1].lower(), cells[2].lower(), cells[3].lower()
         if touch not in TOUCHES:
