@@ -78,7 +78,8 @@ ledger settled, and the human has asked for TODOs. Otherwise stop and run `/code
 **Where to start.** A row with no `TODO-N.md` starts at stage 1. A row with `TODO-N.md` and no
 `TODO-N.agent.md` is waiting at the gate: run Step 5 again before stage 2. Approval in an earlier
 session does not count — no file records it. A row with all three files is past stage 2: change it
-under § Iteration.
+under § Iteration. A row with `TODO-N.test.md` or `TODO-N.agent.md` but no `TODO-N.md` is
+broken: delete its files, then start it at stage 1.
 
 `todo` authors every row in the ledger, and the ledger already says which rows are independent:
 `new` compiled the `## Plan` wave table, and a wave is by definition a set of rows with no edge
@@ -108,11 +109,15 @@ open in full the notes that bear on the rows in this run's waves (`arch:ref-note
 Finding the thought for your task). The descriptions are the map the forks inherit — a note whose
 description shows it bears on no row in the wave costs nothing to leave closed.
 
+**Done when** you can name, for each row in the run, the notes that bear on it.
+
 ### Step 2 — stage 1: fan out the wave (caller)
 
 One fork per row in the current wave, **all `Agent` calls in one assistant message** — calls in
 separate messages run serially, not in parallel. Each prompt names the row and its number block and
-nothing more; the context is already there.
+nothing more; the context is already there. A number block is 10 numbers; the first block starts after the
+highest `NNN` in `thoughts/`, and the blocks of one run never overlap. Stage 2 hands out new blocks
+the same way.
 
 ```
 Agent(subagent_type="fork", prompt=
@@ -130,6 +135,9 @@ Agent(subagent_type="fork", prompt=
 
 The `budget-check` hook fires inside the fork, where the write happens (§ Budget). It warns; the
 count that fails is `code:sub-verify.md` Phase 0, over the finished corpus.
+
+**Done when** every fork of the wave returned, and each of its rows has `TODO-N.md` and
+`TODO-N.test.md` on disk.
 
 ### Step 3 — merge what a fork may not write (caller)
 
@@ -160,6 +168,9 @@ no two entries name one concept.
 Fan out `W2` only once `W1`'s human halves are on disk and merged. A `W2` row's Components and
 Surface are written against the symbols a `W1` row introduces, and those symbols are named in that
 row's `## Surface`. Wall clock is the number of waves, not the number of rows.
+
+**Done when** every ledger row has `TODO-N.md` and `TODO-N.test.md`, and Step 3 ran after each
+wave.
 
 A fork that dies, or returns nothing → re-spawn that row. The caller never authors a row itself.
 
@@ -348,9 +359,9 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 | 5 | `Surface` | H2 | always — the one diff: every symbol the TODO changes, one ```diff per file |
 | 6 | `Flow changes` | H2 | always — one H3 per running path the TODO changes, its steps as a tree in run order, each changed step marked (`+ step`, `+ check`, …); or `none — <reason>` |
 | 7 | `Commit` | H2 | always — the `Title` and `Body` of the one commit the increments build |
-| 9 | `Deviations` | H2 | never at `todo` — written by `impl` when a user correction contradicts a section above, removed by `revise` |
-| 10 | `**Tests:** [TODO-N.test.md](TODO-N.test.md)` | line | always — the link to the test file |
-| 11 | `**Increments:** [TODO-N.agent.md](TODO-N.agent.md)` | line | always — the last line |
+| 8 | `Deviations` | H2 | never at `todo` — written by `impl` when a user correction contradicts a section above, removed by `revise` |
+| 9 | `**Tests:** [TODO-N.test.md](TODO-N.test.md)` | line | always — the link to the test file |
+| 10 | `**Increments:** [TODO-N.agent.md](TODO-N.agent.md)` | line | always — the last line |
 
 ### `TODO-N.test.md` — the test file
 
