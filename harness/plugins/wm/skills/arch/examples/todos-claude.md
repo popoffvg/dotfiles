@@ -32,8 +32,9 @@ Self-contained means the **pair plus those generated rules**. Implement from the
 
 ## Write rules
 
-- **All three files are written, renumbered, and deleted together.** One author per row; the two are
-  written against each other — `## Components` is the map `## Changes` walks.
+- **Two stages.** `TODO-N.md`, `TODO-N.test.md`, and the `GLOSSARY.md` entries first; the human
+  approves them; then `TODO-N.agent.md`, written against the approved `## Components` — the map
+  `## Changes` walks. All three files are renumbered and deleted together.
 - **One status per pair**, in `TODO-N.md` frontmatter: `todo → impl → verify → done`, with `blocked`
   as the failure branch. `TODO-N.agent.md` carries no frontmatter.
 - **The diff lives once**, in `## Surface` of the human half. The agent half carries no ```diff block.

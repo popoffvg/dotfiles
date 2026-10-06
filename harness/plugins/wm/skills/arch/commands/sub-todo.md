@@ -3,6 +3,9 @@
 Authors the `todos/TODO-N.md` + `todos/TODO-N.agent.md` **pair**, plus the `todos/TODO-N.test.md`
 test file, from a reviewed `spec.md` + `thoughts/`. Owns the TODO element list, the **verification chain**, and the **outcome** rules.
 
+**Two stages, with a human gate between them** (§ Execution): no agent half exists before the human
+approves the row's `TODO-N.md`, `TODO-N.test.md`, and `GLOSSARY.md` entries.
+
 **Open the filled examples first** — [`examples/todo.md`](../examples/todo.md) (human half),
 [`examples/todo-agent.md`](../examples/todo-agent.md) (agent half), and
 [`examples/todo-test.md`](../examples/todo-test.md) (test file). They are the artifact you are
@@ -53,9 +56,9 @@ increments, and pre-reads live in `TODO-N.agent.md`. The ledger outcome is the s
 it appears verbatim as the TODO Outcome. Autotest lives in `TODO-N.test.md` alone. `TODO-N.md` ends
 with one link to each other file, and each other file opens with one link back.
 
-**The row is atomic.** All three files are written in the same pass, and all three are deleted or
-renumbered together. A `TODO-N.md` with no agent half cannot be implemented; an agent half with no human half is
-work nobody approved.
+**The row is atomic after stage 2.** All three files are deleted or renumbered together. A row
+without its agent half cannot be implemented or verified.
+An agent half is written only for a row the human approved in Step 5.
 
 ## Precondition — past the gate
 
@@ -65,9 +68,19 @@ note and no `status: proposed` decision in `thoughts/`** (`~/.claude/scripts/wm-
 <notes-dir>/thoughts` and `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --check` both exit 0),
 ledger settled, and the human has asked for TODOs. Otherwise stop and run `/code new` first.
 
-## Execution — one fork per ledger row, wave by wave
+## Execution — two stages, one fork per ledger row, wave by wave
 
-`todo` authors every pair in the ledger, and the ledger already says which rows are independent:
+| Stage | Writes | Ends with |
+|---|---|---|
+| 1 — design | `TODO-N.md` (no `increment` key yet), `TODO-N.test.md`, then the caller's `GLOSSARY.md` merge | the human gate (Step 5) |
+| 2 — increments | `TODO-N.agent.md`, then `increment: 0/<total>` in `TODO-N.md` | the pre-save checklist |
+
+**Where to start.** A row with no `TODO-N.md` starts at stage 1. A row with `TODO-N.md` and no
+`TODO-N.agent.md` is waiting at the gate: run Step 5 again before stage 2. Approval in an earlier
+session does not count — no file records it. A row with all three files is past stage 2: change it
+under § Iteration.
+
+`todo` authors every row in the ledger, and the ledger already says which rows are independent:
 `new` compiled the `## Plan` wave table, and a wave is by definition a set of rows with no edge
 between them. Author a wave **in parallel — one fork per row**. The run then costs one round trip
 per wave instead of one per TODO.
@@ -79,10 +92,10 @@ still arrive without the grill — and the grill is where the decisions that bec
 made. A fork also inherits the caller's model (`model:` is ignored on a fork),
 which is the right one here: writing `## Changes` is design, not extraction.
 
-**The unit is the row, never one file of it.** One fork writes `TODO-N.md`, `TODO-N.agent.md`, **and**
-`TODO-N.test.md`. The row is atomic (§ One ledger row, two halves) and the two are written against
-each other — Components is the map `## Changes` walks. Splitting them across forks puts the map and
-the walk in contexts that cannot see each other.
+**The unit is the row's stage, never one file of it.** A stage-1 fork writes `TODO-N.md` **and**
+`TODO-N.test.md` — the cases prove the Outcome and the marked flow steps, so they are written
+against them. A stage-2 fork writes `TODO-N.agent.md` against the approved `TODO-N.md`: Components
+is the map `## Changes` walks, and the map is fixed before the walk starts.
 
 ### Step 1 — read the corpus once (caller)
 
@@ -95,7 +108,7 @@ open in full the notes that bear on the rows in this run's waves (`arch:ref-note
 Finding the thought for your task). The descriptions are the map the forks inherit — a note whose
 description shows it bears on no row in the wave costs nothing to leave closed.
 
-### Step 2 — fan out the wave (caller)
+### Step 2 — stage 1: fan out the wave (caller)
 
 One fork per row in the current wave, **all `Agent` calls in one assistant message** — calls in
 separate messages run serially, not in parallel. Each prompt names the row and its number block and
@@ -103,14 +116,14 @@ nothing more; the context is already there.
 
 ```
 Agent(subagent_type="fork", prompt=
-  "[TODO-N] Author the pair for ledger row N: <the row's outcome, verbatim>.
+  "[TODO-N stage 1] Author the design for ledger row N: <the row's outcome, verbatim>.
    Follow ${CLAUDE_PLUGIN_ROOT}/skills/arch/commands/sub-todo.md, the `>` rule blocks in
-   examples/todo.md, examples/todo-agent.md, and examples/todo-test.md, and references/ref-todo-sections.md in full — you
-   are past the gate.
-   Write exactly three files: <notes-dir>/todos/TODO-N.md, TODO-N.agent.md, and TODO-N.test.md.
+   examples/todo.md and examples/todo-test.md, and references/ref-todo-sections.md in full — you
+   are past the spec gate, before the TODO gate.
+   Write exactly two files: <notes-dir>/todos/TODO-N.md (no `increment` key) and TODO-N.test.md.
    Impl-decision notes: take thoughts/ numbers <lo>-<hi>, no others.
-   Write nothing else — not spec.md, not GLOSSARY.md, not another row's files.
-   Return, and only this: your `## New terms` rows (or `none`), your `## Files` paths, the
+   Write nothing else — not TODO-N.agent.md, not spec.md, not GLOSSARY.md, not another row's files.
+   Return, and only this: your `## New terms` rows (or `none`), the `## Components` symbols, the
    impl-decision notes you wrote, and any contradiction in the row you could not resolve.
    Do not summarize the files — the caller reads them.")
 ```
@@ -125,32 +138,75 @@ would otherwise write at once:
 
 | Shared artifact | Who writes | Why not the fork |
 |---|---|---|
-| `GLOSSARY.md` | caller, from the returned `## New terms` rows | Parallel writes to one file lose entries — and only the caller can see two forks minting two names for one concept. |
+| `GLOSSARY.md` | caller, from the returned `## New terms` rows, `Status: new`, before the gate | Parallel writes to one file lose entries — and only the caller can see two forks minting two names for one concept. |
 | `spec.md` — ledger, wave table | caller only | A row a fork finds wrong is a spec problem, not a pair problem: the caller fixes the ledger row, or stops and runs `revise`. |
 | `thoughts/NNN-*.md` | the fork, inside its assigned block | The number is the collision: two forks both take the next free `NNN` and write the same file. The block is handed out in the prompt. |
 | the notes `jj commit` | caller, once per wave | `code:ref-subcommand-rules.md` § Log to notes-dir. |
 
 Then run the three checks that are cross-row by construction, and so belong to nobody inside a fork:
 
-- **Two pairs in one wave share a `## Files` path** → the wave was wrong. Fix the wave table in
+- **Two rows in one wave share a `## Components` symbol** → the wave was wrong. Fix the wave table in
   `spec.md`, or merge the rows; shipping the overlap puts two implementers in one file.
 - **A fork's real `depends_on` is an edge the wave table does not carry** → move the row to a later
   wave and re-check the one it left.
-- **Two rows named one concept differently** → one term wins in `GLOSSARY.md`, and the pair that
+- **Two rows named one concept differently** → one term wins in `GLOSSARY.md`, and the row that
   loses is edited to match before the next wave reads it.
 
-### Step 4 — the next wave
+**Done when** every returned `## New terms` row is an entry in `GLOSSARY.md` with `Status: new`, and
+no two entries name one concept.
 
-Fan out `W2` only once `W1`'s pairs are on disk. A `W2` row's **Pre-reads**, **Files**, and
-increment order are written against the symbols a `W1` row introduces, and those symbols are named
-in that row's pair — which does not exist until its fork returns. Wall clock is the number of waves,
-not the number of rows.
+### Step 4 — stage 1: the next wave
 
-A fork that dies, or returns nothing → re-spawn that row. The caller never authors a row itself:
-one row, one author, or its two halves stop being written against each other.
+Fan out `W2` only once `W1`'s human halves are on disk and merged. A `W2` row's Components and
+Surface are written against the symbols a `W1` row introduces, and those symbols are named in that
+row's `## Surface`. Wall clock is the number of waves, not the number of rows.
+
+A fork that dies, or returns nothing → re-spawn that row. The caller never authors a row itself.
 
 **A single row is not a fan-out.** Re-authoring one row's files (§ Iteration), or a ledger holding
-one row, is written inline. The fork is for a wave.
+one row, is written inline. The glossary merge and Step 5 still run. The fork is for a wave.
+
+### Step 5 — the TODO gate (caller)
+
+Run this step when every row has its `TODO-N.md` and `TODO-N.test.md` and the glossary merge is
+done.
+
+1. Commit the notes (`code:ref-subcommand-rules.md` § Log to notes-dir), so the human reads a fixed
+   version.
+2. Hand the human the list to read: every `TODO-N.md` and `TODO-N.test.md`, and the `GLOSSARY.md`
+   entries this run added. The read order is § The verification chain.
+3. Stop and ask for approval per row. Do not write an agent half in the same turn.
+4. A row the human corrects → the caller edits its human half and `GLOSSARY.md` in place
+   (`Status` stays `new`), then asks again for that row and for every later-wave row that names a
+   symbol the correction changed. A correction that changes the ledger → stop and run `revise`.
+
+**Done when** the human approved every row by name, or said "all approved". A row without approval
+stays at stage 1.
+
+### Step 6 — stage 2: the agent halves (caller)
+
+Fan out the approved rows wave by wave, the same way as Step 2 and Step 4. A wave starts only when
+every row in it and in the earlier waves is approved. A `W2` agent half names
+the files and pre-reads a `W1` row creates, so `W1`'s agent halves are on disk first.
+
+```
+Agent(subagent_type="fork", prompt=
+  "[TODO-N stage 2] Author the increments for ledger row N. TODO-N.md and TODO-N.test.md are
+   approved — do not edit them, except to add `increment: 0/<total>` to the TODO-N.md frontmatter.
+   Follow ${CLAUDE_PLUGIN_ROOT}/skills/arch/commands/sub-todo.md, the `>` rule blocks in
+   examples/todo-agent.md, and references/ref-todo-sections.md in full.
+   Write <notes-dir>/todos/TODO-N.agent.md and nothing else, except impl-decision notes in
+   thoughts/ numbers <lo>-<hi>.
+   If the approved design cannot be built as written, do not add the `increment` key.
+   Return, and only this: your `## Files` paths, the impl-decision notes you wrote, and any place
+   where the approved design cannot be built as written.")
+```
+
+Then run the cross-row check of Step 3 again over `## Files`: two rows in one wave that share a path
+→ fix the wave table. A fork that reports the approved design cannot be built → do not edit the human
+half yourself. Show the human the problem and go back to Step 5 for that row.
+
+**Done when** every approved row has all three files and passes the pre-save checklist.
 
 ## Audience — a context-free Sonnet implementer
 
@@ -281,7 +337,7 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 | `risk` | always |
 | `approve` | always (`inherit` unless this TODO needs its own depth — `arch:ref-write.md` § Approval) |
 | `where` | always (`inherit` unless this TODO needs its own checkout — `arch:ref-write.md` § Where the work happens) |
-| `increment` | always — authored as `0/<total>`, `<total>` = the increment count in the agent half (`arch:ref-write.md` § Progress) |
+| `increment` | from stage 2 — authored as `0/<total>`, `<total>` = the increment count in the agent half (`arch:ref-write.md` § Progress) |
 
 | # | Element | Level | Required |
 |---|---------|-------|----------|
@@ -404,7 +460,7 @@ carries a `description` that states its answer and a `todo:` key naming the row 
 
 ## Iteration
 
-Edit in place, same `N` unless order changes — then renumber all three files together and update the ledger. A TODO already `status: done` → don't bump; make a new one.
+Edit in place, same `N` unless order changes — then renumber all three files together and update the ledger. An edit to an approved `TODO-N.md` sends the row back to Step 5, and stage 2 rewrites its agent half and `increment` total. A TODO already `status: done` → don't bump; make a new one.
 
 ## Pre-save checklist
 
@@ -416,7 +472,9 @@ own file against a rule already counted.
 
 ### The row
 
-- [ ] All three files exist for this `N`, written in the same pass, `TODO-N.md` ending with its
+- [ ] The human approved this row's `TODO-N.md` and `TODO-N.test.md` in this session (§ Execution, Step 5) before `TODO-N.agent.md` was written
+- [ ] Every `## New terms` row is an entry in `GLOSSARY.md` with `Status: new`, written before that approval
+- [ ] All three files exist for this `N`, `TODO-N.md` ending with its
       `**Tests:**` and `**Increments:**` links, and `TODO-N.agent.md` and `TODO-N.test.md` each
       opening with its `**Design:**` link
 - [ ] **No rule text and no origin link in either half** — a rule lives in its `thoughts/` note and reaches the implementer through the generator

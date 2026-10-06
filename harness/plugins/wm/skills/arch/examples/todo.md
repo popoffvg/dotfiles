@@ -115,7 +115,8 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 >
 > **The row reaches `GLOSSARY.md` as an entry, but the pair's author does not merge it** — the row is returned and
 > the caller merges it (`arch:sub-todo.md` § Execution, step 3), because one shared table written by a
-> wave of forks loses rows.
+> wave of forks loses rows. The merge lands before the human approves stage 1, so the human reads
+> the glossary entry and the TODO together.
 
 ## Components
 
