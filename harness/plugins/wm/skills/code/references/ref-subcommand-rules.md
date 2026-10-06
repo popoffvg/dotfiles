@@ -54,31 +54,46 @@ One-commit-per-chunk, fixups on correction: `impl:sub-commit.md`. The message it
 the cause / goal / decision body — is the `commit-message` skill; load it before writing one.
 
 ## Glossary
-`<notes-dir>/GLOSSARY.md` grows through the whole flow, not once at the start. Every subcommand
-that meets a domain word the file does not have — `dive docs` reading the code, `new` grilling the
-user, `todo` naming a component, `impl` writing it, `fix` renaming it — adds it. Entry shape:
+`<notes-dir>/GLOSSARY.md` grows through the whole flow. Entry shape and the three statuses:
 `arch:examples/glossary.md`.
 
-**The user approves every new or renamed term before it lands.** A term is the spec's contract with
-the reader: once a word is in the file, outcomes and constraints are written in it, so the agent
-proposes and the user decides. Collect the change set — new terms, reworded definitions, renames,
-and each collision where one word carries two meanings — and send the whole set through the
-`to-user` skill (§ Put a batch of questions in a file the human edits). One block per term:
+**Glossary first.** A term reaches `GLOSSARY.md` before any artifact uses it — a spec section, a TODO
+half, a thought, a grill file, or code. Every writer that meets a domain word the file lacks, or uses
+one word for a concept the file names another way, adds or corrects the entry in the same step:
+`dive docs` reading the code, `new` and the `grilling` skill interviewing the user, `todo` naming a
+component, `impl` writing it, `fix` and `line-comment:act` renaming it, `revise` replacing a design.
+
+**Read before you write.** Every agent that writes a spec section, a TODO half, a thought, or code
+reads `GLOSSARY.md` first and uses its terms and **Code** identifiers verbatim — never a Forbidden
+name, never a retired one.
+
+**The user approves every new, renamed, or retired term before it lands.** Collect the change set —
+new terms, reworded definitions, renames, retirements, and each collision where one word carries two
+meanings or two entries carry one concept — and send it through the `to-user` skill (§ Put a batch
+of questions in a file the human edits). One block per term:
 
 - **Source** — the `path:line` or spec section the term came from.
 - **Original** — the word as the code or the user writes it today, with the other names in use.
-- **Recommended** — the entry as it would land: the term as its heading, the one-sentence
-  definition, then `Status`, `Kind`, `Forbidden` (every other name in use for the concept, spelling
-  variants included), and `Source`.
+- **Overlaps** — the existing entries whose definition covers part of this one, or `none`.
+- **Recommended** — the entry as it would land, every field of `arch:examples/glossary.md`.
 - **Answer** — pre-filled with the recommendation. The user accepts it, rewords it, or writes
   `drop` to reject the term.
 
-Write the accepted entries into `GLOSSARY.md` in the same commit as the work that raised them. A
-rejected term does not come back on the next run. A term the user renamed is renamed everywhere it
-is already used — `spec.md`, the TODO outcomes, the `thoughts/` note descriptions — in that same commit.
+Write the accepted entries in the same commit as the work that raised them. A rejected term does not
+come back on the next run. A word already in the file with the same meaning is not a change — do not
+re-ask it.
 
-**A word already in the file with the same meaning is not a change** — do not re-ask it. Only the
-diff reaches the user.
+**A rename or a retirement sweeps the old name.** Make the old name a Forbidden alias of the new
+entry, or retire the entry, then rename every use: `spec.md`, both halves of every TODO, the live
+`thoughts/` notes, and — inside the `impl` skill — the code. Outside `impl` the code is read-only:
+the sweep stops at the notes and the remaining code uses become a ledger row.
+
+**Status follows the code.** The `impl` commit that lands an entry's **Code** identifier sets
+`Status: existing`. A design that drops or replaces a concept sets `Status: retired` and
+`Replaced by`; the entry stays.
+
+**Done when** `${CLAUDE_PLUGIN_ROOT}/bin/glossary-lint.py <notes-dir>` reports no finding the change
+added — inside `impl`, with `--code <checkout>`.
 
 ## Source is read-only
 Every subcommand outside the `impl` skill is read-only over project source and writes only under `<notes-dir>` (`arch:ref-write.md`). The `impl` skill's subcommands — `impl`, `auto`, `fix`, `squash`, `commit` — edit project source without asking: any file the work needs, inside the checkout the `where` key names.

@@ -20,7 +20,7 @@ parent project. `jj -R . log` is the history.
 | `CONCEPTS.md` | App architecture, data flow, and the flow this work changes — every diagram, drawn with `show-me` | `/code new` Step 0, when there is structure to draw |
 | `thoughts/` | `NNN-{question,decision,fact,impl-decision}-slug.md` — the thought graph | every phase |
 | `thoughts/archived/` | Answered questions + superseded thoughts — kept for the trail, out of the live graph | a hook, on any note that stops being live |
-| `todos/` | `CLAUDE.md` (the pair convention) + `TODO-N.md` + `TODO-N.agent.md` + `TODO-N.test.md` — one self-contained row per ledger row: the human half (Outcome, Components, Flow changes, Commit), the test file (Autotest), and the agent half (the constraint command, the increments, Files, Pre-reads) | `/code new` (the folder + `CLAUDE.md`), `/code todo` (the pairs) |
+| `todos/` | `CLAUDE.md` (the pair convention) + `TODO-N.md` + `TODO-N.agent.md` + `TODO-N.test.md` — one self-contained row per ledger row: the human half (Outcome, Components, Increments, Flow changes, Commit), the test file (Autotest), and the agent half (Files, Pre-reads, Manual test) | `/code new` (the folder + `CLAUDE.md`), `/code todo` (the pairs) |
 | `research/` | Explore-phase artifacts, ingested into `thoughts/` as facts | `/dive docs` |
 
 ## Read order
@@ -35,13 +35,17 @@ parent project. `jj -R . log` is the history.
    skill, which searches the graph in a subagent and returns the chain. Reading it by hand is
    `~/.claude/scripts/wm-thought-index.py thoughts` (add `-m <regex>` for your terms), then the
    `description` of each match, then only the notes that bear on your task.
-6. `todos/TODO-N.md` — what to build and what proves it, then `todos/TODO-N.agent.md` — how, one increment at a time. Self-contained: read the pair and the generated rules alone, implement it alone.
+6. `todos/TODO-N.md` — what to build, one increment at a time, and what proves it, then `todos/TODO-N.agent.md` — the files and pre-reads of each increment. Self-contained: read the pair and the generated rules alone, implement it alone.
 7. `PATTERNS.md` — before writing code: the patterns that body's increments follow, and the files to pre-read.
 
 Ignore `thoughts/archived/` unless you are auditing history. Those notes were answered or superseded.
 
 ## Write rules
 
+- **Commit every change to this folder before the turn ends.** Run
+  `jj -R <notes-dir> commit -m "<phase>: <main ideas>"` — a TODO, a thought, `spec.md`, or
+  `GLOSSARY.md` edit is not done until it is committed. The message says why, not which files.
+  A Stop hook blocks the turn while changes are uncommitted.
 - **A question is answered by a new note, never edited into its answer.** The answer is a
   `decision` or `fact` note at the next `NNN`, restating the question verbatim; the question note
   gets `status: approved` + `superseded_by:` and a hook archives it. Never open a second note

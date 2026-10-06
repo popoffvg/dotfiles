@@ -7,27 +7,31 @@
 > rule that a green gate still writes its file — is `ref-gates.md`. Each gate's own `## Covered` rows
 > live in its agent file, because an agent is a separate prompt that never reads this one.
 
-## One gate's file — `<notes-dir>/review/TODO-3/name.md`
+## One gate's file — `<notes-dir>/review/TODO-3/rules.md`
 
 ```
 ---
 reviewed: 2026-09-04T11:07:52+02:00
 ---
 
-[NAME] Result: FAIL
+[RULES] Result: FAIL
 
 ## Judged
-- 6 names declared, across 2 files
+- 36 rules, 2 files, 9 batches — 3 FAIL raised, 1 dropped
 
 ## Covered
 | Rule | Verdict |
 |---|---|
-| Clear without context — the unit and the boundary carried | clean |
-| Domain language — no implementation word | clean |
-| One term per concept, across the whole diff — synonym drift, homonym | 1 failure |
+| Coverage — every planned pair has a verdict | clean |
+| comments/a-comment-repeats-the-code-under-it | 1 nit |
+| names/one-concept-has-two-names-in-the-diff-or-one-name-has-two-co | 1 failure |
+| go/a-plain-getter-returns-a-non-pointer-field | n/a — no changed file in scope |
 
 ## Failures
-- writer/column.py:34 — `rid` — homonym — reads as a row id in a writer that also writes rows — → `run_id`
+- writer/column.py:34 — names/one-concept-has-two-names-in-the-diff-or-one-name-has-two-co — `rid` reads as a row id in a writer that also writes rows — rename it to `run_id`
+
+## Dropped
+- writer/column.py:12 — tables/a-branch-keys-on-one-item-s-identity — the branch tests a type, not one item's id
 ```
 
 > **The path comes from the brief, never from the gate.** The caller's `report:` line names it; the
@@ -43,15 +47,14 @@ reviewed: 2026-09-04T11:07:52+02:00
 > say is `n/a`, never a dropped row: an empty Failures section under a full table says the diff is
 > clean, under a short one it says nothing.
 >
-> **The rows above are `name-critic`'s three.** Take the rows for the gate you are writing from its
-> agent file — `wm:agents/name-critic.md`, `wm:agents/comment-critic.md`,
-> `wm:agents/test-critic.md`, `wm:agents/idiom-critic.md`, `wm:agents/lint-tester.md`,
-> `wm:agents/reviewer.md` — and never from this example. A gate whose verdict needs a third column adds it there too: `lint-tester` carries
+> **The rows above are the rules gate's: one per rule in `manifest.json`, shortened here.** Take the
+> rows for the gate you are writing from its agent file — `wm:agents/rule-reducer.md`,
+> `wm:agents/idiom-critic.md`, `wm:agents/lint-tester.md`, `wm:agents/correctness-critic.md` — and
+> never from this example. A gate whose verdict needs a third column adds it there too: `lint-tester` carries
 > `| Rule | Command | Verdict |`, because the command it ran is the evidence for its row.
 >
 > **A Failure line ends in the edit that closes it.** The finding's own middle fields are the gate's
-> — `name` gives the smell and the bug it hides, `comment` the rule and the rewrite, `test worth` the
-> body that cannot fail. `## Nits` follows the same shape and is omitted when the gate raised none.
+> — `rules` gives the rule id and why the lines break it, `correctness` the input and the wrong result. `## Nits` follows the same shape and is omitted when the gate raised none.
 
 ## The merged report — `<notes-dir>/review/TODO-3/report.md`
 
@@ -63,13 +66,13 @@ reviewed: 2026-09-04T11:09:18+02:00
 [GATE] Result: FAIL   (after 2 rounds)
 
 ## Gates
-- lint PASS · comment PASS · name FAIL · test worth PASS · idiom PASS · mutation PASS · test PASS · standards PASS
+- lint PASS · rules FAIL · idiom PASS · correctness PASS · mutation PASS · test PASS
 
 ## Failures
-- name · writer/column.py:34 — `rid` reads as a row id in a writer that also writes rows — rename it to `run_id`
+- rules · writer/column.py:34 — `rid` reads as a row id in a writer that also writes rows — rename it to `run_id`
 
 ## Nits
-- comment · writer/column.py:41 — the subject reaches the reader in the third clause — lead with `a null run id`
+- rules · writer/column.py:41 — comments/a-comment-sentence-is-hard-to-read-once — lead with `a null run id`
 ```
 
 > **The caller merges; a gate reports only itself.** Every mode writes this same file and returns the
@@ -82,7 +85,7 @@ reviewed: 2026-09-04T11:09:18+02:00
 > verdict. A gate missing from the line is a gate whose file nobody read.
 >
 > **A gate that returned nits alone is `PASS`.** Nits never block, so they change no verdict — the
-> comment gate above passes and its nit still reaches the human.
+> nit above still reaches the human.
 >
 > **Every finding keeps the gate that produced it**, as the first field. A finding whose gate is
 > stripped cannot be re-litigated: the reader needs to know whether a line was rejected by a table or

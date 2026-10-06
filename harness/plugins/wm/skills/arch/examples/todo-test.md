@@ -1,6 +1,6 @@
 # TODO-1 — tests
 
-**Design:** [TODO-1.md](TODO-1.md) — Outcome, Components, Surface, Flow changes, Commit.
+**Design:** [TODO-1.md](TODO-1.md) — Outcome, Components, Increments, Flow changes, Commit.
 
 > A filled `<notes-dir>/todos/TODO-N.test.md` — **the test file of the row**. It holds one section,
 > `## Autotest`, and nothing else. Copy the shape and delete the `>` lines.
@@ -158,7 +158,7 @@ Reuse and expiry end the stale pair, never the live session.
 > sentences: no assertion source, no fixture, no table of literal expected values, no shell. A test
 > that *cannot* be written from the case means the case is too vague, and the fix is a sharper
 > sentence, not a paste. When the test file itself is the deliverable, it is an increment with a
-> **Behavior** sketch in the agent half.
+> **Behavior** sketch in `TODO-N.md` § Increments.
 >
 > A level that genuinely cannot exist is written `none — <one-line concrete reason>`, and the reason
 > names what makes it impossible. Auto-reject: "covered by the unit test", "trivial", "no e2e harness"

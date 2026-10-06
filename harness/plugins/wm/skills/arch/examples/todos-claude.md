@@ -12,32 +12,34 @@ contiguous, one pair per row in the `spec.md` ledger. Written by `/code todo`.
 
 | File | Read by | Holds | Length |
 |------|---------|-------|--------|
-| `TODO-N.md` | the human, repo closed | frontmatter, Outcome, New terms, Components, **Surface** — the one diff in the pair, **Flow changes**, Commit, Deviations | ≤ 550 lines |
+| `TODO-N.md` | the human, repo closed | frontmatter, Outcome, New terms, Components, **Increments** — the steps of the work, each with its own diff, **Flow changes**, Commit, Deviations | ≤ 550 lines |
 | `TODO-N.test.md` | the human at the gate, then the implementer | Autotest — Unit and E2E | unlimited |
-| `TODO-N.agent.md` | the implementer | Constraints, Changes — the increments, described, Files, Pre-reads, Manual test, Definition of done | unlimited |
+| `TODO-N.agent.md` | the implementer | Files — each path keyed to its increments, Pre-reads, Manual test, Gotchas | unlimited |
 
 The split is by audience. `TODO-N.md` is the design a human approves: what the system will be able to
-do, which symbols move, what they become, which running paths gain a step or a check, and what the
-commit says. `TODO-N.test.md` is what proves it. `TODO-N.agent.md`
-is how to get there: the order of the work, what to do at each step, and the rules that bound it.
+do, which symbols move, the steps that move them and what each symbol becomes, which running paths
+gain a step or a check, and what the commit says. `TODO-N.test.md` is what proves it.
+`TODO-N.agent.md` is where the work happens in the repo: the paths and the reading list.
 
 ## Read order
 
-1. `TODO-N.md` — what to build; `TODO-N.test.md` — what proves it.
-2. `~/.claude/scripts/wm-constraints.py ../thoughts` — the rules the code must satisfy. No pair copies
-   a rule; the agent half names this command instead.
-3. `TODO-N.agent.md` — how, one increment at a time.
+1. `TODO-N.md` — what to build, one increment at a time; `TODO-N.test.md` — what proves it.
+2. Run `~/.claude/scripts/wm-constraints.py ../thoughts --todo TODO-N` before the first edit, and obey
+   every rule it prints. This line is the one place the command is named: no pair file carries a
+   rule or the command.
+3. `TODO-N.agent.md` — the files and pre-reads of each increment.
 
 Self-contained means the **pair plus those generated rules**. Implement from them alone.
 
 ## Write rules
 
 - **Two stages.** `TODO-N.md`, `TODO-N.test.md`, and the `GLOSSARY.md` entries first; the human
-  approves them; then `TODO-N.agent.md`, written against the approved `## Components` — the map
-  `## Changes` walks. All three files are renumbered and deleted together.
+  approves them, increments included; then `TODO-N.agent.md`, which finds the paths behind each
+  approved increment. All three files are renumbered and deleted together.
 - **One status per pair**, in `TODO-N.md` frontmatter: `todo → impl → verify → done`, with `blocked`
   as the failure branch. `TODO-N.agent.md` carries no frontmatter.
-- **The diff lives once**, in `## Surface` of the human half. The agent half carries no ```diff block.
+- **The diff lives once**, split across the increments of the human half — each increment carries its
+  own diff and names no file. The agent half carries no ```diff block.
 - **Neither half restates the other.** Each carries exactly one link to the other.
 - **Neither half stores why.** A decision's reason is walked on demand from `../thoughts/` by the
   `trace` skill.

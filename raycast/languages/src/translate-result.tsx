@@ -1,5 +1,6 @@
 import { Action, ActionPanel, Detail, Icon } from "@raycast/api";
 import { fenced } from "./fenced";
+import { pasteIntoFrontApp } from "./paste-into-front-app";
 import type { VocabPair } from "./vocab";
 
 export function TranslateResultView({ pair }: { pair: VocabPair }) {
@@ -25,12 +26,21 @@ export function TranslateResultView({ pair }: { pair: VocabPair }) {
       }
       actions={
         <ActionPanel>
-          <Action.Paste title="Paste English" content={pair.en} />
+          <Action
+            title="Paste English"
+            icon={Icon.Clipboard}
+            onAction={async () => {
+              await pasteIntoFrontApp(pair.en);
+            }}
+          />
           <Action.CopyToClipboard title="Copy English" content={pair.en} />
-          <Action.Paste
+          <Action
             title="Paste Russian"
-            content={pair.ru}
+            icon={Icon.Clipboard}
             shortcut={{ modifiers: ["cmd", "shift"], key: "v" }}
+            onAction={async () => {
+              await pasteIntoFrontApp(pair.ru);
+            }}
           />
           <Action.CopyToClipboard
             title="Copy Russian"

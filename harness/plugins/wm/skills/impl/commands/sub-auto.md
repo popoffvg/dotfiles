@@ -27,8 +27,7 @@ halves carry the `status`, so they alone build the work list: each TODO whose `s
 wave order (`arch:ref-write.md` § waves), respecting `depends_on`. Each TODO's `TODO-N.agent.md` is read
 when its turn comes, not now.
 
-Create `<notes-dir>/LESSONS.md` if it is missing (shape: the `carry-review-findings-in-a-lessons-file`
-skill).
+Create `<notes-dir>/LESSONS.md` if it is missing. Each round appends the real findings as rules with their failure, the rejected findings with the command that refuted them, and the deferred gaps with the TODO that owns them. Group them by when they bite: before code, during code, during tests, process. Never write a status ("TODO-N is BLOCKED") into it; the ledger owns status.
 
 An empty work list skips to Step 3.
 
@@ -42,8 +41,8 @@ For **every** TODO in the work list, in order — not the first, not the easy on
    (its § Approval) whatever the spec's or the TODO's key says, and skips its TODO review: step 3
    runs the chain. Nobody is watching. Apply each increment, keep the one-commit-per-TODO
    rule, and pass the lessons entries that touch this TODO's **Files** in the @implementer brief.
-3. **The gate chain** — follow `review:sub-todo.md`: one haiku wave (lint, comments, names, test
-   worth) in parallel, then the test gate, then the opus standards gate. Any FAIL → return to 2 as a
+3. **The gate chain** — follow `review:sub-todo.md`: one wave (lint, the haiku rule checkers, idiom,
+   the opus correctness gate, mutation) in parallel, then the test gate. Any FAIL → return to 2 as a
    fixup commit with the findings quoted, and the chain restarts at the wave. That file owns the gates, their
    tiers, and the budget; this step owns nothing but the call.
 4. **Squash this round's fixups** — follow `sub-squash.md`, scoped to this TODO: fold every `--fixup`

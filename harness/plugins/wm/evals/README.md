@@ -55,8 +55,8 @@ The cases that earn the suite:
   flips, the two descriptions have not drawn the line between them.
 - **`commit-message`** and **`tighten-comment-prose`** — hard negatives at the two seams the move
   created. § Align language names commits, and the doc-line rule sits next to comment prose; neither
-  belongs to a naming skill. `commit-message` owns the first, `comment-critic` § The sentence shape the
-  second.
+  belongs to a naming skill. `commit-message` owns the first, the `comments` rule file in `~/.notes/rules/`
+  the second.
 - **`switch-on-column-id`** — a column id is an identifier, so the description's "field name" clause
   can pull in a fact that belongs to `~/.claude/CLAUDE.md` § declarative table.
 - **`metric-built-from-parts`**, **`log-prefix-shared`**, **`two-int-ids`**, **`helpers-file`** — four
@@ -145,11 +145,10 @@ Keep this suite as the guard that stops anyone claiming the split works because 
 Gates under test — two axes, both applied to one block of candidate content:
 
 - **`half`** → `human` | `agent` | `corpus` : which file the content belongs in.
-  `human` is `TODO-N.md` (Outcome, New terms, Components, **Surface**, Flow changes, Commit), `TODO-N.test.md` holds Autotest; `agent` is
-  `TODO-N.agent.md` (Constraints — the pointer — Changes, Files, Pre-reads, Manual test, Definition
-  of done); `corpus` is outside the pair: `thoughts/`, which holds a settled rule an increment can
+  `human` is `TODO-N.md` (Outcome, New terms, Components, **Increments**, Flow changes, Commit), `TODO-N.test.md` holds Autotest; `agent` is
+  `TODO-N.agent.md` (Files, Pre-reads, Manual test, Gotchas); `corpus` is outside the pair: `thoughts/`, which holds a settled rule an increment can
   violate and the reason behind it alike.
-  **Every diff is human** — `## Surface` is the one diff in the pair. **No rule and no origin link
+  **Every diff is human** — each increment in `## Increments` carries its own diff, and no other section carries one. **No rule and no origin link
   is ever in the pair** — a rule is the `description` of a `decision` note in `thoughts/`, printed
   by `~/.claude/scripts/wm-constraints.py`, and the reason behind it is the rest of that same note
   the `trace` skill searches for.
@@ -208,8 +207,8 @@ The hard cases are the ones that *look* like the wrong label:
   is the sanctioned escape from the 150-line per-file cap.
 - `do-bullet-prose` vs `do-bullet-with-code` — an increment's **Do** is prose naming the work and the
   call sites to migrate. The same increment with the implementation pasted into a fenced block is a
-  body twice over: it belongs to no diff, and it duplicates what § Surface plus the Behavior sketch
-  already carry.
+  body twice over: it belongs to no diff, and it duplicates what the increment's Surface diff plus
+  the Behavior sketch already carry.
 - `enum-values-diff`, `config-defaults-diff` — blocks of literal values that *are* surface, because
   consumers branch on them.
 - `sql-migration-body` — DDL is arguably schema surface, but the block also carries a backfill
@@ -218,10 +217,8 @@ The hard cases are the ones that *look* like the wrong label:
   human-half, but test assertions and literal expected-value tables are bodies.
 - `manual-test-steps` — literal `curl` and `make` lines that must be kept. A shell *script* is a body;
   a shell *command someone types* is not.
-- `constraints-table` vs `constraints-pointer` — **the split that trips every author.** The rules
-  themselves are `corpus`, one `decision` note each in `thoughts/`; the agent half keeps only the
-  fixed line that prints them. A rule table under a TODO's `## Constraints` is the second copy that
-  drifts.
+- `constraints-table` — the rules are `corpus`, one `decision` note each in `thoughts/`. A rule
+  table in a TODO is the second copy that drifts.
 - `constraints-table` vs `outcome-rationale` — **the counter-intuitive pair, in both directions.**
   A settled decision stated as a rule is a `thoughts/` note even though it reads like design; a
   reason for the Outcome is a `thoughts/` note even though it is *about* the human half. Both land
@@ -231,7 +228,7 @@ The hard cases are the ones that *look* like the wrong label:
 ## Last run
 
 Not re-run since the trace companion was dropped and the rules moved into `thoughts/`. The three `corpus`
-cases and the `constraints-pointer` case have never been graded — run `./run.sh` before trusting the
+cases have never been graded — run `./run.sh` before trusting the
 score below, which was measured against an older contract.
 
 ### 2026-08-21 — the two-file contract

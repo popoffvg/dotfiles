@@ -2,6 +2,7 @@ import { Action, ActionPanel, Detail, Icon } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { fenced } from "./fenced";
 import type { LanguageToolResult } from "./languagetool";
+import { pasteIntoFrontApp } from "./paste-into-front-app";
 import { polishText } from "./polish";
 import { languagesPreferences } from "./preferences";
 
@@ -83,9 +84,12 @@ export function CheckResultView({
       }
       actions={
         <ActionPanel>
-          <Action.Paste
+          <Action
             title="Paste Corrected Text"
-            content={result.corrected}
+            icon={Icon.Clipboard}
+            onAction={async () => {
+              await pasteIntoFrontApp(result.corrected);
+            }}
           />
           <Action.CopyToClipboard
             title="Copy Corrected Text"
@@ -99,11 +103,13 @@ export function CheckResultView({
                 icon={Icon.Wand}
                 shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
               />
-              <Action.Paste
+              <Action
                 title="Paste Polished Text"
-                content={polished}
                 icon={Icon.Wand}
                 shortcut={{ modifiers: ["cmd", "shift"], key: "v" }}
+                onAction={async () => {
+                  await pasteIntoFrontApp(polished);
+                }}
               />
             </>
           )}

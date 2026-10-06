@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Format the ```ts/```typescript code blocks inside a todos/TODO-N*.md file.
 
-In practice that is the agent half, `TODO-N.agent.md`, which owns `## Changes` and so
-every Behavior sketch; the human half has no code block to format. All
+In practice that is the human half, `TODO-N.md`, which owns `## Increments` and so
+every Behavior sketch; the agent half and the test file have no code block to format. All
 three are accepted, so the hook needs no knowledge of the split.
 
 Code-block-only: touches nothing but fenced TypeScript blocks — an increment's
-Behavior pseudocode under `## Changes` (sub-todo.md § Changes). Every such block in the
-file is run through prettier `--parser typescript`; a block that fails to parse (loose
-pseudocode) is kept verbatim. The human half's one ```diff under `## Surface`, the
-plain-fenced Interface blocks, and all markdown are left untouched.
+Behavior pseudocode under `## Increments` (sub-todo.md § Increments). Every such block in
+the file is run through prettier `--parser typescript`; a block that fails to parse (loose
+pseudocode) is kept verbatim. Each increment's ```diff, the plain-fenced contract blocks,
+and all markdown are left untouched.
 
 Prettier resolution: nearest project `node_modules/.bin/prettier` (honours the
 repo's .prettierrc), else `npx --yes prettier@3`.

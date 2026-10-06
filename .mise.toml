@@ -15,21 +15,25 @@ description = "Check if OPENROUTER_API_KEY is available in current shell"
 run = "[ -n \"$OPENROUTER_API_KEY\" ] && echo OPENROUTER_API_KEY=SET || echo OPENROUTER_API_KEY=NOT_SET"
 
 [tasks.stow]
-description = "Stow everything: repo → ~, harness/claude → ~/.claude, zsh+git (dotfiles) → ~"
+description = "Stow everything: repo, Claude, Codex skills, zsh and git"
 depends = ["harness:plugins:sync"]
 run = [
   "stow --target=$HOME --dir={{config_root}}/.. --restow {{ config_root | basename }}",
   "stow --target=$HOME/.claude --dir={{config_root}}/harness --restow claude",
+  "stow --target=$HOME/.pi/agent --dir={{config_root}}/harness --restow pi",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow zsh",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow git",
   "bash {{config_root}}/harness/claude/scripts/prune-stale-skill-links.sh $HOME/.claude/skills",
+  "python3 {{config_root}}/harness/scripts/sync-codex-skills.py",
 ]
 
 [tasks.unstow]
 description = "Unstow everything"
 run = [
+  "stow --no-folding --target=$HOME/.agents --dir={{config_root}}/harness --delete codex",
   "stow --target=$HOME --dir={{config_root}}/.. --delete {{ config_root | basename }}",
   "stow --target=$HOME/.claude --dir={{config_root}}/harness --delete claude",
+  "stow --target=$HOME/.pi/agent --dir={{config_root}}/harness --delete pi",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --delete zsh",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --delete git",
 ]
@@ -75,6 +79,14 @@ description = "Regenerate local-plugins marketplace.json from harness/plugins/"
 sources = ["harness/plugins/*/.claude-plugin/plugin.json"]
 outputs = [".claude-plugin/marketplace.json"]
 run = "bash {{config_root}}/harness/scripts/sync-marketplace.sh"
+
+[tasks."harness:codex:wm"]
+description = "Register the dotfiles Codex marketplace and install WM"
+depends = ["harness:plugins:sync"]
+run = [
+  "codex plugin marketplace add {{config_root}}",
+  "codex plugin add wm@dotfiles-codex",
+]
 
 [settings]
 env_shell_expand = true

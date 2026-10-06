@@ -1,0 +1,73 @@
+{
+  "name": "dotfiles-pi-rewind",
+  "version": "0.4.1",
+  "description": "Claude Code-style file checkpoints, with conversation rewind as summarize-from-bottom, summarize-from-up, or a hard cut",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./extensions/rewind.ts",
+      "default": "./extensions/rewind.ts"
+    }
+  },
+  "types": "./extensions/rewind.ts",
+  "files": [
+    "extensions",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "omp-extension",
+    "oh-my-pi",
+    "checkpoint",
+    "rewind"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/rewind.ts"
+    ]
+  },
+  "omp": {
+    "extensions": [
+      "./extensions/rewind.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "@oh-my-pi/pi-coding-agent": "*",
+    "@oh-my-pi/pi-tui": "*"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "@earendil-works/pi-tui": {
+      "optional": true
+    },
+    "@oh-my-pi/pi-coding-agent": {
+      "optional": true
+    },
+    "@oh-my-pi/pi-tui": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.84.1",
+    "@earendil-works/pi-tui": "^0.84.1",
+    "@types/node": "^22.15.3",
+    "tsx": "^4.20.6",
+    "typescript": "^5.8.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "check": "npm run typecheck && npm test",
+    "prepublishOnly": "npm run check"
+  }
+}

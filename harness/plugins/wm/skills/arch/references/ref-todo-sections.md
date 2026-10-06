@@ -14,14 +14,14 @@ pre-save checklist. Which half each heading lives in: `sub-todo.md` § Required 
 | Section | Half | Its rules |
 |---|---|---|
 | frontmatter (`status`, `type`, `depends_on`, `risk`, `approve`, `increment`) | `TODO-N.md` | `examples/todo.md` |
-| Outcome, New terms, Components, Surface, Flow changes, Commit, Deviations | `TODO-N.md` | `examples/todo.md` |
+| Outcome, New terms, Components, Increments, Flow changes, Commit, Deviations | `TODO-N.md` | `examples/todo.md` |
 | Autotest | `TODO-N.test.md` | `examples/todo-test.md` |
-| Constraints, Changes, Files, Pre-reads, Manual test, Definition of done | `TODO-N.agent.md` | `examples/todo-agent.md` |
+| Files, Pre-reads, Manual test, Gotchas | `TODO-N.agent.md` | `examples/todo-agent.md` |
 
 ## Every prose line
 
 **Every prose line of `TODO-N.md` and `TODO-N.test.md` obeys the `i-have-adhd` skill.** The human half is read once, by a
-person deciding whether to approve it — Outcome, New terms **Meaning**, Components **Role** and **Change**, flow steps,
+person deciding whether to approve it — Outcome, New terms **Meaning**, Components **Role** and **Change**, each increment's **Do** and **Blast radius**, flow steps,
 Autotest cases, `Commit.Body`, and any sentence beside a table. Load that skill and write under its rules: one
 idea per sentence, short sentences, front-loaded, literal words, no restatement. The agent half is
 read by an implementer and is not bound by it.
@@ -29,8 +29,8 @@ read by an implementer and is not bound by it.
 ## Constraints — where the rules come from
 
 The rules every increment obeys are **generated** from `<notes-dir>/thoughts/`, never written by
-hand. The agent half carries the command that prints them and never a rule
-(`examples/todo-agent.md` § Constraints). Run
+hand. No pair file carries a rule or the command; `todos/CLAUDE.md` § Read order names the command
+once (`examples/todos-claude.md`). Run
 `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N` to see the set a TODO is bounded by; no
 file in the corpus holds it.
 
@@ -59,29 +59,29 @@ frontmatter `description` is the rule text the implementer reads:
 
 ## A diff carries the change, not what the change forces
 
-**One entry per file whose contract this TODO decides.** A file that only *moves* to a contract
-decided elsewhere in the same section carries no entry: a caller that passes the new argument, an
+**A diff shows only the contract its increment decides.** A symbol that only *moves* to a contract
+decided in another diff carries no diff of its own: a caller that passes the new argument, an
 import updated after a symbol moves, a middle layer that only forwards a new field, a name replaced
 at every use. Its diff is already fixed by the entry it follows, so writing it puts one decision in
 two places — the same reason a body never appears here.
 
-**The test: does the reader make a choice in this file?** Read the entry this one depends on, then ask
-what this file can look like. One answer → it is a consequence; skip it. More than one answer → it is
+**The test: does the reader make a choice at this symbol?** Read the diff this one depends on, then
+ask what this symbol can look like. One answer → it is a consequence; skip it. More than one answer → it is
 a real decision; keep it. A caller that must *build* the new argument — pick a default, convert a
 value, read a config key — decides what to pass, and that value is what the human approves. Keep the
 deciding line alone, never the propagation around it.
 
-**A skipped consequence still has a home, and it is the agent half.** The file stays in `## Files`;
-the increment that changes the deciding symbol says to migrate the call sites in its **Do**, and its
-**Blast radius** names them. `examples/todo-agent.md` § Changes already demands that instruction,
-which is why Surface can drop the diff and lose nothing. A consequence-only file gets no
+**A skipped consequence still has a home.** The increment that changes the deciding symbol says to
+migrate the call sites in its **Do**, and its **Blast radius** names them; the agent half's
+`## Files` keeps their paths under that increment's number. `examples/todo.md` § Increments already
+demands that instruction, which is why the diff can drop the consequence and lose nothing. A consequence-only file gets no
 `## Components` row either — it holds no symbol this TODO decides.
 
 ## A diff carries the surface, not a body
 
 A **body** is anything whose content *is* the implementation: a function or method body, a loop, a
 branch chain, a shell script, a SQL query, a regex, a fixture, a table of literal expected values, a
-test file's assertions. None of it goes in a `## Surface` diff, and the reason is not length — it is
+test file's assertions. None of it goes in an increment's diff, and the reason is not length — it is
 that a body written here is written twice. The implementer either copies it, in which case the review
 happened against a paste; or improves it, in which case the TODO is wrong from the first commit.
 
@@ -97,7 +97,7 @@ approved body from a smuggled one:
 - **Body requested:** `Refresh` — the human asked for the full body on 2026-08-21.
 ```
 
-That marker sits under the file's diff in `## Surface`. It is the only thing that makes a body legal,
+That marker sits under the increment's diff. It is the only thing that makes a body legal,
 it names the symbol it covers, and it covers nothing else. Absent the marker, a body is a finding —
 `verify` reports it and the `budget-check` hook cannot see it, which is why the marker is explicit
 rather than inferred. Never add the marker on your own judgment: the human asks, or there is no body.
@@ -114,15 +114,14 @@ contract block. Those are required to be literal — `make run-dev`, `go test ./
 whether the text becomes a file in the repo or gets typed at a prompt.
 
 **When the whole deliverable is a body** — a check script, a migration, a test file, a generated
-query — the file has no surface at all. `## Surface` carries its contract as a plain fenced block (how
-it is invoked, what it takes, what it exits with, what it prints), and the increment that builds it
-carries `Surface: none` plus a **Behavior** sketch naming the checks in order and, above all, **the
+query — the file has no surface at all. The increment that builds it carries its contract as a plain
+fenced block under **Surface** (how it is invoked, what it takes, what it exits with, what it
+prints), plus a **Behavior** sketch naming the checks in order and, above all, **the
 edge cases**: the state that must not be reached, the second run that must not refetch, the env var
 that must be unset, the count that must match. The edge cases are the part a human can only get from
 this file; the mechanics are the part they can only get from the repo.
 
-Worked example of exactly this shape: `examples/todo.md` § Surface (the `scripts/release-check.sh`
-block) and `examples/todo-agent.md` § Changes, increment 4.
+Worked example of exactly this shape: `examples/todo.md` § Increments, increment 4.
 
 ## How the increments reach the commit
 

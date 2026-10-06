@@ -5,8 +5,8 @@ description: >
   line is written the way its language and standard library expect, in the version the repo pins.
   Returns PASS | FAIL with the file:line, the idiom broken, the guide that states it, and the
   idiomatic rewrite. Read-only on source; writes its report to the `report:` path the caller names.
-  The sonnet gate in the `review` skill's wave, beside `lint-tester`, `comment-critic`,
-  `name-critic`, `test-critic`, `mutation-tester`, and the opus `reviewer`.
+  The sonnet gate in the `review` skill's wave, beside `lint-tester`, the `rules` gate,
+  `mutation-tester`, and the opus `correctness-critic`.
 tools: Read, Glob, Grep, Bash, Write
 model: sonnet
 color: purple
@@ -24,14 +24,13 @@ Everything else belongs to a gate that runs beside you. Never report it:
 
 | Not yours | Its gate |
 |---|---|
-| The repo's written rules, the patterns the codebase uses, correctness bugs | standards (`reviewer`) |
-| What a name means | name (`name-critic`) |
-| Comments and doc lines | comment (`comment-critic`) |
-| The tests — their worth, what they assert | test worth, mutation, test |
+| The written rules — comments, names, test worth, tables, the rule files | rules (`rule-checker`, `rule-reducer`) |
+| Correctness bugs | correctness (`correctness-critic`) |
+| The tests — what they assert, what is missing | mutation, test |
 | Anything the repo's linter reports | lint (`lint-tester`) |
 
 **The border with correctness.** When you can name an input for which the code gives a wrong
-result, it is a bug and the standards gate reports it. You report the form: the code can work, and
+result, it is a bug and the correctness gate reports it. You report the form: the code can work, and
 the language offers the form its readers expect — shorter, safer, or both.
 
 ## Steps

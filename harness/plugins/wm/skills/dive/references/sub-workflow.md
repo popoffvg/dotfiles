@@ -8,10 +8,20 @@ emits clean, type-checking, reveal-in-editor TS. No prose write-up here.
 points are the source of the cited locations). If no `.md` exists for an entry point, run the
 `docs` route for it first or tell the user.
 
-**Every file this route writes is filled in `examples/workflow-flow.md`** — the layout, the
-`.workflow.ts`, a `components/*.d.ts`, the `bindings.json`, the `tsconfig.json`, and `flows.json`,
-each with the rules for that file as the `>` block under it. Open it before writing: no file's own
-rules are written twice, so this file holds only the two rule lists below and the procedure.
+**Every file this route writes has a filled copy in `examples/workflows/`** — the same layout as `$WORKFLOWS_DIR`, for the `anchor-reconcile` flow. Copy its shape, not its content.
+
+```
+$WORKFLOWS_DIR/
+├── _flow.entities.d.ts          # shared ambient types
+├── tsconfig.json                # one config for every flow folder
+├── flows.json                   # aggregated, written last
+├── components/<name>.d.ts       # one declaration per app component, shared
+└── <ep-slug>/
+    ├── <ep-slug>.workflow.ts
+    └── <ep-slug>.bindings.json  # notable-branch ULID → verified source
+```
+
+**The output is code files on disk, never markdown.** A flow sketch MUST NOT appear in a `.md` file or a fenced block in chat. The research `.md` links to the `.ts`; it does not contain it.
 
 Workflow artifacts live in `$WORKFLOWS_DIR` — **not** in `$RESEARCH_DIR` — one folder per flow.
 
@@ -54,12 +64,12 @@ machine-readable, navigable spec. They must agree on the cited locations.
 1. **Resolve `<notes-dir>`, `$RESEARCH_DIR` and `$WORKFLOWS_DIR`** (router "Output location"). Require existing `<ep-slug>.md` artifacts in `$RESEARCH_DIR` — if missing, run `docs` first.
 2. **Create the layout:** `mkdir -p "$WORKFLOWS_DIR/components"`.
 3. **Pick entry points.** Default: every `<ep-slug>.md` in `$RESEARCH_DIR` with no `$WORKFLOWS_DIR/<ep-slug>/` folder. User may name a subset.
-4. **For each entry point, spawn a subagent in parallel** — see `dive:SKILL.md` § Parallel subagents for the type, the model, and the one-message rule. Brief each with:
+4. **For each entry point, spawn a writer subagent in parallel** — all `Agent` calls in one message, `subagent_type: "general-purpose"`, `model: "sonnet"`. Not `Explore`: it has no Write tool, so its code comes back as chat text and no file lands. Brief each with:
    - The `<ep-slug>.md` (the cited locations to mirror) and the absolute `$WORKFLOWS_DIR`
-   - **The absolute path of `examples/workflow-flow.md`**, plus "read it first: it is every file you must write, filled for a different flow, and the `>` block under each one states that file's rules. Delete the `>` blocks from what you write — they are rules, not content."
+   - **The absolute path of `examples/workflows/`**, plus "read every file in it first: it is the shape of every file you must write, filled for a different flow."
    - "Verify every `@source` and every `bindings.json` `source` by reading the file — do not guess. Prefer absolute paths."
-   - "Create `$WORKFLOWS_DIR/<ep-slug>/` and emit `<ep-slug>.workflow.ts` + `<ep-slug>.bindings.json` inside it. Append any new component to `$WORKFLOWS_DIR/components/<name>.d.ts` — shared, one level up. Import shared types and components with `../`."
-5. **Wait for all subagents.** Write/refresh `$WORKFLOWS_DIR/_flow.entities.d.ts` and `$WORKFLOWS_DIR/tsconfig.json`.
+   - "Write with the Write tool: `$WORKFLOWS_DIR/<ep-slug>/<ep-slug>.workflow.ts` and `$WORKFLOWS_DIR/<ep-slug>/<ep-slug>.bindings.json`. Append any new component to `$WORKFLOWS_DIR/components/<name>.d.ts` — shared, one level up. Import shared types and components with `../`. Write no `.md` file and paste no code in your reply — return only the paths you wrote."
+5. **Wait for all subagents, then check the files landed.** Each picked entry point MUST have a non-empty `$WORKFLOWS_DIR/<ep-slug>/<ep-slug>.workflow.ts` and `.bindings.json`. A missing file → re-spawn that entry point's writer; never write its code into a `.md` as a fallback. Write/refresh `$WORKFLOWS_DIR/_flow.entities.d.ts` and `$WORKFLOWS_DIR/tsconfig.json`.
 6. **Lint:** run `~/.claude/scripts/flow-reveal.mjs check $WORKFLOWS_DIR`. Fix any missing/past-EOF citation before continuing.
 7. **Aggregate** all per-flow workflows into `$WORKFLOWS_DIR/flows.json`. Deduplicate packages by `id`.
 8. **Update** `$RESEARCH_DIR/INDEX.md` — add `[workflow]` links pointing at `../workflows/<ep-slug>/<ep-slug>.workflow.ts` and the `flows.json` line.

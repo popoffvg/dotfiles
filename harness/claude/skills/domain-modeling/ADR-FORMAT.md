@@ -43,9 +43,25 @@ The copyable file is `ADR-TEMPLATE.md`, next to this document. Its body:
 # {Short title of the decision}
 
 {1-3 sentences: what is the context, what did we decide, and why.}
+
+## Reason
+
+> {the operator's words: why this option won}
+
+## Properties
+
+- P1. {an invariant the code must keep while this decision holds}
 ```
 
-A title, a paragraph, and the changelog section are the whole requirement. An ADR can be a single paragraph. The value is in recording *that* a decision was made and *why* — not in filling out sections.
+A title, a paragraph, the reason, the Properties, and the changelog section are the whole requirement. The value is in recording *that* a decision was made, *why*, and *what must stay true* while it holds — not in filling out sections.
+
+### Reason
+
+**The reason is the operator's, quoted.** Write it under `## Reason` as a quote from the session or the grill answer. A reason the agent inferred and the operator never confirmed keeps the ADR `proposed`.
+
+### Properties
+
+**Every accepted ADR lists at least one Property under `## Properties`.** A Property is one invariant the code must keep while the decision holds, numbered `P1.`, `P2.`, … and cited as `ADR-NNNN/P2`. A reviewer checks a diff against each one, so a Property is checkable: "the Installer never runs `terraform apply` on the operator's machine", not "deployments are robust". A rule or a value that follows from the decision, such as a timeout, is a Property of that ADR, never an ADR of its own.
 
 ### Optional sections
 

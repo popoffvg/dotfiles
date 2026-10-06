@@ -54,6 +54,16 @@ Each prompt carries the file path, every comment on that file (`<lines> — <tex
 - `(orphaned)` means the anchored line moved or was rewritten. Locate the text the comment was written on before acting; `${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py --store <SESSION>/line-comment.json <ROOT>` prints which line still matches each stored anchor. Pass `<ROOT>` explicitly — the script otherwise resolves paths against the store's grandparent, which is the session folder rather than the project.
 - Return one line per comment and nothing else: `<file>:<line> — <what changed, or "unresolved: <why>">`.
 
+## Sweep a renamed term
+
+A comment that renames a domain term changes more than its file. When the project has a wm notes-dir `GLOSSARY.md`, spawn one more fork, `fix-glossary`, after every per-file fork has returned — never beside them, because it edits files they own. Its prompt carries each `old → new` pair and this contract:
+
+- Make the old name a Forbidden name of the new entry, or retire the entry, as wm `code:ref-subcommand-rules.md` § Glossary says.
+- Rename every other use of the old name in the notes dir: `spec.md`, the TODO halves, the live thoughts.
+- Return one line per pair: `<old> → <new> — <entry changed>, <N> uses renamed`.
+
+Each pair is one more block in `processed.md`.
+
 ## Record the session as processed
 
 Write `<SESSION>/processed.md` — one block per comment, acted on and unresolved alike:

@@ -15,6 +15,9 @@ sidebar_collapsed_mode = "hidden"
 # No tab row until a second tab exists. prefix+c still makes one.
 hide_tab_bar_when_single_tab = true
 
+[keys]
+prefix = "ctrl+k"
+
 # Keybindings the `annotate` plugin (plannotator/herdr-annotate) requires.
 # herdr has no config include, so this block is copied into both config.toml
 # and zed.toml. Edit here first, then mirror it into both.

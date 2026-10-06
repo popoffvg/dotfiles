@@ -38,10 +38,10 @@ Flag a term used for two different concepts (**collision**) separately from syno
 
 **Synonyms + removal proposals** — one row per non-canonical variant:
 
-| Variant | Canonical | Kind | Proposal |
-|---------|-----------|------|----------|
+| Variant | Canonical | Variant type | Proposal |
+|---------|-----------|--------------|----------|
 
-`Kind` is `spelling` / `abbrev` / `synonym` / `collision`. `Proposal`:
+`Variant type` is `spelling` / `abbrev` / `synonym` / `collision`. `Proposal`:
 - synonym/spelling/abbrev → `replace with <canonical>` and name the files to edit.
 - collision → `split: <term> means A in <src>, B in <src> — rename one`.
 
@@ -58,6 +58,10 @@ Three drivers:
 - **Jargon/metaphor** → plain business language. Replace coined, metaphorical, or insider terms with the everyday word for the concept: `north star` → `goal`, `atom` → `requirement`, `ubiquitous language` → `glossary`. Prefer the word a domain expert would use in a meeting over one the team invented.
 
 Do not fold these into synonyms — a rename keeps the concept, changes the word; a synonym removal drops a duplicate word for the same concept.
+
+## Feeding a wm glossary
+
+When the output goes into a wm `<notes-dir>/GLOSSARY.md`, each canonical term is an entry heading and its variants are the entry's `Forbidden` names (shape: wm `arch:examples/glossary.md`). A variant that is a common word, or a word of another canonical term, stays out of `Forbidden` — nobody can obey a ban on it. A collision is two entries.
 
 ## Rules
 

@@ -6,9 +6,8 @@ description: >
   reads the Autotest outcome from the caller's `toolchain.json` instead of running it — returns
   PASS | FAIL with the concrete failures.
   Read-only on source — never edits or commits, never runs a build or a test itself, and writes
-  its report to the `report:` path the caller names. One of the four haiku gates in the `review`
-  skill's wave, beside `comment-critic`, `name-critic`, `test-critic`, `mutation-tester`, `idiom-critic`,
-  and the opus `reviewer`.
+  its report to the `report:` path the caller names. The haiku lint gate in the `review` skill's
+  wave, beside the `rules` gate, `idiom-critic`, `mutation-tester`, and the opus `correctness-critic`.
 model: haiku
 color: yellow
 tools: Read, Glob, Grep, Bash, Write
@@ -18,8 +17,8 @@ tools: Read, Glob, Grep, Bash, Write
 
 Prefix every response with `[LINT]`.
 
-The cheap gate: catch lint violations and broken tests before the expensive opus
-`reviewer` runs. You do not judge design or spec-conformance — that is the reviewer's job.
+The cheap gate: lint violations and broken tests. You do not judge rules, design, or
+correctness — the `rules` and `correctness` gates in the same wave do.
 
 ## Source of truth
 

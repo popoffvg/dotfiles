@@ -7,6 +7,10 @@
 // custom settings, run the `open default settings` command
 // from the command palette or from `Zed` application menu.
 {
+  "auto_update": false,
+  "session": {
+    "trust_all_worktrees": true
+  },
   "soft_wrap": "editor_width",
   "markdown_preview": {
     "code_font_family": ".ZedMono",
@@ -156,6 +160,12 @@
   },
   "helix_mode": true,
   "agent_servers": {
+    "claude-acp": {
+      "default_config_options": {
+        "fast": false
+      },
+      "type": "registry"
+    },
     "cursor": {
       "default_config_options": {
         "reasoning_effort": "medium",
@@ -208,7 +218,9 @@
     "notify_when_agent_waiting": "all_screens",
     "enable_feedback": false,
     "sandbox_permissions": {
-      "allow_unsandboxed": true
+      "allow_fs_write_all": true,
+      "allow_all_hosts": true,
+      "allow_unsandboxed": false
     },
     "expand_terminal_card": false,
     "terminal_init_command": "~/.claude/scripts/herdr-zed.sh",

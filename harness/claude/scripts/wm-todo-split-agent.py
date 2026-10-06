@@ -9,10 +9,14 @@ performs that cut on a body written before the split:
                           Surface, Autotest,       counted on it. `Surface` is the one diff
                           Commit                   in the pair and STAYS here.
 
-  todos/TODO-N.agent.md   Constraints, Changes     the implementer's half; no line budget,
-                          (the increments), Files, no frontmatter — `status` stays in the
-                          Pre-reads, Manual test,  human half, since a status written
-                          Definition of done       twice disagrees with itself
+  todos/TODO-N.agent.md   Changes (the             the implementer's half; no line budget,
+                          increments), Files,      no frontmatter — `status` stays in the
+                          Pre-reads, Manual test   human half, since a status written
+                                                   twice disagrees with itself
+
+  dropped                 Constraints,             the rules command lives in
+                          Definition of done       todos/CLAUDE.md; every other check has
+                                                   its own owner
 
 Why a script and not a one-off edit: the cut is mechanical, it is the same cut for every
 row in the ledger, and doing it by hand on a long markdown file silently drops a section.
@@ -34,17 +38,15 @@ import re
 import sys
 from pathlib import Path
 
-# The agent half's elements, in the order sub-todo.md lists them. `Constraints` leads
-# because it bounds every increment below it; `Changes` is the section the half exists for,
+# The agent half's elements, in the order sub-todo.md lists them. `Changes` is the section the half exists for,
 # and the reason the half has no line budget.
 AGENT_SECTIONS = (
-    "Constraints",
     "Changes",
     "Files",
     "Pre-reads",
     "Manual test",
-    "Definition of done",
 )
+DROPPED_SECTIONS = ("Constraints", "Definition of done")
 
 H2 = re.compile(r"^## +(.+?)\s*$")
 # The pre-split template drew the cut as an HTML comment between Commit and Files. Once the
@@ -74,6 +76,11 @@ def split(text: str):
     keep_mask = [not SCAFFOLD_MARKER.match(l) for l in lines]
     agent_chunks, moved = [], []
     for title, s, e in spans:
+        if title in DROPPED_SECTIONS:
+            moved.append(f"{title} (dropped)")
+            for j in range(s, e):
+                keep_mask[j] = False
+            continue
         if not is_agent_heading(title):
             continue
         moved.append(title)

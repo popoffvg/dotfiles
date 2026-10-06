@@ -1,12 +1,12 @@
 export const meta = {
   name: 'wm-code-impl',
   description: 'Run the review gate chain until every gate passes — over one wm TODO it implements first, or over a diff no TODO pair covers',
-  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — one parallel checks batch (lint, comments, names, test worth, and the opus outcome gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks (after a comment-only fixup, only the comment check and the checks that failed; after a rename-only fixup, lint, comment, name, and the checks that failed). wm-code-auto calls this once per TODO.",
+  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — wm-rule-batches.py plans the rule batches, one parallel checks wave (lint, one haiku rule-checker per batch then the sonnet rule-reducer, idiom, and the opus correctness gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks (after a comment-only fixup, rules and the checks that failed; after a comment-and-rename fixup, lint, rules, and the checks that failed). wm-code-auto calls this once per TODO.",
   phases: [
     { title: 'Intent', detail: 'diff mode only — resolve the range and derive the intent sentence', model: 'haiku' },
     { title: 'Implement', detail: 'wm:implementer (sonnet, opus for a red TODO) writes + commits, and fixes every gate finding', model: 'sonnet' },
-    { title: 'Rules', detail: "todo mode only — write the TODO's rule set to review/TODO-N/constraints.md once, and again after a fixup that changes thoughts/", model: 'haiku' },
-    { title: 'Checks', detail: 'lint-tester + comment-critic + name-critic + test-critic + reviewer, in parallel', model: 'haiku + opus' },
+    { title: 'Plan', detail: 'before each wave — wm-rule-batches.py plan cuts the diff into rule-checker batches; exit 2 stops the run', model: 'haiku' },
+    { title: 'Checks', detail: 'lint-tester + rule-checker per batch then rule-reducer + idiom-critic + correctness-critic, in parallel', model: 'haiku + sonnet + opus' },
     { title: 'Judge', detail: 'from round 2, a red checks wave goes to an opus judge that waives it when every finding is a nit', model: 'opus' },
     { title: 'Test', detail: 'wm:tester (sonnet) gates the Autotest contract', model: 'sonnet' },
   ],
@@ -58,7 +58,8 @@ if (mode === 'todo' && !hasTodo) {
 const todoPath = mode === 'todo' ? `${notesDir}/todos/TODO-${todo}.md` : null
 
 // review:sub-diff.md step 1 — the caller names the range; nothing named means the working tree.
-let range = parsed.range || 'HEAD'
+// In todo mode a missing range is resolved by the first Plan step: the TODO's commit plus its fixups.
+let range = parsed.range || (mode === 'todo' ? null : 'worktree')
 let intent = parsed.intent || null
 
 // Set by wm-code-auto to the lessons file every round must read before it edits.
@@ -97,16 +98,17 @@ const IMPL = {
     blocker: { type: 'string', description: 'set only when blocked: what was tried + why stopped' },
     commentOnly: { type: 'boolean', description: 'correction round only: true when every line the fixup changes is a comment or a doc tag and no code token changed, checked with git show on the fixup' },
     renameOnly: { type: 'boolean', description: 'correction round only: true when every changed code line differs from its old line only in identifiers the failures asked to rename, checked with git show on the fixup; comments may change too' },
-    thoughtsChanged: { type: 'boolean', description: 'true when this round added or edited a file under the notes-dir thoughts/' },
   },
 }
-const RULES = {
+const PLAN = {
   type: 'object',
   additionalProperties: false,
-  required: ['exit'],
+  required: ['exit', 'range', 'stdout', 'stderr'],
   properties: {
-    exit: { type: 'integer', description: 'the exit code of wm-constraints.py' },
-    lines: { type: 'integer', description: 'the line count of the file it wrote' },
+    exit: { type: 'integer', description: 'the exit code of wm-rule-batches.py plan' },
+    range: { type: 'string', description: 'the --range value passed, verbatim' },
+    stdout: { type: 'string', description: 'its stdout, verbatim, every line' },
+    stderr: { type: 'string', description: 'its stderr, verbatim' },
   },
 }
 const INTENT = {
@@ -166,7 +168,7 @@ const safetyClause =
   `status:"blocked" naming exactly what is missing and the command you would have needed — let a ` +
   `human install it. Never put a secret value in anything you return. `
 
-// The comment, name and test-worth gates judge a diff, and a wm diff carries two kinds of file:
+// The rules and idiom gates judge a diff, and a wm diff carries two kinds of file:
 // source, and the notes corpus the source was written from. Only source is the subject. Left
 // unsaid, the gates judge the spec: a real run spent findings on the identifiers quoted inside
 // `todos/TODO-5.md` and on the em-dashes in its Outcome paragraph, and the implementer edited the
@@ -203,8 +205,7 @@ function implPrompt(failures, extra) {
     `(git commit --fixup=<sha-being-corrected>), never a plain commit:\n` +
     failures.map((f) => `- ${f}`).join('\n') +
     `\n\nSet commentOnly:true only when git show on your fixup changes comments and doc tags and nothing else. ` +
-    `Set renameOnly:true only when every code line it changes differs from the old line only in identifiers the failures asked to rename. ` +
-    `Set thoughtsChanged:true when this round added or edited a file under ${notesDir}/thoughts/.`
+    `Set renameOnly:true only when every code line it changes differs from the old line only in identifiers the failures asked to rename.`
   )
 }
 
@@ -222,93 +223,62 @@ function subjectClause() {
   return `the diff ${range} (notes-dir ${notesDir}) — no TODO pair covers it. Intent: ${intent}`
 }
 
-function checks() {
+// A row with `batches` is a map-reduce gate: one `mapAgentType` agent per batch, then the row's own
+// agent over their results. A row with `verdictFromText` runs with no schema; its verdict is the
+// `Result:` line of the text it returns.
+function checks(batches) {
   const subject = subjectClause()
-  const theDiff = mode === 'todo' ? `the diff of ${subject} — the TODO's commit plus its fixups` : subject
+  const theDiff = mode === 'todo' ? `the diff ${range} of ${subject} — the TODO's commit plus its fixups` : subject
   return [
     {
       key: 'lint',
       agentType: 'wm:lint-tester',
+      model: 'haiku',
       prompt:
         lessonsClause +
         safetyClause +
         `Lint gate for ${subject}. Follow the wm:lint-tester contract: lint the changed files with ` +
         `the repo's configured linter and run the tests covering them. ` +
         (mode === 'todo'
-          ? `Take the file list from the diff + the TODO's Files, and run the TODO's Autotest too. `
+          ? `Take the file list from the diff ${range} + the TODO's Files, and run the TODO's Autotest too. `
           : `Take the file list from the diff; no ## Autotest command exists, so the covering tests are all you run. `) +
         `Return result PASS/FAIL, failures verbatim, and the real commands you ran.`,
     },
     {
-      key: 'comment',
-      agentType: 'wm:comment-critic',
+      key: 'rules',
+      agentType: 'wm:rule-reducer',
+      model: 'sonnet',
+      mapAgentType: 'wm:rule-checker',
+      mapModel: 'haiku',
+      batches,
+      verdictFromText: true,
+      prompt:
+        `rules: ${reportDir}/rules\nreport: ${reportDir}/rules.md` +
+        settledRenames.map((s) => `\nsettled: ${s.from} → ${s.to}`).join(''),
+    },
+    {
+      key: 'idiom',
+      agentType: 'wm:idiom-critic',
+      model: 'sonnet',
+      prompt:
+        lessonsClause +
+        scopeClause +
+        `Idiom gate for ${theDiff}. Follow the wm:idiom-critic contract. Return result PASS/FAIL with ` +
+        `failures (file:line — the idiom broken — the guide — the rewrite).`,
+    },
+    {
+      key: 'correctness',
+      agentType: 'wm:correctness-critic',
+      model: 'opus',
       prompt:
         lessonsClause +
         safetyClause +
         scopeClause +
-        `Comment gate for ${theDiff}. Follow the wm:comment-critic contract: judge every comment, ` +
-        `doc line, and doc tag the diff adds or changes. You never read the TODO pair — a comment is ` +
-        `judged against the code under it. Return result PASS/FAIL with failures ` +
-        `(file:line — the rule — the rewrite).`,
-    },
-    {
-      key: 'name',
-      agentType: 'wm:name-critic',
-      prompt:
-        lessonsClause +
-        safetyClause +
-        scopeClause +
-        `Naming gate for ${theDiff}. Follow the wm:name-critic contract: run the pedant smell table ` +
-        `over every name the diff declares. You never read the TODO pair — a name is judged against ` +
-        `its own body. ` +
-        // The one exception to "you never read the pair", and the fix for a four-round rename war:
-        // the outcome gate reads these rules and enforces the spellings they fix. A smell table
-        // that cannot see them proposes the rename that gate will reverse next round.
-        `FIRST run \`~/.claude/scripts/wm-constraints.py ${notesDir}/thoughts\` and read ` +
-        `${notesDir}/GLOSSARY.md. A name whose spelling a rule or a glossary term FIXES is settled: ` +
-        `it is not yours to judge, whatever the smell table says about it — the outcome gate enforces ` +
-        `that rule in this same wave and will reverse you. When you believe a settled name is wrong, ` +
-        `say so as a nit naming the rule, never as a failure. ` +
-        `Return result PASS/FAIL with failures ` +
-        `(file:line — name — smell — the bug it hides — rename).`,
-    },
-    // The two test gates are opposites and both are needed: this one drops the tests the diff wrote
-    // that buy no failure mode, the serial one writes the test the diff left missing. It is the only
-    // gate the round after a folded test runs.
-    {
-      key: 'testWorth',
-      agentType: 'wm:test-critic',
-      prompt:
-        lessonsClause +
-        safetyClause +
-        scopeClause +
-        `Test-worth gate for ${theDiff}. Follow the wm:test-critic contract: judge every test the ` +
-        `diff adds or changes and reject the ones that assert nothing the code can get wrong — a body ` +
-        `with no branch, a getter returning what was set, a case a wider test in the same diff already ` +
-        `proves. Propose the deletion and apply none. Return result PASS/FAIL with failures ` +
-        `(file:line — the test to delete — what it fails to assert).`,
-    },
-    // The standards gate runs in the wave, not after it. It reads the diff and shares no state with
-    // the cheap gates, so serialising it only added its own latency to the round. A test the test
-    // gate writes never reaches it: that round runs the test-worth gate alone.
-    {
-      key: 'outcome',
-      agentType: 'wm:reviewer',
-      prompt:
-        lessonsClause +
-        safetyClause +
-        (mode === 'todo'
-          ? `Outcome gate for ${subject}. Follow the wm:reviewer contract: judge from the TODO pair ` +
-            `(Outcome, Surface, Constraints, Changes) + the real diff whether the Outcome is delivered ` +
-            `without correctness bugs or spec drift. constraints: ${rulesPath} — the rule set of this ` +
-            `TODO, written once for the whole chain. Read it for source 3; never run wm-constraints.py yourself. `
-          : `Standards gate for ${subject}. Follow the wm:reviewer contract with no pair to cite: the ` +
-            `rules come from the repo's CLAUDE.md files, the house style docs, the code around the ` +
-            `diff, and the language idiom. The intent sentence is context, never a contract — never ` +
-            `rule on whether the diff delivers it. Judge how the code is built, plus correctness. `) +
-        `Lint, the comments, the names, and the worth of each test are judged by their own gates in ` +
-        `this same wave — report none of them. Return result PASS/FAIL with failures ` +
-        `(file:line — scenario — closing edit).`,
+        `Correctness gate for ${theDiff}. Follow the wm:correctness-critic contract.\n` +
+        `range: ${range}\n` +
+        `toolchain: ${reportDir}/toolchain.json\n` +
+        (mode === 'diff' ? `intent: ${intent} — context, never a contract.\n` : '') +
+        `Return result PASS/FAIL with failures (file:line — scenario — closing edit).`,
     },
   ]
 }
@@ -338,30 +308,74 @@ function serial() {
 }
 
 // Every gate got a byte-identical brief in every round, so each round was a cold re-read with no
-// knowledge that it had already cleared the text in front of it. Measured on one TODO: the comment
-// gate passed rounds 2 and 3 and then failed round 4 on spec lines no fixup had touched, and the
-// test-worth gate passed a test three times before demanding its deletion. Each such late finding
+// knowledge that it had already cleared the text in front of it. Measured on one TODO: a gate
+// passed rounds 2 and 3 and then failed round 4 on spec lines no fixup had touched, and another
+// passed a test three times before demanding its deletion. Each such late finding
 // costs a full implementer round. Handing a gate its own record turns "I could raise this" into
 // "I already passed this", and asks for the rest of its findings now instead of next round.
 // Every gate contract hard-requires the `report:` path its brief names, and no brief named one:
 // four of the five wrote to a path they guessed, and one invented a different path from its
 // siblings, so the run left no readable record where the next run looks for it.
 const reportDir = mode === 'todo' ? `${notesDir}/review/TODO-${todo}` : `${notesDir}/review/diff`
-const rulesPath = `${reportDir}/constraints.md`
 
-// The rule set changes only when a note under thoughts/ changes. Written here, the opus gate reads
-// one file per round instead of running the generator in each one.
-async function writeRules() {
-  phase('Rules')
+// Renames a fixup already applied. From round 2 the rule-reducer drops a FAIL that asks for one again.
+const settledRenames = []
+
+// Planned every round: the rule dirs are read again, so a rule added mid-chain is checked next round.
+async function planRules() {
+  phase('Plan')
+  const rangeStep =
+    range === null
+      ? `First resolve the range: the TODO-${todo} commit plus every fixup on top of it — ` +
+        `<parent of the TODO's commit>..HEAD, found with git log --oneline. Use it as <range>.\n`
+      : ''
   const out = await agent(
-    `Write the rule set of TODO-${todo} to a file. Run exactly this command:\n` +
-      `mkdir -p ${reportDir} && ~/.claude/scripts/wm-constraints.py ${notesDir}/thoughts --todo TODO-${todo} > ${rulesPath}\n` +
-      `Exit 1 means no rule matched and leaves the file empty: that is a result, not an error. ` +
-      `Change no other file, commit nothing. Return the exit code and the line count of ${rulesPath}.`,
-    { agentType: 'general-purpose', model: 'haiku', phase: 'Rules', schema: RULES, label: `rules:TODO-${todo}` },
+    `Plan the rule-checker batches. Change no other file, commit nothing.\n` +
+      rangeStep +
+      `Run exactly:\n` +
+      `~/.claude/scripts/wm-rule-batches.py plan --notes-dir ${notesDir}` +
+      (mode === 'todo' ? ` --todo TODO-${todo}` : '') +
+      ` --range ${range === null ? '<range>' : range} --out ${reportDir}/rules\n` +
+      `Return its exit code, the --range value you passed, its stdout verbatim with every line, and its stderr verbatim.`,
+    { agentType: 'general-purpose', model: 'haiku', phase: 'Plan', schema: PLAN, label: `plan:r${round}` },
   )
-  if (out && out.exit > 1) log(`rules: wm-constraints.py exited ${out.exit} — the standards gate gets an empty rule file`)
-  return out
+  if (!out) return { error: 'the plan agent died' }
+  if (out.exit !== 0) return { error: `wm-rule-batches.py plan exited ${out.exit}: ${out.stderr.trim()}` }
+  if (range === null) range = out.range
+  const lines = out.stdout.split('\n').filter((l) => l.trim() !== '')
+  log(`round ${round}: ${lines[0] || 'plan printed no summary'}`)
+  const batches = lines.slice(1).map((l) => {
+    const [id, file, rules, brief] = l.split('\t')
+    return { id, file, rules, brief }
+  })
+  return { batches }
+}
+
+// The `Result:` line decides the verdict; each `- ` line under `## Failures` is one failure.
+function verdictFromText(text) {
+  const result = (text.match(/Result:\s*(PASS|FAIL)/) || [])[1]
+  if (!result) return null
+  const section = (text.split(/^## Failures.*$/m)[1] || '').split(/^## /m)[0]
+  const failures = section.split('\n').filter((l) => l.startsWith('- ')).map((l) => l.slice(2).trim())
+  return { result, failures }
+}
+
+async function runGate(gate) {
+  const opts = { agentType: gate.agentType, model: gate.model, phase: 'Checks', label: `${gate.key}:r${round}` }
+  if (gate.batches) {
+    const mapped = await parallel(
+      gate.batches.map((b) => () =>
+        agent(`batch: ${b.brief}`, { agentType: gate.mapAgentType, model: gate.mapModel, phase: 'Checks', label: `${gate.key}:${b.id}:r${round}` }),
+      ),
+    )
+    const lost = gate.batches.filter((_, i) => !mapped[i])
+    if (lost.length > 0) log(`round ${round}: ${lost.length} ${gate.mapAgentType} agent(s) died — the reducer reports their pairs as UNCHECKED`)
+  }
+  if (gate.verdictFromText) {
+    const text = await agent(gate.prompt + historyClause(gate.key), opts)
+    return text ? verdictFromText(text) : null
+  }
+  return agent(gate.prompt + reportClause(gate.key) + historyClause(gate.key), { ...opts, schema: GATE })
 }
 
 function reportClause(gateKey) {
@@ -378,17 +392,16 @@ function historyClause(gateKey) {
     `\n\nYOUR OWN RECORD. This is round ${round} of the same chain over the same work, and you have ` +
     `judged it before:\n${record}\n\n` +
     `A finding you could have raised in an earlier round, on text no fixup has touched since, is ` +
-    `OUT OF ORDER — you held that text and you passed it. Raise it only if it changed since; say ` +
+    `OUT OF ORDER — you read that text and you passed it. Raise it only if it changed since; say ` +
     `what changed. Everything else you still have: raise it NOW, in this round, because a finding ` +
-    `held back costs a whole implementation round. Re-report a finding above only when the fixup ` +
+    `kept back costs a whole implementation round. Re-report a finding above only when the fixup ` +
     `failed to close it, and name which one it repeats.`
   )
 }
 
-// Two gates with different sources of truth flip a name back and forth forever, and neither can see
-// the other: the naming gate judged an identifier from its own smell table while the outcome gate
-// enforced the rule that fixes that same identifier's spelling. Measured: four rounds, the same
-// rename applied in both directions twice, and `git diff` between the two fixups EMPTY — 25 minutes
+// Two rule sources flip a name back and forth forever, and neither can see the other: one judged an
+// identifier from a smell table while another enforced the rule that fixes that same identifier's
+// spelling. Measured: four rounds, the same rename applied in both directions twice, and `git diff` between the two fixups EMPTY — 25 minutes
 // and 155k output tokens of pure churn. A reversal is not a finding to route; it is a contradiction
 // between two rules only a human can settle.
 // Only the TARGET of a finding is stated precisely — after the `→`, or after "rename … to X". The
@@ -438,8 +451,9 @@ function judgePrompt(findings) {
     scopeClause +
     `Triage judge for ${subjectClause()}, round ${round}. The checks wave is red again. Read the ` +
     `real diff and each finding below, and classify every finding:\n` +
-    `- BLOCKING: a correctness bug, a lint or test failure, spec drift, a broken repo rule, a name ` +
-    `or comment that states something false, a test that asserts nothing.\n` +
+    `- BLOCKING: a correctness bug, a lint or test failure, spec drift, a broken rule that is not ` +
+    `Severity: nit, a broken D<NNN> rule, an UNCHECKED rule, a name or comment that states something ` +
+    `false, a test that asserts nothing.\n` +
     `- NIT: a style preference, a clearer name for a name that is not wrong, wording, ordering, a ` +
     `redundant but harmless test, anything whose fix changes no behaviour and hides no bug.\n` +
     `When you are not sure, it is BLOCKING. Return verdict ALLOW only when every finding is a NIT; ` +
@@ -454,7 +468,7 @@ let round = 0
 let foldedTests = false
 let rerunOnly = null
 const history = []
-const fails = { lint: 0, comment: 0, name: 0, testWorth: 0, test: 0, outcome: 0 }
+const fails = { lint: 0, rules: 0, idiom: 0, correctness: 0, test: 0 }
 
 function blocked(stage, impl) {
   return { result: 'BLOCKED', mode, todo, stage, blocker: impl ? impl.blocker : 'implementer agent died', round, history }
@@ -465,15 +479,14 @@ if (mode === 'todo') {
   phase('Implement')
   impl = await agent(implPrompt(), { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `impl:TODO-${todo}` })
   if (!impl || impl.status === 'blocked') return blocked('initial', impl)
-  if (!(await writeRules())) return { result: 'ERROR', mode, todo, stage: 'rules', round, history }
 } else {
   // review:sub-diff.md steps 1-2 — resolve the range and derive the intent, because the
-  // outcome gate has nothing approved to judge against without them.
+  // correctness gate has nothing approved to judge against without them.
   phase('Intent')
   const resolved = await agent(
     `Resolve a review target and report it. Change no file, commit nothing.\n` +
-      `1. Resolve "${range}" into one revision range per review:sub-diff.md step 1 — nothing named means the ` +
-      `uncommitted working tree (git diff HEAD), "last" means git show HEAD, a branch means that branch against ` +
+      `1. Resolve "${range}" into one revision range per review:sub-diff.md step 1 — "worktree" means the ` +
+      `uncommitted working tree — return the word worktree as the range, "last" means HEAD~1..HEAD, a branch means that branch against ` +
       `its merge base with the default branch, a sha or range means exactly that, a PR url or number means gh pr diff.\n` +
       `2. Set empty:true when that range holds no change.\n` +
       (intent
@@ -503,22 +516,18 @@ while (round < MAX_ROUNDS) {
 
   // The checks: the gates over the same diff, in one parallel batch. They share no state, so the
   // wall clock is the slowest of them instead of their sum.
+  const plan = await planRules()
+  if (plan.error) {
+    log(`round ${round}: rule plan failed — ${plan.error}`)
+    return { result: 'ERROR', mode, todo, stage: 'rules-plan', blocker: plan.error, round, history }
+  }
   phase('Checks')
   const CHECKS = testsOnly
-    ? checks().filter((g) => g.key === 'testWorth')
+    ? checks(plan.batches).filter((g) => g.key === 'rules')
     : onlyKeys
-      ? checks().filter((g) => onlyKeys.has(g.key))
-      : checks()
-  const checksOut = await parallel(
-    CHECKS.map((gate) => () =>
-      agent(gate.prompt + reportClause(gate.key) + historyClause(gate.key), {
-        agentType: gate.agentType,
-        phase: 'Checks',
-        schema: GATE,
-        label: `${gate.key}:r${round}`,
-      }).then((out) => ({ gate, out })),
-    ),
-  )
+      ? checks(plan.batches).filter((g) => onlyKeys.has(g.key))
+      : checks(plan.batches)
+  const checksOut = await parallel(CHECKS.map((gate) => () => runGate(gate).then((out) => ({ gate, out }))))
   const checksRuns = checksOut.filter(Boolean)
   const checksDied = CHECKS.filter((g) => !checksRuns.some((r) => r.gate.key === g.key) || !checksRuns.find((r) => r.gate.key === g.key).out)
   if (checksDied.length > 0) return { result: 'ERROR', mode, todo, stage: checksDied.map((g) => g.key).join('+'), round, history }
@@ -642,16 +651,20 @@ while (round < MAX_ROUNDS) {
   phase('Implement')
   impl = await agent(implPrompt(failures), { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `fixup-${failed.gate.key}:r${round}` })
   if (!impl || impl.status === 'blocked') return blocked(`${failed.gate.key}-fixup`, impl)
-  if (mode === 'todo' && impl.thoughtsChanged && !(await writeRules())) return { result: 'ERROR', mode, todo, stage: 'rules', round, history }
+  for (const f of failures) {
+    for (const m of f.matchAll(/`?([A-Za-z_][A-Za-z0-9_]{2,})`?\s*→\s*`?([A-Za-z_][A-Za-z0-9_]{2,})`?/g)) {
+      if (!settledRenames.some((r) => r.from === m[1] && r.to === m[2])) settledRenames.push({ from: m[1], to: m[2] })
+    }
+  }
   // A fixup can break what an earlier gate already cleared → restart the chain, never resume.
-  // A comment-only fixup cannot, so only the comment gate and the gates that failed run again.
-  // A rename changes no behaviour, so test worth and standards keep their verdicts; lint still
-  // runs because a missed call site fails the build.
+  // A comment-only fixup cannot, so only the rules gate and the gates that failed run again.
+  // A rename changes no behaviour, so correctness keeps its verdict; lint still runs because a
+  // missed call site fails the build.
   if (impl.commentOnly) {
-    rerunOnly = new Set(['comment', ...failed.gate.key.split('+')])
+    rerunOnly = new Set(['rules', ...failed.gate.key.split('+')])
     log(`round ${round}: fixup changed comments only → next checks: ${[...rerunOnly].join('+')}`)
   } else if (impl.renameOnly) {
-    rerunOnly = new Set(['lint', 'comment', 'name', ...failed.gate.key.split('+')])
+    rerunOnly = new Set(['lint', 'rules', ...failed.gate.key.split('+')])
     log(`round ${round}: fixup changed comments and renames only → next checks: ${[...rerunOnly].join('+')}`)
   }
 }

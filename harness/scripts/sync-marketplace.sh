@@ -18,6 +18,12 @@ for manifest in "$PLUGINS_DIR"/*/.claude-plugin/plugin.json; do
   ver=$(jq -r '.version // "1.0.0"' "$manifest")
   desc=$(jq -r '.description // ""' "$manifest")
 
+  codex_manifest="$PLUGINS_DIR/$name/.codex-plugin/plugin.json"
+  if [[ -f "$codex_manifest" ]]; then
+    updated=$(jq --arg version "$ver" '.version = $version' "$codex_manifest")
+    printf '%s\n' "$updated" > "$codex_manifest"
+  fi
+
   entries+=("$(jq -nc \
       --arg name "$name" \
       --arg ver  "$ver" \

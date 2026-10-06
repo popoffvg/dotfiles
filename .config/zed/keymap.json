@@ -10,7 +10,8 @@
   {
     "context": "Terminal",
     "bindings": {
-      "shift-enter": ["terminal::SendText", "\u001b\r"],
+      "shift-enter": ["terminal::SendText", "\n"],
+      "cmd-shift-k": ["terminal::SendText", "\ue000"],
     },
   },
   {
@@ -346,6 +347,45 @@
         "workspace::SendKeystrokes",
         "ctrl-alt-shift-a ctrl-alt-shift-w"
       ]
+    }
+  },
+  {
+    "context": "Workspace",
+    "bindings": {
+      "cmd-k cmd-t": "tab_switcher::Toggle",
+      "cmd-k t": "agents_sidebar::ToggleThreadSwitcher",
+      "cmd-k p": "tab_switcher::Toggle"
+    }
+  },
+  {
+    "context": "Editor",
+    "bindings": {
+      "cmd-k p": "tab_switcher::Toggle"
+    }
+  },
+  {
+    "context": "Pane",
+    "bindings": {
+      "cmd-k t": "agents_sidebar::ToggleThreadSwitcher"
+    }
+  },
+  {
+    "context": "ThreadSwitcher",
+    "bindings": {
+      "down": "agents_sidebar::ToggleThreadSwitcher",
+      "j": "agents_sidebar::ToggleThreadSwitcher",
+      "up": ["agents_sidebar::ToggleThreadSwitcher", { "select_last": true }],
+      "k": ["agents_sidebar::ToggleThreadSwitcher", { "select_last": true }],
+      "l": "menu::Confirm",
+      "right": "menu::Confirm",
+      "h": "menu::Cancel",
+      "left": "menu::Cancel"
+    }
+  },
+  {
+    "context": "Workspace",
+    "unbind": {
+      "ctrl-tab": "tab_switcher::Toggle"
     }
   }
 ]

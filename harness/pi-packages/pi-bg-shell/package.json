@@ -1,0 +1,14 @@
+{
+  "name": "pi-bg-shell",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "keywords": ["pi-package"],
+  "pi": {
+    "extensions": ["./extensions/index.ts"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": ">=0.85.1 <2",
+    "@earendil-works/pi-tui": ">=0.85.1 <2"
+  }
+}

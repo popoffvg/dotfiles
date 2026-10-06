@@ -49,8 +49,8 @@ The user may pass a **destination folder** inline with a `dst:<path>` token (see
 Every route that fans out over entry points spawns its subagents the same way. This section is the one home for the rule — a route's procedure says *spawn the fan-out* and points here.
 
 - **Put all `Agent` calls in one assistant message.** Calls in separate messages run serially, not in parallel.
-- **Use `subagent_type: "Explore"` with `model: "sonnet"`.** Every default fan-out here is read-only investigation, which sonnet does at a fraction of the cost. Switch to `general-purpose` only for an entry point that needs cross-file design reasoning, and keep `model: "sonnet"` unless the reasoning itself is the hard part.
-- **Give each subagent a self-contained prompt.** A subagent cannot see this conversation. Include the entry point's inputs verbatim — for `workflow`, the `<ep-slug>.md` plus the schema — and the absolute output path.
+- **Use `subagent_type: "Explore"` with `model: "sonnet"` for a read-only fan-out.** Sonnet does read-only investigation at a fraction of the cost. Switch to `general-purpose` only for an entry point that needs cross-file design reasoning, and keep `model: "sonnet"` unless the reasoning itself is the hard part. A fan-out that writes files — the `workflow` route — MUST use `general-purpose`: Explore cannot write.
+- **Give each subagent a self-contained prompt.** A subagent cannot see this conversation. Include the entry point's inputs verbatim — for `workflow`, the `<ep-slug>.md` plus the `examples/workflows/` path — and the absolute output path.
 
 **The `docs` route uses the two named agents of `dive-docs`.** Every call, in every round, carries all three of these:
 

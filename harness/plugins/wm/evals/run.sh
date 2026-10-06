@@ -92,10 +92,8 @@ Answer two questions about this candidate.
    \"human\" = TODO-N.md (Outcome, New terms, Components, Surface, Autotest, Commit).
              Surface is the ONE diff in the pair, so any fenced diff, or a file-contract
              block for a file that has no surface, is human.
-   \"agent\" = TODO-N.agent.md (the Constraints pointer, Changes, Files, Pre-reads, Manual test, Definition of
-             done). Changes holds the increments as Files + Surface + Do + Blast radius prose, and
-             carries no diff at all. Constraints is one fixed line — \"Obey every rule that
-             ~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts prints.\" — never a rule.
+   \"agent\" = TODO-N.agent.md (Changes, Files, Pre-reads, Manual test, Gotchas). Changes holds the increments as Files + Surface + Do + Blast radius prose, and
+             carries no diff at all. No pair file holds a rule or the wm-constraints.py command.
    \"corpus\" = outside the pair, in thoughts/. A settled rule an increment can violate is a
              decision note whose description IS the rule text; a REASON — why a choice was made,
              what lost, what a reviewer would argue with — is the rest of that same note. No file

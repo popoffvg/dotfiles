@@ -83,3 +83,9 @@ __pycache__/
 harness/apps/line-comment/target/
 .tmp/
 .config/herdr/sessions/
+
+# Machine-local Codex skill links generated from repository and installed sources.
+harness/codex/
+
+.config/herdr/plugins/
+.config/herdr/plugins.json

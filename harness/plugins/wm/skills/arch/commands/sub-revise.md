@@ -55,8 +55,8 @@ delta has one category, one canonical source, and only its stale targets.
 |----------|------------------|-----------------|
 | **Decision change** | Replacement decision note supersedes the old note | Generated rules; only pairs whose instructions now disagree |
 | **New fact** | New fact note | Notes or artifact sections that cite the fact |
-| **Surface drift** | Shipped signature, path, or setting | `TODO-N.md` `## Surface`; agent `## Files` only if paths changed |
-| **Behavior drift** | Shipped behavior or coverage | Autotest and agent `## Changes` only if their cases or increments disagree |
+| **Surface drift** | Shipped signature, path, or setting | the **Surface** diff of the `TODO-N.md` increment that lands it; agent `## Files` only if paths changed |
+| **Behavior drift** | Shipped behavior or coverage | Autotest and `TODO-N.md` `## Increments` only if their cases or increments disagree |
 | **Outcome shift** | Ledger outcome and the thought that motivated it | Matching TODO outcome copy, affected plan row |
 | **Scope change** | Ledger row added, moved, carried forward, or dropped with a decision | Ledger and Plan; affected TODO pairs |
 
@@ -89,9 +89,9 @@ Both tools fail unless the target matches exactly once, which is what keeps a pa
 section the manifest named.
 
 - Update only the `spec.md` rows and sections listed by the manifest, then set `status: review`.
-- Update `GLOSSARY.md` only for a changed term or definition.
-- For each affected pair, update only the stale section: `Surface` for signatures; `Components`
-  for changed symbols; `Flow changes` for a changed step or check; `TODO-N.test.md` `Autotest` for changed behavior or coverage; `Changes` or `Files` for
+- Update `GLOSSARY.md` for a changed term or definition, and retire every entry whose concept the change drops or replaces — `Status: retired` with `Replaced by` — then sweep the old names (`code:ref-subcommand-rules.md` § Glossary). Run `${CLAUDE_PLUGIN_ROOT}/bin/glossary-lint.py <notes-dir>` before the commit.
+- For each affected pair, update only the stale section: an increment's **Surface** diff for signatures; `Components`
+  for changed symbols; `Flow changes` for a changed step or check; `TODO-N.test.md` `Autotest` for changed behavior or coverage; `Increments` or `Files` for
   changed implementation steps or paths.
 - Fold each consumed `## Deviations` row into its named section, then remove that table when no row
   remains. **Check every row carries its `[[NNN-impl-decision-slug]]` before you delete one.**

@@ -48,6 +48,8 @@ Library
 
 # Claude Code marketplace (lives at repo root, not stowed to ~)
 \.claude-plugin
+# Codex marketplace belongs to this repo; Codex manages its installed state.
+\.agents/plugins
 
 # Misc files that shouldn't be stowed
 CLAUDE\.md

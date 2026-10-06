@@ -8,7 +8,7 @@ the test file.
 A driver that reads the corpus and judges those by hand pays the whole corpus in context
 and answers differently on two runs. This script is the same rules, parsed.
 
-What stays for the agents: self-containment, over-statement, a body hiding in a Surface
+What stays for the agents: self-containment, over-statement, a body hiding in an increment
 diff, and the three hunts (contradictions, missing parts, edge cases). Those are
 judgments, and no parser reaches them.
 
@@ -19,6 +19,7 @@ usage: spec-lint.py <notes-dir> [--json] [--quiet]
 exit 0 every check passed - 1 at least one finding - 2 unusable notes dir
 Tool index — every .notes tool and its flags: wm:TOOLS.md
 """
+import importlib.util
 import json
 import os
 import re
@@ -40,15 +41,18 @@ RISK_COLORS = {"red", "yellow", "green"}
 LEGACY_RISK_SCORES = {"1", "2", "3", "4", "5"}
 MAX_INCREMENTS = 10
 
-HUMAN_ORDER = ["Outcome", "Components", "Surface", "Flow changes", "Commit"]
+HUMAN_ORDER = ["Outcome", "Components", "Increments", "Flow changes", "Commit"]
 FLOW_MARKER = re.compile(r"^\s*\d+\.\s+\*\*(\+ step|\+ check|\+ branch|~ step|- step|moved)\*\*")
 FLOW_STEP = re.compile(r"^\s*\d+\.\s+\S")
 AGENT_ORDER = [
-    "Constraints", "Changes", "Files",
-    "Pre-reads (MUST read before editing)", "Manual test", "Definition of done",
+    "Files",
+    "Pre-reads (MUST read before editing)", "Manual test",
     "Gotchas",
 ]
 AGENT_OPTIONAL = {"Gotchas"}
+AGENT_BANNED = ("Changes", "Increments", "Surface")
+INCREMENT_KEYS = ("landed", "change", "do", "blast radius", "surface")
+FILES_INCREMENTS = re.compile(r"\binc\s+(\d+(?:\s*,\s*\d+)*)")
 SPEC_BANNED = ["Design Decisions", "Open Questions", "Implementation Guidelines"]
 
 # A skip or a `none` level that names no concrete reason. Lowercased substring match.
@@ -177,6 +181,20 @@ def section(lines, name):
                 continue
         if inside:
             out.append(line)
+    return out
+
+
+def section_span(lines, name):
+    """The 0-based indexes of the lines under `## name`, up to the next H2."""
+    out, inside, fenced = [], False, False
+    for i, line in enumerate(lines):
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+        elif not fenced and (m := H2.match(line)):
+            inside = m.group(1).strip() == name
+            continue
+        if inside:
+            out.append(i)
     return out
 
 
@@ -333,45 +351,15 @@ def check_spec(notes, pairs, f):
                    "one wave per row")
 
 
-def check_glossary(notes, pairs, f):
-    """The naming gate reads Status; a glossary without it re-litigates every existing name."""
-    row = f.check("G1", "GLOSSARY.md marks every term `existing` or `new`")
-    path = os.path.join(notes, "GLOSSARY.md")
-    lines = read(path)
-    if lines is None:
-        row["skipped"] = "no GLOSSARY.md"
-        return
-    header = table_header(lines)
-    cols = [h.lower() for h in header]
-    if "status" not in cols:
-        f.fail(row, "GLOSSARY.md", "table has no Status column",
-               "add `Status` — `existing` | `new` (arch:examples/glossary.md)")
-        return
-    at = cols.index("status")
-    term_at = cols.index("term") if "term" in cols else 0
-    minted = set()
-    for cells in table_rows(lines):
-        if len(cells) <= at:
-            continue
-        status = cells[at].strip().lower()
-        term = cells[term_at].strip(" `*")
-        if status not in ("existing", "new"):
-            f.fail(row, f"GLOSSARY.md § {term}", f"Status `{cells[at]}` is neither existing nor new",
-                   "the naming gate judges the new rows alone")
-        elif status == "new":
-            minted.add(term)
-
-    declared = f.check("G2", "every `## New terms` row reaches GLOSSARY.md as `new`")
-    for n in sorted(pairs):
-        human = pairs[n].get("human")
-        if not human:
-            continue
-        for cells in table_rows(section(read(human) or [], "New terms")):
-            term = cells[0].strip(" `*")
-            if term and term not in minted:
-                f.fail(declared, f"TODO-{n} § New terms",
-                       f"`{term}` is not a `new` row in GLOSSARY.md",
-                       "the caller merges every New terms row into the glossary")
+def check_glossary(notes, f):
+    """GL1-GL6 from glossary-lint.py, without code roots: the notes corpus alone."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "glossary-lint.py")
+    spec = importlib.util.spec_from_file_location("glossary_lint", path)
+    glossary_lint = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(glossary_lint)
+    found, _ = glossary_lint.lint(os.path.abspath(notes), f=f)
+    if found is None:
+        f.check("GL", "GLOSSARY.md checks")["skipped"] = "no GLOSSARY.md"
 
 
 def check_pairs_exist(notes, pairs, f):
@@ -452,7 +440,7 @@ def check_human(n, path, lines, pairs, f, checks):
     tail = [l for l in body if l.strip()]
     if not tail or "TODO-%d.agent.md" % n not in tail[-1]:
         f.fail(row, label, "last line is not the link to the agent half",
-               f"**Increments:** [TODO-{n}.agent.md](TODO-{n}.agent.md)")
+               f"**Agent:** [TODO-{n}.agent.md](TODO-{n}.agent.md)")
     if not any(f"TODO-{n}.test.md" in l for l in tail[-3:]):
         f.fail(row, label, "no link to the test file above the agent-half link",
                f"**Tests:** [TODO-{n}.test.md](TODO-{n}.test.md)")
@@ -479,10 +467,7 @@ def check_human(n, path, lines, pairs, f, checks):
     if comp_rows and mains != 1:
         f.fail(row, label, f"{mains} rows marked `main`", "exactly one component carries the Outcome")
 
-    row = checks["B6"]
-    surface = section(body, "Surface")
-    if not any(l.strip().startswith("```diff") for l in surface):
-        f.fail(row, label, "`## Surface` carries no ```diff block", "one diff per file")
+    check_increments(label, body, f, checks)
 
     row = checks["B12"]
     flow = [l for l in section(body, "Flow changes") if l.strip() and not l.lstrip().startswith(">")]
@@ -498,6 +483,88 @@ def check_human(n, path, lines, pairs, f, checks):
     elif not any(FLOW_MARKER.match(l) for l in flow):
         f.fail(row, label, "`## Flow changes` marks no step as changed",
                "open each changed step with **+ step**, **+ check**, **+ branch**, **~ step**, **- step**, or **moved** — or write `none — <reason>`")
+
+
+def increment_blocks(body):
+    """Map each `### n.` under `## Increments` to its lines, in file order."""
+    numbers, blocks, current = [], {}, None
+    for line in section(body, "Increments"):
+        m = INCREMENT.match(line)
+        if m:
+            current = int(m.group(1))
+            numbers.append(current)
+            blocks[current] = []
+        elif current is not None:
+            blocks[current].append(line)
+    return numbers, blocks
+
+
+def check_increments(label, body, f, checks):
+    row = checks["B6"]
+    if any(t == "Surface" for _, t in headings(body)):
+        f.fail(row, label, "`## Surface` present", "each increment carries its own diff under `## Increments`")
+    inside = set(section_span(body, "Increments"))
+    for i, line in enumerate(body):
+        if line.strip().startswith("```diff") and i not in inside:
+            f.fail(row, label, f"```diff outside `## Increments` at line {i + 1}",
+                   "move it under the increment that lands it")
+
+    numbers, blocks = increment_blocks(body)
+    for k, lines in blocks.items():
+        at = next((i for i, l in enumerate(lines)
+                   if (m := BULLET_KEY.match(l)) and m.group(1).strip().lower().startswith("surface")), None)
+        if at is None:
+            continue
+        value = BULLET_KEY.match(lines[at]).group(2).strip()
+        if value.lower().startswith("none"):
+            if not has_reason(value):
+                f.fail(row, f"{label} § increment {k}", "Surface `none` with no concrete reason",
+                       "`**Surface:** none — <reason>`")
+            continue
+        rest = [l for l in lines[at + 1:] if l.strip()]
+        fences = [l for l in rest if l.strip().startswith("```") and l.strip() != "```"]
+        if not rest or not rest[0].strip().startswith("```"):
+            f.fail(row, f"{label} § increment {k}", "**Surface** is not followed by a fenced block",
+                   "one ```diff, a plain contract block, or `none — <reason>`")
+        elif len([l for l in fences if l.strip().startswith("```diff")]) > 1:
+            f.fail(row, f"{label} § increment {k}", "more than one ```diff block",
+                   "one diff per increment — split the increment")
+
+    row = checks["B9"]
+    if not numbers:
+        f.fail(row, label, "`## Increments` has no increments", "one H3 per increment")
+    if numbers != list(range(1, len(numbers) + 1)):
+        f.fail(row, label, f"increments not contiguous from 1: {numbers}", "renumber")
+    if len(numbers) > MAX_INCREMENTS:
+        f.fail(row, label, f"{len(numbers)} increments, budget is {MAX_INCREMENTS}", "split the TODO")
+    for k, lines in blocks.items():
+        keys = {}
+        for line in lines:
+            m = BULLET_KEY.match(line)
+            if m:
+                keys.setdefault(m.group(1).strip().lower(), m.group(2).strip())
+        where = f"{label} § increment {k}"
+        for needed in INCREMENT_KEYS:
+            if not any(key.startswith(needed) for key in keys):
+                f.fail(row, where, f"no **{needed.title()}**", "required per increment")
+        if any(key.startswith("files") for key in keys):
+            f.fail(row, where, "**Files** in an increment", "paths live in the agent half's `## Files`")
+        landed = next((v for key, v in keys.items() if key.startswith("landed")), "")
+        if landed and not LANDED.match(landed):
+            f.fail(row, where, f"Landed `{landed}` is not yes or no",
+                   "`no` until the increment is in the commit, then `yes`")
+        kind = next((v for key, v in keys.items() if key.startswith("change")), "").strip(" .`*").lower()
+        if kind and kind not in TYPES:
+            f.fail(row, where, f"Change `{kind}` outside {sorted(TYPES)}",
+                   "pick one change kind (impl:ref-change-types.md)")
+        blast = next((v for key, v in keys.items() if key.startswith("blast radius")), "").strip(" .`*")
+        if blast and blast.lower() in VAGUE_BLAST:
+            f.fail(row, where, f"Blast radius `{blast}` names no symbol or caller",
+                   "name what the increment can break")
+        do_text = next((v for key, v in keys.items() if key == "do" or key.startswith("do ")), "")
+        if pastes_code(do_text):
+            f.fail(row, where, "**Do** carries a signature",
+                   "the signature belongs to the increment's **Surface** diff")
 
 
 def check_tests(n, path, lines, pairs, f, checks):
@@ -559,14 +626,14 @@ def check_tests(n, path, lines, pairs, f, checks):
             f.fail(row, label, f"Autotest {key} left as TBD", "fill it")
 
 
-def increment_count(agent_lines):
-    return len([l for l in section(agent_lines, "Changes") if INCREMENT.match(l)])
+def increment_count(human_lines):
+    return len([l for l in section(human_lines, "Increments") if INCREMENT.match(l)])
 
 
-def landed_count(agent_lines):
+def landed_count(human_lines):
     """How many increments carry `**Landed:** yes` — the markers `<approved>` indexes."""
     done = 0
-    for line in section(agent_lines, "Changes"):
+    for line in section(human_lines, "Increments"):
         m = BULLET_KEY.match(line)
         if m and m.group(1).strip().lower().startswith("landed"):
             if LANDED.match(m.group(2)) and m.group(2).strip(" `*").lower().startswith("yes"):
@@ -578,7 +645,7 @@ def check_progress(n, human_path, human_lines, agent_lines, f, checks):
     where = os.path.basename(human_path)
     row = checks["B11"]
     fm, _ = frontmatter(human_lines)
-    total = increment_count(agent_lines)
+    total = increment_count(human_lines)
 
     if "increment" not in fm:
         f.fail(row, where, "frontmatter key `increment` missing",
@@ -592,16 +659,23 @@ def check_progress(n, human_path, human_lines, agent_lines, f, checks):
 
     done, claimed = int(m.group(1)), int(m.group(2))
     if total and claimed != total:
-        f.fail(row, where, f"increment total {claimed} but the agent half has {total} increments",
-               "the pair drifted — renumber one side")
+        f.fail(row, where, f"increment total {claimed} but `## Increments` has {total}",
+               "set the total to the increment count")
     if done > claimed:
         f.fail(row, where, f"increment {done}/{claimed} counts more done than there are", "")
 
-    marked = landed_count(agent_lines)
+    marked = landed_count(human_lines)
     if total and marked != done:
         f.fail(row, where,
-               f"increment says {done} approved, the agent half marks {marked} `**Landed:** yes`",
+               f"increment says {done} approved, `## Increments` marks {marked} `**Landed:** yes`",
                "impl writes both in the same step — one of them was missed")
+
+    for line in section(agent_lines, "Files"):
+        m = FILES_INCREMENTS.search(line)
+        for ref in (int(x) for x in (m.group(1).split(",") if m else [])):
+            if total and not 1 <= ref <= total:
+                f.fail(checks["B10"], where, f"Files names inc {ref}, `## Increments` has {total}",
+                       "map each path to an increment that exists")
 
     status = fm.get("status", "").split("#")[0].strip()
     if status == "todo" and done != 0:
@@ -631,65 +705,24 @@ def check_agent(n, path, lines, f, checks):
     present = [t for t in found if t in AGENT_ORDER]
     if present != [t for t in AGENT_ORDER if t in present]:
         f.fail(row, where, f"sections out of order: {' → '.join(present)}", " → ".join(AGENT_ORDER))
+    for name in AGENT_BANNED:
+        if name in found:
+            f.fail(row, where, f"`## {name}` in the agent half", "increments live in the human half's `## Increments`")
+    if any(l.strip().startswith("```diff") for l in lines):
+        f.fail(row, where, "```diff in the agent half", "every diff sits under its increment in `## Increments`")
 
     row = checks["B8"]
-    constraints = section(lines, "Constraints")
-    if any(TABLE_ROW.match(l) for l in constraints):
-        f.fail(row, where, "`## Constraints` carries a table", "the generator command alone — a copied rule drifts")
-    if not any("wm-constraints.py" in l for l in constraints):
-        f.fail(row, where, "`## Constraints` does not name wm-constraints.py", "the fixed pointer line")
-
-    row = checks["B9"]
-    changes = section(lines, "Changes")
-    numbers, blocks = [], {}
-    current = None
-    for line in changes:
-        m = INCREMENT.match(line)
-        if m:
-            current = int(m.group(1))
-            numbers.append(current)
-            blocks[current] = []
-        elif current is not None:
-            blocks[current].append(line)
-    if not numbers:
-        f.fail(row, where, "`## Changes` has no increments", "one H3 per increment")
-    if numbers != list(range(1, len(numbers) + 1)):
-        f.fail(row, where, f"increments not contiguous from 1: {numbers}", "renumber")
-    if len(numbers) > MAX_INCREMENTS:
-        f.fail(row, where, f"{len(numbers)} increments, budget is {MAX_INCREMENTS}", "split the TODO")
-    if any(l.strip().startswith("```diff") for l in changes):
-        f.fail(row, where, "```diff inside `## Changes`", "the diff is the human half's ## Surface")
-    for k, body in blocks.items():
-        keys = {}
-        for line in body:
-            m = BULLET_KEY.match(line)
-            if m:
-                keys[m.group(1).strip().lower()] = m.group(2).strip()
-        for needed in ("landed", "change", "files", "surface", "do", "blast radius"):
-            if not any(k.startswith(needed) for k in keys):
-                f.fail(row, f"{where} § increment {k}", f"no **{needed.title()}**", "required per increment")
-        landed = next((v for k, v in keys.items() if k.startswith("landed")), "")
-        if landed and not LANDED.match(landed):
-            f.fail(row, f"{where} § increment {k}", f"Landed `{landed}` is not yes or no",
-                   "`no` until the increment is in the commit, then `yes`")
-        kind = next((v for k, v in keys.items() if k.startswith("change")), "").strip(" .`*").lower()
-        if kind and kind not in TYPES:
-            f.fail(row, f"{where} § increment {k}", f"Change `{kind}` outside {sorted(TYPES)}",
-                   "pick one change kind (impl:ref-change-types.md)")
-        blast = next((v for k, v in keys.items() if k.startswith("blast radius")), "").strip(" .`*")
-        if blast and blast.lower() in VAGUE_BLAST:
-            f.fail(row, f"{where} § increment {k}", f"Blast radius `{blast}` names no symbol or caller",
-                   "name what the increment can break")
-        do_text = next((v for k, v in keys.items() if k.startswith("do")), "")
-        if pastes_code(do_text):
-            f.fail(row, f"{where} § increment {k}", "**Do** carries a signature",
-                   "the signature belongs to § Surface alone")
+    if "Constraints" in found:
+        f.fail(row, where, "`## Constraints` in the agent half", "delete it — `todos/CLAUDE.md` names wm-constraints.py once")
 
     row = checks["B10"]
     for line in section(lines, "Files"):
         m = re.match(r"^\s*[-*]\s*`([^`]+)`", line)
         if m and ("*" in m.group(1) or m.group(1).rstrip().endswith("/")):
             f.fail(row, where, f"Files entry `{m.group(1)}` is a glob or a directory", "concrete paths only")
+        if m and not FILES_INCREMENTS.search(line):
+            f.fail(row, where, f"Files entry `{m.group(1)}` names no increment",
+                   "`- `path` — create|modify — inc <n>[, <n>…]`")
 
     row = checks["E2"]
     manual = "\n".join(section(lines, "Manual test")).strip()
@@ -717,22 +750,22 @@ def run(notes, as_json=False, quiet=False):
     check_open_questions(notes, f)
     check_spec(notes, pairs, f)
     check_pairs_exist(notes, pairs, f)
-    check_glossary(notes, pairs, f)
+    check_glossary(notes, f)
 
     checks = {
         "B3": f.check("B3", "human half frontmatter — keys, risk color, approve, where, type, depends_on"),
         "B4": f.check("B4", "human half sections — present, ordered, link out, deviations named a note"),
         "B5": f.check("B5", "Components — brick, touch, exactly one main"),
-        "B6": f.check("B6", "Surface carries the diff"),
+        "B6": f.check("B6", "every increment carries its surface — one diff, a contract block, or `none` with a reason; no diff outside `## Increments`"),
         "B12": f.check("B12", "Flow changes — flows with numbered steps and a marked change, or `none` with a reason"),
         "B13": f.check("B13", "test file — no frontmatter, link back, holds ## Autotest"),
         "E1": f.check("E1", "Autotest — Unit and E2E, command + cases or a real reason"),
-        "B7": f.check("B7", "agent half sections — present, ordered, no frontmatter, link back"),
-        "B8": f.check("B8", "Constraints is the generator pointer, never a rule table"),
-        "B9": f.check("B9", "increments — contiguous, ≤10, six keys each, valid Landed + Change, no diff, no signature in Do"),
-        "B10": f.check("B10", "Files are concrete paths"),
+        "B7": f.check("B7", "agent half sections — present, ordered, no frontmatter, link back, no increments, no diff"),
+        "B8": f.check("B8", "no `## Constraints` in the agent half — the rules command lives in todos/CLAUDE.md"),
+        "B9": f.check("B9", "increments in `## Increments` — contiguous, ≤10, five keys each, no Files, valid Landed + Change, no signature in Do"),
+        "B10": f.check("B10", "Files are concrete paths, each mapped to an existing increment"),
         "E2": f.check("E2", "Manual test filled, or skipped with a concrete reason"),
-        "B11": f.check("B11", "increment progress — `<done>/<total>`, total matches the agent half, done matches the Landed markers and fits status"),
+        "B11": f.check("B11", "increment progress — `<done>/<total>`, total matches `## Increments`, done matches the Landed markers and fits status"),
     }
     for n in sorted(pairs):
         human, agent = pairs[n].get("human"), pairs[n].get("agent")

@@ -1,10 +1,10 @@
 ---
 name: hypothesis-checker
 description: >
-  Answers one hypothesis the `reviewer` gate raised about a diff — a yes/no question whose yes is a
+  Answers one hypothesis the `correctness-critic` gate raised about a diff — a yes/no question whose yes is a
   defect at one file:line. Reads only what the question needs: the lines, their callers, the types,
   the rule the question cites. Returns CONFIRMED | REFUTED | UNSURE with quoted evidence. Read-only —
-  writes no file, runs no build and no test. Spawned by the `reviewer`, one per hypothesis, all in
+  writes no file, runs no build and no test. Spawned by `correctness-critic`, one per hypothesis, all in
   one message.
 model: sonnet
 color: blue
@@ -23,7 +23,7 @@ it out. You write nothing: your verdict is your final message.
 | `at:` | the `file:line`, or the file and the symbol, the question is about |
 | `question:` | a yes/no question. Yes means the code has the defect. |
 | `source:` | what condemns the code on a yes — a rule file and its section, a pattern file, a neighbouring file, or `correctness` |
-| `look:` | where the reviewer expects the answer — files, symbols, callers. A hint, not a border. |
+| `look:` | where the correctness-critic expects the answer — files, symbols, callers. A hint, not a border. |
 | `toolchain:` | this round's `toolchain.json`, when the caller has one |
 
 ## Steps

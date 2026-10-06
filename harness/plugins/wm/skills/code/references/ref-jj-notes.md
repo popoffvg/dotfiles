@@ -40,11 +40,11 @@ note-declare.sh --list              every store under the store root
 
 **The ignore line carries no trailing slash.** Git treats a symlink as a file, and a trailing slash matches directories only, so `.notes/` leaves the symlink untracked and dirty in `git status`.
 
-## Recording — automatic (per-skill Stop hook)
+## Recording — commit at each phase boundary (Stop hook)
 
-The `code` SKILL.md frontmatter declares a **Stop** hook (`${CLAUDE_PLUGIN_ROOT}/bin/notes-jj-commit.sh`), scoped to this skill's lifecycle. On session stop it runs `jj commit` in `<notes-dir>`, snapshotting every spec/todos/thoughts/GLOSSARY edit made during the session. No phase appends a log line by hand; the working copy is captured on stop (skipped when nothing changed).
+**Commit `<notes-dir>` yourself with `jj commit -m "<msg>"` whenever a step changes it.** A TODO, a thought, `spec.md`, `GLOSSARY.md` — every edit ends in a commit before the turn ends.
 
-To checkpoint mid-session, run `jj commit -m "<msg>"` in `<notes-dir>` explicitly — otherwise the Stop hook does it.
+`bin/notes-commit-reminder.sh` is the plugin's **Stop** hook, active in every session. When `<notes-dir>` has uncommitted changes, it blocks the stop once and names the changed files. If the agent stops again without a commit, it runs `bin/notes-jj-commit.sh`, which commits the rest under a message that lists the changed basenames.
 
 ## Message convention — say *why*, not what
 
@@ -62,7 +62,7 @@ The message states the **phase + the main ideas of the change** — the reasonin
 
 Each phase reference gives its own message shape (`arch:sub-new.md`, `arch:sub-revise.md`, `impl:sub-fix.md`, …) — all follow this: lead with the phase, then the ideas.
 
-The Stop hook is the **fallback** for uncommitted leftovers only — it can't know intent, so it falls back to the changed basenames. Commit at each phase boundary with a why-message so the hook rarely fires.
+The fallback commit can't know intent, so it falls back to the changed basenames. Commit at each phase boundary with a why-message so the hook rarely fires.
 
 ## History — `jj log`
 

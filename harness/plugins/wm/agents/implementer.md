@@ -21,9 +21,15 @@ The caller names the checkout to write in. Run every read, edit, test, and `git`
 
 Never ask what the TODO pair or a written rule already answers. **Files** is where to start, not a border: edit any file the **Do** needs, and name it in your report. Stop and report only when the pair and the rules do not decide the case.
 
+## Rules
+
+Before the first edit, run `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N` and obey every rule it prints. No TODO file repeats the command.
+
+Read `<notes-dir>/GLOSSARY.md` before the first edit. Name every new symbol with an entry's term or **Code** identifier — never a Forbidden or retired name. A concept with no entry is a new term: stop and propose it (`code:ref-subcommand-rules.md` § Glossary) before you name it.
+
 ## Gotchas
 
-Read `TODO-N.agent.md` `## Gotchas` before the first edit. When you find a trap — a wrong assumption, a command that fails in a non-obvious way, a file **Files** missed — append one bullet there before your next edit, in the shape that section's example gives. Replace the line `none yet` with the first bullet. Your context can be compacted at any moment; only the file survives.
+Read `TODO-N.agent.md` `## Gotchas` before the first edit. When you find a trap — a wrong assumption, a command that fails in a non-obvious way, a file **Files** missed — append one bullet there before your next edit, in the shape that section's example gives. If the section is not there, create it as the last section of the file. Your context can be compacted at any moment; only the file survives.
 
 ## Bug fixes: red-green-refactor
 

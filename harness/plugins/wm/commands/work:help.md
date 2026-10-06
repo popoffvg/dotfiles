@@ -32,10 +32,11 @@ invoke the agent you need; each agent follows its skill.
 | `implementer` | Executes one TODO, then stops | `code impl` |
 | `implementer-subtree` | *(experimental)* One TODO in its own `wt` worktree+branch; commits, fixups, squash-merges with spec message | `code tree` |
 | `lint-tester` | Gate (haiku) — the repo's linter over the changed files, and the tests covering them | `review` |
-| `comment-critic` | Gate (haiku) — every comment the diff adds or changes | `review` |
-| `name-critic` | Gate (haiku) — every name the diff declares, against the `pedant` table | `review` |
+| `rule-checker` | Gate (haiku) — one changed file against up to six rules from the rule files | `review` |
+| `rule-reducer` | Gate (sonnet) — merges the rule-checker results, drops false hits, fails on an unchecked rule | `review` |
+| `name-critic` | Check (haiku) — the names a spec mints, against the `pedant` table | `code verify` |
 | `tester` | Gate (sonnet) — does a test assert the contract; writes it when none does | `review` · `test-suite` |
-| `reviewer` | Gate (opus) — the Outcome delivered, correctness, spec drift | `review` |
+| `correctness-critic` | Gate (opus) — the inputs that make the changed code wrong; one sonnet `hypothesis-checker` per suspect | `review` |
 | `verifier` | Adversarially checks one implemented TODO vs its spec, writes `.notes/verify-TODO-N.md` | `impl-verify` |
 | `codebase-analyzer` | Documents how code works | — |
 

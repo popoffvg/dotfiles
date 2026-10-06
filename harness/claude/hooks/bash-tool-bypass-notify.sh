@@ -63,13 +63,12 @@ if [[ "$STRIPPED" != *"|"* ]] && [[ "$STRIPPED" != *">"* ]]; then
 fi
 
 # --- grep / find on tracked code (CLAUDE.md prefers fff) --------------------
-re_grep_r='^[[:space:]]*grep[[:space:]]+[^|]*-[rR]'
-if [[ "$STRIPPED" =~ $re_grep_r ]]; then
-  reasons+=("Recursive \`grep -r\` over the repo — prefer **mcp__fff__grep** (or **Grep** tool) for indexed search.")
-fi
-re_find='^[[:space:]]*find[[:space:]]+\.[[:space:]]+-name'
-if [[ "$STRIPPED" =~ $re_find ]]; then
-  reasons+=("\`find . -name\` — prefer **mcp__fff__find_files** (or **Glob**) for indexed file lookup.")
+search_tool=$(printf '%s' "$STRIPPED" | perl -0ne '
+  exit if m{(/private)?/tmp/|/var/folders/|\.claude/projects/|\.jsonl\b};
+  print $1 if m{(?:^|[;&(\n]|\bdo|\bthen|\belse)\s*(?:cd\s+\S+\s*&&\s*)?(grep|egrep|rg|find)\s};
+')
+if [ -n "$search_tool" ]; then
+  reasons+=("\`$search_tool\` starts a command and searches files — use **mcp__fff__grep**, **mcp__fff__multi_grep** or **mcp__fff__find_files**. They are deferred: load them first with ToolSearch \`select:mcp__fff__grep,mcp__fff__find_files,mcp__fff__multi_grep\`. Bash \`grep\` is correct only after a pipe or on files outside the repo.")
 fi
 
 if [ ${#reasons[@]} -eq 0 ]; then

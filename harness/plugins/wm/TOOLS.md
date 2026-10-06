@@ -64,14 +64,16 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 
 | Need | Invocation | Returns |
 |---|---|---|
-| Whether one place the reviewer suspects is really wrong | `wm:agents/reviewer.md` § Steps → one `Agent(subagent_type: "wm:hypothesis-checker")` per hypothesis, all in one message | `CONFIRMED \| REFUTED \| UNSURE` with quoted `file:line` evidence; a CONFIRMED correctness verdict adds the failing input and the edit |
+| Whether one place the correctness gate suspects is really wrong | `wm:agents/correctness-critic.md` § Steps → one `Agent(subagent_type: "wm:hypothesis-checker")` per hypothesis, all in one message | `CONFIRMED \| REFUTED \| UNSURE` with quoted `file:line` evidence; a CONFIRMED correctness verdict adds the failing input and the edit |
 | Whether the changed lines use their language the way it expects | the `review` wave → `Agent(subagent_type: "wm:idiom-critic")` with a `report:` line | `PASS \| FAIL` with seven fixed rows; each finding names the guide § section and the idiomatic rewrite in the pinned version |
 
 ## Route a gate verdict
 
 | Need | Invocation | Returns |
 |---|---|---|
-| A comment or name report with every Failure in the right bucket | `bin/gate-bucket-check.py <report.md> [--gate comment\|name]` | rewrites the report in place, prints `Result:` and the moved count. Exit 0 on PASS, 1 on FAIL, 2 on a report it cannot read |
+| Every rule in the rule files, and its scope | `wm-rule-batches.py rules [--notes-dir <notes>] [--todo TODO-N]` | one `<rule id>\t<globs>\t<source>` line per rule. Exit 2 = a rule file with no scope or text above its first H1 |
+| The rules gate's batches for one diff | `wm-rule-batches.py plan [--notes-dir <notes>] [--todo TODO-N] --range <worktree\|range> --out <dir> [--batch-size 6]` | `manifest.json` and one brief per batch (one file × ≤6 rules); prints one `<id>\t<file>\t<n> rule(s)\t<brief>` line per batch |
+| Whether every planned (file, rule) pair got a verdict | `wm-rule-batches.py check --out <dir>` | per-rule verdict counts, plus `UNCHECKED` and `UNPLANNED` lines. Exit 1 on either |
 
 ## Judge the tests a diff already has
 
@@ -84,7 +86,8 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 
 | Need | Invocation | Returns |
 |---|---|---|
-| Every countable verify check | `bin/spec-lint.py <notes> [--json]` | the Phase 0 findings — budgets, frontmatter, section sets, Components, increments, Autotest, waves, rules, open questions |
+| Every countable verify check | `bin/spec-lint.py <notes> [--json]` | the Phase 0 findings — budgets, frontmatter, section sets, Components, increments, Autotest, waves, rules, open questions, and the glossary checks GL1–GL6 |
+| Whether the glossary holds and the corpus obeys it | `bin/glossary-lint.py <notes> [--code <dir>]... [--undefined] [--json] [--quiet]` | GL1 entry fields, GL2 enforceable Forbidden names, GL3 Forbidden or retired names in use, GL4 Code ownership and Status against the code (needs `--code`), GL5 New terms merged, GL6 dead entries; `--undefined` lists compound identifiers no entry holds. Exit 1 = a finding |
 | One artifact's budget | `bin/budget-check.py <file>` | over/under, and where it splits |
 | Every artifact's budget | `bin/budget-sweep.sh <notes>` | exit 1 when any is over |
 | One concept spelled two ways | `bin/term-variants.py <notes>/todos/*.md <notes>/spec.md` | exit 1 and each variant group |

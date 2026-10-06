@@ -1,0 +1,58 @@
+{
+  "name": "pi-btw",
+  "version": "0.7.1",
+  "description": "Pi /btw overlay; default /btw is a read-only side session (no edit/write/bash)",
+  "type": "module",
+  "license": "MIT",
+  "author": "Dan Bachelder",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dbachelder/pi-btw.git"
+  },
+  "homepage": "https://github.com/dbachelder/pi-btw#readme",
+  "bugs": {
+    "url": "https://github.com/dbachelder/pi-btw/issues"
+  },
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "pi-coding-agent",
+    "agent",
+    "tui"
+  ],
+  "files": [
+    "extensions",
+    "skills",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "vitest --run",
+    "typecheck": "tsc --noEmit"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/btw.ts"
+    ],
+    "skills": [
+      "./skills"
+    ],
+    "image": "https://raw.githubusercontent.com/dbachelder/pi-btw/main/docs/btw-overlay.png"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": ">=0.85.1 <2",
+    "@earendil-works/pi-coding-agent": ">=0.85.1 <2",
+    "@earendil-works/pi-tui": ">=0.85.1 <2"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-ai": "0.99.2",
+    "@earendil-works/pi-coding-agent": "0.99.2",
+    "@earendil-works/pi-tui": "0.99.2",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.11"
+  }
+}

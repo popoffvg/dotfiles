@@ -9,7 +9,7 @@ A skill is one `SKILL.md` (`name:` + `description:` frontmatter) plus optional `
 
 1. Read `references/foundations.md`. Done when `name`, `description`, and the invocation axes are decided.
 2. Pick one row below by what the body mostly *is*, and load that guide only. A skill that matches two rows is two skills — split it. Done when exactly one row matches.
-3. Write the body under the guide. For a new skill, start from golden words: name the public form each rule block copies, keep the house deltas as plain rules, and verify on a real input — `references/golden-words.md`. Done when every block that names a form has passed the two-arm check or kept its rules.
+3. Write the body under the guide. For a new skill, start from golden words: name the public form each rule block copies, keep the house deltas as plain rules, and verify on a real input — `references/golden-words.md`. Done when every block that names a form has passed the two-arm check or kept its rules. When those words must make a model emit a document in a fixed shape, load `skill-blank` for the words and keep this guide for the file shape.
 4. Run one `prune-text` pass over the files touched and apply its cuts. Done when the description is at most one leading word plus one trigger per branch, and `SKILL.md` holds only what the agent needs on every path.
 
 | Shape | Use when the body is… | Guide |

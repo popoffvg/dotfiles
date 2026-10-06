@@ -506,7 +506,9 @@ _claudex_run() {
     skills) args=("${sysprompt[@]}" "${modelflag[@]}" --agent skill-builder) ;;
     general|"")  args=("${sysprompt[@]}" "${modelflag[@]}" "$@") ;;
   esac
-  claude "${args[@]}"
+  # zed-claude adds --session-id or --resume from ZED_SESSION_ID. Outside an
+  # agent-panel terminal the variable is unset and this is plain claude.
+  "$HOME/.claude/scripts/zed-claude" "${args[@]}"
 }
 
 # tw — pick a todo.sh action with fzf, pick the task too if it needs ITEM#, then run it.

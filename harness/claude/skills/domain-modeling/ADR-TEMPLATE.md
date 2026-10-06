@@ -8,6 +8,14 @@ updated: YYYY-MM-DD
 
 {1-3 sentences: what is the context, what did we decide, and why.}
 
+## Reason
+
+> {the operator's words: why this option won}
+
+## Properties
+
+- P1. {an invariant the code must keep while this decision holds}
+
 <!--
 Optional, only when they add value — placed here, above the changelog:
 

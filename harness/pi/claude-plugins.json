@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "marketplaces": {
+    "local-plugins": {
+      "source": "/Users/popoffvg/Documents/git/dotfiles"
+    }
+  },
+  "plugins": {
+    "harness-dev@local-plugins": {},
+    "hi@local-plugins": {},
+    "line-comment@local-plugins": {},
+    "self-improvement@local-plugins": {},
+    "smart-commit@local-plugins": {},
+    "wm@local-plugins": {}
+  }
+}

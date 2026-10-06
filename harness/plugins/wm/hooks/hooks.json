@@ -107,6 +107,17 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/notes-commit-reminder.sh",
+            "timeout": 10000
+          }
+        ]
+      }
     ]
   }
 }

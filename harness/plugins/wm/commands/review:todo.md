@@ -1,6 +1,6 @@
 ---
 name: review:todo
-description: "Judge an implemented TODO with the rule sources its `TODO-N.md` + `TODO-N.agent.md` pair points at — the rules `~/.claude/scripts/wm-constraints.py` prints, plus `RULES.md` and `PATTERNS.md`."
+description: "Judge an implemented TODO against the same rule files, plus the TODO's settled decisions as `D<NNN>` rules."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

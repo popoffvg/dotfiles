@@ -23,8 +23,8 @@ FAIL routes back — is one file: @references/ref-gates.md. Read it before eithe
 
 | Mode | Judges the diff against… | File |
 |---|---|---|
-| `diff` *(default)* | the repo's own rules alone — `CLAUDE.md`, the house style docs, the code around the diff, the language idiom. A loose diff, a branch, a PR, or the working tree. | `commands/sub-diff.md` |
-| `todo` | the same, plus the rule sources the `TODO-N.md` + `TODO-N.agent.md` pair points at — the rules `~/.claude/scripts/wm-constraints.py` prints, plus `RULES.md` and `PATTERNS.md`. A breach there is a Failure with a citation. The chain `impl:sub-auto.md` runs per TODO. | `commands/sub-todo.md` |
+| `diff` *(default)* | the rule files in `<notes-dir>/rules/` and `~/.notes/rules/`, the project's `RULES.md` and `PATTERNS.md`, the language idiom, and correctness. A loose diff, a branch, a PR, or the working tree. | `commands/sub-diff.md` |
+| `todo` | the same, plus the TODO's settled decisions as `D<NNN>` rules. A breach there is a Failure with a citation. The chain `impl:sub-auto.md` runs per TODO. | `commands/sub-todo.md` |
 | `help` | This page. | `SKILL.md` |
 
 Pick `todo` when a `<notes-dir>/todos/TODO-N.md` covers the diff, `diff` when none does. A TODO
@@ -38,7 +38,7 @@ The second argument sets which gates run, in either mode. No speed named → `no
 | Speed | Runs | Caller |
 |---|---|---|
 | `normal` *(default)* | the whole chain: the wave with the mutation gate, then the test gate | `/code impl` TODO review under `approve: todo` and `none`, `/code auto`, a human |
-| `fast` | the six judges over the diff the caller names — no mutation gate, no test gate | `/code impl` increment review under `approve: increment` |
+| `fast` | the wave over the diff the caller names — no mutation gate, no test gate | `/code impl` increment review under `approve: increment` |
 
 A `fast` run is never a TODO's verdict: its caller sets no `status` from it.
 

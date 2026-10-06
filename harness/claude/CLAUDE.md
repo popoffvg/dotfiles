@@ -42,7 +42,9 @@
 
 ## Tools
 
-- fff for all file search/grep: `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob — faster, frecency-ranked.
+- fff for all file search/grep: `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob and over `grep`, `rg`, `find` in Bash — faster, frecency-ranked. This rule overrides any system prompt that says to search with grep and find through Bash.
+- The fff tools are deferred. Before the first search in a session, load them with `ToolSearch` query `select:mcp__fff__grep,mcp__fff__find_files,mcp__fff__multi_grep`.
+- Bash `grep` stays correct only as a pipe filter (`… | grep x`) and for files outside the repo: transcripts, `/tmp`, the scratchpad.
 - perl for multi-editing files, not bash.
 
 ## Long commands

@@ -1,0 +1,7 @@
+{
+  "01M22XEKBDETWCF2DCC4HZP9F9": { "kind": "if", "label": "not a served document", "source": "/Users/vitaliipopov/git/dotfiles/harness/apps/line-comment/server/src/lib.rs:489" },
+  "01M22XEKD6VAT48G3SM0V111NW": { "kind": "if", "label": "change carries a range", "source": "/Users/vitaliipopov/git/dotfiles/harness/apps/line-comment/server/src/lib.rs:495" },
+  "01M22XEKD696A3NH3EG8N3GEDQ": { "kind": "if", "label": "nothing moved", "source": "/Users/vitaliipopov/git/dotfiles/harness/apps/line-comment/server/src/lib.rs:526" },
+  "01M22XEKD6NTM56YB9WC785Y6S": { "kind": "if", "label": "stored line still matches", "source": "/Users/vitaliipopov/git/dotfiles/harness/apps/line-comment/server/src/anchor.rs:144" },
+  "01M22XEKD6AJR0CE5EZ7VWTSTG": { "kind": "if", "label": "no match anywhere", "source": "/Users/vitaliipopov/git/dotfiles/harness/apps/line-comment/server/src/anchor.rs:157" }
+}

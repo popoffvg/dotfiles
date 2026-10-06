@@ -1,0 +1,6 @@
+{
+  "name": "first-prompt-model",
+  "version": "0.2.0",
+  "description": "Haiku reads the first prompt of a session and picks the main-loop model for the session",
+  "types": "./types/index.d.ts"
+}

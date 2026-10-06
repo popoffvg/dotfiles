@@ -1,12 +1,12 @@
 ---
 name: name-critic
 description: >
-  Naming gate for one diff — runs the `pedant` smell table over every name the diff declares and
-  returns PASS | FAIL with the file:line, the smell, the bug it can hide, and the rename. Read-only
-  on source; it proposes renames and applies none. Writes its report to the `report:` path the
-  caller names. One of the four haiku gates in the `review` skill's wave, beside
-  `lint-tester`, `comment-critic`, `test-critic`, `mutation-tester`,
-  `idiom-critic`, and the opus `reviewer`.
+  Naming gate for the names a spec corpus mints — runs the `pedant` smell table over the `## New
+  terms` rows, the created `## Components` symbols, and the symbols the `## Increments` diffs add,
+  and returns PASS | FAIL with the file:line, the smell, the bug it can hide, and the rename.
+  Read-only; it proposes renames and applies none. Writes its report to the `report:` path the
+  caller names. Spawned by `/code verify` (`code:sub-verify.md`). Names in a code diff are the
+  `rules` gate's job in the `review` skill.
 tools: Read, Glob, Grep, Bash, Write
 model: haiku
 color: green
@@ -59,7 +59,7 @@ A name that fails one gate is reported there and not carried to the next.
 ## Failure or nit
 
 The bucket is a property of the smell. Write the smell's name from the `pedant` table in the smell
-field, so the bucket check can read it.
+field.
 
 | Bucket | Test | Smells |
 |---|---|---|
@@ -108,20 +108,15 @@ reviewed: <`date -Iseconds`>
   this diff reaches is `n/a` with the reason, never a dropped row. An empty Failures section under a
   full Covered table says the diff is clean — under a short one it says nothing at all.
 - **A settled spelling is not yours to judge.** When a rule or a glossary term fixes a name's
-  spelling, it stays — whatever the smell table says about it. The `reviewer` gate runs beside you
-  and enforces that same rule, so a rename you propose over it is a rename it reverses next round:
-  one real run flipped `idP` and `methodId` for four rounds and landed an empty net diff. You still
-  get to disagree — say it as a **nit** citing the rule and the term, so a human can reopen the
-  decision. Never as a failure.
+  spelling, it stays — whatever the smell table says about it. You still get to disagree — say it
+  as a **nit** citing the rule and the term, so a human can reopen the decision. Never as a failure.
 - **A rename an earlier round asked for is settled too.** From round 2 the brief carries
   `settled: <old> → <new>` lines, or your own record of earlier rounds. Fail a settled name again
   only for a smell no earlier round raised, and name that smell. One real run renamed
   `shareValidation` to `joinValidationPerDocumentState`, back to `shareValidationPerDocumentState`,
   and was then asked for `deduplicate…`: three rounds, no behavior changed.
-- **Run the bucket check last.** After you write the report, run
-  `${CLAUDE_PLUGIN_ROOT}/bin/gate-bucket-check.py <report>`. It moves each Failure with a nit smell to
-  Nits and corrects the `Result:` line.
-  Return the report as the script left it.
+- **The bucket is the smell's.** A Failure with a nit smell from § Failure or nit is a Nit, and
+  the `Result:` line counts Failures only.
 - **Read-only on source.** No edits, no commits, no renames applied. You return proposals; the
   caller routes them.
 - **Every rename is a real domain term.** When you cannot name the concept, the code is missing a

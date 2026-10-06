@@ -46,11 +46,11 @@ Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
    Run the claim pass first and return the claim table with your findings.")
 ```
 
-Cross-TODO — the contradiction agent. It reads `spec.md`, the Decisions in `thoughts/`, and from **every** TODO: the ledger row, Outcome, Depends on, `## Files`, and the signatures in `## Changes`. Headers alone hide the conflicts: two TODOs give one function two signatures inside their diffs, not in their outcomes.
+Cross-TODO — the contradiction agent. It reads `spec.md`, the Decisions in `thoughts/`, and from **every** TODO: the ledger row, Outcome, Depends on, `## Files`, and the signatures in the `## Increments` diffs. Headers alone hide the conflicts: two TODOs give one function two signatures inside their diffs, not in their outcomes.
 ```
 Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
   "[VERIFY CROSS] Read <notes-dir>/spec.md, thoughts/ decisions, and every TODO's row, Outcome,
-   Depends on, Files, and the signatures in its Changes diffs.
+   Depends on, Files, and the signatures in its increment diffs.
    Run the claim pass over the whole set — pairwise, not per-TODO. Report every collision plus
    Depends-on cycles. Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md § Mission.
    Return the claim table with your findings.")
@@ -84,7 +84,7 @@ Then the judgment half, one agent over the whole corpus:
 ```
 Agent(subagent_type="wm:name-critic", model="haiku", prompt=
   "[NAME spec] Judge the names <notes-dir> MINTS, not a diff. In scope: every `## New terms` row,
-   every `## Components` symbol whose Touch is `create`, and every symbol a `## Surface` diff adds,
+   every `## Components` symbol whose Touch is `create`, and every symbol an `## Increments` diff adds,
    across all TODO pairs. Out of scope, silently: every term GLOSSARY.md marks `Status: existing`,
    and every symbol the code already carries — the diff modifies it, it does not name it.
    GLOSSARY.md is the domain vocabulary; a new name that contradicts a row there is a Failure.
@@ -107,7 +107,7 @@ Do not scan for contradictions by reading and hoping. Extract, then collide.
 
 | Kind | Where it hides | Example claim |
 |---|---|---|
-| Signature | `## Changes` diffs, **Behavior** TS block | `loadSpec(dir: string): Spec` |
+| Signature | `## Increments` diffs, **Behavior** TS block | `loadSpec(dir: string): Spec` |
 | Term meaning | Outcome, a printed rule, GLOSSARY row | `"wave" = a set of TODOs with no shared Files` |
 | File ownership | `## Files`, increment **Files** | `TODO-3 rewrites src/gate.ts` |
 | Order | `Depends on`, wave table, increment `n` | `TODO-5 lands after TODO-2` |
@@ -141,7 +141,7 @@ Each finding names the exact TODO/section, states the concrete scenario that fai
 `spec-lint.py` rules on every countable field. What is left needs a reader, so each per-TODO agent
 carries it beside the three hunts. Each one is a hard block when it fires.
 
-**A body in the `## Surface` diff**, and the most common finding here. Read every ```diff for
+**A body in an increment diff**, and the most common finding here. Read every ```diff for
 content that *is* the implementation rather than the surface a caller sees: a function body, a loop
 or branch chain, a shell script, a SQL query, a regex, a fixture, a table of literal expected
 values, a test file's assertions. The edit is the same each time — delete the body, keep the
@@ -167,7 +167,7 @@ rewrite, never "tighten this". The agent half is out of scope.
 **Over-statement, the same gate in reverse.** The gate may only push text *in* if it can also push
 text *out*, or every pass grows the pair. It fires when a rule was copied out of the printed rule
 set into a TODO, when spec Description/Goal prose was copied into the human half, or when
-`## Surface` carries a symbol no Components row claims. Name the cut, never a move into the agent
+an increment diff carries a symbol no Components row claims. Name the cut, never a move into the agent
 half — that half has no line budget to absorb it.
 
 **A rule that is not a rule.** A decision no increment in any TODO can violate is a fact, not a

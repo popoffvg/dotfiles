@@ -1,58 +1,95 @@
 ---
 name: adr
-description: Read the current session and record the architecture decisions it made as ADRs in docs/adr/. Use for "write an ADR", "record this decision", "ADR for what we just decided", after the SessionEnd ADR reminder fires, and when a session settles a hard-to-reverse choice — a technology with lock-in, an integration pattern, a context boundary, or a deliberate deviation from the obvious path.
+description: Read the current session and record the architecture decisions it made as ADRs, each with the Properties a reviewer checks code against. Use for "write an ADR", "record this decision", "ADR for what we just decided", after the SessionEnd ADR reminder fires, and when a session settles a hard-to-reverse choice — the main components and their layering, a platform or technology with lock-in (Cloud Run or Infrastructure Manager, Terraform), where state lives, a trust or process boundary, or a deliberate deviation from the obvious path.
 ---
 
 # adr — turn a session into an ADR
 
-**Read what the session decided, keep only what qualifies, draft it, and ask before writing.** An ADR records what the team decided; the team confirms the wording. Format and lifecycle live in [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md); the file to copy is [ADR-TEMPLATE.md](../domain-modeling/ADR-TEMPLATE.md).
+**Read what the session decided, keep only the main architecture decisions, take each reason from the operator, and ask before writing.** An ADR records what the operator decided; the agent finds it, the operator owns it. Format and lifecycle live in [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md); the file to copy is [ADR-TEMPLATE.md](../domain-modeling/ADR-TEMPLATE.md).
+
+**Where ADRs land:**
+
+| Project | Live ADRs | Archived ADRs |
+|---|---|---|
+| A wm project — it has a `.notes/` notes dir | `.notes/adr/` | `.notes/adr/archived/` |
+| Any other repo | `docs/adr/` | `docs/!archived/adr/` |
+
+`.notes/` is its own jj repo, so in a wm project move an archived ADR with `mv`, not `git mv`, and skip the README *Decisions* pointer.
 
 ## 1. Collect the candidate decisions
 
-Work from the conversation in context. When the session is long, compacted, or the reminder named a transcript, read the transcript file instead — the `SessionEnd` reminder prints its path, and a live session's path is `~/.claude/projects/<project-slug>/<session-id>.jsonl`.
+Work from the conversation in context. When the session is long, compacted, or the reminder named a transcript, read the transcript file instead — the `SessionEnd` reminder prints its path, and a live session's path is `~/.claude/projects/<project-slug>/<session-id>.jsonl`. Also read the grill files and decision notes the session wrote.
 
-A candidate is a point where the session chose one option over another and acted on it. Take the choice from what the user approved, not from what you proposed.
+A candidate is a point where the session chose one option over another and acted on it. Take the choice from what the operator said or approved, not from what you proposed.
 
-**Completion criterion**: each candidate has the alternative it beat and the reason it won, quoted from the session.
+**Completion criterion**: each candidate has the decision and the session line it comes from.
 
-## 2. Drop the candidates that do not qualify
+## 2. Keep only the main architecture decisions
 
-All three tests must pass, from `ADR-FORMAT.md`:
+A candidate is an ADR only when all four tests pass:
 
-1. **Hard to reverse** — the cost of changing your mind later is meaningful.
-2. **Surprising without context** — a future reader will wonder "why did they do it this way?"
-3. **The result of a real trade-off** — there were genuine alternatives and one won for specific reasons.
+1. **System-wide** — it shapes more than one component or more than one TODO. A choice inside one package or one TODO is an implementation detail.
+2. **Hard to reverse** — changing it later costs a migration, a rewrite, or a broken install.
+3. **A real trade-off** — a competent engineer would defend at least one alternative.
+4. **The operator's choice** — the operator made it or approved it. An agent's choice that nobody approved is a candidate for step 4, not an ADR.
 
-Most sessions produce zero ADRs. Say so and stop — an ADR for an obvious choice buries the ones that matter.
+What passes: the main components and their layering; a platform or technology with lock-in (run Terraform in Cloud Run, not in Infrastructure Manager; use Terraform at all); where state and secrets live; a trust or process boundary (no cloud SDK, every cloud call is a CLI); a deliberate deviation from the obvious path.
 
-**Completion criterion**: every surviving candidate names which reading of each test it passes.
+What fails: a name, a flag, a field, a file layout, a function signature, a log format, an error text, a test fixture, a CI step, a value such as a timeout, a scope cut of one TODO. A value or a rule that follows from an ADR becomes a **Property** of that ADR, not a new ADR.
 
-## 3. Check what is already recorded
+Most sessions produce zero ADRs. Say so and stop. A project holds about ten live ADRs; a count far above that means implementation details got in.
 
-Read `docs/adr/` and `docs/!archived/adr/` before drafting.
+**Completion criterion**: every surviving candidate names the reading of each test it passes.
+
+## 3. Merge into what is already recorded
+
+Read both ADR directories before drafting.
 
 | Finding | Action |
 |---|---|
-| The decision is already recorded and unchanged | Stop. Report the file. |
+| Recorded and unchanged | Stop. Report the file. |
+| The session adds a rule that follows from a recorded ADR | Add a Property to that ADR: bump `updated`, append a changelog line. No new number. |
+| The session **refines** a recorded decision | Edit that ADR the same way. |
 | The session **reverses** a recorded decision | Draft a new ADR that names the one it supersedes, then follow the supersession steps in `ADR-FORMAT.md`. |
-| The session **refines** a recorded decision | Edit that ADR: bump `updated`, append a changelog line. No new number. |
 | Nothing recorded | Draft a new ADR. |
 
-**Completion criterion**: both directories were listed, and the action above was chosen from what they hold.
+**Completion criterion**: both directories were listed, and each candidate has one action from the table.
 
-## 4. Draft
+## 4. Find the blind spots and interview the operator
 
-Number from the highest number in **both** directories plus one. Copy `docs/adr/TEMPLATE.md` when the repo has one, otherwise `ADR-TEMPLATE.md`. Fill `created` and `updated` with today's date and open the changelog with `- <today> — Drafted.`
+Fill five slots per candidate from the session alone: **Decision**, **Alternatives** (at least one real one, with why it lost), **Reason**, **Properties**, **Consequences**. A slot is a blind spot when no session source fills it:
 
-Keep the body to one to three sentences: the context, the decision, the reason. Add *Considered Options* or *Consequences* only when the session produced something a reader could not infer.
+- **Reason** — the operator never said why, or only you said why. A reason you inferred is a blind spot, however sure you are.
+- **Alternatives** — no rejected option is named, or one is named without the reason it lost.
+- **Properties** — the session never states what must stay true while the decision holds.
+- **Consequences** — what this makes harder, and what fact would make the operator reverse it.
 
-**Completion criterion**: the draft has frontmatter with `status: proposed`, a title, the decision paragraph, and a closing `## Changelog` section.
+Settle a slot from a source when one exists, as `grilling` step 2 says, and cite it. Interview the operator on what stays open with the `grilling` skill, one round in `grill-adr-<subject>.md`. Each blind spot is one `[decide]` block, at most five per round, root decisions first:
 
-## 5. Ask, then write
+| Blind spot | Ask | Option A (recommended) |
+|---|---|---|
+| Reason | "Why X over Y?" | The reason the context points to, marked as your guess, quoting what points to it. |
+| Alternatives | "What else did you consider, and why did it lose?" | The obvious alternative, with the loss reason you infer. |
+| Properties | "While X holds, what must never happen?" | Two to four invariants you can check in code, each one line. |
+| Consequences | "What would make you reverse X?" | The fact that breaks the reason. |
 
-Show the full draft and the target path. Write it only after the user approves the wording. Create `docs/adr/` with its `TEMPLATE.md` on the first ADR, and add the README *Decisions* pointer at the same time.
+An empty Answer slot means the operator accepted the recommendation; record that reason as `(accepted recommendation)`. A candidate whose Reason the operator will not give stays `proposed`.
 
-**Completion criterion**: the file exists at the approved path, or the user declined and nothing was written.
+**Completion criterion**: every slot of every candidate is filled from a cited session source or from an answered grill block.
+
+## 5. Draft
+
+Number from the highest number in **both** directories plus one. Copy `TEMPLATE.md` from the ADR directory when the repo has one, otherwise `ADR-TEMPLATE.md`. Fill `created` and `updated` with today's date and open the changelog with `- <today> — Drafted.`
+
+Write the decision paragraph in one to three sentences. Quote the operator's reason. List each Property as `P1.`, `P2.`, … — one invariant a reviewer can check against a diff, cited as `ADR-NNNN/P2`. A Property says what the code must do or must never do; it names no file, no ticket, no plan.
+
+**Completion criterion**: the draft has frontmatter with `status: proposed`, a title, the decision paragraph, a quoted reason, at least one Property, and a closing `## Changelog` section.
+
+## 6. Ask, then write
+
+Show the full draft and the target path. Write it only after the operator approves the wording; approval sets `status: accepted`. Create the ADR directory with its `TEMPLATE.md` on the first ADR, and add the README *Decisions* pointer at the same time.
+
+**Completion criterion**: the file exists at the approved path, or the operator declined and nothing was written.
 
 ## The reminder
 

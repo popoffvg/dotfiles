@@ -1,0 +1,20 @@
+{
+  "packages": [
+    { "id": "server",  "label": "line-comment LSP server", "kind": "service", "path": "harness/apps/line-comment/server" },
+    { "id": "zed",     "label": "Zed editor",              "kind": "app" },
+    { "id": "store",   "label": ".tmp/line-comment.json",  "kind": "store" }
+  ],
+  "flows": [
+    {
+      "id": "anchor-reconcile",
+      "label": "Re-anchor comments after a change",
+      "description": "An edit shifts every stored anchor, re-hashes the lines it touched, and persists only when something moved.",
+      "edges": [
+        { "from": "zed",    "to": "server", "via": "textDocument/didChange", "payload": "{ uri, changes[] }",            "source": "harness/apps/line-comment/server/src/lib.rs:488" },
+        { "from": "server", "to": "server", "via": "shiftForChange",         "payload": "{ comments, range, newText }",  "source": "harness/apps/line-comment/server/src/anchor.rs:64" },
+        { "from": "server", "to": "store",  "via": "PersistStore",           "payload": "{ version, files }",            "source": "harness/apps/line-comment/server/src/store.rs:101" },
+        { "from": "server", "to": "zed",    "via": "publishDiagnostics",     "payload": "{ uri, diagnostics[] }",        "source": "harness/apps/line-comment/server/src/lib.rs:527" }
+      ]
+    }
+  ]
+}

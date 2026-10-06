@@ -1,0 +1,6 @@
+{
+  "name": "prompt-stack",
+  "version": "0.2.0",
+  "description": "Push, pop and list prompt drafts in files under ~/.claude/prompt-stack, from a key-opened menu",
+  "types": "./types/index.d.ts"
+}

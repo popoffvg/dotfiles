@@ -132,7 +132,6 @@
     "ast-grep": "off",
     "domain-modeling": "off",
     "grilling": "on",
-    "harness-dev:doc-examples-must-lint": "off",
     "harness-dev:help-command": "off",
     "harness-dev:prompt-dry-run": "off",
     "harness-dev:prune-text": "off",
@@ -229,6 +228,15 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/block-ask-user-question.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/block-fork-with-nested-agents.py"
           }
         ]
       }
@@ -368,8 +376,9 @@
     "claude-md-management@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": false,
     "engram@engram": true,
+    "first-prompt-model@local-plugins": true,
     "harness-dev@local-plugins": true,
-    "hi@local-plugins": true,
+    "prompt-stack@local-plugins": true,
     "mictx-ecosystem@mictx-helper-marketplace": true,
     "mictx@mictx-helper-marketplace": true,
     "plugin-dev@claude-plugins-official": true,
@@ -381,11 +390,13 @@
     "frontend-design@claude-plugins-official": false,
     "gopls-lsp@claude-plugins-official": true,
     "self-improvement@local-plugins": true,
-    "smart-commit@local-plugins": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
     "codemap@codelens": true,
     "codelens@codelens": true,
-    "line-comment@local-plugins": true
+    "cc-plugin-you-should-know@builtin": true,
+    "hi@local-plugins": true,
+    "line-comment@local-plugins": true,
+    "smart-commit@local-plugins": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {

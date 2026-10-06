@@ -32,6 +32,7 @@ the named gaps, and leave every sound section untouched.
 - **Your reader is planning a refactor.** They scan steps, decision points, and edge cases in seconds. No paragraphs of prose.
 - **Be adversarial about the failure path.** Empty inputs, races, partial failure mid-loop, duplicate keys, deleted resources, stale caches, silent drops.
 - **An invariant enforced at the call sites is not documented until every call site is listed.** When you write that a rule holds "because callers do X", run the actual `grep` and list them all. A sample is a gap.
+- **Use the project's words.** When `<notes-dir>/GLOSSARY.md` exists, read it first: a `## Terms` row for a concept it already holds uses its term, and a different word in the code goes in that row as the code's name.
 - **Do not edit the target codebase.** Your only writes are inside `$RESEARCH_DIR`.
 
 ## Your final message

@@ -1,0 +1,39 @@
+{
+  "packages": [
+    "npm:pi-fzf",
+    "npm:pi-markdown-preview",
+    "npm:pi-mcp-adapter",
+    "npm:pi-notify",
+    "npm:pi-subagents",
+    "npm:pi-cursor-sdk",
+    "npm:pi-claude-marketplace",
+    "npm:pi-zen-mode",
+    "npm:pi-clear-screen",
+    "../../Documents/git/dotfiles/harness/pi-packages/better-pi-rewind",
+    "../../Documents/git/dotfiles/harness/pi-packages/pi-btw",
+    "../../Documents/git/dotfiles/harness/pi-packages/pi-bg-shell"
+  ],
+  "defaultProvider": "cursor",
+  "defaultModel": "grok-4.7@256k",
+  "lastChangelogVersion": "1.0.3",
+  "extensions": [
+    "-builtin:mcp"
+  ],
+  "theme": "catppuccin-macchiato-dark",
+  "doubleEscapeAction": "fork",
+  "showHardwareCursor": true,
+  "images": {
+    "blockImages": true
+  },
+  "terminal": {
+    "showTerminalProgress": true,
+    "clearOnShrink": true
+  },
+  "followUpMode": "one-at-a-time",
+  "cacheWarming": "streaming",
+  "hideThinkingBlock": true,
+  "showCacheMissNotices": true,
+  "quietStartup": true,
+  "defaultProjectTrust": "always",
+  "treeFilterMode": "default"
+}

@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Launch claude bound to ZED_SESSION_ID.
+#
+# That id is the agent-panel terminal, stable across Zed restarts. Claude's
+# --resume looks up its own conversation id, so a Zed id passed through by
+# hand is "No conversation found" until a transcript exists under that same
+# UUID. The first launch uses --session-id so the transcript is created with
+# the Zed id. A later launch, and `claude --resume "$ZED_SESSION_ID"`, finds it.
+# --session-id and --resume together are rejected unless --fork-session is set,
+# so an existing transcript takes --resume alone.
+
+set -euo pipefail
+
+extra=()
+
+link_session() {
+  local id=${ZED_SESSION_ID:-}
+  [[ -n $id ]] || return 0
+
+  local arg
+  for arg in "$@"; do
+    case $arg in
+      --resume | --resume=* | -r | --session-id | --session-id=* | --continue | --fork-session)
+        return 0
+        ;;
+    esac
+  done
+
+  if [[ ! $id =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]; then
+    echo "zed-claude: ZED_SESSION_ID is not a UUID: $id" >&2
+    return 1
+  fi
+
+  shopt -s nullglob
+  local files=( "$HOME/.claude/projects"/*/"$id.jsonl" )
+  shopt -u nullglob
+  if (( ${#files[@]} > 0 )); then
+    extra=(--resume "$id")
+  else
+    extra=(--session-id "$id")
+  fi
+}
+
+if [[ ${1:-} == --print ]]; then
+  shift
+  link_session "$@"
+  printf '%s\n' "${extra[@]}"
+  exit 0
+fi
+
+link_session "$@"
+exec command claude "${extra[@]}" "$@"

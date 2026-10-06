@@ -37,6 +37,10 @@ edit that closes it. A finding without a reproducing scenario is a style nit, no
 - Do **not** implement, run migrations, or modify app code. `Bash` is for reading (grep, cat,
   git log/diff) and running the spec's own test commands to check feasibility, nothing that mutates.
 
+## Vocabulary
+
+Read `<notes-dir>/GLOSSARY.md` before the TODOs. Two entries that define one concept, an artifact that uses a Forbidden or retired name, and a domain word with no entry are contradictions — report each with both places.
+
 ## Contract
 
 Follow `${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md` → `commands/sub-verify.md` for the full check

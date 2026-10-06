@@ -13,27 +13,28 @@ sections that belong to another - a misplaced section means the split was never 
 
 Checked, by file kind:
 
-  todos/TODO-N.md         human half - carries the ONE diff, in ## Surface
+  todos/TODO-N.md         human half - carries every diff, one per increment, in
+                          ## Increments
                           ## Autotest is not here - it is the test file's
                           body <= 550 lines            (arch:sub-todo.md - Budget)
                           ## New terms and ## Components are UNCOUNTED - both are
                           rosters, one row per term and per symbol, unlimited in length
-                          each ## Surface diff <= 150 changed lines, unless that file
-                          declares a `**Compile floor:**`
-                          no agent-half section present (Constraints, Changes, Files,
-                          Pre-reads, Manual test, Definition of done, Gotchas)
-
-  todos/TODO-N.agent.md   agent half - NO line budget, by design
-                          NO ```diff block anywhere - the diff is the human half's
-                          ## Surface, and an increment says what to do, not what to paste
-                          <= 10 increments             (arch:sub-todo.md - Sizing)
+                          <= 10 increments             (arch:sub-todo.md - Budget)
                           increment numbers contiguous from 1
                           each increment carries a **Do:** bullet
+                          each increment diff <= 150 changed lines, unless that
+                          increment declares a `**Compile floor:**`
+                          no ```diff outside ## Increments
+                          no agent-half section present (Constraints, Changes, Files,
+                          Pre-reads, Manual test, Gotchas)
+
+  todos/TODO-N.agent.md   agent half - NO line budget, by design
+                          NO ```diff block anywhere - every diff is in an increment
+                          of the human half's ## Increments
                           no frontmatter (status lives in the human half alone)
                           no human-half section present (Outcome, New terms,
-                          Components, Surface, Autotest, Commit)
-                          ## Constraints holds the wm-constraints.py command, never a rule
-                          table - a rule copied here is the second copy that drifts
+                          Components, Increments, Autotest, Commit)
+                          no ## Constraints - todos/CLAUDE.md names wm-constraints.py
 
   todos/TODO-N.test.md    test file - ## Autotest alone, NO line budget, by design
                           no frontmatter
@@ -73,6 +74,7 @@ HUMAN_SECTIONS = {
     "Outcome",
     "New terms",
     "Components",
+    "Increments",
     "Surface",
     "Flow changes",
     "Commit",
@@ -86,19 +88,14 @@ AGENT_SECTIONS = {
     "Pre-reads",
     "Pre-reads (MUST read before editing)",
     "Manual test",
-    "Definition of done",
     "Gotchas",
 }
 
 H2 = re.compile(r"^## +(.+?)\s*$")
 INCREMENT = re.compile(r"^### +(\d+)\. +(.+?)\s*$")
-# A `## Surface` entry: `- `path/to/file.go`` — the bullet that owns the diff below it.
-SURFACE_FILE = re.compile(r"^\s*[-*]\s*`([^`]+)`")
 DIFF_OPEN = re.compile(r"^```diff\s*$")
 COMPILE_FLOOR = re.compile(r"^\s*[-*]\s*\*\*Compile floor:?\*\*")
 DO_BULLET = re.compile(r"^\s*[-*]\s*\*\*Do:?\*\*")
-TABLE_ROW = re.compile(r"^\|")
-TABLE_RULE = re.compile(r"^\|[\s:|-]+\|?\s*$")
 WIKILINK = re.compile(r"\[\[([^\]|]+?)\s*(?:\|[^\]]*)?\]\]")
 # A doc origin: a markdown link plus the `read <date>` that pins which version was used.
 READ_DATE = re.compile(r"\bread\s+\d{4}-\d{2}-\d{2}")
@@ -150,28 +147,15 @@ def misplaced(found, wrong_sections, here, there):
 
 
 def diff_blocks(lines):
-    """Yield (owning_file, changed_line_count, at_compile_floor, 0) per ```diff in ## Surface.
+    """Yield (changed_line_count, at_compile_floor) per ```diff in one increment.
 
-    The file is what the author has to look at, so it is what the message names. A file may
-    exceed the diff budget when the smallest surface that still compiles is larger than it -
-    the repo building is an invariant, the budget is not. That case must declare itself with
-    a `**Compile floor:**` bullet, or the gate cannot tell it apart from a diff carrying a
-    body nobody removed.
+    An increment may exceed the diff budget when the smallest surface that still compiles is
+    larger than it. That case must declare itself with a `**Compile floor:**` bullet, or the
+    gate cannot tell it apart from a diff carrying a body nobody removed.
     """
-    owner = "the file named before any bullet"
-    floor = False
+    floor = any(COMPILE_FLOOR.match(x) for x in lines)
     i = 0
     while i < len(lines):
-        m = SURFACE_FILE.match(lines[i])
-        if m:
-            owner = f"`{m.group(1)}`"
-            floor = False
-            i += 1
-            continue
-        if COMPILE_FLOOR.match(lines[i]):
-            floor = True
-            i += 1
-            continue
         if not DIFF_OPEN.match(lines[i]):
             i += 1
             continue
@@ -179,18 +163,15 @@ def diff_blocks(lines):
         i += 1
         while i < len(lines) and not lines[i].strip().startswith("```"):
             line = lines[i]
-            if line.startswith(("+++", "---")):
-                i += 1
-                continue
-            if line.startswith(("+", "-")):
+            if line.startswith(("+", "-")) and not line.startswith(("+++", "---")):
                 changed += 1
             i += 1
-        yield owner, changed, floor, 0
+        yield changed, floor
         i += 1
 
 
 def increment_spans(lines):
-    """Yield (number, title, start, end) for each `### n.` block in a Changes section."""
+    """Yield (number, title, start, end) for each `### n.` block in an Increments section."""
     marks = [(i, m) for i, m in ((i, INCREMENT.match(x)) for i, x in enumerate(lines)) if m]
     for k, (i, m) in enumerate(marks):
         end = marks[k + 1][0] if k + 1 < len(marks) else len(lines)
@@ -229,18 +210,66 @@ def check_todo_human(lines, violations, path):
         misplaced(found, TEST_SECTIONS, "human half", "test file (`TODO-N.test.md`)")
     )
     if "Surface" in found:
-        s_start, s_end = found["Surface"]
-        for owner, changed, floor, _ in diff_blocks(body[s_start:s_end]):
+        violations.append(
+            "the human half carries a `## Surface` section. The diff is split by increment: "
+            "each `### n.` under `## Increments` carries the part of the diff it lands "
+            "(`arch:sub-todo.md` - Increments). Move each diff under its increment."
+        )
+
+    i_start, i_end = found.get("Increments", (0, 0))
+    stray = sum(
+        1 for k, x in enumerate(body) if DIFF_OPEN.match(x) and not i_start <= k < i_end
+    )
+    if stray:
+        violations.append(
+            f"the human half carries {stray} ```diff block(s) outside `## Increments`. Every "
+            "diff belongs to the increment that lands it (`arch:sub-todo.md` - Increments)."
+        )
+
+    if "Increments" not in found:
+        violations.append(
+            "the human half has no `## Increments`. It is the section the reviewer approves: "
+            "an ordered increment sequence, `n` contiguous from 1, each with its own diff "
+            "(`arch:sub-todo.md` - Increments)."
+        )
+        return
+
+    section = body[i_start:i_end]
+    increments = list(increment_spans(section))
+
+    if not increments:
+        pass
+    elif len(increments) > MAX_INCREMENTS:
+        violations.append(
+            f"`## Increments` has {len(increments)} increments, budget is {MAX_INCREMENTS}. "
+            "The TODO is too big: split the ledger row. Do not merge increments to get "
+            "under this number."
+        )
+    else:
+        numbers = [n for n, _, _, _ in increments]
+        if numbers != list(range(1, len(numbers) + 1)):
+            violations.append(
+                f"increment numbers are {numbers} - they must run contiguously from 1."
+            )
+
+    for number, title, start, end in increments:
+        block = section[start:end]
+        if not any(DO_BULLET.match(x) for x in block):
+            violations.append(
+                f"increment {number} ({title}) carries no **Do:** bullet, so it states no "
+                "work. An increment is one to four imperative sentences naming what to "
+                "write, what to migrate, and what to delete (`arch:sub-todo.md` - Increments)."
+            )
+        for changed, floor in diff_blocks(block):
             if changed <= MAX_DIFF_LINES or floor:
                 continue
             violations.append(
-                f"the `## Surface` diff for {owner} changes {changed} lines, budget is "
-                f"{MAX_DIFF_LINES}. First check for a body - a function body, loop, shell "
+                f"the diff of increment {number} ({title}) changes {changed} lines, budget "
+                f"is {MAX_DIFF_LINES}. First check for a body - a function body, loop, shell "
                 "script, query, or fixture is never surface, and deleting one usually takes "
-                "the file under the budget on its own (`arch:sub-todo.md` - A diff carries "
-                "the surface, not a body). If every line is real surface and the file still "
-                "cannot compile below the budget, add a `**Compile floor:**` bullet under "
-                "its diff saying why."
+                "the increment under the budget on its own (`arch:sub-todo.md` - A diff "
+                "carries the surface, not a body). If every line is real surface, split the "
+                "increment, or add a `**Compile floor:**` bullet under its diff saying why."
             )
 
 
@@ -263,71 +292,25 @@ def check_todo_agent(lines, violations, path):
         misplaced(found, TEST_SECTIONS, "agent half", "test file (`TODO-N.test.md`)")
     )
     if "Constraints" in found:
-        c_start, c_end = found["Constraints"]
-        rules = [
-            x
-            for x in body[c_start:c_end]
-            if TABLE_ROW.match(x) and not TABLE_RULE.match(x)
-        ]
-        if rules:
-            violations.append(
-                f"the agent half's `## Constraints` carries a table of {len(rules) - 1} rule "
-                "row(s). "
-                "It holds the command and nothing else: `Obey every rule that "
-                "`~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints.` A rule "
-                "lives once, as the description of the decision note that settled it, so a "
-                "decision that changes is edited once (`arch:sub-todo.md` - Constraints)."
-            )
+        violations.append(
+            "the agent half carries `## Constraints`. Delete it: `todos/CLAUDE.md` names "
+            "`~/.claude/scripts/wm-constraints.py` once, so no TODO file repeats the command."
+        )
 
     diffs = sum(1 for x in body if DIFF_OPEN.match(x))
     if diffs:
         violations.append(
-            f"the agent half carries {diffs} ```diff block(s). It must carry none: the diff "
-            "for the whole TODO lives once, in `TODO-N.md` `## Surface`, where the human "
-            "approves it. An increment says WHAT TO DO - a **Do:** bullet in prose, naming "
-            "the work and the call sites to migrate - never what to paste. Move the surface "
-            "to `## Surface` and replace each diff with a **Do:** bullet "
-            "(`arch:sub-todo.md` - Changes)."
+            f"the agent half carries {diffs} ```diff block(s). It must carry none: every diff "
+            "lives in `TODO-N.md` `## Increments`, under the increment that lands it, where "
+            "the human approves it (`arch:sub-todo.md` - Increments)."
         )
 
-    if "Changes" not in found:
+    if "Changes" in found:
         violations.append(
-            "the agent half has no `## Changes`. It is the section the file exists for: an "
-            "ordered increment sequence, `n` contiguous from 1 (`arch:sub-todo.md` § Changes)."
+            "the agent half carries `## Changes`. The increments live in `TODO-N.md` "
+            "`## Increments`, each with its own diff; the agent half maps them to paths in "
+            "`## Files` (`arch:sub-todo.md` - Increments)."
         )
-        return
-
-    start, end = found["Changes"]
-    changes = body[start:end]
-    increments = list(increment_spans(changes))
-
-    # A `## Changes` with no `### n.` heading is a format question, not a budget one - the
-    # `verify` audit and the pre-save checklist own it. Counting is silent where there is
-    # nothing to count, so this gate only ever reports a real overrun.
-    if not increments:
-        pass
-    elif len(increments) > MAX_INCREMENTS:
-        violations.append(
-            f"`## Changes` has {len(increments)} increments, budget is {MAX_INCREMENTS}. "
-            "This is the signal the old line count used to carry: the TODO is too big, "
-            "split the ledger row. The file itself has no line budget - do not merge "
-            "increments to get under this number."
-        )
-    else:
-        numbers = [n for n, _, _, _ in increments]
-        if numbers != list(range(1, len(numbers) + 1)):
-            violations.append(
-                f"increment numbers are {numbers} - they must run contiguously from 1."
-            )
-
-    for number, title, i_start, i_end in increments:
-        if not any(DO_BULLET.match(x) for x in changes[i_start:i_end]):
-            violations.append(
-                f"increment {number} ({title}) carries no **Do:** bullet, so it states no "
-                "work. An increment is one to four imperative sentences naming what to "
-                "write, what to migrate, and what to delete - the signature it produces is "
-                "already in `TODO-N.md` `## Surface` (`arch:sub-todo.md` - Changes)."
-            )
 
 
 def check_todo_test(lines, violations, path):

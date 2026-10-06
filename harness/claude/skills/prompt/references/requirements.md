@@ -37,6 +37,7 @@ Source: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering
 - No audience, no success criteria, no rule for the unclear case.
 - Metaphors and flourish in the prompt itself.
 - A sentence that changes no behaviour.
+- Context the receiver already has: file contents, repo facts, conversation history, rules from its CLAUDE.md. Point to the source; do not copy it.
 
 ## Skeleton
 

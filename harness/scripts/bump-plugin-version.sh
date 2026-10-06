@@ -37,6 +37,12 @@ for manifest in "$PLUGINS_DIR"/*/.claude-plugin/plugin.json; do
 
   jq --arg v "$new_version" '.version = $v' "$manifest" > "${manifest}.tmp" && mv "${manifest}.tmp" "$manifest"
   git add "$manifest"
+  codex_manifest="$PLUGINS_DIR/$name/.codex-plugin/plugin.json"
+  if [[ -f "$codex_manifest" ]]; then
+    jq --arg v "$new_version" '.version = $v' "$codex_manifest" > "${codex_manifest}.tmp"
+    mv "${codex_manifest}.tmp" "$codex_manifest"
+    git add "$codex_manifest"
+  fi
   echo "bump-plugin-version: $name $current -> $new_version"
   bumped=$((bumped + 1))
 done

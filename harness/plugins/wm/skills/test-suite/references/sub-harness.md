@@ -68,7 +68,7 @@ marker proves the body ran.
 A judgement call — which skill a task loads, where a block of content belongs — needs labelled cases,
 not one probe. The suite lives at the plugin root, `harness/plugins/<name>/evals/`, with one
 `cases-<skill>.jsonl` per graded skill and a runner that extracts the rule text from the skill at run
-time (`skill:plugin-evals-at-plugin-root`).
+time.
 
 ```bash
 cd ~/git/dotfiles/harness/plugins/<name>/evals && ./run.sh

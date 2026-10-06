@@ -4,15 +4,6 @@ description: >
   Manage spec writing, implementation, and bug fixing.
 argument-hint: help
 model-invocable: false
-# Per-skill Stop hook: snapshot the notes jj repo when the session ends
-# (see @references/ref-jj-notes.md). SessionStart init lives in the plugin's hooks.json.
-hooks:
-  Stop:
-    - matcher: ""
-      hooks:
-        - type: command
-          command: ${CLAUDE_PLUGIN_ROOT}/bin/notes-jj-commit.sh
-          timeout: 5000
 ---
 
 # Code — subcommand router
@@ -33,7 +24,7 @@ Reference-type slugs in the last column name the skill that owns the file: **`su
 | `/code …` | You need to… | Reference |
 |---|---|---|
 | `new` *(default)* | Spec pipeline: init the corpus (`CLAUDE.md`, `RULES.md` — ask the three rule questions plus the spec's `approve` depth — `PATTERNS.md`), write `spec.md` (if missing) → grill until no open question note is left in `thoughts/` → compile the plan with its **wave** table → **stop at the gate**. Does not write TODO bodies. | `arch:sub-new.md` · `skill:flow-sketch` |
-| `todo` | Author the self-contained `todos/TODO-N.md` + `TODO-N.agent.md` pair — human half (frontmatter — including `approve`, `inherit` unless this TODO needs its own review depth — Outcome, Components, **Surface** — the one diff — **Flow changes**), test file (Unit **and** E2E tests, no budget), and agent half (the `wm-constraints.py` pointer line + the increments described, no diff, unlimited length). Two stages: stage 1 writes the human half, the test file, and the `GLOSSARY.md` entries, then stops for human approval; stage 2 writes the agent half. Settles a decision by writing its note — the rule set is generated from `thoughts/`, so nothing is appended anywhere. From a reviewed `spec.md` + `thoughts/`; runs only past the gate. | `arch:sub-todo.md` · `skill:flow-sketch` |
+| `todo` | Author the self-contained `todos/TODO-N.md` + `TODO-N.agent.md` pair — human half (frontmatter — including `approve`, `inherit` unless this TODO needs its own review depth — Outcome, Components, **Increments** — each self-contained for review, with its own diff and no file path — **Flow changes**), test file (Unit **and** E2E tests, no budget), and agent half (the `wm-constraints.py` pointer line + Files keyed to increments, no diff, unlimited length). Two stages: stage 1 writes the human half with its increments, the test file, and the `GLOSSARY.md` entries, then stops for human approval; stage 2 writes the agent half. Settles a decision by writing its note — the rule set is generated from `thoughts/`, so nothing is appended anywhere. From a reviewed `spec.md` + `thoughts/`; runs only past the gate. | `arch:sub-todo.md` · `skill:flow-sketch` |
 | `verify` | Audit the spec before impl in a separate read-only `spec-verifier` agent — contradictions, missing parts, edge cases, plus the completeness / test-honesty floor. Returns READY / NEEDS REVISION. | `sub:verify.md` |
 | `revise` | Settle drift from a delta manifest, patching only stale notes and spec sections; resets the spec `status` to `review`. Notes-only. | `arch:sub-revise.md` |
 | `quiz` | Test **the human's** understanding: build a multiple-choice quiz — over the spec (`status` `init`/`review`) or the code changes (`status` `impl`) — grade the answers, report a score. Read-only; edits no artifact. | `teach:sub-quiz.md` |
@@ -42,8 +33,8 @@ Reference-type slugs in the last column name the skill that owns the file: **`su
 | `code-map` | Single-panel planned-architecture HTML map (package or component) as a visual aid — via `/dive explain`. | `sub:code-map.md` |
 | `diff` | Show change as one self-contained HTML page (opened): before/after arch panels + signatures-as-diffs. `diff arch` *(default)*: current vs proposed. `diff impl`: what the branch shipped. | `sub:diff.md` · `sub:code-map.md` |
 | `impl` | Execute one TODO — read context, replan guard, apply the increments and show them for approval as the `approve` key asks, autotest, commit, report. Works in the checkout the `where` key names — the pair's, then the spec's. | `impl:sub-impl.md` · `skill:impl-background` — load it instead of `impl` when `approve` resolves to `none` |
-| `auto` | Unattended run of the whole ledger: arm the `/goal` Stop hook → per TODO (read `LESSONS.md` → impl → the review gate chain → `squash` the round's fixups → append `LESSONS.md` → `capture-gotcha`) → optional deploy → verify E2E. No per-increment approval. | `impl:sub-auto.md` · `impl:sub-impl.md` · `impl:sub-squash.md` · `review:sub-todo.md` · `skill:carry-review-findings-in-a-lessons-file` · `skill:capture-gotcha` |
-| `review` | **Alias for `/review`** — the judging skill owns the modes and the gates. One haiku wave (lint, comments, names, test worth) in parallel, then the sonnet test gate, then the opus standards gate — is it built right, never whether it is the right thing. `review todo` cites the pair's rule files; `review diff` judges a loose diff, branch, PR, or working tree. A second argument `fast` runs the five judges only — no mutation gate, no test gate; `normal` (the default) runs the whole chain. Read-only. | `review:SKILL.md` · `review:ref-gates.md` |
+| `auto` | Unattended run of the whole ledger: arm the `/goal` Stop hook → per TODO (read `LESSONS.md` → impl → the review gate chain → `squash` the round's fixups → append `LESSONS.md` → `capture-gotcha`) → optional deploy → verify E2E. No per-increment approval. | `impl:sub-auto.md` · `impl:sub-impl.md` · `impl:sub-squash.md` · `review:sub-todo.md` · `skill:capture-gotcha` |
+| `review` | **Alias for `/review`** — the judging skill owns the modes and the gates. One wave (lint, the haiku rule checkers over the rule files, idiom, the opus correctness gate, mutation) in parallel, then the sonnet test gate — is it built right, never whether it is the right thing. `review todo` cites the pair's rule files; `review diff` judges a loose diff, branch, PR, or working tree. A second argument `fast` runs the wave without the mutation gate, no test gate; `normal` (the default) runs the whole chain. Read-only. | `review:SKILL.md` · `review:ref-gates.md` |
 | `squash` | Read the fixup trail → distill gotchas into `GOTCHAS.md` (`capture-gotcha`) → squash the scope as one commit, and merge the worktree branch when the spec ran under `where: worktree`. Called by hand after such a run, and by `auto` per TODO. | `impl:sub-squash.md` |
 | `fix` | Close a gap (bug / missing / adjust) by fixing the thought, then the code. Edits source. | `impl:sub-fix.md` |
 | `commit` | When to commit and how a correction lands (fixups) — shared by `impl`, `auto`, `fix`. The message itself: the `commit-message` skill. | `impl:sub-commit.md` · `skill:commit-message` |
