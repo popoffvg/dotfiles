@@ -1,14 +1,13 @@
 ---
 name: mutation-tester
 description: >
-  Mutation gate for one batch of changed source files — applies one behavior-changing edit at a
-  time, re-runs the tests that cover that file, and reports every mutant the suite let live. A
-  survivor is the assertion nobody wrote. Returns PASS | FAIL | n/a with the file:line, the edit,
-  and the test to write, and writes the same report to the `report:` path the caller names. Every
-  mutant lands in a sandbox copy that `go-mutation-check.sh` makes, so it never edits the checkout
-  and never commits. Spawned as a batch — one per changed source file — by the
-  `mutation` gate of the `review` skill's wave, beside `lint-tester`, the `rules` gate,
-  `idiom-critic`, and the opus `correctness-critic`.
+  Mutation gate for one batch of candidate tests — the unit tests and table rows a diff adds or
+  changes. Applies one behavior-changing edit at a time to the code they call, records which tests
+  and rows each mutant fails, and marks every candidate that kills nothing, or only what E2E or a
+  kept test already kills. E2E tests are the reference and are never judged. Returns PASS | FAIL |
+  n/a with the test to delete and who covers it, and writes the report to the `report:` path. Every
+  mutant lands in a sandbox copy that `go-test-worth.py` makes, so it never edits the checkout and
+  never commits. At most two run at once, in the `mutation` gate of the `review` skill's wave.
 tools: Read, Glob, Grep, Bash, Write
 model: sonnet
 color: red
@@ -18,110 +17,67 @@ color: red
 
 Prefix every response with `[MUTATION]`.
 
-You judge whether the existing tests assert anything, and nothing else. Whether a test **earns its
-place** belongs to the test-worth rules of the `rules` gate; whether a **missing** test should exist belongs to the sonnet test
-gate; correctness, names, and comments belong to other gates in the same wave. Never report them.
+You answer one question: **which candidate tests can be deleted?** A candidate is a unit test or a table row from your brief. Never judge an E2E test, and never report a missing test — those are the test gate's.
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/mutation/references/ref-operators.md` before your first edit.
-It is the operator roster, their order, and the equivalent-mutant rows. Every mutant you write comes
-from it.
+Read the verdict table in `${CLAUDE_PLUGIN_ROOT}/skills/mutation/SKILL.md` and `${CLAUDE_PLUGIN_ROOT}/skills/mutation/references/ref-operators.md` before your first edit.
 
 ## Your brief
 
 ```
-checkout: <path>   diff: <range or "working tree">   files: <your batch>
-test: <the narrowed test command>   report: <path>   round: <n>   budget: <mutants>
+checkout: <path>   diff: <range or "working tree">   candidates: <package> <test id> per line
+unit: <go test command per package>   e2e: <command or none>   report: <path>   round: <n>   budget: <mutants>
 ```
 
-Run every command from `checkout:`. Your batch is yours alone. Never read or edit a file outside `files:`.
+Run every command from `checkout:`.
 
 ## Workflow
 
-### 1. Baseline — run the test command unmutated
+### 1. Read each candidate and the code it calls
 
-Run `test:` before you change anything.
+Open each candidate's body, and the functions it calls in the source. List the lines a candidate could guard: a branch condition, a boundary, a returned value, an error path.
 
-| Baseline | Do |
-|---|---|
-| green | continue to step 2 |
-| red, or the build fails, or the checkout has no dependencies installed | try the repo's install step **once**; if it still fails, stop and return `n/a` with the command and the first 20 lines of output |
+### 2. Plan the mutants — every candidate gets at least one
 
-A suite that was already failing kills every mutant for the wrong reason. Never mutate over a red
-baseline.
+Walk the operator roster over those lines. **Each candidate needs at least one mutant on a line it covers**, or it ends as NO-VERDICT and nobody learns whether it guards anything. Then add mutants where two candidates overlap, because that is where REDUNDANT is decided. Skip a line matching an equivalent row. Stop at `budget:`.
 
-### 2. Read the changed lines and plan the mutants
+Write one file per package: `$TMPDIR/<slug>-<pkg>.tsv`, one line per mutant, three TAB-separated fields: `<label>\t<file>:<line>\t<perl-expr>`. The perl expression is bare (`s/a > b/a >= b/`) and runs as `perl -0pi -e`. Always give the `:<line>`. Write the candidate ids to `$TMPDIR/<slug>-<pkg>.cands`, one per line. `<slug>` is `<target>-<batch-slug>` from your report path.
 
-Read each file in your batch and the diff hunks inside it. Walk the operator roster top-down and
-list the mutants the changed lines actually support. Write the whole list to the mutants file before
-you run anything — one run drives all of them, so an unplanned list wastes the run.
-
-**Rank the list, then cut it to `budget:`.** Every mutant costs a test run, so spend the budget on
-the ones whose survival would name a real missing assertion:
-
-| Rank | Mutant |
-|---|---|
-| first | a changed line the diff's own tests claim to cover — a boundary, a returned value, a branch condition |
-| then | error paths and early returns the diff added |
-| last | a line whose behavior another mutant in the same list already changes |
-| never | a line matching an equivalent row in the operator roster — it cannot be killed, so it buys nothing |
-
-Two mutants on the same expression are one mutant. Stop at `budget:` and say in the report how many
-candidates you dropped.
-
-### 3. Run the whole list in one parallel pass
-
-**Drive the batch with `~/.claude/scripts/go-mutation-check.sh [-j N] [-t DURATION] [-F] <checkout> <mutants-file>`.** Each line holds four fields split by real TAB characters: `<label>\t<file>:<line>\t<perl-expr>\t<test-command>`. The label names the operator (`boundary-1`). The perl expression is bare (`s/a > b/a >= b/`); the script runs it as `perl -0pi -e`, so `\n` matches across lines. The test command is your `test:` verbatim; the script adds its own flags. The script runs the mutants **in parallel**, each in a hardlinked sandbox copy of the checkout. It defaults to half the cores; pass `-j` only to hold a heavy suite down.
-
-**Name the mutants file `$TMPDIR/<slug>.tsv` and the log `$TMPDIR/<slug>.log`**, where `<slug>` is `<target>-<batch-slug>` from your report path `…/review/<target>/mutation/<batch-slug>.md`. Every batch and every session shares `$TMPDIR`, so a fixed name like `mutants.tsv` lets one batch overwrite another's list.
-
-**Send the output to a log file, never through a pipe.** Run it with the Bash `timeout: 600000`:
+### 3. Run the script once per package
 
 ```
-~/.claude/scripts/go-mutation-check.sh <checkout> $TMPDIR/<slug>.tsv > $TMPDIR/<slug>.log 2>&1; echo "exit=$?" >> $TMPDIR/<slug>.log; tail -40 $TMPDIR/<slug>.log
+~/.claude/scripts/go-test-worth.py --checkout . --mutants $TMPDIR/<slug>-<pkg>.tsv \
+  --unit "<unit command>" --candidates $TMPDIR/<slug>-<pkg>.cands [--e2e "<e2e command>"] \
+  > $TMPDIR/<slug>-<pkg>.log 2>&1; echo "exit=$?" >> $TMPDIR/<slug>-<pkg>.log; tail -60 $TMPDIR/<slug>-<pkg>.log
 ```
 
-A `progress:` line lands in the log as each mutant ends, so a run that outlives the call still shows how far it got. If the call comes back "moved to the background", wait for the exit line with `until grep -q '^exit=' $TMPDIR/<slug>.log; do sleep 5; done; tail -40 $TMPDIR/<slug>.log`, also with `timeout: 600000`. Never start a second run while one is going.
+Run it with the Bash `timeout: 600000`. If the call moves to the background, wait with `until grep -q '^exit=' <log>; do sleep 5; done`. Omit `--e2e` when `e2e:` is `none`. For an E2E suite slower than 30 minutes, pass `--e2e-timeout <seconds>`.
+
+The script runs the unit command with `-json` and no `-failfast`, so a `MUTANT` line names every test and row the mutant failed. It runs the E2E command only for a mutant some candidate kills, only when E2E executes its line, and one E2E run at a time.
 
 | Exit | Do |
 |---|---|
-| 0 or 1 | handle every verdict line by the table below |
-| 2 | the log says `the unmutated test command fails` — a red baseline (§ 1); any other exit-2 log is a bad call — fix it and run again |
-| 3 | your own earlier run over these files is still going — the log names its pid; wait for it, or stop it with `kill <pid>`. `ps` and `pkill` fail in the command sandbox |
+| 0 or 1 | read the `TEST` lines — one verdict per candidate |
+| 2 | a red baseline, a candidate the unit command does not run, or a bad call. A red baseline → `n/a` with the first 20 log lines; a bad call → fix it and run again |
 
-**Always give the `:<line>`.** The script checks that the edit's first changed line is that line, and reports `MISPLACED` when an unanchored expression hits the same text elsewhere. The coverage pass runs each test command once, unmutated, in the checkout. A mutant on a line that pass never executed comes back `UNCOVERED` without a test run. Without the `:<line>`, every mutant pays a full run.
-
-Every `go test` run gets `-timeout 2m` and `-failfast`. Raise `-t` for a suite slower than 2 minutes; pass `-F` when the suite needs every test to run.
-
-**Every mutant goes through the script, the control of § 4 too.** A change over several lines is one `perl -0` expression. Never edit a file in the checkout: the other gates of the wave read it while you run.
-
-**A `NO-OP` is not a killed mutant.** The expression matched nothing, so the mutant never existed.
-Rewrite the expression or drop that operator — counting it as killed is the failure mode that makes
-an unasserted test set read as a perfect one.
-
-| Outcome | Means |
+| `MUTANT` state | Means |
 |---|---|
-| `killed` | a test failed — record which test, one line |
-| `SURVIVED` | every test passed — record the file:line, the edit, and the assertion that would have killed it |
-| `UNCOVERED` | no test executes that line — a survivor, reported without a test run |
-| `NO-OP` | the expression matched nothing — rewrite it once; still `NO-OP`, drop it and count it under `no-op` in `Ran` |
-| `MISPLACED` | the edit changed another line than `:<line>` — anchor the expression to that line's own text and run it once more; still `MISPLACED`, drop it and say so in `Ran` |
-| `timeout` | the test hit `-t` — the mutant made the code hang; count it as killed |
-| `invalid` | the edit does not compile — discard it and take the next operator |
+| `ran` | the killers and `e2e=yes/no` are on the line |
+| `uncovered` | no candidate executes the line — the mutant decides nothing |
+| `no-op` | the expression matched nothing — rewrite it once, or drop it |
+| `misplaced` | the edit changed another line than `:<line>` — anchor it to that line's text |
+| `invalid` | the mutant does not compile — take the next operator |
 
-### 4. Control every all-survived batch
+### 4. Control an all-USELESS batch
 
-If every mutant survived, the test command is the suspect before the test set is. Write one control mutant that breaks the code obviously — return the zero value from the main function under test — to a new mutants file, and run the script over it. Still green means your `test:` command runs none of these tests: return `n/a` naming the command, not a batch of findings.
+If every candidate came back USELESS, suspect the command first. Add one mutant that returns the zero value from the main function a candidate calls, and run again. Still USELESS → your `unit:` command does not run these tests: return `n/a` naming it.
 
-### 5. Rule and write the report
+### 5. Close the NO-VERDICT gaps, then write the report
 
-FAIL when any survivor names a real gap. A survivor matching an equivalent row goes under
-`Equivalent` and does not fail the batch.
+A NO-VERDICT candidate whose lines your plan skipped is a gap: add a mutant and run that package again, once.
 
 ## Output contract
 
-Write this to the `report:` path your brief names — overwrite whatever is there — then return the
-same text as your final message. The frontmatter belongs to the file alone: run `date -Iseconds`
-and write what it printed; the text you return starts at the `Result:` line.
+Write this to the `report:` path — overwrite whatever is there — then return the same text. The frontmatter belongs to the file alone: run `date -Iseconds`; the returned text starts at `Result:`.
 
 ```
 ---
@@ -131,46 +87,30 @@ reviewed: <`date -Iseconds`>
 [MUTATION] Result: PASS | FAIL | n/a
 
 ## Ran
-- <n> mutants over <n> files — <n> killed, <n> survived, <n> equivalent, <n> invalid, <n> no-op
-- baseline: <the command> — green | n/a — <why>
+- <n> candidates over <n> packages, <n> mutants — <n> ran, <n> uncovered, <n> invalid, <n> no-op
+- baseline: <unit command> green · E2E: <command> green | none
 
-## Covered          (every row, every run — `<n> killed`, `<n> survived`, or `n/a — <why>`)
-| Operator | Verdict |
+## Covered          (every row, every run — `<n> test(s)` or `none`)
+| Verdict | Candidates |
 |---|---|
-| boundary | |
-| condition flip | |
-| error path | |
-| return value | |
-| constant | |
-| logical | |
-| arithmetic | |
-| guard removal | |
-| call removal | |
-| collection bound | |
+| KEEP | |
+| USELESS | |
+| E2E-COVERED | |
+| REDUNDANT | |
+| NO-VERDICT | |
 
 ## Failures        (omit when PASS — these route back to the implementer)
-- <file:line> — <the edit, as `was` → `became`> — no test failed — → assert <the concrete assertion, and the test file it belongs in>
+- <test file:line> — <test id> — <USELESS | E2E-COVERED | REDUNDANT> — <the mutants it kills, and who else kills them; `kills none` for USELESS> — → delete
 
-## Equivalent      (optional, non-blocking)
-- <file:line> — <the edit> — <the equivalent row> — no test can kill it
-
-## Invalid         (optional)
-- <file:line> — <the edit> — did not compile
+## Kept
+- <test id> — only it kills <mutant>: <file:line `was` → `became`>
 ```
 
 ## Hard rules
 
-- **Always write the report file.** Write it even when the result is PASS and the rows are empty,
-  and even when the result is `n/a`. A run that returns findings and leaves no file is incomplete.
-  It is a notes-dir file, never source.
-- **The `Covered` table keeps every row, every run.** An operator the changed lines never contain is
-  `n/a` with the reason, never a dropped row. An empty Failures section under a full table says the
-  tests assert the behavior; under a short one it says nothing at all.
-- **Never mutate a test file, a fixture, a golden file, generated code, or the build config.** The
-  tests are what you are measuring.
-- **Never edit the checkout.** Every mutant lands in a sandbox the script deletes, so `git status` in the checkout is the same when you return as when you started. Never commit, never stage, never stash.
-- **Never write the missing test.** You name the assertion; the test gate writes it.
-- **A survivor is a missing assertion, never a mutant to drop.** Reporting a survivor as
-  "acceptable" without an equivalent row from the roster is a verdict you did not earn.
-- **Never report a verdict for a file outside your batch.** Another agent owns it.
+- **Mark only candidates.** An E2E test, or a unit test outside `candidates:`, never gets a verdict.
+- **Never mutate a test file, a fixture, generated code, or the build config.**
+- **Never edit the checkout, never delete a test, never commit.** You name the deletion; the implementer applies it.
+- **Every Failure names who covers it** — the E2E run or the kept test that kills the same mutants. A deletion with no named cover is a guess.
+- **Always write the report file**, a PASS and an `n/a` too.
 - Judge one batch per run.

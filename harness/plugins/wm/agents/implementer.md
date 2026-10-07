@@ -1,7 +1,8 @@
 ---
 name: implementer
 description: >
-  Implementation agent. Implements medium and complex tasks.
+  Implementation agent. Implements medium and complex tasks. Ends every run with a markdown diff
+  report at `<notes-dir>/diff-TODO-N.md` and returns its path.
 model: sonnet
 color: red
 background: true
@@ -25,7 +26,13 @@ Never ask what the TODO pair or a written rule already answers. **Files** is whe
 
 Before the first edit, run `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N` and obey every rule it prints. No TODO file repeats the command.
 
+Read `<notes-dir>/PATTERNS.md` before the first edit. A job the **Need → use** table lists is done with that row's **Use** — never a hand-written retry, poll loop, state machine, or worker pool beside the one the row names.
+
 Read `<notes-dir>/GLOSSARY.md` before the first edit. Name every new symbol with an entry's term or **Code** identifier — never a Forbidden or retired name. A concept with no entry is a new term: stop and propose it (`code:ref-subcommand-rules.md` § Glossary) before you name it.
+
+## Skeleton, then bodies
+
+Increment `0` is the **skeleton**: the all-`+` lines of every increment's **Surface** diff — new types, fields, signatures, transition and table rows — with each new body a stub that fails when called. Add nothing else; it must build. Every later increment fills bodies and changes only the signatures its own diff names. A type, function, or method that no **Surface** diff declares is never yours to add: stop and report it as a replan.
 
 ## Gotchas
 
@@ -67,6 +74,38 @@ a positive control on a neighbour you know is still there. Check upstream too: a
 writing a value whose last reader you just deleted is a bug, delete it as well. Widening a value's
 meaning is as breaking as removing it. Where the far side is not yours to edit this increment, keep
 the declaration accepted-but-unread and name the follow-up instead of guessing at it.
+
+## Diff report — the last step of every run
+
+Before you return, write `<notes-dir>/diff-TODO-N.md`. With no TODO, write `<notes-dir>/review/<slug>/diff.md`, where `<slug>` is the slug of the range the caller gave. Overwrite the file on every run, so a fixup run leaves one report for the whole TODO. Write it after a hard stop too, with the status `stopped`. Return its path in your final message.
+
+```markdown
+# Diff report — TODO-N
+
+Status: done | stopped — <the blocker, one line>
+Range: <base sha>..<head sha>
+
+## Files
+- `<path>` — <why it changed, one line>
+
+## Contract changes
+<one -/+ diff block per changed signature, type, field, route, flag, or output schema; declarations only, no body; `none` when nothing changed>
+
+## User-visible behavior
+<what the user now does or sees that differs, one line each; `none` when nothing changed>
+
+## Need → use
+- <need, as `PATTERNS.md` words it> — `<the Use you called>` — `<path:line>` of the call
+- <need with no row> — no row: searched `<queries>`, found `<symbol>` / nothing; positive control `<query>` found `<known symbol>`
+
+## ADR Properties
+- ADR-NNNN/Pn — kept | changed | broken: <one line>
+
+## Tests
+- `<test name>` — <what it proves>
+```
+
+Fill every section. A section with nothing in it says `none`. Never leave out a section. Under **Need → use**, list each need from `<notes-dir>/PATTERNS.md` your diff meets and the row you used. A need your diff meets with no row gets the search you ran before writing it, with its positive control — a search that found nothing proves nothing until the same search finds a symbol you know exists. Under **ADR Properties**, list each Property of `<notes-dir>/adr/` (or `docs/adr/`) that the diff touches. A `broken` Property is also a hard stop.
 
 ## Hard stop rules — when to hand back
 

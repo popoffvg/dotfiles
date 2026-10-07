@@ -1,0 +1,10 @@
+{"id": "commit-body", "a": "Every commit message MUST carry a body that lists each changed file.", "b": "A commit message MUST be one subject line with no body."}
+{"id": "test-name-case", "a": "Write every test name in snake_case so the runner output reads as prose.", "b": "Test names MUST use camelCase, the same as every other function."}
+{"id": "lint-foreground", "a": "Always run the linter in the foreground, so its output lands in the reply.", "b": "Never run a lint command in the foreground; start it in the background."}
+{"id": "reply-language", "a": "Write every chat reply to the user in German.", "b": "Every reply to the user MUST be in English."}
+{"id": "helper-file-name", "a": "Put each shared helper function in a file named utils.go.", "b": "Never name a file utils, helpers or common; name it after its concept."}
+{"id": "error-capital", "a": "An error message MUST start with a capital letter and end with a period.", "b": "An error message MUST NOT start with a capital letter or end with punctuation."}
+{"id": "subagent-history", "a": "A subagent prompt MUST include the full conversation history.", "b": "Never pass the conversation history into a subagent prompt; write a self-contained brief."}
+{"id": "markdown-wrap", "a": "Wrap each markdown paragraph at 80 columns.", "b": "Do not add a line break inside one markdown paragraph."}
+{"id": "todo-ticket", "a": "Every TODO note title MUST start with its ticket id.", "b": "A TODO note title MUST NOT carry a ticket id."}
+{"id": "stage-all", "a": "Use `git add -A` before every commit, so no file is left out.", "b": "Never stage with `git add -A`; add each file by its name."}

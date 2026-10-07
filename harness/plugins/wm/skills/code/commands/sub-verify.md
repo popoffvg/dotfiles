@@ -170,6 +170,13 @@ set into a TODO, when spec Description/Goal prose was copied into the human half
 an increment diff carries a symbol no Components row claims. Name the cut, never a move into the agent
 half — that half has no line budget to absorb it.
 
+**A `new` that a search refutes.** `spec-lint.py` counts the **Extends** bullet; only a reader can
+check its claim. For each increment whose **Extends** is `new`, search the repo for the subject's
+existing state machine, gateway, table, or helper — the subject's domain word, its states, its
+external system — and read `PATTERNS.md` § Need → use. A symbol the increment could grow instead is
+a hard block: name it, `file:line`, and rewrite the increment as a change to it — a new transition,
+method, or row. A `new` that names no checked symbol is the same block.
+
 **A rule that is not a rule.** A decision no increment in any TODO can violate is a fact, not a
 constraint: the finding is to retype that note as `fact`, and the generator then skips it
 (`arch:ref-todo-sections.md` § Constraints).

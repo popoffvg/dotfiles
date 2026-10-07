@@ -22,6 +22,7 @@ Checked, by file kind:
                           <= 10 increments             (arch:sub-todo.md - Budget)
                           increment numbers contiguous from 1
                           each increment carries a **Do:** bullet
+                          each increment carries a non-empty **Extends:** bullet
                           each increment diff <= 150 changed lines, unless that
                           increment declares a `**Compile floor:**`
                           no ```diff outside ## Increments
@@ -96,6 +97,7 @@ INCREMENT = re.compile(r"^### +(\d+)\. +(.+?)\s*$")
 DIFF_OPEN = re.compile(r"^```diff\s*$")
 COMPILE_FLOOR = re.compile(r"^\s*[-*]\s*\*\*Compile floor:?\*\*")
 DO_BULLET = re.compile(r"^\s*[-*]\s*\*\*Do:?\*\*")
+EXTENDS_BULLET = re.compile(r"^\s*[-*]\s*\*\*Extends:?\*\*\s*\S")
 WIKILINK = re.compile(r"\[\[([^\]|]+?)\s*(?:\|[^\]]*)?\]\]")
 # A doc origin: a markdown link plus the `read <date>` that pins which version was used.
 READ_DATE = re.compile(r"\bread\s+\d{4}-\d{2}-\d{2}")
@@ -259,6 +261,12 @@ def check_todo_human(lines, violations, path):
                 f"increment {number} ({title}) carries no **Do:** bullet, so it states no "
                 "work. An increment is one to four imperative sentences naming what to "
                 "write, what to migrate, and what to delete (`arch:sub-todo.md` - Increments)."
+            )
+        if not any(EXTENDS_BULLET.match(x) for x in block):
+            violations.append(
+                f"increment {number} ({title}) carries no **Extends:** bullet. Name the existing "
+                "symbol this increment grows, or write `new — checked <A>, <B>: <why none fits>` "
+                "(`arch:examples/todo.md` - Increments)."
             )
         for changed, floor in diff_blocks(block):
             if changed <= MAX_DIFF_LINES or floor:

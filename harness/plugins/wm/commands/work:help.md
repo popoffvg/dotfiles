@@ -32,7 +32,7 @@ invoke the agent you need; each agent follows its skill.
 | `implementer` | Executes one TODO, then stops | `code impl` |
 | `implementer-subtree` | *(experimental)* One TODO in its own `wt` worktree+branch; commits, fixups, squash-merges with spec message | `code tree` |
 | `lint-tester` | Gate (haiku) — the repo's linter over the changed files, and the tests covering them | `review` |
-| `rule-checker` | Gate (haiku) — one changed file against up to six rules from the rule files | `review` |
+| `rule-checker` | Gate (haiku) — one batch of rules against the hunks of the files they cover; at most 8 per round | `review` |
 | `rule-reducer` | Gate (sonnet) — merges the rule-checker results, drops false hits, fails on an unchecked rule | `review` |
 | `name-critic` | Check (haiku) — the names a spec mints, against the `pedant` table | `code verify` |
 | `tester` | Gate (sonnet) — does a test assert the contract; writes it when none does | `review` · `test-suite` |

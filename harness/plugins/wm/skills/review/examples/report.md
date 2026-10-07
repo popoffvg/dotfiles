@@ -49,7 +49,7 @@ reviewed: 2026-09-04T11:07:52+02:00
 >
 > **The rows above are the rules gate's: one per rule in `manifest.json`, shortened here.** Take the
 > rows for the gate you are writing from its agent file — `wm:agents/rule-reducer.md`,
-> `wm:agents/idiom-critic.md`, `wm:agents/lint-tester.md`, `wm:agents/correctness-critic.md` — and
+> `wm:agents/idiom-critic.md`, `wm:agents/reuse-critic.md`, `wm:agents/lint-tester.md`, `wm:agents/correctness-critic.md` — and
 > never from this example. A gate whose verdict needs a third column adds it there too: `lint-tester` carries
 > `| Rule | Command | Verdict |`, because the command it ran is the evidence for its row.
 >
@@ -66,7 +66,7 @@ reviewed: 2026-09-04T11:09:18+02:00
 [GATE] Result: FAIL   (after 2 rounds)
 
 ## Gates
-- lint PASS · rules FAIL · idiom PASS · correctness PASS · mutation PASS · test PASS
+- lint PASS · rules FAIL · idiom PASS · reuse PASS · correctness PASS · mutation PASS · test PASS
 
 ## Failures
 - rules · writer/column.py:34 — `rid` reads as a row id in a writer that also writes rows — rename it to `run_id`

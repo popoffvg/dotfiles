@@ -1,7 +1,8 @@
 # Shared by run-grilling.sh and run-grilling-rounds.sh. Source it; do not run it.
 
 grilling_skill_path="harness/claude/skills/grilling/SKILL.md"
-grilling_model="${MODEL:-sonnet}"
+# The main session runs grilling, and the main session is opus: the baseline writer.
+grilling_model="${MODEL:-opus}"
 grilling_jobs="${JOBS:-8}"
 
 for dep in claude jq git; do
@@ -38,10 +39,20 @@ grilling_skill_body() {
 # machine's hooks, plugins, or installed grilling skill, and answers from the prompt alone.
 # `--tools ""` removes every tool, so a round comes back as text instead of a refused Write.
 # `--tools` takes several values, so the prompt goes on stdin.
+# GRILLING_METER=<file> appends "<model>\t<usd>\t<seconds>" per call, for the cost columns.
 grilling_judge() {
-  (cd "${TMPDIR:-/tmp}" && printf '%s' "$1" | claude -p --model "${GRILLING_MODEL_OVERRIDE:-$grilling_model}" \
+  local model="${GRILLING_MODEL_OVERRIDE:-$grilling_model}" envelope
+  if [ -z "${GRILLING_METER:-}" ]; then
+    (cd "${TMPDIR:-/tmp}" && printf '%s' "$1" | claude -p --model "$model" \
+      --setting-sources project --strict-mcp-config \
+      --disable-slash-commands --tools "" 2>/dev/null)
+    return
+  fi
+  envelope="$(cd "${TMPDIR:-/tmp}" && printf '%s' "$1" | claude -p --model "$model" --output-format json \
     --setting-sources project --strict-mcp-config \
-    --disable-slash-commands --tools "" 2>/dev/null)
+    --disable-slash-commands --tools "" 2>/dev/null)"
+  jq -r --arg m "$model" '[$m, (.total_cost_usd // 0), ((.duration_ms // 0) / 1000)] | @tsv' <<<"$envelope" >> "$GRILLING_METER"
+  jq -r '.result // ""' <<<"$envelope"
 }
 
 # The same prompt, model, and repeat index give the stored reply instead of a new call, so a

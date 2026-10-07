@@ -51,7 +51,7 @@ AGENT_ORDER = [
 ]
 AGENT_OPTIONAL = {"Gotchas"}
 AGENT_BANNED = ("Changes", "Increments", "Surface")
-INCREMENT_KEYS = ("landed", "change", "do", "blast radius", "surface")
+INCREMENT_KEYS = ("landed", "change", "extends", "do", "blast radius", "surface")
 FILES_INCREMENTS = re.compile(r"\binc\s+(\d+(?:\s*,\s*\d+)*)")
 SPEC_BANNED = ["Design Decisions", "Open Questions", "Implementation Guidelines"]
 
@@ -561,6 +561,10 @@ def check_increments(label, body, f, checks):
         if blast and blast.lower() in VAGUE_BLAST:
             f.fail(row, where, f"Blast radius `{blast}` names no symbol or caller",
                    "name what the increment can break")
+        extends = next((v for key, v in keys.items() if key.startswith("extends")), "").strip(" .`*")
+        if extends.lower().startswith("new") and "checked" not in extends.lower():
+            f.fail(row, where, f"Extends `{extends}` is `new` with no symbol checked",
+                   "`new — checked <A>, <B>: <why none fits>`, or name the existing symbol it grows")
         do_text = next((v for key, v in keys.items() if key == "do" or key.startswith("do ")), "")
         if pastes_code(do_text):
             f.fail(row, where, "**Do** carries a signature",
@@ -762,7 +766,7 @@ def run(notes, as_json=False, quiet=False):
         "E1": f.check("E1", "Autotest — Unit and E2E, command + cases or a real reason"),
         "B7": f.check("B7", "agent half sections — present, ordered, no frontmatter, link back, no increments, no diff"),
         "B8": f.check("B8", "no `## Constraints` in the agent half — the rules command lives in todos/CLAUDE.md"),
-        "B9": f.check("B9", "increments in `## Increments` — contiguous, ≤10, five keys each, no Files, valid Landed + Change, no signature in Do"),
+        "B9": f.check("B9", "increments in `## Increments` — contiguous, ≤10, six keys each, no Files, valid Landed + Change, no signature in Do"),
         "B10": f.check("B10", "Files are concrete paths, each mapped to an existing increment"),
         "E2": f.check("E2", "Manual test filled, or skipped with a concrete reason"),
         "B11": f.check("B11", "increment progress — `<done>/<total>`, total matches `## Increments`, done matches the Landed markers and fits status"),

@@ -355,7 +355,7 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 | 2 | `Outcome` | H2 | always |
 | 3 | `New terms` | H2 | only if the TODO adds terms missing from GLOSSARY.md |
 | 4 | `Components` | H2 | always |
-| 5 | `Increments` | H2 | always — one H3 per increment in apply order, each self-contained: Landed, Change, Do, Blast radius, Behavior, Builds, and the **Surface** diff it lands; no file path |
+| 5 | `Increments` | H2 | always — one H3 per increment in apply order, each self-contained: Landed, Change, Extends, Do, Blast radius, Behavior, Builds, and the **Surface** diff it lands; no file path |
 | 6 | `Flow changes` | H2 | always — one H3 per running path the TODO changes, its steps as a tree in run order, each changed step marked (`+ step`, `+ check`, …); or `none — <reason>` |
 | 7 | `Commit` | H2 | always — the `Title` and `Body` of the one commit the increments build |
 | 8 | `Deviations` | H2 | never at `todo` — written by `impl` when a user correction contradicts a section above, removed by `revise` |
@@ -471,7 +471,7 @@ Edit in place, same `N` unless order changes — then renumber all three files t
 **The hook counts the mechanical rules; this checklist holds only what a reader must judge.**
 `budget-check` (§ Budget) already counts the line budgets, every misplaced section, a ```diff or a
 frontmatter block outside the human half, a `## Constraints` section, the increment count
-and contiguity, and a missing **Do** bullet. Ticking those here would be the author grading their
+and contiguity, and a missing **Do** or **Extends** bullet. Ticking those here would be the author grading their
 own file against a rule already counted.
 
 ### The row
@@ -495,7 +495,8 @@ own file against a rule already counted.
 - [ ] **Each increment is self-contained for review**: its block alone says what changes, why, what it can break, and the exact new shape — no "as above", no "see increment <n>", and every symbol its **Do** names as new or changed is in its own diff
 - [ ] **No file path in any increment** — symbols only; paths are in the agent half's `## Files`, keyed by increment
 - [ ] Each increment names one **Components** row, ordered deepest-first so the repo builds after each (or marked `builds: only with increment <n>`); every row is named by at least one increment
-- [ ] Every increment carries **Landed:** `no`, a **Change** (one of the nine kinds in `impl:ref-change-types.md`), a **Do** of one to four imperative sentences, a **Blast radius** that names the real symbols and callers to retest, and a **Surface** — one ```diff, a plain contract block for a body-only deliverable, or `none — <reason>`
+- [ ] Every increment carries **Landed:** `no`, a **Change** (one of the nine kinds in `impl:ref-change-types.md`), an **Extends** (the existing symbol it grows, or `new` with the symbols checked), a **Do** of one to four imperative sentences, a **Blast radius** that names the real symbols and callers to retest, and a **Surface** — one ```diff, a plain contract block for a body-only deliverable, or `none — <reason>`
+- [ ] **Every `new` in an Extends bullet survived a search**: the symbols it names are the ones a reader would try first — the state machine, gateway, or table the repo already has for this subject — and every need `PATTERNS.md` § Need → use lists is met through its row
 - [ ] The frontmatter `type:` is the kind of the TODO's **main** work, and the increment **Change** spread agrees with it — every increment `wiring` under a `type: new behavior` TODO means one of the two is wrong
 - [ ] **No code in any Do** — no fenced block, no pasted signature; the signature is in the increment's diff, and "implement the handler" is not an instruction
 - [ ] Every symbol whose signature changes has its call sites named in that increment's **Do**

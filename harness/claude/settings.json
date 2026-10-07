@@ -2,10 +2,13 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "ENABLE_LSP_TOOL": "1",
+    "HARNESS_DEV_PASTE_NUDGE": "1",
+    "HARNESS_DEV_UNDERSTOOD": "1",
     "SHELL": "/opt/nanobrew/prefix/bin/bash"
   },
   "permissions": {
     "allow": [
+      "Bash(ssh openclaw *)",
       "Bash(~/.claude/scripts/lumen-pane.sh:*)",
       "Bash(~/.claude/scripts/open-file.sh:*)",
       "Bash(herdr:*)",
@@ -146,15 +149,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.claude/hooks/bash-tool-bypass-notify.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
             "command": "$HOME/.claude/hooks/verify-commit-contents.sh"
           }
         ]
@@ -169,16 +163,6 @@
           {
             "type": "command",
             "command": "node $HOME/.claude/hooks/name-reminder.mjs"
-          }
-        ]
-      },
-      {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.claude/hooks/cbm-code-discovery-gate\"",
-            "timeout": 5
           }
         ]
       }
@@ -209,16 +193,6 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/guard-uncommitted-loss.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Grep|Glob",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.claude/hooks/cbm-code-discovery-gate\"",
-            "timeout": 5
           }
         ]
       },
@@ -258,46 +232,6 @@
             "type": "command",
             "command": "bash $HOME/.claude/hooks/herdr-agent-state.sh session",
             "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "startup",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.claude/hooks/cbm-session-reminder\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "resume",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.claude/hooks/cbm-session-reminder\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "clear",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.claude/hooks/cbm-session-reminder\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.claude/hooks/cbm-session-reminder\"",
-            "timeout": 5
           }
         ]
       }
@@ -350,18 +284,6 @@
             "type": "command",
             "command": "python3 $HOME/.claude/hooks/herdr-turn-triage.py",
             "timeout": 10
-          }
-        ]
-      }
-    ],
-    "SubagentStart": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.claude/hooks/cbm-subagent-reminder\"",
-            "timeout": 5
           }
         ]
       }

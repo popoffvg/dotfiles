@@ -54,6 +54,34 @@ Each prompt carries the file path, every comment on that file (`<lines> — <tex
 - `(orphaned)` means the anchored line moved or was rewritten. Locate the text the comment was written on before acting; `${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py --store <SESSION>/line-comment.json <ROOT>` prints which line still matches each stored anchor. Pass `<ROOT>` explicitly — the script otherwise resolves paths against the store's grandparent, which is the session folder rather than the project.
 - Return one line per comment and nothing else: `<file>:<line> — <what changed, or "unresolved: <why>">`.
 
+## Triage pattern candidates
+
+**In the same message as the forks, start one haiku agent for the whole batch.** `/line-comment:distill` later turns what it saves into rules.
+
+```
+Agent(subagent_type: "general-purpose", model: "haiku", name: "pattern-triage", prompt: "<every operator comment, the contract below>")
+```
+
+The prompt carries every operator comment, unresolved ones too, as `<file>:<lines> — <text>`, with the meaning grilling settled. A `(from Claude)` comment is left out. The contract:
+
+- Save a comment only when it prescribes a technique, a type, a pattern, or a library for a kind of problem: "use type definition for enums", "use go-retry for retrying a request". A fix for this line alone ("off by one", "rename `mgr`") is not saved.
+- For each saved comment, write `~/.notes/patterns/<YYYYMMDD>-<slug>.md` in the shape below. Read the code lines from the file; for `(orphaned)`, write `code: (orphaned)`.
+- Edit no other file. Return one line: `pattern candidates: <N>`.
+
+```
+---
+rule: use <X> for <Y>
+repo: <repo root>
+at: <file>:<lines>
+date: <YYYY-MM-DD>
+session: <SESSION>
+---
+
+<comment text>
+
+    <the code lines the comment is on>
+```
+
 ## Sweep a renamed term
 
 A comment that renames a domain term changes more than its file. When the project has a wm notes-dir `GLOSSARY.md`, spawn one more fork, `fix-glossary`, after every per-file fork has returned — never beside them, because it edits files they own. Its prompt carries each `old → new` pair and this contract:
@@ -73,7 +101,11 @@ Write `<SESSION>/processed.md` — one block per comment, acted on and unresolve
 
 <file>:<line> — <comment text>
   → <what changed, or "unresolved: <why>">
+
+pattern candidates: <N> saved to ~/.notes/patterns/
 ```
+
+The last line is the `pattern-triage` agent's count.
 
 **No comment is dropped, because none is left to drop.** The batch left the store when the file moved, so `line-comment-lsp drop` has nothing to do here and is not called. The session folder holds the whole record: `line-comment.json` is the batch exactly as the operator wrote it, `processed.md` is what became of each comment.
 
@@ -84,6 +116,8 @@ Then print the same blocks to the operator and **nothing else**:
 ```
 <file>:<line> — <comment text>
   → <what changed, or "unresolved: <why>">
+
+pattern candidates: <N> saved to ~/.notes/patterns/
 ```
 
 Close with the session path on its own line, so the record is reachable.

@@ -8,11 +8,12 @@
 
 ## Metadata
 
-**Every ADR carries YAML frontmatter with three keys.** They are required, including on the first draft.
+**Every ADR carries YAML frontmatter with four keys.** They are required, including on the first draft.
 
 ```yaml
 ---
 status: proposed
+kind: architecture
 created: 2026-08-09
 updated: 2026-08-09
 ---
@@ -21,6 +22,7 @@ updated: 2026-08-09
 | Key | Holds |
 |---|---|
 | `status` | `proposed`, `accepted`, `deprecated`, or `superseded-by-NNNN` |
+| `kind` | `architecture` — how the system is built; `feature` — what the user can do and see, such as a dry-run mode. |
 | `created` | ISO date the ADR was first written. Never changes. |
 | `updated` | ISO date of the last edit to this file. |
 
@@ -61,7 +63,7 @@ A title, a paragraph, the reason, the Properties, and the changelog section are 
 
 ### Properties
 
-**Every accepted ADR lists at least one Property under `## Properties`.** A Property is one invariant the code must keep while the decision holds, numbered `P1.`, `P2.`, … and cited as `ADR-NNNN/P2`. A reviewer checks a diff against each one, so a Property is checkable: "the Installer never runs `terraform apply` on the operator's machine", not "deployments are robust". A rule or a value that follows from the decision, such as a timeout, is a Property of that ADR, never an ADR of its own.
+**Every accepted ADR lists at least one Property under `## Properties`.** A Property is one invariant the code must keep while the decision holds, numbered `P1.`, `P2.`, … and cited as `ADR-NNNN/P2`. A reviewer checks a diff against each one, so a Property is checkable: "the Installer never runs `terraform apply` on the operator's machine", not "deployments are robust". A `feature` Property states what the user observes and is checkable with one E2E run: "`deploy --dry-run` changes no resource", not "dry-run is safe". A rule or a value that follows from the decision, such as a timeout, is a Property of that ADR, never an ADR of its own.
 
 ### Optional sections
 
@@ -91,6 +93,10 @@ All three of these must be true:
 3. **The result of a real trade-off** — there were genuine alternatives and you picked one for specific reasons.
 
 If a decision is easy to reverse, skip it — you'll just reverse it. If it's not surprising, nobody will wonder why. If there was no real alternative, there's nothing to record beyond "we did the obvious thing."
+
+### When to offer a feature ADR
+
+Offer one when the session settles a user-visible contract that a user or a script depends on: a command, a mode such as `--dry-run`, an output schema, a confirmation prompt, an exit code. A help text, a color, or a tuned value is not one.
 
 ### What qualifies
 

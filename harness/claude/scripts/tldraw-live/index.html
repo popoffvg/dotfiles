@@ -338,6 +338,10 @@ function drawSeed(editor, seed) {
 async function handleMount(editor) {
   window.editor = editor
 
+  // The build result stays in front of every later status, so a headless run reads it after the first save.
+  let buildResult = ''
+  const sayAfterBuild = (text) => say(buildResult ? `${buildResult} · ${text}` : text)
+
   const response = await fetch('/doc')
   if (response.status === 200) {
     loadSnapshot(editor.store, await response.json())
@@ -352,13 +356,26 @@ async function handleMount(editor) {
         report.clashes.length ? `label on a box: ${report.clashes.join(' ')}` : '',
       ].filter(Boolean)
       for (const fault of faults) console.warn(fault)
-      say(faults.length ? `built from seed — ${faults.join(' | ')}` : 'built from seed — clean')
+      buildResult = faults.length ? `built from seed — ${faults.join(' | ')}` : 'built from seed — clean'
+      say(buildResult)
     } else {
       say('empty document')
     }
   }
   editor.zoomToFit()
   editor.setCurrentTool('select')
+
+  // The agent reads this PNG to see the board; it cannot see the browser.
+  const sendPicture = async () => {
+    const ids = [...editor.getCurrentPageShapeIds()]
+    if (!ids.length) return
+    try {
+      const { blob } = await editor.toImage(ids, { format: 'png', background: true, padding: 32 })
+      await fetch('/picture', { method: 'PUT', headers: { 'Content-Type': 'image/png' }, body: blob })
+    } catch (error) {
+      sayAfterBuild(`picture failed: ${error.message}`)
+    }
+  }
 
   let timer = null
   let saving = false
@@ -370,9 +387,10 @@ async function handleMount(editor) {
       const result = await fetch('/doc', {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body,
       })
-      say(result.ok ? `saved ${new Date().toLocaleTimeString()}` : `save failed ${result.status}`)
+      sayAfterBuild(result.ok ? `saved ${new Date().toLocaleTimeString()}` : `save failed ${result.status}`)
+      if (result.ok) await sendPicture()
     } catch (error) {
-      say(`save failed: ${error.message}`)
+      sayAfterBuild(`save failed: ${error.message}`)
     } finally {
       saving = false
     }

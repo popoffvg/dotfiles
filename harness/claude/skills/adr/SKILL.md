@@ -1,11 +1,11 @@
 ---
 name: adr
-description: Read the current session and record the architecture decisions it made as ADRs, each with the Properties a reviewer checks code against. Use for "write an ADR", "record this decision", "ADR for what we just decided", after the SessionEnd ADR reminder fires, and when a session settles a hard-to-reverse choice — the main components and their layering, a platform or technology with lock-in (Cloud Run or Infrastructure Manager, Terraform), where state lives, a trust or process boundary, or a deliberate deviation from the obvious path.
+description: Read the current session and record the architecture decisions and the application features it settled as ADRs, each with the Properties a reviewer checks code against. Use for "write an ADR", "record this decision", "ADR for what we just decided", after the SessionEnd ADR reminder fires, and when a session settles a hard-to-reverse choice — the main components and their layering, a platform or technology with lock-in (Cloud Run or Infrastructure Manager, Terraform), where state lives, a trust or process boundary, a deliberate deviation from the obvious path, or a user-visible feature contract such as a `--dry-run` mode that shows the changes and applies none.
 ---
 
 # adr — turn a session into an ADR
 
-**Read what the session decided, keep only the main architecture decisions, take each reason from the operator, and ask before writing.** An ADR records what the operator decided; the agent finds it, the operator owns it. Format and lifecycle live in [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md); the file to copy is [ADR-TEMPLATE.md](../domain-modeling/ADR-TEMPLATE.md).
+**Read what the session decided, keep only the main architecture decisions and feature contracts, take each reason from the operator, and ask before writing.** An ADR records what the operator decided; the agent finds it, the operator owns it. Format and lifecycle live in [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md); the file to copy is [ADR-TEMPLATE.md](../domain-modeling/ADR-TEMPLATE.md).
 
 **Where ADRs land:**
 
@@ -24,9 +24,20 @@ A candidate is a point where the session chose one option over another and acted
 
 **Completion criterion**: each candidate has the decision and the session line it comes from.
 
-## 2. Keep only the main architecture decisions
+## 2. Keep only the main decisions
 
-A candidate is an ADR only when all four tests pass:
+An ADR has one of two kinds, set in the `kind` frontmatter key:
+
+| Kind | Records | Properties a reviewer checks |
+|---|---|---|
+| `architecture` | How the system is built: components, platform, state, boundaries. | What the code must do or must never do inside. |
+| `feature` | What the user can do and what the user sees: a command, a mode, an output contract. | What the user observes — each one an E2E check. |
+
+Sort each candidate into one kind, then run that kind's tests.
+
+### Architecture tests
+
+A candidate is an architecture ADR only when all four tests pass:
 
 1. **System-wide** — it shapes more than one component or more than one TODO. A choice inside one package or one TODO is an implementation detail.
 2. **Hard to reverse** — changing it later costs a migration, a rewrite, or a broken install.
@@ -35,11 +46,23 @@ A candidate is an ADR only when all four tests pass:
 
 What passes: the main components and their layering; a platform or technology with lock-in (run Terraform in Cloud Run, not in Infrastructure Manager; use Terraform at all); where state and secrets live; a trust or process boundary (no cloud SDK, every cloud call is a CLI); a deliberate deviation from the obvious path.
 
-What fails: a name, a flag, a field, a file layout, a function signature, a log format, an error text, a test fixture, a CI step, a value such as a timeout, a scope cut of one TODO. A value or a rule that follows from an ADR becomes a **Property** of that ADR, not a new ADR.
+What fails: a name, a field, a file layout, a function signature, a log format, an error text, a test fixture, a CI step, a value such as a timeout, a scope cut of one TODO. A value or a rule that follows from an ADR becomes a **Property** of that ADR, not a new ADR.
 
-Most sessions produce zero ADRs. Say so and stop. A project holds about ten live ADRs; a count far above that means implementation details got in.
+### Feature tests
 
-**Completion criterion**: every surviving candidate names the reading of each test it passes.
+A candidate is a feature ADR only when all three tests pass:
+
+1. **User-visible** — the user starts it or sees its result: a command, a mode flag, an output, a prompt, an exit code.
+2. **A promise** — a user or a script depends on it, so a change to it breaks them.
+3. **The operator's choice** — the operator asked for it or approved it.
+
+What passes: `deploy --dry-run` shows every change and applies none; `sync` asks before it deletes a file; `status --json` prints one stable schema; a failed run leaves the target as it was.
+
+What fails: a flag that only tunes a value, a help text, a color, the order of log lines, an internal option no user sets. A detail of a recorded feature becomes a **Property** of that feature ADR, not a new ADR.
+
+Most sessions produce zero ADRs. Say so and stop. A project holds about ten live architecture ADRs; a count far above that means implementation details got in. Feature ADRs grow with the product, one per user-facing contract.
+
+**Completion criterion**: every surviving candidate names its kind and the reading of each test it passes.
 
 ## 3. Merge into what is already recorded
 
@@ -70,7 +93,7 @@ Settle a slot from a source when one exists, as `grilling` step 2 says, and cite
 |---|---|---|
 | Reason | "Why X over Y?" | The reason the context points to, marked as your guess, quoting what points to it. |
 | Alternatives | "What else did you consider, and why did it lose?" | The obvious alternative, with the loss reason you infer. |
-| Properties | "While X holds, what must never happen?" | Two to four invariants you can check in code, each one line. |
+| Properties | "While X holds, what must never happen?" — for a feature: "What does the user see, and what must the feature never do?" | Two to four invariants you can check in code or with one E2E run, each one line. |
 | Consequences | "What would make you reverse X?" | The fact that breaks the reason. |
 
 An empty Answer slot means the operator accepted the recommendation; record that reason as `(accepted recommendation)`. A candidate whose Reason the operator will not give stays `proposed`.
@@ -79,11 +102,17 @@ An empty Answer slot means the operator accepted the recommendation; record that
 
 ## 5. Draft
 
-Number from the highest number in **both** directories plus one. Copy `TEMPLATE.md` from the ADR directory when the repo has one, otherwise `ADR-TEMPLATE.md`. Fill `created` and `updated` with today's date and open the changelog with `- <today> — Drafted.`
+Number from the highest number in **both** directories plus one. Copy `TEMPLATE.md` from the ADR directory when the repo has one, otherwise `ADR-TEMPLATE.md`. Fill `kind`, fill `created` and `updated` with today's date, and open the changelog with `- <today> — Drafted.`
 
 Write the decision paragraph in one to three sentences. Quote the operator's reason. List each Property as `P1.`, `P2.`, … — one invariant a reviewer can check against a diff, cited as `ADR-NNNN/P2`. A Property says what the code must do or must never do; it names no file, no ticket, no plan.
 
-**Completion criterion**: the draft has frontmatter with `status: proposed`, a title, the decision paragraph, a quoted reason, at least one Property, and a closing `## Changelog` section.
+A feature ADR is titled with what the user does, such as "Dry-run shows the changes and applies none". Its paragraph says who uses the feature, how they start it, and what they get. Its Properties say what the user observes, for example:
+
+- P1. `deploy --dry-run` prints every create, update, and delete that `deploy` would make.
+- P2. `deploy --dry-run` changes no resource and writes no state.
+- P3. `deploy --dry-run` exits non-zero when `deploy` would fail.
+
+**Completion criterion**: the draft has frontmatter with `status: proposed` and a `kind`, a title, the decision paragraph, a quoted reason, at least one Property, and a closing `## Changelog` section.
 
 ## 6. Ask, then write
 

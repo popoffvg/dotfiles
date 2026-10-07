@@ -185,6 +185,7 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 > |--------|----------|---------|
 > | **Landed** | always | `yes` or `no` — whether this increment is in the commit. `todo` writes `no`; `impl` flips it after the amend (`arch:ref-write.md` § Progress) |
 > | **Change** | always | this increment's change kind — one of the nine in `impl:ref-change-types.md` |
+> | **Extends** | always | the existing symbol this increment grows, and what it gains: `` `pkg.Type.Method` — <what it gains> ``. Or `` new — checked `<A>`, `<B>`: <why none fits> `` |
 > | **Do** | always | one to four imperative sentences: what to write, what to migrate, what to delete. No code, no pasted signature |
 > | **Blast radius** | always | the symbols, callers, and consumers a mistake here forces you to retest. Name them; `"low"` is not a blast radius |
 > | **Behavior** | only where **Do** cannot carry the logic — a real branch structure, an error path that matters, a non-obvious ordering | TS pseudocode per the `flow-sketch` skill, ≤ 40 lines, side effects and error paths visible |
@@ -195,6 +196,17 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 > one `new behavior` increment and several `signature change`, `wiring`, or `call-site migration`
 > increments around it. The spread tells the human which increment to read line by line. A TODO
 > whose every increment is `wiring` contradicts its own `type:`.
+>
+> **Extends makes a new symbol cost a search.** The default is to grow what exists: a new transition
+> on the state machine the repo has, a new method on the gateway that already calls that system, a
+> new row in the table that already lists its siblings. An increment that meets a need in
+> `PATTERNS.md` § Need → use extends that row's **Use**. `new` is legal only with the symbols you
+> checked and the fact that rules each one out — "a second state machine for destroy" fails when
+> the installation machine can take a `destroying` state.
+>
+> **Every new symbol is in a Surface diff.** `impl` lands the all-`+` lines of every **Surface** first,
+> as a skeleton with stub bodies, and later increments add no type, function, or method
+> (`impl:sub-impl.md` step 5). A symbol missing here has no increment to land in.
 >
 > **Order — deepest first**, so the repo builds after each: the callee before its caller, the type
 > before its user, the wiring last. `builds: only with increment <n>` is a last resort.
@@ -208,6 +220,7 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 
 - **Landed:** no
 - **Change:** signature change
+- **Extends:** new — checked `pkg/auth.LoginRequest` and `pkg/auth.Session`: neither carries a refresh token, and both are read by callers this TODO does not change
 - **Do:** Add the request type and the pair type. Nothing reads them yet; increments 2 and 3 return them.
 - **Blast radius:** none — additive types that no caller reads yet
 - **Surface:**
@@ -231,6 +244,7 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 
 - **Landed:** no
 - **Change:** signature change
+- **Extends:** `pkg/auth.mintTokens` — returns the refresh token beside the access token
 - **Do:** Make `mintTokens` mint the refresh token beside the access token and return both. Propagate either signing error unchanged. Migrate both callers to the new return.
 - **Blast radius:** every caller of `mintTokens` — `pkg/auth.Handler.Refresh`, `pkg/auth.Handler.Login`
 - **Surface:**
@@ -248,6 +262,7 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 
 - **Landed:** no
 - **Change:** new behavior
+- **Extends:** `pkg/auth.Handler.Refresh` — exchanges the token instead of only checking it
 - **Do:** Make `Refresh` take a `RefreshRequest` and return a `TokenPair`. Look the session up by the presented refresh token, mint a new pair, delete the old token, store the new one. Migrate the auth middleware and the API route table to the new call.
 - **Blast radius:** every caller of `Refresh` — `pkg/auth.Middleware`, `cmd/api.Routes`; a wrong store key here logs out every session
 - **Behavior:**
@@ -288,6 +303,7 @@ function refresh(req: RefreshRequest): TokenPair | 401 | 409 {
 
 - **Landed:** no
 - **Change:** new behavior
+- **Extends:** new — checked `scripts/` and the CI jobs: no step checks a release before it ships
 - **Do:** Write the release check in the order the sketch gives. Stop at the first failure with a `FAIL: ` message that names what failed.
 - **Blast radius:** the release job only — nothing imports it; a false pass ships an unbuilt asset
 - **Behavior:**

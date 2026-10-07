@@ -14,7 +14,7 @@ No `<notes-dir>/spec.md` → write a minimal one (full artifact with the rules p
 - Create `<notes-dir>/GLOSSARY.md` from `examples/glossary.md`, empty.
 - Create `<notes-dir>/CLAUDE.md` from `examples/notes-claude.md` — the corpus guide any agent entering the folder reads. Copy the example's fenced block verbatim, not its header.
 - Create `<notes-dir>/todos/CLAUDE.md` from `examples/todos-claude.md` — the pair convention any agent entering that folder reads: two files per ledger row, which half holds what, the read order, the write rules. The folder is scaffolded here, empty; `todo` fills it past the gate.
-- Create `<notes-dir>/PATTERNS.md` from `examples/patterns.md` — the implementation patterns and reference files the implementer follows. Empty or "follow language defaults" at init; `spec.md` mentions `@PATTERNS.md` and holds no pattern content.
+- Create `<notes-dir>/PATTERNS.md` from `examples/patterns.md` — the **need → use** table and the reference files the implementer follows. Fill the first rows at init: read the dependency manifest (`go.mod`, `package.json`, `pyproject.toml`, `Cargo.toml`), then search the repo for the code that already meets each common need — retry, poll a remote state, change a state, run calls at once, map an error, reach each external system. One row per need found, each with its `path:line`. Done when every need the repo already meets has a row. `spec.md` mentions `@PATTERNS.md` and holds no pattern content.
 - Create `<notes-dir>/CONCEPTS.md` from `examples/concepts.md` when the work has structure to draw — app architecture, data flow, the flow it changes — using the `show-me` skill. Draw before the ledger: the pictures are what decide a layer, a wave, and where a row splits. Nothing structural → no file, and `spec.md` mentions none.
 - What we're NOT doing — empty or "follow language defaults". No `Design Decisions` and no `Open Questions` section: both live in `thoughts/` (`ref-write.md` § Artifacts).
 
@@ -68,7 +68,7 @@ are still confirmed.
 
 Run the `grilling` skill until no `status: open` question note is left in `thoughts/` (list them: `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`). Every resolution **writes the answer as a new `decision` or `fact` note** at the next `NNN`, restating the question verbatim, and marks the question note answered — a hook archives it, which is what drops it off the list (`ref-note-format.md` § Resolution). A new question raised mid-grill gets its own `NNN-question-*.md` note before you answer it; the decision tree **is** the spec — walk it branch by branch. A question the codebase can answer, read instead of ask.
 
-Record docs as the grill goes with the `domain-modeling` skill — each resolved decision as an ADR, each term in the glossary. Inside the wm flow the glossary is `<notes-dir>/GLOSSARY.md`, never `CONTEXT.md`, and every new or renamed term needs the human's approval first (`code:ref-subcommand-rules.md` § Glossary).
+Record docs as the grill goes with the `domain-modeling` skill — each resolved decision as an ADR, each settled user-visible feature (a `--dry-run` mode, an output schema, a confirmation prompt) as a `kind: feature` ADR, each term in the glossary. Inside the wm flow the glossary is `<notes-dir>/GLOSSARY.md`, never `CONTEXT.md`, and every new or renamed term needs the human's approval first (`code:ref-subcommand-rules.md` § Glossary).
 
 ### Exit contract
 

@@ -19,7 +19,7 @@ Your brief carries `rules:` (the dir with `manifest.json`, `batches/`, `results/
 
 ## Steps
 
-1. **Run the coverage check:** `~/.claude/scripts/wm-rule-batches.py check --out <rules dir>`. Each line is `<rule id> <verdict counts>`, or `UNCHECKED` / `UNPLANNED` with the batch, the file, and the rule. Exit 1 → each such line is a Failure of the row `Coverage`. Never mark a rule PASS that the check prints as UNCHECKED.
+1. **Run the coverage check:** `~/.claude/scripts/wm-rule-batches.py check --out <rules dir>`. Each line is `<rule id> <verdict counts>`, or `UNCHECKED` / `UNPLANNED` with the batch and the rule. Exit 1 → each such line is a Failure of the row `Coverage`. Never mark a rule PASS that the check prints as UNCHECKED.
 2. **Read every result file** under `results/`. Collect each FAIL with its rule id, `At:`, hunk, `Why:`, and `Edit:`.
 3. **Verify each FAIL.** Read the rule text in its batch file and the quoted lines at the tip (`tip:` in `manifest.json`).
 

@@ -1,7 +1,7 @@
 ---
 name: rule-checker
 description: >
-  Map step of the `rules` gate — checks one batch: one changed file and up to six rules that
+  Map step of the `rules` gate — checks one batch: up to twelve rules and the hunks of the changed files they cover, which
   `wm-rule-batches.py plan` cut from the rule files in `<notes-dir>/rules/` and `~/.notes/rules/`.
   Returns PASS, FAIL, or N/A per rule, and for each FAIL the verbatim hunk lines that break it.
   Read-only on source; writes only the `result:` path its batch names. Spawned many at once by
@@ -15,12 +15,12 @@ color: cyan
 
 Prefix every response with `[RULE <batch>]`.
 
-You check the rules in your batch against one file, and nothing else. A defect that no rule in your batch names is not yours.
+You check the rules in your batch against the hunks in your batch, and nothing else. A defect that no rule in your batch names is not yours.
 
 ## Steps
 
-1. **Read the batch file** your brief names. Its head carries `batch:`, `file:`, `tip:`, and `result:`. `# Hunks` holds the diff of the file. `# Rules` holds one `## <rule id>` per rule: the title in bold, then the description.
-2. **Read the whole file at the tip** for context: `git show <tip>:<file>`, or the working-tree file when `tip:` is `worktree`. Open another file only when a rule's description names it, or when the rule needs the body a changed line calls.
+1. **Read the batch file** your brief names. Its head carries `batch:`, `files:`, `tip:`, and `result:`. `# Hunks` holds the diff of every file on the `files:` line. `# Rules` holds one `## <rule id>` per rule: the title in bold, then the description.
+2. **Judge from the hunks.** Open a file only when a rule cannot be decided from the hunks — the rule's description names a file, or it needs the body a changed line calls. Read only that function: `git show <tip>:<file>` piped through `sed -n`, or the working-tree file when `tip:` is `worktree`. Never read a whole file for context.
 3. **Check each rule against the added and changed lines (`+`).** A line the diff did not touch is out of scope, unless a changed line makes it false.
 
    | Verdict | When |
@@ -35,7 +35,7 @@ You check the rules in your batch against one file, and nothing else. A defect t
 ## Output contract
 
 ```
-[RULE <batch>] file: <file>
+[RULE <batch>]
 
 | Rule | Verdict |
 |---|---|

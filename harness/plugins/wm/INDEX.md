@@ -14,7 +14,7 @@ spec — `/code review` stays as an alias so the flow still reads end to end.
 | `code` | `/code <subcommand>` | **Routes.** Holds the subcommand table, the pipeline, and the shared taxonomy — nothing else. |
 | `arch` | no | **Designs.** The spec corpus and the component taxonomy, before any code exists. |
 | `impl` | no | **Writes source.** Every operation that changes source files or git history. |
-| `review` | `/review <mode>` | **Judges how source is built** — rules, patterns, language idiom, correctness. Never whether it is the right thing; that is `code:sub-verify.md` and the `verifier` agent. Writes nothing but its reports. `/code review` is an alias for it. |
+| `review` | `/review <mode>` | **Judges how source is built** — rules, patterns, language idiom, reuse of existing code, correctness. Never whether it is the right thing; that is `code:sub-verify.md` and the `verifier` agent. Writes nothing but its reports. `/code review` is an alias for it. |
 | `teach` | no | **Teaches.** Builds and measures the human's understanding of the code. |
 
 Split by the kind of work, not by pipeline stage: a reader who knows the kind of work knows the skill.
@@ -83,6 +83,8 @@ content, delete the `>` lines.
 | File | Owns |
 |---|---|
 | `commands/sub-impl.md` | `impl` — execute one TODO, increment by increment; and the fork a user correction that contradicts the pair takes — `revise` or a recorded **deviation**. |
+| `rulesets/approve-<value>.md`, `rulesets/risk-<color>.md` | **The impl ruleset** — what one `approve` value or one `risk` color adds to `sub-impl.md`: which , which review, what is shown, what the tests cover. `bin/impl-ruleset.py` resolves the keys and prints the two files. |
+| `CLAUDE.md` | How to change the rulesets. |
 | `references/ref-change-types.md` | **The change-type roster** — the nine kinds a change can be (`new behavior`, `signature change`, `wiring`, `call-site migration`, `rename`, `move`, `deletion`, `test`, `generated`), the boundary a subagent walks to assign one, the typed list shown per increment under `approve: increment`, and the start point + main changes shown once under `approve: todo` and reported under `approve: none`. |
 | `commands/sub-auto.md` | `auto` — the whole ledger unattended, gates replacing the human. |
 | `commands/sub-fix.md` | `fix` — close a gap by fixing the thought, then the code. |
@@ -94,9 +96,9 @@ content, delete the `>` lines.
 
 | File | Owns |
 |---|---|
-| `SKILL.md` | The mode table — `diff` (the repo's own rules, the default) and `todo` (plus the pair's rule files) — the speed table (`normal`, the whole chain; `fast`, the wave without mutation and test), the one question both ask, the read-only rule both obey, and the `/code review` alias. |
+| `SKILL.md` | The mode table — `diff` (the repo's own rules, the default) and `todo` (plus the pair's rule files) — the speed table (`normal`, the whole chain; `fast`, the wave without the test gate), the `mutation` argument that adds the mutation gate on request, the one question both ask, the read-only rule both obey, and the `/code review` alias. |
 | `wm:commands/review:help.md` | The `/review:help` page — the same mode roster plus the gate table, printed verbatim. Mirrors `SKILL.md`; a mode change lands in both. |
-| `references/ref-gates.md` | **The gate roster** — the six gates, the rules gate's map (one haiku `rule-checker` per file × ≤6 rules) and reduce (one sonnet `rule-reducer`), the rule file format and the coverage check, the `<notes-dir>/review/<target>/` report files each one writes, what each judges, its agent, its model tier and why that tier; the one-wave-then-the-gate-that-writes order, and the mutation gate's per-batch worktree fan-out; the FAIL-restarts-the-chain rule; the change probes in `probes.json` that skip a gate whose input did not change as PASS; the per-gate budget; the `toolchain.json` schema and what makes an entry stale; the rule plan run every round; who merges the report. The single source; no caller restates a row. |
+| `references/ref-gates.md` | **The gate roster** — the seven gates, the rules gate's map (at most 8 haiku `rule-checker` agents, each over the rules that cover the same files) and reduce (one sonnet `rule-reducer`), the rule file format and the coverage check, the `<notes-dir>/review/<target>/` report files each one writes, what each judges, its agent, its model tier and why that tier; the one-wave-then-the-gate-that-writes order, and the mutation gate's per-batch worktree fan-out; the FAIL-restarts-the-chain rule; the change probes in `probes.json` that skip a gate whose input did not change as PASS; the per-gate budget; the `toolchain.json` schema and what makes an entry stale; the rule plan run every round; who merges the report. The single source; no caller restates a row. |
 | `examples/report.md` | The two report files filled — one gate's own file and the merged `report.md` — each piece carrying its own rules: the `reviewed:` frontmatter, the fixed `## Covered` rows and their verdict enum, the one-line gate roll-up, and the finding line that ends in the edit that closes it. |
 | `commands/sub-todo.md` | `review todo` — the chain over one implemented TODO, and what the pair gives a gate that a loose diff cannot: `--todo` turning settled decisions into `D<NNN>` rules, § Files naming the expected reach, and the deviation route for an Autotest case the test-worth rules drop. |
 | `commands/sub-diff.md` | `review diff` — resolving a loose target into one revision range, deriving the intent sentence that gives the gates context, and the one rule source a loose diff lacks: the `D<NNN>` decisions. |
@@ -124,7 +126,7 @@ Independent of the `/code` flow, each with its own entry point.
 | `commit-message` | no | **The commit message contract** — the subject line and the three body parts: cause, goal, decision. Loaded by name before every commit written by `impl`, `auto`, `fix`, or `squash`. |
 | `searchable-names` | no | **Choosing the name while the code is written** — one term per concept, the 2–4 word public name, one concept per file, the domain concept in a type, the whole string literal. Naming and module home for every piece; `arch:ref-bricks.md` adds only the metric and the structure. Loaded from `~/.claude/CLAUDE.md`, which keeps the comment prose. |
 | `pedant` | no | **Attacking the names a finished diff already declares** — rejects the ones that read unclearly. The contract the `name-critic` agent reads when `/code verify` judges the names a spec mints. |
-| `mutation` | no | **Judging a test set by breaking the code it covers** — one behavior-changing edit at a time, re-run the covering tests, report every mutant that survived as the assertion nobody wrote. Fans out one `mutation-tester` per changed-source batch; every mutant lands in a sandbox copy of the checkout. No external mutation tool: the model writes the edit. The contract the `mutation` gate reads. |
+| `mutation` | no | **Finding the unit and table tests a diff can delete** — one behavior-changing edit at a time to the code they call; a candidate that kills no mutant, or only what E2E or a kept test kills, is marked for deletion. E2E tests are the reference, never judged. At most two `mutation-tester` agents; every mutant lands in a sandbox copy. The contract the `mutation` gate reads. |
 | `red-green-refactor` | no | The failing-test-first cycle a bug fix follows. Loaded by `impl:sub-impl.md`. |
 | `impl-background` | no | **`/code impl` for one TODO under `approve: none`, in a background fork** — the calling session stays free. Turns every question `impl:sub-impl.md` asks the user into a line in the report. Loaded by the `code` router's `impl` row. |
 

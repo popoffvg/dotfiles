@@ -6,7 +6,7 @@ description: >
   loose diff, branch, PR, or working tree with no TODO pair (diff). Owns which gate judges what,
   which agent runs it, and at which model tier. Invoke as `/review <todo|diff>` (default `diff`);
   `/code review` is the same skill under its old name. Never edits source and never commits.
-argument-hint: "[diff (default), todo — full list /review:help] [normal (default), fast] + the target to judge"
+argument-hint: "[diff (default), todo — full list /review:help] [normal (default), fast] [mutation] + the target to judge"
 ---
 
 # review — subcommand router
@@ -23,7 +23,7 @@ FAIL routes back — is one file: @references/ref-gates.md. Read it before eithe
 
 | Mode | Judges the diff against… | File |
 |---|---|---|
-| `diff` *(default)* | the rule files in `<notes-dir>/rules/` and `~/.notes/rules/`, the project's `RULES.md` and `PATTERNS.md`, the language idiom, and correctness. A loose diff, a branch, a PR, or the working tree. | `commands/sub-diff.md` |
+| `diff` *(default)* | the rule files in `<notes-dir>/rules/` and `~/.notes/rules/`, the project's `RULES.md` and `PATTERNS.md`, the language idiom, reuse of the code the repo already has, and correctness. A loose diff, a branch, a PR, or the working tree. | `commands/sub-diff.md` |
 | `todo` | the same, plus the TODO's settled decisions as `D<NNN>` rules. A breach there is a Failure with a citation. The chain `impl:sub-auto.md` runs per TODO. | `commands/sub-todo.md` |
 | `help` | This page. | `SKILL.md` |
 
@@ -37,10 +37,17 @@ The second argument sets which gates run, in either mode. No speed named → `no
 
 | Speed | Runs | Caller |
 |---|---|---|
-| `normal` *(default)* | the whole chain: the wave with the mutation gate, then the test gate | `/code impl` TODO review under `approve: todo` and `none`, `/code auto`, a human |
-| `fast` | the wave over the diff the caller names — no mutation gate, no test gate | `/code impl` increment review under `approve: increment` |
+| `normal` *(default)* | the whole chain: the wave, then the test gate | `/code impl` TODO review under `approve: todo` and `none`, `/code auto`, a human |
+| `fast` | the wave over the diff the caller names — no test gate | `/code impl` increment review under `approve: increment` |
 
 A `fast` run is never a TODO's verdict: its caller sets no `status` from it.
+
+## Mutation — only when the operator asks
+
+The `mutation` argument adds the mutation gate to the wave: `/review todo mutation`,
+`/review diff last mutation`. It finds the unit and table tests the diff can delete
+(`mutation:SKILL.md`). Without the argument no gate of it runs. No caller adds it on its own —
+`/code impl` and `/code auto` never pass it. It needs a green suite, so `fast` ignores it.
 
 ## Examples
 

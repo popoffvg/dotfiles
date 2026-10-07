@@ -14,7 +14,7 @@ background: true
 
 A background fork cannot ask the user anything. The skill args name the TODO (`impl TODO-N`); the notes-dir is the one the calling session uses.
 
-1. **Resolve `approve`** as `impl:sub-impl.md` § Approval says. Not `none` → stop, apply nothing, and report: "impl-background: TODO-N resolves `approve: <value>`, run `/code impl` in the foreground". Done when the key is `none`; the step 9 report names the file that set it.
+1. **Resolve `approve`** with `${CLAUDE_PLUGIN_ROOT}/bin/impl-ruleset.py <notes-dir> TODO-N`. Not `none` → stop, apply nothing, and report: "impl-background: TODO-N resolves `approve: <value>`, run `/code impl` in the foreground". Done when the key is `none`; the step 9 report names the file that set it.
 2. **Follow `impl:sub-impl.md` under `approve: none`**, with these changes:
    - Apply each increment yourself. You already run as `wm:implementer`; a child agent can outlive this fork.
    - Skip the TODO review: its gates are child agents too. Say in the step 9 report that no review ran, and name `/code:review todo` as the command that runs it.

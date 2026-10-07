@@ -1,12 +1,13 @@
 ---
 status: proposed
+kind: architecture # or feature: what the user can do and see
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
 
 # {Short title of the decision}
 
-{1-3 sentences: what is the context, what did we decide, and why.}
+{1-3 sentences: what is the context, what did we decide, and why. For a feature: who uses it, how they start it, and what they get.}
 
 ## Reason
 
@@ -14,7 +15,7 @@ updated: YYYY-MM-DD
 
 ## Properties
 
-- P1. {an invariant the code must keep while this decision holds}
+- P1. {an invariant the code must keep while this decision holds; for a feature, what the user observes}
 
 <!--
 Optional, only when they add value — placed here, above the changelog:

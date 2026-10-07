@@ -18,6 +18,14 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 | Whether a note was superseded | `wm-thought-index.py <notes>/thoughts -m '<term>' --archived` | the same rows from `thoughts/archived/` |
 | Which notes break the description rule | `wm-thought-index.py <notes>/thoughts --missing-description` | the notes an author must fix |
 
+## Find code
+
+| Need | Invocation | Returns |
+|---|---|---|
+| Where an identifier is defined and used, in a repo under trace | `pgr-call.sh -C <repo> search_code '{"query":"<identifier or regex>"}'` — optional `path_glob`, `file_type`, `max_files` (default 10), `max_matches_per_file` (default 3) | hits grouped by file, each tagged `definition` or `reference`, `source`, `test` or `low-priority`, plus a `best_next_step` line |
+| Every call site of a symbol | `pgr-call.sh -C <repo> search_code '{"query":"\\.<Name>\\(","file_type":"go","max_files":200,"max_matches_per_file":50}'` | the whole list, if the `files:` summary line shows `N total, N shown`. The regex matches every receiver: read each hit's receiver, run a second bare `<Name>` query for method values and wrappers, and list `test` hits as tests |
+| A file or a directory | `pgr-call.sh -C <repo> find_files '{"pattern":"<part of name>"}'` · `list_dir '{"path":"<dir>"}'` | paths only |
+
 ## Obey the corpus
 
 | Need | Invocation | Returns |
@@ -66,26 +74,29 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 |---|---|---|
 | Whether one place the correctness gate suspects is really wrong | `wm:agents/correctness-critic.md` § Steps → one `Agent(subagent_type: "wm:hypothesis-checker")` per hypothesis, all in one message | `CONFIRMED \| REFUTED \| UNSURE` with quoted `file:line` evidence; a CONFIRMED correctness verdict adds the failing input and the edit |
 | Whether the changed lines use their language the way it expects | the `review` wave → `Agent(subagent_type: "wm:idiom-critic")` with a `report:` line | `PASS \| FAIL` with seven fixed rows; each finding names the guide § section and the idiomatic rewrite in the pinned version |
+| Whether the diff writes again a job the repo or its dependencies already do | the `review` wave → `Agent(subagent_type: "wm:reuse-critic")` with a `report:` line | `PASS \| FAIL` with eight fixed rows; each finding names the existing symbol or package at its `file:line` and the rewrite onto it; every empty search carries its positive control |
 
 ## Route a gate verdict
 
 | Need | Invocation | Returns |
 |---|---|---|
 | Every rule in the rule files, and its scope | `wm-rule-batches.py rules [--notes-dir <notes>] [--todo TODO-N]` | one `<rule id>\t<globs>\t<source>` line per rule. Exit 2 = a rule file with no scope or text above its first H1 |
-| The rules gate's batches for one diff | `wm-rule-batches.py plan [--notes-dir <notes>] [--todo TODO-N] --range <worktree\|range> --out <dir> [--batch-size 6]` | `manifest.json` and one brief per batch (one file × ≤6 rules); prints one `<id>\t<file>\t<n> rule(s)\t<brief>` line per batch |
+| The rules gate's batches for one diff | `wm-rule-batches.py plan [--notes-dir <notes>] [--todo TODO-N] --range <worktree\|range> --out <dir> [--batch-size 10] [--max-batches 8]` | `manifest.json` and one brief per batch — rules that cover the same files × those files' hunks — at `batches/b001.md` …; prints one summary line with the batch count |
 | Whether every planned (file, rule) pair got a verdict | `wm-rule-batches.py check --out <dir>` | per-rule verdict counts, plus `UNCHECKED` and `UNPLANNED` lines. Exit 1 on either |
 
 ## Judge the tests a diff already has
 
 | Need | Invocation | Returns |
 |---|---|---|
-| Whether the existing tests assert anything | the `mutation` skill → one `Agent(subagent_type: "wm:mutation-tester")` per changed-source batch, with a `checkout:` line and no `isolation` | `PASS \| FAIL \| n/a` per batch, plus every surviving mutant as `file:line — the edit — the assertion to write`. A red or unbuildable baseline returns `n/a`, never PASS |
+| Which unit and table tests a diff added can be deleted | the `mutation` skill → one `Agent(subagent_type: "wm:mutation-tester")` per batch, at most two, with a `checkout:` line and no `isolation` | `PASS \| FAIL \| n/a` per batch, plus each test to delete with its verdict and who covers it. A red baseline returns `n/a`, never PASS |
+| The verdict of each candidate test, by mutation | `go-test-worth.py --checkout <dir> --mutants <tsv> --unit "<go test cmd>" --candidates <file> [--e2e "<cmd>"] [-j N] [-t SEC] [--e2e-timeout SEC]` — TAB lines `<label>\t<file>:<line>\t<perl-expr>`; candidates one `TestName` or `TestName/row` per line | one `MUTANT` line per mutant (state, killing tests, `e2e=yes\|no`), one `TEST` line per candidate — KEEP, USELESS, E2E-COVERED, REDUNDANT, NO-VERDICT. Exit 1 = a test to delete, 2 = red baseline or bad call |
 | Run a batch of mutants and report the survivors | `go-mutation-check.sh [-j N] [-t DURATION] [-n] [-F] <checkout> <mutants-file>` — TAB-separated `<label>\t<file>[:<line>]\t<perl-expr>\t<test-command>` | a `progress:` line on stderr as each mutant ends, then one line per mutant — `killed`, `timeout`, `SURVIVED`, `UNCOVERED`, `NO-OP`, `MISPLACED`, or `invalid` — then the `killed=N …` tally. Edits only sandbox copies, never the checkout. Exit 1 when anything survived, was uncovered, no-opped, or was misplaced; 2 when the unmutated command fails; 3 when a run over the same files is still going |
 
 ## Check the corpus
 
 | Need | Invocation | Returns |
 |---|---|---|
+| The impl ruleset one TODO runs under | `bin/impl-ruleset.py <notes-dir> <TODO-N> [--auto]` | the resolved `approve` and `risk`, the level that set `approve`, then `impl:rulesets/approve-<value>.md` and `impl:rulesets/risk-<color>.md`. Exit 2 = no TODO file or a bad key value |
 | Every countable verify check | `bin/spec-lint.py <notes> [--json]` | the Phase 0 findings — budgets, frontmatter, section sets, Components, increments, Autotest, waves, rules, open questions, and the glossary checks GL1–GL6 |
 | Whether the glossary holds and the corpus obeys it | `bin/glossary-lint.py <notes> [--code <dir>]... [--undefined] [--json] [--quiet]` | GL1 entry fields, GL2 enforceable Forbidden names, GL3 Forbidden or retired names in use, GL4 Code ownership and Status against the code (needs `--code`), GL5 New terms merged, GL6 dead entries; `--undefined` lists compound identifiers no entry holds. Exit 1 = a finding |
 | One artifact's budget | `bin/budget-check.py <file>` | over/under, and where it splits |

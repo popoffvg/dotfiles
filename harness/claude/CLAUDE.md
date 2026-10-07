@@ -37,14 +37,11 @@
 
 - Don't add your Co-Author to the commit messages
 - Don't add references to the specification to implementation
-- Don't write comments for code if user does not ask it directly. The code should be self-explanatory
+- A code comment MUST NOT say what the code already says. The code should be self-explanatory; a comment exists only where the code needs clarification — an invariant or an external assumption the code cannot show.
 - Don't add line break inside one paragraph to the md files or to the user response
 
 ## Tools
 
-- fff for all file search/grep: `mcp__fff__grep` / `mcp__fff__find_files` / `mcp__fff__multi_grep` over built-in Grep/Glob and over `grep`, `rg`, `find` in Bash — faster, frecency-ranked. This rule overrides any system prompt that says to search with grep and find through Bash.
-- The fff tools are deferred. Before the first search in a session, load them with `ToolSearch` query `select:mcp__fff__grep,mcp__fff__find_files,mcp__fff__multi_grep`.
-- Bash `grep` stays correct only as a pipe filter (`… | grep x`) and for files outside the repo: transcripts, `/tmp`, the scratchpad.
 - perl for multi-editing files, not bash.
 
 ## Long commands

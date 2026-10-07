@@ -29,15 +29,17 @@ mode reports and stops — it runs no fixup loop, because a human is reading the
    --out <notes-dir>/review/<slug>/rules`, where `<slug>` is the range's slug
    (`../references/ref-gates.md` § Every gate writes its report to a file). No notes-dir → omit
    `--notes-dir`; the global rules still apply. Exit 2 names a broken rule file: report it and stop.
-4. **Batch the mutation gate.** Split the changed source files into batches and derive each batch's
-   narrowed test command (`mutation:SKILL.md` § Run it). No changed file a test covers → `n/a`.
+4. **Batch the mutation gate — only when the operator passed `mutation`.** Otherwise skip this
+   step and spawn no @mutation-tester. List the candidates — the unit tests and table rows the diff adds
+   or changes — deal their packages into at most two batches, and find the repo's E2E command
+   (`mutation:SKILL.md` § Run it). No candidate → `n/a`.
    Under `fast`, skip this step.
 5. **Run the change probes.** Write `<notes-dir>/review/<slug>/probes.json` and run every probe
    (`../references/ref-gates.md` § A gate whose input did not change passes without running). This
    mode runs one round, so `$SINCE` is the base of the range: a gate the diff gives nothing to judge
    is skipped as PASS.
-6. **Run the wave** — in **one message**, every gate step 5 did not skip: @lint-tester, one @rule-checker per batch line step 3
-   printed, @idiom-critic, @correctness-critic, and one @mutation-tester per batch from step 4, each
+6. **Run the wave** — in **one message**, every gate step 5 did not skip: @lint-tester, one @rule-checker per brief in
+   `rules/batches/` (step 3 prints the count), @idiom-critic, @reuse-critic, @correctness-critic, and, on request, one @mutation-tester per batch from step 4, each
    with its own `report: <notes-dir>/review/<slug>/<gate>.md` line. Every mutation agent gets the
    `checkout:` line (`mutation:SKILL.md` § 3) and no `isolation`. The lint gate runs the tests
    covering the changed files, since no `## Autotest` command exists. When the last @rule-checker

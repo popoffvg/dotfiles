@@ -15,8 +15,9 @@ import {
 } from "@earendil-works/pi-coding-agent";
 
 /**
- * While pi waits on a shell command, the footer status line names the command
- * and how long it has been running. `!` commands also run as `background` tasks.
+ * While pi waits on a shell command, the footer status line shows the alias
+ * the agent invented for that call, and how long it has been running.
+ * `!` commands also run as `background` tasks.
  */
 
 const TASK_ID = /^\d{8}-\d{6}-[a-z0-9]+$/;
@@ -38,6 +39,7 @@ interface StatusFile {
 interface ShellJob {
 	id: string;
 	command: string;
+	alias?: string;
 	startedAt: number;
 	taskId?: string;
 	tail: string;
@@ -79,12 +81,27 @@ function commandText(value: unknown): string {
 	return line;
 }
 
+function inventedAlias(command: string, args?: Record<string, unknown>): string | undefined {
+	const fromArgs = commandText(args?.alias) || commandText(args?.description);
+	if (fromArgs && fromArgs !== commandText(args?.command)) return fromArgs;
+	const first = command.split(/\r?\n/, 1)[0]?.trim() ?? "";
+	const match = /^#alias:\s*(.+)$/.exec(first);
+	const alias = match?.[1]?.trim();
+	return alias || undefined;
+}
+
+function jobLabel(job: ShellJob): string {
+	return job.alias || "shell";
+}
+
 function rememberJob(id: string, patch: Partial<ShellJob>): void {
 	const prev = jobs.get(id);
-	const command = commandText(patch.command) || prev?.command || "shell command";
+	const command = commandText(patch.command) || prev?.command || "";
+	const alias = commandText(patch.alias) || inventedAlias(command) || prev?.alias;
 	jobs.set(id, {
 		id,
 		command,
+		alias,
 		startedAt: patch.startedAt ?? prev?.startedAt ?? Date.now(),
 		taskId: patch.taskId ?? prev?.taskId,
 		tail: patch.tail ?? prev?.tail ?? "",
@@ -107,7 +124,7 @@ function noteShellFromText(text: string): void {
 	const match = /Cursor shell:\s*([^\n]+)/.exec(text);
 	const command = commandText(match?.[1]);
 	if (!command || jobs.get("cursor-shell")?.command === command) return;
-	rememberJob("cursor-shell", { command, tail: "waiting for result" });
+	rememberJob("cursor-shell", { command, alias: inventedAlias(command), tail: "waiting for result" });
 }
 
 function lastOutputLine(prev: string, chunk: string): string {
@@ -131,8 +148,8 @@ function statusText(): string | undefined {
 	if (!job) return undefined;
 	const extra = list.length > 1 ? ` +${list.length - 1}` : "";
 	const id = job.taskId ? ` ${job.taskId}` : "";
-	const command = truncateToWidth(job.command, 42, "…");
-	return `waiting ${command}${id} ${ageLabel(job.startedAt)}${extra}`;
+	const label = truncateToWidth(jobLabel(job), 42, "…");
+	return `waiting ${label}${id} ${ageLabel(job.startedAt)}${extra}`;
 }
 
 function publishStatus(): void {
@@ -192,11 +209,11 @@ class ShellDashboard implements Component {
 		const elapsedW = visibleWidth(elapsed);
 		const taskW = visibleWidth(task);
 		const room = Math.max(4, inner - markW - elapsedW - taskW);
-		const command = truncateToWidth(job.command, room, "…");
-		const gap = inner - markW - visibleWidth(command) - taskW - elapsedW;
+		const label = truncateToWidth(jobLabel(job), room, "…");
+		const gap = inner - markW - visibleWidth(label) - taskW - elapsedW;
 		const head =
 			theme.fg("warning", mark) +
-			theme.bold(theme.fg("text", command)) +
+			theme.bold(theme.fg("text", label)) +
 			theme.fg("accent", task) +
 			" ".repeat(Math.max(0, gap)) +
 			theme.fg("muted", elapsed);
@@ -289,14 +306,17 @@ function pidAlive(pid: number): boolean {
 	}
 }
 
-async function readMetaPid(metaPath: string): Promise<number | undefined> {
+async function readMeta(metaPath: string): Promise<{ pid?: number; alias?: string }> {
 	try {
 		const raw = await readFile(metaPath, "utf8");
-		const pid = (JSON.parse(raw) as { pid?: number }).pid;
-		return typeof pid === "number" && pid > 0 ? pid : undefined;
+		const meta = JSON.parse(raw) as { pid?: number; alias?: string };
+		return {
+			pid: typeof meta.pid === "number" && meta.pid > 0 ? meta.pid : undefined,
+			alias: commandText(meta.alias) || undefined,
+		};
 	} catch (err) {
-		if ((err as NodeJS.ErrnoException).code === "ENOENT") return undefined;
-		if (err instanceof SyntaxError) return undefined;
+		if ((err as NodeJS.ErrnoException).code === "ENOENT") return {};
+		if (err instanceof SyntaxError) return {};
 		throw err;
 	}
 }
@@ -344,7 +364,7 @@ function createBgOperations(): BashOperations {
 			const slot = slotStore.getStore();
 			const jobId = slot?.toolCallId ?? `bang-${++bangSeq}`;
 			const owned = !slot;
-			rememberJob(jobId, { command });
+			rememberJob(jobId, { command, alias: inventedAlias(command) });
 			const bin = resolveBgBin();
 			let taskId: string | undefined;
 			try {
@@ -393,8 +413,9 @@ function createBgOperations(): BashOperations {
 						const exitCode = status.signaled && status.exitCode < 0 ? 143 : status.exitCode;
 						return { exitCode };
 					}
-					const pid = await readMetaPid(metaPath);
-					if (pid !== undefined && !pidAlive(pid)) {
+					const meta = await readMeta(metaPath);
+					if (meta.alias) rememberJob(jobId, { alias: meta.alias });
+					if (meta.pid !== undefined && !pidAlive(meta.pid)) {
 						deadSince ??= Date.now();
 						if (Date.now() - deadSince > 1500) {
 							throw new Error(`background task ${taskId} ended without a status`);
@@ -477,6 +498,13 @@ export default function (pi: ExtensionAPI) {
 		dash.request();
 	};
 
+	pi.on("before_agent_start", (event) => {
+		const line =
+			"On every shell call, invent a short alias and put it on the first line of the command as `#alias: the words`. The status line shows that alias, not the command.";
+		const guidelines = event.systemPromptOptions.promptGuidelines;
+		if (!guidelines.includes(line)) guidelines.push(line);
+	});
+
 	pi.on("session_start", (_event, ctx) => {
 		ui = ctx.ui;
 		jobs.clear();
@@ -501,6 +529,7 @@ export default function (pi: ExtensionAPI) {
 		if (command) jobs.delete(`cursor:${command}`);
 		rememberJob(event.toolCallId, {
 			command,
+			alias: inventedAlias(command, event.args),
 			...(prior ? { startedAt: prior.startedAt, tail: prior.tail } : {}),
 		});
 	});
@@ -534,8 +563,9 @@ export default function (pi: ExtensionAPI) {
 			if (block.type === "thinking" && typeof block.thinking === "string") noteShellFromText(block.thinking);
 			if (block.type === "text" && typeof block.text === "string") noteShellFromText(block.text);
 			if (block.type === "toolCall" && block.name === "bash" && typeof block.id === "string") {
-				const command = commandText(block.arguments?.command);
-				if (command) rememberJob(block.id, { command });
+				const args = block.arguments;
+				const command = commandText(args?.command);
+				if (command) rememberJob(block.id, { command, alias: inventedAlias(command, args) });
 			}
 		}
 	});

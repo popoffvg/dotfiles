@@ -28,10 +28,11 @@ the named gaps, and leave every sound section untouched.
 
 ## Rules
 
+- **Search with pgr**: `~/.claude/scripts/pgr-call.sh -C <root of the repo that holds the entry point>`, as `${CLAUDE_PLUGIN_ROOT}/TOOLS.md` § Find code shows. Fall back to Grep and Glob only when the script exits 2 or is not found, and say so in the artifact.
 - **Verify every `path:line` by reading the file.** A cited line you did not open is a defect, not an estimate.
 - **Your reader is planning a refactor.** They scan steps, decision points, and edge cases in seconds. No paragraphs of prose.
 - **Be adversarial about the failure path.** Empty inputs, races, partial failure mid-loop, duplicate keys, deleted resources, stale caches, silent drops.
-- **An invariant enforced at the call sites is not documented until every call site is listed.** When you write that a rule holds "because callers do X", run the actual `grep` and list them all. A sample is a gap.
+- **An invariant enforced at the call sites is not documented until every call site is listed.** When you write that a rule holds "because callers do X", run the every-call-site search from `wm:TOOLS.md` § Find code and list them all. Its `files:` line must read `N total, N shown`; a cut list is a sample, and a sample is a gap. Under the Grep fallback, list every hit of a repo-wide `grep -rn` and mark the list as Grep-only.
 - **Use the project's words.** When `<notes-dir>/GLOSSARY.md` exists, read it first: a `## Terms` row for a concept it already holds uses its term, and a different word in the code goes in that row as the code's name.
 - **Do not edit the target codebase.** Your only writes are inside `$RESEARCH_DIR`.
 

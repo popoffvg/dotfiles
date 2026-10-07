@@ -3,11 +3,13 @@
 
 A rule file is markdown under `<store>/rules/` or `<notes-dir>/rules/`. Each `# H1`
 is one rule; the text under it, up to the next H1, is its description. One batch is
-one changed file and at most `--batch-size` rules whose scope matches that file.
+up to `--batch-size` rules that cover the same changed files, and the hunks of those files.
+When the batches pass `--max-batches`, every batch takes more rules instead.
 
 Subcommands:
   rules  print every rule and its scope; exit 2 on a broken rule file
-  plan   write manifest.json and one brief per batch into --out
+  plan   write manifest.json and one brief per batch into --out; print one
+         summary line — the briefs are batches/b001.md … in order
   check  exit 1 when a planned (file, rule) pair has no verdict, or a rule
          appeared after the plan
 
@@ -170,7 +172,7 @@ def load_rules(notes_dir: Path | None, todo: str | None) -> list[dict]:
         base = (notes_dir if scope == "project" else store_root()) / RULES_DIR
         for rule in parse_rule_file(scope, path, base):
             seen.setdefault(rule["id"], rule)
-    if notes_dir:
+    if notes_dir and todo:
         for rule in decision_rules(notes_dir, todo):
             seen.setdefault(rule["id"], rule)
     return list(seen.values())
@@ -236,24 +238,37 @@ def cmd_plan(args: argparse.Namespace) -> int:
     for stale in list((out / "batches").glob("*.md")) + list((out / "results").glob("*.md")):
         stale.unlink()
     tip = tip_of(args.range)
-    files, batches = [], []
+    files, batches, diffs = [], [], {}
     for path in changed_files(args.repo, args.range):
         diff = hunks(args.repo, args.range, path)
         if not diff.strip() or any(l.startswith("Binary files") for l in diff.splitlines()[:5]):
             files.append({"path": path, "rules": [], "skipped": "binary or empty diff"})
             continue
-        ids = [r for r in rules if matches(path, r["paths"])]
-        files.append({"path": path, "rules": [r["id"] for r in ids]})
-        for i in range(0, len(ids), args.batch_size):
-            chunk = ids[i:i + args.batch_size]
+        diffs[path] = diff
+        files.append({"path": path, "rules": [r["id"] for r in rules if matches(path, r["paths"])]})
+
+    pools: dict[tuple[str, ...], list[dict]] = {}
+    for r in rules:
+        in_scope = tuple(p for p in diffs if matches(p, r["paths"]))
+        if in_scope:
+            pools.setdefault(in_scope, []).append(r)
+    scoped = [(group, list(in_scope)) for in_scope, group in pools.items()]
+    size = args.batch_size
+    while sum(-(-len(g) // size) for g, _ in scoped) > args.max_batches:
+        size += 1
+
+    for group, in_scope in scoped:
+        diff = "\n".join(diffs[p].rstrip() for p in in_scope)
+        for i in range(0, len(group), size):
+            chunk = group[i:i + size]
             bid = f"b{len(batches) + 1:03d}"
             brief = out / "batches" / f"{bid}.md"
             rules_md = "\n\n".join(f"## {r['id']}\n\n**{r['title']}**\n\n{r['body']}" for r in chunk)
             brief.write_text(
-                f"batch: {bid}\nfile: {path}\ntip: {tip}\nresult: {out / 'results' / (bid + '.md')}\n\n"
-                f"# Hunks\n\n```diff\n{diff.rstrip()}\n```\n\n# Rules\n\n{rules_md}\n"
+                f"batch: {bid}\nfiles: {' '.join(in_scope)}\ntip: {tip}\nresult: {out / 'results' / (bid + '.md')}\n\n"
+                f"# Hunks\n\n```diff\n{diff}\n```\n\n# Rules\n\n{rules_md}\n"
             )
-            batches.append({"id": bid, "file": path, "rules": [r["id"] for r in chunk],
+            batches.append({"id": bid, "files": in_scope, "rules": [r["id"] for r in chunk],
                             "brief": str(brief), "result": str(out / "results" / f"{bid}.md")})
     manifest = {
         "created": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
@@ -268,8 +283,6 @@ def cmd_plan(args: argparse.Namespace) -> int:
     }
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2))
     print(f"{len(rules)} rule(s), {len(files)} file(s), {len(batches)} batch(es) → {out / 'manifest.json'}")
-    for b in batches:
-        print(f"{b['id']}\t{b['file']}\t{len(b['rules'])} rule(s)\t{b['brief']}")
     return 0
 
 
@@ -288,7 +301,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         for rid in b["rules"]:
             v = verdicts.get(rid)
             if v is None:
-                problems.append(f"UNCHECKED\t{b['id']}\t{b['file']}\t{rid}")
+                problems.append(f"UNCHECKED\t{b['id']}\t{rid}")
                 continue
             counts.setdefault(rid, {}).setdefault(v, 0)
             counts[rid][v] += 1
@@ -296,7 +309,7 @@ def cmd_check(args: argparse.Namespace) -> int:
     planned = {r["id"] for r in manifest["rules"]}
     for r in load_rules(notes_dir, manifest["todo"]):
         if r["id"] not in planned:
-            problems.append(f"UNPLANNED\t-\t-\t{r['id']}\t(added after the plan — run plan again)")
+            problems.append(f"UNPLANNED\t-\t{r['id']}\t(added after the plan — run plan again)")
     for rid in sorted(planned):
         c = counts.get(rid, {})
         if not any(rid in b["rules"] for b in manifest["batches"]):
@@ -320,7 +333,8 @@ def main() -> int:
             p.add_argument("--range", required=True, help="`worktree`, or any range `git diff` takes")
             p.add_argument("--out", type=Path, required=True, help="dir for manifest.json, batches/, results/")
             p.add_argument("--repo", type=Path, default=Path("."))
-            p.add_argument("--batch-size", type=int, default=6)
+            p.add_argument("--batch-size", type=int, default=10, help="rules per batch before the cap applies")
+            p.add_argument("--max-batches", type=int, default=8, help="most rule-checker agents per round")
     c = sub.add_parser("check")
     c.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()

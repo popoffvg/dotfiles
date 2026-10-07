@@ -2,7 +2,7 @@
 
 Judge one implemented TODO against the pair the human approved. This is the gate chain
 `impl:sub-auto.md` Step 2 runs per TODO, and the one `/code impl` runs as its increment review
-(`fast`) and its TODO review (`normal`) — `impl:sub-impl.md` § Increment review and TODO review.
+(`fast`) and its TODO review (`normal`) — `impl:rulesets/approve-*.md`.
 
 The roster — the gates, their tiers, the wave order, the FAIL routing, the budget, and the report
 shape — is @../references/ref-gates.md. This file adds only what makes the gates judge a TODO.
@@ -20,21 +20,21 @@ every finding routes back to `impl`, which is the only skill that edits.
    --range <range> --out <notes-dir>/review/TODO-N/rules` (`../references/ref-gates.md` § The rules
    gate). Every round, so a rule added since the last round is in this one. Exit 2 names a broken
    rule file: report it and stop.
-3. **Batch the mutation gate.** Split the TODO's changed source files — bounded by
-   `TODO-N.agent.md` § Files — into batches, and take each batch's narrowed test command from the
-   `## Autotest` entry in `toolchain.json`, following `mutation:SKILL.md` § Run it. No changed file
-   a test covers → no batch, and the gate reports `n/a`. Under `fast`, skip this step.
+3. **Batch the mutation gate — only when the operator passed `mutation`.** Otherwise skip this
+   step and spawn no @mutation-tester. List the candidates — the unit tests and table rows the TODO adds
+   or changes — deal their packages into at most two batches, and take the `E2E` command from
+   `toolchain.json` (`mutation:SKILL.md` § Run it). No candidate → no batch, and the gate reports
+   `n/a`. Under `fast`, skip this step.
 4. **Run the change probes.** Before round 1, write `<notes-dir>/review/TODO-N/probes.json`
    (`../references/ref-gates.md` § A gate whose input did not change passes without running). Each
    round, run every probe; a probe that prints nothing skips its gate or batch as PASS. Done when
    every gate and batch is marked run or skipped.
-5. **Run the wave** — in **one message**, every gate step 4 did not skip: @lint-tester, one @rule-checker per batch line step 2
-   printed (`batch: <brief path>`), @idiom-critic, @correctness-critic, and one @mutation-tester per
-   batch from step 3. Every gate gets its own `report: <notes-dir>/review/TODO-N/<gate>.md` line.
+5. **Run the wave** — in **one message**, every gate step 4 did not skip: @lint-tester, one @rule-checker per brief in
+   `rules/batches/` (step 2 prints the count) (`batch: <brief path>`), @idiom-critic, @reuse-critic, @correctness-critic, and, on request, one
+   @mutation-tester per batch from step 3. Every gate gets its own `report: <notes-dir>/review/TODO-N/<gate>.md` line.
    Every mutation agent gets the `checkout:` line (`mutation:SKILL.md` § 3), no `isolation`, and
    writes to `<notes-dir>/review/TODO-N/mutation/<batch-slug>.md`. The lint gate needs the pair
-   (Files from `TODO-N.agent.md`, Autotest from `TODO-N.test.md`). Under `fast`, spawn no
-   @mutation-tester. When the last @rule-checker returns, spawn the @rule-reducer with
+   (Files from `TODO-N.agent.md`, Autotest from `TODO-N.test.md`). When the last @rule-checker returns, spawn the @rule-reducer with
    `rules: <notes-dir>/review/TODO-N/rules` and `report: <notes-dir>/review/TODO-N/rules.md`.
 
    From round 2, a red wave goes to the triage judge before the fixup (`ref-gates.md` § From round
@@ -61,7 +61,7 @@ citation. A loose diff has no thought graph.
 **`TODO-N.agent.md` § Files names the expected reach, not a border.** A file outside that list is
 not a finding by itself: the gates judge it like every other changed file.
 
-**An Autotest case the human wrote is still droppable.** The test-worth rules judge the test the
-diff wrote, not the case that asked for it. Dropping a listed case contradicts the approved pair,
+**An Autotest case the human wrote is still droppable.** The test-worth rules and the mutation gate
+judge the test the diff wrote, not the case that asked for it. Dropping a listed case contradicts the approved pair,
 which makes it a **deviation**: the implementer records the `impl-decision` note and the
 `## Deviations` row, and never edits the Autotest table (`arch:examples/todo-test.md` § Autotest).

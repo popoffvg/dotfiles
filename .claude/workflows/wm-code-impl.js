@@ -1,12 +1,12 @@
 export const meta = {
   name: 'wm-code-impl',
   description: 'Run the review gate chain until every gate passes — over one wm TODO it implements first, or over a diff no TODO pair covers',
-  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — wm-rule-batches.py plans the rule batches, one parallel checks wave (lint, one haiku rule-checker per batch then the sonnet rule-reducer, idiom, and the opus correctness gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks (after a comment-only fixup, rules and the checks that failed; after a comment-and-rename fixup, lint, rules, and the checks that failed). wm-code-auto calls this once per TODO.",
+  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — wm-rule-batches.py plans the rule batches, one parallel checks wave (lint, one haiku rule-checker per batch then the sonnet rule-reducer, idiom, reuse, and the opus correctness gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks (after a comment-only fixup, rules and the checks that failed; after a comment-and-rename fixup, lint, rules, and the checks that failed). wm-code-auto calls this once per TODO.",
   phases: [
     { title: 'Intent', detail: 'diff mode only — resolve the range and derive the intent sentence', model: 'haiku' },
     { title: 'Implement', detail: 'wm:implementer (sonnet, opus for a red TODO) writes + commits, and fixes every gate finding', model: 'sonnet' },
     { title: 'Plan', detail: 'before each wave — wm-rule-batches.py plan cuts the diff into rule-checker batches; exit 2 stops the run', model: 'haiku' },
-    { title: 'Checks', detail: 'lint-tester + rule-checker per batch then rule-reducer + idiom-critic + correctness-critic, in parallel', model: 'haiku + sonnet + opus' },
+    { title: 'Checks', detail: 'lint-tester + rule-checker per batch then rule-reducer + idiom-critic + reuse-critic + correctness-critic, in parallel', model: 'haiku + sonnet + opus' },
     { title: 'Judge', detail: 'from round 2, a red checks wave goes to an opus judge that waives it when every finding is a nit', model: 'opus' },
     { title: 'Test', detail: 'wm:tester (sonnet) gates the Autotest contract', model: 'sonnet' },
   ],
@@ -103,12 +103,13 @@ const IMPL = {
 const PLAN = {
   type: 'object',
   additionalProperties: false,
-  required: ['exit', 'range', 'stdout', 'stderr'],
+  required: ['exit', 'range', 'summary', 'batches', 'stderr'],
   properties: {
     exit: { type: 'integer', description: 'the exit code of wm-rule-batches.py plan' },
     range: { type: 'string', description: 'the --range value passed, verbatim' },
-    stdout: { type: 'string', description: 'its stdout, verbatim, every line' },
-    stderr: { type: 'string', description: 'its stderr, verbatim' },
+    summary: { type: 'string', description: 'its one stdout line, verbatim' },
+    batches: { type: 'integer', description: 'the batch count that line names' },
+    stderr: { type: 'string', description: 'its stderr, verbatim; empty when none' },
   },
 }
 const INTENT = {
@@ -168,7 +169,7 @@ const safetyClause =
   `status:"blocked" naming exactly what is missing and the command you would have needed — let a ` +
   `human install it. Never put a secret value in anything you return. `
 
-// The rules and idiom gates judge a diff, and a wm diff carries two kinds of file:
+// The rules, idiom, and reuse gates judge a diff, and a wm diff carries two kinds of file:
 // source, and the notes corpus the source was written from. Only source is the subject. Left
 // unsaid, the gates judge the spec: a real run spent findings on the identifiers quoted inside
 // `todos/TODO-5.md` and on the em-dashes in its Outcome paragraph, and the implementer edited the
@@ -267,6 +268,16 @@ function checks(batches) {
         `failures (file:line — the idiom broken — the guide — the rewrite).`,
     },
     {
+      key: 'reuse',
+      agentType: 'wm:reuse-critic',
+      model: 'sonnet',
+      prompt:
+        lessonsClause +
+        scopeClause +
+        `Reuse gate for ${theDiff}. Follow the wm:reuse-critic contract; the reuse contract is ${notesDir}/PATTERNS.md. ` +
+        `Return result PASS/FAIL with failures (file:line — the job — the existing symbol at its file:line — the rewrite onto it).`,
+    },
+    {
       key: 'correctness',
       agentType: 'wm:correctness-critic',
       model: 'opus',
@@ -336,17 +347,16 @@ async function planRules() {
       `~/.claude/scripts/wm-rule-batches.py plan --notes-dir ${notesDir}` +
       (mode === 'todo' ? ` --todo TODO-${todo}` : '') +
       ` --range ${range === null ? '<range>' : range} --out ${reportDir}/rules\n` +
-      `Return its exit code, the --range value you passed, its stdout verbatim with every line, and its stderr verbatim.`,
+      `Return its exit code, the --range value you passed, its one stdout line, the batch count in that line, and its stderr.`,
     { agentType: 'general-purpose', model: 'haiku', phase: 'Plan', schema: PLAN, label: `plan:r${round}` },
   )
   if (!out) return { error: 'the plan agent died' }
   if (out.exit !== 0) return { error: `wm-rule-batches.py plan exited ${out.exit}: ${out.stderr.trim()}` }
   if (range === null) range = out.range
-  const lines = out.stdout.split('\n').filter((l) => l.trim() !== '')
-  log(`round ${round}: ${lines[0] || 'plan printed no summary'}`)
-  const batches = lines.slice(1).map((l) => {
-    const [id, file, rules, brief] = l.split('\t')
-    return { id, file, rules, brief }
+  log(`round ${round}: ${out.summary}`)
+  const batches = Array.from({ length: out.batches }, (_, i) => {
+    const id = `b${String(i + 1).padStart(3, '0')}`
+    return { id, brief: `${reportDir}/rules/batches/${id}.md` }
   })
   return { batches }
 }
@@ -468,7 +478,7 @@ let round = 0
 let foldedTests = false
 let rerunOnly = null
 const history = []
-const fails = { lint: 0, rules: 0, idiom: 0, correctness: 0, test: 0 }
+const fails = { lint: 0, rules: 0, idiom: 0, reuse: 0, correctness: 0, test: 0 }
 
 function blocked(stage, impl) {
   return { result: 'BLOCKED', mode, todo, stage, blocker: impl ? impl.blocker : 'implementer agent died', round, history }

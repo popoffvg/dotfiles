@@ -42,7 +42,7 @@ For **every** TODO in the work list, in order — not the first, not the easy on
    runs the chain. Nobody is watching. Apply each increment, keep the one-commit-per-TODO
    rule, and pass the lessons entries that touch this TODO's **Files** in the @implementer brief.
 3. **The gate chain** — follow `review:sub-todo.md`: one wave (lint, the haiku rule checkers, idiom,
-   the opus correctness gate, mutation) in parallel, then the test gate. Any FAIL → return to 2 as a
+   the opus correctness gate) in parallel, then the test gate — never with `mutation`. Any FAIL → return to 2 as a
    fixup commit with the findings quoted, and the chain restarts at the wave. That file owns the gates, their
    tiers, and the budget; this step owns nothing but the call.
 4. **Squash this round's fixups** — follow `sub-squash.md`, scoped to this TODO: fold every `--fixup`
