@@ -1,7 +1,7 @@
 {
   "name": "harness-dev",
-  "version": "0.14.0",
-  "description": "Authoring aids for the Claude Code harness — skill shapes (workflow, loop, instruction, router), golden words that stand in for a rule set, pruning an existing skill or doc corpus into the house style, and repo bootstrap (README, CLAUDE.md, deploy and adr skills, settings).",
+  "version": "0.15.0",
+  "description": "Authoring aids for the Claude Code harness — skill shapes (workflow, loop, instruction, router), golden words that stand in for a rule set, pruning an existing skill or doc corpus into the house style, repo bootstrap (README, CLAUDE.md, deploy and adr skills, settings), and agent-work metrics from a per-turn ledger (re-ask ratio and causes, prompts to done, pasted blocks that should be a skill).",
   "author": {
     "name": "popoffvg"
   }

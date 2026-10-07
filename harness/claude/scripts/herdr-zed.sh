@@ -8,7 +8,6 @@ START_CMD="${HERDR_ZED_COMMAND:-claudex}"
 WAIT_SECONDS="${HERDR_ZED_WAIT:-15}"
 TITLE_POLL_SECONDS="${HERDR_ZED_TITLE_POLL:-1}"
 DONE_ICON="${HERDR_ZED_DONE_ICON:-○}"
-REVIEW_ICON="${HERDR_ZED_REVIEW_ICON:-◆}"
 QUESTION_ICON="${HERDR_ZED_QUESTION_ICON:-△}"
 WAIT_ICON="${HERDR_ZED_WAIT_ICON:-⧗}"
 read -r -a BUSY_FRAMES <<<"${HERDR_ZED_BUSY_FRAMES:-◰ ◳ ◲ ◱}"
@@ -93,7 +92,6 @@ restyle_icon() {
     ;;
   blocked | question) printf -v styled "%s %s" "$QUESTION_ICON" "$3" ;;
   wait) printf -v styled "%s %s" "$WAIT_ICON" "$3" ;;
-  review) printf -v styled "%s %s" "$REVIEW_ICON" "$3" ;;
   done) printf -v styled "%s %s" "$DONE_ICON" "$3" ;;
   *) styled=$3 ;;
   esac

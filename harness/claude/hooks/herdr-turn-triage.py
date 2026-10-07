@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Turn triage: the session model tags its final reply with `triage: done|wait|review|question`.
+"""Turn triage: the session model tags its final reply with `triage: done|wait|question`.
 
-UserPromptSubmit asks for the tag and clears the herdr pane token `triage`. Stop reads the tag
-and writes it to that token; herdr-zed.sh turns it into the tab icon. A reply with no tag
-counts as review.
+UserPromptSubmit asks for the tag in every session. Inside herdr it also clears the pane token
+`triage`, and Stop writes the tag to that token; herdr-zed.sh turns it into the tab icon. A reply
+with no tag counts as done.
 """
 
 from __future__ import annotations
@@ -17,8 +17,8 @@ from pathlib import Path
 
 SOURCE = "herdr-turn-triage"
 TOKEN = "triage"
-FALLBACK = "review"
-TAG_RE = re.compile(r"^\W*triage:\s*(done|wait|review|question)\W*$", re.IGNORECASE)
+FALLBACK = "done"
+TAG_RE = re.compile(r"^\W*triage:\s*(done|wait|question)\W*$", re.IGNORECASE)
 
 RULE = (
     "End your final reply of this turn with one last line `triage: <state>`, where <state> is:\n"
@@ -26,10 +26,8 @@ RULE = (
     "or information before the work can continue;\n"
     "wait - the turn ends but the work goes on without the user: a background task, agent, or "
     "workflow still runs and will resume this session when it exits;\n"
-    "review - the work stopped and the user must look at it: files changed, a result to check, "
-    "a failed or blocked step, or work only partly done;\n"
-    "done - the request is fully answered or finished, and nothing needs a check or a reply.\n"
-    "If question applies, write question. Else if wait applies, write wait. Else if review applies, write review."
+    "done - the work stopped: the request is answered, or files changed or a step failed.\n"
+    "If question applies, write question. Else if wait applies, write wait. Else write done."
 )
 
 
@@ -79,18 +77,20 @@ def main() -> int:
         hook_input = json.loads(sys.stdin.read() or "{}")
     except json.JSONDecodeError:
         return 0
-    pane_id = os.environ.get("HERDR_PANE_ID")
-    if os.environ.get("HERDR_ENV") != "1" or not pane_id or not os.environ.get("HERDR_SOCKET_PATH"):
-        return 0
     if hook_input.get("agent_id"):
         return 0
+    # The rule goes to every session: the harness-dev turn ledger reads the tag outside herdr too.
+    pane_id = os.environ.get("HERDR_PANE_ID")
+    in_herdr = os.environ.get("HERDR_ENV") == "1" and pane_id and os.environ.get("HERDR_SOCKET_PATH")
 
     if hook_input.get("hook_event_name") == "Stop":
-        reply = hook_input.get("last_assistant_message") or last_reply(hook_input.get("transcript_path"))
-        set_token(pane_id, read_tag(reply))
+        if in_herdr:
+            reply = hook_input.get("last_assistant_message") or last_reply(hook_input.get("transcript_path"))
+            set_token(pane_id, read_tag(reply))
         return 0
 
-    set_token(pane_id, None)
+    if in_herdr:
+        set_token(pane_id, None)
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": RULE}}))
     return 0
 
