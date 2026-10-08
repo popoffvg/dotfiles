@@ -1,13 +1,13 @@
 ---
 allowed-tools: Read, Write, Edit, Glob, Skill, Monitor, Bash(ls:*), Bash(mkdir:*), Bash(mv:*), Bash(~/.claude/scripts/open-file.sh:*), Bash(~/.claude/scripts/zed-edit-return.sh:*), Bash(~/.claude/scripts/watch-answers.sh:*)
-description: Distill the pattern candidates that /line-comment:act saved into global review rules in ~/.notes/rules/, after the operator approves each rule
+description: Distill the pattern candidates that /line-comment:act saved in the task notes-dir into global review rules in ~/.notes/rules/, after the operator approves each rule
 ---
 
-A **candidate** is one file in `~/.notes/patterns/`, written by the `pattern-triage` agent of `/line-comment:act` (shape in `act.md` § Triage pattern candidates). A **rule** is one `# ` section in `~/.notes/rules/<topic>.md`, which the wm review `rules` gate checks every diff against.
+A **candidate** is one file in `<notes-dir>/patterns/`, written by the `pattern-triage` agent of `/line-comment:act` (shape in `act.md` § Triage pattern candidates). `<notes-dir>` is the task folder: the nearest `.notes/` at or above the current directory, never `~/.notes` itself. With no such `.notes/`, say so in one line and stop. A **rule** is one `# ` section in `~/.notes/rules/<topic>.md`, which the wm review `rules` gate checks every diff against.
 
 ## 1. Read the candidates
 
-Read every `~/.notes/patterns/*.md` (not the `distilled/` and `rejected/` subfolders). With no file or no folder, say so in one line and stop.
+Read every `<notes-dir>/patterns/*.md` (not the `distilled/` and `rejected/` subfolders). With no file or no folder, say so in one line and stop.
 
 ## 2. Group them into proposed rules
 
@@ -18,13 +18,13 @@ Read every `~/.notes/patterns/*.md` (not the `distilled/` and `rejected/` subfol
 
 ## 3. Get approval
 
-Hand the proposals over with the `to-user` skill, in a file `~/.notes/patterns/distill-<YYYYMMDD>.md`. One `[decide]` block per proposed rule: the candidates it comes from (`at:` and comment text), the target file, and the rule text in full. Options: A — accept, B — accept with the edits written in the slot, C — reject. Recommend A; recommend B with a narrower text when the rule names a technique or a kind of problem that no candidate shows.
+Hand the proposals over with the `to-user` skill, in a file `<notes-dir>/patterns/distill-<YYYYMMDD>.md`. One `[decide]` block per proposed rule: the candidates it comes from (`at:` and comment text), the target file, and the rule text in full. Options: A — accept, B — accept with the edits written in the slot, C — reject. Recommend A; recommend B with a narrower text when the rule names a technique or a kind of problem that no candidate shows.
 
 Every rule goes to the global `~/.notes/rules/`. The operator moves a rule to a project rules folder by hand.
 
 ## 4. Write the accepted rules
 
-This step starts when the operator closes the file or says the answers are done, as `to-user` and `check-answers` run it. Run `mkdir -p ~/.notes/patterns/distilled ~/.notes/patterns/rejected` first. For each A, and for each B with the slot edits applied and no second round, write the rule at the end of its target file. Move its candidates to `~/.notes/patterns/distilled/`. For each C, move its candidates to `~/.notes/patterns/rejected/`, so no later run proposes them again. A block with an empty slot counts as A. Delete the approval file.
+This step starts when the operator closes the file or says the answers are done, as `to-user` and `check-answers` run it. Run `mkdir -p <notes-dir>/patterns/distilled <notes-dir>/patterns/rejected` first. For each A, and for each B with the slot edits applied and no second round, write the rule at the end of its target file. Move its candidates to `<notes-dir>/patterns/distilled/`. For each C, move its candidates to `<notes-dir>/patterns/rejected/`, so no later run proposes them again. A block with an empty slot counts as A. Delete the approval file.
 
 Then print one line per proposal and **nothing else**:
 

@@ -351,7 +351,7 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 
 | # | Element | Level | Required |
 |---|---------|-------|----------|
-| 1 | `TODO-N: <title>` | H1 | always — imperative, ≤ 60 chars |
+| 1 | `TODO-N: <title>` | H1 | always — what the TODO brings (the gain once it lands, not the work), ≤ 60 chars |
 | 2 | `Outcome` | H2 | always |
 | 3 | `New terms` | H2 | only if the TODO adds terms missing from GLOSSARY.md |
 | 4 | `Components` | H2 | always |

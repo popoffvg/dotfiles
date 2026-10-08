@@ -1244,7 +1244,6 @@ fn a_revision_alone_is_not_a_comment() {
     assert!(session.store().comments("docs/spec.md").is_empty());
 }
 
-
 /// A `zed-diff.sh` work dir mirroring `repo`, with `docs/spec.md` in a snapshot tree and
 /// the live tree. Returns the work dir.
 fn diff_work_dir(repo: &PathBuf, base: &str, live: &str) -> PathBuf {
@@ -1254,7 +1253,10 @@ fn diff_work_dir(repo: &PathBuf, base: &str, live: &str) -> PathBuf {
         format!("{}\n", repo.display()),
     )
     .unwrap();
-    for (tree, text) in [("abc1234", base), (line_comment::diff_view::LIVE_TREE, live)] {
+    for (tree, text) in [
+        ("abc1234", base),
+        (line_comment::diff_view::LIVE_TREE, live),
+    ] {
         let file = work_dir.join(tree).join("docs").join("spec.md");
         std::fs::create_dir_all(file.parent().unwrap()).unwrap();
         std::fs::write(file, text).unwrap();
@@ -1270,7 +1272,8 @@ fn a_comment_in_a_diff_view_is_stored_against_the_repo_file() {
     std::fs::write(repo.join("docs").join("spec.md"), live).unwrap();
     let work_dir = diff_work_dir(&repo, "# Old title\n\n## Design\n", live);
     let live_file = work_dir.join("working-tree").join("docs").join("spec.md");
-    let base_uri = line_comment::path_to_uri(&work_dir.join("abc1234").join("docs").join("spec.md"));
+    let base_uri =
+        line_comment::path_to_uri(&work_dir.join("abc1234").join("docs").join("spec.md"));
     let live_uri = line_comment::path_to_uri(&live_file);
 
     let (mut session, _) = Session::new(live_file.parent().unwrap().to_path_buf());
@@ -1292,11 +1295,43 @@ fn a_comment_in_a_diff_view_is_stored_against_the_repo_file() {
     assert_eq!(comments[0].text, "why rename\n\nread on abc1234");
     assert_eq!(comments[0].hash, anchor::line_hash("# Title"));
     assert_eq!(comments[1].text, "needs a source");
-    assert!(!work_dir.join("working-tree").join("docs").join(".tmp").exists());
+    assert!(!work_dir
+        .join("working-tree")
+        .join("docs")
+        .join(".tmp")
+        .exists());
 
     let hints = session.inlay_hints(&base_uri, whole_file());
     assert_eq!(hints.len(), 2);
     let published: Vec<String> = session.diagnostics().into_iter().map(|p| p.uri).collect();
     assert!(published.contains(&base_uri));
     assert!(published.contains(&live_uri));
+}
+
+/// One Zed project holds several repositories. The diff view of one of them has to write
+/// the project's store, because `line-comment-lsp list` run from the repo reads that one.
+#[test]
+fn a_comment_in_a_diff_view_of_a_repo_inside_a_project_lands_in_the_project_store() {
+    let project = root();
+    let repo = project.join("pl");
+    let live = "# Title\n\n## Design\n";
+    std::fs::create_dir_all(repo.join("docs")).unwrap();
+    std::fs::write(repo.join(".git"), "gitdir: elsewhere\n").unwrap();
+    std::fs::write(repo.join("docs").join("spec.md"), live).unwrap();
+    std::fs::create_dir_all(project.join(".tmp")).unwrap();
+    std::fs::write(project.join(".tmp").join("line-comment.json"), "{}").unwrap();
+    let work_dir = diff_work_dir(&repo, "# Old title\n\n## Design\n", live);
+    let live_file = work_dir.join("working-tree").join("docs").join("spec.md");
+    let live_uri = line_comment::path_to_uri(&live_file);
+
+    let (mut session, _) = Session::new(live_file.parent().unwrap().to_path_buf());
+    assert_eq!(session.root(), project.as_path());
+    assert_eq!(session.root(), line_comment::cli::root_for(&repo).as_path());
+    session.did_open(&live_uri, live.to_string());
+    add(&mut session, &live_uri, 2, "needs a source");
+    session.persist().unwrap();
+
+    let stored = Store::load(&project.join(".tmp").join("line-comment.json")).unwrap();
+    assert_eq!(stored.comments("pl/docs/spec.md").len(), 1);
+    assert!(!repo.join(".tmp").exists());
 }

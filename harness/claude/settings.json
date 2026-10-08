@@ -1,6 +1,5 @@
 {
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "ENABLE_LSP_TOOL": "1",
     "HARNESS_DEV_PASTE_NUDGE": "1",
     "HARNESS_DEV_UNDERSTOOD": "1",
@@ -424,7 +423,6 @@
   "theme": "custom:catppuccin-macchiato-dark",
   "editorMode": "normal",
   "terminalProgressBarEnabled": true,
-  "teammateMode": "in-process",
   "inputNeededNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "autoMode": {

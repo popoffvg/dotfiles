@@ -7,14 +7,14 @@ Source: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering
 | Element | Why it matters | Question when missing | Required |
 |---|---|---|---|
 | Goal / task | Claude follows instructions literally. "Suggest changes" gives suggestions, "change the function" gives edits. One verb plus one object. | What exact result do you want at the end? Which verb: write, classify, edit, review, extract? | yes |
-| Audience | Sets depth, vocabulary, and what to leave out. | Who reads the output? What do they already know? | yes |
+| Audience | Sets depth, vocabulary, and what to leave out. | Who reads the output? What do they already know? | if a human reads the output |
 | Context | Claude knows none of your norms. The reason lets it generalize ("no ellipses — a TTS engine reads the text"). | Why does this task exist? What happens with the output next? | yes |
 | Input data | Named, tagged inputs stop Claude from mixing data with instructions. Long data goes above the instructions. | What does Claude receive each run? Size, format, one item or many, from where? | yes |
 | Output format and length | Say what to do, not what to avoid ("flowing prose", not "no markdown"). The style of the prompt leaks into the output. Prefill is gone on 4.6+: use XML output tags or structured outputs. | Show one ideal output. Length? Markdown, JSON, plain text? Fixed sections? | yes |
 | Constraints | A rule with no reason gets applied too wide or too narrow. Keep hard limits apart from preferences. | What must never happen? Why? What does it cost if it happens? | yes |
 | Success criteria | Lets Claude check itself and lets you judge the output. | How do you know the output is good? What makes you reject it? | yes |
 | Edge cases | The default when input is empty, off-topic, or unclear: ask, state an assumption and go on, or return a fixed marker. An unattended run cannot ask. | What happens when the input is bad or the task is unclear? Can Claude ask, or must it decide alone? | yes |
-| Target model and effort | A technique measured on one model must be checked again on another. `budget_tokens` is gone on 4.7+: use `effort`. | Which model and effort? Thinking on? API, Claude Code, or chat? | yes |
+| Target model and effort | A technique measured on one model must be checked again on another. `budget_tokens` is gone on 4.7+: use `effort`. | Which model and effort? Thinking on? API, Claude Code, or chat? | if API or a new model |
 | Tools / environment | Set the action default (act or wait for instructions), the actions that need confirmation (destructive, visible to others), parallel calls, scope limits. | Which tools exist? What can Claude do without asking? What is irreversible? Does a human watch? | if agentic |
 | Tone / style | Current models write short, direct prose by default. Strong anti-formatting rules over-suppress. Say when lists or bold are OK. | Formal or casual? Short or full? Whose voice? | no |
 | Examples | The strongest lever for format, tone, and structure. 3–5, varied, one hard case, each in `<example>` with a short rationale. | Can you give 3 real input/output pairs, one of them hard? | no, advised |
@@ -26,7 +26,10 @@ Source: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering
 
 - A vague verb: "help with", "look at", "handle".
 - A ban with no positive target.
-- A rule with no reason.
+- A rule the receiver can misapply, with no reason. A reason on an obvious rule adds words and changes nothing.
+- A success criterion that repeats an instruction. Keep the check; cut the step.
+- Prose that describes an output shape. Show a filled-in skeleton.
+- A step the receiver can work out from the success criteria.
 - Shouting: ALL CAPS, "CRITICAL", "You MUST ALWAYS". Current models over-trigger on it.
 - Anti-laziness nudges copied from old prompts ("if in doubt, use the tool").
 - Sections that contradict each other (the system says "be brief", the examples are long).

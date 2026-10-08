@@ -42,10 +42,19 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 >
 > A red TODO is a signal to keep it small, not a block.
 >
-# TODO-1: Rotate refresh tokens on /auth/refresh
+# TODO-1: A stolen refresh token stops working at the next refresh
 
-> `TODO-N: <imperative line>` — the same line the ledger row carries. `N` is contiguous and 1-indexed,
-> one pair per ledger row (`arch:sub-todo.md` § File location).
+> `TODO-N: <what it brings>` — the same line the ledger row carries, ≤ 60 chars. `N` is contiguous
+> and 1-indexed, one pair per ledger row (`arch:sub-todo.md` § File location).
+>
+> **The title states what the TODO brings: the gain a user or the system has once it lands, never the
+> work done to get it.** A reader who reads only the title MUST know why the TODO exists. The work
+> goes in `## Increments`; the repo-terms line goes in `## Commit`.
+>
+> Good: *"A stolen refresh token stops working at the next refresh"* (the gain) ·
+> *"A replayed refresh token signs the user out"*.
+> Bad: *"Rotate refresh tokens on /auth/refresh"* (the work, no gain) · *"Add `TokenPair` type"*
+> (a type, no gain) · *"Refactor `Session`"* (a verb with no result).
 >
 > A filled `<notes-dir>/todos/TODO-N.md` — **the human half of the pair**. Copy the section order and
 > the shape of each one; each `>` block states the rules for the piece above it. The procedure around

@@ -56,11 +56,11 @@ pub fn current_root() -> PathBuf {
 /// them.
 pub fn root_for(path: &Path) -> PathBuf {
     let current = std::env::current_dir().unwrap_or_default();
-    let absolute = if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        current.join(path)
-    };
+    root_holding(&current.join(path)).unwrap_or(current)
+}
+
+/// `root_for` without the fallback to the current directory.
+pub fn root_holding(absolute: &Path) -> Option<PathBuf> {
     let home = std::env::var_os("HOME").map(PathBuf::from);
     let mut store = None;
     let mut repository = None;
@@ -75,7 +75,7 @@ pub fn root_for(path: &Path) -> PathBuf {
             repository = Some(candidate.to_path_buf());
         }
     }
-    store.or(repository).unwrap_or(current)
+    store.or(repository)
 }
 
 /// Attach a comment to a line or a span of lines, replacing whatever the first line of it

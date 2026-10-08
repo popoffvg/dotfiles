@@ -65,8 +65,8 @@ Agent(subagent_type: "general-purpose", model: "haiku", name: "pattern-triage", 
 The prompt carries every operator comment, unresolved ones too, as `<file>:<lines> — <text>`, with the meaning grilling settled. A `(from Claude)` comment is left out. The contract:
 
 - Save a comment only when it prescribes a technique, a type, a pattern, or a library for a kind of problem: "use type definition for enums", "use go-retry for retrying a request". A fix for this line alone ("off by one", "rename `mgr`") is not saved.
-- For each saved comment, write `~/.notes/patterns/<YYYYMMDD>-<slug>.md` in the shape below. Read the code lines from the file; for `(orphaned)`, write `code: (orphaned)`.
-- Edit no other file. Return one line: `pattern candidates: <N>`.
+- For each saved comment, write `<notes-dir>/patterns/<YYYYMMDD>-<slug>.md` in the shape below. `<notes-dir>` is the task folder: the nearest `.notes/` at or above the commented file, never `~/.notes` itself. With no such `.notes/`, save nothing for that comment and count it as skipped. Read the code lines from the file; for `(orphaned)`, write `code: (orphaned)`.
+- Edit no other file. Return one line: `pattern candidates: <N> saved to <notes-dir>/patterns/`, one `<notes-dir>` per repo, plus `, <M> skipped: no .notes` when M > 0.
 
 ```
 ---
@@ -102,10 +102,10 @@ Write `<SESSION>/processed.md` — one block per comment, acted on and unresolve
 <file>:<line> — <comment text>
   → <what changed, or "unresolved: <why>">
 
-pattern candidates: <N> saved to ~/.notes/patterns/
+pattern candidates: <N> saved to <notes-dir>/patterns/
 ```
 
-The last line is the `pattern-triage` agent's count.
+The last line is the line the `pattern-triage` agent returned.
 
 **No comment is dropped, because none is left to drop.** The batch left the store when the file moved, so `line-comment-lsp drop` has nothing to do here and is not called. The session folder holds the whole record: `line-comment.json` is the batch exactly as the operator wrote it, `processed.md` is what became of each comment.
 
@@ -117,7 +117,7 @@ Then print the same blocks to the operator and **nothing else**:
 <file>:<line> — <comment text>
   → <what changed, or "unresolved: <why>">
 
-pattern candidates: <N> saved to ~/.notes/patterns/
+pattern candidates: <N> saved to <notes-dir>/patterns/
 ```
 
 Close with the session path on its own line, so the record is reachable.

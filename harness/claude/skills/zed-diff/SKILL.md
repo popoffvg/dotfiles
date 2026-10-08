@@ -1,6 +1,6 @@
 ---
 name: zed-diff
-description: Open a git diff in Zed's multi-diff view, so the operator can read it and comment on it in place. Use for "open the diff in zed", "show the change in zed", "let me review/comment on this commit in zed", or `/zed-diff` with a commit, a range, a TODO's commits, or nothing (the uncommitted change).
+description: Open a git diff in Zed's multi-diff view, so the operator can read it and comment on it in place, with a `diff-walk` walk-through of the same range beside it. Use for "open the diff in zed", "show the change in zed", "let me review/comment on this commit in zed", or `/zed-diff` with a commit, a range, a TODO's commits, or nothing (the uncommitted change).
 ---
 
 # Open a git diff in Zed
@@ -17,6 +17,7 @@ description: Open a git diff in Zed's multi-diff view, so the operator can read 
    | everything since a commit, including local edits | `BASE` |
    | one commit | `COMMIT^!` |
    | a run of commits, such as a TODO's commits | `FIRST^..LAST` — the parent of the first commit, so the first one is inside |
+   | a branch against its base | `MERGE_BASE..BRANCH`, where `MERGE_BASE` is `git merge-base <default branch> BRANCH` — the script does not take `A...B` |
    | one file or folder of it | add `-- PATH...` |
 
    Leave out a commit that is not part of the work, such as a lint cleanup before it: start the range after it. When a TODO's commits are not consecutive, say so and ask which range to open.
@@ -29,7 +30,9 @@ description: Open a git diff in Zed's multi-diff view, so the operator can read 
 
    Done when it prints `zed-diff: N files, right side live|snapshot`. When N is not the file count you expected, compare it with `git diff --stat <same range>` before you report. Exit 1 with `no change between the two sides` means the range is empty: check the revisions.
 
-3. **Tell the operator** the file count and the side. For **live**, their saved edits change the repo. For **snapshot**, say that a saved edit is lost, and offer the live form: check out the end commit, or open `BASE` alone. Done when they know which side takes comments, and that you read their comments from the files when they say they are done.
+3. **Walk it.** Always load the `diff-walk` skill with the same arguments. Done when it returns the path of the walk-through file, or reports `empty`.
+
+4. **Tell the operator** the file count, the side, and the walk-through path. For **live**, their saved edits change the repo. For **snapshot**, say that a saved edit is lost, and offer the live form: check out the end commit, or open `BASE` alone. Done when they know which side takes comments, and that you read their comments from the files when they say they are done.
 
 ## When the operator has commented
 

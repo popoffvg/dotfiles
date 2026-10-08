@@ -71,7 +71,8 @@ pub enum Effect {
 pub struct Session {
     root: PathBuf,
     store: Store,
-    /// Set when the root is inside a `zed-diff.sh` work dir; the root is then its repo.
+    /// Set when the root is inside a `zed-diff.sh` work dir; the root is then the root
+    /// `cli::root_for` gives its repo, so the diff view and the CLI share one store.
     diff_view: Option<DiffView>,
     documents: HashMap<String, String>,
     /// Files we last published diagnostics for, so they can be cleared when emptied.
@@ -84,9 +85,9 @@ impl Session {
     /// Load the store for `root`, falling back to an empty store when it cannot be read.
     pub fn new(root: PathBuf) -> (Session, Vec<Effect>) {
         let diff_view = DiffView::find(&root);
-        let root = diff_view
-            .as_ref()
-            .map_or(root, |view| view.repo().to_path_buf());
+        let root = diff_view.as_ref().map_or(root, |view| {
+            crate::cli::root_holding(view.repo()).unwrap_or_else(|| view.repo().to_path_buf())
+        });
         let path = root.join(".tmp").join("line-comment.json");
         let (store, effects) = match Store::load(&path) {
             Ok(store) => (store, Vec::new()),
