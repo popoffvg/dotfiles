@@ -1,6 +1,6 @@
 ---
 name: test-suite:tdd
-description: "Drive a feature/bug-fix spec-before-code with Red-Green-Refactor."
+description: "Drive a feature or bug-fix spec-before-code with Red-Green-Refactor."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

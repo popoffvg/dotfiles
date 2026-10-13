@@ -1,6 +1,6 @@
 ---
 name: dive:explain
-description: "Draw a single-panel planned architecture as a self-contained HTML a reviewer reads in 30 seconds — components, edge relations, load-bearing decisions tagged with decision ids."
+description: "Draw a single-panel planned architecture as a self-contained HTML a reviewer reads in 30 seconds — the components, their edge relations, and the load-bearing decisions (tagged with decision ids)."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

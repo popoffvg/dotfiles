@@ -1,6 +1,6 @@
 ---
 name: test-suite:review
-description: "Verify phase — present results, user reviews implementation against acceptance criteria."
+description: "Run the verify phase — present results, let the user review an implementation against acceptance criteria."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

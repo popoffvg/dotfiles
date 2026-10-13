@@ -1,6 +1,6 @@
 ---
 name: test-suite:harness
-description: "Test a harness plugin in isolation — MCP server, unit tests, typecheck, plugin loading."
+description: "Test a harness plugin in isolation — MCP server, unit tests, typecheck, Claude plugin loading."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

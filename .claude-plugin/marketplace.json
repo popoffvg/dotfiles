@@ -14,7 +14,7 @@
       "name": "harness-dev",
       "source": "./harness/plugins/harness-dev",
       "description": "Authoring aids for the Claude Code harness — skill shapes (workflow, loop, instruction, router), golden words that stand in for a rule set, pruning an existing skill or doc corpus into the house style, repo bootstrap (README, CLAUDE.md, deploy and adr skills, settings), and agent-work metrics from a per-turn ledger (re-ask ratio and causes, prompts to done, pasted blocks that should be a skill).",
-      "version": "0.19.0"
+      "version": "0.20.0"
     },
     {
       "name": "hi",
@@ -38,7 +38,7 @@
       "name": "self-improvement",
       "source": "./harness/plugins/self-improvement",
       "description": "Scores every Claude Code session for the lessons it holds and proposes where each one belongs in the harness: a watermarked background scan kicked by the SessionStart hook, one haiku call per dirty session, then a suggestion pass over the existing skill inventory. Browsable in the self-improve TUI. High scorers are archived for the capture-lesson skill to turn into skills and the dream skill to consolidate.",
-      "version": "0.33.0"
+      "version": "0.34.0"
     },
     {
       "name": "smart-commit",
@@ -50,7 +50,7 @@
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.88.0"
+      "version": "2.89.0"
     },
     {
       "name": "zed-clear-guard",

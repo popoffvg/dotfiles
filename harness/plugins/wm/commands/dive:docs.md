@@ -1,6 +1,6 @@
 ---
 name: dive:docs
-description: "Write the markdown research write-ups — 3 phases: find entry point → explore → grill-me loop."
+description: "Write the markdown research write-ups + question lists."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

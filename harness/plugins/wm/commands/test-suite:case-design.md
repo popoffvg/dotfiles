@@ -1,6 +1,6 @@
 ---
 name: test-suite:case-design
-description: "Derive cases — equivalence partitioning, boundary values, decision tables, state transition."
+description: "Derive cases systematically — equivalence partitioning, boundary values, decision tables, state transition, state-combination, property-based."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

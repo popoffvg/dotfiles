@@ -1,6 +1,6 @@
 ---
 name: code:verify
-description: "Audit a spec before implementation in a separate `spec-verifier` agent (sonnet, read-only) — hunts contradictions, missing parts, edge cases."
+description: "Audit the spec before impl in a separate read-only `spec-verifier` agent — contradictions, missing parts, edge cases, plus the completeness / test-honesty floor."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

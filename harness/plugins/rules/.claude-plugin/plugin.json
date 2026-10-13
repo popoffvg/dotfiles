@@ -1,8 +1,0 @@
-{
-  "name": "rules",
-  "version": "0.4.0",
-  "description": "Narrow code rules, one trigger and one rule each. A rule lands here once it is worth obeying on every matching file rather than remembering from the session that taught it.",
-  "author": {
-    "name": "popoffvg"
-  }
-}
