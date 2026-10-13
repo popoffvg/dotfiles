@@ -21,20 +21,20 @@ Spec contract + the gate: `ref-write.md`. Vocabulary: `wm:GLOSSARY.md`.
 
 | File | Read by | Holds | Length |
 |------|---------|-------------|--------|
-| `TODO-N.md` | the human, repo closed | frontmatter, Outcome, New terms, Components, **Increments (the work and its diff)**, **Flow changes**, Commit | ≤ 550 lines, New terms + Components uncounted |
+| `TODO-N.md` | the human, repo closed | frontmatter, Outcome, New terms, Components, **Flow changes**, **Increments (the work, its diffs, and its commits)** | ≤ 200 lines, New terms + Components + Increments uncounted |
 | `TODO-N.test.md` | the human at the gate, then the implementer and the gates | Autotest — Unit and E2E | **unlimited** |
 | `TODO-N.agent.md` | the implementer | Files (each path keyed to its increments), Pre-reads, Manual test, Gotchas | **unlimited** |
 
 The split is by audience, not by size. `TODO-N.md` is the design a human approves — what the system
 will be able to do, which symbols move, **the steps that move them and what each symbol becomes**,
-**which running paths gain or lose a step or a check**, and what the commit says. `TODO-N.test.md`
+**which running paths gain or lose a step or a check**, and what each commit says. `TODO-N.test.md`
 is what proves it: the human approves it at the same gate, and it has its own file so that no budget
 cuts a case. `TODO-N.agent.md` is where the work happens in the repo: the paths, the reading list,
 the manual check, and the rules that bound it.
 
 **The increments are the human's, and each one is self-contained for review.** `## Increments` in the
 human half carries the whole contract change, cut into the steps `impl` applies. Each step carries
-its own diff, its **Do**, and its blast radius, so a reviewer approves one step from its block alone —
+its own diff, its summary, and its **Surprises**, so a reviewer approves one step from its block alone —
 at the gate, and again at `impl` against the real diff. No increment names a file: paths live once,
 in the agent half's `## Files`, keyed by increment number. The agent half carries no diff and no
 increment text.
@@ -164,7 +164,7 @@ Then run the three checks that are cross-row by construction, and so belong to n
   edited to match before the next wave reads it.
 
 **Done when** every returned `## New terms` row is an entry in `GLOSSARY.md` with `Status: new`,
-`Code: none`, and its Forbidden names, no two entries name one concept, and
+`Code: none`, its Forbidden names, a place in a cluster, and its **Links**, no two entries name one concept, and
 `${CLAUDE_PLUGIN_ROOT}/bin/glossary-lint.py <notes-dir>` reports no finding the wave added.
 
 ### Step 4 — stage 1: the next wave
@@ -246,33 +246,32 @@ wants to argue with the rule rather than obey it.
 
 ## Budget
 
-The human half is ≤ 550 lines, not counting `## New terms` and `## Components`; the agent half and the
-test file have no line budget.
+The human half is ≤ 200 lines, not counting `## New terms`, `## Components`, and `## Increments`; the
+agent half and the test file have no line budget.
 
-`TODO-N.md` at 550 lines is a ceiling, not a nudge. The prose sections — Outcome, Flow changes, Commit —
-run to well under a hundred lines on a real row; the rest of the room is for `## Increments`, which
-is why the number is this large. Hitting the ceiling therefore means the contract change itself is too
-big for one row: split the ledger row. The budget is not the tool for tightening a wordy Outcome;
-§ Not over-stated in the pre-save checklist is.
+`TODO-N.md` at 200 lines is a ceiling, not a nudge. The prose sections — Outcome and Flow changes —
+run to well under a hundred lines on a real row. Hitting the ceiling means the row does two things:
+split the ledger row. The budget is not the tool for tightening a wordy Outcome; § Not over-stated in
+the pre-save checklist is.
 
 **`## New terms` and `## Components` are unlimited, and `budget-check.py` counts neither.** Both are
 rosters, not prose: one row per term the TODO adds, one row per symbol it creates, modifies, or
 deletes. A row is a fact about the change, so cutting rows to fit a budget hides part of the change
 from the human approving it — and a TODO that legitimately touches thirty symbols is one deliverable,
 not two. The `## Components` rules that do bind are elsewhere: exactly one `main` row, every row a
-`package.Class` symbol, and every row named by an increment. `## Increments` is where a wide row hits
-a ceiling: ten increments, 150 changed lines per diff.
+`package.Class` symbol, and every row named by an increment.
+
+**`## Increments` is counted by shape, not by lines:** ≤ 4 commits, ≤ 10 increments per commit, `c`
+and `i` contiguous from 1, and each diff ≤ 150 changed lines (or a declared **Compile floor**). A big
+deliverable is cut into commits, not compressed: each commit adds room. **More than 4 commits, or more
+than 10 increments in one commit, is the real "too big" signal** — split the ledger row. Never
+compress a diff or merge two increments to fit.
 
 `TODO-N.test.md` is as long as the cases need: one case per promise the Outcome makes and per marked
 step in `## Flow changes`. It is out of the human half so that a budget never cuts a case.
 
 `TODO-N.agent.md` is as long as its paths and pre-reads need, and carries **no ```diff block at
 all**. Never drop a pre-read to make it shorter.
-
-What is counted in `## Increments` besides lines: ≤ 10 increments, `n` contiguous from 1, and each
-diff ≤ 150 changed lines (or a declared **Compile floor**). **More than 10 increments is the real
-"too big" signal**: it is per-increment, so it does not grow because a row is legitimately detailed.
-Never compress a diff or merge two increments to fit the 550 lines — split the ledger row.
 
 **Split the case, not the stack.** A capability over budget is split by *narrowing what it accepts*,
 never by *removing a layer*. Narrow it to one input, one format, one type, one path — hardcode what
@@ -285,7 +284,7 @@ most expensive to find. **The test of a split: if it turns either half's `E2E` i
 wrong split.** Narrow is not the same as shallow; a thin slice through every layer is the first row,
 and later rows widen it.
 
-Which work is a row at all — and why an enabler with one consumer is increment 1 of its consumer
+Which work is a row at all — and why an enabler with one consumer is the first increments of its consumer
 rather than a row of its own — is `ref-write.md` § Merges that fall out of this rule.
 
 > **The budget is counted, not trusted.** The `budget-check` PostToolUse hook (`wm:bin/budget-check.sh`)
@@ -308,13 +307,13 @@ rather than a row of its own — is `ref-write.md` § Merges that fall out of th
 1. **Concrete over abstract.** Real paths, commands, signatures. No "etc.", "as needed".
 2. **Strong verbs.** *rename X to Y, add field Z to type T, delete function F* — never *improve, handle, refactor stuff, clean up*.
 3. **Every section is a checklist to tick off.** Prose → bullets, a table, or a code block.
-4. **One TODO = one deliverable = one commit.** One outcome a user can observe; group the edits that deliver it, nothing else. >8 files → ask before writing.
+4. **One TODO = one deliverable = one or more commits.** One outcome a user can observe; group the edits that deliver it, nothing else. Each commit has a clear border: it builds, its tests pass, and its message states one cause. >8 files → ask before writing.
 5. **The surface ships as a diff; the logic ships as a sketch.** Every changed type, field, signature, and setting is a unified diff in the increment that lands it, never prose the implementer translates. Every body — the code behind those signatures — is pseudocode (the `flow-sketch` skill) the implementer writes from. Neither substitutes for the other, and a body pasted as a diff is the one shape both rules reject (§ A diff carries the surface, not a body).
 6. **No outward links** — reference other TODOs only via `Depends on`.
 7. **Pre-reads are mandatory** — every file to understand before editing.
 8. **New terms are defined, not assumed** — a domain term missing from `GLOSSARY.md` gets a `## New terms` row (see § New terms below).
 9. **Components come before changes** — name the `package.Class` set and mark the one holding the main part, then split the work into ordered increments over those components (`examples/todo.md` § Components, § Increments).
-10. **The commit is approved in small increments, not in one read.** `## Increments` is an ordered sequence: each increment is one small diff a human approves alone from its own block — first at the gate as a prediction, then at `impl` against the real diff — and each approved increment is appended to the same commit. One TODO stays one deliverable; only its *review* is split.
+10. **A commit is approved in small increments, not in one read.** `## Increments` is an ordered sequence, numbered `<c>.<i>`: each increment is one small diff a human approves alone from its own block — first at the gate as a prediction, then at `impl` against the real diff — and each approved increment is appended to the commit `c`. The increments split the *review*; the `### Commit` sections split the *history*.
 
 ## File location
 
@@ -355,12 +354,11 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 | 2 | `Outcome` | H2 | always |
 | 3 | `New terms` | H2 | only if the TODO adds terms missing from GLOSSARY.md |
 | 4 | `Components` | H2 | always |
-| 5 | `Increments` | H2 | always — one H3 per increment in apply order, each self-contained: Landed, Change, Extends, Do, Blast radius, Behavior, Builds, and the **Surface** diff it lands; no file path |
-| 6 | `Flow changes` | H2 | always — one H3 per running path the TODO changes, its steps as a tree in run order, each changed step marked (`+ step`, `+ check`, …); or `none — <reason>` |
-| 7 | `Commit` | H2 | always — the `Title` and `Body` of the one commit the increments build |
-| 8 | `Deviations` | H2 | never at `todo` — written by `impl` when a user correction contradicts a section above, removed by `revise` |
-| 9 | `**Tests:** [TODO-N.test.md](TODO-N.test.md)` | line | always — the link to the test file |
-| 10 | `**Agent:** [TODO-N.agent.md](TODO-N.agent.md)` | line | always — the last line |
+| 5 | `Flow changes` | H2 | always — one H3 per running path the TODO changes, its steps as a tree in run order, each changed step marked (`+ step`, `+ check`, …); or `none — <reason>` |
+| 6 | `Increments` | H2 | always — one `### <c>.<i>.` H3 per increment in apply order, each self-contained and in one component: a summary paragraph, Landed, Change, Extends, Surprises, and the **Surface** diff it lands; no file path. Each commit group ends with a `---` line and a `### Commit <c>` H3: Title, Body, Proves |
+| 7 | `Deviations` | H2 | never at `todo` — written by `impl` when a user correction contradicts a section above, removed by `revise` |
+| 8 | `**Tests:** [TODO-N.test.md](TODO-N.test.md)` | line | always — the link to the test file |
+| 9 | `**Agent:** [TODO-N.agent.md](TODO-N.agent.md)` | line | always — the last line |
 
 ### `TODO-N.test.md` — the test file
 
@@ -383,7 +381,7 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 
 Missing any always field/element → invalid. A section in the wrong file is also invalid, and the
 `budget-check` hook reports it: `## Constraints` or `## Files` in the human half, `## Outcome` /
-`## Increments` / `## Commit` in the agent half, `## Autotest` outside the test file, a `## Constraints` section in any file,
+`## Increments` in the agent half, `## Autotest` outside the test file, a `## Constraints` section in any file,
 or **any ```diff block outside `## Increments`** — each one means the split was not made.
 
 ## The verification chain
@@ -391,7 +389,7 @@ or **any ```diff block outside `## Increments`** — each one means the split wa
 A correct TODO is self-explanatory: a human approves it by walking the elements of `TODO-N.md` and
 `TODO-N.test.md`, repo closed. The agent half stays shut.
 
-**type → Outcome → New terms → Components → Increments → Flow changes → Autotest → Commit**
+**type → Outcome → New terms → Components → Flow changes → Increments → Autotest → Commits**
 
 | Element | Verifies | Link |
 |---------|----------|------|
@@ -399,12 +397,12 @@ A correct TODO is self-explanatory: a human approves it by walking the elements 
 | Outcome | is this the right capability, and what lands to deliver it? (the anchor) | — |
 | New terms | right vocabulary, consistent with GLOSSARY.md? | grounds Outcome |
 | Components | which `package.Class` symbols are created, modified, or deleted, and which one holds the main part? | locates Outcome |
-| Increments | in which steps does the change land, and what does each symbol *become* — the exact types, fields, and signatures a caller will see? Each step read alone. | commits Outcome |
 | Flow changes | which running paths gain, lose, or change a step or a check, and in what order do the steps run? | routes Outcome |
+| Increments | in which steps does the change land, and what does each symbol *become* — the exact types, fields, and signatures a caller will see? Each step read alone. | commits Outcome |
 | Autotest (`TODO-N.test.md`) | do the unit **and** e2e tests prove the Outcome and every marked flow step? | verifies Outcome |
-| Commit | does the message the increments build toward state the same change the Outcome promised? | closes Outcome |
+| Commits | does each `### Commit` section state one cause, and do the titles together state the change the Outcome promised? Does each **Proves** line name the cases that pass from that commit on? | closes Outcome |
 
-Outcome is the anchor; Components, Increments, Flow changes, Autotest, and Commit are checked *against* it. Consistent
+Outcome is the anchor; Components, Flow changes, Increments, Autotest, and Commits are checked *against* it. Consistent
 chain → correct TODO.
 
 **Components and Increments are one pair, and the gate needs both.** Components without increments
@@ -437,7 +435,7 @@ instead of a research session.
 increment names a row missing from the table. A human who approves the Components table has approved
 the *reach* of the change before reading a diff.
 
-**Commit is the human's last read.** The increments are gone once the commit lands, and this text is
+**The `### Commit` sections are the human's last read.** The increments are gone once the commits land, and this text is
 all that stays — the only place the *why* is written for a reader who has just the repo.
 
 ## Section rules
@@ -471,7 +469,7 @@ Edit in place, same `N` unless order changes — then renumber all three files t
 **The hook counts the mechanical rules; this checklist holds only what a reader must judge.**
 `budget-check` (§ Budget) already counts the line budgets, every misplaced section, a ```diff or a
 frontmatter block outside the human half, a `## Constraints` section, the increment count
-and contiguity, and a missing **Do** or **Extends** bullet. Ticking those here would be the author grading their
+and contiguity, a missing summary, and a missing **Extends** or **Surprises** bullet. Ticking those here would be the author grading their
 own file against a rule already counted.
 
 ### The row
@@ -486,29 +484,32 @@ own file against a rule already counted.
 ### `TODO-N.md` — the human half
 
 - [ ] All `always` elements present and ordered; `New terms` present iff the TODO adds terms
+- [ ] **Each H2 of `TODO-N.md` and each Autotest level opens with its `> **Check:**` line**, copied from the example, plus at most one sentence naming this TODO's riskiest point in that section
 - [ ] **`approve` is `inherit`** unless this TODO needs a depth of its own — and any other value carries, as a trailing comment, the reason it overrides the spec
 - [ ] **`where` is `inherit`** unless this TODO needs a checkout of its own — same rule: any other value carries the reason as a trailing comment
 - [ ] **Not over-stated**: no spec Description/Goal/target-picture prose was copied in, and the Outcome is this TODO's slice rather than the spec Goal
 - [ ] **Outcome** is 2–7 bullets, each a capability in GLOSSARY.md terms followed by what lands (plain-words kind on a symbol) — no paths, routes, libraries
-- [ ] **Every prose line passes `i-have-adhd`** — Outcome, `Meaning`, `Role`, `Change`, flow steps, Autotest cases, `Commit.Body`: one idea per sentence, short sentences, literal words, no restatement, and each section decided by its first sentence alone
+- [ ] **Every prose line passes `i-have-adhd`** — Outcome, `Meaning`, `Role`, `Change`, flow steps, Autotest cases, each commit **Body**: one idea per sentence, short sentences, literal words, no restatement, and each section decided by its first sentence alone
 - [ ] `## Components` has exactly one `main` row, each a `package.Class` symbol with a `create | modify | delete` **Touch** and a one-sentence **Role** and **Change**
-- [ ] **Each increment is self-contained for review**: its block alone says what changes, why, what it can break, and the exact new shape — no "as above", no "see increment <n>", and every symbol its **Do** names as new or changed is in its own diff
+- [ ] **Each increment is self-contained for review**: its block alone says what changes, what will surprise the reader, and the exact new shape — no "as above", no "see increment <c>.<i>", and every symbol its summary names as new or changed is in its own diff
 - [ ] **No file path in any increment** — symbols only; paths are in the agent half's `## Files`, keyed by increment
-- [ ] Each increment names one **Components** row, ordered deepest-first so the repo builds after each (or marked `builds: only with increment <n>`); every row is named by at least one increment
-- [ ] Every increment carries **Landed:** `no`, a **Change** (one of the nine kinds in `impl:ref-change-types.md`), an **Extends** (the existing symbol it grows, or `new` with the symbols checked), a **Do** of one to four imperative sentences, a **Blast radius** that names the real symbols and callers to retest, and a **Surface** — one ```diff, a plain contract block for a body-only deliverable, or `none — <reason>`
+- [ ] **Each increment names one Components row and changes that component only** — a caller in another component moves in its own `call-site migration` or `wiring` increment, right after the change that breaks it; ordered deepest-first; every row is named by at least one increment
+- [ ] Every increment carries **Landed:** `no`, a **Change** (one of the nine kinds in `impl:ref-change-types.md`), an **Extends** (the existing symbol it grows, or `new` with the symbols checked), a **Surprises** list, and a **Surface** — one ```diff, a plain contract block for a body-only deliverable, or `none — <reason>`
 - [ ] **Every `new` in an Extends bullet survived a search**: the symbols it names are the ones a reader would try first — the state machine, gateway, or table the repo already has for this subject — and every need `PATTERNS.md` § Need → use lists is met through its row
 - [ ] The frontmatter `type:` is the kind of the TODO's **main** work, and the increment **Change** spread agrees with it — every increment `wiring` under a `type: new behavior` TODO means one of the two is wrong
-- [ ] **No code in any Do** — no fenced block, no pasted signature; the signature is in the increment's diff, and "implement the handler" is not an instruction
-- [ ] Every symbol whose signature changes has its call sites named in that increment's **Do**
-- [ ] A **Behavior** sketch appears wherever **Do** cannot carry the logic (a real branch structure, an error path that matters, a non-obvious ordering) — ≤ 40 lines of pseudocode, no real imports or paths
+- [ ] **Each summary is one to three sentences, no code** — what the increment brings; a change to existing behavior reads `Before, … Now, …`. "Implement the handler" is not a summary
+- [ ] **Each Surprises item names a symbol, a value, or a case** a reader would otherwise find only in the code — an edge case, a refused input, a changed default, an order that matters, a caller that stops compiling. A restated summary is not a surprise
+- [ ] Every symbol whose signature changes has its callers named in that increment's **Surprises**, and moved by the increment that follows
 - [ ] Every `create` row's symbol appears as new surface in an increment diff, and every `delete` row's symbol is gone from the code the diffs leave behind — a Touch the diffs contradict is a wrong Touch
 - [ ] **No body in a diff** — no function body, loop, branch chain, shell script, query, regex, fixture, or literal expected-value table; no comments and no `AGENT:` markers. The sole exception is a body the human asked for directly, carrying a `**Body requested:**` bullet that names the symbol
-- [ ] **No consequence in a diff** — no migrated call site, updated import, forwarded field, or renamed use whose shape another diff already fixes. It lives in the deciding increment's **Do** and **Blast radius**
+- [ ] **No consequence in a diff** — no migrated call site, updated import, forwarded field, or renamed use whose shape another diff already fixes. It lives in the migration increment of the caller's component, as its summary
 - [ ] **No interface method in a diff** under the type that implements it — that type shows one `var _ Interface = (*Type)(nil)` line per interface, its constructor, and only the public methods no interface declares
 - [ ] **`## Flow changes`** has one H3 per running path the TODO changes, its steps as one fenced tree in run order, sub-steps and paths nested under the step that runs them, every changed step opening with its marker — or the single line `none — <concrete reason>`
 - [ ] Every step a flow marks names only `## Components` symbols, and no body code
 - [ ] **No `## Deviations`** — that section belongs to `impl`, and one present at `todo` means a correction was written as design
-- [ ] `Commit.Title` ≤ 72 chars, imperative, prefixed; `Commit.Body` has a cause and a goal paragraph (plus a decision if one was rejected), names no `TODO-N` or note id, and states the same change as the **Outcome**
+- [ ] Every `### Commit <c>` sits after a `---` line that closes its increments; its **Title** ≤ 72 chars, imperative, prefixed; its **Body** has a cause and a goal paragraph (plus a decision if one was rejected) and names no `TODO-N`, increment number, or note id; the titles together state the same change as the **Outcome**
+- [ ] **Each commit has a clear border**: a signature change and the migration it forces sit in one commit, so the repo builds and the tests pass at every commit; a second cause starts a new commit
+- [ ] Every **Proves** line names `TODO-N.test.md` cases by name, every Autotest case is named by exactly one commit — the first at which it can pass — or the line is `none — <concrete reason>`
 
 ### `TODO-N.test.md` — the test file
 

@@ -1,6 +1,6 @@
 {
-  "enabled": true,
-  "hideThinking": true,
+  "enabled": false,
+  "hideThinking": false,
   "hideTools": true,
   "locale": "en"
 }

@@ -46,8 +46,8 @@ For **every** TODO in the work list, in order — not the first, not the easy on
    fixup commit with the findings quoted, and the chain restarts at the wave. That file owns the gates, their
    tiers, and the budget; this step owns nothing but the call.
 4. **Squash this round's fixups** — follow `sub-squash.md`, scoped to this TODO: fold every `--fixup`
-   commit the gate chain produced into the TODO's own commit (`git rebase --autosquash`), so the TODO
-   leaves exactly one commit behind. Its distill step is where a fixup becomes a skill.
+   commit the gate chain produced into the commit it fixes (`git rebase --autosquash`), so the TODO
+   leaves one commit per `### Commit` section behind. Its distill step is where a fixup becomes a skill.
 5. **Append to `<notes-dir>/LESSONS.md`** — what this round taught: findings that were real, findings
    rejected plus the command that settled them, gaps carried to a later TODO, process facts. Group by
    when the lesson bites, not by which gate produced it.

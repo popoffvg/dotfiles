@@ -105,7 +105,7 @@ Fixups), then run the wave again from the plan step. A fixup can break what a ga
 so every gate runs again unless its change probe shows the fixup did not reach its input.
 
 **A gate that writes a test is not a FAIL.** The test gate returns the files it wrote, uncommitted,
-and the implementer folds them into the TODO's commit. The next round runs the rules gate alone,
+and the implementer folds them into the TODO's last commit. The next round runs the rules gate alone,
 over the new test files. Green → the chain is green. Red → the fixup runs and the chain restarts.
 
 ### A gate whose input did not change passes without running

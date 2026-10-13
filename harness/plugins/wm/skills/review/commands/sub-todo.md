@@ -12,8 +12,8 @@ every finding routes back to `impl`, which is the only skill that edits.
 
 ## Steps
 
-1. **Name the revision.** The diff under judgment is the TODO's commit plus every fixup on top of
-   it — `git log --oneline` from the TODO's commit to `HEAD`. Pass that range to every gate; a gate
+1. **Name the revision.** The diff under judgment is the TODO's commits plus every fixup on top of
+   them — `git log --oneline` from the parent of the TODO's first commit to `HEAD`. Pass that range to every gate; a gate
    that picks its own range judges a different diff from its siblings. A caller MAY name a narrower
    diff — `impl` names one increment's diff under `fast`.
 2. **Plan the rules gate** — `wm-rule-batches.py plan --notes-dir <notes-dir> --todo TODO-N

@@ -41,7 +41,7 @@ RISK_COLORS = {"red", "yellow", "green"}
 LEGACY_RISK_SCORES = {"1", "2", "3", "4", "5"}
 MAX_INCREMENTS = 10
 
-HUMAN_ORDER = ["Outcome", "Components", "Increments", "Flow changes", "Commit"]
+HUMAN_ORDER = ["Outcome", "Components", "Flow changes", "Increments"]
 FLOW_MARKER = re.compile(r"^\s*\d+\.\s+\*\*(\+ step|\+ check|\+ branch|~ step|- step|moved)\*\*")
 FLOW_STEP = re.compile(r"^\s*\d+\.\s+\S")
 AGENT_ORDER = [
@@ -51,8 +51,12 @@ AGENT_ORDER = [
 ]
 AGENT_OPTIONAL = {"Gotchas"}
 AGENT_BANNED = ("Changes", "Increments", "Surface")
-INCREMENT_KEYS = ("landed", "change", "extends", "do", "blast radius", "surface")
-FILES_INCREMENTS = re.compile(r"\binc\s+(\d+(?:\s*,\s*\d+)*)")
+INCREMENT_KEYS = ("landed", "change", "extends", "surprises", "surface")
+MAX_SUMMARY_SENTENCES = 3
+READER_CHECK = "> **Check:**"
+COMPONENT_LINE = re.compile(r"^\*`[^`]+`\*$")
+MAX_SURPRISES = 3
+FILES_INCREMENTS = re.compile(r"\binc\s+(\d+\.\d+(?:\s*,\s*\d+\.\d+)*)")
 SPEC_BANNED = ["Design Decisions", "Open Questions", "Implementation Guidelines"]
 
 # A skip or a `none` level that names no concrete reason. Lowercased substring match.
@@ -62,12 +66,12 @@ EMPTY_REASONS = [
     "no manual step needed", "trivial", "no e2e harness", "will add later",
     "not needed", "n/a",
 ]
-VAGUE_BLAST = {"low", "minimal", "none", "small", "n/a", "trivial"}
 
 H1 = re.compile(r"^# +(.+?)\s*$")
 H2 = re.compile(r"^## +(.+?)\s*$")
 H3 = re.compile(r"^### +(.+?)\s*$")
-INCREMENT = re.compile(r"^### +(\d+)\. +(.+?)\s*$")
+INCREMENT = re.compile(r"^### +(\d+\.\d+)\. +(.+?)\s*$")
+COMMIT_HEAD = re.compile(r"^### +Commit +\d+\s*$")
 BULLET_KEY = re.compile(r"^\s*[-*]\s*\*\*([^:*]+):?\*\*:?\s*(.*)$")
 LEVEL = re.compile(r"^\s*[-*]?\s*\*\*?(Unit|E2E)\*?\*?:?\s*(.*)$", re.IGNORECASE)
 TABLE_ROW = re.compile(r"^\s*\|(.+)\|\s*$")
@@ -100,7 +104,7 @@ def ledger_rows(notes):
 
 
 def pastes_code(text):
-    """A Do that pastes a declaration, not one that names a call in a sentence."""
+    """A summary that pastes a declaration, not one that names a call in a sentence."""
     if "```" in text:
         return True
     for snippet in re.findall(r"`([^`]+)`", text):
@@ -422,6 +426,12 @@ def check_human(n, path, lines, pairs, f, checks):
     if order != [t for t in HUMAN_ORDER if t in order]:
         f.fail(row, label, f"sections out of order: {' → '.join(order)}",
                " → ".join(HUMAN_ORDER))
+    for name in HUMAN_ORDER + ["New terms"]:
+        if name in found:
+            first = next((l.strip() for l in section(body, name) if l.strip()), "")
+            if not first.startswith(READER_CHECK):
+                f.fail(row, label, f"`## {name}` does not open with a `{READER_CHECK}` line",
+                       "copy the section's reader check from arch:examples/todo.md")
     if "Deviations" in found and fm.get("status") == "todo":
         f.fail(row, label, "`## Deviations` written at status todo", "impl writes it, never arch")
     if "Deviations" in found:
@@ -486,14 +496,19 @@ def check_human(n, path, lines, pairs, f, checks):
 
 
 def increment_blocks(body):
-    """Map each `### n.` under `## Increments` to its lines, in file order."""
+    """Map each `### <c>.<i>.` under `## Increments` to its lines, in file order.
+
+    A `### Commit <c>` section ends the increment before it and belongs to no increment.
+    """
     numbers, blocks, current = [], {}, None
     for line in section(body, "Increments"):
         m = INCREMENT.match(line)
         if m:
-            current = int(m.group(1))
+            current = m.group(1)
             numbers.append(current)
             blocks[current] = []
+        elif COMMIT_HEAD.match(line):
+            current = None
         elif current is not None:
             blocks[current].append(line)
     return numbers, blocks
@@ -533,10 +548,13 @@ def check_increments(label, body, f, checks):
     row = checks["B9"]
     if not numbers:
         f.fail(row, label, "`## Increments` has no increments", "one H3 per increment")
-    if numbers != list(range(1, len(numbers) + 1)):
-        f.fail(row, label, f"increments not contiguous from 1: {numbers}", "renumber")
-    if len(numbers) > MAX_INCREMENTS:
-        f.fail(row, label, f"{len(numbers)} increments, budget is {MAX_INCREMENTS}", "split the TODO")
+    per_commit = {}
+    for k in numbers:
+        per_commit.setdefault(k.split(".")[0], []).append(k)
+    for c, ks in per_commit.items():
+        if len(ks) > MAX_INCREMENTS:
+            f.fail(row, label, f"commit {c} has {len(ks)} increments, budget is {MAX_INCREMENTS}",
+                   "cut a second commit, or split the TODO")
     for k, lines in blocks.items():
         keys = {}
         for line in lines:
@@ -557,18 +575,70 @@ def check_increments(label, body, f, checks):
         if kind and kind not in TYPES:
             f.fail(row, where, f"Change `{kind}` outside {sorted(TYPES)}",
                    "pick one change kind (impl:ref-change-types.md)")
-        blast = next((v for key, v in keys.items() if key.startswith("blast radius")), "").strip(" .`*")
-        if blast and blast.lower() in VAGUE_BLAST:
-            f.fail(row, where, f"Blast radius `{blast}` names no symbol or caller",
-                   "name what the increment can break")
         extends = next((v for key, v in keys.items() if key.startswith("extends")), "").strip(" .`*")
         if extends.lower().startswith("new") and "checked" not in extends.lower():
             f.fail(row, where, f"Extends `{extends}` is `new` with no symbol checked",
                    "`new — checked <A>, <B>: <why none fits>`, or name the existing symbol it grows")
-        do_text = next((v for key, v in keys.items() if key == "do" or key.startswith("do ")), "")
-        if pastes_code(do_text):
-            f.fail(row, where, "**Do** carries a signature",
-                   "the signature belongs to the increment's **Surface** diff")
+        check_summary(lines, row, where, f)
+        check_surprises(lines, row, where, f)
+
+
+def check_summary(lines, row, where, f):
+    """The italic component line under the heading, then a paragraph of one to three sentences, no code."""
+    rest = [l for l in lines if l.strip()]
+    if not rest or not COMPONENT_LINE.match(rest[0].strip()):
+        f.fail(row, where, "no component line under the heading",
+               "the `## Components` row as italic code: *`pkg/auth.Handler`*")
+    else:
+        lines = lines[lines.index(rest[0]) + 1:]
+    text = []
+    for line in lines:
+        s = line.strip()
+        if not s:
+            if text:
+                break
+            continue
+        if s.startswith((">", "-", "*", "```", "|")):
+            break
+        text.append(s)
+    summary = " ".join(text)
+    if not summary:
+        f.fail(row, where, "no summary paragraph under the heading",
+               "one to three sentences: what the increment brings; `Before, … Now, …` for a change")
+        return
+    sentences = [s for s in re.split(r"(?<=[.!?])\s+", summary) if s]
+    if len(sentences) > MAX_SUMMARY_SENTENCES:
+        f.fail(row, where, f"summary has {len(sentences)} sentences, budget is {MAX_SUMMARY_SENTENCES}",
+               "move the detail into **Surprises**")
+    if pastes_code(summary):
+        f.fail(row, where, "summary carries a signature",
+               "the signature belongs to the increment's **Surface** diff")
+
+
+def check_surprises(lines, row, where, f):
+    """`**Surprises:**` holds one to three nested bullets, or `none — <reason>`."""
+    at = next((i for i, l in enumerate(lines)
+               if (m := BULLET_KEY.match(l)) and m.group(1).strip().lower().startswith("surprises")), None)
+    if at is None:
+        return
+    value = BULLET_KEY.match(lines[at]).group(2).strip()
+    items = []
+    for line in lines[at + 1:]:
+        if re.match(r"^\s{2,}[-*] +\S", line):
+            items.append(line.strip()[2:].strip())
+        elif line.strip():
+            break
+    if value.lower().startswith("none") or (len(items) == 1 and items[0].lower().startswith("none")):
+        reason = value if value else items[0]
+        if not has_reason(reason):
+            f.fail(row, where, "Surprises `none` with no concrete reason", "`none — <why nothing reads the new code yet>`")
+        return
+    if not items:
+        f.fail(row, where, "**Surprises** has no nested bullet",
+               "one to three details a reader would otherwise find only in the code")
+    elif len(items) > MAX_SURPRISES:
+        f.fail(row, where, f"{len(items)} surprises, budget is {MAX_SURPRISES}",
+               "keep the three a reader would miss first, or split the increment")
 
 
 def check_tests(n, path, lines, pairs, f, checks):
@@ -603,6 +673,10 @@ def check_tests(n, path, lines, pairs, f, checks):
         if level not in levels:
             f.fail(row, label, f"Autotest has no `{key}` level", "both levels, always")
             continue
+        first = next((l.strip() for l in levels[level] if l.strip()), "")
+        if not first.lower().startswith("none") and not first.startswith(READER_CHECK):
+            f.fail(row, label, f"Autotest {key} does not open with a `{READER_CHECK}` line",
+                   "copy the level's reader check from arch:examples/todo-test.md")
         text = "\n".join(levels[level])
         head = levels[level][0].strip()
         if head.lower().startswith("none"):
@@ -631,7 +705,11 @@ def check_tests(n, path, lines, pairs, f, checks):
 
 
 def increment_count(human_lines):
-    return len([l for l in section(human_lines, "Increments") if INCREMENT.match(l)])
+    return len(increment_ids(human_lines))
+
+
+def increment_ids(human_lines):
+    return {m.group(1) for m in (INCREMENT.match(l) for l in section(human_lines, "Increments")) if m}
 
 
 def landed_count(human_lines):
@@ -676,9 +754,10 @@ def check_progress(n, human_path, human_lines, agent_lines, f, checks):
 
     for line in section(agent_lines, "Files"):
         m = FILES_INCREMENTS.search(line)
-        for ref in (int(x) for x in (m.group(1).split(",") if m else [])):
-            if total and not 1 <= ref <= total:
-                f.fail(checks["B10"], where, f"Files names inc {ref}, `## Increments` has {total}",
+        ids = increment_ids(human_lines)
+        for ref in (x.strip() for x in (m.group(1).split(",") if m else [])):
+            if ids and ref not in ids:
+                f.fail(checks["B10"], where, f"Files names inc {ref}, which `## Increments` does not have",
                        "map each path to an increment that exists")
 
     status = fm.get("status", "").split("#")[0].strip()
@@ -726,7 +805,7 @@ def check_agent(n, path, lines, f, checks):
             f.fail(row, where, f"Files entry `{m.group(1)}` is a glob or a directory", "concrete paths only")
         if m and not FILES_INCREMENTS.search(line):
             f.fail(row, where, f"Files entry `{m.group(1)}` names no increment",
-                   "`- `path` — create|modify — inc <n>[, <n>…]`")
+                   "`- `path` — create|modify — inc <c>.<i>[, <c>.<i>…]`")
 
     row = checks["E2"]
     manual = "\n".join(section(lines, "Manual test")).strip()
@@ -766,7 +845,7 @@ def run(notes, as_json=False, quiet=False):
         "E1": f.check("E1", "Autotest — Unit and E2E, command + cases or a real reason"),
         "B7": f.check("B7", "agent half sections — present, ordered, no frontmatter, link back, no increments, no diff"),
         "B8": f.check("B8", "no `## Constraints` in the agent half — the rules command lives in todos/CLAUDE.md"),
-        "B9": f.check("B9", "increments in `## Increments` — contiguous, ≤10, six keys each, no Files, valid Landed + Change, no signature in Do"),
+        "B9": f.check("B9", "increments in `## Increments` — ≤10 per commit (numbering and commit sections: A1), a summary of ≤3 sentences and five keys each, ≤3 Surprises, no Files, valid Landed + Change, no signature in the summary"),
         "B10": f.check("B10", "Files are concrete paths, each mapped to an existing increment"),
         "E2": f.check("E2", "Manual test filled, or skipped with a concrete reason"),
         "B11": f.check("B11", "increment progress — `<done>/<total>`, total matches `## Increments`, done matches the Landed markers and fits status"),

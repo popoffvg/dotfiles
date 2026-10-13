@@ -27,7 +27,9 @@ RULE = (
     "wait - the turn ends but the work goes on without the user: a background task, agent, or "
     "workflow still runs and will resume this session when it exits;\n"
     "done - the work stopped: the request is answered, or files changed or a step failed.\n"
-    "If question applies, write question. Else if wait applies, write wait. Else write done."
+    "If question applies, write question. Else if wait applies, write wait. Else write done.\n"
+    "With question, the line just above the triage line MUST repeat the question in full, as one "
+    "direct sentence that ends with `?` — even when the reply asked it before."
 )
 
 

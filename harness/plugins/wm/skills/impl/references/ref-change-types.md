@@ -29,7 +29,7 @@ step 5.3 assigns the kind: the first boundary below that holds.
 | `rename` | Only the name changes. Place, contract, and decision stay | The contract, the decision, or the unit changes | check that nothing else changed with it |
 | `move` | The same decision now lives in another unit. The decision stays | The decision itself changes, or the behavior is gone | check that nothing else changed with it |
 | `signature change` | The declaration changes: a type, a parameter, or a return. The decision stays | A line uses the new shape to decide, compute, or store | line by line — it is the contract the increment's **Surface** diff fixed |
-| `call-site migration` | A call keeps the meaning it already had after a contract moved | The call carries a value this layer did not have, or decides that value | count the calls against the increment's **Blast radius** |
+| `call-site migration` | A call keeps the meaning it already had after a contract moved | The call carries a value this layer did not have, or decides that value | count the calls against the callers the changed signature's **Surprises** names |
 | `wiring` | A value passes through. This layer does not decide it, compute it, or store it | This layer creates, chooses, or stores the value | check the value reaches the far end; skim the middle |
 | `new behavior` | The lines decide, compute, or store something the repo did not do before | The lines only declare, forward, rename, move, delete, assert, or a tool wrote them | line by line — this is the change |
 

@@ -1,22 +1,27 @@
 ---
 name: board
-description: Draw a component or dataflow diagram on a live board the human hand-places and keeps positioned across sessions, and hold a design discussion on that board — draw what you believe, check its picture, hand it over, read their marks, redraw. Use when the human must place the boxes themselves, when a saved board is read back or reseeded, when the user says "let's discuss the design on a board", "draw it and I'll fix it", "discuss the scheme", or when a disagreement is easier pointed at than described. For any other movable diagram the answer is an interactive Artifact — see the `dataflow` skill. Do not use the tldraw MCP tools — they never execute in Claude Code.
+description: Draw a component or dataflow diagram on a live board the human hand-places and keeps positioned across sessions, and hold a design discussion on that board — emulate it in ASCII from the seed, have a subagent check the ASCII, build the board from the same seed, check its picture, hand it over, read their marks, redraw. Use when the human must place the boxes themselves, when a saved board is read back or reseeded, when the user says "let's discuss the design on a board", "draw it and I'll fix it", "discuss the scheme", or when a disagreement is easier pointed at than described. For any other movable diagram the answer is an interactive Artifact — see the `dataflow` skill. Do not use the tldraw MCP tools — they never execute in Claude Code.
 ---
 
 # board — a diagram the human can move and mark
+
+**You emulate the board in ASCII first, a subagent checks the ASCII, and only then tldraw builds the board from the same seed.** `seed-ascii.py` copies the page's layout, routes, and fault checks, so the ASCII and the board come from one file and cannot disagree.
 
 **You place the boxes by rules, then look at the picture of the board. Never compute where a box or a line lands.** Never write a tldraw snapshot by hand either: it is tens of kilobytes for a dozen boxes.
 
 | Step | Command |
 | --- | --- |
 | Write the seed | you write `<topic>.seed.json` — § The seed |
+| Emulate the board in ASCII | `~/.claude/scripts/tldraw-live/seed-ascii.py <topic>.seed.json > <topic>.sketch.txt` |
+| Check the ASCII | one sonnet subagent — § Check the sketch |
+| Prove the board is the sketch | `seed-ascii.py <topic>.seed.json --match <topic>.json` |
 | Open the editor | `~/.claude/scripts/tldraw-live/serve.py <topic>.json` |
 | See the board | `Read <topic>.png` |
 | Read it back as text | `~/.claude/scripts/tldraw-live/read-doc.py <topic>.json` |
 | Fold a hand layout into the seed | `read-doc.py <topic>.json --seed > <topic>.seed.json` |
 | Rebuild from a changed seed | `serve.py <topic>.json --reseed` |
 
-Keep `<topic>.seed.json` and `<topic>.json` in `<notes-dir>/` — the wm notes directory, or the scratchpad when there is none — so a later session reopens the same board.
+Keep `<topic>.seed.json`, `<topic>.sketch.txt` and `<topic>.json` in `<notes-dir>/` — the wm notes directory, or the scratchpad when there is none — so a later session reopens the same board.
 
 `serve.py` blocks: run it with `run_in_background: true`. The page writes every edit back to `<topic>.json`, and after every save it writes `<topic>.png`; `serve.py` prints `picture <path>` each time, so its output tells you the PNG is fresh. The PNG exists only while a browser has the page open.
 
@@ -24,15 +29,17 @@ Keep `<topic>.seed.json` and `<topic>.json` in `<notes-dir>/` — the wm notes d
 
 | Step | What you do | Done when |
 | --- | --- | --- |
-| 1 Draw | write `<topic>.seed.json` by § Place boxes by these rules, in § The colour protocol colours from the first draw, then run § The draw loop | every gate passes, or five passes are done and the failed gates are named |
-| 2 Hand over | run `open http://127.0.0.1:8791/`, tell the human the URL, the one question this round is about, and § The colour protocol | you have asked and stopped — no polling, no further tool calls |
-| 3 Wait | the human edits in the browser | the human replies (e.g. "I fixed the scheme", "done", "look") |
-| 4 Read | `Read <topic>.png` to see their marks where they put them, `read-doc.py <topic>.json` for the listing, and `read-doc.py <topic>.json --seed > <topic>.seed.json` to keep their layout | you have compared the listing with your seed and listed every red box, every new box, and every deleted one |
-| 5 Answer | state in chat what each mark told you, then edit the seed and `serve.py <topic>.json --reseed` | no red or violet remains and every orange box is answered, or a new round starts at step 2 |
+| 1 Sketch | write `<topic>.seed.json` by § Place boxes by these rules, in § The colour protocol colours, then run § The ASCII sketch and print `<topic>.sketch.txt` in chat | the sketch status line reads `built from seed — clean`, or you name each fault |
+| 2 Check | run § Check the sketch; fix the seed, emulate again, and check again until it returns PASS, at most three runs | the subagent returns PASS, or three runs are done and the failed rules are named |
+| 3 Draw | run § The draw loop on the checked seed, unchanged | every gate passes, G7 included, or five passes are done and the failed gates are named |
+| 4 Hand over | run `open http://127.0.0.1:8791/`, tell the human the URL, the one question this round is about, and § The colour protocol | you have asked and stopped — no polling, no further tool calls |
+| 5 Wait | the human edits in the browser | the human replies (e.g. "I fixed the scheme", "done", "look") |
+| 6 Read | `Read <topic>.png` to see their marks where they put them, `read-doc.py <topic>.json` for the listing, and `read-doc.py <topic>.json --seed > <topic>.seed.json` to keep their layout | you have compared the listing with your seed and listed every red box, every new box, and every deleted one |
+| 7 Answer | state in chat what each mark told you, then edit the seed and `serve.py <topic>.json --reseed` — the human's layout now wins over the sketch | no red or violet remains and every orange box is answered, or a new round starts at step 4 |
 
 **Never redraw a round the human has not seen.** Two rebuilds in one turn throw away the layout they were about to fix.
 
-**Never skip the `--seed` fold in step 4.** Without it the next round builds on the grid, not on the boxes they moved by hand.
+**Never skip the `--seed` fold in step 6.** Without it the next round builds on the grid, not on the boxes they moved by hand.
 
 **When a round returns clean, close it before you write any code:**
 
@@ -51,6 +58,7 @@ Keep `<topic>.seed.json` and `<topic>.json` in `<notes-dir>/` — the wm notes d
 | G4 text inside | `<topic>.png` | all text stays inside its box border |
 | G5 arrows whole | `<topic>.png` | each arrow is visible end to end, and a request and its reply draw as two lines |
 | G6 one direction | `<topic>.png` | the eye reads the flow top to bottom, or left to right |
+| G7 same as the sketch | `seed-ascii.py <topic>.seed.json --match <topic>.json` | it prints `board matches the seed`: the same boxes at the same corners, the same arrows with the same labels and directions, and the G1 status line is the same as the sketch status line |
 
 Start the server once, in the background. `--no-open` keeps the human's browser closed on a board you have not checked:
 
@@ -58,7 +66,7 @@ Start the server once, in the background. `--no-open` keeps the human's browser 
 ~/.claude/scripts/tldraw-live/serve.py <topic>.json --no-open --reseed
 ```
 
-Then repeat one pass until all six gates pass:
+Then repeat one pass until all seven gates pass:
 
 1. **Build.** Delete the document and load the page in headless Chrome, with the sandbox off — the sandbox blocks Chrome. With no document, the page builds the board from the seed, saves it, and writes the PNG.
 
@@ -71,13 +79,43 @@ Then repeat one pass until all six gates pass:
 
    Chrome does not exit after it prints the page, so `timeout` stops it; `Terminated: 15` is the normal end. The status line holds the build result, then ` · saved <time>`.
 
-2. **Read the gates.** G1 from the status line, G2–G6 from `Read <topic>.png`. Write each failed gate in chat as one line: the gate, the boxes, the arrow.
-3. **Fix the seed.** One change per failure, by § Place boxes by these rules: move a box to another cell, put two boxes that talk on one row or column, shorten a label, split a cluster.
+2. **Read the gates.** G1 from the status line, G2–G6 from `Read <topic>.png`, G7 from `seed-ascii.py --match`. Write each failed gate in chat as one line: the gate, the boxes, the arrow.
+3. **Fix the seed, then emulate it again.** One change per failure, by § Place boxes by these rules: move a box to another cell, put two boxes that talk on one row or column, shorten a label, split a cluster. Run § The ASCII sketch after each change, so `<topic>.sketch.txt` always shows the seed you build. When a box moves to another cell, run § Check the sketch again before the next build. A G7 failure on an unchanged seed is a drift between `seed-ascii.py` and `index.html`: name it and fix the script, never the seed.
 4. **Go to step 1.**
 
 **Stop after five passes.** When the same gate fails on two passes in a row, the last fix did not touch the cause — move a different box, or split the cluster. After the fifth pass, hand the board over and name each gate that still fails.
 
 **The loop is for the seed only.** Step 1 deletes the document and the human's hand layout with it. Never run it after the human starts to edit.
+
+## The ASCII sketch
+
+**The seed is the design; the ASCII and the board are two pictures of it.** Emulate the board and print the whole output in chat:
+
+```sh
+~/.claude/scripts/tldraw-live/seed-ascii.py <topic>.seed.json > <topic>.sketch.txt
+```
+
+The output has three parts:
+
+- **The picture.** One `:. name ...:` frame per cluster, left to right, with the page's gaps scaled to characters. Boxes are `+--+` borders with their text. Arrows take the elbow the page takes, end in `>` `<` `^` `v`, and carry their label at the page's label spot; `~` is an `arc`. A `#` is a line that runs through a box that is not one of its ends.
+- **The status line.** The same `built from seed — …` text the page prints after a headless build.
+- **The listing.** Every box by its first text line, and every arrow as `from -> to — label`.
+
+**Never draw the ASCII by hand.** A hand-drawn picture puts boxes where you believe they go; the script puts them where the page puts them.
+
+## Check the sketch
+
+**Spawn one sonnet `general-purpose` subagent, read-only, with `<topic>.sketch.txt`, `<topic>.seed.json` and this section only** — not the conversation and not the reason for the design, so it reads the sketch cold. Prompt:
+
+> Read `<topic>.sketch.txt` and `<topic>.seed.json`. Check each rule against the picture below and return PASS or FAIL per rule, with the box ids and the arrow for each FAIL, then one overall verdict PASS | FAIL. Edit nothing.
+> R1 the picture shows every box and every arrow in the listing; the status line reads `built from seed — clean`; no `#` is in the picture.
+> R2 no arrow path passes through a box that is not one of its two ends, and no box sits in the rectangle between an arrow's two ends.
+> R3 an arrow that changes row and column has one free corner cell.
+> R4 no two boxes share a cell; every label is three words or less; no cluster has more than six boxes.
+> R5 the flow reads in one direction, top to bottom or left to right.
+> R6 a cluster `legend` is declared first; at most three boxes are orange, and each orange box text is a question.
+
+**Fix every FAIL in the seed, emulate again, and run the check again.** After three runs, go on to the draw and name each rule that still fails.
 
 ## Place boxes by these rules
 

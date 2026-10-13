@@ -104,15 +104,28 @@ An empty Answer slot means the operator accepted the recommendation; record that
 
 Number from the highest number in **both** directories plus one. Copy `TEMPLATE.md` from the ADR directory when the repo has one, otherwise `ADR-TEMPLATE.md`. Fill `kind`, fill `created` and `updated` with today's date, and open the changelog with `- <today> — Drafted.`
 
-Write the decision paragraph in one to three sentences. Quote the operator's reason. List each Property as `P1.`, `P2.`, … — one invariant a reviewer can check against a diff, cited as `ADR-NNNN/P2`. A Property says what the code must do or must never do; it names no file, no ticket, no plan.
+**Title the ADR with the properties the decision gives the system, not with the option it picked.** A decision often gives more than one property; name each one, joined with "and", up to three. A title property is a general quality — reproducible, auditable, reversible, isolated, offline-capable, safe to retry. The option goes in the paragraph. The file slug comes from the title.
 
-A feature ADR is titled with what the user does, such as "Dry-run shows the changes and applies none". Its paragraph says who uses the feature, how they start it, and what they get. Its Properties say what the user observes, for example:
+| Bad title — names the option | Good title — names the properties |
+|---|---|
+| Use an event log for orders | Order history is complete and replayable |
+| Move the build into containers | Builds are reproducible and isolated from the host |
+| Add a confirmation step | Destructive actions are explicit and reversible |
+| Cache responses on disk | The tool works offline and starts fast |
+
+Test the title: when it starts with a verb of choice (use, add, move, store, switch to) or names a tool or a product, it names the option. Rewrite it.
+
+**Each title property is backed by at least one Property below.** The title says the quality in general; the Properties make it checkable. "Builds are reproducible and isolated from the host" needs, for example, "P1. The same commit gives the same artifact digest" for reproducible and "P2. A build reads no file outside its context" for isolated. A title property with no Property under it gets one, or leaves the title.
+
+Write the decision paragraph in one to three sentences: the context, the option chosen, and the reason. Quote the operator's reason. List each Property as `P1.`, `P2.`, … — one invariant a reviewer can check against a diff, cited as `ADR-NNNN/P2`. A Property says what the code must do or must never do; it names no file, no ticket, no plan.
+
+A feature ADR title names what the user can count on, such as "Deploy previews are complete and side-effect free". Its paragraph says who uses the feature, how they start it, and what they get. Its Properties say what the user observes, for example:
 
 - P1. `deploy --dry-run` prints every create, update, and delete that `deploy` would make.
 - P2. `deploy --dry-run` changes no resource and writes no state.
 - P3. `deploy --dry-run` exits non-zero when `deploy` would fail.
 
-**Completion criterion**: the draft has frontmatter with `status: proposed` and a `kind`, a title, the decision paragraph, a quoted reason, at least one Property, and a closing `## Changelog` section.
+**Completion criterion**: the draft has frontmatter with `status: proposed` and a `kind`, a title that names the properties, passes the title test, and has a Property under each one, the decision paragraph, a quoted reason, at least one Property, and a closing `## Changelog` section.
 
 ## 6. Ask, then write
 

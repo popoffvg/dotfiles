@@ -2,11 +2,11 @@
 """Format the ```ts/```typescript code blocks inside a todos/TODO-N*.md file.
 
 In practice that is the human half, `TODO-N.md`, which owns `## Increments` and so
-every Behavior sketch; the agent half and the test file have no code block to format. All
+every TS block; the agent half and the test file have no code block to format. All
 three are accepted, so the hook needs no knowledge of the split.
 
-Code-block-only: touches nothing but fenced TypeScript blocks — an increment's
-Behavior pseudocode under `## Increments` (sub-todo.md § Increments). Every such block in
+Code-block-only: touches nothing but fenced TypeScript blocks — a TS pseudocode
+block in the file. Every such block in
 the file is run through prettier `--parser typescript`; a block that fails to parse (loose
 pseudocode) is kept verbatim. Each increment's ```diff, the plain-fenced contract blocks,
 and all markdown are left untouched.

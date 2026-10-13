@@ -18,7 +18,7 @@ Increment 3 — thread the run id to the column writer
 | wiring              | pass the parsed `run_id` down to `write_columns` |
 | call-site migration | migrate two calls to the new parameter |
 
-Blast radius predicted: `write_columns`, `export` — real diff matches.
+Component: `export.Writer` — real diff stays in it.
 ```
 
 > The heading is the increment's number and its title from `TODO-N.md` § Increments, verbatim.
@@ -44,10 +44,10 @@ Blast radius predicted: `write_columns`, `export` — real diff matches.
 > not compute, default, or store is `wiring`. Typed `new behavior`, it sends the human to read a
 > diff that decides nothing, and hides the change that does.
 >
-> **The table closes with the blast-radius line:** `Blast radius predicted: <the symbols the
-> increment's **Blast radius** bullet named> — real diff matches.` It is required, and it is where
-> the human learns the plan held. When the real diff changed a symbol outside that set, say so
-> instead — `— real diff also changed `parse`` — which is the signal the plan is wrong
+> **The table closes with the component line:** `Component: <the component under the
+> increment's heading> — real diff stays in it.` It is required, and it is where the human learns the plan
+> held. When the real diff changed code of another component, say so instead — `— real diff also
+> changed `cli.Parse`` — which is the signal the plan is wrong
 > (`impl:sub-impl.md` step 5.3), not a line to quietly rewrite.
 
 ## Once over the whole TODO — `approve: todo` and `approve: none`
@@ -77,5 +77,5 @@ TODO 4 — stamp exports with the run they came from
 > change**, in roster order, skipping `new behavior` and `signature change`. A kind with no change
 > is left out, not written as `0`. Name the symbols behind the row only when the human asks.
 >
-> **No blast-radius line here.** The whole-TODO diff is shown next to the **Blast radius** of every
-> increment in it, so a per-table prediction has nothing left to add.
+> **No component line here.** The whole-TODO diff is shown next to the **Surprises** of every
+> increment in it, so a per-table line has nothing left to add.

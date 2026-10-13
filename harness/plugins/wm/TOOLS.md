@@ -57,7 +57,7 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 | Need | Invocation | Returns |
 |---|---|---|
 | Enter the worktree a `where: worktree` spec or TODO asks for | the `worktrunk:wt-switch-create` skill, steps 1–3 — the spec's `branch` for a whole spec, a branch named for the TODO when one TODO overrides | the session re-rooted in the worktree, or its absolute path when `EnterWorktree` is refused |
-| Merge that branch back when the TODO is done | `impl:sub-squash.md` — `wt merge` in squash mode | one commit on the target branch; the human runs it, never `impl` |
+| Merge that branch back when the TODO is done | `impl:sub-squash.md` — `git rebase --autosquash`, then `wt merge --no-squash` | one commit per `### Commit` section on the target branch; the human runs it, never `impl` |
 
 ## Patch an artifact
 
@@ -98,7 +98,7 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 |---|---|---|
 | The impl ruleset one TODO runs under | `bin/impl-ruleset.py <notes-dir> <TODO-N> [--auto]` | the resolved `approve` and `risk`, the level that set `approve`, then `impl:rulesets/approve-<value>.md` and `impl:rulesets/risk-<color>.md`. Exit 2 = no TODO file or a bad key value |
 | Every countable verify check | `bin/spec-lint.py <notes> [--json]` | the Phase 0 findings — budgets, frontmatter, section sets, Components, increments, Autotest, waves, rules, open questions, and the glossary checks GL1–GL6 |
-| Whether the glossary holds and the corpus obeys it | `bin/glossary-lint.py <notes> [--code <dir>]... [--undefined] [--json] [--quiet]` | GL1 entry fields, GL2 enforceable Forbidden names, GL3 Forbidden or retired names in use, GL4 Code ownership and Status against the code (needs `--code`), GL5 New terms merged, GL6 dead entries; `--undefined` lists compound identifiers no entry holds. Exit 1 = a finding |
+| Whether the glossary holds and the corpus obeys it | `bin/glossary-lint.py <notes> [--code <dir>]... [--undefined] [--json] [--quiet]` | GL1 entry fields, GL2 enforceable Forbidden names, GL3 Forbidden or retired names in use, GL4 Code ownership and Status against the code (needs `--code`), GL5 New terms merged, GL6 dead entries, GL7 clusters and term links; `--undefined` lists compound identifiers no entry holds. Exit 1 = a finding |
 | One artifact's budget | `bin/budget-check.py <file>` | over/under, and where it splits |
 | Every artifact's budget | `bin/budget-sweep.sh <notes>` | exit 1 when any is over |
 | One concept spelled two ways | `bin/term-variants.py <notes>/todos/*.md <notes>/spec.md` | exit 1 and each variant group |

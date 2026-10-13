@@ -7,9 +7,8 @@ a time.
 ## The loop
 
 **Discovery** clarifies what the system should do, in examples rather than adjectives. **Formulation**
-writes those examples as scenarios: Given the state, When the event, Then the observable. See
-[`ref-gherkin-guide.md`](ref-gherkin-guide.md) for the syntax and the file layout, and
-[`ref-bdd-best-practices.md`](ref-bdd-best-practices.md) for the discovery practice.
+writes those examples as scenarios: Given the state, When the event, Then the observable. Both
+are the steps of [`sub-bdd.md`](sub-bdd.md).
 **Automation** implements them one variant at a time with the cycle in
 `red-green-refactor:SKILL.md`.
 
@@ -34,8 +33,3 @@ and not `TestUPair1`. The name in the code, the bold name in the `.md`, and the 
 the same string, so a red test in CI names the behaviour that broke without anyone opening the
 test set.
 
-## Scenarios live in `.feature` files
-
-Store them as files, never as code comments. A comment is invisible to the runner and to everyone
-who does not read the source, which is exactly the audience a scenario is written for. Keep them
-declarative — the business behaviour, not the UI path — and one behaviour per scenario.

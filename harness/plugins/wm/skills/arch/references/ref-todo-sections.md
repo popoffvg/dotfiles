@@ -14,15 +14,15 @@ pre-save checklist. Which half each heading lives in: `sub-todo.md` § Required 
 | Section | Half | Its rules |
 |---|---|---|
 | frontmatter (`status`, `type`, `depends_on`, `risk`, `approve`, `increment`) | `TODO-N.md` | `examples/todo.md` |
-| Outcome, New terms, Components, Increments, Flow changes, Commit, Deviations | `TODO-N.md` | `examples/todo.md` |
+| Outcome, New terms, Components, Flow changes, Increments with their `### Commit` sections, Deviations | `TODO-N.md` | `examples/todo.md` |
 | Autotest | `TODO-N.test.md` | `examples/todo-test.md` |
 | Files, Pre-reads, Manual test, Gotchas | `TODO-N.agent.md` | `examples/todo-agent.md` |
 
 ## Every prose line
 
 **Every prose line of `TODO-N.md` and `TODO-N.test.md` obeys the `i-have-adhd` skill.** The human half is read once, by a
-person deciding whether to approve it — Outcome, New terms **Meaning**, Components **Role** and **Change**, each increment's **Do** and **Blast radius**, flow steps,
-Autotest cases, `Commit.Body`, and any sentence beside a table. Load that skill and write under its rules: one
+person deciding whether to approve it — Outcome, New terms **Meaning**, Components **Role** and **Change**, each increment's summary and **Surprises**, flow steps,
+Autotest cases, each commit **Body**, and any sentence beside a table. Load that skill and write under its rules: one
 idea per sentence, short sentences, front-loaded, literal words, no restatement. The agent half is
 read by an implementer and is not bound by it.
 
@@ -71,10 +71,11 @@ a real decision; keep it. A caller that must *build* the new argument — pick a
 value, read a config key — decides what to pass, and that value is what the human approves. Keep the
 deciding line alone, never the propagation around it.
 
-**A skipped consequence still has a home.** The increment that changes the deciding symbol says to
-migrate the call sites in its **Do**, and its **Blast radius** names them; the agent half's
-`## Files` keeps their paths under that increment's number. `examples/todo.md` § Increments already
-demands that instruction, which is why the diff can drop the consequence and lose nothing. A consequence-only file gets no
+**A skipped consequence still has a home.** The increment that changes the deciding symbol names the
+broken callers in its **Surprises**. When a caller sits in another component, the next increment
+moves it, and its summary says what the call does before and after; the agent half's `## Files`
+keeps the paths under that increment's number. `examples/todo.md` § Increments already demands
+this, which is why the diff can drop the consequence and lose nothing. A consequence-only file gets no
 `## Components` row either — it holds no symbol this TODO decides.
 
 ## A diff carries the surface, not a body
@@ -86,8 +87,8 @@ that a body written here is written twice. The implementer either copies it, in 
 happened against a paste; or improves it, in which case the TODO is wrong from the first commit.
 
 **The default is absolute: never put a function body in the diff.** Not to show intent, not because
-the body is short, not because it "clarifies" the signature. Show the signature; put the logic in the
-increment's **Behavior** sketch, where it is pseudocode nobody can copy.
+the body is short, not because it "clarifies" the signature. Show the signature; put each decision a reader cannot
+guess in the increment's **Surprises**, and the steps in run order in `## Flow changes`.
 
 **The one exception is a human asking for it directly.** When the human explicitly says they want a
 body written out for a specific symbol, write it — and mark it, so the next reader can tell an
@@ -116,17 +117,19 @@ whether the text becomes a file in the repo or gets typed at a prompt.
 **When the whole deliverable is a body** — a check script, a migration, a test file, a generated
 query — the file has no surface at all. The increment that builds it carries its contract as a plain
 fenced block under **Surface** (how it is invoked, what it takes, what it exits with, what it
-prints), plus a **Behavior** sketch naming the checks in order and, above all, **the
+prints), plus a summary naming the checks in order and a **Surprises** list carrying **the
 edge cases**: the state that must not be reached, the second run that must not refetch, the env var
 that must be unset, the count that must match. The edge cases are the part a human can only get from
 this file; the mechanics are the part they can only get from the repo.
 
-Worked example of exactly this shape: `examples/todo.md` § Increments, increment 4.
+Worked example of exactly this shape: `examples/todo.md` § Increments, increment 3.1.
 
-## How the increments reach the commit
+## How the increments reach their commits
 
-Executed by `impl:sub-impl.md`, stated here so the human knows what an approval buys: increment 1
-creates the commit; each later approved increment is appended to that same commit
-(`git commit --amend --no-edit`), except an increment that corrects work the human rejected — that
-one lands as a fixup (`impl:sub-commit.md` § Fixups). The final message is `TODO-N.md` `## Commit`.
+Executed by `impl:sub-impl.md`, stated here so the human knows what an approval buys: increment
+`c.1` creates commit `c` with the message of `### Commit c`; each later approved increment `c.i` is
+appended to that same commit (`git commit --amend --no-edit`), except an increment that corrects work
+the human rejected — that one lands as a fixup (`impl:sub-commit.md` § Fixups). Before increment
+`c+1.1` starts, `impl` checks the border of commit `c`: the build, the existing tests, and the
+cases its **Proves** line names. A commit is never amended after the next one starts.
 A rejected increment stops the TODO — nothing after it is applied.

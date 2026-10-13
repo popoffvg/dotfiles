@@ -5,7 +5,7 @@ depends_on: []              # [TODO-M, …] real edges only; each must reach sta
 risk: red                   # reach: changes the Refresh signature, every caller retests; flow: breaks main user flow step `POST /auth/refresh`; recovery: none, a user who fails refresh is logged out
 approve: increment          # inherit | increment | todo | none — override the spec, with the reason: every caller of Refresh moves, so the human reads each step. ref-write.md § Approval
 where: inherit              # inherit | in-place | worktree — the checkout impl writes into; override the spec with the reason. ref-write.md § Where the work happens
-increment: 0/4              # <approved>/<total> — impl stamps it after each increment lands; `todo` writes `0/<total>`. ref-write.md § Progress
+increment: 0/6              # <approved>/<total> — impl stamps it after each increment lands; `todo` writes `0/<total>`. ref-write.md § Progress
 ---
 
 > Seven keys, all metadata — the inline `#` comments above are part of the shape, keep them.
@@ -49,7 +49,7 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 >
 > **The title states what the TODO brings: the gain a user or the system has once it lands, never the
 > work done to get it.** A reader who reads only the title MUST know why the TODO exists. The work
-> goes in `## Increments`; the repo-terms line goes in `## Commit`.
+> goes in `## Increments`; the repo-terms line goes in each `### Commit` section.
 >
 > Good: *"A stolen refresh token stops working at the next refresh"* (the gain) ·
 > *"A replayed refresh token signs the user out"*.
@@ -57,7 +57,8 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 > (a type, no gain) · *"Refactor `Session`"* (a verb with no result).
 >
 > A filled `<notes-dir>/todos/TODO-N.md` — **the human half of the pair**. Copy the section order and
-> the shape of each one; each `>` block states the rules for the piece above it. The procedure around
+> the shape of each one; each `>` block states the rules for the piece above it, except the
+> `> **Check:**` line under each H2, which the copy keeps. The procedure around
 > the file — the fan-out, the budgets, the verification chain, the pre-save checklist — is
 > `arch:sub-todo.md`, and the element list and order are its § Required elements.
 > `## Deviations` is shown filled, as `impl` leaves it — a file written by `todo` has no such section.
@@ -75,8 +76,16 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 > - **A size cap is a split signal.** Past the cap the ledger row does two things — split the row, do
 >   not shorten the section.
 > - **Each section stands on its own** for a reader with the repo closed and the agent half shut.
+>
+> **Each H2 opens with a `> **Check:**` line, and the copy keeps it.** It is the one `>` line that
+> stays: it tells the human what to check in that section before approving. Copy it verbatim. You
+> MAY add one sentence that names the point in this TODO most worth checking — "the 409 in
+> increment 2.1 is a new answer clients have never seen". Every other `>` line is a rule for the
+> author, and the copy deletes it.
 
 ## Outcome
+
+> **Check:** each bullet is a thing a user or a caller can do once this TODO lands. Find the capability you expect and do not see, and the one you did not ask for.
 
 - A `User` can issue `RotateToken` to exchange a valid refresh token for a new `TokenPair` — a public method on `pkg/auth.Handler`.
 - On success the `Session` emits `TokenRotated` and the prior refresh token becomes invalid immediately — a state machine on `Session`: active → rotated → revoked.
@@ -109,6 +118,8 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 
 ## New terms
 
+> **Check:** read each **Meaning** once. Say if you would use another word for this thing, or if the word already means something else in the code.
+
 | Term | Kind | Description | Forbidden |
 |------|------|-------------|-----------|
 | TokenJar | entity | Per-user container of active refresh tokens; bounded to 5, LRU-evicted | token bag, `TokenSet` |
@@ -131,10 +142,14 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 
 ## Components
 
+> **Check:** this table is the whole reach of the change. Find the component you know must change and do not see here. Confirm that the `main` row is the one that carries the Outcome.
+
 | Component | Touch | Type | Part | Role | Change |
 |-----------|-------|------|------|------|--------|
 | `pkg/auth.Handler` | modify | server | main | Exchanges a valid refresh token for a new pair | Takes a `RefreshRequest`, returns a `TokenPair`, and invalidates the old refresh token. |
 | `pkg/auth.TokenMinter` | modify | command | supporting | Mints an access/refresh pair for a user id | Returns a `TokenPair` instead of one token string. |
+| `cmd/api.Routes` | modify | wiring | supporting | Maps `POST /auth/refresh` to the handler | Decodes a `RefreshRequest` and writes back the `TokenPair`. |
+| `scripts.ReleaseCheck` | create | command | supporting | Checks a release before it ships | Builds from clean and checks every asset against the manifest. |
 
 > The `package.Class` set this TODO touches, one row each, **main part first**. A human reads this
 > create/modify/delete list *instead of* any diff: it is the whole reach of the change, stated for a
@@ -169,197 +184,13 @@ increment: 0/4              # <approved>/<total> — impl stamps it after each i
 >
 > **A wide table is not a split signal** — two `main` candidates and more than ten increments are.
 
-## Increments
-
-> **The whole contract change, cut into the steps `impl` applies, one H3 per step in apply order.**
-> An increment is the smallest step worth approving on its own. `## Components` says *which* symbols
-> move; each increment says *what they become* and *how the step gets there*.
->
-> **Each increment is self-contained for review.** A reviewer reads one H3 and nothing else, and
-> can approve or reject it: what changes, what it is for, what it can break, and the exact new shape.
-> So **Do** never points elsewhere ("as above", "see increment 1", "as § Surface declares"), and the
-> diff holds every symbol the **Do** names as new or changed. An increment that needs another one to
-> make sense is one increment, or is in the wrong order.
->
-> **No file paths.** Name a symbol as `## Components` does. Which file each increment touches is in
-> the agent half's **Files**, keyed by increment number.
->
-> Heading: ``### <n>. <imperative title> — `<package.Class>` ``, `n` 1-indexed and contiguous. It
-> names exactly one `## Components` row; a component may span several increments. Every row is named
-> by at least one increment, and no increment names a component missing from that table.
->
-> Bullets, in this order:
->
-> | Bullet | Required | Content |
-> |--------|----------|---------|
-> | **Landed** | always | `yes` or `no` — whether this increment is in the commit. `todo` writes `no`; `impl` flips it after the amend (`arch:ref-write.md` § Progress) |
-> | **Change** | always | this increment's change kind — one of the nine in `impl:ref-change-types.md` |
-> | **Extends** | always | the existing symbol this increment grows, and what it gains: `` `pkg.Type.Method` — <what it gains> ``. Or `` new — checked `<A>`, `<B>`: <why none fits> `` |
-> | **Do** | always | one to four imperative sentences: what to write, what to migrate, what to delete. No code, no pasted signature |
-> | **Blast radius** | always | the symbols, callers, and consumers a mistake here forces you to retest. Name them; `"low"` is not a blast radius |
-> | **Behavior** | only where **Do** cannot carry the logic — a real branch structure, an error path that matters, a non-obvious ordering | TS pseudocode per the `flow-sketch` skill, ≤ 40 lines, side effects and error paths visible |
-> | **Builds** | only when the increment leaves the repo not compiling | `builds: only with increment <n>` |
-> | **Surface** | always | the diff this increment lands, as one ```diff block — or a plain contract block, or `none — <reason>` |
->
-> **Change is the increment's own kind, not the TODO's.** A `type: new behavior` TODO usually holds
-> one `new behavior` increment and several `signature change`, `wiring`, or `call-site migration`
-> increments around it. The spread tells the human which increment to read line by line. A TODO
-> whose every increment is `wiring` contradicts its own `type:`.
->
-> **Extends makes a new symbol cost a search.** The default is to grow what exists: a new transition
-> on the state machine the repo has, a new method on the gateway that already calls that system, a
-> new row in the table that already lists its siblings. An increment that meets a need in
-> `PATTERNS.md` § Need → use extends that row's **Use**. `new` is legal only with the symbols you
-> checked and the fact that rules each one out — "a second state machine for destroy" fails when
-> the installation machine can take a `destroying` state.
->
-> **Every new symbol is in a Surface diff.** `impl` lands the all-`+` lines of every **Surface** first,
-> as a skeleton with stub bodies, and later increments add no type, function, or method
-> (`impl:sub-impl.md` step 5). A symbol missing here has no increment to land in.
->
-> **Order — deepest first**, so the repo builds after each: the callee before its caller, the type
-> before its user, the wiring last. `builds: only with increment <n>` is a last resort.
->
-> **Sizing: ≤ 10 increments, ≤ 150 changed lines per diff.** More increments and the TODO is too big
-> — split the ledger row. Over 150 lines, first look for a body; deleting one usually takes the diff
-> under. If every line is real surface and it still cannot compile below that, add a
-> `**Compile floor:**` bullet under the diff saying why.
-
-### 1. Add the request and pair types — `pkg/auth.Handler`
-
-- **Landed:** no
-- **Change:** signature change
-- **Extends:** new — checked `pkg/auth.LoginRequest` and `pkg/auth.Session`: neither carries a refresh token, and both are read by callers this TODO does not change
-- **Do:** Add the request type and the pair type. Nothing reads them yet; increments 2 and 3 return them.
-- **Blast radius:** none — additive types that no caller reads yet
-- **Surface:**
-
-```diff
-+type RefreshRequest struct {
-+	Token string `json:"token"`
-+}
-+
-+type TokenPair struct {
-+	Access  string `json:"access"`
-+	Refresh string `json:"refresh"`
-+}
-```
-
-> The shape every increment follows. **Surface** means what a caller of the changed code can see:
-> types, fields, method and function signatures, and settings — config keys, flags, defaults — with
-> their real values. New surface is all-`+` in real syntax, and no field or signature is elided.
-
-### 2. Return a pair from the minter — `pkg/auth.TokenMinter`
-
-- **Landed:** no
-- **Change:** signature change
-- **Extends:** `pkg/auth.mintTokens` — returns the refresh token beside the access token
-- **Do:** Make `mintTokens` mint the refresh token beside the access token and return both. Propagate either signing error unchanged. Migrate both callers to the new return.
-- **Blast radius:** every caller of `mintTokens` — `pkg/auth.Handler.Refresh`, `pkg/auth.Handler.Login`
-- **Surface:**
-
-```diff
--func mintTokens(userID string) (string, error)
-+func mintTokens(userID string) (TokenPair, error)
-```
-
-> **Do** names the migration. A signature change whose callers no increment's **Do** names is a
-> caller left broken. The callers carry no diff of their own: their new shape is fixed by this one
-> (`arch:ref-todo-sections.md` § A diff carries the change, not what the change forces).
-
-### 3. Exchange the token in the handler — `pkg/auth.Handler`
-
-- **Landed:** no
-- **Change:** new behavior
-- **Extends:** `pkg/auth.Handler.Refresh` — exchanges the token instead of only checking it
-- **Do:** Make `Refresh` take a `RefreshRequest` and return a `TokenPair`. Look the session up by the presented refresh token, mint a new pair, delete the old token, store the new one. Migrate the auth middleware and the API route table to the new call.
-- **Blast radius:** every caller of `Refresh` — `pkg/auth.Middleware`, `cmd/api.Routes`; a wrong store key here logs out every session
-- **Behavior:**
-
-```ts
-function refresh(req: RefreshRequest): TokenPair | 401 | 409 {
-  const session = lookupSession(req.token)
-  if (!session) return 409 // already rotated — single-flight
-  if (session.expiresAt < now()) return 401
-
-  const pair = mintTokens(session.userId)
-  dropSession(req.token)
-  storeSession(pair.refresh, session, TTL)
-  return pair
-}
-```
-
-- **Surface:**
-
-```diff
--func Refresh(ctx context.Context, token string) (string, error)
-+func Refresh(ctx context.Context, req RefreshRequest) (TokenPair, error)
-```
-
-> This increment carries the Outcome's logic, so **Do** is not enough: the two failure codes and the
-> delete-before-store order are decisions a reader cannot infer from prose. The sketch is pseudocode —
-> `lookupSession`, not `redis.get`; no real import, key format, or path.
->
-> **An interface implementation shows the interface, not its methods.** A type that implements an
-> interface carries one assertion line per interface (`var _ lifecycle.SettingsStore = (*InstallationsDirectory)(nil)`)
-> and lists only the public methods no interface declares, plus its constructor. A method the
-> interface declares is new surface only when the TODO changes that interface.
->
-> **No comments and no `AGENT:` markers in a diff.** A decision that seems to want a comment belongs
-> in a `thoughts/` note.
-
-### 4. Add the release check — `scripts.ReleaseCheck`
-
-- **Landed:** no
-- **Change:** new behavior
-- **Extends:** new — checked `scripts/` and the CI jobs: no step checks a release before it ships
-- **Do:** Write the release check in the order the sketch gives. Stop at the first failure with a `FAIL: ` message that names what failed.
-- **Blast radius:** the release job only — nothing imports it; a false pass ships an unbuilt asset
-- **Behavior:**
-
-```ts
-function releaseCheck(): 0 | 1 {
-  if (env.CI) return fail("run with CI unset — publish must not fire from a check")
-
-  cleanBuildDirs()
-  build()
-
-  for (const variant of VARIANTS) {
-    for (const [name, wantBytes] of manifest(variant).expectedBytes) {
-      if (!exists(asset(variant, name))) return fail(`missing ${variant}/${name}`)
-      if (sizeOf(asset(variant, name)) !== wantBytes) return fail(`${variant}/${name} size ≠ manifest`)
-    }
-    if (!exists(licenceNotes(variant))) return fail(`${variant} ships no licence notes`)
-  }
-
-  const second = rebuild()                          // the cache edge: must not touch the network
-  if (second.refetched) return fail("a second build refetched from the network")
-
-  return 0
-}
-```
-
-- **Surface:** no diff — a script is a body. Contract:
-
-```
-release-check          # no args, no flags
-exit 0  → every check passed, one summary line on stdout
-exit 1  → first failed check on stderr, prefixed `FAIL: `
-```
-
-> **The shape to copy when the deliverable is a whole body** — a script, a test file, a migration, a
-> query. Its **Surface** is a plain fenced contract (invocation, arguments, exit codes, output)
-> instead of a diff, and the sketch carries the checks in order and, above all, the edge cases: the
-> env var that must be unset, the second run that must not refetch. The real commands and paths are
-> implementation the implementer writes at the keyboard.
->
-> The doctrines limiting a diff's contents — its decided change, not consequences; its surface, not
-> a body — are `arch:ref-todo-sections.md` § A diff carries the change, not what the change forces
-> and § A diff carries the surface, not a body.
-
 ## Flow changes
 
-### `POST /auth/refresh` — `pkg/auth.Handler.Refresh` — main flow step 4
+> **Check:** read the marked steps only. Confirm that each new check runs at the right place, and that each stop gives the caller the right answer.
+
+### The session refresh, POST /auth/refresh — main flow step 4
+
+*`pkg/auth.Handler.Refresh`*
 
 ```
 pkg/auth.Handler.Refresh
@@ -377,14 +208,15 @@ pkg/auth.Handler.Refresh
 └── return the pair → 200
 ```
 
-> **Which running paths this TODO changes, and how, step by step.** The increments show what the
+> **Which running paths this TODO changes, and how, step by step.** The increments below show what the
 > symbols become. This section shows what a call does, in order, and which steps are new. A reviewer
 > reads it to see every new step and every new check before any code exists.
 >
 > **One H3 per flow.** A flow is one path a call takes from its entry point to its result: a request
-> handler, a CLI command, a job, an event consumer. Name the entry point the way a caller enters it,
-> then the `package.Class.method` that runs it. When the flow is a step of the `main` flow in
-> `<notes-dir>/workflows/flows.json`, add `— main flow step <n>`.
+> handler, a CLI command, a job, an event consumer. The heading names the entry point in domain
+> words, the way a caller enters it. When the flow is a step of the `main` flow in
+> `<notes-dir>/workflows/flows.json`, add `— main flow step <n>`. The line under the heading is the
+> `package.Class.method` that runs the flow, as italic code: ``*`pkg/auth.Handler.Refresh`*``.
 >
 > **Steps as a tree, in the order they run.** One fenced block per flow. The root is the
 > `package.Class.method`; each step is one line, drawn as the Linux `tree` command draws it: `├── ` for a
@@ -413,7 +245,237 @@ pkg/auth.Handler.Refresh
 > A new flow is all `+ step`. The usual `none` is a rename: `none — renames Session fields; every
 > step runs as before`.
 
-## Commit
+## Increments
+
+> **Check:** for each increment, read the summary, then **Surprises**. Agree or disagree with each surprise: these are the details you would otherwise find only in the code. Confirm that each diff stays in the one component under its heading. At each `### Commit` section, confirm that its title states one change.
+
+> **The whole contract change, cut into the steps `impl` applies, one H3 per step in apply order,
+> grouped into commits.** An increment is the smallest step worth approving on its own. A commit is
+> the smallest group of increments with a clear border. `## Components` says *which* symbols move;
+> each increment says *what they become* and *what will surprise the reader*; each `### Commit`
+> section says what the group ships.
+>
+> **One TODO, one deliverable, one or more commits.** Cut a new commit when the next increments ship
+> a second cause: a refactor that prepares the change, the change itself, a tool beside it. A TODO
+> with one cause has one commit, `### Commit 1`, after its last increment.
+>
+> **A commit has a clear border.** At each commit, `impl` checks three things before the next
+> increment starts:
+>
+> - The repo builds, and the existing tests pass.
+> - The commit has its own **Title** and **Body**, with one cause.
+> - The Autotest cases its **Proves** line names pass.
+>
+> So a signature change and the increment that migrates its callers are always in one commit. A
+> broken build never crosses a commit border.
+>
+> **Each increment is self-contained for review.** A reviewer reads one H3 and nothing else, and
+> can approve or reject it. So the summary never points elsewhere ("as above", "see increment 1.1"),
+> and the diff holds every symbol the summary names as new or changed.
+>
+> **One increment, one component.** The component line names exactly one `## Components` row, and the
+> increment changes code of that component only. A change in a second component — a caller moved to
+> a new signature, a route that calls the new method, a constructor that passes the new dependency —
+> is its own increment, with **Change** `call-site migration` or `wiring`. Every row is named by at
+> least one increment, and no increment names a component missing from that table.
+>
+> **No file paths.** Name a symbol as `## Components` does. Which file each increment touches is in
+> the agent half's **Files**, keyed by increment number.
+>
+> Heading: `### <c>.<i>. <imperative title>` — `c` is the commit, `i` the increment inside it. Both
+> are 1-indexed and contiguous, and `i` starts again at 1 in each commit. The title is in domain
+> words with no symbol. Then, in this order:
+>
+> | Part | Content |
+> |------|---------|
+> | **component** | The line under the heading: the `## Components` row, as italic code — ``*`pkg/auth.TokenMinter`*`` |
+> | **summary** | A plain paragraph right under the heading, one to three sentences: what the increment brings. When it changes existing behavior, it compares the two: `Before, <what the code did>. Now, <what it does>.` No code, no signature |
+> | **Landed** | `yes` or `no` — whether this increment is in its commit. `todo` writes `no`; `impl` flips it after the commit or amend (`arch:ref-write.md` § Progress) |
+> | **Change** | this increment's change kind — one of the nine in `impl:ref-change-types.md` |
+> | **Extends** | the existing symbol this increment grows, and what it gains: `` `pkg.Type.Method` — <what it gains> ``. Or `` new — checked `<A>`, `<B>`: <why none fits> `` |
+> | **Surprises** | one to three nested bullets: the details a reader misses in the summary and the diff and finds later only in the code |
+> | **Surface** | the diff this increment lands, as one ```diff block — or a plain contract block, or `none — <reason>` |
+>
+> **Surprises is what the reader would find only in the code.** An edge case, a refused input, a
+> changed default, an order that matters, a callee error passed through, a caller that stops
+> compiling. Name the symbol, the value, or the case. A restated summary, "be careful", or a risk
+> with no case is not a surprise. `none — <reason>` only when no code reads the new code yet.
+>
+> **Change is the increment's own kind, not the TODO's.** A `type: new behavior` TODO usually holds
+> one `new behavior` increment and several `signature change`, `wiring`, or `call-site migration`
+> increments around it. The spread tells the human which increment to read line by line. A TODO
+> whose every increment is `wiring` contradicts its own `type:`.
+>
+> **Extends makes a new symbol cost a search.** The default is to grow what exists: a new transition
+> on the state machine the repo has, a new method on the gateway that already calls that system, a
+> new row in the table that already lists its siblings. An increment that meets a need in
+> `PATTERNS.md` § Need → use extends that row's **Use**. `new` is legal only with the symbols you
+> checked and the fact that rules each one out — "a second state machine for destroy" fails when
+> the installation machine can take a `destroying` state.
+>
+> **Every new public symbol is in a Surface diff.** An increment adds only the public types,
+> functions, and methods its own diff names (`impl:sub-impl.md` step 5); a private helper may land
+> with a body. A public symbol missing here has no increment to land in.
+>
+> **Order — deepest first**: the callee before its caller, the type before its user, the wiring
+> last. **A broken build lasts one increment**: a signature change that a caller in another
+> component reads is followed at once by the increment that migrates that caller, in the same
+> commit, and its **Surprises** names the callers that stop compiling. `impl` applies the two as one
+> step.
+>
+> **Sizing: ≤ 10 increments per commit, ≤ 4 commits, ≤ 150 changed lines per diff.** More and the
+> TODO is too big — split the ledger row. Over 150 lines, first look for a body; deleting one usually
+> takes the diff under. If every line is real surface and it still cannot compile below that, add a
+> `**Compile floor:**` bullet under the diff saying why.
+
+### 1.1. Add the request and pair types
+
+*`pkg/auth.Handler`*
+
+The handler gains a request type that carries one refresh token, and a pair type that carries a new access token and a new refresh token. Nothing reads them yet.
+
+- **Landed:** no
+- **Change:** signature change
+- **Extends:** new — checked `pkg/auth.LoginRequest` and `pkg/auth.Session`: neither carries a refresh token, and both are read by callers this TODO does not change
+- **Surprises:**
+  - none — no code reads the two types until increment 1.2
+- **Surface:**
+
+```diff
++type RefreshRequest struct {
++	Token string `json:"token"`
++}
++
++type TokenPair struct {
++	Access  string `json:"access"`
++	Refresh string `json:"refresh"`
++}
+```
+
+> The shape every increment follows. **Surface** means what a caller of the changed code can see:
+> types, fields, method and function signatures, and settings — config keys, flags, defaults — with
+> their real values. New surface is all-`+` in real syntax, and no field or signature is elided.
+
+### 1.2. Return a pair from the minter
+
+*`pkg/auth.TokenMinter`*
+
+Before, `mintTokens` signed one access token for a user id. Now it also signs a refresh token and returns both as one `TokenPair`.
+
+- **Landed:** no
+- **Change:** signature change
+- **Extends:** `pkg/auth.mintTokens` — returns the refresh token beside the access token
+- **Surprises:**
+  - A signing error on either token fails the whole mint: no half pair is returned, and the error passes through unchanged.
+  - `Handler.Login` and `Handler.Refresh` stop compiling until increment 1.3 moves them to the pair.
+- **Surface:**
+
+```diff
+-func mintTokens(userID string) (string, error)
++func mintTokens(userID string) (TokenPair, error)
+```
+
+> The callers carry no diff here: they are another component, so increment 1.3 moves them, and this
+> increment's **Surprises** names them (`arch:ref-todo-sections.md` § A diff carries the change, not
+> what the change forces).
+
+### 1.3. Read the access token from the pair
+
+*`pkg/auth.Handler`*
+
+`Login` and `Refresh` call the new `mintTokens` and use `pair.Access` where they used the one token before. What each call returns to its client does not change.
+
+- **Landed:** no
+- **Change:** call-site migration
+- **Extends:** `pkg/auth.Handler.Login`, `pkg/auth.Handler.Refresh` — read the access token from the pair
+- **Surprises:**
+  - `Refresh` keeps its old behavior here: increment 2.1 changes it.
+- **Surface:** none — no signature or field changes; only the two call sites change.
+
+---
+
+### Commit 1
+
+**Title:** `refactor: return a token pair from the minter`
+
+**Body:**
+
+The minter signed only an access token, so a refresh could not hand out a new refresh token.
+
+The minter now signs both tokens and returns them as one pair. Login and refresh read the access token from the pair, so no client sees a change yet.
+
+**Proves:** Unit — `a mint signs both tokens`
+
+> **The message of one commit, written here in full and copied — never re-derived at commit time.**
+> It closes the group of increments above it, after a `---` line. Three fields.
+>
+> **Title** — the exact line the implementer commits: `<prefix>: <line>`, ≤ 72 chars, imperative, no
+> period, prefix from the standard set. The ledger entry's `Commit` is the title of the commit that
+> holds the `main` component's `new behavior` increment.
+>
+> **Body** — cause, goal, and the decision if a live alternative was rejected, one paragraph each in
+> that order. Full contract: `wm:commit-message`. Write it for a reader who has only the repo: no
+> `TODO-N`, no increment number, no note id, no ticket. The increments are gone once the commit
+> lands, and this text is all that stays.
+>
+> **Proves** — the `TODO-N.test.md` cases that pass from this commit on, as `<level> — `<case>``,
+> comma-separated. Every Autotest case is named by exactly one commit: the first one at which it can
+> pass. A commit with no case of its own writes `none — <reason>` — the concrete reason the
+> existing tests are its whole proof.
+>
+> **Check the commits against the Outcome before any increment lands.** Together, the titles state
+> the change the Outcome promises, in the repo's terms. A capability in one and not the other means
+> the TODO is wrong — fix it at `todo`, not at commit time.
+
+### 2.1. Exchange the token in the handler
+
+*`pkg/auth.Handler`*
+
+Before, `Refresh` checked a refresh token and returned a new access token, and the old refresh token stayed valid. Now it takes a `RefreshRequest`, returns a new `TokenPair`, and deletes the old refresh token, so each token works once.
+
+- **Landed:** no
+- **Change:** new behavior
+- **Extends:** `pkg/auth.Handler.Refresh` — exchanges the token instead of only checking it
+- **Surprises:**
+  - A token that is already used answers 409, not 401: 409 tells the client a second refresh raced this one.
+  - The old token is deleted before the new one is stored. A crash between the two steps logs the user out; it never leaves two valid tokens.
+  - `cmd/api.Routes` stops compiling until increment 2.2 moves it to the new call.
+- **Surface:**
+
+```diff
+-func Refresh(ctx context.Context, token string) (string, error)
++func Refresh(ctx context.Context, req RefreshRequest) (TokenPair, error)
+```
+
+> This increment carries the Outcome's logic, so its **Surprises** carry the two decisions a reader
+> cannot infer from the summary: the 409 and the delete-before-store order. The steps in run order
+> are in `## Flow changes`.
+>
+> **An interface implementation shows the interface, not its methods.** A type that implements an
+> interface carries one assertion line per interface (`var _ lifecycle.SettingsStore = (*InstallationsDirectory)(nil)`)
+> and lists only the public methods no interface declares, plus its constructor. A method the
+> interface declares is new surface only when the TODO changes that interface.
+>
+> **No comments and no `AGENT:` markers in a diff.** A decision that seems to want a comment belongs
+> in a `thoughts/` note.
+
+### 2.2. Route the refresh request to the new call
+
+*`cmd/api.Routes`*
+
+Before, the `POST /auth/refresh` route passed the raw token string to `Refresh` and wrote back one access token. Now it decodes the body into a `RefreshRequest` and writes back the whole `TokenPair` as JSON.
+
+- **Landed:** no
+- **Change:** wiring
+- **Extends:** `cmd/api.Routes` — the refresh route takes and returns the new types
+- **Surprises:**
+  - A body that does not decode answers 400 before `Refresh` runs, so a malformed request never touches the store.
+  - The response body changes from a bare string to an object: a client that reads the old shape breaks.
+- **Surface:** none — the route path and method stay; only the body shapes change, and increment 1.1 declares them.
+
+---
+
+### Commit 2
 
 **Title:** `feat: rotate refresh tokens on /auth/refresh`
 
@@ -428,29 +490,58 @@ next legitimate refresh.
 A short expiry on the refresh token was the other option. It was rejected because it signs out an
 idle user on a normal day, and the stolen token stays usable until it expires.
 
-> **The message of the one commit the increments build, written here in full and copied — never
-> re-derived at commit time.** Two fields, both human-read.
+**Proves:** Unit — `a rotation mints one new pair`, `the pair carries the same user`, `an expired token`, `a reused token`, `an unknown token`; E2E — `the returned pair authorizes the next call`, `a replayed token fails and the live pair still works`, `expiry ends access on both tokens`
+
+### 3.1. Add the release check
+
+*`scripts.ReleaseCheck`*
+
+A new script builds the release from clean, checks each asset against the manifest, and builds a second time to prove the cache works. It stops at the first failure and prints what failed.
+
+- **Landed:** no
+- **Change:** new behavior
+- **Extends:** new — checked `scripts/` and the CI jobs: no step checks a release before it ships
+- **Surprises:**
+  - It refuses to run when `CI` is set, because the build step publishes from CI.
+  - The second build must not touch the network; a refetch fails the check even when every asset is correct.
+  - A variant with no licence notes fails, even when its assets match the manifest.
+- **Surface:** no diff — a script is a body. Contract:
+
+```
+release-check          # no args, no flags
+exit 0  → every check passed, one summary line on stdout
+exit 1  → first failed check on stderr, prefixed `FAIL: `
+```
+
+> **The shape to copy when the deliverable is a whole body** — a script, a test file, a migration, a
+> query. Its **Surface** is a plain fenced contract (invocation, arguments, exit codes, output)
+> instead of a diff, and its **Surprises** carry the edge cases: the env var that must be unset, the
+> second run that must not refetch. The real commands and paths are implementation the implementer
+> writes at the keyboard.
 >
-> **Title** — the exact line the implementer commits: `<prefix>: <line>`, ≤ 72 chars, imperative, no
-> period, prefix from the standard set. The ledger entry's `Commit` is this line.
->
-> **Body** — cause, goal, and the decision if a live alternative was rejected, one paragraph each in
-> that order. Cause and goal expand the ledger entry's `Why`; the decision comes from the notes
-> `## Constraints` cites. Full contract: `wm:commit-message`.
->
-> **Write the body for a reader who has only the repo.** No `TODO-N`, no note id, no ticket — the
-> increments are gone once the commit lands, and this text is all that stays. A body only someone
-> holding the TODO could have written is the wrong body.
->
-> **Check it against the Outcome before any increment lands.** Same change, stated twice for two
-> audiences: the Outcome in the actor's terms, the title in the repo's. A capability in one and not
-> the other means the TODO is wrong — fix it at `todo`, not at commit time.
+> The doctrines limiting a diff's contents — its decided change, not consequences; its surface, not
+> a body — are `arch:ref-todo-sections.md` § A diff carries the change, not what the change forces
+> and § A diff carries the surface, not a body.
+
+---
+
+### Commit 3
+
+**Title:** `build: check a release before it ships`
+
+**Body:**
+
+Nothing checked a release before it shipped, so a missing asset reached users.
+
+A script now builds the release from clean and checks every asset against the manifest.
+
+**Proves:** none — the script has no Autotest case; the agent half's `## Manual test` runs it against a real build.
 
 ## Deviations
 
 | What | Shipped instead | Why | Note |
 |------|-----------------|-----|------|
-| `## Increments` 3: `Refresh` | takes `ctx context.Context` as its first argument | the store call it now makes must be cancellable | [[012-impl-decision-refresh-takes-ctx]] |
+| `## Increments` 2.1: `Refresh` | takes `ctx context.Context` as its first argument | the store call it now makes must be cancellable | [[012-impl-decision-refresh-takes-ctx]] |
 
 > **Not yours to write.** `todo` never creates this section; the pair leaves the gate with the
 > sections above and nothing after them. `impl` appends it when the user corrects a shown diff into
@@ -460,7 +551,7 @@ idle user on a normal day, and the stolen token stays usable until it expires.
 > this table says where the shipped code went elsewhere and which note holds the reason. One row per
 > correction, four columns:
 >
-> - **What** — the section and the symbol, id, or case the correction contradicts: `## Increments 3:
+> - **What** — the section and the symbol, id, or case the correction contradicts: `## Increments 2.1:
 >   Refresh`, `## Autotest Unit: case 3`, `## Outcome`.
 > - **Shipped instead** — the shape or behavior that actually landed, one line.
 > - **Why** — the reason the approved version lost, one line.

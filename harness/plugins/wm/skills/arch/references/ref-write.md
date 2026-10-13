@@ -39,7 +39,7 @@ never as a code edit.
 - **ledger** = the TODO List, an index of **outcomes** (one `#### TODO-N` entry each, with `Layer` / `Outcome` / `Concretely` / `Commit` lines). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready. An outcome the user cannot *read* is contested by default, which is what `Concretely` exists to prevent (§ spec.md shape).
 - **`CONCEPTS.md`** carries every diagram — app architecture, data flow, and the flow this work changes — drawn with the `show-me` skill. It is the human's first read and the spec's, so it is a file rather than a `spec.md` section: the diagrams re-read while the ledger is shaped, and the spec's 200-line budget has no room for them. Written when a picture changes a layer, a wave, or where a row splits; a change with no structure to draw has none (example: `examples/concepts.md`).
 - **`PATTERNS.md`** is read by the implementer, not the human — the patterns and reference files a TODO's increments follow. Nothing in it needs human agreement, which is why it is not a spec section: `spec.md` mentions `@PATTERNS.md` and carries none of the content.
-- **`todos/TODO-N.md` + `todos/TODO-N.agent.md`** are one **pair** per ledger row, split by audience. `TODO-N.md` is the human's gate read — frontmatter, Outcome, New terms, Components, **Increments** (the ordered steps of the change, each self-contained for review with its own diff of the types, fields, signatures and settings it lands, and no file path), **Flow changes** (each running path, step by step, with the changed steps marked), Commit — restating its ledger outcome verbatim at the top, budgeted at 550 lines because the diff needs the room. `TODO-N.agent.md` is the context-free Sonnet implementer's — Files (each path keyed to the increments that touch it), Pre-reads, Manual test, Gotchas — with no line budget and not one ```diff block. Self-contained means the **pair plus the generated rule set** is enough; neither half restates the other, and each carries exactly one link to the other. Neither half stores an origin link: why a decision was made is walked on demand from `thoughts/` by the `trace` skill. `todos/TODO-N.test.md` holds the row's `## Autotest` alone, with no line budget. Written in two stages with a human gate between them (`sub-todo.md` § Execution); all three are renumbered and deleted together. Owned by `todo` (`sub-todo.md`). `todos/CLAUDE.md` states the pair convention for any agent entering the folder — scaffolded with the folder by `new` Step 0, written once, never rewritten (example: `examples/todos-claude.md`).
+- **`todos/TODO-N.md` + `todos/TODO-N.agent.md`** are one **pair** per ledger row, split by audience. `TODO-N.md` is the human's gate read — frontmatter, Outcome, New terms, Components, **Flow changes** (each running path, step by step, with the changed steps marked), **Increments** (the ordered steps of the change, numbered `<c>.<i>`, each self-contained for review with its own diff of the types, fields, signatures and settings it lands, and no file path; each commit group closes with a `---` line and a `### Commit <c>` section) — restating its ledger outcome verbatim at the top, budgeted at 200 lines of prose; `## Increments` is bounded by shape instead (≤ 4 commits, ≤ 10 increments per commit). `TODO-N.agent.md` is the context-free Sonnet implementer's — Files (each path keyed to the increments that touch it), Pre-reads, Manual test, Gotchas — with no line budget and not one ```diff block. Self-contained means the **pair plus the generated rule set** is enough; neither half restates the other, and each carries exactly one link to the other. Neither half stores an origin link: why a decision was made is walked on demand from `thoughts/` by the `trace` skill. `todos/TODO-N.test.md` holds the row's `## Autotest` alone, with no line budget. Written in two stages with a human gate between them (`sub-todo.md` § Execution); all three are renumbered and deleted together. Owned by `todo` (`sub-todo.md`). `todos/CLAUDE.md` states the pair convention for any agent entering the folder — scaffolded with the folder by `new` Step 0, written once, never rewritten (example: `examples/todos-claude.md`).
 - **thought** — one note per question asked and one per answer given, linked by `[[wikilinks]]`. Format + templates: `ref-note-format.md`.
 - History lives in the notes' jj repo (`jj log`) — `code:ref-jj-notes.md`.
 
@@ -60,7 +60,7 @@ init (research)  →  review (spec + ledger)  →  impl
 
 - `init` — research; spec is a stub.
 - `review` — spec + ledger authored, under human review. `todo`, `verify`, `revise` run here.
-- `impl` — TODOs implemented, one commit each. Any `revise` returns the spec `status` to `review`.
+- `impl` — TODOs implemented, one commit per `### Commit` section. Any `revise` returns the spec `status` to `review`.
 
 Set by: `new` (`init → review`), `impl` (`review → impl`), `revise` (`→ review`).
 
@@ -78,7 +78,7 @@ todo  →  impl  →  verify  →  done
 - `todo` — body authored past the gate; not started.
 - `impl` — the implementer is executing it (set at `impl` start once every `depends_on` TODO is `done`).
 - `verify` — committed + autotest green; awaiting the review gate chain (`review:sub-todo.md`).
-- `done` — review passed; the ledger entry's Commit is filled.
+- `done` — review passed; the ledger entry's Commit is filled with the title of the commit that holds the `main` component's `new behavior` increment.
 - `blocked` — a `depends_on` TODO is not `done`, **or** the review returned FAIL / DEVIATES. Routes back to `impl`.
 
 Set by: `todo` (writes `todo`, or `blocked` if a dep is unmet), `impl` (`todo → impl`, then `→ verify` on green; `→ blocked` if a dep is unmet), the review gate (`verify → done` on PASS, `→ blocked` on FAIL), `revise` (`→ todo` when it reopens a diverged TODO).
@@ -177,11 +177,11 @@ Where `impl` got to inside one TODO, written in two shapes for two readers.
 
 | Shape | Where | Says |
 |---|---|---|
-| `**Landed:** yes` / `no` | `TODO-N.md` § Increments, one bullet per increment | **which** increments are in the commit |
+| `**Landed:** yes` / `no` | `TODO-N.md` § Increments, one bullet per increment | **which** increments are in their commits |
 | `increment: <approved>/<total>` | `TODO-N.md` frontmatter | **how many** — the index over the markers |
 
-- `<total>` — the number of `### N.` increments in `TODO-N.md` § Increments. Fixed when stage 1 writes the half.
-- `<approved>` — how many increments are already in the commit. `0` until implementation starts.
+- `<total>` — the number of `### <c>.<i>.` increments in `TODO-N.md` § Increments, across all commits. Fixed when stage 1 writes the half.
+- `<approved>` — how many increments are already in their commits, counted in apply order. `0` until implementation starts.
 
 **This is not a restatement, because the two answer different questions.** The counter is what a
 resuming session reads first — one number, no walk. The markers are what it reads next, and they are
@@ -191,14 +191,14 @@ rather than by arithmetic. `bin/spec-lint.py` check B11 fails when `<approved>` 
 
 **Who writes them.** `todo` authors `increment: 0/<total>` beside the other keys and `**Landed:** no`
 on every increment. `impl` flips one marker to `yes` and raises the counter by one in the same step
-that appends the increment to the commit (`impl:sub-impl.md` Step 5.5), at every `approve` level — a
+that appends the increment to its commit (`impl:sub-impl.md` Step 5.5), at every `approve` level — a
 run under `none` is the one most likely to be interrupted with nobody watching.
 
-**What it buys.** A session that dies mid-TODO resumes at increment `<approved> + 1`. Without the key
+**What it buys.** A session that dies mid-TODO resumes at the increment after the last `**Landed:** yes` — the next `c.i`, or `c+1.1` when commit `c` is complete. Without the key
 the next session reads the diff and guesses which increments already landed, and a re-applied
 increment lands twice.
 
-**Both are facts about the commit, not claims about the work.** Write them after the amend, never
+**Both are facts about the commit, not claims about the work.** Write them after the commit or amend, never
 before — a marker or a number ahead of the commit sends a resume past an increment that was never
 applied.
 
@@ -291,7 +291,7 @@ upward (callers depend on callees); commits land the same direction — leaf →
 ### Merges that fall out of this rule
 - A type split + the call site depending on the new types = **one** TODO. Two would force a dead intermediate state where the type exists but nothing populates it.
 - Wiring that branches on one config flag = **one** TODO. The branch is mechanism, not outcome.
-- An **enabler** with exactly one consumer — a shared package, an asset, a fixture, a taxonomy — is **not its own ledger row**. It is increment 1 of the slice that consumes it, by the same rule: alone it is a dead intermediate state, it cannot state an Outcome as a capability, and its `E2E` can only be `none`. Two exceptions keep it a row: it lives in **another repo**, so it cannot share the one commit; or it has **two or more consumers**, where a `W1` interface row with its implementations in `W2` removes an edge (§ Waves step 4).
+- An **enabler** with exactly one consumer — a shared package, an asset, a fixture, a taxonomy — is **not its own ledger row**. It is the first increments of the slice that consumes it — often a commit of its own there, by the same rule: alone it is a dead intermediate state, it cannot state an Outcome as a capability, and its `E2E` can only be `none`. Two exceptions keep it a row: it lives in **another repo**, so it cannot share the TODO's commits; or it has **two or more consumers**, where a `W1` interface row with its implementations in `W2` removes an edge (§ Waves step 4).
 
 **Reject:** ordering by "easiest first" or "most visible first" — that compiles only after every TODO lands, breaking the per-TODO commit contract.
 
@@ -343,7 +343,7 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] `## Plan` carries the wave table; every TODO appears in exactly one wave; TODOs sharing a wave have disjoint **Files** sets and no `depends_on` between them
 - [ ] Every outcome is a post-condition (what is true after), ≤ 25 words, no implementation nouns, GLOSSARY.md terms verbatim
 - [ ] No outcome hides two behind "and"; no two entries share an outcome
-- [ ] No row is an **enabler with one consumer** — a shared package, asset, fixture or taxonomy whose only reader is one other row belongs to that row as its increment 1 (§ Merges that fall out of this rule). It stays a row only for another repo, or for two or more consumers
+- [ ] No row is an **enabler with one consumer** — a shared package, asset, fixture or taxonomy whose only reader is one other row belongs to that row as its first increments (§ Merges that fall out of this rule). It stays a row only for another repo, or for two or more consumers
 - [ ] Not every row defers its `E2E`: at least one row in the **first wave** proves a capability end-to-end, so the design gaps surface in `W1` rather than the last wave
 - [ ] Entries are contiguous from 1, sorted by ascending `Ln` depth; no TODO depends on a component a later TODO introduces
 - [ ] Nothing was written under `todos/` during this spec pass

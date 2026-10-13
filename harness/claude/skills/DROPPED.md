@@ -11,6 +11,7 @@ parent still has the file. The commit message says why the whole group went.
 | `clipboard-sandbox` | Use when copying content to the clipboard for the user (pbcopy / xclip / clip.exe / wl-copy), e.g. handing a c | `b759ad85` | `harness/claude/skills/clipboard-sandbox/SKILL.md` |
 | `cmux-subagent` | This skill should be used when the user asks to "launch a subagent in cmux", "run claude in a new pane", "open | `c05b1fad` | `harness/claude/skills/cmux-subagent/SKILL.md` |
 | `codebase-analyzer` | Router skill for codebase analysis. Launches one implementation analyzer subagent and produces one evidence-ba | `e5feab8e` | `harness/claude/skills/codebase-analyzer/SKILL.md` |
+| `design` | House rules for designing a solution — reuse what exists, keep the smallest shape that works, and name the op | — | `harness/claude/skills/design/SKILL.md` |
 | `debug-oauth-idp-errors` | Debugging an OAuth2/OIDC identity-provider rejection — invalid_scope, invalid_client, invalid_redirect_uri, "r | `0267e653` | `harness/claude/skills/debug-oauth-idp-errors/SKILL.md` |
 | `discussion-scheme` | — | `28f9fdd4` | `harness/claude/skills/discussion-scheme/SKILL.md` |
 | `document-the-union-a-value-is-written-under` | Use when writing or reviewing the sentence that tells a reader what a status value means — an enum's doc comme | `52887eb6` | `harness/claude/skills/document-the-union-a-value-is-written-under/SKILL.md` |

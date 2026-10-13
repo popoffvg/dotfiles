@@ -16,12 +16,15 @@ Checked, by file kind:
   todos/TODO-N.md         human half - carries every diff, one per increment, in
                           ## Increments
                           ## Autotest is not here - it is the test file's
-                          body <= 550 lines            (arch:sub-todo.md - Budget)
-                          ## New terms and ## Components are UNCOUNTED - both are
-                          rosters, one row per term and per symbol, unlimited in length
-                          <= 10 increments             (arch:sub-todo.md - Budget)
-                          increment numbers contiguous from 1
-                          each increment carries a **Do:** bullet
+                          body <= 200 lines            (arch:sub-todo.md - Budget)
+                          ## New terms, ## Components and ## Increments are UNCOUNTED -
+                          the rosters are unlimited, the increments are counted by shape
+                          increments numbered `### <c>.<i>.`, both contiguous from 1
+                          each commit's increments end with `---` and `### Commit <c>`,
+                          which carries **Title:**, **Body:** and **Proves:**
+                          <= 4 commits, <= 10 increments per commit
+                          no `## Commit` H2 - each commit has its own H3
+                          each increment carries a **Surprises:** bullet
                           each increment carries a non-empty **Extends:** bullet
                           each increment diff <= 150 changed lines, unless that
                           increment declares a `**Compile floor:**`
@@ -59,15 +62,16 @@ import os
 import re
 import sys
 
-TODO_HUMAN_LINES = 550
+TODO_HUMAN_LINES = 200
 SPEC_LINES = 200
 MAX_INCREMENTS = 10
+MAX_COMMITS = 4
 MAX_DIFF_LINES = 150
 
 # Rosters, not prose: one row per term and one per symbol. A TODO that legitimately touches
-# many symbols is not two deliverables, so neither section is counted against the body budget
-# (`arch:sub-todo.md` - Budget).
-UNCOUNTED_SECTIONS = ("New terms", "Components")
+# many symbols is not two deliverables, so neither section is counted against the body budget.
+# `## Increments` is bounded by its commit and increment counts instead (`arch:sub-todo.md` - Budget).
+UNCOUNTED_SECTIONS = ("New terms", "Components", "Increments")
 
 # Which half owns each H2. A heading found in the other half is the whole finding: the
 # author wrote one file where the contract asks for two.
@@ -93,10 +97,14 @@ AGENT_SECTIONS = {
 }
 
 H2 = re.compile(r"^## +(.+?)\s*$")
-INCREMENT = re.compile(r"^### +(\d+)\. +(.+?)\s*$")
+INCREMENT = re.compile(r"^### +(\d+)\.(\d+)\. +(.+?)\s*$")
+ONE_LEVEL_INCREMENT = re.compile(r"^### +(\d+)\. +(.+?)\s*$")
+COMMIT_HEAD = re.compile(r"^### +Commit +(\d+)\s*$")
+COMMIT_FIELD = re.compile(r"^\*\*(Title|Body|Proves):\*\*")
+RULE_LINE = re.compile(r"^-{3,}\s*$")
 DIFF_OPEN = re.compile(r"^```diff\s*$")
 COMPILE_FLOOR = re.compile(r"^\s*[-*]\s*\*\*Compile floor:?\*\*")
-DO_BULLET = re.compile(r"^\s*[-*]\s*\*\*Do:?\*\*")
+SURPRISES_BULLET = re.compile(r"^\s*[-*]\s*\*\*Surprises:?\*\*")
 EXTENDS_BULLET = re.compile(r"^\s*[-*]\s*\*\*Extends:?\*\*\s*\S")
 WIKILINK = re.compile(r"\[\[([^\]|]+?)\s*(?:\|[^\]]*)?\]\]")
 # A doc origin: a markdown link plus the `read <date>` that pins which version was used.
@@ -172,12 +180,89 @@ def diff_blocks(lines):
         i += 1
 
 
-def increment_spans(lines):
-    """Yield (number, title, start, end) for each `### n.` block in an Increments section."""
-    marks = [(i, m) for i, m in ((i, INCREMENT.match(x)) for i, x in enumerate(lines)) if m]
-    for k, (i, m) in enumerate(marks):
-        end = marks[k + 1][0] if k + 1 < len(marks) else len(lines)
-        yield int(m.group(1)), m.group(2), i, end
+def h3_spans(lines):
+    """Yield (kind, match, start, end) for each increment or commit H3 in an Increments section.
+
+    kind is "increment" or "commit"; a block ends at the next H3 of either kind.
+    """
+    marks = []
+    for i, x in enumerate(lines):
+        m = INCREMENT.match(x)
+        if m:
+            marks.append(("increment", m, i))
+            continue
+        m = COMMIT_HEAD.match(x)
+        if m:
+            marks.append(("commit", m, i))
+    for k, (kind, m, i) in enumerate(marks):
+        end = marks[k + 1][2] if k + 1 < len(marks) else len(lines)
+        yield kind, m, i, end
+
+
+def check_commits(section, violations):
+    """Increments `<c>.<i>` grouped into commits, each closed by `---` and `### Commit <c>`."""
+    groups, open_group = [], None
+    for kind, m, start, end in h3_spans(section):
+        if kind == "increment":
+            c, i = int(m.group(1)), int(m.group(2))
+            if open_group is None or open_group["c"] != c:
+                if open_group is not None:
+                    violations.append(
+                        f"commit {open_group['c']} has no `### Commit {open_group['c']}` section "
+                        f"before increment {c}.{i}. Close each commit's increments with a `---` "
+                        "line and its `### Commit <c>` section (`arch:examples/todo.md` - Increments)."
+                    )
+                    groups.append(open_group)
+                open_group = {"c": c, "inc": []}
+            open_group["inc"].append(i)
+            continue
+        c = int(m.group(1))
+        if open_group is None:
+            violations.append(f"`### Commit {c}` closes no increments - delete it or move it after them.")
+            continue
+        if c != open_group["c"]:
+            violations.append(
+                f"`### Commit {c}` closes the increments of commit {open_group['c']} - "
+                "number it after the increments it closes."
+            )
+        before = [x for x in section[:start] if x.strip()]
+        if not before or not RULE_LINE.match(before[-1]):
+            violations.append(f"`### Commit {c}` has no `---` line right before it.")
+        fields = {f.group(1) for f in (COMMIT_FIELD.match(x) for x in section[start:end]) if f}
+        for name in ("Title", "Body", "Proves"):
+            if name not in fields:
+                violations.append(
+                    f"`### Commit {c}` carries no **{name}:** line. A commit section has a Title, "
+                    "a Body, and a Proves line (`arch:examples/todo.md` - Increments)."
+                )
+        groups.append(open_group)
+        open_group = None
+    if open_group is not None:
+        violations.append(
+            f"the increments of commit {open_group['c']} end with no `### Commit "
+            f"{open_group['c']}` section. Close them with a `---` line and the section."
+        )
+        groups.append(open_group)
+
+    commits = [g["c"] for g in groups]
+    if commits != list(range(1, len(commits) + 1)):
+        violations.append(f"commit numbers are {commits} - they must run contiguously from 1.")
+    if len(commits) > MAX_COMMITS:
+        violations.append(
+            f"`## Increments` has {len(commits)} commits, budget is {MAX_COMMITS}. The TODO is "
+            "too big: split the ledger row."
+        )
+    for g in groups:
+        if len(g["inc"]) > MAX_INCREMENTS:
+            violations.append(
+                f"commit {g['c']} has {len(g['inc'])} increments, budget is {MAX_INCREMENTS}. "
+                "Cut a second commit, or split the ledger row. Do not merge increments."
+            )
+        if g["inc"] != list(range(1, len(g["inc"]) + 1)):
+            violations.append(
+                f"the increments of commit {g['c']} are numbered {g['inc']} - they must run "
+                "contiguously from 1."
+            )
 
 
 def counted_length(body, found):
@@ -197,12 +282,12 @@ def check_todo_human(lines, violations, path):
     if counted > TODO_HUMAN_LINES:
         violations.append(
             f"the human half is {counted} counted lines, budget is {TODO_HUMAN_LINES} "
-            f"({counted / TODO_HUMAN_LINES:.1f}x over; `## New terms` and `## Components` are "
-            "not counted). This budget is a ceiling, set far "
-            "above what Outcome, Flow changes and Commit need on a real "
-            "row - so reaching it means the ledger row carries two deliverables. Split it "
-            "(TODO-N.1, TODO-N.2). Never compress the prose to fit, and never move content "
-            "to the agent half: the halves are split by audience, not by size."
+            f"({counted / TODO_HUMAN_LINES:.1f}x over; `## New terms`, `## Components` and "
+            "`## Increments` are not counted). This budget is a ceiling, set far above what "
+            "Outcome and Flow changes need on a real row - so reaching it means the ledger "
+            "row carries two deliverables. Split the ledger row. Never compress the prose to "
+            "fit, and never move content to the agent half: the halves are split by "
+            "audience, not by size."
         )
 
     violations.extend(
@@ -211,10 +296,16 @@ def check_todo_human(lines, violations, path):
     violations.extend(
         misplaced(found, TEST_SECTIONS, "human half", "test file (`TODO-N.test.md`)")
     )
+    if "Commit" in found:
+        violations.append(
+            "the human half carries a `## Commit` section. Each commit has its own "
+            "`### Commit <c>` section inside `## Increments`, after a `---` line that closes "
+            "its increments (`arch:examples/todo.md` - Increments)."
+        )
     if "Surface" in found:
         violations.append(
             "the human half carries a `## Surface` section. The diff is split by increment: "
-            "each `### n.` under `## Increments` carries the part of the diff it lands "
+            "each `### <c>.<i>.` under `## Increments` carries the part of the diff it lands "
             "(`arch:sub-todo.md` - Increments). Move each diff under its increment."
         )
 
@@ -231,36 +322,33 @@ def check_todo_human(lines, violations, path):
     if "Increments" not in found:
         violations.append(
             "the human half has no `## Increments`. It is the section the reviewer approves: "
-            "an ordered increment sequence, `n` contiguous from 1, each with its own diff "
+            "an ordered increment sequence, numbered `<c>.<i>`, each with its own diff, "
+            "grouped into commits "
             "(`arch:sub-todo.md` - Increments)."
         )
         return
 
     section = body[i_start:i_end]
-    increments = list(increment_spans(section))
-
-    if not increments:
-        pass
-    elif len(increments) > MAX_INCREMENTS:
-        violations.append(
-            f"`## Increments` has {len(increments)} increments, budget is {MAX_INCREMENTS}. "
-            "The TODO is too big: split the ledger row. Do not merge increments to get "
-            "under this number."
-        )
-    else:
-        numbers = [n for n, _, _, _ in increments]
-        if numbers != list(range(1, len(numbers) + 1)):
+    for x in section:
+        m = ONE_LEVEL_INCREMENT.match(x)
+        if m:
             violations.append(
-                f"increment numbers are {numbers} - they must run contiguously from 1."
+                f"increment `### {m.group(1)}. {m.group(2)}` has a one-level number. Number "
+                "each increment `<c>.<i>` - its commit, then its place in that commit."
             )
+    check_commits(section, violations)
+    increments = [
+        (f"{m.group(1)}.{m.group(2)}", m.group(3), start, end)
+        for kind, m, start, end in h3_spans(section) if kind == "increment"
+    ]
 
     for number, title, start, end in increments:
         block = section[start:end]
-        if not any(DO_BULLET.match(x) for x in block):
+        if not any(SURPRISES_BULLET.match(x) for x in block):
             violations.append(
-                f"increment {number} ({title}) carries no **Do:** bullet, so it states no "
-                "work. An increment is one to four imperative sentences naming what to "
-                "write, what to migrate, and what to delete (`arch:sub-todo.md` - Increments)."
+                f"increment {number} ({title}) carries no **Surprises:** bullet. List one to "
+                "three details a reader would otherwise find only in the code, or "
+                "`none — <reason>` (`arch:examples/todo.md` - Increments)."
             )
         if not any(EXTENDS_BULLET.match(x) for x in block):
             violations.append(

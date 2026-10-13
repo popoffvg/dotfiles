@@ -1,16 +1,16 @@
 ---
 name: diff-walk
-description: "Write a markdown walk-through of a diff for a fast review, in call order, with a call tree of the change and a `path:line` at each step. Use for \"walk me through this diff\", \"explain this change for review\", `/diff-walk` with a revision, a range, a PR, or nothing (the uncommitted change), and on every `zed-diff` run."
-argument-hint: "[nothing | BASE | COMMIT^! | A..B | A...B | last | PR] [-- PATH...]"
-context: fork
+description: "Write a markdown walk-through of a diff for a fast review: an overview that restores the context, the meaning of the main types, then a call tree and a walk in call order with a `path:line` at each step. Use for \"walk me through this diff\", \"explain this change for review\", `/diff-walk` with a revision, a range, a PR, or nothing (the uncommitted change), and on every `zed-diff` run."
+argument-hint: "[nothing | BASE | COMMIT^! | A..B | A...B | last | PR] [dst:DIR] [-- PATH...]"
+model: sonnet
 agent: general-purpose
 ---
 
 # Diff walk
 
-The walk explains the change and rules on nothing. It gives no PASS/FAIL: judging the change is the job of a review. Source stays read-only: the walk writes only its own file and never commits.
+**Structure first, details last.** Each section of the walk adds detail to the one before: Overview → Main types → Flow → Walk, and the walk goes in call order, never in file order. A reader who stops after any section has the whole change at that level of detail, and never keeps a fact in mind that a later section explains.
 
-The skill runs in a fork, so reading the diff stays out of the caller's context. Inside the fork, spawn no subagents: one diff is small enough for one reader, and the walk needs one view of the whole flow.
+The walk explains the change and gives no verdict: no PASS/FAIL, no edit to source, no commit. Write it yourself, in one pass, as one view of the whole flow.
 
 ## Steps
 
@@ -27,20 +27,33 @@ The skill runs in a fork, so reading the diff stays out of the caller's context.
    | a PR url or number | `<base>..<head>` of the PR, after `gh pr checkout` or a fetch of both | `pr-<n>` |
    | `-- PATH...` after any of these | the same range, only these paths | the same slug |
 
-   Read an untracked file as one all-added hunk; it is often a new node of the flow.
+   Read an untracked file as one all-added hunk.
 2. **Name the file** `$NOTES_DIR/research/<slug>.diff-walk.md`. `$NOTES_DIR` is the active wm notes dir, else `./.notes/`. A `dst:<dir>` argument replaces `$NOTES_DIR/research`. A second run on the same target overwrites the file.
-3. **Find the flows.** List every hunk. Read the diff and the code around each hunk, find the entry point that the change touches, and follow the call path down. A diff that holds unrelated changes has one flow per change. A hunk with no call path (docs, config, tests) goes in "Off the flow". Done when every hunk on the list has a place. Then write the file in the order of the template below.
-4. **Open the file** with `~/.claude/scripts/open-file.sh <file>` and return its path.
+3. **Find the flows.** List every hunk. Read the code around each hunk, find the entry point that the change touches (for a markdown-only change, the command or skill the operator invokes), and follow the call path down. A diff that holds unrelated changes has one flow per change. A hunk with no call path (docs, config, tests) goes in "Off the flow". Done when every hunk on the list has a place.
+4. **Collect the context.** Read the base side of each entry point and its callers for **Context**, and the definition of each type a step reads for **Main types**. Done when every type a walk step will name has its definition read.
+5. **Write the file** in the order of the template below. Done when each hunk on the step 3 list appears exactly once — in a walk step or in "Off the flow" — and every tree node is a walk step.
+6. **Open the file** with `~/.claude/scripts/open-file.sh <file>` and return its path.
 
 ## Template
 
 ````markdown
 # <slug> — <one-line title>
 
+## Look here first
+At most 5 risks, most risk first: a changed contract or signature, an error path, a concurrency or state change. Each is `path:line` and one sentence that says what to check — a risk, not a verdict.
+
+## Overview
 **Intent.** 1–3 sentences from the commit messages or the PR body. For uncommitted changes, or when neither states one, derive it from the diff and end it with "(inferred)".
 
-| File | + | − |
-|---|---|---|
+**Context.** 2–4 sentences for a reader who has not seen this code for weeks: what the touched area does at the base, who calls it, and what gap or problem the change answers. Name the area by its entry point and its main types, not by its files.
+
+## Main types
+| Type | Kind | Meaning | Change |
+|------|------|---------|--------|
+| `pkg/auth.Session` | struct | One login of a user; moves active → rotated → revoked | adds the `rotated` state |
+| `pkg/auth.TokenPair` | struct | An access token plus the refresh token that renews it | new |
+
+One row per type a walk step names in backticks, main types first. **Meaning** is what the type stands for in the domain, at the tip, in one sentence. **Change** is `new`, `removed`, `unchanged`, or what changed in one phrase. A diff with no code types lists its terms the same way: a skill, a command, an agent, a config key.
 
 ## Flow
 
@@ -52,12 +65,13 @@ The skill runs in a fork, so reading the diff stays out of the caller's context.
 - └── <removed callee>                            # <path:line @ base sha>
 ```
 
-The call tree of the change, in the `show-me` call-tree form under a `diff` fence: `+` new (absent at the base), `-` removed, `~` changed, a space for unchanged context.
+The call tree of the change, in the `show-me` call-tree form: `+` new (absent at the base), `-` removed, `~` changed, a space for unchanged context. One tree per flow. Draw only the nodes of the change and the callers that connect them; each node is a symbol a walk step names. Three levels: the entry point, its callee, and that callee's callee — a deeper call is named in the walk step of its third-level node. A flow with no code calls (commands, skills) uses the same tree, with "loads" in place of "calls".
 
 ## Walk
-One numbered walk per flow, under `### <flow name>` when there is more than one, each with its own tree under `## Flow`.
+One numbered walk per flow, under `### <flow name>` when there is more than one.
 
 ### 1. `<symbol>` — `path:line`
+**For:** what this step does for the flow — the later step or the result that needs it.
 One or two sentences: what changed and why it matters to the flow.
 ```diff
 <short excerpt from the hunk>
@@ -65,19 +79,6 @@ One or two sentences: what changed and why it matters to the flow.
 
 ### N. Off the flow
 One line per hunk that is not on the call path.
-
-## Look here first
-At most 5 items, most risk first. Each is `path:line` and one sentence.
 ````
 
-## Rules for the content
-
-- **Walk in call order, never in file order.** The reader follows the flow; a file order makes them rebuild it.
-- **Cite each step at the tip side of the diff** (the working tree for uncommitted changes). A removed symbol has no tip line, so cite it as `path:line @ <base short sha>`.
-- **Every changed hunk appears exactly once**, in a walk step or in "Off the flow".
-- **Each tree node is a symbol the walk names**, so the reader can go from the tree to the step. Draw only the nodes of the change and the callers that connect them (`show-me` § Three rules: cut to the question). A flow with no code calls (commands, skills) uses the same tree, with "loads" in place of "calls".
-- **"Look here first" lists risk, not verdicts:** a changed contract or signature, an error path, a concurrency or state change. Point at the hunk and say what to check.
-
-## Done when
-
-The file is open at the resolved path, each hunk on the step 3 list appears exactly once in the file, every rule above holds, and every tree node is a step of the walk.
+Cite every `path:line` at the tip side of the diff (the working tree for uncommitted changes). A removed symbol has no tip line: cite it as `path:line @ <base short sha>`.

@@ -11,7 +11,9 @@
     "npm:pi-clear-screen",
     "../../Documents/git/dotfiles/harness/pi-packages/better-pi-rewind",
     "../../Documents/git/dotfiles/harness/pi-packages/pi-btw",
-    "../../Documents/git/dotfiles/harness/pi-packages/pi-bg-shell"
+    "npm:pi-btw",
+    "npm:pi-goal-x",
+    "npm:pi-cache-optimizer"
   ],
   "defaultProvider": "cursor",
   "defaultModel": "grok-4.7@256k",

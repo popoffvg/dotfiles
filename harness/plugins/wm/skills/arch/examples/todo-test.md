@@ -1,9 +1,10 @@
 # TODO-1 — tests
 
-**Design:** [TODO-1.md](TODO-1.md) — Outcome, Components, Increments, Flow changes, Commit.
+**Design:** [TODO-1.md](TODO-1.md) — Outcome, Components, Flow changes, Increments and their commits.
 
 > A filled `<notes-dir>/todos/TODO-N.test.md` — **the test file of the row**. It holds one section,
-> `## Autotest`, and nothing else. Copy the shape and delete the `>` lines.
+> `## Autotest`, and nothing else. Copy the shape and delete the `>` lines, except the `> **Check:**`
+> line under each level, which the copy keeps (`examples/todo.md` § Rules every section shares).
 >
 > **No budget.** No line count applies here: one case per promise the Outcome makes, however many
 > that is. A case left out to keep the file short is a promise nobody tests. `budget-check.py`
@@ -19,6 +20,8 @@
 ## Autotest
 
 ### Unit
+
+> **Check:** each case keeps one promise of the Outcome. Find the promise with no case, and the new check in `## Flow changes` with no error case.
 
 - **Under test:** `pkg/auth.Handler.Refresh`, `pkg/auth.TokenMinter.mintTokens` — one refresh swaps a live token for a new pair and kills the token it replaces.
 - **Target files:** `pkg/auth/handler_test.go` (create), `pkg/auth/token_test.go` (modify)
@@ -72,6 +75,8 @@ Every refused refresh leaves the store as it was.
 - **Command:** `go test ./pkg/auth/...`
 
 ### E2E
+
+> **Check:** each case starts where a real user or caller starts, and checks only what that user can see.
 
 - **Under test:** `POST /auth/refresh` on the running server — a client keeps a working session across a refresh, and a retired token buys nothing.
 - **Target files:** `test/e2e/auth_refresh_test.go` (create)
@@ -158,7 +163,7 @@ Reuse and expiry end the stale pair, never the live session.
 > sentences: no assertion source, no fixture, no table of literal expected values, no shell. A test
 > that *cannot* be written from the case means the case is too vague, and the fix is a sharper
 > sentence, not a paste. When the test file itself is the deliverable, it is an increment with a
-> **Behavior** sketch in `TODO-N.md` § Increments.
+> contract block and **Surprises** in `TODO-N.md` § Increments.
 >
 > A level that genuinely cannot exist is written `none — <one-line concrete reason>`, and the reason
 > names what makes it impossible. Auto-reject: "covered by the unit test", "trivial", "no e2e harness"

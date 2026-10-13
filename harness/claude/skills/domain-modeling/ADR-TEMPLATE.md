@@ -5,7 +5,7 @@ created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
 
-# {Short title of the decision}
+# {The properties the decision gives the system — not the option picked}
 
 {1-3 sentences: what is the context, what did we decide, and why. For a feature: who uses it, how they start it, and what they get.}
 

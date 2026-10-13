@@ -12,13 +12,13 @@ contiguous, one pair per row in the `spec.md` ledger. Written by `/code todo`.
 
 | File | Read by | Holds | Length |
 |------|---------|-------|--------|
-| `TODO-N.md` | the human, repo closed | frontmatter, Outcome, New terms, Components, **Increments** — the steps of the work, each with its own diff, **Flow changes**, Commit, Deviations | ≤ 550 lines |
+| `TODO-N.md` | the human, repo closed | frontmatter, Outcome, New terms, Components, **Flow changes**, **Increments** — the steps of the work, each with its own diff, grouped into commits — Deviations | ≤ 200 lines, Increments uncounted |
 | `TODO-N.test.md` | the human at the gate, then the implementer | Autotest — Unit and E2E | unlimited |
 | `TODO-N.agent.md` | the implementer | Files — each path keyed to its increments, Pre-reads, Manual test, Gotchas | unlimited |
 
 The split is by audience. `TODO-N.md` is the design a human approves: what the system will be able to
 do, which symbols move, the steps that move them and what each symbol becomes, which running paths
-gain a step or a check, and what the commit says. `TODO-N.test.md` is what proves it.
+gain a step or a check, and what each commit says. `TODO-N.test.md` is what proves it.
 `TODO-N.agent.md` is where the work happens in the repo: the paths and the reading list.
 
 ## Read order
@@ -40,6 +40,9 @@ Self-contained means the **pair plus those generated rules**. Implement from the
   as the failure branch. `TODO-N.agent.md` carries no frontmatter.
 - **The diff lives once**, split across the increments of the human half — each increment carries its
   own diff and names no file. The agent half carries no ```diff block.
+- **One TODO, one or more commits.** Increments are numbered `<c>.<i>`: commit, then increment. Each
+  commit's increments end with a `---` line and a `### Commit <c>` section — Title, Body, Proves. At
+  each commit the repo builds and the tests pass.
 - **Neither half restates the other.** Each carries exactly one link to the other.
 - **Neither half stores why.** A decision's reason is walked on demand from `../thoughts/` by the
   `trace` skill.

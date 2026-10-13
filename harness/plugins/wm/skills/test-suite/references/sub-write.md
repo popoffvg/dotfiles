@@ -6,7 +6,7 @@ feature files** that carry the body of every behavioural scenario.
 The `.md` follows [`ref-readable-output.md`](ref-readable-output.md) — read that first, it is the
 contract this subcommand fills. The two worked examples are the pair this subcommand produces:
 [`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md) is the `.md` map, and
-[`examples/auth-refresh.feature.md`](../examples/auth-refresh.feature.md) is its Gherkin body.
+[`examples/auth-refresh.feature`](../examples/auth-refresh.feature) is its Gherkin body.
 
 ## How the two artifacts divide
 
@@ -39,11 +39,11 @@ appears in the `.md` line in bold and as the Gherkin tag on the scenario:
 Scenario: A running job refuses a pending update
   Given a job in state "Running"
   When a "Pending" status update arrives
-  Then the transition is rejected with "can't change status"
+  Then the transition is rejected with "cannot change status"
   And the job stays in state "Running"
 ```
 
-What the tag must say is in `sub-bdd.md` § Naming Conventions.
+What the tag must say is in the `#` block above the first tag of `examples/auth-refresh.feature`.
 
 ## Model two kinds of state — internal and external
 

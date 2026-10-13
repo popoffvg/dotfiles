@@ -1,6 +1,6 @@
 # TODO-1 — agent
 
-**Design:** [TODO-1.md](TODO-1.md) — Outcome, Components, **Increments** (the work and its diff), Flow changes, Commit. Tests: [TODO-1.test.md](TODO-1.test.md).
+**Design:** [TODO-1.md](TODO-1.md) — Outcome, Components, Flow changes, **Increments** (the work, its diffs, and its commits). Tests: [TODO-1.test.md](TODO-1.test.md).
 
 > A filled `<notes-dir>/todos/TODO-N.agent.md` — **the agent half of the pair**. Copy the section
 > order and the shape of each section, and delete the `>` lines — each one states the rules for the
@@ -17,17 +17,16 @@
 
 ## Files
 
-- `pkg/auth/handler.go` — modify — inc 1, 3
-- `pkg/auth/token.go` — modify — inc 2
-- `pkg/auth/login.go` — modify — inc 2
-- `pkg/auth/middleware.go` — modify — inc 3
-- `cmd/api/routes.go` — modify — inc 3
-- `pkg/auth/handler_test.go` — create — inc 3
-- `scripts/release-check.sh` — create — inc 4
-- `test/e2e/auth_refresh_test.go` — create — inc 3
+- `pkg/auth/handler.go` — modify — inc 1.1, 1.3, 2.1
+- `pkg/auth/token.go` — modify — inc 1.2
+- `pkg/auth/login.go` — modify — inc 1.3
+- `cmd/api/routes.go` — modify — inc 2.2
+- `pkg/auth/handler_test.go` — create — inc 2.1
+- `scripts/release-check.sh` — create — inc 3.1
+- `test/e2e/auth_refresh_test.go` — create — inc 2.2
 
 > Every repo-relative path the increments are expected to touch, one line each: the path, `create` or
-> `modify`, and the numbers of the human half's increments that touch it. This list is the only place
+> `modify`, and the `<c>.<i>` numbers of the human half's increments that touch it. This list is the only place
 > a path meets an increment — the human half names symbols only. `impl` reads the lines of the
 > increment it applies.
 >
@@ -73,8 +72,8 @@
 
 ## Gotchas
 
-- **inc 2 — `go test ./pkg/auth/...` passes with a stale Redis mock** — run `make mocks` before the test; the mock is generated and not in git. Evidence: `handler_test.go:41` failed only after `make mocks`.
-- **inc 3 — `middleware.go` calls `Refresh` through an interface in `pkg/auth/iface.go`** — change the interface too; **Files** did not list it. Evidence: `go build ./...` → `iface.go:12: missing method Refresh`.
+- **inc 2.1 — `go test ./pkg/auth/...` passes with a stale Redis mock** — run `make mocks` before the test; the mock is generated and not in git. Evidence: `handler_test.go:41` failed only after `make mocks`.
+- **inc 2.2 — `routes.go` calls `Refresh` through an interface in `pkg/auth/iface.go`** — change the interface too; **Files** did not list it. Evidence: `go build ./...` → `iface.go:12: missing method Refresh`.
 
 > **The implementer's memory for this TODO.** A context compact or a handoff to a new session loses
 > every finding that lives only in the conversation. This section is the file the next session reads.
@@ -82,7 +81,7 @@
 > `todo` writes no Gotchas section. `impl` and every @implementer create it with the first trap and
 > append one bullet **the moment a trap is found** — before the next edit, never at the end of the increment.
 >
-> One bullet: `- **inc <n> — <trigger>** — <what to do instead>. Evidence: <file:line, or the command and its output>.`
+> One bullet: `- **inc <c>.<i> — <trigger>** — <what to do instead>. Evidence: <file:line, or the command and its output>.`
 > The same shape as `<notes-dir>/GOTCHAS.md` (`capture-gotcha` skill), plus the increment number.
 >
 > Keep a wrong assumption, a command that fails in a non-obvious way, a file **Files** missed, a

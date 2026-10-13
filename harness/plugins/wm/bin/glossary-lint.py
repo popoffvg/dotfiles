@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Check a wm `<notes-dir>/GLOSSARY.md` against itself and against the corpus that uses it.
 
-An entry is any heading whose block carries a `- **Status:**` bullet; a heading without one is
-a context section. Entry shape: `arch:examples/glossary.md`.
+An entry is any heading whose block carries a `- **Status:**` bullet. A heading without one is a
+context (`#`) or a cluster (`##`); an entry is a `###` under a cluster. Shape: `arch:examples/glossary.md`.
 
 The live corpus is `spec.md`, `todos/*.md`, `thoughts/*.md` (archived notes excluded), the
 glossary's own definitions, and every `--code` root. A name matches across case and across the
@@ -26,7 +26,9 @@ KINDS = {
 }
 CODE_EXTS = {".go", ".ts", ".tsx", ".js", ".jsx", ".rs", ".py", ".tf", ".java", ".kt", ".sh", ".yaml", ".yml"}
 SKIP_DIRS = {".git", ".jj", "node_modules", "vendor", "dist", "build", "target", ".notes", "__pycache__"}
-META_KEYS = {"forbidden", "code", "source", "replaced by", "status", "kind"}
+META_KEYS = {"forbidden", "code", "links", "replaced by", "status", "kind"}
+ENTRY_LEVEL = 3
+CLUSTER_LEVEL = 2
 UNDEFINED_MIN_USES = 5
 UNDEFINED_TOP = 30
 SHOWN_HITS = 3
@@ -36,6 +38,8 @@ BULLET_KEY = re.compile(r"^\s*[-*]\s*\*\*([^:*]+):?\*\*:?\s*(.*)$")
 FENCE = re.compile(r"^\s*(```|~~~)")
 TABLE_ROW = re.compile(r"^\s*\|(.+)\|\s*$")
 TABLE_RULE = re.compile(r"^\s*\|[\s:|-]+\|?\s*$")
+LINK = re.compile(r"\[([^\]]+)\]\(#([^)\s]+)\)")
+SLUG_DROP = re.compile(r"[^\w\- ]")
 BACKTICKED = re.compile(r"`([A-Za-z][A-Za-z0-9_.]{2,60})`")
 WORD = re.compile(r"[A-Za-z0-9]+")
 NEEDLES = {}
@@ -61,6 +65,11 @@ class Findings:
         return [c for c in self.checks if c["findings"]]
 
 
+def slug(heading):
+    """GitHub heading anchor: lowercase, punctuation dropped, each space to `-`."""
+    return SLUG_DROP.sub("", heading.strip().lower()).replace(" ", "-")
+
+
 def read(path):
     try:
         return open(path, encoding="utf-8", errors="replace").read().splitlines()
@@ -76,18 +85,19 @@ def split_names(value):
 
 
 def parse_glossary(lines):
-    """Return the entries in file order: term, line, status, kind, forbidden, code, source, replaced_by, body."""
+    """Return the entries in file order: term, line, level, cluster, status, kind, forbidden, code, links, replaced_by, body."""
     blocks, current, in_fence = [], None, False
     for i, line in enumerate(lines, 1):
         if FENCE.match(line):
             in_fence = not in_fence
         m = None if in_fence else HEADING.match(line)
         if m:
-            current = {"term": m.group(2).strip(" `*"), "line": i, "lines": []}
+            current = {"term": m.group(2).strip(" `*"), "line": i, "level": len(m.group(1)), "lines": []}
             blocks.append(current)
         elif current is not None:
             current["lines"].append((i, line))
-    entries = []
+    entries, cluster = [], None
+    headings = [b["term"] for b in blocks]
     for b in blocks:
         keys = {}
         for _, line in b["lines"]:
@@ -95,16 +105,21 @@ def parse_glossary(lines):
             if k:
                 keys[k.group(1).strip().lower()] = k.group(2).strip()
         if "status" not in keys:
+            if b["level"] <= CLUSTER_LEVEL:
+                cluster = b["term"] if b["level"] == CLUSTER_LEVEL else None
             continue
         entries.append({
             "term": b["term"],
             "line": b["line"],
+            "level": b["level"],
+            "cluster": cluster,
             "status": keys["status"].strip("` ").lower(),
             "kind": keys.get("kind"),
             "forbidden": split_names(keys["forbidden"]) if "forbidden" in keys else None,
             "code": split_names(keys.get("code", "")),
             "has_code": "code" in keys,
-            "source": keys.get("source"),
+            "links": LINK.findall(keys["links"]) if "links" in keys else None,
+            "headings": headings,
             "replaced_by": keys.get("replaced by", "").strip(" `*") or None,
             "body": [(i, l) for i, l in b["lines"]
                      if not l.lstrip().startswith(">") and not (BULLET_KEY.match(l) and BULLET_KEY.match(l).group(1).strip().lower() in META_KEYS)],
@@ -165,7 +180,7 @@ def rel(path, notes):
 
 
 def check_fields(entries, f):
-    row = f.check("GL1", "every entry carries Status, Kind, Forbidden, Code, Source; a retired one names its replacement")
+    row = f.check("GL1", "every entry carries Status, Kind, Forbidden, Code, Links; a retired one names its replacement")
     live = {e["term"] for e in entries if e["status"] != "retired"}
     for e in entries:
         where = f"GLOSSARY.md:{e['line']} § {e['term']}"
@@ -185,8 +200,37 @@ def check_fields(entries, f):
             f.fail(row, where, "no Forbidden", "write `none` when the concept has one name")
         if not e["has_code"]:
             f.fail(row, where, "no Code", "the identifiers the code spells it with, or `none` before code exists")
-        if not e["source"]:
-            f.fail(row, where, "no Source")
+        if e["links"] is None:
+            f.fail(row, where, "no Links", "`<relation> [Term](#slug)` to each entry it depends on")
+
+
+def check_graph(entries, f):
+    row = f.check("GL7", "every entry is a `###` in a `##` cluster; every live entry links a live entry by its anchor; headings have unique slugs")
+    live = {e["term"] for e in entries if e["status"] != "retired"}
+    retired = {e["term"] for e in entries if e["status"] == "retired"}
+    slugs = collections.Counter(slug(h) for h in (entries[0]["headings"] if entries else []))
+    for s_, n in sorted(slugs.items()):
+        if n > 1:
+            f.fail(row, f"#{s_}", f"{n} headings share the anchor", "rename the context or cluster that repeats an entry name")
+    for e in entries:
+        where = f"GLOSSARY.md:{e['line']} § {e['term']}"
+        if e["level"] != ENTRY_LEVEL or not e["cluster"]:
+            f.fail(row, where, "entry is not a `###` under a `##` cluster heading",
+                   "put it in the cluster whose terms it links most")
+        if e["status"] == "retired":
+            continue
+        links = e["links"] or []
+        for target, anchor in links:
+            if target in retired:
+                f.fail(row, where, f"links retired [{target}]", "link the entry that replaced it")
+            elif target not in live:
+                f.fail(row, where, f"[{target}] is not an entry", "use an entry heading verbatim as the link text")
+            elif target == e["term"]:
+                f.fail(row, where, "links itself")
+            elif anchor != slug(target):
+                f.fail(row, where, f"[{target}](#{anchor}) points at the wrong anchor", f"use #{slug(target)}")
+        if e["links"] is not None and not links and len(live) > 1:
+            f.fail(row, where, "links no entry", "an orphan term: link the entry it depends on")
 
 
 def check_forbidden_shape(entries, f):
@@ -333,6 +377,7 @@ def lint(notes, code_roots=(), f=None):
     check_code_names(entries, code_corpus, notes, f)
     check_new_terms(entries, notes, f)
     check_dead(entries, notes_corpus, f)
+    check_graph(entries, f)
     return f, entries
 
 

@@ -59,7 +59,7 @@ QUALITY_QUESTION = {
 CORRECTION_QUESTION = {
     "type": "noul",
     "instructions": "`understood` is the assistant's summary of a task; `next_prompt` is the person's next message. "
-                    "Does `next_prompt` correct the goal, the limits, or the acceptance criteria in `understood`?",
+                    "Does `next_prompt` correct the goal, the reason, the limits, or the acceptance criteria in `understood`?",
 }
 
 
@@ -188,7 +188,8 @@ def report(days: int | None) -> None:
     if understood:
         corrected = sum(labels.get((t["session"], t["turn"], "correction"), 0) >= CORRECTION_CUTOFF for t in understood)
         print(f"\n## Understood lines: {len(understood)}, corrected by the next prompt: {corrected}")
-        print(f"  self-scored prompt quality: mean {statistics.mean(t['understood_score'] for t in understood):.2f}")
+        print(f"  self-scored prompt quality (share of parts given): "
+              f"mean {statistics.mean(t['understood_score'] / (t.get('understood_max') or 3) for t in understood):.2f}")
 
     groups = paste_groups(sessions)
     print(f"\n## Pasted blocks seen in 2+ sessions: {len(groups)} skill candidates")

@@ -75,8 +75,8 @@ When to commit, how to split, and what a user correction lands as: `impl:sub-com
 
 ## Where the text comes from in the wm flow
 
-**A TODO already holds the message; the implementer copies it, never re-derives it.** The TODO's
-`## Commit` block carries `Title` and `Body`, both approved by the human as the last link of the
+**A TODO already holds the message; the implementer copies it, never re-derives it.** Each
+`### Commit <c>` section of the TODO carries the `Title` and `Body` of one commit, both approved by the human as the last link of the
 verification chain, and the ledger row's `Why` is the Cause and Goal in compressed form. The
 Decision part comes from the `decision` and `impl-decision` notes the TODO obeys. Shapes:
 `arch:examples/todo.md`. When no TODO exists — a `fix`, a hot patch, a one-off — read the diff and the

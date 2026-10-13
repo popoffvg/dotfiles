@@ -145,7 +145,7 @@ Keep this suite as the guard that stops anyone claiming the split works because 
 Gates under test — two axes, both applied to one block of candidate content:
 
 - **`half`** → `human` | `agent` | `corpus` : which file the content belongs in.
-  `human` is `TODO-N.md` (Outcome, New terms, Components, **Increments**, Flow changes, Commit), `TODO-N.test.md` holds Autotest; `agent` is
+  `human` is `TODO-N.md` (Outcome, New terms, Components, Flow changes, **Increments**, Commit), `TODO-N.test.md` holds Autotest; `agent` is
   `TODO-N.agent.md` (Files, Pre-reads, Manual test, Gotchas); `corpus` is outside the pair: `thoughts/`, which holds a settled rule an increment can
   violate and the reason behind it alike.
   **Every diff is human** — each increment in `## Increments` carries its own diff, and no other section carries one. **No rule and no origin link

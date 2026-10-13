@@ -1,6 +1,6 @@
 ---
 name: code:squash
-description: "Analyze the fixup commits → distill gotchas into `GOTCHAS.md` (`capture-gotcha`) → `git` squash the scope as one commit, and merge the worktree branch when the spec ran under `where: worktree`."
+description: "Analyze the fixup commits → distill gotchas into `GOTCHAS.md` (`capture-gotcha`) → `git` fold each fixup into the commit it fixes, one commit per `### Commit` section, and merge the worktree branch w…"
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

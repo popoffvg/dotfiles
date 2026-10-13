@@ -41,16 +41,14 @@ list saying in words what you pruned and why.
 | [`write`](references/sub-write.md) | Enumerate the scenarios before implementation — a readable `.md` test set plus Gherkin feature files. | [`references/sub-write.md`](references/sub-write.md) |
 | [`verify`](references/sub-verify.md) | Audit an existing test set for missed cases and readability — Ready / Not Ready verdict. | [`references/sub-verify.md`](references/sub-verify.md) |
 | [`case-design`](references/sub-case-design.md) | Derive cases systematically — equivalence partitioning, boundary values, decision tables, state transition, state-combination, property-based. | [`references/sub-case-design.md`](references/sub-case-design.md) |
-| [`bdd`](references/sub-bdd.md) | Shape integration/e2e cases as Cucumber Given/When/Then. | [`references/sub-bdd.md`](references/sub-bdd.md) (+ [`references/ref-gherkin-guide.md`](references/ref-gherkin-guide.md)) |
-| [`tdd`](references/sub-tdd.md) | Drive a feature or bug-fix spec-before-code with Red-Green-Refactor. | [`references/sub-tdd.md`](references/sub-tdd.md) (+ [`references/ref-bdd-best-practices.md`](references/ref-bdd-best-practices.md)) |
+| [`bdd`](references/sub-bdd.md) | Shape integration/e2e cases as Cucumber Given/When/Then. | [`references/sub-bdd.md`](references/sub-bdd.md) |
+| [`tdd`](references/sub-tdd.md) | Drive a feature or bug-fix spec-before-code with Red-Green-Refactor. | [`references/sub-tdd.md`](references/sub-tdd.md) |
 | [`harness`](references/sub-harness.md) | Test a harness plugin in isolation — MCP server, unit tests, typecheck, Claude plugin loading (tmux panes). | [`references/sub-harness.md`](references/sub-harness.md) |
 | [`review`](references/sub-review.md) | Run the verify phase — present results, let the user review an implementation against acceptance criteria. | [`references/sub-review.md`](references/sub-review.md) |
 
 Supporting references (not direct subcommands): [`references/ref-readable-output.md`](references/ref-readable-output.md) — the output
 contract for every subcommand; [`references/ref-property-based.md`](references/ref-property-based.md) — the
-property-based technique in full, backing the `property-based` row of [`case-design`](references/sub-case-design.md);
-[`references/ref-gherkin-guide.md`](references/ref-gherkin-guide.md) and
-[`references/ref-bdd-best-practices.md`](references/ref-bdd-best-practices.md) — backing docs for [`bdd`](references/sub-bdd.md) and [`tdd`](references/sub-tdd.md).
+property-based technique in full, backing the `property-based` row of [`case-design`](references/sub-case-design.md).
 
 ## How they combine
 
@@ -67,11 +65,11 @@ Typical chain for a TODO: [`case-design`](references/sub-case-design.md) (derive
 `examples/` holds one file per artifact this skill writes, over the same `POST /auth/refresh`
 handler: [`examples/strategy-auth-refresh.md`](examples/strategy-auth-refresh.md) is the `.md`
 test set — the function block, five big cases, coverage, and the prunes — and
-[`examples/auth-refresh.feature.md`](examples/auth-refresh.feature.md) is its Gherkin body.
+[`examples/auth-refresh.feature`](examples/auth-refresh.feature) is its Gherkin body.
 
 Each example is the finished artifact filled with real content, and every piece of it carries its
-own rules as a `>` block underneath: what that piece must do, what it must contain, when it is
-wrong. Copy the file, replace the content, delete the `>` lines. A rule about one section is
+own rules as a `>` block underneath in the `.md` and a `#` block above in the `.feature`: what that piece must do, what it must contain, when it is
+wrong. Copy the file, replace the content, delete the rule lines. A rule about one section is
 written there and nowhere else; `references/` holds only what no single piece owns.
 
 Per-TODO output goes into `## Autotest` in `<notes-dir>/todos/TODO-N.test.md` and `## Manual test` in `<notes-dir>/todos/TODO-N.agent.md` (follow the `arch` skill's

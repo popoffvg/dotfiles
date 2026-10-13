@@ -107,11 +107,11 @@ Do not scan for contradictions by reading and hoping. Extract, then collide.
 
 | Kind | Where it hides | Example claim |
 |---|---|---|
-| Signature | `## Increments` diffs, **Behavior** TS block | `loadSpec(dir: string): Spec` |
+| Signature | `## Increments` diffs | `loadSpec(dir: string): Spec` |
 | Term meaning | Outcome, a printed rule, GLOSSARY row | `"wave" = a set of TODOs with no shared Files` |
 | File ownership | `## Files`, increment **Files** | `TODO-3 rewrites src/gate.ts` |
 | Order | `Depends on`, wave table, increment `n` | `TODO-5 lands after TODO-2` |
-| State transition | Outcome, **Blast radius** | `status moves review → impl` |
+| State transition | Outcome, increment summary, **Surprises** | `status moves review → impl` |
 | Decision | `thoughts/` decision notes | `no new dependency in the plugin dir` |
 
 **Step 2 — collide pairwise.** Compare every claim against every other claim of the same kind. A collision is two claims that cannot both hold:
@@ -145,7 +145,7 @@ carries it beside the three hunts. Each one is a hard block when it fires.
 content that *is* the implementation rather than the surface a caller sees: a function body, a loop
 or branch chain, a shell script, a SQL query, a regex, a fixture, a table of literal expected
 values, a test file's assertions. The edit is the same each time — delete the body, keep the
-signature, move the logic into the increment's **Behavior** sketch, and use a plain contract block
+signature, move each decision a reader cannot guess into the increment's **Surprises**, and use a plain contract block
 when the file has no surface at all (`arch:ref-todo-sections.md` § A diff carries the surface, not a
 body).
 **The one legal body is one the human asked for**, and it carries a `**Body requested:**` bullet
@@ -158,7 +158,7 @@ the closed files is a missing restatement, named as the finding.
 **Readable at one pass — the human half only.** `TODO-N.md` is written under the `i-have-adhd` skill
 (`arch:ref-todo-sections.md` § Every prose line). Read its rules —
 `~/.claude/skills/i-have-adhd/SKILL.md` — then judge every prose line against them: Outcome,
-`New terms` **Meaning**, `Components` **Role** and **Change**, `Autotest` cases, `Commit.Body`. Apply its own test:
+`New terms` **Meaning**, `Components` **Role** and **Change**, `Autotest` cases, each `### Commit` **Body**. Apply its own test:
 read the first sentence of each section, then the bold phrases, and rule whether that skim carries
 the approval decision. Two ideas in one sentence, a stacked clause chain, a metaphor standing in for
 a plain word, and a fact restated a second way each fire. A finding quotes the sentence and gives the

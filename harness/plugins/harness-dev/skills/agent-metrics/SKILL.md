@@ -40,4 +40,4 @@ Give the operator the numbers and one action per section; a section with no data
 Both ship off; the operator sets them in the `env` block of `settings.json`. Report their state; change it only when asked:
 
 - `HARNESS_DEV_PASTE_NUDGE=1` — after a block is pasted 3+ times in 2+ sessions, the agent offers to make it a skill.
-- `HARNESS_DEV_UNDERSTOOD=1` — each task-start reply opens with `understood: goal=… · limits=… · acceptance=… · prompt N/3`. The `classify` correction label needs it.
+- `HARNESS_DEV_UNDERSTOOD=1` — each task-start reply opens with one `hint:` line: the missing part of the prompt (goal, why, limits, acceptance), the choice the agent guessed, and the sentence to add. It shows no score, so new rows feed neither the score mean nor the `classify` correction label; older rows with an `understood:` line still do.

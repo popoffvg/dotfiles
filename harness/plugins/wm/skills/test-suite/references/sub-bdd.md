@@ -1,215 +1,82 @@
-# BDD Test Design
+# BDD — write the behavioural cases as Gherkin
 
-Shape the behavioural cases as Given/When/Then. The feature file is the **body** of cases the
-`.md` test set already names, so read [`ref-readable-output.md`](ref-readable-output.md) first
-and keep the two in step: one `Rule` or block of scenarios per big case, and one scenario per
-variant, tagged with that variant's name.
+The feature file is the **body** of the cases the `.md` test set already names. Read
+[`ref-readable-output.md`](ref-readable-output.md) first and keep the two in step: one `Rule` per
+big case, one `Example` per integration or manual variant, tagged with the variant name.
 
-**The filled file is [`examples/auth-refresh.feature.md`](../examples/auth-refresh.feature.md)** —
-the Gherkin bodies for the test set in
-[`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md), every piece carrying
-its own rules. Copy its shape; this file is the procedure that produces it.
+**The filled file is [`examples/auth-refresh.feature`](../examples/auth-refresh.feature)** — the
+body of [`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md). A `#` block
+above each piece states the rules of that piece, and no other file repeats them. This file is the
+procedure that produces it and the rules that span every piece.
 
-## Cucumber Notation
+## Steps
 
-Every test scenario is expressed in **Given / When / Then** steps:
+1. **Discover the examples.** Talk the feature through with whoever owns the requirement, builds
+   it, and tests it, until it is stated as examples, not adjectives. Use Example Mapping: one
+   card per rule, one card per example under it, one card per question nobody can answer. Done
+   when every rule has at least one example and every question is in the `.md` **Open
+   questions**. A feature that gives no question was not examined.
+2. **Map the cards to keywords.** A rule card is a `Rule:` with the big-case sentence. An example
+   card is an `Example:`. Done when every big case with an integration or manual variant has its
+   `Rule`.
+3. **Formulate each Example against BRIEF** (table below). Done when every Example passes all six.
+4. **Order the file.** The Rule that holds the hardest happy path comes first: the Example that
+   chains the most states, crosses the most boundaries, and runs against real infrastructure.
+   Mark it in the `.md` as the pre-merge manual test.
+5. **Write the file** to `<notes-dir>/features/<area>.feature`; create `features/` when it is
+   missing. Never put Gherkin inside a Markdown file: a runner cannot execute it there.
+6. **Lint it.** Run `npx --yes gherkin-lint` in the directory that holds the file. It needs a
+   `.gherkin-lintrc` there: copy one from another `.feature` directory of the repo, or write one
+   that turns on `keywords-in-logical-order`, `no-unused-variables`, `no-trailing-spaces`,
+   `new-line-at-eof`, and `one-space-between-tags`. Done when it reports nothing. Fix each finding
+   yourself; a finding is never the result.
 
-| Keyword | Purpose |
-|---------|---------|
-| `Given` | Precondition — system state before the action |
-| `When`  | Action or event that triggers the behavior |
-| `Then`  | Expected observable outcome |
-| `And`   | Continuation of the previous step type |
-| `But`   | Negative continuation (e.g. "But it should NOT appear in the list") |
+## BRIEF — the six checks for one Example
 
----
+| Check | The Example passes when |
+|---|---|
+| **Business language** | Every word is one the requirement owner uses. No class, table, selector, or JSON field. For an operator runbook the shell command is the business language. |
+| **Real data** | Values are concrete: a persona name (`Alice`), a real status, a real reason string. Never `valid input` or `X`. |
+| **Intention revealing** | The title states the behaviour, and each step states intent, not mechanics: `When Alice signs in`, not three steps of typing and clicking. |
+| **Essential** | Removing any step would change what the Example proves. Setup a reader does not need lives in the step definitions. |
+| **Focused** | It illustrates exactly one rule. A second `When`, or a title that needs "and", is two Examples. |
+| **Brief** | Five steps or fewer. |
 
-## Scenario Structure
-
-Each test starts with a plain-English scenario block — the shape is any `Scenario` in the
-example — and each step then appears as a labeled section in the implementation, mirroring the
-scenario exactly:
-
-```
-// Given a resource exists
-id = createResource(name)
-
-// When the user deletes it
-err = client.delete(id)
-
-// Then the resource no longer exists
-exists = client.exists(id)
-assert exists == false, "resource was deleted — why does it still exist?"
-
-// And no error is returned
-assert err == nil
-```
-
----
-
-## Multi-step Scenarios
-
-A flow that one Given/When/Then cannot carry breaks into more `And` steps, each observable on
-its own — the parallel-refresh scenario of the example is one. Use numbered labels in code when
-one keyword covers multiple actions or checks:
-
-```
-// When both clients update simultaneously
-//  1. Client A writes value "foo"
-//  2. Client B writes value "bar"
-```
-
----
-
-## Assertions
-
-**Always attach a message explaining the business invariant** — not a restatement of the check:
-
-```
-# Bad
-assert exists == false, "exists is false"
-
-# Good
-assert exists == false, "resource was just deleted — it must not be retrievable anymore"
-```
-
-Assert at the right granularity:
-- One `Then` per observable outcome
-- Don't bundle unrelated checks into a single assertion
-- Assert what a user or a caller can see, never an internal call or a private field
-- Prefer specific matchers: `equal`, `contains`, `has_length` over generic `is_true`
-
----
-
-## Test Isolation
-
-Each scenario must be fully independent:
-
-- **Create fresh data** per scenario — never share state between tests
-- **Generate a unique random identifier** per scenario — a hardcoded `"test-user"` collides the
-  moment two scenarios run at once
-- **Tear down everything the scenario created, even when it failed** — a leaked resource is the
-  next scenario's mystery failure
-- **Set up its own preconditions**, so any scenario passes when it runs alone
-
-```
-# Bad — hardcoded name, shared state
-Given the user "admin" exists
-
-# Good — isolated, random
-Given a user exists with a unique generated name
-```
-
----
-
-## Async Behavior
-
-Never assert on eventual state immediately after triggering an action.
-
-```
-# Bad
-When the job is submitted
-Then the result is available   ← races if result isn't instant
-
-# Good
-When the job is submitted
-And the system processes it
-Then the result is available
-```
-
-In implementation: **subscribe/listen before triggering**, then wait for the event:
-
-```
-# 1. Set up the listener FIRST (avoid the race)
-listener = subscribe(resource, event: "ready")
-
-# 2. Trigger
-submit(job)
-
-# 3. Wait with a hard timeout — never sleep
-result = listener.wait(timeout: 5s)
-assert result != nil, "job did not complete within 5s"
-```
-
-Wait on an event, or poll with a timeout. A `sleep(500ms)` passes on a fast machine and flakes
-on a loaded one.
-
----
-
-## Naming Conventions
-
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Feature | Noun phrase describing capability | `Resource Lifecycle`, `User Authentication` |
-| Scenario | Present-tense statement of behavior | `User deletes a resource`, `Expired token is rejected` |
-| Tag | The variant name from the `.md`, kebab-case | `@expired-token-is-rejected` |
-| Step | Starts with Given/When/Then + active verb | `Given the service is running`, `When a request is sent` |
-
-**The tag carries the variant name, and the match is what joins the feature file to the `.md`.**
-A failing CI run prints the tag and nothing else, so `@running-cannot-return-to-pending` reports
-the broken behaviour where `@TS-STATE-013` reports a lookup task.
-
----
+The wording test: will this step change when the implementation changes and the behaviour does
+not? If yes, rewrite it as the behaviour.
 
 ## Scenario Outline
 
-An `Examples` table is a readable way to write one behaviour with several inputs, and an
-unreadable way to dump a derivation matrix into a feature file.
+Use one only when every row is the same sentence with one value changed and the row reads on its
+own. Split into separate Examples when the rows differ in their `Then`, need different setup, or
+carry more than three columns: at that point the table is the derivation matrix the test set
+keeps out of sight. Every column MUST be read by a `<placeholder>`.
 
-Use an outline when every row is the same sentence with one value changed, and the row reads on
-its own. Split into separate scenarios as soon as the rows differ in their `Then`, need different
-setup, or carry more than about three columns — at that point the outline has become the matrix
-the test set is supposed to keep out of sight.
+## Step definitions — the code under the steps
 
----
+**Mirror the steps as labelled sections**, so a reader matches code to scenario line by line:
 
-## Scenario Design Checklist
+```
+// Given Alice is signed in
+alice = signIn(uniqueAccount("alice"))
 
-For each new test scenario:
+// When Alice refreshes
+resp = client.refresh(alice.refreshToken)
 
-1. **One behavior per scenario** — if you need "and also", consider splitting.
-2. **Scenario title is the spec** — it should read as documentation.
-3. **Given sets up state, not the system** — infrastructure setup belongs in test setup, not `Given`.
-4. **Then checks outcomes, not implementation** — test observable behavior, not internal calls.
-5. **Cover the unhappy path** — add a sibling scenario for the failure case.
+// Then the refresh is answered 401 with reason "token expired"
+assert resp.status == 401, "an expired token must never yield a new pair"
+```
 
----
+When one step covers several actions, number them in the label (`//  1. Client A writes "foo"`).
 
-## Output format
+**Each assertion message states the business invariant**, not the check: `"a deleted resource
+must not be retrievable"`, never `"exists is false"`. One `Then` per observable outcome; assert
+what a caller can see, never an internal call or a private field; prefer `equal`, `contains`,
+`has_length` over a bare `is_true`.
 
-Always produce a `.feature` file — never embed Gherkin inside a Markdown document.
+**Each Example is independent.** It creates its own data under a unique generated identifier,
+sets up its own preconditions so it passes when run alone, and tears down what it created even
+when it failed. A persona name in the step maps to a fresh account in the definition.
 
-Place the file in `<notes-dir>/features/<feature-name>.feature`. If the notes dir has no
-`features/` subdirectory, create it. This is the one statement of the output path; every
-checklist that needs it cites this section.
-
----
-
-## Ops / manual scenarios
-
-The "business language, not technical terms" rule applies to **user-facing app tests**.
-For **operator runbooks** — backend startups, CLI flag changes, infra config — the
-operator's business language IS the shell command. In these scenarios:
-
-- Embed the literal CLI invocation in a `"""sh` docstring on the `When` step — annotate it
-  `"""sh`, never a bare `"""`, so an editor highlights it and the intent is visible.
-- `Then` steps stay declarative (what the operator observes), not imperative.
-- Use `Background` for shared setup (build step, credential fetch, seed data creation).
-
-The filled shape is the `@rotation-emits-one-join-event` scenario of the example.
-
----
-
-## Hardest happy path
-
-For every feature, identify the **hardest happy path**: the single scenario that chains
-the most behaviors, crosses the most system boundaries, and uses real infrastructure values.
-This becomes the mandatory pre-merge manual test.
-
-Criteria for "hardest":
-- Requires multiple sequential restarts or state transitions.
-- Uses real credentials / endpoints, not mocks.
-- Exercises the main failure-recovery path (e.g. freeze → re-activate, rotation → re-open).
-- Every intermediate state is independently observable (can be checked before the next step).
-
-Put it first in the `.feature` file and mark it in the strategy doc.
+**Wait on an event, never on a clock.** Subscribe before you trigger, then wait with a hard
+timeout. A `sleep` passes on a fast machine and fails on a loaded one.

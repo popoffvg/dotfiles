@@ -61,7 +61,7 @@ Do not fold these into synonyms — a rename keeps the concept, changes the word
 
 ## Feeding a wm glossary
 
-When the output goes into a wm `<notes-dir>/GLOSSARY.md`, each canonical term is an entry heading and its variants are the entry's `Forbidden` names (shape: wm `arch:examples/glossary.md`). A variant that is a common word, or a word of another canonical term, stays out of `Forbidden` — nobody can obey a ban on it. A collision is two entries.
+When the output goes into a wm `<notes-dir>/GLOSSARY.md`, each canonical term is an entry heading and its variants are the entry's `Forbidden` names (shape: wm `arch:examples/glossary.md`). A variant that is a common word, or a word of another canonical term, stays out of `Forbidden` — nobody can obey a ban on it. A collision is two entries. The synonym groups here are not the glossary's `##` clusters: a wm cluster groups distinct concepts that one flow joins, and its entries link each other with markdown links.
 
 ## Rules
 

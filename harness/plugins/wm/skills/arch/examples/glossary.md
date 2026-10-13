@@ -5,16 +5,26 @@
 > **Scope:** every domain term that `spec.md`, a TODO pair, or a live thought uses. A term enters the
 > file before the first artifact uses it, and leaves only as `retired`.
 >
-> **Shape:** one `#` heading per bounded context, one `##` entry per term under it, contexts in the
-> order the main user flow meets them. An entry is a definition, never a decision: the reason a term
-> exists lives in its `thoughts/` note, and the identifiers live in **Code**.
+> **Shape:** three heading levels. `#` is a bounded context, in the order the main user flow meets
+> them. `##` is a **cluster**: the terms that one aggregate, one flow, or one lifecycle joins. `###`
+> is one entry per term — a Zettelkasten note: one concept, its definition, and typed **Links** to
+> the entries it depends on. An entry is a definition, never a decision: the reason a term exists
+> lives in its `thoughts/` note, and the identifiers live in **Code**.
 >
 > Check: `${CLAUDE_PLUGIN_ROOT}/bin/glossary-lint.py <notes-dir> [--code <repo>]` — the rules below
 > are what it parses. The prose follows `harness-dev:text-style`.
 
-# Session
+# Auth
 
-## RefreshToken
+## Token rotation
+
+A client keeps a session alive by trading its refresh token for a new pair.
+
+> The line under a cluster heading says what joins its terms, in one sentence. A term belongs to
+> the cluster whose other terms it links most. A cluster with one entry is a sign the term belongs
+> in a neighbour cluster.
+
+### RefreshToken
 
 Opaque token, TTL-bound, exchanged for a new pair on every refresh.
 
@@ -22,9 +32,9 @@ Opaque token, TTL-bound, exchanged for a new pair on every refresh.
 - **Kind:** entity
 - **Code:** `RefreshToken`, `refresh_token`
 - **Forbidden:** refresh key, `rtok`
-- **Source:** `auth/token.go:14`
+- **Links:** part of [Session](#session); consumed by [RotateToken](#rotatetoken)
 
-> The `##` heading is the term as the spec writes it. The line under it is the definition: one
+> The `###` heading is the term as the spec writes it. The line under it is the definition: one
 > sentence, the visible contract (TTL, bounds, error semantics), no implementation detail a reader
 > cannot observe.
 >
@@ -41,26 +51,16 @@ Opaque token, TTL-bound, exchanged for a new pair on every refresh.
 > word of another entry's name, and that no definition in this file needs. A banned common word
 > (`run`, `cloud`) is a ban nobody can obey. `none` when the concept has one name.
 >
-> **Source** is the `path:line` the term comes from, or the spec section that coins it.
+> **Links** are `;`-separated, each `<relation> [Term](#slug)`: the text is another entry's heading
+> verbatim, the anchor is that heading's GitHub slug — lowercase, punctuation dropped, spaces to
+> `-`. Every heading in the file needs its own slug, so a context or a cluster never shares a name
+> with an entry.
+> The relation is a short verb phrase read from this entry: `part of`, `holds`, `issued by`,
+> `consumes`, `emits`, `produces`, `kind of`, `opposite of`. Link across clusters and contexts
+> freely: a link across clusters shows a dependency the grouping hides. Every live entry links at least one other entry;
+> the reverse link is optional.
 
-## AuthHandler
-
-Serves every `/auth/*` route and owns the request-to-domain translation for them.
-
-- **Status:** existing
-- **Kind:** server
-- **Code:** `AuthHandler`
-- **Forbidden:** auth router, `AuthController`
-- **Source:** `auth/handler.go:9`
-
-> **Kind** is one word from one of two sets — data, or a **brick** (a running responsibility):
-> data ∈ `aggregate | entity | value-object | event | state`;
-> brick ∈ `command | service | flow | gateway | server | consumer | policy | scheduler | wiring`
-> (roster, metric, and structure of each: `arch:ref-bricks.md`).
-> `/dive docs` fills this file first, from the research artifacts' `## Terms`
-> (`dive-docs:SKILL.md` § Glossary).
-
-## RotateToken
+### RotateToken
 
 Exchanges a valid refresh token for a new pair; issued by the SDK against a `Session`, and emits
 `TokenRotated` on success or `AuthRefreshFailed` on a replay.
@@ -69,13 +69,13 @@ Exchanges a valid refresh token for a new pair; issued by the SDK against a `Ses
 - **Kind:** command
 - **Code:** none
 - **Forbidden:** renew token, reissue token
-- **Source:** spec § Goal
+- **Links:** consumes [RefreshToken](#refreshtoken); emits [TokenRotated](#tokenrotated)
 
 > A command's name is imperative, and its definition says who issues it and which events it emits.
 > Every new, renamed, or retired entry is approved by the user before it lands —
 > `code:ref-subcommand-rules.md` § Glossary.
 
-## TokenRotated
+### TokenRotated
 
 The previous refresh token is invalidated and the new pair is persisted.
 
@@ -83,21 +83,35 @@ The previous refresh token is invalidated and the new pair is persisted.
 - **Kind:** event
 - **Code:** none
 - **Forbidden:** none
-- **Source:** spec § Goal
+- **Links:** emitted by [RotateToken](#rotatetoken); changes [Session](#session)
 
 > An event's name is past tense and its definition is the state that now holds, not the call that
 > produced it. `none` is written out, so a reader can tell a concept with one name from an entry
 > someone forgot to finish.
 
-## TokenJar
+## Session lifecycle
+
+A session is opened at login and ends at logout or when its TTL runs out.
+
+### Session
+
+One signed-in client on one device; its TTL is 15 minutes from the last refresh.
+
+- **Status:** existing
+- **Kind:** aggregate
+- **Code:** `Session`
+- **Forbidden:** login state
+- **Links:** holds [RefreshToken](#refreshtoken)
+
+### TokenJar
 
 Per-user container of refresh tokens, replaced by keeping each token on its `Session`.
 
 - **Status:** retired
 - **Replaced by:** RefreshToken
 - **Code:** `TokenJar`
-- **Source:** `thoughts/012-decision-tokens-live-on-the-session.md`
 
 > A retired entry stays in the file: its heading and its **Code** become banned names, and the lint
 > reports every use left in the corpus. **Replaced by** names the live entry that took the meaning,
-> or `none`. Never delete an entry — a deleted name comes back.
+> or `none`. A retired entry has no **Links**, and no live entry links to it. Never delete an
+> entry — a deleted name comes back.

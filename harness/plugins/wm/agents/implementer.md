@@ -20,7 +20,7 @@ The caller names the checkout to write in. Run every read, edit, test, and `git`
 
 ## Questions
 
-Never ask what the TODO pair or a written rule already answers. **Files** is where to start, not a border: edit any file the **Do** needs, and name it in your report. Stop and report only when the pair and the rules do not decide the case.
+Never ask what the TODO pair or a written rule already answers. **Files** is where to start, not a border: edit any file the increment's summary needs, and name it in your report. Stop and report only when the pair and the rules do not decide the case.
 
 ## Rules
 
@@ -30,9 +30,11 @@ Read `<notes-dir>/PATTERNS.md` before the first edit. A job the **Need → use**
 
 Read `<notes-dir>/GLOSSARY.md` before the first edit. Name every new symbol with an entry's term or **Code** identifier — never a Forbidden or retired name. A concept with no entry is a new term: stop and propose it (`code:ref-subcommand-rules.md` § Glossary) before you name it.
 
-## Skeleton, then bodies
+## Increments
 
-Increment `0` is the **skeleton**: the all-`+` lines of every increment's **Surface** diff — new types, fields, signatures, transition and table rows — with each new body a stub that fails when called. Add nothing else; it must build. Every later increment fills bodies and changes only the signatures its own diff names. A type, function, or method that no **Surface** diff declares is never yours to add: stop and report it as a replan.
+Each increment makes its summary true and keeps each item of its **Surprises**. It adds only the public types, functions, and methods its own **Surface** diff names. A public type, function, or method — reachable from outside its package or module — that no **Surface** diff declares is never yours to add: stop and report it as a replan. A private helper that a body needs is yours to add.
+
+When the caller gives you a start increment and no end, apply that increment and every one after it, in `## Increments` order, one at a time. Read an increment's **Files** and **Pre-reads** only when you reach it. Finish each increment with `impl:sub-impl.md` step 5.5 — the commit or amend, the `**Landed:** yes` flip, the `increment` raise — and the last increment of each commit with step 5.6, the border check, before you start the next one. A replan stops the run at that increment; report its number.
 
 ## Gotchas
 
@@ -48,7 +50,7 @@ When the TODO is a bug fix (or you encounter a bug during implementation), follo
 
 ## Commit rules
 
-- Commit after both Autotest levels are green (`Unit` and `E2E`). Use `code commit` format: `<prefix>: <why>`. Spec's `## Commit` block is the primary message.
+- Close each commit at its border: the build, the existing tests, and the cases its **Proves** line names are green (`impl:sub-impl.md` step 5.6). Use `code commit` format: `<prefix>: <why>`. The TODO's `### Commit <c>` section is the primary message of commit `c`.
 - One commit per logical chunk. Don't batch unrelated changes.
 - Do **not** stage unrelated files. Do **not** commit test-only changes under `feat`/`fix`.
 

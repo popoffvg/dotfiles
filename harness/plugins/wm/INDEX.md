@@ -64,12 +64,12 @@ Four files at the plugin root, shared by all five skills.
 | `examples/notes-claude.md` | The notes-dir `CLAUDE.md`. |
 | `examples/todos-claude.md` | The `todos/CLAUDE.md` — the pair convention any agent entering the folder reads: two files per ledger row, which half holds what, the read order, the write rules. |
 | `examples/rules.md` | The notes-dir `RULES.md` and its three init knobs — approval depth is not one of them; it is the `approve` key on `spec.md` and on each TODO. |
-| `examples/glossary.md` | The notes-dir `GLOSSARY.md` — the project's ubiquitous language, one `#` section per bounded context and one `##` entry per term carrying its definition, `Status` (`new | existing | retired`), `Kind`, `Code`, the `Forbidden` aliases, and `Source`; checked by `bin/glossary-lint.py`. Distinct from `wm:GLOSSARY.md`. |
+| `examples/glossary.md` | The notes-dir `GLOSSARY.md` — the project's ubiquitous language, one `#` section per bounded context, one `##` cluster of related terms, and one `###` entry per term carrying its definition, `Status` (`new | existing | retired`), `Kind`, `Code`, the `Forbidden` aliases, and the markdown `Links` to related entries; checked by `bin/glossary-lint.py`. Distinct from `wm:GLOSSARY.md`. |
 | `examples/patterns.md` | The notes-dir `PATTERNS.md` — the implementation patterns and reference files the increments follow, out of `spec.md` so the spec stays human-only. |
 | `examples/concepts.md` | The notes-dir `CONCEPTS.md` — app architecture, data flow, and the flow the work changes, drawn with the `show-me` skill. Out of `spec.md` because the diagrams are re-read while the ledger is shaped and the spec is budgeted at 200 lines. Written only when a picture changes a layer, a wave, or where a row splits. |
 | `examples/spec.md` | The notes-dir `spec.md` — the filled artifact, with the rules for each section beside it: Description, Goal, What we're NOT doing, the ledger (`Layer` / `Outcome` / the `Today \| After` table / `Done when` / `Commit` / `Why`), and the Plan with its wave table. The contract around it is `arch:ref-write.md`. |
 | `examples/note-{question,decision,fact,impl-decision}.md` | The four thought notes. |
-| `examples/todo.md` | The TODO **human half** (`TODO-N.md`) — Outcome, New terms, Components, **Increments** (each step self-contained for review: Do, Blast radius, Behavior, and its own Surface diff, no file path), **Flow changes** (each running path as a step tree, with the changed steps marked), Commit, **Deviations** (written by `impl`, never by `todo`) — and the worked example of it, including the `Surface` contract block and Behavior sketch an increment carries when the deliverable is a whole body. |
+| `examples/todo.md` | The TODO **human half** (`TODO-N.md`) — Outcome, New terms, Components, **Flow changes** (each running path as a step tree, with the changed steps marked), **Increments** (each step self-contained for review and in one component: a summary paragraph, Surprises, and its own Surface diff, no file path), Commit, **Deviations** (written by `impl`, never by `todo`) — and the worked example of it, including the `Surface` contract block and Surprises an increment carries when the deliverable is a whole body. |
 | `examples/todo-agent.md` | The TODO **agent half** (`TODO-N.agent.md`) — Files (each path keyed to the increments that touch it), Pre-reads, Manual test, Gotchas (the traps `impl` appends so they survive a compact or a handoff) — and the worked example of it. |
 | `examples/todo-test.md` | The TODO **test file** (`TODO-N.test.md`) — `## Autotest` alone, Unit and E2E, with no line budget — and the worked example of it. |
 
@@ -88,9 +88,9 @@ content, delete the `>` lines.
 | `references/ref-change-types.md` | **The change-type roster** — the nine kinds a change can be (`new behavior`, `signature change`, `wiring`, `call-site migration`, `rename`, `move`, `deletion`, `test`, `generated`), the boundary a subagent walks to assign one, the typed list shown per increment under `approve: increment`, and the start point + main changes shown once under `approve: todo` and reported under `approve: none`. |
 | `commands/sub-auto.md` | `auto` — the whole ledger unattended, gates replacing the human. |
 | `commands/sub-fix.md` | `fix` — close a gap by fixing the thought, then the code. |
-| `commands/sub-squash.md` | `squash` — distill the fixup trail into skills, squash the scope as one commit. |
+| `commands/sub-squash.md` | `squash` — distill the fixup trail into skills, fold each fixup into the commit it fixes, one commit per `### Commit` section. |
 | `commands/sub-commit.md` | `commit` — when to commit, one-commit-per-chunk, and § Fixups. Not the message text. |
-| `examples/change-table.md` | The two change tables filled — the per-increment one and the whole-TODO one — each column and each required line carrying its own rules: the subagent that writes the table from the diff, the `What` grammar, the closing blast-radius line, the marked start point, and the `the rest, counted` row. |
+| `examples/change-table.md` | The two change tables filled — the per-increment one and the whole-TODO one — each column and each required line carrying its own rules: the subagent that writes the table from the diff, the `What` grammar, the closing component line, the marked start point, and the `the rest, counted` row. |
 
 ### `review` — judges source, writes none
 
@@ -142,7 +142,7 @@ Independent of the `/code` flow, each with its own entry point.
 | File | Owns |
 |---|---|
 | `examples/strategy-auth-refresh.md` | The `.md` test set filled — the function block, the big cases with their variant lines, How it runs, Coverage, Not covered, Open questions — each piece carrying its own rules. The five cross-cutting rules and the pre-save checklist are `references/ref-readable-output.md`. |
-| `examples/auth-refresh.feature.md` | The `.feature` file filled — the Feature header, `Background`, one `Rule` per big case with the hardest happy path first, the variant-name tags, the `"""sh` operator docstring — each piece carrying its own rules. The procedure is `references/sub-bdd.md`. |
+| `examples/auth-refresh.feature` | The `.feature` file filled — the Feature header, `Background`, one `Rule` per big case with the hardest happy path first, an `Example` per integration or manual variant, the variant-name and tier tags, the `"""sh` operator doc string — each piece carrying its own rules as a `#` block. The procedure, the BRIEF checks, and the step-definition rules are `references/sub-bdd.md`. |
 
 The two examples are one corpus: the same `POST /auth/refresh` handler, mapped in the `.md` and
 bodied in the `.feature`, joined by the variant names.
@@ -165,6 +165,6 @@ the existing suite rather than nesting an `evals/` inside a skill. A change to a
 
 | Owner | Holds |
 |---|---|
-| `flow-sketch` skill | The TS-pseudocode notation an increment's **Behavior** sketch follows, and the variant table that picks its shape from the change kind and the `main` component's brick. The ordered parts of each brick are `arch:ref-bricks.md`. |
+| `flow-sketch` skill | The TS-pseudocode notation a flow sketch follows, and the variant table that picks its shape from the change kind and the `main` component's brick. The ordered parts of each brick are `arch:ref-bricks.md`. |
 | `lessons` skill | Lesson **content** — dependency order, the concept-per-step rule, alternatives and asymmetries. `teach` owns the workspace, not the pedagogy. |
 | `thought` skill | The concept of a thought and its rules. `arch:ref-note-format.md` gives this corpus's format. |

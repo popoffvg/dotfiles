@@ -10,4 +10,4 @@
 
 **To add a value:** add the ruleset file, add the value to `APPROVE_VALUES` or `RISK_VALUES` in `bin/impl-ruleset.py`, and add it to `arch:ref-write.md` § Approval or the `risk` table in `arch:examples/todo.md`. Edit no step in `sub-impl.md`.
 
-**Each ruleset file is complete.** Two files may repeat a line (`approve-todo.md` and `approve-none.md` share the implementer line). The session reads one approve file, never two, so a shared line is not a duplicate it reads twice.
+**Each ruleset file is complete.** Two files may repeat a line. The session reads one approve file, never two, so a shared line is not a duplicate it reads twice.

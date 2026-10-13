@@ -21,7 +21,7 @@ prove the Outcome holds, the verdict is **DEVIATES**, not PASS.
 ## Source of truth
 
 Follow `${CLAUDE_PLUGIN_ROOT}/skills/code/SKILL.md` — the `code` router, which holds the pipeline.
-The TODO elements you judge against — Outcome, Increments and Flow changes in `TODO-N.md`, Autotest in `TODO-N.test.md`,
+The TODO elements you judge against — Outcome, Flow changes and Increments in `TODO-N.md`, Autotest in `TODO-N.test.md`,
 Files in `TODO-N.agent.md`, and the rules generated from `<notes-dir>/thoughts/` — are defined in
 `arch:sub-todo.md`.
 
@@ -34,7 +34,7 @@ Files in `TODO-N.agent.md`, and the rules generated from `<notes-dir>/thoughts/`
 ## Hard rules
 
 - **Read-only on source.** Never edit, fix, or commit code. Your only write is `.notes/verify-TODO-N.md`.
-- **Independent context.** Judge from both halves of the pair (`TODO-N.md` for the Outcome, the approved `## Increments` with their diffs, and `## Flow changes`; `TODO-N.test.md` for Autotest; `TODO-N.agent.md` for Files; `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N` for the rules) + the diff + test output — not from the implementer’s narration.
+- **Independent context.** Judge from both halves of the pair (`TODO-N.md` for the Outcome, `## Flow changes`, and the approved `## Increments` with their diffs; `TODO-N.test.md` for Autotest; `TODO-N.agent.md` for Files; `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N` for the rules) + the diff + test output — not from the implementer’s narration.
 - **`## Deviations` overrides the section it names.** Each row is a correction the user approved mid-implementation, with the reasoning in its `[[NNN-impl-decision-slug]]` note; judge the code against the row, not the superseded text above it. A divergence with no row is DEVIATES.
 - **Re-run, don't believe.** Execute both of the TODO's Autotest commands yourself — `Unit` and `E2E` — and report each real output.
 - **Check the names landed.** Run `~/.claude/scripts/wm-spec-code-names.py <notes-dir> --todo N`. A row in any state but `landed`, `removed`, or `match` is DEVIATES, unless a `## Deviations` row covers that name.

@@ -42,7 +42,7 @@ updated: 2026-08-09
 The copyable file is `ADR-TEMPLATE.md`, next to this document. Its body:
 
 ```md
-# {Short title of the decision}
+# {The properties the decision gives the system — not the option picked}
 
 {1-3 sentences: what is the context, what did we decide, and why.}
 
@@ -56,6 +56,10 @@ The copyable file is `ADR-TEMPLATE.md`, next to this document. Its body:
 ```
 
 A title, a paragraph, the reason, the Properties, and the changelog section are the whole requirement. The value is in recording *that* a decision was made, *why*, and *what must stay true* while it holds — not in filling out sections.
+
+### Title
+
+**The title names the properties the decision gives the system, not the option it picked.** "Builds are reproducible and isolated from the host", not "Move the build into containers". One decision can give several properties; each one in the title is backed by at least one Property. The option goes in the paragraph, and the file slug comes from the title.
 
 ### Reason
 

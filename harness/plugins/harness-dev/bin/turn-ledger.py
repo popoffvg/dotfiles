@@ -27,15 +27,21 @@ NUDGE_MIN_PASTES = 3
 NUDGE_MIN_SESSIONS = 2
 
 TRIAGE_TAG = re.compile(r"^\W*triage:\s*(done|wait|question)\W*$", re.I)
-UNDERSTOOD_LINE = re.compile(r"^\W*understood:(.*?)prompt\s*([0-3])\s*/\s*3", re.I | re.M)
+UNDERSTOOD_LINE = re.compile(r"^\W*understood:(.*?)prompt\s*([0-4])\s*/\s*([34])", re.I | re.M)
+HINT_LINE = re.compile(r"^\W*hint:\s*(.+)$", re.I | re.M)
 
+# `why` is the intent-debt part: a prompt that states the result but not the reason leaves the agent to guess
+# the reason, and a guessed reason picks the wrong option when the prompt is silent.
 UNDERSTOOD_RULE = (
-    "Start your reply with one line that states what you understood from this prompt and its context, in this form:\n"
-    "`understood: goal=<goal> · limits=<scope and limits, or none> · acceptance=<acceptance criteria: how the result is checked, "
-    "or none> · prompt <0-3>/3`\n"
-    "Score the prompt with its context: 0 the goal is unclear, 1 goal only, 2 goal and limits, 3 goal, limits, and acceptance criteria. "
-    "A part counts when the prompt, an earlier turn, a CLAUDE.md, or the repo state gives it; "
-    "write where it came from when not the prompt, e.g. `limits=only the hook (from CLAUDE.md)`."
+    "Start your reply with one line that tells the operator how to make this prompt better:\n"
+    "`hint: <missing part> — I guessed <the choice you had to guess> — next time add: \"<one sentence the operator could have typed>\"`\n"
+    "Check four parts against the prompt and its context: goal, why (the reason or the decision the result serves), "
+    "limits, acceptance (how the result is checked). "
+    "A part counts as given when the prompt, an earlier turn, a CLAUDE.md, or the repo state gives it. "
+    "A reason you guessed is a missing `why`.\n"
+    "Name one missing part and quote a sentence about this task, never a generic tip. "
+    "When `why` is missing, hint at `why` first: the reason lets the agent decide the other parts itself. "
+    "When all four are given, write `hint: none`. Show no score and no summary of the parts."
 )
 
 
@@ -137,9 +143,12 @@ def on_stop(hook: dict) -> None:
     reply = hook.get("last_assistant_message") or ""
     triage = triage_of(reply)
     understood = UNDERSTOOD_LINE.search(reply)
+    hint = HINT_LINE.search(reply)
     row = {"session": session, "ts": int(time.time()), "triage": triage, "reply": reply[-REPLY_TAIL:],
            "understood": understood.group(0).strip() if understood else None,
-           "understood_score": int(understood.group(2)) if understood else None}
+           "understood_score": int(understood.group(2)) if understood else None,
+           "understood_max": int(understood.group(3)) if understood else None,
+           "understood_hint": hint.group(1).strip() if hint else None}
     if pending:
         row.update({k: pending[k] for k in ("turn", "prompt", "prompt_chars", "task_start", "paste_ids",
                                             "paste_groups", "understood_asked")})

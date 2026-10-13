@@ -56,8 +56,9 @@ TEXT:
 $2
 
 Reply with one line of JSON and nothing else: {\"kept\":[true,false,...]} with one entry per rule, in order."
-  (cd "$empty" && claude -p --model "$judge" --safe-mode --strict-mcp-config \
-    --no-session-persistence --tools "" "$prompt" 2>/dev/null) | grep -o '{.*}' | tail -1
+  # The prompt goes on stdin: --tools takes a list and would read a positional prompt as a tool name.
+  (cd "$empty" && printf '%s' "$prompt" | claude -p --model "$judge" --safe-mode --strict-mcp-config \
+    --no-session-persistence --tools "" 2>/dev/null) | grep -o '{.*}' | tail -1
 }
 
 failed=0; total=0

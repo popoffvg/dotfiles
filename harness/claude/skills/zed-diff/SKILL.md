@@ -22,15 +22,15 @@ description: Open a git diff in Zed's multi-diff view, so the operator can read 
 
    Leave out a commit that is not part of the work, such as a lint cleanup before it: start the range after it. When a TODO's commits are not consecutive, say so and ask which range to open.
 
-2. **Open it.** Run the script with the sandbox off: inside the sandbox Zed fails with `Unknown Mach error: 44c`.
+2. **Walk it.** Always load the `diff-walk` skill with the same arguments, and wait until that skill is finished. Done when it returns the path of the walk-through file, or reports `empty`. An `empty` report ends the run: do not open Zed.
+
+3. **Open it.** Run the script only after the walk-through file exists. Run it with the sandbox off: inside the sandbox Zed fails with `Unknown Mach error: 44c`.
 
    ```bash
    ~/.claude/scripts/zed-diff.sh -C <repo> <arguments>
    ```
 
    Done when it prints `zed-diff: N files, right side live|snapshot`. When N is not the file count you expected, compare it with `git diff --stat <same range>` before you report. Exit 1 with `no change between the two sides` means the range is empty: check the revisions.
-
-3. **Walk it.** Always load the `diff-walk` skill with the same arguments. Done when it returns the path of the walk-through file, or reports `empty`.
 
 4. **Tell the operator** the file count, the side, and the walk-through path. For **live**, their saved edits change the repo. For **snapshot**, say that a saved edit is lost, and offer the live form: check out the end commit, or open `BASE` alone. Done when they know which side takes comments, and that you read their comments from the files when they say they are done.
 
