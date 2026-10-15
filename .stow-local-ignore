@@ -46,6 +46,8 @@ _notes
 \.DS_Store
 Library
 
+# Project-local Claude overrides. ~/.claude is owned by harness/claude, not this package.
+\.claude
 # Claude Code marketplace (lives at repo root, not stowed to ~)
 \.claude-plugin
 # Codex marketplace belongs to this repo; Codex manages its installed state.
