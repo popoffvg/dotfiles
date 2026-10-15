@@ -366,7 +366,7 @@
   "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
-  "theme": "custom:catppuccin-macchiato-dark",
+  "theme": "auto",
   "editorMode": "normal",
   "terminalProgressBarEnabled": true,
   "inputNeededNotifEnabled": true,

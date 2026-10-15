@@ -1,34 +1,51 @@
 ---
 name: handoff
-description: Compact the current conversation into a handoff document for another agent to pick up.
+description: Handoff — read the conversation, decide whether the next session implements or researches, and write the matching handoff document for a fresh agent. Use on "handoff", "hand this over", "write a handoff", or before a session ends with work left.
 argument-hint: "What will the next session be used for?"
 ---
 
-Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save it as an in-memory tmp file at `$TMPDIR/claude-handoff/<short-slug>.md` (create the directory if missing).
+# handoff — pick the next mode, then write its document
 
-Before writing, list `$TMPDIR/claude-handoff/` and read any existing file with the same slug — extend it rather than overwriting. Print the absolute path of the saved file at the end so the next session can `Read` it directly.
+The next session runs in one of two modes, and each mode gets its own document:
 
-### How to create the file
+- **implementation** — the plan is settled. The next session edits code, config, or docs.
+- **research** — an unknown blocks the first edit. The next session finds facts, and the handoff document carries the findings so far as a report.
 
-1. Resolve the path with Bash, stripping any trailing slash from `$TMPDIR` (macOS leaves one, producing `//` otherwise):
+1. Read the whole conversation. List the decisions made, the files changed, the commits, the commands run with their results, and the questions still open. If the user passed arguments, treat them as the focus of the next session. Done when every open question names what it blocks.
+2. Pick the mode with this table. The first row that matches wins. Done when the mode and a one-sentence reason exist.
+
+   | Condition | Mode |
+   |---|---|
+   | The user's arguments name the mode | that mode |
+   | An open question blocks the first edit, or the conversation ended in an investigation | research |
+   | The goal, the files to change, and the acceptance check are known | implementation |
+   | None of the rows above | research |
+
+3. Resolve the path. The slug is the goal in 2–4 kebab-case words, for example `flaky-ci-test`. Strip the trailing slash from `$TMPDIR` (macOS leaves one):
    ```bash
-   DIR="${TMPDIR%/}/claude-handoff" && mkdir -p "$DIR" && echo "$DIR/<slug>.md"
+   T="${TMPDIR:-/tmp}" && DIR="${T%/}/claude-handoff" && mkdir -p "$DIR" && ls "$DIR" && echo "$DIR/<slug>.md"
    ```
-2. Check for an existing handoff with the same slug:
-   ```bash
-   ls "${TMPDIR%/}/claude-handoff/" 2>/dev/null
-   ```
-   If `<slug>.md` exists, read it and extend it.
-3. Use the `Write` tool with the absolute path from step 1 (not the `$TMPDIR` literal — `Write` does not expand shell variables).
-4. Print the final absolute path back to the user.
+   If `<slug>.md` exists, read it and merge the new facts into its sections. Done when the absolute path is known.
+4. Write the document with the `Write` tool to the absolute path. The `Write` tool does not expand `$TMPDIR`. Use the structure of the mode below. Done when every required section is present.
+5. Reply with the mode, its reason, and the absolute path.
 
-Required structure:
-- **Goal** — what the next session should accomplish
-- **State** — what's done, what's in progress (reference commits/PRs/files by path, don't restate diffs)
-- **Next steps** — concrete first actions
-- **Open questions / risks**
-- **Suggested skills** — skills the next session should invoke
+## Rules for both modes
 
-Do not duplicate content already captured in other artifacts (PRDs, plans, ADRs, issues, commits, diffs). Reference them by path or URL.
+- A handoff document MUST open with `Mode: implementation` or `Mode: research` and the one-sentence reason.
+- A handoff document MUST reference each commit, PR, plan, ADR, or diff that exists by path or URL. It MUST NOT restate their content.
+- A handoff document MUST end with **Suggested skills**: the skills from the session skill list that the next steps need, or `none`.
 
-If the user passed arguments, treat them as a description of what the next session will focus on and tailor the doc accordingly.
+## Implementation document
+
+- **Goal** — what the next session ships, and the check that proves it.
+- **State** — what is done and what is in progress, by file path and commit.
+- **Next steps** — the concrete first actions, in order.
+- **Risks** — what can break, and the open questions that do not block the first edit.
+
+## Research document
+
+- **Question** — the question the research answers, and the decision the answer serves.
+- **Findings** — one row per confirmed fact: the claim and its source. A source is a `file:line`, a config value, a command with its output, or a URL. A claim with no source is labeled `assumption` with its basis.
+- **Ruled out** — each hypothesis the conversation rejected, and the evidence. A negative finding MUST name its positive control: the same query run against something known to exist. A rejection with no positive control goes to Open questions.
+- **Open questions** — each untested hypothesis and each unanswered question, with the next query to run and where to run it.
+- **Recommendation** — the mode the session after the research takes: implement (with the change it makes) or research more (with the reason).

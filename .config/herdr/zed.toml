@@ -7,6 +7,11 @@
 
 onboarding = false
 
+[theme]
+auto_switch = true
+dark_name = "catppuccin"
+light_name = "catppuccin-latte"
+
 [ui]
 # No side pane: collapsed at launch, and collapsed means zero width, not a rail.
 sidebar_start_collapsed = true

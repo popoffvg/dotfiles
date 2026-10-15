@@ -225,7 +225,7 @@
     "command": "bash",
     "args": [
       "-lc",
-      "node \"/Users/popoffvg/Documents/git/dotfiles/harness/claude/scripts/flow-reveal.mjs\" reveal \"$ZED_FILE\" \"$ZED_ROW\"",
+      "node \"$HOME/git/dotfiles/harness/claude/scripts/flow-reveal.mjs\" reveal \"$ZED_FILE\" \"$ZED_ROW\"",
     ],
     "use_new_terminal": false,
     "allow_concurrent_runs": true,

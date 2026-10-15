@@ -1,9 +1,10 @@
 # Goal prompt requirements
 
-## The four parts
+## The five parts
 
 | Part | What it says | Test it MUST pass |
 |---|---|---|
+| Mission | The decision or the use the result serves: who acts on it and what they decide. | Given two valid results, the mission picks one. A reason the receiver must guess is a missing mission. |
 | Result | The one thing that exists or is true at the end: one verb, one object. | Two readers name the same deliverable. "Suggest changes" and "change the text" are different results. |
 | Properties | What is true of the result. | Each property is observable in the result. "Clean", "fast", "good" become a number, a rule, or a sample. |
 | Acceptance criteria | Pass/fail checks: an input and its expected output, a measure against a baseline, a question a reviewer answers yes or no. | Every property has at least one check. A check tests the result, not the path to it. |
@@ -15,7 +16,7 @@ A receiver fills each gap below with a guess, and the user corrects the guess on
 
 | Part | Gap | Question |
 |---|---|---|
-| Result | Reader and use | Who uses the result, and what do they do with it next? |
+| Mission | Decision served | Which decision does the result feed, and what does the reader do next with it? |
 | Result | Unit | Is it one piece or several? Where does one end and the next start? |
 | Result | Place | Where does the result live, and which part of the whole owns it? |
 | Properties | Model to copy | Which existing thing must it look like? Show one you like. |
@@ -29,6 +30,7 @@ A receiver fills each gap below with a guess, and the user corrects the guess on
 
 ## Anti-patterns
 
+- A goal with no mission: the receiver guesses the reason and picks the wrong trade-off when the prompt is silent.
 - A vague verb: "help with", "look at", "improve", "handle".
 - Steps, tool choices, or an order of work the receiver can pick itself.
 - A property with no acceptance check.
@@ -43,7 +45,8 @@ A receiver fills each gap below with a guess, and the user corrects the guess on
 ## Skeleton
 
 ```
-<goal>Verb + result, in one sentence. Why, in one sentence, when it changes a trade-off.</goal>
+<goal>Verb + result, in one sentence.</goal>
+<mission>The decision or the use the result serves, in one sentence.</mission>
 <result>What exists at the end, where it lives, its shape — a filled-in sample when the shape matters.</result>
 <properties>
 - One observable property per line.

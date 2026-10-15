@@ -67,7 +67,7 @@
     "font_family": "FiraMono Nerd Font",
     "show_count_badge": false,
   },
-  "theme": "Catppuccin Macchiato",
+  "theme": "Catppuccin Latte",
   // line-comment publishes each line comment as a Hint diagnostic, so inline
   // diagnostics are what put the comment text at the end of its line.
   "diagnostics": {
@@ -315,7 +315,6 @@
         "renameMovesSubpackages": true,
       },
       "binary": {
-        "path": "/Users/popoffvg/.local/share/mise/shims/gopls",
         "arguments": [
           "-logfile=auto",
           "-rpc.trace",

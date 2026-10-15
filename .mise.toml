@@ -20,6 +20,7 @@ depends = ["harness:plugins:sync"]
 run = [
   "stow --target=$HOME --dir={{config_root}}/.. --restow {{ config_root | basename }}",
   "stow --target=$HOME/.claude --dir={{config_root}}/harness --restow claude",
+  "mkdir -p $HOME/.pi/agent",
   "stow --target=$HOME/.pi/agent --dir={{config_root}}/harness --restow pi",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow zsh",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow git",

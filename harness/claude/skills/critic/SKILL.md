@@ -1,6 +1,6 @@
 ---
 name: critic
-description: Build the strongest case AGAINST a decision that already looks right — up to three opus critics run in sequence, each one MUST find an attack the earlier ones missed, and every attack is settled with evidence. Trigger on "criticize this", "argue against it", "why is this wrong", "poke holes", "red team this", "what am I missing", "devil's advocate", "stress-test the decision", or before you commit to a hard-to-reverse choice, as a second opinion.
+description: Build the strongest case AGAINST a decision that already looks right — two or three opus critics run in sequence, each one MUST find an attack the earlier ones missed, and every attack is settled with evidence. Trigger on "criticize this", "argue against it", "why is this wrong", "poke holes", "red team this", "what am I missing", "devil's advocate", "stress-test the decision", or before you commit to a hard-to-reverse choice, as a second opinion.
 argument-hint: [the decision to attack]
 ---
 
@@ -12,7 +12,7 @@ One critic stops at the attacks it finds first. Each later round reads the earli
 
 ## Flow
 
-1. **Fix the decision.** Write the decision in one or two sentences. List the files, links, and conversation facts it rests on. If the decision is unclear, ask the user before you spawn anything. Pick a report dir: `<scratchpad>/critic-<slug>/`.
+1. **Fix the decision.** Write the decision in one or two sentences. List the files, links, and conversation facts it rests on. Write the scope: the files, dirs, and repos a critic may search. If the decision is unclear, ask the user before you spawn anything. Pick a report dir: `<scratchpad>/critic-<slug>/`.
 2. **Run the critic loop.** Start with `N = 1` and an empty `prior` list.
 
    ```
@@ -21,10 +21,14 @@ One critic stops at the attacks it finds first. Each later round reads the earli
        decision: <step 1>
        round:    N
        prior:    <every report path in the prior list>
+       evidence: <dir>/evidence.md   (round 1 creates it)
+       scope:    <step 1>
        report:   <dir>/round-N.md
      wait for it to finish
      append <dir>/round-N.md to prior
      if round N has no NEW attack with verdict SURVIVES: stop
+     if N = 2 and no NEW SURVIVES attack of round 2 breaks a bet line
+       that no SURVIVES attack of round 1 breaks: stop
      if N = 3: stop
      N = N + 1
    ```
@@ -61,7 +65,7 @@ One critic stops at the attacks it finds first. Each later round reads the earli
 
 ## What each round added
 - Round 2: <the attacks round 1 missed — or: not run, round 1 found nothing new>
-- Round 3: <the attacks rounds 1–2 missed — or: not run, round <N> found nothing new>
+- Round 3: <the attacks rounds 1–2 missed — or: not run, round <N> found nothing new — or: not run, round 2 hit no new bet line>
 
 ## The strongest argument against
 <one paragraph — the attack that does the most damage, and the damage>
