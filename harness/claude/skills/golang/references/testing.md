@@ -112,7 +112,7 @@ func TestNotesLock(t *testing.T) {
 
 ```go
 func TestGetNote(t *testing.T) {
-	srv, err := NewServer("", slog.New(slog.DiscardHandler), fakeVerifier{"good": testUser}, user.NewUsers(&memNotes{}))
+	srv, err := NewServer("", slog.New(slog.DiscardHandler), fakeVerifier{"good": testUser}, users.NewService(&memNotes{}))
 	require.NoError(t, err)
 	tests := []struct {
 		name       string

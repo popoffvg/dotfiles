@@ -49,8 +49,8 @@ func (s *Server) routes() []route {
 ```go
 const bearerScheme = "bearerAuth"
 
-func NewServer(addr string, log *slog.Logger, tokens TokenVerifier, users *user.Users) (*http.Server, error) {
-	s := &Server{users: users}
+func NewServer(addr string, log *slog.Logger, tokens TokenVerifier, svc *users.Service) (*http.Server, error) {
+	s := &Server{users: svc}
 	mux := http.NewServeMux()
 	spec := openapi3.NewReflector()
 	spec.Spec.Info.WithTitle("miniauth").WithVersion("1.0.0")
@@ -61,6 +61,7 @@ func NewServer(addr string, log *slog.Logger, tokens TokenVerifier, users *user.
 		if !r.public {
 			h = requireAuth(tokens, h)
 		}
+		h = withRoute(r, h) // span name and http.route: observability.md
 		mux.Handle(r.method+" "+r.path, h)
 		if err := addOperation(spec, r); err != nil {
 			return nil, fmt.Errorf("httpapi: spec %s %s: %w", r.method, r.path, err)
@@ -77,7 +78,7 @@ func NewServer(addr string, log *slog.Logger, tokens TokenVerifier, users *user.
 
 	return &http.Server{
 		Addr:              addr,
-		Handler:           logRequests(log, mux),
+		Handler:           otelhttp.NewHandler(logRequests(log, mux), "http.server"),
 		ReadHeaderTimeout: 5 * time.Second,
 		ErrorLog:          slog.NewLogLogger(log.Handler(), slog.LevelError),
 	}, nil
@@ -114,7 +115,7 @@ type createUserRequest struct {
 }
 
 type createdUser struct {
-	ID    user.UserID `json:"id" format:"uuid"`
+	ID    users.ID   `json:"id" format:"uuid"`
 	Login string      `json:"login"`
 }
 ```
@@ -180,7 +181,8 @@ func loggerFrom(ctx context.Context) *slog.Logger {
 }
 ```
 
-- The logger MUST be outermost, so that it logs 401, 404, and 413 too.
+- The logger MUST sit outside the mux, so that it logs 401, 404, and 413 too. Only `otelhttp` sits outside the logger.
+- The request logger also carries `trace_id` and `span_id`; see observability.md.
 - A handler MUST log through `loggerFrom(ctx)`, so every line carries `request_id`.
 - The middleware MUST NOT log headers or bodies. They carry tokens and personal data.
 - `rand` is `crypto/rand`; `rand.Text` needs Go 1.24.
