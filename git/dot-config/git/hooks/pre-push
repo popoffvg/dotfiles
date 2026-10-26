@@ -4,6 +4,7 @@
 set -euo pipefail
 
 # --- Block fixup/squash/amend commits ---
+# A commit that a remote-tracking branch already has (for example main) is pushed already, so it is not checked.
 zero="0000000000000000000000000000000000000000"
 
 # Save stdin for repo-local hook (pre-push reads refs from stdin)
@@ -20,7 +21,7 @@ echo "$input" | while read -r local_ref local_sha remote_ref remote_sha; do
     range="${remote_sha}..${local_sha}"
   fi
 
-  fixups=$(git log --oneline "$range" \
+  fixups=$(git log --oneline "$range" --not --remotes \
     --grep='^fixup!' --grep='^squash!' --grep='^amend!' \
     --extended-regexp 2>/dev/null || true)
 
