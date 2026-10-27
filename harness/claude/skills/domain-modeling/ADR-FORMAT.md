@@ -2,6 +2,8 @@
 
 **An ADR is one markdown file with metadata, a decision paragraph, and a changelog.** An ADR has no status. A file in `docs/adr/` is live and binds the code. A file in `docs/!archived/adr/` is dropped. An open question is never an ADR: it lives in `QUESTIONS.md` ([Open questions](#open-questions)).
 
+**An ADR records a strategic decision, never a tactical one.** A strategic decision shapes the whole system and is hard to reverse: the components and their boundaries, a platform with lock-in, where state lives, a contract a user or a caller depends on. A tactical decision chooses how one part is built: where a package or a file lives, a name, a signature, a library inside one component, a value. Write a tactical decision where it applies — the spec, the TODO, or the patterns file — and never as an ADR.
+
 ## File name and numbering
 
 **Files are `NNNN-slug.md` with a four-digit sequential number.** Scan **both** `docs/adr/` and `docs/!archived/adr/` for the highest existing number and add one. Archived ADRs keep their number and file name — a number is never reused, so a link written years ago still resolves.
@@ -118,7 +120,7 @@ Include these only when they add value, between the decision and the changelog. 
 ```
 
 - The slug says what the question is about.
-- When the operator answers, write the ADR with the `adr` skill, then delete the section. The history keeps it.
+- When the operator answers a strategic question, write the ADR with the `adr` skill. When the answer is tactical, write it where it applies: the spec, the TODO, or the patterns file. Then delete the section. The history keeps it.
 - A question that stops mattering is deleted, with the reason in the commit message.
 - A spec is ready when `QUESTIONS.md` has no section.
 
