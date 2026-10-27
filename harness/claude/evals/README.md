@@ -142,4 +142,11 @@ SKILL_REV=2476e753^ ./run-adr-properties.sh    # the control: the rules before t
 
 Env: `MODEL` (default `sonnet`), `JOBS` (default 6), `THRESHOLD` (classify accuracy, default 0.9), `NOCACHE=1`. Exit 0 = classify at or above the threshold and every written section clean.
 
-First run, sonnet: current rules classify 28/28 and write 5/7 clean; the control classifies 17/28 and writes 0/7 clean. The control accepts error values, mechanisms, and evidence lines as Properties, so the cases do not leak the answer.
+The judge uses the Lean test of `ADR-FORMAT.md`: it tries to state each line as a theorem over a model that holds only what a caller, a user, or an operator sees, and it returns the theorem. Its anchors are the user's own examples. A judge without the outside requests in its model called "a huge file uploads in parallel" a detail; read the judge's `why` lines before you trust a FAIL.
+
+| Run (sonnet) | classify | write clean |
+|---|---|---|
+| current rules | 27/28 | 3/7 |
+| control `2476e753^` | 17/28 | 0/7 |
+
+The control accepts error values, mechanisms, and evidence lines as Properties, so the cases do not leak the answer. The remaining `write` failures are real: a backend named as a component, a "lock service", and a vague "well under 2 seconds".

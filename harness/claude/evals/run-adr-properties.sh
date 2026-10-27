@@ -5,8 +5,8 @@
 #   classify — the model reads one candidate line and says "property" or "reject", and gives
 #              the [keep] or [new] mark. Gold labels come from the user's corrections.
 #   write    — the model writes a whole `## Properties` section for one decision. A script checks
-#              the format, the evidence words, the order, and the coverage; a blind judge labels
-#              each line a general rule or an implementation detail.
+#              the format, the evidence words, the order, and the coverage; a judge that does not
+#              see the skill tries to state each line as a Lean theorem over the black box.
 #
 # Usage:
 #   ./run-adr-properties.sh                  # both suites
@@ -65,18 +65,29 @@ ask_model() {
 
 throttle() { while [ "$(jobs -rp | wc -l)" -ge "$jobs_max" ]; do sleep 0.5; done; }
 
-# The judge sees the written lines and a neutral rubric, never the skill text, so it grades the
+# The judge sees the written lines and the Lean test, never the skill text, so it grades the
 # result and not the wording of the rules.
 judge_lines() {
   local props verdicts
   props="$(grep '^- P' "$1")"
   [ -n "$props" ] || return 0
-  verdicts="$(ask_model "Label each line below. A general rule says what a user, a caller, or an operator can rely on, and stays true for any design that delivers it. An implementation detail says how it is done: it names a component, a protocol step, a data format, an algorithm, a library, a file, a stored value, or an error value.
+  verdicts="$(ask_model "Label each line below. Model the system as only what a caller, a user, or an operator sees: the calls, their results, the stored data, the requests the system sends to outside services, the time, and the resources. Try to state the line as a theorem in Lean over that model.
+
+Anchors from the user:
+rule: \"A huge file uploads in parallel.\" (the outside requests overlap in time)
+rule: \"Every upload can be cancelled.\"
+rule: \"A stored object holds exactly the bytes the writer sent.\"
+rule: \"With a cloud storage, an interrupted upload resumes also after a server restart.\" (the user picks the storage, so it is visible)
+detail: \"A missing name gives an error that matches fs.ErrNotExist.\"
+detail: \"The FS store writes a temp file and renames it at Close.\"
+
+rule   = you can state it over that model.
+detail = the statement needs a component, a protocol step, a format, an algorithm, a library, a file, or an error value from inside the system, or the line is too vague to state.
 
 $props
 
 Reply with JSON lines only, one per input line, in order:
-{\"line\":\"P<n>\",\"label\":\"rule|detail\",\"why\":\"<10 words>\"}" | grep -o '{.*}')"
+{\"line\":\"P<n>\",\"label\":\"rule|detail\",\"lean\":\"<the theorem statement in one line, or none>\",\"why\":\"<10 words>\"}" | grep -o '{.*}')"
   jq -r 'select(.label == "detail") | "implementation detail: \(.line) — \(.why)"' <<<"$verdicts" 2>/dev/null
 }
 
