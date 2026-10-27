@@ -119,7 +119,7 @@ Test the title: when it starts with a verb of choice (use, add, move, store, swi
 
 Write the decision paragraph in one to three sentences: the context, the option chosen, and the reason. Quote the operator's reason. List each Property as `P1.`, `P2.`, …, cited as `ADR-NNNN/P2`: one guarantee the system keeps, at the level of the title. It names no file, no ticket, no plan.
 
-**Run the three rules of [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#properties) on each Property: the black box, the option test, and today's code first.** A line that only the chosen option keeps is a consequence: move it into the paragraph or `## Consequences`.
+**Run the three rules of [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#properties) on each Property: the black box, the option test, and the `[keep]` or `[new]` mark.** A line that only the chosen option keeps is a consequence: move it into the paragraph or `## Consequences`.
 
 | Consequence or test assertion | Property — the guarantee |
 |---|---|
@@ -130,9 +130,9 @@ Write the decision paragraph in one to three sentences: the context, the option 
 
 A feature ADR title names what the user can count on, such as "Deploy previews are complete and side-effect free". Its paragraph says who uses the feature, how they start it, and what they get. Its Properties say what the user observes, for example:
 
-- P1. `deploy --dry-run` prints every create, update, and delete that `deploy` would make.
-- P2. `deploy --dry-run` changes no resource and writes no state.
-- P3. `deploy --dry-run` exits non-zero when `deploy` would fail.
+- P1. [new] `deploy --dry-run` prints every create, update, and delete that `deploy` would make.
+- P2. [new] `deploy --dry-run` changes no resource and writes no state.
+- P3. [new] `deploy --dry-run` exits non-zero when `deploy` would fail.
 | A store checks a SHA-256 of the bytes it wrote. | A stored object holds exactly the bytes the writer sent. |
 
 **Completion criterion**: the draft has frontmatter with `status: proposed` and a `kind`, a title that names the properties, passes the title test, and has a Property under each one, the decision paragraph, a quoted reason, at least one Property, no Property that fails the option test, and a closing `## Changelog` section.

@@ -52,7 +52,7 @@ The copyable file is `ADR-TEMPLATE.md`, next to this document. Its body:
 
 ## Properties
 
-- P1. {an invariant the code must keep while this decision holds}
+- P1. [keep|new] {a guarantee the system keeps while this decision holds, in one plain sentence}
 ```
 
 A title, a paragraph, the reason, the Properties, and the changelog section are the whole requirement. The value is in recording *that* a decision was made, *why*, and *what must stay true* while it holds — not in filling out sections.
@@ -73,7 +73,12 @@ A title, a paragraph, the reason, the Properties, and the changelog section are 
 
 **The option test: a Property is not a consequence of the decision.** Ask of each one: would every design that gives the title properties have to keep it? Yes — it is a Property. No, only the chosen option does it — it is a consequence. A consequence names the chosen mechanism: a method list, a package path, a client, a temp file, a value such as a timeout, or a test. Write it in the decision paragraph or under `## Consequences`, never as a Property and never as an ADR of its own.
 
-**When the decision replaces code that exists, start from what that code gives.** List first each guarantee today's code gives that the decision keeps, marked `Today:` with its `file:line` or research fact. Then list each new guarantee, marked `New:` with the gap in today's code it closes. A guarantee of today's code that the decision drops goes under `## Considered Options` or `## Consequences` with the reason.
+**Mark each Property `[keep]` or `[new]`, and write it as one plain sentence.** `[keep]` is a guarantee that today's code already gives and the decision keeps. `[new]` is a guarantee the decision adds. List the `[keep]` ones first, so a reader sees what must not break before what changes. A Property carries no source: no file, no line number, no fact name, no link. The evidence goes in the decision paragraph or in the research it cites. A guarantee of today's code that the decision drops goes under `## Considered Options` or `## Consequences` with the reason.
+
+```md
+- P1. [keep] A huge file uploads in parallel.
+- P2. [new] Every upload can be cancelled.
+```
 
 ### Optional sections
 

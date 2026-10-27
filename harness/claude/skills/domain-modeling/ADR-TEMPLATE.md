@@ -15,7 +15,7 @@ updated: YYYY-MM-DD
 
 ## Properties
 
-- P1. {an invariant the code must keep while this decision holds; for a feature, what the user observes}
+- P1. [keep|new] {a guarantee the system keeps while this decision holds, in one plain sentence; for a feature, what the user observes}
 
 <!--
 Optional, only when they add value — placed here, above the changelog:
