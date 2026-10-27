@@ -93,7 +93,7 @@ Settle a slot from a source when one exists, as `grilling` step 2 says, and cite
 |---|---|---|
 | Reason | "Why X over Y?" | The reason the context points to, marked as your guess, quoting what points to it. |
 | Alternatives | "What else did you consider, and why did it lose?" | The obvious alternative, with the loss reason you infer. |
-| Properties | "While X holds, what must never happen?" — for a feature: "What does the user see, and what must the feature never do?" | Two to four invariants you can check in code or with one E2E run, each one line. Each one passes the option test of step 5. |
+| Properties | "While X holds, what must never happen?" — for a feature: "What does the user see, and what must the feature never do?" | Two to four invariants you can check in code or with one E2E run, each one line. Each one passes the rules of step 5. |
 | Consequences | "What would make you reverse X?" | The fact that breaks the reason. |
 
 An empty Answer slot means the operator accepted the recommendation; record that reason as `(accepted recommendation)`. A candidate whose Reason the operator will not give stays `proposed`.
@@ -119,7 +119,7 @@ Test the title: when it starts with a verb of choice (use, add, move, store, swi
 
 Write the decision paragraph in one to three sentences: the context, the option chosen, and the reason. Quote the operator's reason. List each Property as `P1.`, `P2.`, …, cited as `ADR-NNNN/P2`: one guarantee the system keeps, at the level of the title. It names no file, no ticket, no plan.
 
-**Run the option test of [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#properties) on each Property.** A line that only the chosen option keeps is a consequence: move it into the paragraph or `## Consequences`.
+**Run the three rules of [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#properties) on each Property: the black box, the option test, and today's code first.** A line that only the chosen option keeps is a consequence: move it into the paragraph or `## Consequences`.
 
 | Consequence or test assertion | Property — the guarantee |
 |---|---|
