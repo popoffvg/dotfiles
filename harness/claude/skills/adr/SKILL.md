@@ -46,7 +46,7 @@ A candidate is an architecture ADR only when all four tests pass:
 
 What passes: the main components and their layering; a platform or technology with lock-in (run Terraform in Cloud Run, not in Infrastructure Manager; use Terraform at all); where state and secrets live; a trust or process boundary (no cloud SDK, every cloud call is a CLI); a deliberate deviation from the obvious path.
 
-What fails: a name, a field, a file layout, a function signature, a log format, an error text, a test fixture, a CI step, a value such as a timeout, a scope cut of one TODO. A value or a rule that follows from an ADR becomes a **Property** of that ADR, not a new ADR.
+What fails: a name, a field, a file layout, a function signature, a log format, an error text, a test fixture, a CI step, a value such as a timeout, a scope cut of one TODO. A value or a mechanism that follows from an ADR is a consequence: it goes in that ADR's paragraph or `## Consequences`, not in a new ADR.
 
 ### Feature tests
 
@@ -58,7 +58,7 @@ A candidate is a feature ADR only when all three tests pass:
 
 What passes: `deploy --dry-run` shows every change and applies none; `sync` asks before it deletes a file; `status --json` prints one stable schema; a failed run leaves the target as it was.
 
-What fails: a flag that only tunes a value, a help text, a color, the order of log lines, an internal option no user sets. A detail of a recorded feature becomes a **Property** of that feature ADR, not a new ADR.
+What fails: a flag that only tunes a value, a help text, a color, the order of log lines, an internal option no user sets. A detail of a recorded feature goes in that feature ADR, not in a new ADR. It is a Property only when the user observes it in every run.
 
 Most sessions produce zero ADRs. Say so and stop. A project holds about ten live architecture ADRs; a count far above that means implementation details got in. Feature ADRs grow with the product, one per user-facing contract.
 
@@ -71,7 +71,7 @@ Read both ADR directories before drafting.
 | Finding | Action |
 |---|---|
 | Recorded and unchanged | Stop. Report the file. |
-| The session adds a rule that follows from a recorded ADR | Add a Property to that ADR: bump `updated`, append a changelog line. No new number. |
+| The session finds a new invariant of a recorded ADR | Add a Property to that ADR: bump `updated`, append a changelog line. No new number. |
 | The session **refines** a recorded decision | Edit that ADR the same way. |
 | The session **reverses** a recorded decision | Draft a new ADR that names the one it supersedes, then follow the supersession steps in `ADR-FORMAT.md`. |
 | Nothing recorded | Draft a new ADR. |
@@ -93,7 +93,7 @@ Settle a slot from a source when one exists, as `grilling` step 2 says, and cite
 |---|---|---|
 | Reason | "Why X over Y?" | The reason the context points to, marked as your guess, quoting what points to it. |
 | Alternatives | "What else did you consider, and why did it lose?" | The obvious alternative, with the loss reason you infer. |
-| Properties | "While X holds, what must never happen?" — for a feature: "What does the user see, and what must the feature never do?" | Two to four invariants you can check in code or with one E2E run, each one line. |
+| Properties | "While X holds, what must never happen?" — for a feature: "What does the user see, and what must the feature never do?" | Two to four invariants you can check in code or with one E2E run, each one line. Each one passes the option test of step 5. |
 | Consequences | "What would make you reverse X?" | The fact that breaks the reason. |
 
 An empty Answer slot means the operator accepted the recommendation; record that reason as `(accepted recommendation)`. A candidate whose Reason the operator will not give stays `proposed`.
@@ -117,7 +117,16 @@ Test the title: when it starts with a verb of choice (use, add, move, store, swi
 
 **Each title property is backed by at least one Property below.** The title says the quality in general; the Properties make it checkable. "Builds are reproducible and isolated from the host" needs, for example, "P1. The same commit gives the same artifact digest" for reproducible and "P2. A build reads no file outside its context" for isolated. A title property with no Property under it gets one, or leaves the title.
 
-Write the decision paragraph in one to three sentences: the context, the option chosen, and the reason. Quote the operator's reason. List each Property as `P1.`, `P2.`, … — one invariant a reviewer can check against a diff, cited as `ADR-NNNN/P2`. A Property says what the code must do or must never do; it names no file, no ticket, no plan.
+Write the decision paragraph in one to three sentences: the context, the option chosen, and the reason. Quote the operator's reason. List each Property as `P1.`, `P2.`, …, cited as `ADR-NNNN/P2`: one guarantee the system keeps, at the level of the title. It names no file, no ticket, no plan.
+
+**Run the option test of [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#properties) on each Property.** A line that only the chosen option keeps is a consequence: move it into the paragraph or `## Consequences`.
+
+| Consequence or test assertion | Property — the guarantee |
+|---|---|
+| `StorageFS` has exactly `Open`, `Create`, `Stat`, `ReadDir`, and `Remove`. | A consumer works with every backend through one interface. |
+| The FS store writes into a temp file and renames it at `Close`. | A reader never sees a partial object. |
+| `ReadFrom` cuts the parts from an `io.ReaderAt` source. | A huge file uploads in parallel parts. |
+| A cancelled call returns an error that matches `context.Canceled`. | Every upload is cancellable. |
 
 A feature ADR title names what the user can count on, such as "Deploy previews are complete and side-effect free". Its paragraph says who uses the feature, how they start it, and what they get. Its Properties say what the user observes, for example:
 
@@ -125,7 +134,7 @@ A feature ADR title names what the user can count on, such as "Deploy previews a
 - P2. `deploy --dry-run` changes no resource and writes no state.
 - P3. `deploy --dry-run` exits non-zero when `deploy` would fail.
 
-**Completion criterion**: the draft has frontmatter with `status: proposed` and a `kind`, a title that names the properties, passes the title test, and has a Property under each one, the decision paragraph, a quoted reason, at least one Property, and a closing `## Changelog` section.
+**Completion criterion**: the draft has frontmatter with `status: proposed` and a `kind`, a title that names the properties, passes the title test, and has a Property under each one, the decision paragraph, a quoted reason, at least one Property, no Property that fails the option test, and a closing `## Changelog` section.
 
 ## 6. Ask, then write
 

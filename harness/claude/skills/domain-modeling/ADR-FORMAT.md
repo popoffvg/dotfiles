@@ -67,7 +67,9 @@ A title, a paragraph, the reason, the Properties, and the changelog section are 
 
 ### Properties
 
-**Every accepted ADR lists at least one Property under `## Properties`.** A Property is one invariant the code must keep while the decision holds, numbered `P1.`, `P2.`, … and cited as `ADR-NNNN/P2`. A reviewer checks a diff against each one, so a Property is checkable: "the Installer never runs `terraform apply` on the operator's machine", not "deployments are robust". A `feature` Property states what the user observes and is checkable with one E2E run: "`deploy --dry-run` changes no resource", not "dry-run is safe". A rule or a value that follows from the decision, such as a timeout, is a Property of that ADR, never an ADR of its own.
+**Every accepted ADR lists at least one Property under `## Properties`.** A Property is one invariant: a guarantee the system keeps in every run while the decision holds, at the level of the title — "a huge file uploads in parallel parts", "every upload is cancellable", "a reader never sees a partial object". It is not a test assertion such as an error value, an import, or a signature: a test checks the Property, and the assertion lives in that test. It is numbered `P1.`, `P2.`, … and cited as `ADR-NNNN/P2`. A reviewer checks a diff against each one, so a Property is checkable: "the Installer never runs `terraform apply` on the operator's machine", not "deployments are robust". A `feature` Property states what the user observes and is checkable with one E2E run: "`deploy --dry-run` changes no resource", not "dry-run is safe".
+
+**The option test: a Property is not a consequence of the decision.** Ask of each one: would every design that gives the title properties have to keep it? Yes — it is a Property. No, only the chosen option does it — it is a consequence. A consequence names the chosen mechanism: a method list, a package path, a client, a temp file, a value such as a timeout, or a test. Write it in the decision paragraph or under `## Consequences`, never as a Property and never as an ADR of its own.
 
 ### Optional sections
 
