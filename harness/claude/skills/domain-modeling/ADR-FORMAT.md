@@ -1,6 +1,6 @@
 # ADR Format
 
-**An ADR is one markdown file with metadata, a decision paragraph, and a changelog.** Active ADRs live in `docs/adr/`, superseded and deprecated ones in `docs/!archived/adr/`.
+**An ADR is one markdown file with metadata, a decision paragraph, and a changelog.** An ADR has no status. A file in `docs/adr/` is live and binds the code. A file in `docs/!archived/adr/` is dropped. An open question is never an ADR: it lives in `QUESTIONS.md` ([Open questions](#open-questions)).
 
 ## File name and numbering
 
@@ -8,11 +8,10 @@
 
 ## Metadata
 
-**Every ADR carries YAML frontmatter with four keys.** They are required, including on the first draft.
+**Every ADR carries YAML frontmatter with three keys.** They are required.
 
 ```yaml
 ---
-status: proposed
 kind: architecture
 created: 2026-08-09
 updated: 2026-08-09
@@ -21,7 +20,6 @@ updated: 2026-08-09
 
 | Key | Holds |
 |---|---|
-| `status` | `proposed`, `accepted`, `deprecated`, or `superseded-by-NNNN` |
 | `kind` | `architecture` — how the system is built; `feature` — what the user can do and see, such as a dry-run mode. |
 | `created` | ISO date the ADR was first written. Never changes. |
 | `updated` | ISO date of the last edit to this file. |
@@ -32,10 +30,10 @@ updated: 2026-08-09
 ## Changelog
 
 - 2026-08-09 — Drafted.
-- 2026-09-01 — Accepted after the load test.
+- 2026-09-01 — Reworded P2 after the load test.
 ```
 
-**Every edit updates `updated` and appends a changelog line.** A status change is an edit. The changelog is why the metadata exists: it separates "this decision was made in 2024 and still holds" from "this was rewritten twice and nobody says why".
+**Every edit updates `updated` and appends a changelog line.** A move to the archive is an edit. The changelog is why the metadata exists: it separates "this decision was made in 2024 and still holds" from "this was rewritten twice and nobody says why".
 
 ## Template
 
@@ -63,11 +61,11 @@ A title, a paragraph, the reason, the Properties, and the changelog section are 
 
 ### Reason
 
-**The reason is the operator's, quoted.** Write it under `## Reason` as a quote from the session or the grill answer. A reason the agent inferred and the operator never confirmed keeps the ADR `proposed`.
+**The reason is the operator's, quoted.** Write it under `## Reason` as a quote from the session or the grill answer. A reason the agent inferred and the operator never confirmed is an open question: ask "Why A over B?" in `QUESTIONS.md`, and write the ADR only when the operator answers.
 
 ### Properties
 
-**Every accepted ADR lists at least one Property under `## Properties`.** A Property is one invariant: a guarantee the system keeps in every run while the decision holds, at the level of the title — "a huge file uploads in parallel parts", "every upload is cancellable", "a reader never sees a partial object". It is not a test assertion such as an error value, an import, or a signature: a test checks the Property, and the assertion lives in that test. It is numbered `P1.`, `P2.`, … and cited as `ADR-NNNN/P2`. A reviewer checks a diff against each one, so a Property is checkable: "the Installer never runs `terraform apply` on the operator's machine", not "deployments are robust". A `feature` Property states what the user observes and is checkable with one E2E run: "`deploy --dry-run` changes no resource", not "dry-run is safe".
+**Every ADR lists at least one Property under `## Properties`.** A Property is one invariant: a guarantee the system keeps in every run while the decision holds, at the level of the title — "a huge file uploads in parallel parts", "every upload is cancellable", "a reader never sees a partial object". It is not a test assertion such as an error value, an import, or a signature: a test checks the Property, and the assertion lives in that test. It is numbered `P1.`, `P2.`, … and cited as `ADR-NNNN/P2`. A reviewer checks a diff against each one, so a Property is checkable: "the Installer never runs `terraform apply` on the operator's machine", not "deployments are robust". A `feature` Property states what the user observes and is checkable with one E2E run: "`deploy --dry-run` changes no resource", not "dry-run is safe".
 
 **Read the system as a black box.** A Property is a guarantee of behavior that a caller, a user, or an operator observes at the boundary: what goes in, what comes out, how long it takes, what it costs. It names no component, client, or code structure inside. It names no mechanism of the storage or the transport either: no part, chunk, bucket key, header, checksum, temp file, or rename. Name a backend only when the guarantee itself differs by the backend the user picks. "A huge file uploads in parallel" and "a cancelled upload stops" pass; "the S3 store calls `s3c`" and "the bytes never pass through the controller" do not.
 
@@ -97,13 +95,32 @@ Include these only when they add value, between the decision and the changelog. 
 
 ## Lifecycle
 
-**Status moves in one direction: `proposed` → `accepted` → `deprecated` or `superseded-by-NNNN`.**
+**An ADR is written once the operator approves it, and it is live until it moves to the archive.** The folder is the only state.
 
-| Transition | What to do |
+| Change | What to do |
 |---|---|
-| Proposed → accepted | Set `status: accepted`, bump `updated`, add a changelog entry. File stays in `docs/adr/`. |
-| Accepted → deprecated | The decision no longer applies and nothing replaced it. Set `status: deprecated`, bump `updated`, add a changelog entry, move the file to `docs/!archived/adr/`. |
-| Accepted → superseded | A new ADR replaces it. Write the new ADR first, then set `status: superseded-by-NNNN` on the old one, bump `updated`, add a changelog entry naming the replacement, and move the file to `docs/!archived/adr/`. The new ADR states which ADR it supersedes in its opening paragraph. |
+| The operator approves a draft | Write the file into `docs/adr/`. Nothing is written before the approval. |
+| The decision no longer applies and nothing replaced it | Bump `updated`, add the changelog line `Deprecated: <reason>`, and move the file to `docs/!archived/adr/`. |
+| A new ADR replaces it | Write the new ADR first; its opening paragraph names the ADR it replaces. Then bump `updated` on the old one, add the changelog line `Superseded by [ADR-NNNN](../NNNN-slug.md)`, and move the file to `docs/!archived/adr/`. |
+
+## Open questions
+
+**An open question is one section in `QUESTIONS.md`, next to the ADR folder, never an ADR.** It holds a choice nobody has made, and a choice made without a reason ("Why A over B?").
+
+```md
+## gcs-client-location
+
+**Question:** Does `gcsc` move under `util/storage` together with `s3c`?
+**Blocks:** The package layout of the storage stores.
+**Options:**
+- A — `s3c`, `gcsc`, and `mis3` move (recommended: the GCS client sits next to the S3 one).
+- B — only `s3c` moves.
+```
+
+- The slug says what the question is about.
+- When the operator answers, write the ADR with the `adr` skill, then delete the section. The history keeps it.
+- A question that stops mattering is deleted, with the reason in the commit message.
+- A spec is ready when `QUESTIONS.md` has no section.
 
 **Move archived files with `git mv`** so the history follows the file.
 

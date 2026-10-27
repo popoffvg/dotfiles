@@ -96,7 +96,7 @@ Settle a slot from a source when one exists, as `grilling` step 2 says, and cite
 | Properties | "While X holds, what must never happen?" — for a feature: "What does the user see, and what must the feature never do?" | Two to four invariants you can check in code or with one E2E run, each one line. Each one passes the rules of step 5. |
 | Consequences | "What would make you reverse X?" | The fact that breaks the reason. |
 
-An empty Answer slot means the operator accepted the recommendation; record that reason as `(accepted recommendation)`. A candidate whose Reason the operator will not give stays `proposed`.
+An empty Answer slot means the operator accepted the recommendation; record that reason as `(accepted recommendation)`. A candidate whose Reason the operator will not give is not written: it goes to `QUESTIONS.md` as "Why A over B?" ([ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#open-questions)).
 
 **Completion criterion**: every slot of every candidate is filled from a cited session source or from an answered grill block.
 
@@ -135,11 +135,11 @@ A feature ADR title names what the user can count on, such as "Deploy previews a
 - P2. [new] `deploy --dry-run` changes no resource and writes no state.
 - P3. [new] `deploy --dry-run` exits non-zero when `deploy` would fail.
 
-**Completion criterion**: the draft has frontmatter with `status: proposed` and a `kind`, a title that names the properties, passes the title test, and has a Property under each one, the decision paragraph, a quoted reason, at least one Property, no Property that fails the option test, and a closing `## Changelog` section.
+**Completion criterion**: the draft has frontmatter with a `kind` and no `status`, a title that names the properties, passes the title test, and has a Property under each one, the decision paragraph, a quoted reason, at least one Property, no Property that fails the option test, and a closing `## Changelog` section.
 
 ## 6. Ask, then write
 
-Show the full draft and the target path. Write it only after the operator approves the wording; approval sets `status: accepted`. Create the ADR directory with its `TEMPLATE.md` on the first ADR, and add the README *Decisions* pointer at the same time.
+Show the full draft and the target path. Write it only after the operator approves the wording; the file in the ADR folder is the approval. Create the ADR directory with its `TEMPLATE.md` on the first ADR, and add the README *Decisions* pointer at the same time.
 
 **Completion criterion**: the file exists at the approved path, or the operator declined and nothing was written.
 

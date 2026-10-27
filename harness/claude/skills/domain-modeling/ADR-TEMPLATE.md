@@ -1,5 +1,4 @@
 ---
-status: proposed
 kind: architecture # or feature: what the user can do and see
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -26,7 +25,7 @@ Optional, only when they add value — placed here, above the changelog:
 ## Consequences
 - {non-obvious downstream effect}
 
-Superseded or deprecated: set `status`, then `git mv` this file to docs/!archived/adr/.
+Superseded or deprecated: add the changelog line `Superseded by [ADR-NNNN](../NNNN-slug.md)` or `Deprecated: <reason>`, then `git mv` this file to docs/!archived/adr/.
 -->
 
 ## Changelog
