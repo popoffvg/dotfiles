@@ -71,6 +71,14 @@ A title, a paragraph, the reason, the Properties, and the changelog section are 
 
 **Read the system as a black box.** A Property is a guarantee of behavior that a caller, a user, or an operator observes at the boundary: what goes in, what comes out, how long it takes, what it costs. It names no component, client, or code structure inside. It names no mechanism of the storage or the transport either: no part, chunk, bucket key, header, checksum, temp file, or rename. Name a backend only when the guarantee itself differs by the backend the user picks. "A huge file uploads in parallel" and "a cancelled upload stops" pass; "the S3 store calls `s3c`" and "the bytes never pass through the controller" do not.
 
+**The Lean test: a Property must be a theorem over the black box.** Model the system as only what a caller, a user, or an operator sees: the calls, their results, the stored data, the time, and the resources. Try to state the Property as a theorem in Lean over that model. If you can, it is a Property. If the statement needs a component, a protocol step, a format, or an error value from inside, or if the line is too vague to state, rewrite it or drop it. The theorem is a check only; the ADR keeps the plain sentence.
+
+```lean
+-- "A stored object holds exactly the bytes the writer sent."
+theorem stored_is_sent (s : Store) (n : Name) (b : Bytes) (h : (s.write n b).ok) :
+    (s.write n b).store.read n = some b
+```
+
 **The option test: a Property is not a consequence of the decision.** Ask of each one: would every design that gives the title properties have to keep it? Yes — it is a Property. No, only the chosen option does it — it is a consequence. A consequence names the chosen mechanism: a method list, a package path, a client, a temp file, a value such as a timeout, or a test. Write it in the decision paragraph or under `## Consequences`, never as a Property and never as an ADR of its own.
 
 **Mark each Property `[keep]` or `[new]`, and write it as one plain sentence.** `[keep]` is a guarantee that today's code already gives and the decision keeps. `[new]` is a guarantee the decision adds. List the `[keep]` ones first, so a reader sees what must not break before what changes. A Property carries no source and no evidence words: no file, no line number, no fact name, no link, no "today on X", no "closes Y". The evidence goes in the decision paragraph or in the research it cites. A guarantee of today's code that the decision drops goes under `## Considered Options` or `## Consequences` with the reason.
