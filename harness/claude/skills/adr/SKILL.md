@@ -127,13 +127,13 @@ Write the decision paragraph in one to three sentences: the context, the option 
 | The FS store writes into a temp file and renames it at `Close`. | A reader never sees a partial object. |
 | `ReadFrom` cuts the parts from an `io.ReaderAt` source. | A huge file uploads in parallel. |
 | A cancelled call returns an error that matches `context.Canceled`. | Every upload is cancellable. |
+| A store checks a SHA-256 of the bytes it wrote. | A stored object holds exactly the bytes the writer sent. |
 
 A feature ADR title names what the user can count on, such as "Deploy previews are complete and side-effect free". Its paragraph says who uses the feature, how they start it, and what they get. Its Properties say what the user observes, for example:
 
 - P1. [new] `deploy --dry-run` prints every create, update, and delete that `deploy` would make.
 - P2. [new] `deploy --dry-run` changes no resource and writes no state.
 - P3. [new] `deploy --dry-run` exits non-zero when `deploy` would fail.
-| A store checks a SHA-256 of the bytes it wrote. | A stored object holds exactly the bytes the writer sent. |
 
 **Completion criterion**: the draft has frontmatter with `status: proposed` and a `kind`, a title that names the properties, passes the title test, and has a Property under each one, the decision paragraph, a quoted reason, at least one Property, no Property that fails the option test, and a closing `## Changelog` section.
 
