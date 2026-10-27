@@ -3,6 +3,7 @@
 | Runner | Cases | Grades |
 |---|---|---|
 | `run-grilling-rounds.sh` | `cases-grilling-rounds.jsonl` | **The pain.** The `grilling` skill writes whole real rounds; the runner counts the needless questions and the missed ones. |
+| `run-adr-properties.sh` | `cases-adr-properties.jsonl`, `cases-adr-properties-write.jsonl` | The ADR Property rules in `domain-modeling/ADR-FORMAT.md`: a Property is a general rule a user can rely on, not an implementation detail. |
 | `run-grilling.sh` | `cases-grilling.jsonl` | Diagnostic only. One open point at a time, with the labels named in the prompt. It cannot tell a good skill from a bad one. |
 
 `lib-grilling.sh` holds what both runners share: the skill text at a git revision, the judge call, and the job limit.
@@ -123,3 +124,22 @@ Env: `MODEL`, `SKILL_REV`, `JOBS`, `THRESHOLD` (default 0.85), `MAX_OVER_ASK` (d
 ## Cases
 
 `cases-grilling.jsonl`: `id`, `caller`, `source`, `context`, `candidate`, `label` (`ask` | `decide` | `defer`), `pain`, `answer`, `note`. 34 cases: 13 `ask`, 14 `decide`, 7 `defer`. Four cases contain text that the case builder wrote: `cursor-type-waits-on-log-shape` (from a Decided line), `repeat-of-earlier-session` (the earlier records are gone), `only-one-real-option` (option B is added filler), and `redirect-own-design` (a multi-line answer joined into one line).
+
+---
+
+# Suite: ADR Properties (`run-adr-properties.sh`)
+
+The user wants each ADR Property to be a general rule that a caller, a user, or an operator can rely on, such as "a huge file uploads in parallel" or "every upload can be cancelled". A method list, an error value, a mechanism, or a source citation is an implementation detail. The suite grades `ADR-FORMAT.md` § Properties, which the `adr` skill applies.
+
+- **`classify`** — 28 lines. Gold `reject` lines are the drafts the user rejected in the MILAB-7260 session. Gold `property` lines are the user's own examples and the lines that follow them. The model also gives the `[keep]` or `[new]` mark.
+- **`write`** — 7 decisions from five domains. The model writes a whole `## Properties` section. `check-adr-properties.py` checks the format, the evidence words, the order, and the coverage of the title's qualities. A judge that does not see the skill labels each line a general rule or an implementation detail.
+
+```sh
+./run-adr-properties.sh                        # both suites, current rules
+SKILL_REV=2476e753^ ./run-adr-properties.sh    # the control: the rules before the session
+./run-adr-properties.sh -s write -v            # one suite; print each written section
+```
+
+Env: `MODEL` (default `sonnet`), `JOBS` (default 6), `THRESHOLD` (classify accuracy, default 0.9), `NOCACHE=1`. Exit 0 = classify at or above the threshold and every written section clean.
+
+First run, sonnet: current rules classify 28/28 and write 5/7 clean; the control classifies 17/28 and writes 0/7 clean. The control accepts error values, mechanisms, and evidence lines as Properties, so the cases do not leak the answer.
