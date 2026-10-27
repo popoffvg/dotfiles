@@ -71,6 +71,8 @@ A title, a paragraph, the reason, the Properties, and the changelog section are 
 
 **The option test: a Property is not a consequence of the decision.** Ask of each one: would every design that gives the title properties have to keep it? Yes — it is a Property. No, only the chosen option does it — it is a consequence. A consequence names the chosen mechanism: a method list, a package path, a client, a temp file, a value such as a timeout, or a test. Write it in the decision paragraph or under `## Consequences`, never as a Property and never as an ADR of its own.
 
+**When the decision replaces code that exists, start from what that code gives.** List first each guarantee today's code gives that the decision keeps, marked `Today:` with its `file:line` or research fact. Then list each new guarantee, marked `New:` with the gap in today's code it closes. A guarantee of today's code that the decision drops goes under `## Considered Options` or `## Consequences` with the reason.
+
 ### Optional sections
 
 Include these only when they add value, between the decision and the changelog. Most ADRs need none of them.
