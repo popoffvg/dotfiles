@@ -3,6 +3,8 @@
 # Zed's agent.terminal_init_command runs this instead of claudex itself.
 set -euo pipefail
 
+export EDITOR=~/.claude/scripts/zed-edit-return.sh
+
 CONFIG="${HERDR_ZED_CONFIG:-$HOME/.config/herdr/zed.toml}"
 START_CMD="${HERDR_ZED_COMMAND:-claudex}"
 WAIT_SECONDS="${HERDR_ZED_WAIT:-15}"

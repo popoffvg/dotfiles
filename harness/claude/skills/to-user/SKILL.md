@@ -1,6 +1,6 @@
 ---
 name: to-user
-description: Hand work to the operator as a self-contained file they read cold and edit in their own editor, not in chat. Use for a batch of items that each need a verdict or reply ("list the PR comments with recommended answers", "give me a file to decide on each"), a findings or status handoff ("write up what you found", "explain it to me in a file"), a draft they rewrite in their own words ("draft it and I'll edit it"), and the open choices of an artifact, page, deck, or design before you build it — palette, typefaces, navigation, theme, fidelity to a source file.
+description: Hand work to the operator as a self-contained file they read cold and edit in their own editor, not in chat. Use for a batch of items that each need a verdict or reply ("list the PR comments with recommended answers", "give me a file to decide on each"), a findings or status handoff ("write up what you found", "explain it to me in a file"), a draft they rewrite in their own words ("draft it and I'll edit it"), and the open choices of an artifact, page, deck, or design before you build it — palette, typefaces, navigation, theme, fidelity to a source file. A file the operator only reads to catch up on the current decision is `snapshot`.
 allowed-tools: Bash(~/.claude/scripts/open-file.sh:*)
 version: 0.4.0
 ---

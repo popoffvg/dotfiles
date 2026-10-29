@@ -48,7 +48,6 @@
 	required = true
 [core]
 	pager = hunk pager
-	hooksPath = ~/.config/git/hooks
 	excludesfile = ~/.gitignore
 [credential "https://github.com"]
 	helper =

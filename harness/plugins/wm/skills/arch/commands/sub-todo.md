@@ -1,7 +1,7 @@
 # code — todo (TODO bodies)
 
 Authors the `todos/TODO-N.md` + `todos/TODO-N.agent.md` **pair**, plus the `todos/TODO-N.test.md`
-test file, from a reviewed `spec.md` + `thoughts/`. Owns the TODO element list, the **verification chain**, and the **outcome** rules.
+test file, from a reviewed `spec.md` + `adr/`. Owns the TODO element list, the **verification chain**, and the **outcome** rules.
 
 **Two stages, with a human gate between them** (§ Execution): no agent half exists before the human
 approves the row's `TODO-N.md`, `TODO-N.test.md`, and `GLOSSARY.md` entries.
@@ -11,7 +11,7 @@ approves the row's `TODO-N.md`, `TODO-N.test.md`, and `GLOSSARY.md` entries.
 [`examples/todo-test.md`](../examples/todo-test.md) (test file). They are the artifact you are
 producing, and each carries the rules for every section as a `>` block under the heading it governs.
 The rule set that bounds them is printed, not written: run
-`~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts`.
+`~/.claude/scripts/wm-constraints.py <notes-dir>/adr`.
 This page is the procedure that produces them; `references/ref-todo-sections.md` is what cuts across
 the sections. Reading the shape before the rules is how you tell which rule is load-bearing.
 
@@ -40,8 +40,8 @@ in the agent half's `## Files`, keyed by increment number. The agent half carrie
 increment text.
 
 **No TODO carries a constraint, and none carries an origin.** A settled decision lives once, as its
-`thoughts/` note, and the rule set is generated from those notes on demand —
-`~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` (`ref-todo-sections.md` § Constraints).
+ADR, and the rule set is generated from the ADR Properties on demand —
+`~/.claude/scripts/wm-constraints.py <notes-dir>/adr` (`ref-todo-sections.md` § Constraints).
 No pair file carries a rule or the command; `todos/CLAUDE.md` § Read order names the command once. The *why* behind a rule is not stored in
 `todos/` either: the `trace` skill walks to it on demand.
 
@@ -62,9 +62,9 @@ An agent half is written only for a row the human approved in Step 5.
 ## Precondition — past the gate
 
 Run `todo` only after a human has reviewed the spec (`ref-write.md` § Stop at the gate). `new` stops before
-this deliberately. Before authoring: `spec.md` frontmatter `status: review`, **no `status: open` question
-note and no `status: proposed` decision in `thoughts/`** (`~/.claude/scripts/wm-open-questions.sh
-<notes-dir>/thoughts` and `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --check` both exit 0),
+this deliberately. Before authoring: `spec.md` frontmatter `status: review`, **no open question in `QUESTIONS.md`**
+(`~/.claude/scripts/wm-open-questions.sh <notes-dir>` and
+`~/.claude/scripts/wm-constraints.py <notes-dir>/adr --check` both exit 0),
 ledger settled, and the human has asked for TODOs. Otherwise stop and run `/code new` first.
 
 ## Execution — two stages, one fork per ledger row, wave by wave
@@ -86,7 +86,7 @@ between them. Author a wave **in parallel — one fork per row**. The run then c
 per wave instead of one per TODO.
 
 **Why a fork and not a fresh agent.** A fork starts from this conversation, so the corpus is read
-once by the caller and inherited by every row: `spec.md`, the `thoughts/` graph, `GLOSSARY.md`, and
+once by the caller and inherited by every row: `spec.md`, the ADRs, `GLOSSARY.md`, and
 the grill that settled them. A `general-purpose` agent would re-read the corpus once per row and
 still arrive without the grill — and the grill is where the decisions that become the rules were
 made. A fork also inherits the caller's model (`model:` is ignored on a fork),
@@ -99,23 +99,23 @@ paths behind each approved increment, and the increments are fixed before the pa
 
 ### Step 1 — read the corpus once (caller)
 
-`spec.md` (ledger + wave table), the `thoughts/` graph, `GLOSSARY.md`. Everything read here is
+`spec.md` (ledger + wave table), the ADRs in `adr/`, `GLOSSARY.md`. Everything read here is
 inherited by every fork; everything skipped here is re-read N times or missed N times.
 
-Enter `thoughts/` through the index, never by reading the directory: run
-`~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts`, read every note's `description`, and
-open in full the notes that bear on the rows in this run's waves (`arch:ref-note-format.md` §
-Finding the thought for your task). The descriptions are the map the forks inherit — a note whose
-description shows it bears on no row in the wave costs nothing to leave closed.
+Enter `adr/` through the index, never by reading the directory: run
+`~/.claude/scripts/wm-adr-index.py <notes-dir>/adr`, read every title, and open in full the ADRs
+that bear on the rows in this run's waves (`arch:ref-adr-format.md` § Find the ADRs for a task).
+The index is the map the forks inherit — an ADR whose title shows it bears on no row in the wave
+costs nothing to leave closed.
 
-**Done when** you can name, for each row in the run, the notes that bear on it.
+**Done when** you can name, for each row in the run, the ADRs that bear on it.
 
 ### Step 2 — stage 1: fan out the wave (caller)
 
 One fork per row in the current wave, **all `Agent` calls in one assistant message** — calls in
 separate messages run serially, not in parallel. Each prompt names the row and its number block and
 nothing more; the context is already there. A number block is 10 numbers; the first block starts after the
-highest `NNN` in `thoughts/`, and the blocks of one run never overlap. Stage 2 hands out new blocks
+highest `NNNN` in `adr/` and `adr/archived/`, and the blocks of one run never overlap. Stage 2 hands out new blocks
 the same way.
 
 ```
@@ -126,10 +126,10 @@ Agent(subagent_type="fork", prompt=
    are past the spec gate, before the TODO gate.
    Write exactly two files: <notes-dir>/todos/TODO-N.md (with `increment: 0/<total>`) and
    TODO-N.test.md.
-   Impl-decision notes: take thoughts/ numbers <lo>-<hi>, no others.
+   Implementation ADRs: take adr/ numbers <lo>-<hi>, no others.
    Write nothing else — not TODO-N.agent.md, not spec.md, not GLOSSARY.md, not another row's files.
    Return, and only this: your `## New terms` rows (or `none`), the `## Components` symbols, the
-   impl-decision notes you wrote, and any contradiction in the row you could not resolve.
+   implementation ADRs you wrote, and any contradiction in the row you could not resolve.
    Do not summarize the files — the caller reads them.")
 ```
 
@@ -148,8 +148,8 @@ would otherwise write at once:
 |---|---|---|
 | `GLOSSARY.md` | caller, from the returned `## New terms` rows, `Status: new`, before the gate | Parallel writes to one file lose entries — and only the caller can see two forks minting two names for one concept. |
 | `spec.md` — ledger, wave table | caller only | A row a fork finds wrong is a spec problem, not a pair problem: the caller fixes the ledger row, or stops and runs `revise`. |
-| `thoughts/NNN-*.md` | the fork, inside its assigned block | The number is the collision: two forks both take the next free `NNN` and write the same file. The block is handed out in the prompt. |
-| the notes `jj commit` | caller, once per wave | `code:ref-subcommand-rules.md` § Log to notes-dir. |
+| `adr/NNNN-*.md` | the fork, inside its assigned block | The number is the collision: two forks both take the next free `NNNN` and write the same file. The block is handed out in the prompt. |
+| the notes `jj commit` | caller, once per wave | `code:ref-jj-notes.md` § Recording. |
 
 Then run the three checks that are cross-row by construction, and so belong to nobody inside a fork:
 
@@ -184,7 +184,7 @@ one row, is written inline. The glossary merge and Step 5 still run. The fork is
 Run this step when every row has its `TODO-N.md` and `TODO-N.test.md` and the glossary merge is
 done.
 
-1. Commit the notes (`code:ref-subcommand-rules.md` § Log to notes-dir), so the human reads a fixed
+1. Commit the notes (`code:ref-jj-notes.md` § Recording), so the human reads a fixed
    version.
 2. Hand the human the list to read: every `TODO-N.md` and `TODO-N.test.md`, and the `GLOSSARY.md`
    entries this run added. The read order is § The verification chain.
@@ -208,9 +208,9 @@ Agent(subagent_type="fork", prompt=
    approved — do not edit them.
    Follow ${CLAUDE_PLUGIN_ROOT}/skills/arch/commands/sub-todo.md, the `>` rule blocks in
    examples/todo-agent.md, and references/ref-todo-sections.md in full.
-   Write <notes-dir>/todos/TODO-N.agent.md and nothing else, except impl-decision notes in
-   thoughts/ numbers <lo>-<hi>.
-   Return, and only this: your `## Files` paths, the impl-decision notes you wrote, and any place
+   Write <notes-dir>/todos/TODO-N.agent.md and nothing else, except implementation ADRs in
+   adr/ numbers <lo>-<hi>.
+   Return, and only this: your `## Files` paths, the implementation ADRs you wrote, and any place
    where the approved design cannot be built as written.")
 ```
 
@@ -228,18 +228,18 @@ anything — a path, a name, a test command, a decision — the TODO is broken. 
 
 **Self-contained means: the pair plus the generated rule set is enough.** The implementer reads
 the three files of the row and the rules the agent half's command prints, and never opens
-`spec.md` or a thought note to know *what* to build. Test the draft by asking: with `spec.md` deleted and no
-thought note opened, could an implementer still write the code and both tests? If not, the TODO is
+`spec.md` or an ADR to know *what* to build. Test the draft by asking: with `spec.md` deleted and no
+ADR opened, could an implementer still write the code and both tests? If not, the TODO is
 not finished.
 
-**The rules are read, not restated.** The generated table is short — one line per settled decision —
+**The rules are read, not restated.** The generated table is short — one line per Property —
 so the implementer reads all of it and obeys the rows that bite. A rule copied into the agent half is
 the second copy that drifts, and choosing *which* rows to copy is a judgment the pair's author makes
 once and every later reader inherits blind.
 
 **Self-contained is not exhaustive.** The spec's Description, Goal, and target picture are the human
 reviewer's context, not the implementer's, and they never appear in a TODO body. Neither does the
-discussion behind a rule: that lives in `thoughts/`, and the `trace` skill fetches it when someone
+discussion behind a rule: that lives in `adr/`, and the `trace` skill fetches it when someone
 wants to argue with the rule rather than obey it.
 
 ## Budget
@@ -321,7 +321,7 @@ verbatim without its `>` block, as the caller, before the fan-out.
 
 `<notes-dir>/todos/TODO-N.md` and `<notes-dir>/todos/TODO-N.agent.md`, `N` 1-indexed and contiguous,
 one pair per ledger entry. The rules both halves obey are stored in no file: they are generated from
-`<notes-dir>/thoughts/`.
+the ADR Properties in `<notes-dir>/adr/`.
 `TODO-N.md` restates that entry's outcome verbatim at the top. Resolve `<notes-dir>` from the active
 phase — never hardcode `.notes/`.
 
@@ -353,7 +353,7 @@ no frontmatter — `status` has one home, and a second copy of it drifts.
 | 2 | `Outcome` | H2 | always |
 | 3 | `New terms` | H2 | only if the TODO adds terms missing from GLOSSARY.md |
 | 4 | `Components` | H2 | always |
-| 5 | `Flow changes` | H2 | always — one H3 per running path the TODO changes, its steps as a tree in run order, each changed step marked (`+ step`, `+ check`, …); or `none — <reason>` |
+| 5 | `Flow changes` | H2 | always — one H3 per running path the TODO changes, its steps as one ` ```python ` pseudocode block in run order, each changed line ending in its marker comment (`# +`, `# ~ was:`, …); or `none — <reason>` |
 | 6 | `Increments` | H2 | always — one `### <c>.<i>.` H3 per increment in apply order, each self-contained and in one component: a summary paragraph, Landed, Change, Extends, Surprises, and the **Surface** diff it lands; no file path. Each commit group ends with a `---` line and a `### Commit <c>` H3: Title, Body, Proves |
 | 7 | `Deviations` | H2 | never at `todo` — written by `impl` when a user correction contradicts a section above, removed by `revise` |
 | 8 | `**Tests:** [TODO-N.test.md](TODO-N.test.md)` | line | always — the link to the test file |
@@ -414,7 +414,7 @@ design read, and these two are answerable only against code:
 - **The generated rules** — do the settled decisions actually bound this slice? The human *made* those
   decisions during the grill, so re-reading them here checks nothing; what matters is whether an
   increment violates one, which `verify` audits against the generated rules and the `rules` gate
-  checks against the diff as `D<NNN>` rules.
+  checks against the diff as `ADR-NNNN/Pn` rules.
 - **Does the real code match each increment?** The gate approves each increment as a prediction. The
   human walks them again while they are applied, at the grain the `approve` key sets
   (`impl:sub-impl.md` step 5 and its § Approval), where each block is compared with its real diff.
@@ -426,7 +426,7 @@ half: `code:sub-verify.md` § Phase 0 — static gate.
 whether the eight elements agree with each other. A trace answers a different question: whether any
 of them *had* to be that way. A reviewer who accepts the Outcome never runs it; a reviewer who wants
 to argue with the Outcome, a Components split, an increment's diff, or an `E2E: none` runs it against
-that anchor and gets back the decision that produced it, cited to the note or document holding the
+that anchor and gets back the decision that produced it, cited to the ADR or document holding the
 why. Keeping it out of the chain — and out of the files — is what keeps the gate a design read
 instead of a research session.
 
@@ -448,16 +448,41 @@ fan-out does not.
 ## Implementation decisions
 
 Choices the spec didn't make — file naming, package structure, error strategy, data shape — are
-**impl-decisions**. Write each to `thoughts/` before the next section, taking `NNN` from the number
-block this row was assigned (§ Execution step 2) — never the next free number, which a wave-mate is
-taking at the same moment. Template + when-to-write:
-[`examples/note-impl-decision.md`](../examples/note-impl-decision.md).
+**implementation ADRs**: `kind: implementation` with `todo: TODO-N`
+(`arch:ref-adr-format.md` § Frontmatter). Record each with the `adr` skill before the next section,
+taking `NNNN` from the number block this row was assigned (§ Execution step 2) — never the next free
+number, which a wave-mate is taking at the same moment. Example: [`examples/adr.md`](../examples/adr.md).
 
-**Nothing in the pair links to the note.** The pair states the choice as settled fact; the note
+Write one the moment you choose between two valid approaches, pick a pattern the spec did not
+mandate, name a symbol absent from `GLOSSARY.md`, or make a choice that shapes later TODOs. When a
+live ADR already covers the choice, add a Property to it instead.
+
+**Nothing in the pair links to the ADR.** The pair states the choice as settled fact; the ADR
 holds why it was the choice. The edge from one to the other is walked, not stored — the `trace`
-skill searches `thoughts/` from the artifact's own words, which is why every impl-decision note
-carries a `description` that states its answer and a `todo:` key naming the row it was written for
-(`arch:ref-note-format.md`). A note with a vague description is a note the search cannot return.
+skill searches `adr/` from the artifact's own words, which is why every implementation ADR carries
+a title that names what it gives and a `todo:` key naming the row it was written for. An ADR with a
+vague title is an ADR the search cannot return.
+
+## Concurrency — events and owners, not primitives
+
+A TODO with a goroutine, a thread, a task, or a background loop states its concurrency as events and owners. The implementer picks the primitive.
+
+- **Name no sync primitive.** No mutex, channel, atomic, `WaitGroup`, or lock in a Surprise, a Gotcha, or a Pre-read note. "Keep the state in fields under one mutex" is a primitive. Write who owns the state instead.
+- **Give each piece of mutable state one owner**: the goroutine or the call that writes it. Every other party reads it through an event or a call, and never through a shared field.
+- **List the lifecycle events of each background loop**: its start, each terminal event (done, lost, failed, canceled), who sends each one, and who waits on it. An event that happens once and never goes back is an event, not a field. Example: "the renewer signals `lease lost` once; every later write sees it and fails with `errLeaseLost`".
+- **Say "wait" or "refuse" for two operations that meet on one resource**, with the reason. Do not pick "refuse at once" because a flag makes it easy.
+
+## Every new algorithm is drawn for the human
+
+The human reviews `## Flow changes`, not the agent half. An algorithm that is not drawn there is first seen in code review, when it is expensive to change. Three triggers make an algorithm visible. When one fires, the flow is required.
+
+- **`new-body-gets-a-flow`:** a flow line calls a symbol that is new in this TODO, and its body has a loop, a wait, a retry, a timer, or a goroutine. That symbol gets its own H3, also when it is private and the caller shows it as one `with` line. Example: `with withLease(instance_id):` hides the take loop, the renewal, and the release, so `withLease` gets an H3.
+- **`goroutine-is-a-running-path`:** each goroutine or background loop that the TODO starts is a running path, with its own H3. Its pseudocode shows who starts it, what stops it, which events it sends, and who waits on each one.
+- **`no-design-in-agent-half`:** the agent half holds paths, pre-reads, and traps only. A sentence there that chooses how the code works ("keep X under one mutex", "loops on", "starts a goroutine that") is a design. Move it to a Flow H3, or to an ADR when it is a choice between two valid approaches.
+
+**A work split does not remove the flow.** When an earlier TODO says "this row starts no goroutine; TODO-M starts it", TODO-M draws that goroutine.
+
+**A trigger overrides the line budget.** When the drawn flows break the 200-line ceiling, the TODO goes to size `L`, and the human agrees to it before the pair is written. Never cut a flow to fit the budget.
 
 ## Iteration
 
@@ -478,7 +503,7 @@ own file against a rule already counted.
 - [ ] All three files exist for this `N`, `TODO-N.md` ending with its
       `**Tests:**` and `**Agent:**` links, and `TODO-N.agent.md` and `TODO-N.test.md` each
       opening with its `**Design:**` link
-- [ ] **No rule text and no origin link in either half** — a rule lives in its `thoughts/` note and reaches the implementer through the generator
+- [ ] **No rule text and no origin link in either half** — a rule lives in its ADR as a Property and reaches the implementer through the generator
 
 ### `TODO-N.md` — the human half
 
@@ -504,17 +529,18 @@ own file against a rule already counted.
 - [ ] **No body in a diff** — no function body, loop, branch chain, shell script, query, regex, fixture, or literal expected-value table; no comments and no `AGENT:` markers. The sole exception is a body the human asked for directly, carrying a `**Body requested:**` bullet that names the symbol
 - [ ] **No consequence in a diff** — no migrated call site, updated import, forwarded field, or renamed use whose shape another diff already fixes. It lives in the migration increment of the caller's component, as its summary
 - [ ] **No interface method in a diff** under the type that implements it — that type shows one `var _ Interface = (*Type)(nil)` line per interface, its constructor, and only the public methods no interface declares
-- [ ] **`## Flow changes`** has one H3 per running path the TODO changes, its steps as one fenced tree in run order, sub-steps and paths nested under the step that runs them, every changed step opening with its marker — or the single line `none — <concrete reason>`
+- [ ] **`## Flow changes`** has one H3 per running path the TODO changes, its steps as one ` ```python ` pseudocode block in run order, sub-steps and paths indented under the `if` / `for` / `with` line that runs them, every changed line ending in its marker comment — or the single line `none — <concrete reason>`
 - [ ] Every step a flow marks names only `## Components` symbols, and no body code
+- [ ] **Every new algorithm has its own Flow H3**: each new symbol with a loop, a wait, a retry, a timer, or a goroutine in its body, and each goroutine the TODO starts, with its events ([Every new algorithm is drawn for the human](#every-new-algorithm-is-drawn-for-the-human))
 - [ ] **No `## Deviations`** — that section belongs to `impl`, and one present at `todo` means a correction was written as design
-- [ ] Every `### Commit <c>` sits after a `---` line that closes its increments; its **Title** ≤ 72 chars, imperative, prefixed; its **Body** has a cause and a goal paragraph (plus a decision if one was rejected) and names no `TODO-N`, increment number, or note id; the titles together state the same change as the **Outcome**
+- [ ] Every `### Commit <c>` sits after a `---` line that closes its increments; its **Title** ≤ 72 chars, imperative, prefixed; its **Body** has a cause and a goal paragraph (plus a decision if one was rejected) and names no `TODO-N`, increment number, or ADR number; the titles together state the same change as the **Outcome**
 - [ ] **Each commit has a clear border**: a signature change and the migration it forces sit in one commit, so the repo builds and the tests pass at every commit; a second cause starts a new commit
 - [ ] Every **Proves** line names `TODO-N.test.md` cases by name, every Autotest case is named by exactly one commit — the first at which it can pass — or the line is `none — <concrete reason>`
 
 ### `TODO-N.test.md` — the test file
 
 - [ ] No frontmatter; the first line is the `**Design:**` link; `## Autotest` is the only H2
-- [ ] Every `+ check` and `+ branch` in `TODO-N.md` `## Flow changes` has an error case, and every `+ step` and `~ step` has a case
+- [ ] Every new `if`, `elif`, `else`, and `raise` line (`# +`) in `TODO-N.md` `## Flow changes` has a case that takes it, and every other `# +` and `# ~` line has a case
 - [ ] **Autotest** has both a `Unit` and an `E2E` sub-block, each with **Under test** + Target files + Cases + one runnable Command — or `none — <concrete reason>`
 - [ ] **Under test** opens each level, above **Target files**, naming the symbols and the one behaviour the whole block proves
 - [ ] Every Autotest case sits in the fenced block under `**Happy path**` or `**Error cases**` — no flat case — as `Case <what it proves>:` with its steps indented under it
@@ -524,8 +550,10 @@ own file against a rule already counted.
 
 ### `TODO-N.agent.md` — the agent half
 
-- [ ] **Self-contained**: with `spec.md` deleted and no thought note opened, the pair plus the generated rules still says what to build and what to assert
-- [ ] Every settled decision this TODO's increments can violate is an approved `decision` or `impl-decision` note whose `description` states the rule, and every such rule a test can check has a matching case in `TODO-N.test.md` `## Autotest`
+- [ ] **Self-contained**: with `spec.md` deleted and no ADR opened, the pair plus the generated rules still says what to build and what to assert
+- [ ] Every settled decision this TODO's increments can violate is a Property of a live ADR, and every such rule a test can check has a matching case in `TODO-N.test.md` `## Autotest`
+- [ ] **No design in the agent half**: no sentence there chooses how the code works; each such choice is a Flow H3 in `TODO-N.md` or an ADR
+- [ ] **No sync primitive is named** (mutex, channel, atomic, `WaitGroup`, lock), and every background loop has its owners and its lifecycle events listed ([Concurrency — events and owners, not primitives](#concurrency--events-and-owners-not-primitives))
 - [ ] Every **Files** / **Pre-reads** path exists (or is marked `create`); every non-test **Files** path maps to a **Components** component
 - [ ] Every **Files** line names the increments that touch it, and every increment has at least one line
 - [ ] **Manual test** Steps/Expected aligned 1:1

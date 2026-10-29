@@ -2,14 +2,14 @@
 > every phase. Copy the file, replace the entries, delete the `>` lines — each one states the rules
 > for the entry above it. `/code new` Step 0 creates the file with one context heading and no entries.
 >
-> **Scope:** every domain term that `spec.md`, a TODO pair, or a live thought uses. A term enters the
+> **Scope:** every domain term that `spec.md`, a TODO pair, or a live ADR uses. A term enters the
 > file before the first artifact uses it, and leaves only as `retired`.
 >
 > **Shape:** three heading levels. `#` is a bounded context, in the order the main user flow meets
 > them. `##` is a **cluster**: the terms that one aggregate, one flow, or one lifecycle joins. `###`
 > is one entry per term — a Zettelkasten note: one concept, its definition, and typed **Links** to
 > the entries it depends on. An entry is a definition, never a decision: the reason a term exists
-> lives in its `thoughts/` note, and the identifiers live in **Code**.
+> lives in its ADR, and the identifiers live in **Code**.
 >
 > Check: `${CLAUDE_PLUGIN_ROOT}/bin/glossary-lint.py <notes-dir> [--code <repo>]` — the rules below
 > are what it parses. The prose follows `harness-dev:text-style`.

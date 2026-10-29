@@ -1,6 +1,6 @@
 ---
 name: review:todo
-description: "Judge an implemented TODO against the same rule files, plus the TODO's settled decisions as `D<NNN>` rules."
+description: "Judge an implemented TODO against the same rule files, plus the TODO's ADR Properties as `ADR-NNNN/Pn` rules."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

@@ -3,7 +3,7 @@ name: arch
 description: >
   Design the work before any code exists — the spec corpus and the component taxonomy. Owns the
   spec pipeline (new, todo, revise, prototype), the spec contract and its artifacts (spec.md, the ledger,
-  thoughts/, the todos/ TODO-N.md + TODO-N.agent.md pair, GLOSSARY.md), and the brick roster: the closed set of component types
+  adr/, the todos/ TODO-N.md + TODO-N.agent.md pair, GLOSSARY.md), and the brick roster: the closed set of component types
   (command, service, flow, gateway, server / consumer, policy, scheduler, wiring) with the metric
   and common structure of each. Load it when the `code` skill routes to new, todo, revise, or prototype,
   when typing a component, or when deciding whether a component owns one responsibility or two.
@@ -20,20 +20,20 @@ The `code` skill routes here; it holds no design procedure of its own.
 
 | Operation | Does | File |
 |---|---|---|
-| `new` | Spec pipeline: init the corpus (`CLAUDE.md`, `RULES.md`), write `spec.md` → grill until no open question note is left → compile the plan with its wave table → **stop at the gate**. Writes no TODO bodies. | `commands/sub-new.md` |
-| `todo` | Author the self-contained `todos/TODO-N.md` + `TODO-N.agent.md` pair and the `TODO-N.test.md` test file from a reviewed `spec.md` + `thoughts/`. Runs only past the gate. | `commands/sub-todo.md` |
-| `revise` | Settle drift from a delta manifest, patching only stale notes and spec sections; reset `spec.md` to `review`. Notes-only. | `commands/sub-revise.md` |
-| `prototype` | Settle an OPEN decision with the smallest visible code diff — read the diff, not a report. | `commands/sub-prototype.md` |
+| `new` | Spec pipeline: init the corpus (`CLAUDE.md`, `RULES.md`), write `spec.md` → grill until `QUESTIONS.md` has no open question → compile the plan with its wave table → **stop at the gate**. Writes no TODO bodies. | `commands/sub-new.md` |
+| `todo` | Author the self-contained `todos/TODO-N.md` + `TODO-N.agent.md` pair and the `TODO-N.test.md` test file from a reviewed `spec.md` + `adr/`. Runs only past the gate. | `commands/sub-todo.md` |
+| `revise` | Settle drift from a delta manifest, patching only stale ADRs and spec sections; reset `spec.md` to `review`. Notes-only. | `commands/sub-revise.md` |
+| `prototype` | Settle an open question of `QUESTIONS.md` with the smallest visible code diff — read the diff, not a report. | `commands/sub-prototype.md` |
 
 ## References and examples
 
 `references/` holds the rules: the spec contract (`ref-write.md`), what cuts across the TODO pair's
-sections (`ref-todo-sections.md`), the thought-note format (`ref-note-format.md`), and the **brick**
+sections (`ref-todo-sections.md`), the wm ADR rules (`ref-adr-format.md`), and the **brick**
 roster (`ref-bricks.md`).
 
 `examples/` holds one file per corpus artifact — two for a TODO: `examples/todo.md` for the human
 half and `examples/todo-agent.md` for the agent half. The rules both halves obey are in no file:
-`~/.claude/scripts/wm-constraints.py` prints them from `thoughts/`. What each example owns is in
+`~/.claude/scripts/wm-constraints.py` prints them from the Properties of the ADRs in `adr/`. What each example owns is in
 `wm:INDEX.md`; this skill does not restate it.
 
 Every file in `examples/` is the finished artifact filled with real content, and every piece of it

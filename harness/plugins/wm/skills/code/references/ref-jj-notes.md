@@ -1,6 +1,6 @@
 # Notes history — jj
 
-The notes dir (`<notes-dir>`, e.g. `.notes/`) is its **own standalone jj repo**, git-ignored in the parent project. Spec/TODO/thought history lives in jj.
+The notes dir (`<notes-dir>`, e.g. `.notes/`) is its **own standalone jj repo**, git-ignored in the parent project. Spec, TODO, and ADR history lives in jj.
 
 ## Where the notes live — the home-dir store
 
@@ -42,7 +42,7 @@ note-declare.sh --list              every store under the store root
 
 ## Recording — commit at each phase boundary (Stop hook)
 
-**Commit `<notes-dir>` yourself with `jj commit -m "<msg>"` whenever a step changes it.** A TODO, a thought, `spec.md`, `GLOSSARY.md` — every edit ends in a commit before the turn ends.
+**Commit `<notes-dir>` yourself with `jj commit -m "<msg>"` whenever a step changes it.** A TODO, an ADR, `spec.md`, `GLOSSARY.md` — every edit ends in a commit before the turn ends.
 
 `bin/notes-commit-reminder.sh` is the plugin's **Stop** hook, active in every session. When `<notes-dir>` has uncommitted changes, it blocks the stop once and names the changed files. If the agent stops again without a commit, it runs `bin/notes-jj-commit.sh`, which commits the rest under a message that lists the changed basenames.
 

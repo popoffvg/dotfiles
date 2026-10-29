@@ -4,7 +4,7 @@
 
 > A filled `<notes-dir>/todos/TODO-N.test.md` — **the test file of the row**. It holds one section,
 > `## Autotest`, and nothing else. Copy the shape and delete the `>` lines, except the `> **Check:**`
-> line under each level, which the copy keeps (`examples/todo.md` § Rules every section shares).
+> line under each level, which the copy keeps (the **Rules every section shares** note in `examples/todo.md`).
 >
 > **No budget.** No line count applies here: one case per promise the Outcome makes, however many
 > that is. A case left out to keep the file short is a promise nobody tests. `budget-check.py`

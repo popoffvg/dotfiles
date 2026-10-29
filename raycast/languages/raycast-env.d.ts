@@ -18,8 +18,10 @@ type ExtensionPreferences = {
   "inboxDir": string,
   /** Prefill - Prefill the form with the selected text or clipboard */
   "prefill": boolean,
-  /** Vocab Binary - The vocab tool; go build in scripts/vocab produces it */
-  "vocabBinary": string
+  /** Supervoc URL - The supervoc server, for example https://supervoc.example.com */
+  "supervocUrl": string,
+  /** Supervoc Access Token - The bearer token that the supervoc /token page issues */
+  "supervocAccessToken": string
 }
 
 /** Preferences accessible in all the extension's commands */

@@ -10,15 +10,15 @@ No `<notes-dir>/spec.md` → write a minimal one (full artifact with the rules p
 
 - **Frontmatter** — a `---` block with `status: init`, `approve: increment` (the default; Step 0.6 replaces it with the user's answer — `ref-write.md` § Approval), `where: in-place` (the default; Step 0.6 replaces it too — `ref-write.md` § Where the work happens), `branch:` (current branch, `git rev-parse --abbrev-ref HEAD`), and `drives:` (one sentence from the user's request). No phase-rules prose in the body — the machine lives in `ref-write.md` § Status.
 - **Description** — one sentence from the request. **Goal** — 2–3 plain sentences.
-- **Open questions** — seed 1–3 as `thoughts/NNN-question-*.md` notes (`status: open`, example `examples/note-question.md`). They live in the thought graph, not in `spec.md`; the spec has no Open Questions section. **TODO List** — empty until the grill closes.
+- **Open questions** — seed 1–3 as sections of `QUESTIONS.md` (`ref-adr-format.md` § An open question is a section of QUESTIONS.md, example `examples/questions.md`). They live in `QUESTIONS.md`, not in `adr/` and not in `spec.md`; the spec has no Open Questions section. **TODO List** — empty until the grill closes.
 - Create `<notes-dir>/GLOSSARY.md` from `examples/glossary.md`, empty.
 - Create `<notes-dir>/CLAUDE.md` from `examples/notes-claude.md` — the corpus guide any agent entering the folder reads. Copy the example's fenced block verbatim, not its header.
 - Create `<notes-dir>/todos/CLAUDE.md` from `examples/todos-claude.md` — the pair convention any agent entering that folder reads: two files per ledger row, which half holds what, the read order, the write rules. The folder is scaffolded here, empty; `todo` fills it past the gate.
 - Create `<notes-dir>/PATTERNS.md` from `examples/patterns.md` — the **need → use** table and the reference files the implementer follows. Fill the first rows at init: read the dependency manifest (`go.mod`, `package.json`, `pyproject.toml`, `Cargo.toml`), then search the repo for the code that already meets each common need — retry, poll a remote state, change a state, run calls at once, map an error, reach each external system. One row per need found, each with its `path:line`. Done when every need the repo already meets has a row. `spec.md` mentions `@PATTERNS.md` and holds no pattern content.
 - Create `<notes-dir>/CONCEPTS.md` from `examples/concepts.md` when the work has structure to draw — app architecture, data flow, the flow it changes — using the `show-me` skill. Draw before the ledger: the pictures are what decide a layer, a wave, and where a row splits. Nothing structural → no file, and `spec.md` mentions none.
-- What we're NOT doing — empty or "follow language defaults". No `Design Decisions` and no `Open Questions` section: both live in `thoughts/` (`ref-write.md` § Artifacts).
+- What we're NOT doing — empty or "follow language defaults". No `Design Decisions` and no `Open Questions` section: both live in `adr/` (`ref-write.md` § Artifacts).
 
-`CLAUDE.md`, `todos/CLAUDE.md`, and `RULES.md` are written **once**; if one already exists, leave it — the user owns it after init. `PATTERNS.md` is created once and stays open to extension — patterns as they surface. It is never rewritten from the example after init. Generated implementation constraints have no file: they come from `thoughts/` (`ref-todo-sections.md` § Constraints).
+`CLAUDE.md`, `todos/CLAUDE.md`, and `RULES.md` are written **once**; if one already exists, leave it — the user owns it after init. `PATTERNS.md` is created once and stays open to extension — patterns as they surface. It is never rewritten from the example after init. Generated implementation constraints have no file: they come from the ADR Properties (`ref-todo-sections.md` § Constraints).
 
 spec.md exists → check the frontmatter `branch` against the current branch (`ref-write.md` § Spec ownership by branch):
 
@@ -30,7 +30,7 @@ spec.md exists → check the frontmatter `branch` against the current branch (`r
 Run every time. Check `<notes-dir>/research/`:
 
 - Empty or missing → skip to Step 1.
-- Present → read `INDEX.md` first (else every `.md`). For each concrete finding — observed code behavior, user assertion, flagged gap — write one `NNN-fact-*.md` thought (`source: auto`, example `examples/note-fact.md`, shared counter from 001). One fact per finding; **before the grill starts**, so decisions can link them. Write each research gap as one `NNN-question-*.md` thought (`source: auto`, `status: open`, example `examples/note-question.md`) — same directory, same counter. Print: `Ingested explore artifacts: N fact notes, M question notes.`
+- Present → read `INDEX.md` first (else every `.md`). A concrete finding — observed code behavior, user assertion — stays in its research artifact with its source; an ADR that rests on it cites that file. Write each research gap as one section of `QUESTIONS.md` (example `examples/questions.md`) **before the grill starts**. Print: `Ingested explore artifacts: M questions.`
 
 ## Step 0.6: Set the rules
 
@@ -69,23 +69,20 @@ are still confirmed.
 
 ## Step 1: Grill
 
-Run the `grilling` skill until no `status: open` question note is left in `thoughts/` (list them: `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`). Every resolution **writes the answer as a new `decision` or `fact` note** at the next `NNN`, restating the question verbatim, and marks the question note answered — a hook archives it, which is what drops it off the list (`ref-note-format.md` § Resolution). A new question raised mid-grill gets its own `NNN-question-*.md` note before you answer it; the decision tree **is** the spec — walk it branch by branch. A question the codebase can answer, read instead of ask.
+Run the `grilling` skill until `QUESTIONS.md` has no open question (list them: `~/.claude/scripts/wm-open-questions.sh <notes-dir>`). A strategic resolution **becomes an ADR** with the `adr` skill, written after the human approves it; a tactical one (a package location, a name, a value) lands in `spec.md`, the TODO, or `PATTERNS.md`. Each one deletes its section of `QUESTIONS.md` (`ref-adr-format.md` § An open question is a section of QUESTIONS.md). A fact the answer rests on goes into its research artifact. A new question raised mid-grill gets its own section in `QUESTIONS.md` before you answer it; the decision tree **is** the spec — walk it branch by branch. A question the codebase can answer, read instead of ask.
 
-Record each term as the grill goes with the `domain-modeling` skill, scoped to the glossary alone — a resolved decision's one home is its `thoughts/NNN-decision-*.md` note, never an ADR, each settled user-visible feature (a `--dry-run` mode, an output schema, a confirmation prompt) as a `kind: feature` ADR. Inside the wm flow the glossary is `<notes-dir>/GLOSSARY.md`, never `CONTEXT.md`, and every new or renamed term needs the human's approval first (`code:ref-subcommand-rules.md` § Glossary).
+Record each term as the grill goes with the `domain-modeling` skill, scoped to the glossary alone — a resolved decision's one home is its ADR: `kind: architecture` for how the system is built, `kind: feature` for a settled user-visible contract (a `--dry-run` mode, an output schema, a confirmation prompt). Inside the wm flow the glossary is `<notes-dir>/GLOSSARY.md`, never `CONTEXT.md`, and every new or renamed term needs the human's approval first (`code:ref-subcommand-rules.md` § Glossary).
 
 ### Exit contract
 
-#### 1. Back-link every thought
-Back-fill `Affects` and populate `links` per `ref-note-format.md` § Back-linking.
+#### 1. Confirm spec.md reflects every resolution
+Every decision is an ADR — **not** a spec section (`spec.md` has no Design Decisions); a rule an increment can violate is a Property of that ADR, and the generator prints it (`ref-todo-sections.md` § Constraints); routine picks land in GLOSSARY.md / scope instead; new out-of-scope items in What we're NOT doing. **No open question left** (`~/.claude/scripts/wm-open-questions.sh <notes-dir>` exits 0; any open one = NOT READY — it generates no rule, so the implementer would never see the choice), and `~/.claude/scripts/wm-constraints.py <notes-dir>/adr --check` exits 0. Advance the frontmatter `status: init → review`. Self-check against `ref-write.md` § Spec-Readiness Checklist.
 
-#### 2. Confirm spec.md reflects every resolution
-Every decision is a `thoughts/NNN-decision-*.md` note — **not** a spec section (`spec.md` has no Design Decisions); a decision an increment can violate is a `decision` note whose `description` states the rule the generator prints (`ref-todo-sections.md` § Constraints); routine picks land in GLOSSARY.md / scope instead; new out-of-scope items in What we're NOT doing. **No `status: open` question note left** (`~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0; any open one = NOT READY), and **no `status: proposed` decision left** (`~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --check` exits 0; a proposed decision generates no rule, so the implementer would never see the choice). Advance the frontmatter `status: init → review`. Self-check against `ref-write.md` § Spec-Readiness Checklist.
-
-#### 3. Draft the main user flow
+#### 2. Draft the main user flow
 Spawn `wm:tester` with the spec path, `<notes-dir>/research/`, and `<notes-dir>/workflows/`. It writes the flow the product MUST keep working as the `main` flow of `<notes-dir>/workflows/flows.json` (`dive:sub-workflow.md` § Rules — `flows.json`), each step an E2E scenario, and updates the entry when one exists. Work that changes no user-visible flow gets no `main` flow; the tester says so. The human approves the flow at the `review→impl` gate — it is what every TODO's `risk` cites (`examples/todo.md`).
 
-#### 4. Compile the plan
-Write a `## Plan` at the bottom of spec.md — 3–5 sentences (one per major branch) plus the **wave** table. No decision-trail table: the graph lives in `thoughts/`, the rules it settled are printed by `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts`, and a reader who wants the reasoning behind either runs the `trace` skill.
+#### 3. Compile the plan
+Write a `## Plan` at the bottom of spec.md — 3–5 sentences (one per major branch) plus the **wave** table. No decision-trail table: the decisions live in `adr/`, the rules they settled are printed by `~/.claude/scripts/wm-constraints.py <notes-dir>/adr`, and a reader who wants the reasoning behind either runs the `trace` skill.
 
 ```markdown
 ## Plan
@@ -99,13 +96,13 @@ Write a `## Plan` at the bottom of spec.md — 3–5 sentences (one per major br
 | W2 | TODO-3 | `depends_on: [TODO-1]` |
 ```
 
-Build the waves per `ref-write.md` § Waves — group for maximum parallelism: compute the real edges, put every edge-free TODO in `W1`, keep one wave's **Files** sets disjoint, and prefer a split that removes an edge over one that adds a chain. A spec whose waves are all one TODO wide is a serialized spec — re-check whether those edges are real.
+Build the waves per `ref-write.md` § Waves — group for maximum parallelism: compute the real edges, put every edge-free TODO in `W1`, keep one wave's **Files** sets disjoint, and prefer a split that removes an edge over one that adds a chain. A spec whose waves are all one TODO wide is a serialized spec — re-check whether those edges are real. Before the wave table, fit the rows to the repo's Greptile settings when it has them (`ref-write.md` § Fit each row to the repo's PR reviewer).
 
 ### Step 2. Commit + report
-`jj commit -m "<what was grilled, decisions added, questions closed, note count>"` in `<notes-dir>`. Then print: shared-understanding summary (2–3 sentences), the main user flow steps (or "no main user flow"), note count (N decisions, M facts, K questions still open — 0 for READY), the wave table, and the next action — **review the spec, then `/code todo`**.
+`jj commit -m "<what was grilled, ADRs added, questions closed, ADR count>"` in `<notes-dir>`. Then print: shared-understanding summary (2–3 sentences), the main user flow steps (or "no main user flow"), ADR count and open question count (0 open for READY), the wave table, and the next action — **review the spec, then `/code todo`**.
 
 ## Stop at the gate
 
-`new` ends here. It writes neither half of a row — not `todos/TODO-N.md`, not `todos/TODO-N.agent.md`. The spec + thought graph are now
+`new` ends here. It writes neither half of a row — not `todos/TODO-N.md`, not `todos/TODO-N.agent.md`. The spec + ADRs are now
 reviewable; the human reviews and runs `/code todo` when satisfied (the gate — `ref-write.md`). Review
 surfaces gaps → run `/code new` again to re-grill.

@@ -32,7 +32,7 @@ Four files at the plugin root, shared by all five skills.
 | File | Owns |
 |---|---|
 | `wm:INDEX.md` | This map. |
-| `wm:GLOSSARY.md` | **The leading words** — one word, one meaning, used verbatim by all five skills: the gate, thought, open question, target picture, wave, constraints, outcome, components, brick, increment, approve, blast radius, ledger, status, grill, trace, layer, verification chain, audit, drift, deviation, notes-dir, mutant, fixup. A word used in two skills is defined here once; a word private to one skill is defined there. |
+| `wm:GLOSSARY.md` | **The leading words** — one word, one meaning, used verbatim by all five skills: the gate, ADR, open question, target picture, wave, constraints, outcome, components, brick, increment, approve, blast radius, ledger, status, grill, trace, layer, verification chain, audit, drift, deviation, notes-dir, mutant, fixup. A word used in two skills is defined here once; a word private to one skill is defined there. |
 | `wm:TOOLS.md` | **Situation → tool** — every script, agent, and skill the five skills reach for, grouped by the need it serves, with the invocation and what it returns. A procedure cites a row here instead of describing the step by hand. |
 | `wm:CLAUDE.md` | How to work on this plugin — the rules a change to any skill obeys. |
 
@@ -43,7 +43,7 @@ Four files at the plugin root, shared by all five skills.
 | File | Owns |
 |---|---|
 | `SKILL.md` | The subcommand table (each row → the file that owns that procedure) and the pipeline. |
-| `references/ref-subcommand-rules.md` | The rules every subcommand obeys, in any of the five skills — obey `RULES.md`, archive superseded thoughts, logging, commits, glossary currency, source read-only, confirm destructive git. |
+| `references/ref-subcommand-rules.md` | The rules every subcommand obeys, in any of the five skills — obey `RULES.md`, archive superseded ADRs, logging, commits, glossary currency, source read-only, confirm destructive git. |
 | `references/ref-jj-notes.md` | The notes-dir jj history. |
 | `commands/sub-verify.md` | `verify` — the adversarial read-only spec audit. READY / NEEDS REVISION. |
 | `commands/sub-code-map.md` | `code-map` — the single-panel planned-architecture HTML, via `/dive explain`. |
@@ -59,8 +59,8 @@ Four files at the plugin root, shared by all five skills.
 | `commands/sub-prototype.md` | `prototype` — settle an open decision with the smallest visible code diff. |
 | `references/ref-bricks.md` | The **brick** roster — the closed set of component types, what each owns, its metric, its common structure. Typed on every `## Components` component and in every `GLOSSARY.md` `Kind`. |
 | `references/ref-write.md` | **The spec contract** — artifacts, notes-dir layout, the `status` metadata (spec phase + TODO lifecycle), the `approve` metadata (how much of `impl` the human reviews, at spec level and per TODO), the `where` metadata (which checkout `impl` writes into, same two levels), the gate, TODO ordering and **waves**, the Spec-Readiness Checklist. The single source; no other file restates it. |
-| `references/ref-todo-sections.md` | What cuts across the pair's sections — the `i-have-adhd` rule every prose line of the human half obeys, where the generated rules come from (the `decision` note *is* the rule), the two doctrines that bound every diff (a diff carries the change and not what the change forces; a diff carries the surface and not a body), and how the increments reach the commit. What goes inside one heading is the `>` block under that heading in `examples/todo.md`, `examples/todo-agent.md`, and `examples/todo-test.md`. |
-| `references/ref-note-format.md` | Thought notes; the required `description` and how a reader finds a thought by it; the answered-question and supersede → `thoughts/archived/` moves, both automatic. |
+| `references/ref-todo-sections.md` | What cuts across the pair's sections — the `i-have-adhd` rule every prose line of the human half obeys, where the generated rules come from (each ADR Property *is* a rule), the two doctrines that bound every diff (a diff carries the change and not what the change forces; a diff carries the surface and not a body), and how the increments reach the commit. What goes inside one heading is the `>` block under that heading in `examples/todo.md`, `examples/todo-agent.md`, and `examples/todo-test.md`. |
+| `references/ref-adr-format.md` | What a wm corpus adds to the `adr` skill's ADR: the `adr/` location and the automatic move to `adr/archived/`, the `kind` and `todo:` keys, Properties as the rules, the open question as a section of `QUESTIONS.md`, refine in place and reverse by supersede, and how a reader finds the ADRs for a task. |
 | `examples/notes-claude.md` | The notes-dir `CLAUDE.md`. |
 | `examples/todos-claude.md` | The `todos/CLAUDE.md` — the pair convention any agent entering the folder reads: two files per ledger row, which half holds what, the read order, the write rules. |
 | `examples/rules.md` | The notes-dir `RULES.md` and its three init knobs — approval depth is not one of them; it is the `approve` key on `spec.md` and on each TODO. |
@@ -68,7 +68,8 @@ Four files at the plugin root, shared by all five skills.
 | `examples/patterns.md` | The notes-dir `PATTERNS.md` — the implementation patterns and reference files the increments follow, out of `spec.md` so the spec stays human-only. |
 | `examples/concepts.md` | The notes-dir `CONCEPTS.md` — app architecture, data flow, and the flow the work changes, drawn with the `show-me` skill. Out of `spec.md` because the diagrams are re-read while the ledger is shaped and the spec is budgeted at 200 lines. Written only when a picture changes a layer, a wave, or where a row splits. |
 | `examples/spec.md` | The notes-dir `spec.md` — the filled artifact, with the rules for each section beside it: Description, Goal, What we're NOT doing, the ledger (`Layer` / `Outcome` / the `Today \| After` table / `Done when` / `Commit` / `Why`), and the Plan with its wave table. The contract around it is `arch:ref-write.md`. |
-| `examples/note-{question,decision,fact,impl-decision}.md` | The four thought notes. |
+| `examples/adr.md` | One filled ADR; the `>` blocks name the wm keys. |
+| `examples/questions.md` | One filled `QUESTIONS.md`: two open questions, one of them a decision that waits for its reason. |
 | `examples/todo.md` | The TODO **human half** (`TODO-N.md`) — Outcome, New terms, Components, **Flow changes** (each running path as a step tree, with the changed steps marked), **Increments** (each step self-contained for review and in one component: a summary paragraph, Surprises, and its own Surface diff, no file path), Commit, **Deviations** (written by `impl`, never by `todo`) — and the worked example of it, including the `Surface` contract block and Surprises an increment carries when the deliverable is a whole body. |
 | `examples/todo-agent.md` | The TODO **agent half** (`TODO-N.agent.md`) — Files (each path keyed to the increments that touch it), Pre-reads, Manual test, Gotchas (the traps `impl` appends so they survive a compact or a handoff) — and the worked example of it. |
 | `examples/todo-test.md` | The TODO **test file** (`TODO-N.test.md`) — `## Autotest` alone, Unit and E2E, with no line budget — and the worked example of it. |
@@ -87,7 +88,7 @@ content, delete the `>` lines.
 | `CLAUDE.md` | How to change the rulesets. |
 | `references/ref-change-types.md` | **The change-type roster** — the nine kinds a change can be (`new behavior`, `signature change`, `wiring`, `call-site migration`, `rename`, `move`, `deletion`, `test`, `generated`), the boundary a subagent walks to assign one, the typed list shown per increment under `approve: increment`, and the start point + main changes shown once under `approve: todo` and reported under `approve: none`. |
 | `commands/sub-auto.md` | `auto` — the whole ledger unattended, gates replacing the human. |
-| `commands/sub-fix.md` | `fix` — close a gap by fixing the thought, then the code. |
+| `commands/sub-fix.md` | `fix` — close a gap by fixing the ADR, then the code. |
 | `commands/sub-squash.md` | `squash` — distill the fixup trail into skills, fold each fixup into the commit it fixes, one commit per `### Commit` section. |
 | `commands/sub-commit.md` | `commit` — when to commit, one-commit-per-chunk, and § Fixups. Not the message text. |
 | `examples/change-table.md` | The two change tables filled — the per-increment one and the whole-TODO one — each column and each required line carrying its own rules: the subagent that writes the table from the diff, the `What` grammar, the closing component line, the marked start point, and the `the rest, counted` row. |
@@ -100,8 +101,8 @@ content, delete the `>` lines.
 | `wm:commands/review:help.md` | The `/review:help` page — the same mode roster plus the gate table, printed verbatim. Mirrors `SKILL.md`; a mode change lands in both. |
 | `references/ref-gates.md` | **The gate roster** — the seven gates, the rules gate's map (at most 8 haiku `rule-checker` agents, each over the rules that cover the same files) and reduce (one sonnet `rule-reducer`), the rule file format and the coverage check, the `<notes-dir>/review/<target>/` report files each one writes, what each judges, its agent, its model tier and why that tier; the one-wave-then-the-gate-that-writes order, and the mutation gate's per-batch worktree fan-out; the FAIL-restarts-the-chain rule; the change probes in `probes.json` that skip a gate whose input did not change as PASS; the per-gate budget; the `toolchain.json` schema and what makes an entry stale; the rule plan run every round; who merges the report. The single source; no caller restates a row. |
 | `examples/report.md` | The two report files filled — one gate's own file and the merged `report.md` — each piece carrying its own rules: the `reviewed:` frontmatter, the fixed `## Covered` rows and their verdict enum, the one-line gate roll-up, and the finding line that ends in the edit that closes it. |
-| `commands/sub-todo.md` | `review todo` — the chain over one implemented TODO, and what the pair gives a gate that a loose diff cannot: `--todo` turning settled decisions into `D<NNN>` rules, § Files naming the expected reach, and the deviation route for an Autotest case the test-worth rules drop. |
-| `commands/sub-diff.md` | `review diff` — resolving a loose target into one revision range, deriving the intent sentence that gives the gates context, and the one rule source a loose diff lacks: the `D<NNN>` decisions. |
+| `commands/sub-todo.md` | `review todo` — the chain over one implemented TODO, and what the pair gives a gate that a loose diff cannot: `--todo` turning the ADR Properties into `ADR-NNNN/Pn` rules, § Files naming the expected reach, and the deviation route for an Autotest case the test-worth rules drop. |
+| `commands/sub-diff.md` | `review diff` — resolving a loose target into one revision range, deriving the intent sentence that gives the gates context, and the one rule source a loose diff lacks: the `ADR-NNNN/Pn` rules. |
 
 ### `teach` — the human's understanding
 
@@ -122,7 +123,7 @@ Independent of the `/code` flow, each with its own entry point.
 | `dive` | `/dive <subcommand>` | Research before implementation. **Routes**, and owns the one rule every route's fan-out follows (§ Parallel subagents). The `workflow`, `unknowns`, `explain`, and `explain-diff` routes live in its `references/`. |
 | `dive-docs` | no | The `docs` route, the default one. Fans out `explorer` to write one artifact per entry point and `explore-critic` to grade them, until research converges. `references/ref-artifact.md` is the contract both agents read. |
 | `test-suite` | `/test-suite <subcommand>` | All testing work — strategy, scenario design, coverage audit, BDD, TDD. |
-| `trace` | no | **Why an artifact is the way it is.** Spawns one `tracer` subagent that searches `thoughts/` from the artifact's own words and returns at most 8 chain rows plus a verdict — `live`, `superseded`, `unrecorded`. It replaces stored origin links: no file under `todos/` carries one. Loaded by `impl:sub-fix.md`, `arch:sub-revise.md`, and the `correctness-critic` gate. |
+| `trace` | no | **Why an artifact is the way it is.** Spawns one `tracer` subagent that searches `adr/` from the artifact's own words and returns at most 8 chain rows plus a verdict — `live`, `superseded`, `unrecorded`. It replaces stored origin links: no file under `todos/` carries one. Loaded by `impl:sub-fix.md`, `arch:sub-revise.md`, and the `correctness-critic` gate. |
 | `commit-message` | no | **The commit message contract** — the subject line and the three body parts: cause, goal, decision. Loaded by name before every commit written by `impl`, `auto`, `fix`, or `squash`. |
 | `searchable-names` | no | **Choosing the name while the code is written** — one term per concept, the 2–4 word public name, one concept per file, the domain concept in a type, the whole string literal. Naming and module home for every piece; `arch:ref-bricks.md` adds only the metric and the structure. Loaded from `~/.claude/CLAUDE.md`, which keeps the comment prose. |
 | `pedant` | no | **Attacking the names a finished diff already declares** — rejects the ones that read unclearly. The contract the `name-critic` agent reads when `/code verify` judges the names a spec mints. |
@@ -152,7 +153,7 @@ bodied in the `.feature`, joined by the variant names.
 | File | Owns |
 |---|---|
 | `evals/run.sh` | The runner. Extracts the graded rule blocks from `arch:sub-todo.md` at run time — § One ledger row, two halves, § Surface, § Changes, § Autotest, § Constraints — so the suite always grades the current spec, never a copy of it. |
-| `evals/cases-todo.jsonl` | The labelled cases. Two axes per case: **half** (`human` / `agent` / `corpus` — which file the content belongs in; the `## Constraints` line is agent, a rule's text and the reason behind it are both a `thoughts/` note) and **form** (`keep` / `reshape` — ships as written, or is a **body** that must become an Interface block plus a Behavior sketch). |
+| `evals/cases-todo.jsonl` | The labelled cases. Two axes per case: **half** (`human` / `agent` / `corpus` — which file the content belongs in; the `## Constraints` line is agent, a rule's text and the reason behind it are both an ADR in `adr/`) and **form** (`keep` / `reshape` — ships as written, or is a **body** that must become an Interface block plus a Behavior sketch). |
 | `evals/run-names.sh` | The runner for the naming split. Extracts the `description:` block of `searchable-names` and of `pedant` from frontmatter at run time and shows the judge nothing else — the description is what decides which skill a session loads, so the description is what gets graded. |
 | `evals/cases-searchable-names.jsonl` | The labelled tasks. One axis: **pick** (`searchable-names` / `pedant` / `none` — write-time naming, review-time naming, or neither). |
 | `evals/README.md` | What each axis means, which cases are deliberately hard, and the last run's score. |
@@ -167,4 +168,4 @@ the existing suite rather than nesting an `evals/` inside a skill. A change to a
 |---|---|
 | `flow-sketch` skill | The TS-pseudocode notation a flow sketch follows, and the variant table that picks its shape from the change kind and the `main` component's brick. The ordered parts of each brick are `arch:ref-bricks.md`. |
 | `lessons` skill | Lesson **content** — dependency order, the concept-per-step rule, alternatives and asymmetries. `teach` owns the workspace, not the pedagogy. |
-| `thought` skill | The concept of a thought and its rules. `arch:ref-note-format.md` gives this corpus's format. |
+| `adr` skill | The ADR authoring procedure — collect, classify, merge, interview, draft, ask. `arch:ref-adr-format.md` gives what this corpus adds. |

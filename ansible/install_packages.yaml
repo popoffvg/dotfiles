@@ -70,10 +70,12 @@
       - k9s
       - ansible
       - shellcheck
+      - elan-init
       # git
       - lefthook
       - gitleaks
       - jj
+      - git-spice
       # terminal
       - zellij
       # apps

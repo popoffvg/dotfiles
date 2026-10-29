@@ -37,7 +37,7 @@ For each changed fact, record:
 
 | Delta | Category | Canonical source | Stale derived sections |
 |-------|----------|------------------|------------------------|
-| `<what differs>` | `<category below>` | `<note / commit / ledger row>` | `<only sections that now disagree>` |
+| `<what differs>` | `<category below>` | `<ADR / commit / ledger row>` | `<only sections that now disagree>` |
 
 Fill the last column from Step 1's paths, not from a read.
 
@@ -53,34 +53,34 @@ delta has one category, one canonical source, and only its stale targets.
 
 | Category | Canonical change | Derived targets |
 |----------|------------------|-----------------|
-| **Decision change** | Replacement decision note supersedes the old note | Generated rules; only pairs whose instructions now disagree |
-| **New fact** | New fact note | Notes or artifact sections that cite the fact |
+| **Decision change** | Refined ADR, or a new ADR that supersedes the old one | Generated rules; only pairs whose instructions now disagree |
+| **New fact** | The research artifact that holds the fact | ADRs or artifact sections that cite it |
 | **Surface drift** | Shipped signature, path, or setting | the **Surface** diff of the `TODO-N.md` increment that lands it; agent `## Files` only if paths changed |
 | **Behavior drift** | Shipped behavior or coverage | Autotest and `TODO-N.md` `## Increments` only if their cases or increments disagree |
-| **Outcome shift** | Ledger outcome and the thought that motivated it | Matching TODO outcome copy, affected plan row |
+| **Outcome shift** | Ledger outcome and the ADR that motivated it | Matching TODO outcome copy, affected plan row |
 | **Scope change** | Ledger row added, moved, carried forward, or dropped with a decision | Ledger and Plan; affected TODO pairs |
 
 The ledger outcome and its `TODO-N.md` Outcome are the one explicit derived copy in the corpus;
 keep them verbatim. All other sections remain untouched unless the manifest names them.
 
-## Step 4 — Patch thoughts adjacent to the delta
+## Step 4 — Patch ADRs adjacent to the delta
 
-Thought format and links: `ref-note-format.md`. Find the notes through `wm:TOOLS.md` § Find a
-thought.
+ADR rules: `ref-adr-format.md`. Find the ADRs through `ref-adr-format.md` § Find the ADRs for a task.
 
-- **A delta that argues with a note goes to `trace` first.** Spawn `wm:tracer` with the anchor
+- **A delta that argues with an ADR goes to `trace` first.** Spawn `wm:tracer` with the anchor
   quoted verbatim; its `superseded` verdict already names the replacement, and `unrecorded` means
-  the note must be written before the decision is made. Never reconstruct the chain by reading.
-- Refine a **fact** or non-semantic wording in place. Add `Revised:` only when its meaning changed.
-- For a changed **decision rule**, write a replacement decision note, then supersede the old note;
-  never edit its rule text in place. A term rename is the one exception, and `~/.claude/scripts/rename-token.sh`
-  makes it.
-- Write a new fact or decision only for a genuinely new fact or choice.
-- Re-link edited notes and the archive hook's reported live-link worklist in one run
-  (`wm:TOOLS.md` § Patch an artifact) — one edge line per link. A whole-graph link audit belongs to
-  `verify`, not a local revision.
+  the ADR must be written before the decision is made. Never reconstruct the chain by reading.
+- Refine an ADR in place: add or reword a Property, or mark one dropped, then bump `updated` and
+  append a changelog line. A reversed decision is a new ADR that supersedes the old one
+  (`ref-adr-format.md` § Refine in place, reverse by supersede). A term rename goes through
+  `~/.claude/scripts/rename-token.sh`.
+- A changed fact is patched in the research artifact that holds it.
+- Record a new ADR with the `adr` skill only for a genuinely new choice.
+- Repoint the links on the archive hook's reported worklist in one run
+  (`wm:TOOLS.md` § Patch an artifact). A whole-corpus link audit belongs to `verify`, not a local
+  revision.
 
-This step is done when every manifest note target is current and no live note links to one archived
+This step is done when every manifest ADR target is current and no live ADR links to one archived
 by this revision.
 
 ## Step 5 — Patch derived artifacts once
@@ -95,16 +95,16 @@ section the manifest named.
   for changed symbols; `Flow changes` for a changed step or check; `TODO-N.test.md` `Autotest` for changed behavior or coverage; `Increments` or `Files` for
   changed implementation steps or paths.
 - Fold each consumed `## Deviations` row into its named section, then remove that table when no row
-  remains. **Check every row carries its `[[NNN-impl-decision-slug]]` before you delete one.**
-  Deleting the table is what makes the note the only surviving record of the correction; a row with
-  an empty Note column has no such record, so write the note first and fold second.
+  remains. **Check every row carries its `[ADR-NNNN](../adr/NNNN-slug.md)` link before you delete one.**
+  Deleting the table is what makes the ADR the only surviving record of the correction; a row with
+  an empty ADR column has no such record, so record the ADR first and fold second.
 - Recompute the Plan waves only if a ledger row, `depends_on`, or a TODO `## Files` set changed
   (`ref-write.md` § Waves).
-- Regenerate the rules only when a decision or implementation-decision rule changed
+- Regenerate the rules only when a Property of an ADR changed
   (`wm:TOOLS.md` § Obey the corpus).
 
 Commit the completed revision once in `<notes-dir>`:
-`revise TODO-N (+ from <sha> if post-impl): <deltas + notes touched>`. The `revise` prefix is
+`revise TODO-N (+ from <sha> if post-impl): <deltas + ADRs touched>`. The `revise` prefix is
 load-bearing — `code:ref-jj-notes.md` § Message convention.
 
 ## Step 6 — Report and stop
@@ -114,7 +114,7 @@ Revised <TODO-N | spec section>  [from <sha> "<subject>"]
   since:       <base change "<subject>" | no prior revision>
   status:      → review
   manifest:    <N deltas; sections patched>
-  thoughts:    <refined | added | superseded — ids>
+  adrs:        <refined | added | superseded — ADR-NNNN>
   waves:       <recomputed | unchanged>
   rules:       <changed | unchanged>
   deviations:  <folded | none>
@@ -126,7 +126,7 @@ Stop. The user chooses re-review, re-verify, or implementation.
 
 - [ ] The stale-section column came from the revision diff, not from a corpus read
 - [ ] Every delta has a category, canonical source, and stale targets
-- [ ] A changed decision was replaced and superseded; facts or wording were refined in place only when valid
+- [ ] A refined decision was edited in place with a changelog line; a reversed decision was superseded by a new ADR; a changed fact was patched in its research artifact
 - [ ] Only manifest-named sections changed; ledger and TODO outcomes match verbatim where affected
 - [ ] Waves, links, and generated rules were refreshed only when their inputs changed
 - [ ] Deviations were folded; the completed revision has one jj commit

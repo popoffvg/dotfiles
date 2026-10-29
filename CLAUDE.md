@@ -22,7 +22,7 @@ When a skill in this repo must cite a skill that exists only as a real directory
 
 `/wm:code:help` lists the pipeline: research → spec → TODO ledger → implement → the review gate chain.
 
-Notes live in `.notes/` — its own jj repo (history via `jj log`), git-ignored in the parent. It holds the spec, the plan, the research, and the thought notes.
+Notes live in `.notes/` — its own jj repo (history via `jj log`), git-ignored in the parent. It holds the spec, the plan, the research, and the ADRs.
 
 ## Dev Conventions
 

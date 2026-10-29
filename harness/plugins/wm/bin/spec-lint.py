@@ -47,8 +47,8 @@ LEGACY_RISK_SCORES = {"1", "2", "3", "4", "5"}
 MAX_INCREMENTS = 10
 
 HUMAN_ORDER = ["Outcome", "Components", "Flow changes", "Increments"]
-FLOW_MARKER = re.compile(r"^\s*\d+\.\s+\*\*(\+ step|\+ check|\+ branch|~ step|- step|moved)\*\*")
-FLOW_STEP = re.compile(r"^\s*\d+\.\s+\S")
+FLOW_MARKER = re.compile(r"#\s*(\+|~ was:|- \S|moved, was:)")
+FLOW_STEP = re.compile(r"^\s*```python\s*$")
 AGENT_ORDER = [
     "Files",
     "Pre-reads (MUST read before editing)", "Manual test",
@@ -60,8 +60,9 @@ INCREMENT_KEYS = ("landed", "change", "extends", "surprises", "surface")
 MAX_SUMMARY_SENTENCES = 3
 READER_CHECK = "> **Check:**"
 COMPONENT_LINE = re.compile(r"^\*`[^`]+`\*$")
-MAX_SURPRISES = 3
+MAX_SURPRISES = 7
 FILES_INCREMENTS = re.compile(r"\binc\s+(\d+\.\d+(?:\s*,\s*\d+\.\d+)*)")
+ADR_LINK = re.compile(r"\[ADR-\d{4}\]\(")
 SPEC_BANNED = ["Design Decisions", "Open Questions", "Implementation Guidelines"]
 
 # A skip or a `none` level that names no concrete reason. Lowercased substring match.
@@ -268,39 +269,40 @@ def check_budgets(notes, f):
 
 
 def check_rules(notes, f):
-    row = f.check("A2", "every rule note carries a known status and its text (wm-constraints.py --check)")
+    row = f.check("A2", "every live ADR passes wm-constraints.py --check")
     script = os.path.expanduser("~/.claude/scripts/wm-constraints.py")
-    thoughts = os.path.join(notes, "thoughts")
-    if not os.path.isfile(script) or not os.path.isdir(thoughts):
-        row["skipped"] = "no thoughts/ graph" if not os.path.isdir(thoughts) else "wm-constraints.py absent"
+    adr = os.path.join(notes, "adr")
+    if not os.path.isfile(script) or not os.path.isdir(adr):
+        row["skipped"] = "no adr/ dir" if not os.path.isdir(adr) else "wm-constraints.py absent"
         return
-    proc = subprocess.run(["python3", script, thoughts, "--check"], capture_output=True, text=True)
+    proc = subprocess.run(["python3", script, adr, "--check"], capture_output=True, text=True)
     if proc.returncode == 3:
         fixes = {
-            "is not one of": "set status to one of proposed, open, approved, declined",
-            "status: proposed": "get the human to agree it, then set status: approved — or decline it with the reason",
+            "is not proposed or approved": "ask the operator to set status: proposed or approved; the agent never writes the status",
+            "has a ## Question section": "move the question to QUESTIONS.md and delete the ADR, or answer it and delete the section",
+            "is not architecture, feature": "set kind to architecture, feature, or implementation",
+            "no Property": "add at least one `- Pn.` line under `## Properties`",
+            "with no todo:": "add `todo: TODO-N` to the frontmatter",
+            "with a todo:": "remove the todo: key, or set kind: implementation",
         }
         for line in proc.stdout.splitlines():
             line = line.strip()
             if not line or line.startswith("---"):
                 continue
-            fix = next((v for k, v in fixes.items() if k in line), "give the note a frontmatter description")
-            f.fail(row, thoughts, line, fix)
+            fix = next((v for k, v in fixes.items() if k in line), "fix the ADR frontmatter (arch:ref-adr-format.md)")
+            f.fail(row, adr, line, fix)
 
 
 def check_open_questions(notes, f):
-    row = f.check("A3", "no open question note")
-    thoughts = os.path.join(notes, "thoughts")
-    if not os.path.isdir(thoughts):
-        row["skipped"] = "no thoughts/ graph"
+    row = f.check("A3", "QUESTIONS.md has no open question")
+    path = os.path.join(notes, "QUESTIONS.md")
+    lines = read(path)
+    if lines is None:
+        row["skipped"] = "no QUESTIONS.md"
         return
-    for name in sorted(os.listdir(thoughts)):
-        if not name.endswith(".md"):
-            continue
-        lines = read(os.path.join(thoughts, name)) or []
-        fm, _ = frontmatter(lines)
-        if fm.get("type") == "question" and fm.get("status") == "open":
-            f.fail(row, name, "open question", "settle it and record the decision, or close the note")
+    for line in lines:
+        if line.startswith("## "):
+            f.fail(row, "QUESTIONS.md", f"open question {line[3:].strip()}", "get the human to answer it, write the answer as an ADR, then delete the section")
 
 
 def check_spec(notes, pairs, f):
@@ -314,7 +316,7 @@ def check_spec(notes, pairs, f):
         if title in SPEC_BANNED:
             f.fail(row, f"spec.md § {title}",
                    "section belongs outside spec.md",
-                   "decisions → thoughts/, patterns → PATTERNS.md")
+                   "decisions → adr/, patterns → PATTERNS.md")
 
     row = f.check("A5", "spec.md `approve` is a level impl can read")
     fm, _ = frontmatter(lines)
@@ -448,8 +450,7 @@ def check_human(n, path, lines, pairs, f, checks):
     if "Deviations" in found and fm.get("status") == "todo":
         f.fail(row, label, "`## Deviations` written at status todo", "impl writes it, never arch")
     if "Deviations" in found:
-        # The block is temporary — `revise` folds the rows in and deletes it — so the linked
-        # note is the only record that outlives the correction. A row without one loses the reason.
+        # `revise` deletes this table, so the linked ADR is the only record of the reason.
         for i, line in enumerate(section(body, "Deviations"), 1):
             text = line.strip()
             if not text.startswith("|") or set(text) <= set("|- "):
@@ -457,9 +458,9 @@ def check_human(n, path, lines, pairs, f, checks):
             cells = [c.strip() for c in text.strip("|").split("|")]
             if cells[:1] == ["What"]:
                 continue
-            if not any("[[" in c for c in cells):
-                f.fail(row, label, f"`## Deviations` row {i} names no thought note: {cells[0]}",
-                       "add the [[NNN-impl-decision-slug]] holding the reason, before revise deletes the table")
+            if not any(ADR_LINK.search(c) for c in cells):
+                f.fail(row, label, f"`## Deviations` row {i} links no ADR: {cells[0]}",
+                       "link the implementation ADR with the reason, [ADR-NNNN](../adr/NNNN-slug.md), before revise deletes the table")
     tail = [l for l in body if l.strip()]
     if not tail or "TODO-%d.agent.md" % n not in tail[-1]:
         f.fail(row, label, "last line is not the link to the agent half",
@@ -520,10 +521,10 @@ def check_human(n, path, lines, pairs, f, checks):
     elif not any(H3.match(l) for l in flow):
         f.fail(row, label, "`## Flow changes` has no `### <flow>` heading", "one H3 per flow, or `none — <reason>`")
     elif not any(FLOW_STEP.match(l) for l in flow):
-        f.fail(row, label, "`## Flow changes` has no numbered step", "one numbered line per step")
-    elif not any(FLOW_MARKER.match(l) for l in flow):
-        f.fail(row, label, "`## Flow changes` marks no step as changed",
-               "open each changed step with **+ step**, **+ check**, **+ branch**, **~ step**, **- step**, or **moved** — or write `none — <reason>`")
+        f.fail(row, label, "`## Flow changes` has no ```python pseudocode block", "one ```python block per flow")
+    elif not any(FLOW_MARKER.search(l) for l in flow):
+        f.fail(row, label, "`## Flow changes` marks no line as changed",
+               "end each changed line with `# +`, `# ~ was: …`, `# - …`, or `# moved, was: …` — or write `none — <reason>`")
 
 
 def increment_blocks(body):
@@ -647,7 +648,7 @@ def check_summary(lines, row, where, f):
 
 
 def check_surprises(lines, row, where, f):
-    """`**Surprises:**` holds one to three nested bullets, or `none — <reason>`."""
+    """`**Surprises:**` holds one to seven nested bullets, or `none — <reason>`."""
     at = next((i for i, l in enumerate(lines)
                if (m := BULLET_KEY.match(l)) and m.group(1).strip().lower().startswith("surprises")), None)
     if at is None:
@@ -666,10 +667,10 @@ def check_surprises(lines, row, where, f):
         return
     if not items:
         f.fail(row, where, "**Surprises** has no nested bullet",
-               "one to three details a reader would otherwise find only in the code")
+               "one to seven details a reader would otherwise find only in the code")
     elif len(items) > MAX_SURPRISES:
         f.fail(row, where, f"{len(items)} surprises, budget is {MAX_SURPRISES}",
-               "keep the three a reader would miss first, or split the increment")
+               f"keep the {MAX_SURPRISES} a reader would miss first, or split the increment")
 
 
 def check_tests(n, path, lines, pairs, f, checks):
@@ -898,15 +899,15 @@ def run(notes, as_json=False, quiet=False):
 
     checks = {
         "B3": f.check("B3", "human half frontmatter — keys, risk color, size S/M/L, approve, where, type, depends_on"),
-        "B4": f.check("B4", "human half sections — present, ordered, link out, deviations named a note"),
+        "B4": f.check("B4", "human half sections — present, ordered, link out, each deviation links an ADR"),
         "B5": f.check("B5", "Components — one tree per package, brick, touch, exactly one main"),
         "B6": f.check("B6", "every increment carries its surface — one diff, a contract block, or `none` with a reason; no diff outside `## Increments`"),
-        "B12": f.check("B12", "Flow changes — flows with numbered steps and a marked change, or `none` with a reason"),
+        "B12": f.check("B12", "Flow changes — flows as ```python pseudocode with a marked change, or `none` with a reason"),
         "B13": f.check("B13", "test file — no frontmatter, link back, holds ## Autotest"),
         "E1": f.check("E1", "Autotest — Unit and E2E, command + cases or a real reason"),
         "B7": f.check("B7", "agent half sections — present, ordered, no frontmatter, link back, no increments, no diff"),
         "B8": f.check("B8", "no `## Constraints` in the agent half — the rules command lives in todos/CLAUDE.md"),
-        "B9": f.check("B9", "increments in `## Increments` — ≤10 per commit (numbering and commit sections: A1), a summary of ≤3 sentences and five keys each, ≤3 Surprises, no Files, valid Landed + Change, no signature in the summary"),
+        "B9": f.check("B9", "increments in `## Increments` — ≤10 per commit (numbering and commit sections: A1), a summary of ≤3 sentences and five keys each, ≤7 Surprises, no Files, valid Landed + Change, no signature in the summary"),
         "B10": f.check("B10", "Files are concrete paths, each mapped to an existing increment"),
         "E2": f.check("E2", "Manual test filled, or skipped with a concrete reason"),
         "B11": f.check("B11", "increment progress — `<done>/<total>`, total matches `## Increments`, done matches the Landed markers and fits status"),

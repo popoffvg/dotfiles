@@ -1,68 +1,78 @@
 #!/usr/bin/env bash
-# List open question thoughts (type: question, status: open) in a wm thoughts dir.
-# Exit 0 = none open (spec may pass the gate), 1 = at least one open, 2 = usage/dir error.
+# Exit 0 = QUESTIONS.md has no open question, 1 = at least one, 2 = usage or file error.
 set -euo pipefail
 
 usage() {
-	cat >&2 <<'EOF'
-usage: wm-open-questions.sh [thoughts-dir] [--count|--files]
+	cat >&2 <<'EOF2'
+usage: wm-open-questions.sh [notes-dir|QUESTIONS.md] [--count|--slugs]
 
-  thoughts-dir  default: <first existing of>  .notes/thoughts  _notes/thoughts  ./thoughts
-  --count       print only the number of open questions
-  --files       print only the file paths (one per line)
+  notes-dir  default: the first existing of  .notes  _notes  .
+  --count    print only the number of open questions
+  --slugs    print only the slugs (one per line)
 
-Default output: one line per open question — id  title  (file)
-Exit code: 0 none open · 1 one or more open · 2 usage or missing dir.
+An open question is one `## <slug>` section in <notes-dir>/QUESTIONS.md.
+A missing QUESTIONS.md means no open question.
+Default output: one line per question — slug  question
+Exit code: 0 none open · 1 one or more open · 2 usage or missing notes dir.
 Tool index — every .notes tool and its flags: wm:TOOLS.md
-EOF
+EOF2
 	exit 2
 }
 
-dir=""
+arg=""
 mode="list"
-for arg in "$@"; do
-	case "$arg" in
+for a in "$@"; do
+	case "$a" in
 	--count) mode="count" ;;
-	--files) mode="files" ;;
+	--slugs) mode="slugs" ;;
 	-h | --help) usage ;;
 	-*) usage ;;
-	*) dir="$arg" ;;
+	*) arg="$a" ;;
 	esac
 done
 
-if [[ -z $dir ]]; then
-	for candidate in .notes/thoughts _notes/thoughts thoughts; do
-		[[ -d $candidate ]] && dir="$candidate" && break
-	done
+if [[ -n $arg && -f $arg ]]; then
+	file="$arg"
+else
+	dir="$arg"
+	if [[ -z $dir ]]; then
+		for candidate in .notes _notes .; do
+			[[ -d $candidate/adr || -f $candidate/QUESTIONS.md ]] && dir="$candidate" && break
+		done
+	fi
+	[[ -n $dir && -d $dir ]] || {
+		echo "wm-open-questions: no notes dir (tried '${dir:-.notes _notes .}')" >&2
+		exit 2
+	}
+	file="$dir/QUESTIONS.md"
 fi
-[[ -n $dir && -d $dir ]] || {
-	echo "wm-open-questions: no thoughts dir (tried '${dir:-.notes/thoughts _notes/thoughts thoughts}')" >&2
-	exit 2
-}
 
-open_files=()
-while IFS= read -r f; do
-	# frontmatter only: the first --- block. type: question AND status: open.
-	fm=$(awk 'NR==1 && $0!="---"{exit} NR>1{ if ($0=="---") exit; print }' "$f")
-	[[ $fm == *"type: question"* && $fm == *"status: open"* ]] && open_files+=("$f")
-done < <(find "$dir" -maxdepth 1 -name '*-question-*.md' -type f | sort)
+slugs=()
+questions=()
+if [[ -f $file ]]; then
+	while IFS=$'\t' read -r slug question; do
+		slugs+=("$slug")
+		questions+=("$question")
+	done < <(awk '
+		/^## / { if (slug != "") print slug "\t" q; slug = substr($0, 4); q = ""; next }
+		slug != "" && q == "" && /^\*\*Question:\*\*/ { q = $0; sub(/^\*\*Question:\*\*[[:space:]]*/, "", q) }
+		END { if (slug != "") print slug "\t" q }' "$file")
+fi
 
-count=${#open_files[@]}
+count=${#slugs[@]}
 
 case "$mode" in
 count) echo "$count" ;;
-files) printf '%s\n' "${open_files[@]+"${open_files[@]}"}" ;;
+slugs) printf '%s\n' "${slugs[@]+"${slugs[@]}"}" ;;
 list)
 	if ((count == 0)); then
-		echo "no open questions in $dir"
+		echo "no open question in $file"
 	else
-		for f in "${open_files[@]}"; do
-			id=$(basename "$f" | cut -d- -f1)
-			title=$(grep -m1 '^# ' "$f" | sed 's/^# //')
-			printf '%s  %s  (%s)\n' "$id" "${title:-<no title>}" "$f"
+		for i in "${!slugs[@]}"; do
+			printf '%s  %s\n' "${slugs[$i]}" "${questions[$i]:-<no Question line>}"
 		done
 		echo "---"
-		echo "$count open question(s) — the spec is NOT ready ($dir)"
+		echo "$count open question(s). The spec is NOT ready ($file)."
 	fi
 	;;
 esac

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Digest of one day's Claude Code sessions for one org, input for the `daily` skill.
 
-An org is a folder `~/Documents/git/<org>/`; a session belongs to it when its
+An org is a folder `~/git/<org>/`; a session belongs to it when its
 `cwd` lies under that folder. Per session it prints the cwd, the time span, the
 operator's prompts, outward actions (commits, PRs, issues, tickets) and the last
 assistant text, all from records stamped with the target local date.
@@ -98,7 +98,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("org")
     parser.add_argument("--date", default=date.today().isoformat())
-    parser.add_argument("--root", default=str(Path.home() / "Documents" / "git"))
+    parser.add_argument("--root", default=str(Path.home() / "git"))
     parser.add_argument("--max-prompt", type=int, default=500)
     args = parser.parse_args()
 

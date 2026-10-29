@@ -10,7 +10,7 @@
 
 - `pkg/workflow/engine.go:120` — `RenderTemplate`
   The single entry point every render passes through. Use for: anything about ordering or re-runs.
-- `<notes-dir>/thoughts/007-decision-single-writer.md`
+- `<notes-dir>/adr/0007-result-pool-has-one-writer.md`
   Why the result pool has one writer. Use for: questions that start "why not just…".
 - `<notes-dir>/GLOSSARY.md`
   The project's ubiquitous language. Every lesson uses these terms verbatim.
@@ -35,6 +35,6 @@
 
 ## Gaps
 
-- No written source for why re-render is not incremental. Ask @maria, then write it as a `thoughts/` note.
+- No written source for why re-render is not incremental. Ask @maria, then record it as an ADR with the `adr` skill.
 
 > List mission-relevant areas with no trustworthy source yet.

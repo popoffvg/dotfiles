@@ -24,7 +24,7 @@ it, at which model tier, the wave order, and how a FAIL routes back — is one f
 | Mode | Judges the diff against… | File |
 |---|---|---|
 | `diff` *(default)* | the rule files in `<notes-dir>/rules/` and `~/.notes/rules/`, the project's `RULES.md` and `PATTERNS.md`, the language idiom, reuse of the code the repo already has, and correctness. A loose diff, a branch, a PR, or the working tree. | `commands/sub-diff.md` |
-| `todo` | the same, plus the TODO's settled decisions as `D<NNN>` rules. A breach there is a Failure with a citation. The chain `impl:sub-auto.md` runs per TODO. | `commands/sub-todo.md` |
+| `todo` | the same, plus the TODO's ADR Properties as `ADR-NNNN/Pn` rules. A breach there is a Failure with a citation. The chain `impl:sub-auto.md` runs per TODO. | `commands/sub-todo.md` |
 | `help` | This page. | `SKILL.md` |
 
 Pick `todo` when a `<notes-dir>/todos/TODO-N.md` covers the diff, `diff` when none does. A TODO

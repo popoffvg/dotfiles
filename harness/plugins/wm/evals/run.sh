@@ -3,7 +3,7 @@
 #
 # Two axes per case, both decided by the same rules a `todo` author applies:
 #   half  — human | agent | corpus : which file this content belongs in — a half of the pair,
-#           or the corpus outside it (thoughts/, which holds every rule and every reason)
+#           or the corpus outside it (adr/, which holds every rule and every reason)
 #   form  — keep   | reshape : does it ship as written, or is it a BODY that must be
 #           reshaped into an Interface block + a Behavior sketch (or into case sentences)
 #
@@ -94,10 +94,10 @@ Answer two questions about this candidate.
              block for a file that has no surface, is human.
    \"agent\" = TODO-N.agent.md (Changes, Files, Pre-reads, Manual test, Gotchas). Changes holds the increments as Files + Surface + Do + Blast radius prose, and
              carries no diff at all. No pair file holds a rule or the wm-constraints.py command.
-   \"corpus\" = outside the pair, in thoughts/. A settled rule an increment can violate is a
-             decision note whose description IS the rule text; a REASON — why a choice was made,
-             what lost, what a reviewer would argue with — is the rest of that same note. No file
-             under todos/ ever carries a rule table or an origin link.
+   \"corpus\" = outside the pair, in adr/. A settled rule an increment can violate is a
+             Property of an ADR, and the Property line IS the rule text; a REASON — why a choice
+             was made, what lost, what a reviewer would argue with — is the rest of that same ADR.
+             No file under todos/ ever carries a rule table or an origin link.
 
 2. \"form\": does it ship as written, or must it be reshaped?
    \"keep\"    = it is already the right form for its section: a changed surface as a diff, a

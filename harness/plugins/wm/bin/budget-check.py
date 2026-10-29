@@ -7,7 +7,7 @@ ticked by the model that wrote the file, so a body can pass review at three time
 budget. This script is the same rule, counted.
 
 One ledger row is three files split by audience: the human half, the agent half, and the
-test file (`arch:sub-todo.md` § One ledger row, three files). The rules both halves obey live outside the pair, in `thoughts/`, and are
+test file (`arch:sub-todo.md` § One ledger row, three files). The rules both halves obey live outside the pair, in the Properties of the ADRs in `adr/`, and are
 printed by `wm-constraints.py` - there is no rules file to check. Each file is checked against its own budgets, and each is checked for
 sections that belong to another - a misplaced section means the split was never made.
 
@@ -426,7 +426,7 @@ def check_spec(lines, violations, path):
     if len(body) > SPEC_LINES:
         violations.append(
             f"spec.md is {len(body)} lines, budget is {SPEC_LINES} "
-            f"({len(body) / SPEC_LINES:.1f}x over). Move detail to `thoughts/` or split "
+            f"({len(body) / SPEC_LINES:.1f}x over). Move each decision to an ADR in `adr/` or split "
             "the spec. Never shrink the ledger."
         )
 
@@ -444,7 +444,7 @@ def kind_of(path):
             return "todo"
         return None
     if base == "spec.md" and (
-        os.path.isdir(os.path.join(d, "thoughts")) or os.path.isdir(os.path.join(d, "todos"))
+        os.path.isdir(os.path.join(d, "adr")) or os.path.isdir(os.path.join(d, "todos"))
     ):
         return "spec"
     return None

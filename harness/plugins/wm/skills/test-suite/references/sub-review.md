@@ -50,12 +50,12 @@ before they give one. Done when you have made no further tool call.
 | The human says | Run |
 |---|---|
 | Accepted | `/wm:work:finish` — closes the wm flow for this workspace. |
-| These specific things need changing | The `code` skill's `fix` subcommand (`impl:sub-fix.md`) — one gap at a time, thought first, then code. |
+| These specific things need changing | The `code` skill's `fix` subcommand (`impl:sub-fix.md`) — one gap at a time, ADR first, then code. |
 | The spec was wrong, not the code | `/wm:work:code-revise <TODO-N>` — rewrites `spec.md` and the TODO pair to match what shipped. Notes only. |
 | Start this TODO over | The `code` skill's `revise` subcommand, then `impl` again. |
 | Where does this stand | `/wm:work:status`. |
 
-Every route above goes back through the spec or the thought before it touches source. That is the
+Every route above goes back through the spec or the ADR before it touches source. That is the
 one hard rule of this step: a change the human asks for lands as a `fix` or a `revise`, never as an
 edit made straight from a chat line.
 

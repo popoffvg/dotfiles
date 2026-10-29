@@ -8,7 +8,8 @@ export interface LanguagesPreferences {
   polishModel: string;
   inboxDir: string;
   prefill: boolean;
-  vocabBinary: string;
+  supervocUrl: string;
+  supervocAccessToken: string;
 }
 
 function expandHome(path: string): string {
@@ -25,8 +26,7 @@ export function languagesPreferences(): LanguagesPreferences {
     polishModel: raw.polishModel?.trim() || "phi4-mini",
     inboxDir: expandHome(raw.inboxDir?.trim() || "~/ctx/grammar/inbox"),
     prefill: raw.prefill !== false,
-    vocabBinary: expandHome(
-      raw.vocabBinary?.trim() || "~/git/dotfiles/scripts/vocab/vocab",
-    ),
+    supervocUrl: (raw.supervocUrl?.trim() ?? "").replace(/\/$/, ""),
+    supervocAccessToken: raw.supervocAccessToken?.trim() ?? "",
   };
 }

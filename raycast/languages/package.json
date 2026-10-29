@@ -2,7 +2,7 @@
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "languages",
   "title": "Languages",
-  "description": "Fix English grammar with LanguageTool and translate RU<->EN with vocab",
+  "description": "Fix English grammar with LanguageTool and translate English to Russian with supervoc",
   "icon": "command-icon.png",
   "author": "popoffvg",
   "license": "MIT",
@@ -16,7 +16,7 @@
     {
       "name": "translate",
       "title": "Translate",
-      "description": "Translate RU<->EN with vocab and append the pair to the vocab file",
+      "description": "Translate English to Russian with supervoc and save every candidate as an entry",
       "mode": "view"
     }
   ],
@@ -63,12 +63,19 @@
       "description": "Prefill the form with the selected text or clipboard"
     },
     {
-      "name": "vocabBinary",
+      "name": "supervocUrl",
       "type": "textfield",
-      "required": false,
-      "title": "Vocab Binary",
-      "description": "The vocab tool; go build in scripts/vocab produces it",
-      "default": "~/git/dotfiles/scripts/vocab/vocab"
+      "required": true,
+      "title": "Supervoc URL",
+      "description": "The supervoc server, for example https://supervoc.example.com",
+      "placeholder": "https://supervoc.example.com"
+    },
+    {
+      "name": "supervocAccessToken",
+      "type": "password",
+      "required": true,
+      "title": "Supervoc Access Token",
+      "description": "The bearer token that the supervoc /token page issues"
     }
   ],
   "dependencies": {

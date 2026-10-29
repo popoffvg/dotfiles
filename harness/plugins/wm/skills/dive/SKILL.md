@@ -66,7 +66,7 @@ Every route that fans out over entry points spawns its subagents the same way. T
 
 ## Output location
 
-`<notes-dir>` is the wm notes directory for the active task, persisting with the rest of the planning context (`spec.md`, `todos/`, `thoughts/`). Resolve it:
+`<notes-dir>` is the wm notes directory for the active task, persisting with the rest of the planning context (`spec.md`, `todos/`, `adr/`). Resolve it:
 
 - If a wm flow is active, use its notes dir (typically `.notes/` at repo root).
 - If no flow is active, default to `./.notes/` and tell the user.

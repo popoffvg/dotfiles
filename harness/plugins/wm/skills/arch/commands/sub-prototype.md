@@ -13,15 +13,15 @@ judge an **open question** by reading it. Vocabulary: `wm:GLOSSARY.md`.
 
 ## When to use
 
-An open question note (`thoughts/NNN-question-*.md`, `status: open`) needs settling, downstream TODOs can't be authored honestly until the shape is known, and spiking it beats discussing longer. Not for production work — the output is a dirty tree to review then discard or harden.
+An open question — a section of `QUESTIONS.md` — needs settling, downstream TODOs can't be authored honestly until the shape is known, and spiking it beats discussing longer. Not for production work — the output is a dirty tree to review then discard or harden.
 
 ## Workflow
 
 ### 1. Pin the question
-Read the open question note (list them: `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts`). Append to that note which candidate option is being prototyped and why this one first. One shape per spawn — never "try all three at once".
+Read the question (list them: `~/.claude/scripts/wm-open-questions.sh <notes-dir>`). Add to its section which candidate option is being prototyped and why this one first. One shape per spawn — never "try all three at once".
 
 ### 2. Name the candidate options
-The question note lists candidates as `(a) / (b) / (c)`, one line each, so feedback is unambiguous ("reject (b), do (c)"). Recommend a default; the user overrides. "Let's try option X" is binding for the pass.
+The ADR's `## Considered Options` lists candidates as `(a) / (b) / (c)`, one line each, so feedback is unambiguous ("reject (b), do (c)"). Recommend a default; the user overrides. "Let's try option X" is binding for the pass.
 
 ### 3. Brief the implementer in full
 A fresh agent with no planning context. The prompt carries: working dir (absolute); current tree state (instruct `git diff` / `git status` first); the shape by option letter; exact files + line numbers from `<notes-dir>/research/`; step-by-step changes with verbatim type snippets where the type system is load-bearing; non-goals (no build/lint/test/commit/codegen, ≤ N files); expected compile breaks named so they aren't "fixed"; deliverable format (`git diff --stat`, key code blocks inline, compile breaks with file:line — nothing the diff already shows).
@@ -30,8 +30,8 @@ A fresh agent with no planning context. The prompt carries: working dir (absolut
 The report is a navigation aid. Judge from `git -C <repo> diff <files-touched>`. Report claims disagree with the diff → push back or re-spawn.
 
 ### 5. Iterate on the shape
-- **Reject** → capture *why* in the question note (permanent context), pick the next candidate, re-spawn. The implementer **reverts** prior prototype edits first — never stack shapes.
-- **Accept** → write the answer as a new `NNN-decision-*.md` (`ref-note-format.md` § Resolution): option chosen, rationale, rejected candidates. Marking the question answered archives it. Then body the downstream TODOs via `/code todo`. The real impl may diverge — expected.
+- **Reject** → capture *why* under that option in its section of `QUESTIONS.md`; the ADR copies it into `## Considered Options`, pick the next candidate, re-spawn. The implementer **reverts** prior prototype edits first — never stack shapes.
+- **Accept** → write the answer as an ADR with the `adr` skill (`ref-adr-format.md` § An open question is a section of QUESTIONS.md): the option chosen in the paragraph, the operator's reason, and the Properties. Then delete the section. Then body the downstream TODOs via `/code todo`. The real impl may diverge — expected.
 
 ## The "valid for a prototype, broken as a contract" smell
 
@@ -46,4 +46,4 @@ Any yes → the prototype answered "is this shape expressible?" but not "is it c
 
 ## Ends
 
-After review, control returns to the user's call: the thought note to record the resolution, or `/code todo` to body the unblocked TODOs. No automatic chaining. Each pass's option, compile breaks, and verdict live in the question note while it is open, and carry over into the decision note that answers it; the notes jj repo snapshots them on session stop (`code:ref-jj-notes.md`).
+After review, control returns to the user's call: the `adr` skill to record the answer in the ADR, or `/code todo` to body the unblocked TODOs. No automatic chaining. Each pass's option, compile breaks, and verdict live in the ADR's changelog and `## Considered Options`, and stay there when the answer fills the same file; the notes jj repo snapshots them on session stop (`code:ref-jj-notes.md`).

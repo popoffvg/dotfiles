@@ -35,23 +35,24 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 | boxes the human must hand-place and keep positioned across sessions | a live board → `board` | — |
 | a design the human must mark up | a board plus rounds → `board` § The round | — |
 | a batch of choices, or a handoff the human reads cold and answers | an editable file → `to-user` | — |
+| the current decision and picture of the work, read cold, with no answer | a snapshot file → `snapshot` | — |
 | a corpus someone must learn | lessons or a deck → `lessons`, `deck-as-code` | — |
 
 The bold forms are fenced blocks in the reply and answer most questions. A routed row costs a canvas, a browser, or a publish, and is done when the skill it names is done — that skill states its own criterion. **Take a routed row only by naming what the inline form could not carry: pixels, motion, the human's hands, or a page of its own.**
 
 ## Pseudocode
 
-One step per line, indentation for nesting, the code's own names, no language syntax — no braces, no types, no `await`.
+One step per line, in Python syntax, fenced as ` ```python `: `def`, `if` / `elif` / `else`, `for`, `with`, `try` / `except`, `return`, `raise`. Use the code's own names, whatever the language of the source. No type hints, no `await`, no imports. A step with no call in the code is a call with a plain name, or a `#` comment.
 
 **A step the code already has carries a trailing reference; a step being proposed carries none.** The blank right column is what tells the reader which half of the rule is written. Write the reference as a repo-relative path plus line — `src/session/save.ts:94` — which is the form a Zed terminal turns into a click. A bare basename is not clickable; an absolute path is noise. Name the root once above the block when the paths are long.
 
-```text
-on save(content)                            # src/session/save.ts:88
-  if content is unchanged since last write  # src/session/save.ts:94
-    return the cached result                # src/session/cache.ts:31
-  write the new content                     # src/session/save.ts:101
-  invalidate the cache entry
-  return the fresh result
+```python
+def save(content):                          # src/session/save.ts:88
+    if is_unchanged(content):               # src/session/save.ts:94
+        return cached_result()              # src/session/cache.ts:31
+    write_content(content)                  # src/session/save.ts:101
+    invalidate_cache_entry(content)
+    return fresh_result()
 ```
 
 Here the last two lines are the change: the cache is read today and never invalidated.

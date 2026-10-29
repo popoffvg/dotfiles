@@ -28,11 +28,22 @@ Never ask what the TODO pair or a written rule already answers. **Files** is whe
 
 ## Rules
 
-Before the first edit, run `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N` and obey every rule it prints. No TODO file repeats the command.
+Before the first edit, run `~/.claude/scripts/wm-constraints.py <notes-dir>/adr --todo TODO-N` and obey every rule it prints. No TODO file repeats the command.
 
 Read `<notes-dir>/PATTERNS.md` before the first edit. A job the **Need → use** table lists is done with that row's **Use** — never a hand-written retry, poll loop, state machine, or worker pool beside the one the row names.
 
 Read `<notes-dir>/GLOSSARY.md` before the first edit. Name every new symbol with an entry's term or **Code** identifier — never a Forbidden or retired name. A concept with no entry is a new term: stop and propose it (`code:ref-subcommand-rules.md` § Glossary) before you name it.
+
+## Concurrency
+
+Before you write code that shares state between goroutines, list the events first: who starts the work, which terminal events it has (done, lost, failed, canceled), who sends each one, and who waits on it.
+
+- Give each piece of mutable state one owner goroutine. Send a one-time event by closing a channel (`done`, `lost`), and let readers `select` on it.
+- Use a lock only to make a whole operation exclusive. Never use a lock to share a flag between goroutines.
+- A `bool` field that one goroutine sets and another goroutine reads is a defect. Replace it with a closed channel.
+- In Go tests under `testing/synctest`, a goroutine that waits on a `sync.Mutex` is not durably blocked, so the fake clock stops. A wait on a channel is durably blocked and can also `select` on `ctx.Done()`.
+- When the TODO names a primitive that conflicts with these rules, follow the events, and record the conflict as a `## Deviations` row.
+- A simplification pass (KISS) counts the shared mutable fields too, not only the lines and the helpers. A design with fewer fields under a lock is simpler, also when it has more lines. Do not replace a channel that marks an event with a `context.WithCancel` when other code reads that event.
 
 ## Increments
 
@@ -99,7 +110,7 @@ Range: <base sha>..<head sha>
 - `<test name>` — <what it proves>
 ```
 
-Fill every section. A section with nothing in it says `none`. Never leave out a section. Under **Need → use**, list each need from `<notes-dir>/PATTERNS.md` your diff meets and the row you used. A need your diff meets with no row gets the search you ran before writing it, with its positive control — a search that found nothing proves nothing until the same search finds a symbol you know exists. Under **ADR Properties**, list each Property of `<notes-dir>/adr/` (or `docs/adr/`) that the diff touches. A `broken` Property is also a hard stop.
+Fill every section. A section with nothing in it says `none`. Never leave out a section. Under **Need → use**, list each need from `<notes-dir>/PATTERNS.md` your diff meets and the row you used. A need your diff meets with no row gets the search you ran before writing it, with its positive control — a search that found nothing proves nothing until the same search finds a symbol you know exists. Under **ADR Properties**, list each Property of `<notes-dir>/adr/` that the diff touches. A `broken` Property is also a hard stop.
 
 ## Hard stop rules — when to hand back
 

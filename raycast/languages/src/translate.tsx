@@ -1,23 +1,31 @@
-import {
-  Action,
-  ActionPanel,
-  Form,
-  Icon,
-  Toast,
-  showToast,
-  useNavigation,
-} from "@raycast/api";
+import { Action, ActionPanel, Form, Icon, useNavigation } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { candidateText } from "./candidate-text";
+import { PopupView } from "./popup";
 import { languagesPreferences } from "./preferences";
-import { TranslateResultView } from "./translate-result";
-import { translateWithVocab } from "./vocab";
+import { ANALYSIS_TEXT_MAX_LENGTH, CONTEXT_MAX_LENGTH } from "./supervoc";
+
+function validateText(text: string): string | undefined {
+  const trimmed = text.trim();
+  if (!trimmed) return "Text cannot be empty";
+  if (trimmed.length > ANALYSIS_TEXT_MAX_LENGTH) {
+    return `Text must be at most ${ANALYSIS_TEXT_MAX_LENGTH} characters`;
+  }
+  return undefined;
+}
+
+function validateContext(context: string): string | undefined {
+  return context.length > CONTEXT_MAX_LENGTH
+    ? `Context must be at most ${CONTEXT_MAX_LENGTH} characters`
+    : undefined;
+}
 
 export default function TranslateCommand() {
   const { push } = useNavigation();
   const [text, setText] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | undefined>();
+  const [context, setContext] = useState("");
+  const [textError, setTextError] = useState<string | undefined>();
+  const [contextError, setContextError] = useState<string | undefined>();
 
   useEffect(() => {
     if (!languagesPreferences().prefill) return;
@@ -30,36 +38,17 @@ export default function TranslateCommand() {
     };
   }, []);
 
-  async function submit() {
-    if (!text.trim()) {
-      setError("Text cannot be empty");
-      return;
-    }
-    setError(undefined);
-    setIsLoading(true);
-
-    const toast = await showToast({
-      style: Toast.Style.Animated,
-      title: "Translating…",
-    });
-    try {
-      const pair = await translateWithVocab(text.trim());
-      toast.style = Toast.Style.Success;
-      toast.title = pair.dup ? "Already in vocab" : "Added to vocab";
-      push(<TranslateResultView pair={pair} />);
-    } catch (failure) {
-      toast.style = Toast.Style.Failure;
-      toast.title = "Translation failed";
-      toast.message =
-        failure instanceof Error ? failure.message : String(failure);
-    } finally {
-      setIsLoading(false);
-    }
+  function submit() {
+    const nextTextError = validateText(text);
+    const nextContextError = validateContext(context);
+    setTextError(nextTextError);
+    setContextError(nextContextError);
+    if (nextTextError || nextContextError) return;
+    push(<PopupView text={text.trim()} context={context.trim()} />);
   }
 
   return (
     <Form
-      isLoading={isLoading}
       navigationTitle="Translate"
       actions={
         <ActionPanel>
@@ -74,17 +63,29 @@ export default function TranslateCommand() {
       <Form.TextArea
         id="text"
         title="Text"
-        placeholder="Paste English or Russian text"
+        placeholder="An English word, phrase, or sentence"
         value={text}
-        error={error}
+        error={textError}
         onChange={(value) => {
           setText(value);
-          if (error) setError(undefined);
+          if (textError) setTextError(undefined);
         }}
         enableMarkdown={false}
         autoFocus
       />
-      <Form.Description text="vocab translates RU↔EN with Google Translate and appends the pair to the vocab file." />
+      <Form.TextArea
+        id="context"
+        title="Context"
+        placeholder="The sentence around the text (optional)"
+        value={context}
+        error={contextError}
+        onChange={(value) => {
+          setContext(value);
+          if (contextError) setContextError(undefined);
+        }}
+        enableMarkdown={false}
+      />
+      <Form.Description text="Supervoc shows the quick translation and the analysis, and saves every candidate as an entry." />
     </Form>
   );
 }

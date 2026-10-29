@@ -24,7 +24,7 @@ gain a step or a check, and what each commit says. `TODO-N.test.md` is what prov
 ## Read order
 
 1. `TODO-N.md` — what to build, one increment at a time; `TODO-N.test.md` — what proves it.
-2. Run `~/.claude/scripts/wm-constraints.py ../thoughts --todo TODO-N` before the first edit, and obey
+2. Run `~/.claude/scripts/wm-constraints.py ../adr --todo TODO-N` before the first edit, and obey
    every rule it prints. This line is the one place the command is named: no pair file carries a
    rule or the command.
 3. `TODO-N.agent.md` — the files and pre-reads of each increment.
@@ -44,6 +44,6 @@ Self-contained means the **pair plus those generated rules**. Implement from the
   commit's increments end with a `---` line and a `### Commit <c>` section — Title, Body, Proves. At
   each commit the repo builds and the tests pass.
 - **Neither half restates the other.** Each carries exactly one link to the other.
-- **Neither half stores why.** A decision's reason is walked on demand from `../thoughts/` by the
+- **Neither half stores why.** A decision's reason is walked on demand from `../adr/` by the
   `trace` skill.
 - **`## Deviations` is written by `/code impl`**, never by `/code todo`.

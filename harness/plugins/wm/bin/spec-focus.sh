@@ -42,18 +42,17 @@ spec="$notes/spec.md"
 phase=$(fm_status "$spec") || true
 phase=${phase:-unknown}
 
-# Open question notes block the gate. Reuse the readiness script the `code`
-# skill already runs; absent installation degrades to "unknown", never to a lie.
+# An open question in QUESTIONS.md blocks the gate. A missing script gives "unknown", never a count.
 open_count="unknown"
-open_ids=""
+open_slugs=""
 oq="$HOME/.claude/scripts/wm-open-questions.sh"
-if [[ ! -d "$notes/thoughts" ]]; then
-  open_count=0 # no thoughts dir means no question notes exist at all
+if [[ ! -f "$notes/QUESTIONS.md" ]]; then
+  open_count=0
 elif [[ -x "$oq" ]]; then
-  open_count=$("$oq" "$notes/thoughts" --count 2>/dev/null || true)
+  open_count=$("$oq" "$notes" --count 2>/dev/null || true)
   open_count=${open_count:-unknown}
   if [[ "$open_count" != "unknown" && "$open_count" != "0" ]]; then
-    open_ids=$("$oq" "$notes/thoughts" --files 2>/dev/null | xargs -n1 basename 2>/dev/null | paste -sd' ' - || true)
+    open_slugs=$("$oq" "$notes" --slugs 2>/dev/null | paste -sd' ' - || true)
   fi
 fi
 
@@ -91,7 +90,7 @@ init)
   ;;
 review)
   if [[ "$open_count" != "unknown" && "$open_count" != "0" ]]; then
-    next="resolve the $open_count open question note(s) — the gate is BLOCKED. Continue the \`/code new\` grill loop; flip each question note in place."
+    next="answer the $open_count open question(s) in QUESTIONS.md — the gate is BLOCKED. Continue the \`/code new\` grill loop; write each answer as an ADR and delete its section."
   elif ((total == 0)); then
     next="the spec is at the human gate. Do NOT author TODO bodies unprompted — the human runs \`/code todo\` when satisfied."
   elif [[ -n "$cur_state" ]]; then
@@ -120,7 +119,7 @@ done
 
 echo "wm SPEC-WORK FOCUS — re-anchor on this before any tool call."
 echo "notes: $notes | spec: $spec | PHASE: $phase"
-echo "open questions: $open_count${open_ids:+ — $open_ids}"
+echo "open questions: $open_count${open_slugs:+ — $open_slugs}"
 if ((total > 0)); then
   echo "TODO ledger: $total total —${ledger}"
   [[ -n "$cur" ]] && echo "current TODO: $(basename "${cur%.md}") ($cur_state) — $cur"

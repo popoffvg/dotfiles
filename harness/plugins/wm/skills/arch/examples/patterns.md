@@ -6,7 +6,7 @@ implementer, not by the human at the gate — nothing here needs the user's agre
 > A filled `<notes-dir>/PATTERNS.md`. Copy the file, replace the rows, delete the `>` lines — each
 > one states the rules for the section above it. Written by `/code new` Step 0; extended by `revise`
 > and by any subcommand that finds a need the code meets again. It carries no decision
-> and no open question — those are `thoughts/` notes.
+> and no open question — those are ADRs in `adr/`.
 
 ## Need → use
 
@@ -27,8 +27,8 @@ implementer, not by the human at the gate — nothing here needs the user's agre
 > The implementer quotes the row in its diff report. A need with no row is not free to hand-write:
 > search the repo and its dependencies first, and add the row you find.
 >
-> A need the repo meets nowhere yet is a decision, so it belongs in `thoughts/` as a
-> `NNN-decision-*.md` note, not here. The prose follows `harness-dev:text-style`.
+> A need the repo meets nowhere yet is a decision, so it belongs in `adr/` as an
+> ADR, not here. The prose follows `harness-dev:text-style`.
 
 ## Reference files
 

@@ -53,7 +53,7 @@ wm-rule-batches.py plan ──▶ batches/b001.md … bNNN.md   (≤ 8 batches: 
 ```
 
 The plan reads the rule dirs again each round, so a rule added mid-chain is checked in the next
-round. Only `--todo` adds the TODO's settled decisions as `D<NNN>` rules; `diff` mode loads none.
+round. Only `--todo` adds the TODO's ADR Properties as `ADR-NNNN/Pn` rules; `diff` mode loads none.
 The project's `RULES.md` and `PATTERNS.md` are rule files in both modes. The plan prints one line,
 `<n> rule(s), <n> file(s), <N> batch(es) → <manifest>`: spawn one @rule-checker per brief
 `batches/b001.md` … `bNNN.md`, with `batch: <the brief path>`.
@@ -174,12 +174,15 @@ behaviour. The **triage judge** — one opus agent — reads the diff and marks 
 
 | Kind | Findings |
 |---|---|
-| blocking | a correctness bug, a lint or test failure, a broken rule that is not `Severity: nit`, a `D<NNN>` rule broken, an UNCHECKED rule |
+| blocking | a correctness bug, a lint or test failure, a broken rule that is not `Severity: nit`, an `ADR-NNNN/Pn` rule broken, an UNCHECKED rule |
 | nit | a style preference, a clearer name for a name that is not wrong, wording, ordering — any fix that changes no behaviour and hides no bug |
+| operator | a correctness finding under `## For the operator`: its impact is `retry`, `delay`, or `message`, and its fix adds a branch (`wm:agents/correctness-critic.md` § Consequence and bucket). It never goes to a fixup, and it reaches the human in the merged report. |
 
 A finding the judge is not sure of is blocking. **All nits → `ALLOW`:** the wave counts as green;
 record the waived nits in the report. **Any blocking → `BLOCK`:** the fixup runs. The judge writes
 `judge.md` beside the gate reports and judges only the wave.
+
+**A nit stays a nit in every later prompt.** When the caller passes a nit to an implementer, for example in a fixup or a simplification pass, it quotes the nit with its gate and its report path and marks it optional. The caller never rewrites a nit as an order: "the `stop` channel → one `context.WithCancel`" is an order, and it removed an event the design needed.
 
 ## The gate budget
 

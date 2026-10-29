@@ -39,11 +39,31 @@ Rules, names, comments, tests, and idiom are other gates in the same wave. Never
 
    | Verdict | Becomes |
    |---|---|
-   | CONFIRMED | a Failure, its fields taken from the checker's Evidence, Scenario, and Edit |
+   | CONFIRMED | a finding, its fields taken from the checker's Scenario, Consequence, Edit, and Fix cost; § Consequence and bucket sets its bucket |
    | REFUTED | no finding |
    | UNSURE | a Nit that names what the checker could not decide |
 
 5. **Write the report** — § Output contract.
+
+## Consequence and bucket
+
+The operator decides from the consequence, not from the scenario. A CONFIRMED finding names the **impact**: the worst thing the application or its user sees.
+
+| Impact | The application or its user sees |
+|---|---|
+| `data` | wrong, lost, or overwritten data; two writers where one is allowed; a broken invariant that a later read trusts |
+| `outage` | the feature stops working until a human acts |
+| `retry` | one call fails, and a retry of the same call works |
+| `delay` | the call works, but later |
+| `message` | only an error text or a log line is wrong or less exact |
+
+| Impact | Fix cost | Bucket |
+|---|---|---|
+| `data`, `outage` | any | Failure |
+| `retry`, `delay`, `message` | removes lines or adds no branch | Failure |
+| `retry`, `delay`, `message` | adds a branch | For the operator: the chain does not fix it; the operator reads it and decides |
+
+A finding under For the operator changes no verdict. A finding you cannot place in one impact takes the worse one.
 
 ## Output contract
 
@@ -71,7 +91,10 @@ reviewed: <`date -Iseconds`>
 | H1 | <file:line> | <the yes/no question> | CONFIRMED \| REFUTED \| UNSURE |
 
 ## Failures        (omit when PASS)
-- <file:line> — <the input and the wrong result> — <the edit that closes it>
+- <file:line> — <impact> — <the consequence for the application> — <the input and the wrong result> — <the edit that closes it> (<fix cost>)
+
+## For the operator  (omit when none)
+- <file:line> — <impact> — <the consequence for the application> — <the input and the wrong result> — <the edit that would close it> (<fix cost>)
 
 ## Nits           (optional)
 - <file:line> — <what the checker could not decide>
@@ -80,5 +103,6 @@ reviewed: <`date -Iseconds`>
 ## Hard rules
 
 - **A Failure names an input and the wrong result it gives.** Without a scenario it is a Nit.
+- **Every CONFIRMED finding names its consequence for the application** in the words of the product, with no code name: "a start fails once with \"lease lost\" after a storage outage, and the next start works", not "`writeObject` returns `errLeaseLost`". A finding without a consequence is a Nit.
 - **Always write the report file**, a PASS with empty rows too.
 - **Read-only on source.** No edits, no commits, no build, no test.

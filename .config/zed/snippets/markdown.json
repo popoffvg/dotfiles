@@ -1,0 +1,7 @@
+{
+  "Short prompt": {
+    "prefix": "prompt",
+    "body": ["${1:goal}. ${2:why}.", "Limits: ${3:limit} — ${4:reason}.", "Done when ${5:check}."],
+    "description": "Goal, why, limits, and check for the next turn"
+  }
+}

@@ -16,9 +16,15 @@ description: Read the current session and record the architecture decisions and 
 
 `.notes/` is its own jj repo, so in a wm project move an archived ADR with `mv`, not `git mv`, and skip the README *Decisions* pointer.
 
+**In a wm project** the wm plugin adds three things. Its `arch:ref-adr-format.md` holds the details.
+
+- **A third kind, `implementation`** — a choice made while writing one TODO. It requires `todo: TODO-N`; the other kinds MUST NOT carry `todo:`. The tests of step 2 do not apply to it.
+- **The open-question gate** — `QUESTIONS.md` sits in the notes dir, and the spec is not ready while it has a section.
+- **The limits apply to `architecture` only** — "most sessions produce zero ADRs" and "about ten live architecture ADRs" do not count `feature` or `implementation` ADRs.
+
 ## 1. Collect the candidate decisions
 
-Work from the conversation in context. When the session is long, compacted, or the reminder named a transcript, read the transcript file instead — the `SessionEnd` reminder prints its path, and a live session's path is `~/.claude/projects/<project-slug>/<session-id>.jsonl`. Also read the grill files and decision notes the session wrote.
+Work from the conversation in context. When the session is long, compacted, or the reminder named a transcript, read the transcript file instead — the `SessionEnd` reminder prints its path, and a live session's path is `~/.claude/projects/<project-slug>/<session-id>.jsonl`. Also read the grill files and `QUESTIONS.md`.
 
 A candidate is a point where the session chose one option over another and acted on it. Take the choice from what the operator said or approved, not from what you proposed.
 

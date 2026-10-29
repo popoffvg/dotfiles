@@ -54,8 +54,8 @@ mode reports and stops — it runs no fixup loop, because a human is reading the
 
 ## No pair: what the gates lose
 
-**Only the `D<NNN>` rules.** The rule files in `<notes-dir>/rules/` and `~/.notes/rules/`, and the
+**Only the `ADR-NNNN/Pn` rules.** The rule files in `<notes-dir>/rules/` and `~/.notes/rules/`, and the
 project's `RULES.md` and `PATTERNS.md`, apply in both modes. With no TODO there is no `--todo`, so
-no settled decision becomes a rule.
+no ADR Property becomes a rule.
 
 **Correctness is unchanged.** It is read from the code alone, so it needs no pair.

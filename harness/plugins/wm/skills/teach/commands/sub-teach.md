@@ -38,8 +38,8 @@ Read `spec.md` frontmatter `status` (spec phase `init → review → impl`). Arg
 
 | `status` (or arg) | Subject | Source of truth |
 |---|---|---|
-| `init` / `review` | **the codebase the change lands in** | the files the ledger touches, `spec.md` (Goal, Plan), `thoughts/`, `GLOSSARY.md` |
-| `impl` / `diff` | **the change on the branch** | `git diff <target>...HEAD` + the implemented TODO pair — `TODO-N.md` (Outcome, Components, Surface) + `TODO-N.agent.md` (Changes) + the rules `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints |
+| `init` / `review` | **the codebase the change lands in** | the files the ledger touches, `spec.md` (Goal, Plan), `adr/`, `GLOSSARY.md` |
+| `impl` / `diff` | **the change on the branch** | `git diff <target>...HEAD` + the implemented TODO pair — `TODO-N.md` (Outcome, Components, Surface) + `TODO-N.agent.md` (Changes) + the rules `~/.claude/scripts/wm-constraints.py <notes-dir>/adr` prints |
 | `<path-or-symbol>` | **that unit** | the file or symbol, plus its callers and callees |
 
 No `spec.md` and no diff → ask which path or symbol to teach, and stop until answered.
@@ -71,8 +71,8 @@ An explicit request from the human overrides the calculation.
 Three things build deep understanding of a codebase, and each has a different source:
 
 - **Knowledge** — what the code is and why it is that way. Draw it from the repo and from
-  `thoughts/`, never from parametric guesses about how such systems usually work. Every claim in a
-  lesson carries a `file:line` citation, or the thought note id that decided it.
+  `adr/`, never from parametric guesses about how such systems usually work. Every claim in a
+  lesson carries a `file:line` citation, or the ADR number that decided it (`ADR-NNNN`).
 - **Skills** — being able to act in the code: trace a call, place a change, predict what a test
   covers. Built by making the human do it, with immediate feedback.
 - **Wisdom** — knowing which of several correct options this team would pick. It lives with the
@@ -96,7 +96,7 @@ alternatives, asymmetries) are owned by the `lessons` skill (`skill:lessons`) �
 it. This file does not restate them. What `teach` adds on top:
 
 - **Cite the repo, not prose.** Every mechanism claim links a `file:line`; every design claim links
-  its `thoughts/` note. A lesson about this codebase that cites nothing is invented.
+  its ADR in `adr/`. A lesson about this codebase that cites nothing is invented.
 - **Point at one primary source** the human should read themselves — the real file, not a summary.
 - **Link out via HTML anchors** to earlier lessons and to `reference/` documents.
 - **End with the invitation to ask.** The agent is the teacher; anything unclear is a follow-up

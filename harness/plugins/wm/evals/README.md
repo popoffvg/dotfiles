@@ -146,11 +146,11 @@ Gates under test — two axes, both applied to one block of candidate content:
 
 - **`half`** → `human` | `agent` | `corpus` : which file the content belongs in.
   `human` is `TODO-N.md` (Outcome, New terms, Components, Flow changes, **Increments**, Commit), `TODO-N.test.md` holds Autotest; `agent` is
-  `TODO-N.agent.md` (Files, Pre-reads, Manual test, Gotchas); `corpus` is outside the pair: `thoughts/`, which holds a settled rule an increment can
+  `TODO-N.agent.md` (Files, Pre-reads, Manual test, Gotchas); `corpus` is outside the pair: `adr/`, which holds a settled rule an increment can
   violate and the reason behind it alike.
   **Every diff is human** — each increment in `## Increments` carries its own diff, and no other section carries one. **No rule and no origin link
-  is ever in the pair** — a rule is the `description` of a `decision` note in `thoughts/`, printed
-  by `~/.claude/scripts/wm-constraints.py`, and the reason behind it is the rest of that same note
+  is ever in the pair** — a rule is a Property of an ADR in `adr/`, printed
+  by `~/.claude/scripts/wm-constraints.py`, and the reason behind it is the rest of that same ADR
   the `trace` skill searches for.
 - **`form`** → `keep` | `reshape` : does it ship as written, or is it a **body** — content that *is*
   the implementation — that must be replaced by an Interface block plus a Behavior sketch, or by case
@@ -217,17 +217,17 @@ The hard cases are the ones that *look* like the wrong label:
   human-half, but test assertions and literal expected-value tables are bodies.
 - `manual-test-steps` — literal `curl` and `make` lines that must be kept. A shell *script* is a body;
   a shell *command someone types* is not.
-- `constraints-table` — the rules are `corpus`, one `decision` note each in `thoughts/`. A rule
+- `constraints-table` — the rules are `corpus`, one Property each of an ADR in `adr/`. A rule
   table in a TODO is the second copy that drifts.
 - `constraints-table` vs `outcome-rationale` — **the counter-intuitive pair, in both directions.**
-  A settled decision stated as a rule is a `thoughts/` note even though it reads like design; a
-  reason for the Outcome is a `thoughts/` note even though it is *about* the human half. Both land
+  A settled decision stated as a rule is an ADR Property even though it reads like design; a
+  reason for the Outcome is an ADR Reason even though it is *about* the human half. Both land
   in the same place now, so the `corpus` label turns on one question — is it outside the pair. What
-  an increment can violate decides the note's *type*, `decision` over `fact`, not its home.
+  an increment can violate decides whether the text is a Property or a Reason, not its home.
 
 ## Last run
 
-Not re-run since the trace companion was dropped and the rules moved into `thoughts/`. The three `corpus`
+Not re-run since the trace companion was dropped and the rules moved into the ADRs in `adr/`. The three `corpus`
 cases have never been graded — run `./run.sh` before trusting the
 score below, which was measured against an older contract.
 

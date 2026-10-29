@@ -294,7 +294,7 @@ async function fix(what, run) {
   phase('Fix')
   return agent(
     safetyClause +
-      `The ${what} command came back red. Close it as a gap: follow ${PLUGIN}/skills/impl/commands/sub-fix.md — fix the thought in ${notesDir} first, then the code — and commit per ${PLUGIN}/skills/impl/commands/sub-commit.md. ` +
+      `The ${what} command came back red. Close it as a gap: follow ${PLUGIN}/skills/impl/commands/sub-fix.md — fix the ADR in ${notesDir}/adr first, then the code — and commit per ${PLUGIN}/skills/impl/commands/sub-commit.md. ` +
       `Read ${lessonsFile} and ${notesDir}/GOTCHAS.md in full before you edit.\n` +
       `Command: ${run ? run.ran : '(agent died)'}\nOutput:\n${run ? run.output || '(none reported)' : '(none)'}`,
     { agentType: 'wm:implementer', phase: 'Fix', label: `fix:${what}` },

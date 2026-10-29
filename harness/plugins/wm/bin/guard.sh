@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # PreToolUse Edit|Write guard — deny an edit that breaks a wm hard rule.
 #   1. any direct edit to .vscode/agent-comments.json — use the comment_update_status MCP tool
-#   2. flipping spec.md to `status: impl` while a thoughts/ question is still `status: open`,
-#      or a thoughts/ decision is still `status: proposed` or carries an unknown status
+#   2. flipping spec.md to `status: impl` while QUESTIONS.md has an open question, an ADR fails wm-constraints.py --check,
+#      or a live ADR is not approved (wm-constraints.py --unapproved)
 #   3. an `approve:` value outside the enum, or `inherit` written on spec.md
 #   4. a `where:` value outside the enum, or `inherit` written on spec.md
 # Every other edit passes through untouched.
@@ -39,37 +39,43 @@ fi
 
 BASE=$(basename "$FILE_PATH")
 
-# --- the gate: no open question when the spec enters impl ---------------------
+# --- the gate: no open question when the spec enters impl -------------------
 if [[ "$BASE" == "spec.md" ]]; then
   NEW_TEXT=$(new_text) || exit 0
 
   if grep -qE '^status:[[:space:]]*impl([[:space:]]|#|$)' <<<"$NEW_TEXT"; then
-    THOUGHTS="$(dirname "$FILE_PATH")/thoughts"
+    ADR="$(dirname "$FILE_PATH")/adr"
+    NOTES="$(dirname "$FILE_PATH")"
     QUESTIONS="$HOME/.claude/scripts/wm-open-questions.sh"
 
-    if [[ -d "$THOUGHTS" && -x "$QUESTIONS" ]]; then
-      OPEN=$("$QUESTIONS" "$THOUGHTS" 2>&1) && RC=0 || RC=$?
-      # 0 = none open (pass), 1 = at least one open (block), 2 = usage/dir error (pass).
+    if [[ -x "$QUESTIONS" ]]; then
+      OPEN=$("$QUESTIONS" "$NOTES" 2>&1) && RC=0 || RC=$?
+      # 0 = no open question (pass), 1 = at least one open (block), 2 = usage/dir error (pass).
       if ((RC == 1)); then
         block "$(printf '%s\n\n%s\n\n%s' \
-          "The spec cannot enter status: impl — the gate is open questions, and $THOUGHTS still holds one." \
+          "The spec cannot enter status: impl. The gate is QUESTIONS.md, and $NOTES/QUESTIONS.md still has an open question." \
           "$OPEN" \
-          "Flip each open question into a decision or fact note (same id, renamed file) before implementation starts. Grill the human for the answer — never resolve one yourself, and never edit the status past it.")"
+          "Grill the human for each answer. Write the answer as an ADR with the adr skill after the human approves it, then delete the section from QUESTIONS.md. Delete a moot question with a reason in the commit. Never answer a question yourself.")"
       fi
     fi
 
-    # Same gate, second reason: a decision nobody agreed to. A `proposed` note generates
-    # no rule, so impl would never see the choice; an unknown status does the same thing
-    # by accident. Both are exit 3 from --check, alongside a rule with no text.
     CONSTRAINTS="$HOME/.claude/scripts/wm-constraints.py"
 
-    if [[ -d "$THOUGHTS" && -x "$CONSTRAINTS" ]]; then
-      REPORT=$("$CONSTRAINTS" "$THOUGHTS" --check 2>&1) && CRC=0 || CRC=$?
+    if [[ -d "$ADR" && -x "$CONSTRAINTS" ]]; then
+      REPORT=$("$CONSTRAINTS" "$ADR" --check 2>&1) && CRC=0 || CRC=$?
       if ((CRC == 3)); then
         block "$(printf '%s\n\n%s\n\n%s' \
-          "The spec cannot enter status: impl — $THOUGHTS holds a thought that binds nothing." \
+          "The spec cannot enter status: impl. An ADR in $ADR breaks the format, so a rule is missing or wrong." \
           "$REPORT" \
-          "A \`proposed\` decision is one nobody agreed to and it generates no rule, so the implementer would never see the choice. Bring each to \`status: approved\` once the human agrees, or \`declined\` with the reason. An unknown status drops the rule the same way — fix it to one of proposed, open, approved, declined. Owned by arch:ref-note-format.md § Frontmatter.")"
+          "Fix each line: a status of proposed or approved, no ## Question section, a known kind, at least one Property, and a todo: key on an implementation ADR only. Owned by arch:ref-adr-format.md.")"
+      fi
+
+      WAITING=$("$CONSTRAINTS" "$ADR" --unapproved 2>&1) && URC=0 || URC=$?
+      if ((URC == 4)); then
+        block "$(printf '%s\n\n%s\n\n%s' \
+          "The spec cannot enter status: impl. Every live ADR in $ADR needs status: approved, and some do not." \
+          "$WAITING" \
+          "Ask the operator to read each ADR and set status: approved in the editor. Never set the status yourself.")"
       fi
     fi
   fi
@@ -131,7 +137,7 @@ if [[ "$BASE" == "spec.md" || "$BASE" == TODO-*.md ]]; then
     cat <<'EOF'
 The whole enum:
   in-place — write into the current checkout, on the spec's branch
-  worktree — create this TODO's own worktree first, off the spec's branch, and work there
+  worktree — create this TODO's own worktree first, at <task folder>/todo-N, off the spec's branch, and work there
   inherit  — TODO-N.md only: take the spec's value
 
 Defaults: a missing key on spec.md reads as `in-place`, a missing key on a TODO-N.md

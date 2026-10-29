@@ -10,6 +10,7 @@ brew() {
 # vocab: translate clipboard RU<->EN TUI → ~/vocab.tsv. go-installs from source if missing (survives go upgrades)
 alias vocab='command -v vocab >/dev/null || (cd ~/git/dotfiles/scripts/vocab && go install .); command vocab'
 alias g='git'
+alias gs='git-spice'
 alias k='kubectl'
 alias ls='eza'
 alias ll='eza -la'

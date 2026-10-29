@@ -29,6 +29,8 @@ Create `<notes-dir>/LESSONS.md` if it is missing. Each round appends the real fi
 
 An empty work list skips to Step 3.
 
+Run `~/.claude/scripts/wm-constraints.py <notes-dir>/adr --unapproved` before the first TODO. Exit 4 stops the run: report the ADRs that wait for the human. An unattended run never approves an ADR, and never edits an approved one.
+
 ## Step 2 — the TODO loop
 
 For **every** TODO in the work list, in order — not the first, not the easy ones:

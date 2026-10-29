@@ -23,7 +23,7 @@ known_skills = {p.name for p in skills_dir.iterdir() if p.is_dir()} if skills_di
 
 # Artifacts that live outside the plugin: a work notes dir, or the harness' own always-loaded
 # files. A citation naming one of these is never a claim about a file in the plugin.
-EXTERNAL = re.compile(r"^(TODO-[\w.]+|LESSONS\.md|impl-learnings\.md|CODE_STYLE\.md|PATTERNS\.md|CLAUDE\.md|RULES\.md|CONCEPTS\.md|verify-TODO[\w.-]*|\d{3}-[\w-]+\.md)$")
+EXTERNAL = re.compile(r"^(TODO-[\w.]+|LESSONS\.md|impl-learnings\.md|CODE_STYLE\.md|PATTERNS\.md|CLAUDE\.md|RULES\.md|CONCEPTS\.md|verify-TODO[\w.-]*|\d{3,4}-[\w-]+\.md)$")
 
 heads: dict[pathlib.Path, list[str]] = {}
 def headings(p):
@@ -78,7 +78,9 @@ for f in md:
             continue
         if sect.strip() and not head_ok(tgt, sect):
             fails.append((f, f"`{path}` § {' '.join(sect.split())} -> no such heading in {tgt.relative_to(root)}"))
-    for rel in LINK.findall(text):
+    if "examples" in f.relative_to(root).parts:
+        continue  # an example of a notes-dir file links where that file is written
+    for rel in LINK.findall(re.sub(r"`[^`\n]*`", "", text)):
         if EXTERNAL.match(pathlib.Path(rel).name):
             continue  # a link to a notes-dir artifact, which resolves where the artifact is written
         if not (f.parent / rel).exists():

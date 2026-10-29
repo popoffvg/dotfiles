@@ -35,7 +35,7 @@ Active architecture decisions live in `docs/adr/`, superseded and deprecated one
 
 Offer an ADR when a change is hard to reverse, surprising without context, and the result of a real trade-off — all three. Draft it from `docs/adr/TEMPLATE.md` and ask; do not commit an ADR unreviewed.
 
-Every edit to an ADR bumps `updated` and appends a line to its closing `## Changelog` section. An ADR that a new one replaces gets `status: superseded-by-NNNN` and moves to `docs/!archived/adr/`.
+Every edit to an ADR bumps `updated` and appends a line to its closing `## Changelog` section. An ADR has no status. An ADR that a new one replaces gets the changelog line `Superseded by [ADR-NNNN](../NNNN-slug.md)` and moves to `docs/!archived/adr/`. An open question goes to `QUESTIONS.md`, never into `docs/adr/`.
 
 Before proposing a technology, integration pattern, or boundary change, read both directories — a rejected alternative is often already recorded there.
 ```

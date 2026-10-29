@@ -219,6 +219,21 @@ scripts                             # OWNS the release scripts
 > names a component missing from the tree.
 >
 > **A wide tree is not a split signal** — two `main` candidates and more than ten increments are.
+>
+> **Every public member names its caller.** A component or member this TODO makes public (exported,
+> or reachable from outside its package) ends its comment with `called by <package.Symbol> (TODO-N)`:
+> the caller outside the package, in this spec. An interface implementation names the interface
+> instead: `implements encoding.TextUnmarshaler`. The rules:
+>
+> - **No outside caller → private.** A caller is code outside the package that this spec writes, or a
+>   planned caller: a step of a design or a later phase that the spec links, named as
+>   `called by <the step> (planned, <link>)`. A test is not a caller. A caller someone "may" add, with
+>   no step in a design, is not a caller.
+> - **Expose the caller's operation, not its steps.** When a caller must call several members in a
+>   fixed order to keep one invariant (take the lease, write, release), the package exposes that
+>   sequence as one operation and keeps the steps private.
+> - **A mechanism that keeps an invariant is private** — a lease, a lock, a retry loop, a wait limit.
+>   The operation that needs it drives it. Only the errors a caller matches on stay public.
 
 ## Flow changes
 
@@ -228,20 +243,24 @@ scripts                             # OWNS the release scripts
 
 *`pkg/auth.Handler.Refresh`*
 
-```
-pkg/auth.Handler.Refresh
-├── decode the body into a RefreshRequest
-│   └── malformed → 400
-├── look up the refresh token in the store
-│   └── missing or expired → 401
-├── + check the token was already used
-│   └── revoke the Session → 409
-├── ~ step mint a TokenPair for the user id — was: one access token
-│   ├── sign the access token
-│   └── + step sign the refresh token
-├── + step delete the old refresh token from the store
-├── + step emit TokenRotated
-└── return the pair → 200
+```python
+def Refresh(body):
+    request = decode(body, RefreshRequest)
+    if malformed(request):
+        return 400
+    token = store.lookup(request.refresh_token)
+    if token is None or token.expired:
+        return 401
+    if token.used:                                  # +
+        revoke(token.session)                       # +
+        return 409                                  # +
+    pair = TokenPair(                               # ~ was: one access token
+        access=sign_access_token(token.user_id),
+        refresh=sign_refresh_token(token.user_id),  # +
+    )
+    store.delete(token)                             # +
+    emit(TokenRotated)                              # +
+    return pair, 200
 ```
 
 > **Which running paths this TODO changes, and how, step by step.** The increments below show what the
@@ -254,32 +273,42 @@ pkg/auth.Handler.Refresh
 > `<notes-dir>/workflows/flows.json`, add `— main flow step <n>`. The line under the heading is the
 > `package.Class.method` that runs the flow, as italic code: ``*`pkg/auth.Handler.Refresh`*``.
 >
-> **Steps as a tree, in the order they run.** One fenced block per flow. The root is the
-> `package.Class.method`; each step is one line, drawn as the Linux `tree` command draws it: `├── ` for a
-> step, `└── ` for the last step at its level, `│   ` in front of each line one level deeper. A step that
-> runs sub-steps or stops the flow holds them as its children. One line per step, in domain words:
-> what happens, and what the caller gets when the step stops the flow (`→ 401`). No code; a symbol
-> only when it is a `## Components` row.
+> **Steps as Python-style pseudocode, in the order they run.** One ` ```python ` block per flow, so
+> every editor colors the keywords. The first line is `def <method>(<inputs>):`, with the method of
+> the italic line. The keywords carry the control flow, and the indent carries the nesting:
 >
-> **Each changed step opens with its marker**, right after the branch characters. A step with no marker is unchanged context.
+> | Keyword | Use it for |
+> |---------|------------|
+> | `if` / `elif` / `else` | a guard or a path the flow can take |
+> | `for attempt in range(5):` | a retry, with its bound |
+> | `while` | a wait with no fixed count; a comment names its limit |
+> | `with` | a scope that holds a resource: a lease, a transaction, an open file |
+> | `return` | the result the caller gets, also a status (`return 401`) |
+> | `raise` | a stop with the error the caller gets (`raise objfs.ErrVersionMismatch`) |
 >
-> | Marker | Means | The line also says |
-> |--------|-------|--------------------|
-> | `+ step` | a new step | what it does |
-> | `+ check` | a new guard that can stop the flow | what it rejects and what the caller gets |
-> | `+ branch` | a new path the flow can take | the condition that takes it |
-> | `~ step` | a step that now does something else | what it did before, after `— was:` |
-> | `- step` | a step that is gone | nothing more; the line stays so the gap shows |
-> | `moved` | a step that runs at a new position | the parent and the step it ran after before, after `— was:` |
+> One line per step. Write the names in domain words (`read_instance_record(id)`). A symbol keeps
+> its exact name only when it is a `## Components` row or an error the caller matches on. The block
+> is not code: no types, no error plumbing, no imports. A fact the code cannot show, such as
+> "nothing written" or "a start that a crash cut", goes in a trailing comment.
 >
-> **Show the whole tree up to 12 lines.** Past 12, keep each changed step, its parent chain, and one
-> unchanged sibling on each side, and write `…` for the lines between.
+> **Each changed line ends with its marker comment.** A line with no marker is unchanged context.
 >
-> **Every marked step has a case in `TODO-N.test.md` `## Autotest`.** A `+ check` or a `+ branch`
-> with no error case is a path nobody tests.
+> | Marker | Means | The comment also says |
+> |--------|-------|-----------------------|
+> | `# +` | a new line: a step, or a new `if` / `elif` / `else` / `raise` (a check or a path) | an optional note |
+> | `# ~ was: <before>` | a line that now does something else | what it did before |
+> | `# - <the step>` | a step that is gone: the whole line is this comment, so the gap shows | nothing more |
+> | `# moved, was: after <step>` | a line that runs at a new position | the step it ran after before |
 >
-> A new flow is all `+ step`. The usual `none` is a rename: `none — renames Session fields; every
-> step runs as before`.
+> **Show the whole flow up to 20 lines.** Past 20, keep each changed line, the `def`, the `if` /
+> `for` / `with` lines that hold it, and one unchanged line on each side. Write `...` for the lines
+> between.
+>
+> **Every marked line has a case in `TODO-N.test.md` `## Autotest`.** A new `if`, `elif`, `else`, or
+> `raise` with no case that takes it is a path nobody tests.
+>
+> A new flow has `# +` on every line. The usual `none` is a rename: `none — renames Session fields;
+> every step runs as before`.
 
 ## Increments
 
@@ -329,7 +358,7 @@ pkg/auth.Handler.Refresh
 > | **Landed** | `yes` or `no` — whether this increment is in its commit. `todo` writes `no`; `impl` flips it after the commit or amend (`arch:ref-write.md` § Progress) |
 > | **Change** | this increment's change kind — one of the nine in `impl:ref-change-types.md` |
 > | **Extends** | the existing symbol this increment grows, and what it gains: `` `pkg.Type.Method` — <what it gains> ``. Or `` new — checked `<A>`, `<B>`: <why none fits> `` |
-> | **Surprises** | one to three nested bullets: the details a reader misses in the summary and the diff and finds later only in the code |
+> | **Surprises** | one to seven nested bullets: the details a reader misses in the summary and the diff and finds later only in the code |
 > | **Surface** | the diff this increment lands, as one ```diff block — or a plain contract block, or `none — <reason>` |
 >
 > **Surprises is what the reader would find only in the code.** An edge case, a refused input, a
@@ -451,7 +480,7 @@ The minter now signs both tokens and returns them as one pair. Login and refresh
 >
 > **Body** — cause, goal, and the decision if a live alternative was rejected, one paragraph each in
 > that order. Full contract: `wm:commit-message`. Write it for a reader who has only the repo: no
-> `TODO-N`, no increment number, no note id, no ticket. The increments are gone once the commit
+> `TODO-N`, no increment number, no ADR number, no ticket. The increments are gone once the commit
 > lands, and this text is all that stays.
 >
 > **Proves** — the `TODO-N.test.md` cases that pass from this commit on, as `<level> — `<case>``,
@@ -493,7 +522,7 @@ Before, `Refresh` checked a refresh token and returned a new access token, and t
 > interface declares is new surface only when the TODO changes that interface.
 >
 > **No comments and no `AGENT:` markers in a diff.** A decision that seems to want a comment belongs
-> in a `thoughts/` note.
+> in an ADR.
 
 ### 2.2. Route the refresh request to the new call
 
@@ -575,30 +604,30 @@ A script now builds the release from clean and checks every asset against the ma
 
 ## Deviations
 
-| What | Shipped instead | Why | Note |
+| What | Shipped instead | Why | ADR |
 |------|-----------------|-----|------|
-| `## Increments` 2.1: `Refresh` | takes `ctx context.Context` as its first argument | the store call it now makes must be cancellable | [[012-impl-decision-refresh-takes-ctx]] |
+| `## Increments` 2.1: `Refresh` | takes `ctx context.Context` as its first argument | the store call it now makes must be cancellable | [ADR-0012](../adr/0012-refresh-is-cancellable.md) |
 
 > **Not yours to write.** `todo` never creates this section; the pair leaves the gate with the
 > sections above and nothing after them. `impl` appends it when the user corrects a shown diff into
 > something a section above forbids, and only when the correction stays inside this TODO.
 >
 > Read it as a reader of the pair: the approved text above still says what the human approved, and
-> this table says where the shipped code went elsewhere and which note holds the reason. One row per
+> this table says where the shipped code went elsewhere and which ADR holds the reason. One row per
 > correction, four columns:
 >
 > - **What** — the section and the symbol, id, or case the correction contradicts: `## Increments 2.1:
 >   Refresh`, `## Autotest Unit: case 3`, `## Outcome`.
 > - **Shipped instead** — the shape or behavior that actually landed, one line.
 > - **Why** — the reason the approved version lost, one line.
-> - **Note** — the `[[NNN-impl-decision-slug]]` holding the full reasoning. **Required on every
->   row, and written before the row is.** This block is temporary: `revise` folds the rows in and
->   deletes it, so the note is the only thing that survives. A row with an empty Note column takes
+> - **ADR** — a markdown link to the `kind: implementation` ADR holding the full reasoning.
+>   **Required on every row, and written before the row is.** This block is temporary: `revise`
+>   folds the rows in and deletes it, so the ADR is the only thing that survives. A row with an empty ADR column takes
 >   the reason with it, and the approved text it replaced then reads as if nobody chose against it.
 >   `spec-lint.py` check B4 fails a row without one.
 >
 > `revise` folds every row into the section it names and deletes the whole block. A correction that
-> reaches past this TODO — another TODO's symbol, a ledger row, a settled `decision` note — is not a
+> reaches past this TODO — another TODO's symbol, a ledger row, a settled `architecture` or `feature` ADR — is not a
 > deviation: it routes to `revise`.
 
 ---

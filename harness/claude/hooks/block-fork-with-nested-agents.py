@@ -27,10 +27,14 @@ if not hits:
 
 reason = (
     f"Fork denied: the prompt {', '.join(hits)}. A fork always runs on the parent model, "
-    "ignores `model`, and must not start agents, so every nested step would run on the parent model. "
-    "Do one of these: run the loop in this session and start each named agent from here with its "
-    "`model`; or start a named agent (`general-purpose`, `wm:implementer`, ...) with `model` and a "
-    "self-contained prompt. Give a fork only work it does itself on the parent model."
+    "ignores `model`, and must not start agents. "
+    "Triage the task first. Estimate how much of the current context the task needs. "
+    "If it needs 70% or more: fork again, and give the fork only work it does itself, "
+    "with no nested agents and no model name. Run each nested agent from this session. "
+    "If it needs less than 70%: start a new named agent (`general-purpose`, `wm:implementer`, ...) "
+    "with `model`. It starts with an empty context, so list in the prompt the files it must read "
+    "first, as absolute paths, each with one line that says why. "
+    "Add the facts from this session that no file holds."
 )
 print(json.dumps({
     "hookSpecificOutput": {

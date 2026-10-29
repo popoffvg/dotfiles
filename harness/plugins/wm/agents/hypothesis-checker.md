@@ -52,10 +52,12 @@ Evidence:
 - runner/queue.go:88 — `if len(batch) > max {` — a batch of exactly `max` items skips the flush
 - runner/queue_test.go:40 — the only test queues 3 items under max 10
 Scenario: max=10, 10 queued items → Flush returns nil and drops all 10
+Consequence: a run whose queue fills exactly to the limit loses its last 10 results, and nothing reports it
 Edit: runner/queue.go:88 — `>` → `>=`
+Fix cost: 0 lines, 0 branches
 ```
 
-`Scenario:` and `Edit:` are for CONFIRMED only, and `Scenario:` for `correctness` only.
+`Scenario:`, `Consequence:`, `Edit:`, and `Fix cost:` are for CONFIRMED only, and `Scenario:` and `Consequence:` for `correctness` only. `Consequence:` says what the application or its user sees, in the words of the product, with no code name: lost data, a call that fails, a wait, a wrong message. `Fix cost:` counts the lines and the branches that the edit adds (`+12 lines, +2 branches`) or removes (`-6 lines, -1 branch`).
 
 ## Hard rules
 

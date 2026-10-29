@@ -29,7 +29,7 @@ Your brief carries `rules:` (the dir with `manifest.json`, `batches/`, `results/
    | the lines are not in the diff, or the rule does not say what the checker claims | dropped — list it under `Dropped` with one reason |
    | the same lines and the same rule as another FAIL | merged into one finding |
 
-4. **Bucket each finding.** A rule whose description carries `Severity: nit` gives a Nit. Every other rule gives a Failure. A `D<NNN>` rule is always a Failure.
+4. **Bucket each finding.** A rule whose description carries `Severity: nit` gives a Nit. Every other rule gives a Failure. An `ADR-NNNN/Pn` rule is always a Failure.
 5. **Write the report**, then return the same text.
 
 ## Output contract

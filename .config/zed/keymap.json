@@ -411,5 +411,17 @@
     "unbind": {
       "ctrl-w ctrl-]": "editor::GoToDefinitionSplit"
     }
+  },
+  {
+    "context": "Editor && extension == prompt",
+    "bindings": {
+      "ctrl-alt-p": ["editor::InsertSnippet", { "language": "markdown", "name": "Short prompt" }],
+      "ctrl-enter": [
+        "assistant::InlineAssist",
+        {
+          "prompt": "Rewrite the selected draft as the next turn to a Claude Code session. Take the goal, the decisions, and the terms from the session context below the marker line, and do not copy it. At most 80 words: the goal as one verb and one object, my why in one sentence, only the limits it would get wrong with their reasons, then a Done when check. Keep my terms and file paths. No steps, no tool choices, no greeting. "
+        }
+      ]
+    }
   }
 ]

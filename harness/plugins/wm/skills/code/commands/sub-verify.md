@@ -40,15 +40,15 @@ Per-TODO:
 Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
   "[VERIFY TODO-N] Hunt contradictions / missing-parts / edge-cases in the <notes-dir>/todos/TODO-N.md
    + TODO-N.agent.md pair and TODO-N.test.md. Read only those three + the rules `~/.claude/scripts/wm-constraints.py
-   <notes-dir>/thoughts --todo TODO-N` prints + the pair's Files (source). Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md
+   <notes-dir>/adr --todo TODO-N` prints + the pair's Files (source). Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md
    § Mission and § What the script cannot judge — the countable checks already ran, so report none of them.
    Run the claim pass first and return the claim table with your findings.")
 ```
 
-Cross-TODO — the contradiction agent. It reads `spec.md`, the Decisions in `thoughts/`, and from **every** TODO: the ledger row, Outcome, Depends on, `## Files`, and the signatures in the `## Increments` diffs. Headers alone hide the conflicts: two TODOs give one function two signatures inside their diffs, not in their outcomes.
+Cross-TODO — the contradiction agent. It reads `spec.md`, the live ADRs in `adr/`, and from **every** TODO: the ledger row, Outcome, Depends on, `## Files`, and the signatures in the `## Increments` diffs. Headers alone hide the conflicts: two TODOs give one function two signatures inside their diffs, not in their outcomes.
 ```
 Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
-  "[VERIFY CROSS] Read <notes-dir>/spec.md, thoughts/ decisions, and every TODO's row, Outcome,
+  "[VERIFY CROSS] Read <notes-dir>/spec.md, the live ADRs in adr/, and every TODO's row, Outcome,
    Depends on, Files, and the signatures in its increment diffs.
    Run the claim pass over the whole set — pairwise, not per-TODO. Report every collision plus
    Depends-on cycles. Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md § Mission.
@@ -111,7 +111,7 @@ Do not scan for contradictions by reading and hoping. Extract, then collide.
 | File ownership | `## Files`, increment **Files** | `TODO-3 rewrites src/gate.ts` |
 | Order | `Depends on`, wave table, increment `n` | `TODO-5 lands after TODO-2` |
 | State transition | Outcome, increment summary, **Surprises** | `status moves review → impl` |
-| Decision | `thoughts/` decision notes | `no new dependency in the plugin dir` |
+| Decision | the Properties of the `adr/` ADRs | `no new dependency in the plugin dir` |
 
 **Step 2 — collide pairwise.** Compare every claim against every other claim of the same kind. A collision is two claims that cannot both hold:
 
@@ -127,6 +127,8 @@ Do not scan for contradictions by reading and hoping. Extract, then collide.
 **Step 4 — report the pass itself.** The `## Contradictions` section is never left blank. With no collision, write `none — N claims extracted, M pairs checked` so the reader can tell a clean spec from a skipped hunt.
 
 ### 2. Missing parts
+
+**The public surface.** For each package the spec changes, list every public symbol its TODOs create and the caller each one names (`arch:examples/todo.md` § Components, "Every public member names its caller"). A public symbol with no `called by` or `implements`, a planned caller with no link to the design step that calls it, a caller that is only a test, or a caller that calls several public members in a fixed order to keep one invariant, is a finding: the edit makes it private or folds the sequence into one operation.
 
 Work the Goal implies but no TODO covers: error paths, teardown for every setup, a caller left unmigrated after a signature change, auth/validation on a new boundary, a persistence write with no read, config referenced but never defined.
 
@@ -150,7 +152,7 @@ body).
 **The one legal body is one the human asked for**, and it carries a `**Body requested:**` bullet
 naming the symbol. Judge `## Autotest` the same way: its Cases are sentences, never test source.
 
-**Self-containment.** Read one TODO with `spec.md` and the `thoughts/` notes closed and the printed
+**Self-containment.** Read one TODO with `spec.md` and the `adr/` ADRs closed and the printed
 rule set open — that is what the implementer sees. A term or a test expectation knowable only from
 the closed files is a missing restatement, named as the finding.
 

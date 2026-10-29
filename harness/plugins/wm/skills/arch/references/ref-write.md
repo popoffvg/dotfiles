@@ -7,7 +7,7 @@ Vocabulary: `wm:GLOSSARY.md`.
 ## Role
 
 Architector, not executor. Write and edit only under `<notes-dir>/` (`CLAUDE.md`, `RULES.md`,
-`spec.md`, `GLOSSARY.md`, `PATTERNS.md`, `CONCEPTS.md`, `thoughts/`, `todos/`). Read any file for planning. "add X" / "fix Y" → capture as a ledger row,
+`spec.md`, `GLOSSARY.md`, `PATTERNS.md`, `CONCEPTS.md`, `adr/`, `todos/`). Read any file for planning. "add X" / "fix Y" → capture as a ledger row,
 never as a code edit.
 
 ## Artifacts
@@ -20,8 +20,9 @@ never as a code edit.
 ├── GLOSSARY.md     # project ubiquitous language (example: examples/glossary.md)
 ├── PATTERNS.md     # implementation patterns + reference files the implementer follows (example: examples/patterns.md)
 ├── CONCEPTS.md     # app architecture, data flow, the flow — drawn with `show-me` (example: examples/concepts.md)
-├── thoughts/       # NNN-{question,decision,fact,impl-decision}-slug.md — the thought graph
-│   └── archived/   # answered questions + superseded thoughts — out of the live graph, kept for the trail
+├── adr/            # NNNN-slug.md — one ADR per decision or open question (format: ref-adr-format.md)
+│   └── archived/   # deprecated and superseded ADRs — kept for the trail
+├── research/       # the research artifacts, and every fact with its source
 ├── todos/          # one pair per ledger row (authored by `todo`, past the gate)
 │   ├── CLAUDE.md   # the pair convention — two files per row, read order, write rules (example: examples/todos-claude.md)
 │   └── TODO-N.md + TODO-N.agent.md + TODO-N.test.md
@@ -29,18 +30,18 @@ never as a code edit.
 ```
 
 - **`CLAUDE.md`** and **`RULES.md`** are written once, by `new` Step 0, and are never rewritten by a later subcommand. `CLAUDE.md` tells any agent entering the folder how to read and write it; `RULES.md` says which choices go to the human at each step. Every subcommand reads `RULES.md` before it starts and obeys it over its own defaults — a rule there never lowers a hard gate (the `review→impl` read, destructive-git confirmation).
-- **The rules every TODO obeys are stored in no file.** `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints them from the `thoughts/` graph (`ref-todo-sections.md` § Constraints). No TODO copies a rule or the command; `todos/CLAUDE.md` names the command once.
-- A thought that stops being live moves to `thoughts/archived/` — a question once answered (`ref-note-format.md` § Resolution), a decision once superseded (§ Superseding). Never deleted, never left in the live graph; the `thoughts-archive.sh` hook performs the move.
+- **The rules every TODO obeys are stored in no file.** `~/.claude/scripts/wm-constraints.py <notes-dir>/adr` prints them from the Properties of the live ADRs (`ref-todo-sections.md` § Constraints). No TODO copies a rule or the command; `todos/CLAUDE.md` names the command once.
+- An ADR that stops being live — its last changelog line is `Superseded by [ADR-NNNN]` or `Deprecated:` — moves to `adr/archived/`. Never deleted; the `adr-archive.sh` hook performs the move (`ref-adr-format.md` § Location and archive).
 
 - **`review/`** holds one directory per judged target — `TODO-N` or a resolved range slug — with one file per gate plus the merged `report.md`. Every gate overwrites its file each round, so the directory always shows the current verdict and never the trail. Owned by the `review` skill (`review:ref-gates.md` § Every gate writes its report to a file); no other subcommand writes there.
 
 - **`spec.md`** is read by humans + the audit — the **target picture** plus the **ledger** plus the **Plan**. No bodies, no checkboxes, no file paths.
-- **Decisions and open questions are not spec sections.** Every choice, every fact, every unresolved question is a note in `thoughts/` — `spec.md` has no `Design Decisions` and no `Open Questions` section, and the Plan carries no decision-trail table. One place per thought; `spec.md` says what the world will look like, `thoughts/` says why.
+- **Decisions and open questions are not spec sections.** Every choice and every unresolved question is an ADR in `adr/`, and every fact sits in the research artifact that established it — `spec.md` has no `Design Decisions` and no `Open Questions` section, and the Plan carries no decision-trail table. One place per decision; `spec.md` says what the world will look like, `adr/` says why.
 - **ledger** = the TODO List, an index of **outcomes**, one `#### TODO-N` entry each (the line roster: § Spec-Readiness Checklist). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready. An outcome the user cannot *read* is contested by default, which is what `Concretely` exists to prevent (§ spec.md shape).
 - **`CONCEPTS.md`** carries every diagram — app architecture, data flow, and the flow this work changes — drawn with the `show-me` skill. It is the human's first read and the spec's, so it is a file rather than a `spec.md` section: the diagrams re-read while the ledger is shaped, and the spec's 200-line budget has no room for them. Written when a picture changes a layer, a wave, or where a row splits; a change with no structure to draw has none (example: `examples/concepts.md`).
 - **`PATTERNS.md`** is read by the implementer, not the human — the patterns and reference files a TODO's increments follow. Nothing in it needs human agreement, which is why it is not a spec section: `spec.md` mentions `@PATTERNS.md` and carries none of the content.
-- **`todos/TODO-N.md` + `todos/TODO-N.agent.md`** are one **pair** per ledger row, split by audience. `TODO-N.md` is the human's gate read — frontmatter, Outcome, New terms, Components, **Flow changes** (each running path, step by step, with the changed steps marked), **Increments** (the ordered steps of the change, numbered `<c>.<i>`, each self-contained for review with its own diff of the types, fields, signatures and settings it lands, and no file path; each commit group closes with a `---` line and a `### Commit <c>` section) — restating its ledger outcome verbatim at the top, budgeted at 200 lines of prose; `## Increments` is bounded by shape instead (≤ 4 commits, ≤ 10 increments per commit). `TODO-N.agent.md` is the context-free Sonnet implementer's — Files (each path keyed to the increments that touch it), Pre-reads, Manual test, Gotchas — with no line budget and not one ```diff block. Self-contained means the **pair plus the generated rule set** is enough; neither half restates the other, and each carries exactly one link to the other. Neither half stores an origin link: why a decision was made is walked on demand from `thoughts/` by the `trace` skill. `todos/TODO-N.test.md` holds the row's `## Autotest` alone, with no line budget. Written in two stages with a human gate between them (`sub-todo.md` § Execution); all three are renumbered and deleted together. Owned by `todo` (`sub-todo.md`). `todos/CLAUDE.md` states the pair convention for any agent entering the folder — scaffolded with the folder by `new` Step 0, written once, never rewritten (example: `examples/todos-claude.md`).
-- **thought** — one note per question asked and one per answer given, linked by `[[wikilinks]]`. Format + templates: `ref-note-format.md`.
+- **`todos/TODO-N.md` + `todos/TODO-N.agent.md`** are one **pair** per ledger row, split by audience. `TODO-N.md` is the human's gate read — frontmatter, Outcome, New terms, Components, **Flow changes** (each running path, step by step, with the changed steps marked), **Increments** (the ordered steps of the change, numbered `<c>.<i>`, each self-contained for review with its own diff of the types, fields, signatures and settings it lands, and no file path; each commit group closes with a `---` line and a `### Commit <c>` section) — restating its ledger outcome verbatim at the top, budgeted at 200 lines of prose; `## Increments` is bounded by shape instead (≤ 4 commits, ≤ 10 increments per commit). `TODO-N.agent.md` is the context-free Sonnet implementer's — Files (each path keyed to the increments that touch it), Pre-reads, Manual test, Gotchas — with no line budget and not one ```diff block. Self-contained means the **pair plus the generated rule set** is enough; neither half restates the other, and each carries exactly one link to the other. Neither half stores an origin link: why a decision was made is walked on demand from `adr/` by the `trace` skill. `todos/TODO-N.test.md` holds the row's `## Autotest` alone, with no line budget. Written in two stages with a human gate between them (`sub-todo.md` § Execution); all three are renumbered and deleted together. Owned by `todo` (`sub-todo.md`). `todos/CLAUDE.md` states the pair convention for any agent entering the folder — scaffolded with the folder by `new` Step 0, written once, never rewritten (example: `examples/todos-claude.md`).
+- **ADR** — one file per decision; its `status` (`proposed` | `approved`) is set by the operator alone (`ref-adr-format.md` § Status). An open question is a section of `QUESTIONS.md`, never an ADR; filled example: `examples/questions.md`. ADRs cite each other with markdown links. Format: `ref-adr-format.md`; filled example: `examples/adr.md`.
 - History lives in the notes' jj repo (`jj log`) — `code:ref-jj-notes.md`.
 
 ## Status — metadata, not prose
@@ -84,20 +85,15 @@ todo  →  impl  →  verify  →  done
 Set by: `todo` (writes `todo`, or `blocked` if a dep is unmet), `impl` (`todo → impl`, then `→ verify` on green; `→ blocked` if a dep is unmet), the review gate (`verify → done` on PASS, `→ blocked` on FAIL), `revise` (`→ todo` when it reopens a diverged TODO).
 
 **The gate** sits at the spec's `review→impl` boundary. `new` produces a reviewable spec and stops; a
-human reads Goal, `thoughts/`, GLOSSARY.md, the ledger, and the Plan; only then does `todo` author bodies.
+human reads Goal, `adr/`, GLOSSARY.md, the ledger, and the Plan; only then does `todo` author bodies.
 Bodies are never auto-written — a wrong spec authored into TODOs becomes wrong code.
 
 **One half of the gate is enforced, not trusted.** The `guard.sh` PreToolUse hook reads every
-`Edit`/`Write` on a `spec.md`. When the new text sets `status: impl` and the sibling `thoughts/` still
-holds a `status: open` question, the hook denies the edit and prints the open questions — so
-implementation cannot start on an unanswered spec, whatever the agent believes. Answer the question
-first: write the answer as a new `decision` or `fact` note, which archives the question
-(`ref-note-format.md` § Resolution).
-
-The same hook denies the edit for the mirror case: a decision still `status: proposed`, or one
-carrying a status outside the four the tools know. Both bind nothing — the constraint set is built
-from `approved` notes alone — so the spec would enter `impl` with a choice the implementer never
-sees. Get the human to agree it and set `status: approved`, or decline it with the reason.
+`Edit`/`Write` on a `spec.md`. When the new text sets `status: impl` and the sibling `QUESTIONS.md`
+still has a section, the hook denies the edit and prints those questions — so implementation cannot
+start on an unanswered spec, whatever the agent believes. An open question binds nothing: the
+constraint set comes from the live ADRs alone. Get the human's answer, write it as an ADR, and
+delete the section (`ref-adr-format.md` § An open question is a section of QUESTIONS.md).
 
 The other half of the gate — the human actually reading the spec — no hook can check.
 
@@ -169,6 +165,8 @@ TODOs of one spec sharing a tree would put two commits in one working copy.
 **Each TODO worktree branches off the spec's `branch`** and carries a branch named for the TODO.
 Every TODO of a spec therefore starts from the same base, and the trees are siblings, not a stack.
 
+**The tree lives in the task folder, at `<task folder>/todo-N`** — `todo-3` for TODO-3. The task folder is the directory that holds the `.notes` the session uses: the parent of `<notes-dir>` as the session names it, not the target of a `.notes` symlink. Create it with `git -C <checkout> worktree add -b <TODO branch> <task folder>/todo-N <spec branch>`, never with `wt switch --create`: `wt` puts the tree at its own path, outside the task folder. Run `mise trust` in the new tree when it has a `.mise.toml`. Then re-root the session with `EnterWorktree`, or work through absolute paths when it is refused.
+
 **The branch stays unmerged until the human acts.** `impl` reports the path and the branch and stops
 there; `/code squash` merges one branch back, and stacking them is the human's choice. A `depends_on`
 TODO whose dep is still unmerged starts from a base without the dep's code — merge the dep first, or
@@ -226,10 +224,10 @@ entry to trace **without reopening the codebase**. Tests (front) and the one-sen
 | # | Element | spec.md section | Must show |
 |---|---------|-----------------|-----------|
 | 1 | **Entry point** | Description / Goal | The exact line the request enters — handler, dispatch, subscriber — not the top of the file. |
-| 2 | **Tests** *(front gate)* | Goal + `thoughts/` | The happy-path test stating the contract, and the intent each test pins. No test on the path → mark **UNTESTED**. |
+| 2 | **Tests** *(front gate)* | Goal + `adr/` | The happy-path test stating the contract, and the intent each test pins. No test on the path → mark **UNTESTED**. |
 | 3 | **Follow data** | GLOSSARY.md | One value's lifecycle — born, mutated, transformed, exits. The flow falls out of the data. |
 | 4 | **Skip noise** | What we're NOT doing | What was walked past (rate limiters, audit logs) — stated so gaps read as intentional. |
-| 5 | **Failure path** | GLOSSARY.md + `thoughts/` | One failure path the spec depends on: does the response leak cause (different message or timing)? |
+| 5 | **Failure path** | GLOSSARY.md + `adr/` | One failure path the spec depends on: does the response leak cause (different message or timing)? |
 | 6 | **One-sentence trace** *(end gate)* | Goal → feeds ordering | Entry→exit in one line. Can't state it in one sentence → the flow wasn't understood. |
 
 If `<notes-dir>/research/` exists, consume those artifacts — they already encode this chain (owned by `dive-docs`) — rather than re-deriving.
@@ -269,7 +267,7 @@ failures — each one is a place a reviewer stopped and asked "what does this me
   move**. The unchanged part is the half a reviewer needs in order to bound the blast radius, and it is
   the half prose always omits.
 
-**The test.** Hand the spec to someone who has not read `thoughts/`. Every row should let them say what
+**The test.** Hand the spec to someone who has not read `adr/`. Every row should let them say what
 will happen to the repo and how they would know it worked. If they cannot, the spec is not ready — and
 no amount of citation density fixes it.
 
@@ -301,6 +299,25 @@ upward (callers depend on callees); commits land the same direction — leaf →
 - An **enabler** with exactly one consumer — a shared package, an asset, a fixture, a taxonomy — is **not its own ledger row**. It is the first increments of the slice that consumes it — often a commit of its own there, by the same rule: alone it is a dead intermediate state, it cannot state an Outcome as a capability, and its `E2E` can only be `none`. Two exceptions keep it a row: it lives in **another repo**, so it cannot share the TODO's commits; or it has **two or more consumers**, where a `W1` interface row with its implementations in `W2` removes an edge (§ Waves step 4).
 
 **Reject:** ordering by "easiest first" or "most visible first" — that compiles only after every TODO lands, breaking the per-TODO commit contract.
+
+### Fit each row to the repo's PR reviewer
+
+Each row ships as one PR. When the repo has Greptile settings, Greptile reviews that PR, so its PR-level rules shape the ledger before the review does.
+
+1. Look for `.greptile/` (`config.json`, `rules.md`, `files.json`) and `greptile.json`, at the repo root and in the directories the work touches. None found → skip this section.
+2. Read the `rules` in `config.json` and the `Always check` part of `rules.md`. Read each doc in `files.json` whose description covers planning, refactoring, or PR shape. Skip the line-level rules (style, error handling, test idioms): `impl` and the review gates own them.
+3. Apply each PR-level rule to the rows:
+
+| The rule says | The ledger does |
+|---|---|
+| Two changes MUST NOT ship in one PR (a released CLI flag is deprecated first and deleted in a later release) | Two rows with a `depends_on` edge, or the second step goes to What we're NOT doing when it waits for a release |
+| Every PR of a kind MUST carry an artifact (a changelog entry or a skip label) | The row's `Done when` names the artifact and its kind |
+| One artifact per distinct change (a feature and an unrelated fix are two changelog entries) | Two rows; a ride-along refactor stays inside the row it enables |
+| A later change amends an earlier unreleased one (revise the sibling changelog entry, do not stack a new one) | The later row's `Done when` names the entry it amends |
+| A routine change MUST apply the same way at every occurrence | One row for all occurrences, never one row per occurrence |
+| A migration runs in fixed steps (add a `V2` method, implement it, move the callers, remove the old method) | The steps are the rows or the `### Commit` sections, in that order |
+
+Done when every PR-level rule either shaped a row or is out of the scope of this spec, and each row a rule shaped names the rule `id` in its `Why`.
 
 ### Waves — group for maximum parallelism
 
@@ -334,14 +351,13 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] `## Plan` carries the target-picture summary (absent only while `status: init`)
 - [ ] `spec.md` body has Description, Goal, What we're NOT doing, the ledger, and the Plan — nothing else. No `Design Decisions`, no `Open Questions` section, no `Implementation Guidelines`, no decision-trail table
 - [ ] Implementation patterns sit in `PATTERNS.md` and every diagram sits in `CONCEPTS.md`; `spec.md` mentions `@PATTERNS.md` and `@CONCEPTS.md` and carries neither
-- [ ] `spec.md` is ≤ 200 lines — over budget → move detail to `thoughts/` or split the spec, never shrink the ledger. The `budget-check` hook warns on every write and `code:sub-verify.md` Phase 0 fails on it (`arch:sub-todo.md` § Budget)
-- [ ] `GLOSSARY.md` exists (sibling), holds every domain term the spec, the TODOs, and the live thoughts use, and `bin/glossary-lint.py <notes-dir>` is clean
+- [ ] `spec.md` is ≤ 200 lines — over budget → move detail to `adr/` or split the spec, never shrink the ledger. The `budget-check` hook warns on every write and `code:sub-verify.md` Phase 0 fails on it (`arch:sub-todo.md` § Budget)
+- [ ] `GLOSSARY.md` exists (sibling), holds every domain term the spec, the TODOs, and the live ADRs use, and `bin/glossary-lint.py <notes-dir>` is clean
 - [ ] `CLAUDE.md`, `RULES.md`, and `PATTERNS.md` exist in the notes dir; `RULES.md` carries the three answered knobs, no `<…>` placeholder left
-- [ ] Every rule has text, carries a known status, and is agreed: `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --check` exits 0. It fails a decision still `status: proposed` and a note whose status is outside `proposed | open | approved | declined` — both generate no rule, so the implementer never sees the choice (`ref-note-format.md` § Frontmatter)
-- [ ] Every answered question and superseded thought sits in `thoughts/archived/` — marked, and moved by the hook; no live note links to an archived one
-- [ ] **No `status: open` question note in `thoughts/`** (hard block) — `~/.claude/scripts/wm-open-questions.sh <notes-dir>/thoughts` exits 0. The `guard.sh` hook re-checks this the moment an edit sets `spec.md` to `status: impl`, and denies the edit
-- [ ] Every decision made while writing the spec has a `thoughts/NNN-decision-*.md` note
-- [ ] Every live thought note carries a `description` — 1–3 sentences saying what it settles, so a reader picks notes from the index instead of opening all of them (`ref-note-format.md` § Frontmatter). Check with `~/.claude/scripts/wm-thought-index.py <notes-dir>/thoughts --missing-description --files` (prints nothing = pass)
+- [ ] Every rule is well formed: `~/.claude/scripts/wm-constraints.py <notes-dir>/adr --check` exits 0 (`ref-adr-format.md` § Frontmatter)
+- [ ] Every deprecated and superseded ADR sits in `adr/archived/` — marked, and moved by the hook; no live ADR links to an archived one
+- [ ] **No open question in `QUESTIONS.md`** (hard block) — `~/.claude/scripts/wm-open-questions.sh <notes-dir>` exits 0. The `guard.sh` hook re-checks this the moment an edit sets `spec.md` to `status: impl`, and denies the edit
+- [ ] Every decision made while writing the spec is an ADR, recorded with the `adr` skill
 - [ ] The ledger is a list of `#### TODO-N` entries, each with `**Layer:**` / `**Outcome:**` / `**Concretely:**` (Today | After table) / `**Done when:**` / `**Commit:**` / `**Why:**` lines — no bodies, no checkboxes, no file paths
 - [ ] Every `Commit` is a ≤ 72-char imperative subject and every `Why` states the reason the commit exists
 - [ ] Every `Concretely` is a one-row **Today | After** table plus a **Done when** line, and names something that required opening the repo. A `Concretely` that paraphrases its own `Outcome` is not one
@@ -352,18 +368,19 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] No outcome hides two behind "and"; no two entries share an outcome
 - [ ] No row is an **enabler with one consumer** — a shared package, asset, fixture or taxonomy whose only reader is one other row belongs to that row as its first increments (§ Merges that fall out of this rule). It stays a row only for another repo, or for two or more consumers
 - [ ] Not every row defers its `E2E`: at least one row in the **first wave** proves a capability end-to-end, so the design gaps surface in `W1` rather than the last wave
+- [ ] When the repo has Greptile settings, every row obeys their PR-level rules, and a row a rule shaped names the rule `id` in its `Why` (§ Fit each row to the repo's PR reviewer)
 - [ ] Entries are contiguous from 1, sorted by ascending `Ln` depth; no TODO depends on a component a later TODO introduces
 - [ ] Nothing was written under `todos/` during this spec pass
 - [ ] Description + Goal convey the target picture in plain language
-- [ ] Format/protocol decisions have a `thoughts/NNN-decision-*.md` note, not deferred into bodies
+- [ ] Format/protocol decisions are ADRs, not deferred into bodies
 
 ## Interpreting user input
 
 | User says | You do |
 |-----------|--------|
-| "add X" / "fix Y" | Update Description / Goal + GLOSSARY.md (the user approves each term — `code:ref-subcommand-rules.md` § Glossary), write the thought note for any choice it forces, **and** add or revise a ledger row (+ its wave). No body file — that's `todo`. |
+| "add X" / "fix Y" | Update Description / Goal + GLOSSARY.md (the user approves each term — `code:ref-subcommand-rules.md` § Glossary), record an ADR for any choice it forces, **and** add or revise a ledger row (+ its wave). No body file — that's `todo`. |
 | "the outcome of TODO-N should be Z" | Edit entry N; confirm it follows the outcome rules. |
 | "split TODO-N" / "merge N and M" | Rewrite the rows, renumber contiguously, recompute the `## Plan` waves. |
-| "use approach Z" | Write a `thoughts/NNN-decision-*.md` note whose `description` states the rule — once, no matter how many TODOs it binds. The generator prints it from there. |
+| "use approach Z" | Record it as an ADR with the `adr` skill, its rules as Properties — once, no matter how many TODOs it binds. The generator prints them from there. |
 | "looks good" | Signal readiness. |
 | Option selection ("option A") | Execute immediately, don't re-ask. |

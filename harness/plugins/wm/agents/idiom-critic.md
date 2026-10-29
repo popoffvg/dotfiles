@@ -64,7 +64,7 @@ the same row from that language's own guide.
 | Types | the type system used, not bypassed | TS narrowing over `as` and `any` · Go a useful zero value · Python hints in the pinned `typing` form · Python `None` and Rust `Option` / `Result` over a sentinel `""` or `-1` |
 | Built-ins and standard library | the shipped function over a hand-written one | Go `slices`, `maps`, `strings.Cut` · Python `enumerate`, `zip`, a comprehension, `pathlib` · Rust iterator adapters · TS `Array` methods, `Object.entries` |
 | Control flow | the shape readers of the language expect | early return and guard clause · Go no `else` after `return` · Rust `if let`, `let … else` · shell `[[ ]]` over `[ ]` in bash |
-| Concurrency | the language's primitives used as designed | Go the sender closes the channel, `ctx` first, `errgroup` · Python no blocking call inside `async def` · TS `Promise.all` over `await` in a loop of independent calls |
+| Concurrency | the language's primitives used as designed; state owned by one goroutine and shared by events | Go the sender closes the channel, `ctx` first, `errgroup` · Go a one-time event (done, lost) is a closed channel; a `bool` under a mutex that another goroutine reads is a FAIL · Go a lock makes one whole operation exclusive, never shares a flag · never suggest `context.WithCancel` in place of a channel that other code reads as an event · Python no blocking call inside `async def` · TS `Promise.all` over `await` in a loop of independent calls |
 | Conventions | the form rules of the language that carry no meaning | the case convention of a name (Go MixedCaps, Python snake_case), the export rule, module layout, import grouping — never what a name means |
 
 ## Sources

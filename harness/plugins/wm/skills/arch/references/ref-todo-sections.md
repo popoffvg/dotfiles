@@ -26,38 +26,30 @@ Autotest cases, each commit **Body**, and any sentence beside a table. Load that
 idea per sentence, short sentences, front-loaded, literal words, no restatement. The agent half is
 read by an implementer and is not bound by it.
 
-## Constraints — where the rules come from
+## Constraints — rules come from ADR Properties
 
-The rules every increment obeys are **generated** from `<notes-dir>/thoughts/`, never written by
+The rules every increment obeys are **generated** from the Properties of the ADRs in `<notes-dir>/adr/`, never written by
 hand. No pair file carries a rule or the command; `todos/CLAUDE.md` § Read order names the command
 once (`examples/todos-claude.md`). Run
-`~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts --todo TODO-N` to see the set a TODO is bounded by; no
+`~/.claude/scripts/wm-constraints.py <notes-dir>/adr --todo TODO-N` to see the set a TODO is bounded by; no
 file in the corpus holds it.
 
-**One row per note that is live, `status: approved`, and of type `decision` or `impl-decision`.** A
-note under `thoughts/archived/` generates nothing, and neither does a `fact` — which is what makes
-`fact` the right type for a rule no increment can violate. Each row carries the note's `id` as
-`D<NNN>` and its `description` verbatim, so the rule a reader obeys and the rule an author wrote are
-the same text. An `impl-decision` row is scoped by its `todo:` key
-(`ref-note-format.md` § Frontmatter).
+**One row per Property of a live ADR.** The row id is `ADR-NNNN/Pn`, and its text is the
+Property line verbatim, so the rule a reader obeys and the rule an author wrote are the same text.
+`--todo TODO-N` prints the rows of every `architecture` and `feature` ADR plus the `implementation`
+ADRs whose `todo:` is that row. An archived ADR and a dropped Property generate
+nothing (`ref-adr-format.md` § Properties are the rules).
 
-**In `thoughts/` — the decision note, which *is* the rule.** There is no rules file to append to.
-A settled decision an increment can violate is a `decision` (or `impl-decision`) note, and its
-frontmatter `description` is the rule text the implementer reads:
+**In `adr/` — the Property, which *is* the rule.** There is no rules file to append to. A settled
+decision an increment can violate is an ADR, and each of its Properties is one rule:
 
-- **Write the description as the rule.** One or two sentences stating what the code must do. The
-  same text serves the thought index and the constraint set, so there is no second place to keep in
-  step — and no row anyone can forget to append.
-- `#` is `D<NNN>`, the note's own id. Never reused, so never renumbered: a reader is never
-  repointed at a different rule.
-- **One note per decision** — the rule set cannot hold a duplicate, because two TODOs obeying one
-  decision still read one note.
-- A decision is **never edited in place**. A changed or reversed decision is a new note, plus
-  `status: declined` + `superseded_by:` on the old one, and the archive hook removes the old note from
-  the rule set. A term rename is the one in-place change, and `~/.claude/scripts/rename-token.sh`
-  makes it, not the agent.
-- A decision no increment anywhere can violate is not a constraint. Write it as a `fact` note — the
-  generator skips those, and the `trace` skill still finds it.
+- **Write each Property as an invariant** that passes the option test of the `adr` skill. A line that restates the chosen option — a method list, a package path, a mechanism — goes in the ADR paragraph.
+- **One ADR per decision** — two TODOs that obey one decision still cite one ADR.
+- A new invariant of a recorded decision is a new Property of that ADR. A reversed
+  decision is a new ADR that supersedes the old one (`ref-adr-format.md` § Refine in place, reverse
+  by supersede).
+- A fact no increment can violate is not a constraint. It lives in the research artifact that
+  established it, and the `trace` skill still finds it through the ADR that cites it.
 
 ## A diff carries the change, not what the change forces
 

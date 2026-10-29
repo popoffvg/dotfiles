@@ -61,9 +61,9 @@ Only after emergence (step 6), never before. The transition is legitimate becaus
 - **Kill with a reason, now** — in this phase pruning *is* allowed and each kill cites what sank it. (Contrast the divergent phase, where you only dampen.)
 - **Critique, then commit one.** One adversarial exchange over survivors and kills; it may revive a probe or challenge the constraint. Then commit — record the winner and why it beat the runner-up. Note which constraint becomes binding next; that is the next hunch.
 
-## Every move is a thought
+## Log every move
 
-A thought is the atom of reasoning — the `thought` skill (`wm` plugin); here a numbered line on the board. Log each move — framing, each probe and its engine, sensing, amplify/dampen, the constraint named, the commit — one line, move + why. In the divergent phase a **dampen needs no kill-reason** (options are kept); every *amplify* records the signal that justified it; in the convergent phase every *kill* names the cell that sank it.
+Each move is a numbered line on the board: the move and its reason, together. No move is silent, and a pruned or wrong line stays with its reason; never delete it. Log each move — framing, each probe and its engine, sensing, amplify/dampen, the constraint named, the commit — one line, move + why. In the divergent phase a **dampen needs no kill-reason** (options are kept); every *amplify* records the signal that justified it; in the convergent phase every *kill* names the cell that sank it.
 
 ## Fog in divergence
 

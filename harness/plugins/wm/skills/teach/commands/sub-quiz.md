@@ -13,8 +13,8 @@ Read `spec.md` frontmatter `status` (spec phase `init → review → impl`). Arg
 
 | `status` (or arg) | Subject | Source of truth |
 |---|---|---|
-| `init` / `review` / `spec` | **the spec** | `spec.md` (Goal, Terms, Plan), `GLOSSARY.md`, each TODO's Outcome, `thoughts/` |
-| `impl` / `code` | **the code changes** | the branch diff (`git diff <target>...HEAD`) + the implemented TODO pair — `TODO-N.md` (Outcome, Components, Surface) + `TODO-N.agent.md` (Changes) + the rules `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` prints |
+| `init` / `review` / `spec` | **the spec** | `spec.md` (Goal, Terms, Plan), `GLOSSARY.md`, each TODO's Outcome, `adr/` |
+| `impl` / `code` | **the code changes** | the branch diff (`git diff <target>...HEAD`) + the implemented TODO pair — `TODO-N.md` (Outcome, Components, Surface) + `TODO-N.agent.md` (Changes) + the rules `~/.claude/scripts/wm-constraints.py <notes-dir>/adr` prints |
 
 No `spec.md` and no diff → nothing to quiz; say so and stop.
 

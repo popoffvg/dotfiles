@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# UserPromptSubmit hook: tell the model where wm thoughts + spec live,
+# UserPromptSubmit hook: tell the model where the wm ADRs + spec live,
 # and recall the spec's current phase + that phase's rule.
 # The .notes dir may sit in cwd or in any parent folder — walk up to find it.
 # Emits one context line on stdout when found; silent otherwise.
@@ -29,7 +29,7 @@ while :; do
       status=$(grep -m1 '^status:' "$notes/spec.md" 2>/dev/null | sed 's/^status:[[:space:]]*//' | awk '{print $1}') || true
       [[ -n "${status:-}" ]] && line="$line PHASE: ${status}."
     fi
-    [[ -d "$notes/thoughts" ]] && line="$line thoughts: $notes/thoughts/."
+    [[ -d "$notes/adr" ]] && line="$line adr: $notes/adr/."
     [[ -d "$notes/todos" ]] && line="$line todos: $notes/todos/."
     echo "$line"
     exit 0

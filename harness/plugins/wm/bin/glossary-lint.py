@@ -4,7 +4,7 @@
 An entry is any heading whose block carries a `- **Status:**` bullet. A heading without one is a
 context (`#`) or a cluster (`##`); an entry is a `###` under a cluster. Shape: `arch:examples/glossary.md`.
 
-The live corpus is `spec.md`, `todos/*.md`, `thoughts/*.md` (archived notes excluded), the
+The live corpus is `spec.md`, `todos/*.md`, `adr/*.md` (archived ADRs excluded), the
 glossary's own definitions, and every `--code` root. A name matches across case and across the
 separators `_`, `-`, and space, so `run id` finds `RunID`, `run_id`, and `runId`.
 
@@ -140,7 +140,7 @@ def name_pattern(name):
 def corpus_files(notes, code_roots):
     files = [os.path.join(notes, "spec.md")]
     files += sorted(glob.glob(os.path.join(notes, "todos", "*.md")))
-    files += sorted(glob.glob(os.path.join(notes, "thoughts", "*.md")))
+    files += sorted(glob.glob(os.path.join(notes, "adr", "[0-9]*.md")))
     for root in code_roots:
         for dirpath, dirnames, filenames in os.walk(root):
             dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
@@ -342,7 +342,7 @@ def check_dead(entries, notes_corpus, f):
             continue
         names = [e["term"], *e["code"]]
         if not any(hits(name_pattern(n), notes_corpus) for n in names if name_pattern(n)):
-            f.fail(row, f"GLOSSARY.md:{e['line']} § {e['term']}", "0 uses in spec.md, todos/, thoughts/",
+            f.fail(row, f"GLOSSARY.md:{e['line']} § {e['term']}", "0 uses in spec.md, todos/, adr/",
                    "retire it, or use it where the concept appears")
 
 

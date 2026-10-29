@@ -11,7 +11,7 @@ drives: A stolen refresh token stops working the moment the real client refreshe
 > A filled `<notes-dir>/spec.md`. Copy the file, replace the content, delete the `>` lines — each one
 > states the rules for the section above it. The contract around the file — status machine, the gate,
 > TODO ordering and waves, the readiness checklist — is `arch:ref-write.md`.
-> Budget: ≤ 200 lines. Over budget → move detail to `thoughts/` or split the spec, never shrink the ledger.
+> Budget: ≤ 200 lines. Over budget → move detail to `adr/` or split the spec, never shrink the ledger.
 > The prose follows `harness-dev:text-style`, and — because a human reads this file to make a
 > decision — the `i-have-adhd` rules for that human half.
 
@@ -52,9 +52,9 @@ away.
 
 > Say what you walked past, so a gap reads as intentional rather than missed (`ref-write.md`
 > § Reading chain, step 4).
-> Decisions live in `thoughts/` as `NNN-decision-*.md`, open questions as `NNN-question-*.md` — never
-> as sections here. A choice made while writing this spec that has no note yet is an unrecorded
-> thought: write the note, then continue.
+> Decisions live in `adr/` as ADRs, open questions as sections of `QUESTIONS.md` — never as sections here.
+> A choice made while writing this spec that has no ADR yet is unrecorded: record it with the `adr`
+> skill, then continue.
 
 ## TODO List (the ledger)
 

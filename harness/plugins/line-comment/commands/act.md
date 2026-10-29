@@ -86,8 +86,8 @@ session: <SESSION>
 
 A comment that renames a domain term changes more than its file. When the project has a wm notes-dir `GLOSSARY.md`, spawn one more fork, `fix-glossary`, after every per-file fork has returned — never beside them, because it edits files they own. Its prompt carries each `old → new` pair and this contract:
 
-- Make the old name a Forbidden name of the new entry, or retire the entry, as wm `code:ref-subcommand-rules.md` § Glossary says.
-- Rename every other use of the old name in the notes dir: `spec.md`, the TODO halves, the live thoughts.
+- Make the old name a Forbidden name of the new entry, or retire the entry, as the Glossary section of the wm plugin's shared subcommand rules says.
+- Rename every other use of the old name in the notes dir: `spec.md`, the TODO halves, the live ADRs in `adr/`.
 - Return one line per pair: `<old> → <new> — <entry changed>, <N> uses renamed`.
 
 Each pair is one more block in `processed.md`.

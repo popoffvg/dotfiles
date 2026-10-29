@@ -27,42 +27,35 @@ description that names the cost of picking it, never the mechanism behind it.
 
 **Never ask what a written rule already answers.** Before you write a question, check the pair, the printed rule table, and this skill's commands. When one of them decides it, obey it and name the rule in the report. Example: "Which files outside **Files** may increment 1 edit?" is not a question. `impl:sub-impl.md` step 5.1 already says any file the increment's summary needs.
 
-The answer becomes a `decision` note with `source: human` (`arch:ref-note-format.md` § Frontmatter),
+The answer goes into an ADR with `source: human` (`arch:ref-adr-format.md` § Frontmatter),
 so a question the human answered from a thin summary records a choice nobody really made. When the
 code can answer it, read the code instead and write `source: auto`.
 
 ## Obey the generated rule set
-Run `~/.claude/scripts/wm-constraints.py <notes-dir>/thoughts` before writing or judging any code.
-It prints one row per settled decision an increment can violate, and each row's text is the
-decision note's `description` — the **one** home for that rule: no TODO copies a row, and no
-subcommand restates one. A decision that changes is a new note that supersedes the old one. Why a rule exists
+Run `~/.claude/scripts/wm-constraints.py <notes-dir>/adr` before writing or judging any code.
+It prints one row per Property of a live ADR, id `ADR-NNNN/Pn`, and each row's text is
+the Property line verbatim — the **one** home for that rule: no TODO copies a row, and no
+subcommand restates one. A rule that changes is an edit to its ADR, or a new ADR that supersedes it
+(`arch:ref-adr-format.md` § Refine in place, reverse by supersede). Why a rule exists
 is not in the table: run the `trace` skill when a rule has to be argued with rather than obeyed.
 
-## Archive a thought that stops being live
-A question once answered, a thought once superseded: it moves to `thoughts/archived/` — never
-deleted, never left in the live graph. **Mark it and the `thoughts-archive.sh` hook moves the file;
-never `mv` it yourself.** The mark is `status: approved` + `superseded_by:` on an answered question
-(`arch:ref-note-format.md` § Resolution) and `status: declined` + `superseded_by:` on a superseded
-thought (§ Superseding). The hook reports the live notes still linking to it — repoint them.
-
-## Log to notes-dir
-After each step, `jj commit` in `<notes-dir>`. See `ref-jj-notes.md`.
-
-## Commits
-One-commit-per-chunk, fixups on correction: `impl:sub-commit.md`. The message itself — subject plus
-the cause / goal / decision body — is the `commit-message` skill; load it before writing one.
+## Archive an ADR that stops being live
+An ADR whose last changelog line is `Superseded by [ADR-NNNN]` or `Deprecated:` moves to
+`adr/archived/` — never deleted, never left among the live ADRs. **Append that line and the
+`adr-archive.sh` hook moves the file; never `mv` it yourself** (`arch:ref-adr-format.md` § Location and archive). The hook reports the live ADRs still
+linking to it — repoint them.
 
 ## Glossary
 `<notes-dir>/GLOSSARY.md` grows through the whole flow. Entry shape and the three statuses:
 `arch:examples/glossary.md`.
 
 **Glossary first.** A term reaches `GLOSSARY.md` before any artifact uses it — a spec section, a TODO
-half, a thought, a grill file, or code. Every writer that meets a domain word the file lacks, or uses
+half, an ADR, a grill file, or code. Every writer that meets a domain word the file lacks, or uses
 one word for a concept the file names another way, adds or corrects the entry in the same step:
 `dive docs` reading the code, `new` and the `grilling` skill interviewing the user, `todo` naming a
 component, `impl` writing it, `fix` and `line-comment:act` renaming it, `revise` replacing a design.
 
-**Read before you write.** Every agent that writes a spec section, a TODO half, a thought, or code
+**Read before you write.** Every agent that writes a spec section, a TODO half, an ADR, or code
 reads `GLOSSARY.md` first and uses its terms and **Code** identifiers verbatim — never a Forbidden
 name, never a retired one.
 
@@ -84,7 +77,7 @@ re-ask it.
 
 **A rename or a retirement sweeps the old name.** Make the old name a Forbidden alias of the new
 entry, or retire the entry, then rename every use: `spec.md`, both halves of every TODO, the live
-`thoughts/` notes, and — inside the `impl` skill — the code. Outside `impl` the code is read-only:
+ADRs in `adr/`, and — inside the `impl` skill — the code. Outside `impl` the code is read-only:
 the sweep stops at the notes and the remaining code uses become a ledger row.
 
 **Status follows the code.** The `impl` commit that lands an entry's **Code** identifier sets

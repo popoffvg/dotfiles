@@ -3,20 +3,19 @@
 Every script, agent, and skill the five wm skills reach for, by the need it serves. `INDEX.md` maps
 files to owners; this file maps a situation to the thing that resolves it.
 
-**Search the graph before reading it** — run the index, read the descriptions, open only the notes
-that bear on the task (`arch:ref-note-format.md` § Finding the thought for your task).
+**Search the ADRs before reading them** — run the index, read the decision paragraphs, open only the
+ADRs that bear on the task (`arch:ref-adr-format.md`).
 
 `bin/` means `${CLAUDE_PLUGIN_ROOT}/bin/`. Everything else is `~/.claude/scripts/`.
 
-## Find a thought
+## Find an ADR
 
 | Need | Invocation | Returns |
 |---|---|---|
-| Which notes mention these terms | `wm-thought-index.py <notes>/thoughts -m 'token\|scope'` | one row per note: id, type, status, tags, title, description, path. Exit 1 = no match |
-| Every note of a type | `wm-thought-index.py <notes>/thoughts -t decision --files` | paths only, for a batch read |
-| The impl-decisions of one row | `wm-thought-index.py <notes>/thoughts --todo TODO-2` | the notes whose frontmatter `todo:` is that row |
-| Whether a note was superseded | `wm-thought-index.py <notes>/thoughts -m '<term>' --archived` | the same rows from `thoughts/archived/` |
-| Which notes break the description rule | `wm-thought-index.py <notes>/thoughts --missing-description` | the notes an author must fix |
+| Which ADRs mention these terms | `wm-adr-index.py <notes>/adr -m 'token\|scope'` | one line per live ADR: number, kind, title, path. `-m` also reads the decision paragraph and the Properties. Exit 1 = no match |
+| Every ADR of a kind | `wm-adr-index.py <notes>/adr -k architecture --files` | paths only, for a batch read. `--archived` adds the dropped ADRs |
+| The implementation ADRs of one row | `wm-adr-index.py <notes>/adr --todo TODO-2` | the ADRs whose frontmatter `todo:` is that row |
+| Whether an ADR was superseded or deprecated | `wm-adr-index.py <notes>/adr -m '<term>' --archived` | the same rows, plus `adr/archived/` |
 
 ## Find code
 
@@ -30,9 +29,9 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 
 | Need | Invocation | Returns |
 |---|---|---|
-| The rules this code must obey | `wm-constraints.py <notes>` | one `D<NNN>` row per live approved decision; `[auto]` marks an unapproved rule. Exit 1 = none |
-| The rules scoped to one row | `wm-constraints.py <notes> --todo TODO-2` | the same, minus impl-decisions of other rows |
-| A rule with no text | `wm-constraints.py <notes> --check` | exit 3 and the offending notes |
+| The rules this code must obey | `wm-constraints.py <notes>/adr [-m REGEX] [--json]` | one `ADR-NNNN/Pn` row per Property of a live ADR, dropped Properties skipped; `[auto]` marks a rule no operator was asked about. Exit 1 = none |
+| The rules scoped to one row | `wm-constraints.py <notes>/adr --todo TODO-2` | the `architecture` and `feature` rules, plus the `implementation` rules of that row |
+| An ADR that breaks the format | `wm-constraints.py <notes>/adr --check` | exit 3 and one line per problem: a `status` key, a `## Question` section, an unknown kind, no Property, `todo:` missing on `implementation` or present on another kind |
 
 ## Match spec names to code
 
@@ -40,7 +39,7 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 |---|---|---|
 | Which spec names the Go, Rust, JS, or TS code lacks or spells differently | `wm-spec-code-names.py <notes>` | one row per name the corpus uses, worst first: `variant`, `missing` (with the nearest code name), `scope-differs`, `pending-remove`, `pending-change`, `planned`, `landed`, `match`, `removed`. Exit 1 = a `variant`, `missing`, or `scope-differs` row |
 | Whether one TODO's names landed | `wm-spec-code-names.py <notes> --todo 2` | the same rows from the `TODO-2` pair only. Done = only `landed`, `removed`, `match` |
-| The rows as data, or more of the corpus | `wm-spec-code-names.py <notes> --json [--all] [--include 'research/*.md']` | the records; `--all` adds `external` (a name the code uses but does not declare) and `word` (one lowercase word). The default corpus is `spec.md`, `GLOSSARY.md`, `todos/`, `thoughts/` |
+| The rows as data, or more of the corpus | `wm-spec-code-names.py <notes> --json [--all] [--include 'research/*.md']` | the records; `--all` adds `external` (a name the code uses but does not declare) and `word` (one lowercase word). The default corpus is `spec.md`, `GLOSSARY.md`, `todos/`, `adr/` (archived ADRs excluded) |
 
 ## Ask why it is this way
 
@@ -56,7 +55,7 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 
 | Need | Invocation | Returns |
 |---|---|---|
-| Create the worktree a `where: worktree` spec or TODO asks for | the `worktrunk:wt-switch-create` skill, steps 1–3 — one tree per TODO, off the spec's `branch`, on a branch named for the TODO | the session re-rooted in the worktree, or its absolute path when `EnterWorktree` is refused |
+| Create the worktree a `where: worktree` spec or TODO asks for | `git -C <checkout> worktree add -b <TODO branch> <task folder>/todo-N <spec branch>` — one tree per TODO, in the task folder that holds `.notes` (`arch:ref-write.md` § Where the work happens) | the session re-rooted in the worktree, or its absolute path when `EnterWorktree` is refused |
 | Merge that branch back when the TODO is done | `impl:sub-squash.md` — `git rebase --autosquash`, then `wt merge --no-squash` | one commit per `### Commit` section on the spec's branch and the TODO's tree removed; the human runs it, never `impl` |
 
 ## Patch an artifact
@@ -65,7 +64,6 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 |---|---|---|
 | Replace one whole section | `md-replace-section.py <file> "<exact heading line>" [<repl-file> \| --delete]` | `replaced lines <a>-<b>`. Fence-aware; exit 1 unless the heading matches exactly once |
 | One exact multi-line edit | `md-replace.py <file> <old-file> <new-file>` | `ok <target>`; fails loudly unless the old text appears exactly once |
-| Re-link the notes an edit touched | `wm-backlink-thoughts.py <thoughts> <edge-file>` — lines `<id>\|<section>\|<target-id>\|<annotation>` | appends the bullet under `## <section>` and syncs frontmatter `links:`. Idempotent. The `.sh` twin skips the frontmatter sync |
 | Reshape a pre-split TODO | `wm-todo-split-agent.py <todos/TODO-N.md>... [--dry-run]` | the pair, agent half left failing `budget-check` until a human hoists each increment's surface |
 
 ## Judge how a diff is built
@@ -97,10 +95,11 @@ that bear on the task (`arch:ref-note-format.md` § Finding the thought for your
 | Need | Invocation | Returns |
 |---|---|---|
 | The impl ruleset one TODO runs under | `bin/impl-ruleset.py <notes-dir> <TODO-N> [--auto]` | the resolved `approve` and `risk`, the level that set `approve`, then `impl:rulesets/approve-<value>.md` and `impl:rulesets/risk-<color>.md`. Exit 2 = no TODO file or a bad key value |
-| Every countable verify check | `bin/spec-lint.py <notes> [--json]` | the Phase 0 findings — budgets, frontmatter, section sets, Components, increments, Autotest, waves, rules, open questions, and the glossary checks GL1–GL6 |
+| Every countable verify check | `bin/spec-lint.py <notes> [--json]` | the Phase 0 findings — budgets, frontmatter, section sets, Components, increments, Autotest, waves, ADR format, open questions, and the glossary checks GL1–GL6 |
 | Whether the glossary holds and the corpus obeys it | `bin/glossary-lint.py <notes> [--code <dir>]... [--undefined] [--json] [--quiet]` | GL1 entry fields, GL2 enforceable Forbidden names, GL3 Forbidden or retired names in use, GL4 Code ownership and Status against the code (needs `--code`), GL5 New terms merged, GL6 dead entries, GL7 clusters and term links; `--undefined` lists compound identifiers no entry holds. Exit 1 = a finding |
 | One artifact's budget | `bin/budget-check.py <file>` | over/under, and where it splits |
 | Every artifact's budget | `bin/budget-sweep.sh <notes>` | exit 1 when any is over |
 | One concept spelled two ways | `bin/term-variants.py <notes>/todos/*.md <notes>/spec.md` | exit 1 and each variant group |
-| Whether the spec may advance | `wm-open-questions.sh <notes>/thoughts [--count\|--files]` | open questions; exit 1 when any is open |
+| Whether the spec may advance | `wm-open-questions.sh <notes> [--count\|--slugs]` | the open questions in `QUESTIONS.md`; exit 1 when any is open |
+| Archive a superseded or deprecated ADR | `bin/adr-archive.sh` — PostToolUse hook on `Edit\|Write\|Bash`, reads the hook JSON on stdin | moves each live ADR whose last changelog line starts with `Superseded by [ADR-NNNN]` or `Deprecated:` to `adr/archived/`, and prints the live files that still link to it |
 | Where a slow verify spent its time | `wm-verify-profile.py <transcript.jsonl>` | per-phase and per-agent wall clock, turns, tools, tokens |

@@ -84,4 +84,4 @@ One critic stops at the attacks it finds first. Each later round reads the earli
 
 - `grilling` — the interview mechanics for step 3; `to-user` for the file shape of the questions.
 - `hunch` — when the output is "the decision is wrong and we have no replacement", start a hunch from it.
-- `thought` — record the surviving argument as a decision note if it changes the decision.
+- `adr` — record the surviving argument in the ADR if it changes the decision.

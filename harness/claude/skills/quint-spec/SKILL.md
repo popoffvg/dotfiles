@@ -4,12 +4,7 @@ description: >
   Quint specification language reference for writing formal specs in plans.
   Use when a TODO needs a behavioral specification: state transitions, invariants,
   concurrency constraints. Write Quint modules to describe WHAT the system must do,
-  not HOW to implement it. Also use when any model (Quint, TLA+, Alloy) passes its
-  checks and you must decide whether to trust it: abstraction fidelity, invariant
-  coverage per state component, fix-off runs, blind review of a stripped copy.
-  Also use when a model has several kinds of state and you must make it readable:
-  one Quint module per collection named by the glossary, one State record and one
-  commit action in the system module, and the relations between collections as invariants.
+  not HOW to implement it.
 ---
 
 # quint-spec
@@ -145,6 +140,20 @@ run overdraftBlocked =
     .fail()  // withdraw should be disabled
 ```
 
+#### Imports across files
+
+A model starts as one file with its instance modules at the end, so most models need no import: `module asBuilt { import fsStore(treeGuard = true).* }`. The notes below apply only to a multi-file model.
+
+```quint
+import coll as C from "./coll"               // plain import: every plain import of coll shares its vars
+import part(FLAG = FLAG) as P from "./part"  // instance: a copy of every var that part declares or imports
+export part.*                                // makes the names of part visible to the importers of this module
+```
+
+- An instance copies variables. A module that is instanced with `const` values and imports a collection writes its own copy of that collection, and `quint run` fails with `QNT502: Variable v not set`. To split a model across files, give the split files no `const` and keep the switches in the state (`rules/quint.md`: Split the system module by process).
+- An import is not passed on. A test that imports the entry module sees the names of the modules that the entry module imports only if the entry module has `export m.*`.
+- Start a split model at `main.qnt`: the `const` declarations, `init`, and `step`, with the reading order in its first comment. The instance modules go in a separate entry file that imports `main(...)`.
+
 ### Collections cheat sheet
 
 ```quint
@@ -186,6 +195,7 @@ r.with("name", "bob")   // update field
 
 When writing a Quint spec inside a TODO, keep it focused:
 
+0. **Name the one question** the model answers. A task with several questions gets several small models, one file each (`rules/quint.md`: Keep each model small).
 1. **Define types** for the domain (records, sum types, aliases)
 2. **Declare state** (var) and constants (const)
 3. **Write actions** for each state transition the TODO implements
@@ -195,97 +205,46 @@ When writing a Quint spec inside a TODO, keep it focused:
 The spec is a contract: the implementer must satisfy the invariants and
 the runs must pass against the implementation logic.
 
-## Shape the state as named collections
+## Model design rules
 
-Use this shape when the model has more than one kind of thing, for example resources, files, and snapshot records. Design the collections of the real system, not the rows. A collection is a set or a map that the system really keeps: a table in the DB, the files in a store, a queue in memory, the records in a bucket. Name each collection by the glossary term of the project. The links between collections become set relations, and each relation is one invariant.
+A model result MUST reach the reader as a reader chart, not as Quint: a Mermaid statechart in the reader's words, with each bug as a numbered path and replayed in the code. How: `references/reader-chart.md`.
 
-A loose set such as `live` or `data` has no owner and no name a reader can look up. A missing collection is a missing concept. Example: "the workdirs that only an index task reads" became visible as `inputs(indexTasks) \ workdirs` only when `indexTasks` and `workdirs` were collections of their own.
+`rules/quint.md` holds the model rules: the size budget and the split into small models, the collections and their relations as invariants, the comments of `step`, the sample budget, and the checks that a model can fail. The multi-file layout (one module per collection, entry points, the split by process) is there too, for a model that cannot be split.
 
-### A. One module per collection
+## Write an action for one read
 
-1. List the collections. For each one, write where it lives (DB, a store, memory, a bucket), its element type, and what a restore or a crash does to it. The place decides what a restore brings back, so it goes in the first line of the module.
-2. Write one file per collection in `collections/`, named after the glossary term (see [Mark the entry points](#mark-the-entry-points)). The module owns one `var` with the same name, an `init`, a `write(v)` action, and the invariants that read only this collection:
+A reader checks an action guard by guard, so each guard gets its own line.
 
-   ```quint
-   // Collection, in the work store: the files that exist. A restore does not bring it back.
-   module workStore {
-     import ids.* from "./ids"
-     var workStore: Set[Res]
-     action init = workStore' = Set()
-     action write(v: Set[Res]): bool = workStore' = v
-     // Local: only work-store ids.
-     val onlyWork: bool = workStore.forall(r => isWork(r))
-   }
-   ```
-
-3. Put the shared id types and the record types in modules with no `var` (`ids.qnt`, `snapshotRecord.qnt`), and import them with `.*`.
-4. Use an enum only for a field that has exactly one value per element, for example the phase of a record. A fact that groups many elements is a collection, not an enum value.
-
-Three Quint rules apply to this layout:
-
-- Import each collection module qualified: `import workStore as WorkStore from "./collections/workStore"`. Every module has an `init` and a `write`, and a `.*` import makes them conflict.
-- Give every `var` a unique name across all modules. A qualified import does not separate variables: two modules that each own `var files` fail with "Multiple updates of variable".
-- Do not name an action, a parameter, or a `val` `put`, `next`, or `to`. They are built-in names.
-- Put parentheses around a boolean expression on the right of `x' =`. Quint reads `x' = a or b` as `(x' = a) or b`: when `b` is true, the action runs with `x' = a`.
-
-Done when every `var` lives in a collection module named after a glossary term, and the first line of each module says where the collection lives.
-
-### B. The system module reads and writes every collection in one record
-
-1. Declare a `State` record with one field per collection, and a `val now: State` that reads every collection var.
-2. Write one `action commit(s: State)` that calls `write` on every collection. Every action is a guard on `now`, then `commit(<pure update of now>)`.
-3. Write each update as a `pure def` on `State` (`gc(s)`, `writeFiles(s, rs)`). Tests read `now.<collection>`.
+- Put each guard and each assignment of `all { … }` on its own line. Do not pack them on one line.
+- Give each guard that is not a single call a `val` name that says the fact: `val hasNoHandle = w.token == 0`. The `all` then lists names, so it reads as a sentence.
+- Name a next state that a branch uses: `val withHandle = { ...idle, token: v }`. Do not build a record inline in an `if` branch.
+- Name the condition of an `if` chain: `val writeLands = casMatches(store, w.observed) and outcome != "notWritten"`. Then each branch tests one name.
+- Move a predicate inside `forall` or `exists` to a `pure def` with a name: `WRITERS.forall(id => insideWriteTime(writers.get(id), now + 1))`.
 
 ```quint
-val now: State = { workStore: WorkStore::workStore, deletionQueue: DeletionQueue::deletionQueue, ... }
-action commit(s: State): bool = all { WorkStore::write(s.workStore), DeletionQueue::write(s.deletionQueue), ... }
-action executeDelete(r: Res): bool = all {
-  now.deletionQueue.contains(r),
-  not(deletionGuardrail),
-  commit({ ...eraseFiles(now, Set(r)), deletionQueue: now.deletionQueue.exclude(Set(r)) }),
+// Bad: four facts on one line.
+all { w.token == 0, w.observed == -1, isFree(store, localNow(w, now)), update(id, { ...w, observed: store.version }, store) }
+
+// Good
+val hasNoHandle = w.token == 0
+val takeNotStarted = w.observed == -1
+all {
+  hasNoHandle,
+  takeNotStarted,
+  isFree(store, localNow(w, now)),
+  update(id, { ...w, observed: store.version }, store),
 }
 ```
 
-Done when no action assigns a `var` directly, and every action ends in `commit`.
+## Simplify a model
 
-### C. The relations between collections are the invariants
+A smaller model reaches its rare races in fewer samples. Cut in this order, and write each cut in the `Abstractions` list of the head comment, with the reason it is safe for the question:
 
-1. For each pair of collections that the system connects, write one relation: an inclusion, an empty intersection, or a key match. Name the invariant by the relation, and write the two collections in the comment above it:
+1. **Use the fewest actors the race needs.** A mutual-exclusion race needs one holder and one taker. A third writer only adds another taker and multiplies the state space.
+2. **Reuse a counter as an identity.** A token that is new on each take can be the version the take wrote. Delete the separate token record and its counter.
+3. **Encode "missing" as a value the guards already handle.** A missing lease object is version 0 with an expiry far in the past, so `isFree` covers it. Delete the `exists` flag and every branch on it.
+4. **Delete an action that can only make the bad state less reachable.** Example: a release runs after the last write and only frees the lease sooner. Keep it if an invariant reads its effect.
+5. **Delete the branches that a fused step makes dead.** When one action does a check and a write in one step, nothing can change between them. A branch for "the version moved between the check and the write" never fires. Delete it and the field it reads, and name the race the fusion hides in the head comment.
+6. **Sample a bound at its extremes.** A timing rule that is linear in a clock offset fails first at the largest difference. Choose each offset from `Set(0, MAX_SKEW)`, not `0.to(MAX_SKEW)`. In the lease model, this changed the slow-write race from 1 of 2 runs to 3 of 3 runs at 100,000 samples.
 
-   ```quint
-   // DB → stores: every DB resource has its file, or waits for a rebuild.
-   val dbResourcesHaveFiles: bool = dbResources(now).forall(r => hasFile(now, r) or now.rebuild.contains(r))
-   // Deletion queue → DB and index tasks: nothing that the DB or an index task needs is queued for deletion.
-   val deletionQueueNeedsNothing: bool =
-     now.deletionQueue.forall(r => not(dbResources(now).contains(r)) and not(inputs(now.indexTasks).contains(r)))
-   ```
-
-2. Make a table in the test document: one row per relation, with the two collections and the meaning. Every collection appears in at least one row. A collection with no row is not checked.
-3. Group `allInvariants` in two parts: inside one collection, and between collections.
-
-Done when every collection is in at least one relation, and every relation is in `allInvariants`.
-
-## Mark the entry points
-
-Quint has no `main` file. A reader of a model folder cannot tell which file runs and which file is a library. Make the layout tell it:
-
-1. Keep only the entry points and the system modules at the top of the model folder. An entry point is a file with instance modules that `quint run --main` or `quint test --main` takes.
-2. Move every library module to a subfolder, for example `collections/`. A library module has no instance module: a collection, a shared type. Import it by the subfolder path, also from the test files.
-3. Name the test model `README.md` in the model folder. Start it with an `## Entry points` table: the file, the `--main` modules, what each checks, and the expected result. Link each file.
-4. Add `check.sh` next to it. It holds one row per run: the file, the module, the kind (`test` or `run`), and the expected result (`pass` or `violation`). A module with a fix turned off expects `violation`. The script runs each row, prints `ok` or `FAIL`, and exits non-zero on any `FAIL`. It takes the trace count as an argument.
-5. Make `check.sh` typecheck every file before the first row. `quint run` exits non-zero on a parse error too, so a broken file passes a row that expects `violation`.
-6. Put the command `./check.sh` in the "How it runs" part of the README.
-
-Done when `ls` of the model folder shows only entry points, system modules, `README.md`, and `check.sh`, and `./check.sh` prints no `FAIL`.
-
-## Check that the model can fail
-
-A model checks only the states that its shape allows. An abstraction that makes a bad state impossible hides the gap from every invariant and every random run. A green `quint run` proves nothing until steps 1 to 5 pass. Step 6 tests the invariants themselves; run it when the model gates a design decision.
-
-1. **Prove each safe abstraction from the source.** A safe abstraction is a guard, an atomic step, or a reference that protects state, and also each failure or interleaving the model leaves out. Cite the `file:line` that does it in the real system. If no line does it, change the model to the weaker behavior. If the source is not available, ask for it, and do not trust the model. Example: "an index task keeps its input workdir as a DB reference" had no source line, and the real system does not do it.
-2. **Cover every state component with an invariant.** Make a table: each `var` and each record field against the invariants that can fail on it. A read that cannot fail is not coverage. Write a new invariant for each empty row. Example: every invariant read `db.live`, and none read `db.tasks`, so a lost task input was invisible.
-3. **Exempt the states where the loss is by design.** Do this before step 4. Write the exemption as a guard in the invariant. Example: workdirs after their hold ends. An invariant without the exemption fails on correct behavior and hides the real failure.
-4. **Turn each fix off, and see an invariant fail.** A fix is each mechanism that keeps a bad state away. Put each one behind a `const`, and run with the same trace budget once per fix turned off. If no invariant fails, write a `run` that tries to reach the bad state. If the `run` reaches it, the fix is redundant. If no action can reach it, the shape hides the gap: go back to step 1.
-5. **Add a witness for each dangerous state.** Pass it to `quint run --witnesses`, which prints the share of traces that reach it. Example: "a ready dump holds a task in progress". At 0%, the runs never explored the case: raise `--max-steps` or fix the guard that blocks it.
-6. **Test the invariants blind.** An invariant written after you know a gap tests the fix and does not find the gap. Copy the model, and remove one fix and its invariant. First confirm that the copy fails an invariant you wrote in step 2. Then give only the copy to a fresh agent, with the task "find a state the real system can reach that breaks safety". If the agent does not find the gap, your invariants are too weak: go back to step 2.
-
+After each cut, run every instance that expects a violation at least two times with the same budget. A single run does not prove a budget: the lease model's slow-write race showed in 1 of 2 runs at 100,000 samples and in 2 of 3 runs at 300,000. If a violation shows in some runs only, make the race easier to reach (step 6), not the budget larger.

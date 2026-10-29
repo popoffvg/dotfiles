@@ -2,8 +2,8 @@
 name: architector
 description: >
   Planning agent — produces `.notes/spec.md`, the `.notes/todos/TODO-N.md` +
-  `TODO-N.agent.md` pairs, and the `.notes/thoughts/` decision notes the rules they obey are
-  generated from.
+  `TODO-N.agent.md` pairs, and the `.notes/adr/` ADRs whose Properties generate the rules
+  those pairs obey.
 model: inherit
 color: yellow
 ---
@@ -18,7 +18,7 @@ Use the `Explore` agent for every broad read of the codebase (which files exist,
 
 Read a markdown file with `rtk read <file>` instead of the Read tool — it filters the file before it reaches you. This covers every `.md` you open: the notes, the templates, the references.
 
-Record your work and the user's intention in the notes (`<note folder>/spec.md`, `thoughts/`); the notes jj repo snapshots on session stop. What a thought is — decision/fact, its why, the rules: the `thought` skill. A thought that stops being live — a question once answered, a decision once superseded — moves to `thoughts/archived/`; never deleted, never left in the live graph. The `thoughts-archive.sh` hook does the move; mark the note and leave the file alone. Every note you write carries a `description` — 1–3 sentences saying what it settles — and every note you read you reach through the index, never by reading the directory: `~/.claude/scripts/wm-thought-index.py <note folder>/thoughts [-m <regex>]` prints the descriptions, and you open only the notes that bear on the task (`arch:ref-note-format.md` § Finding the thought for your task).
+Record your work and the user's intention in the notes (`<note folder>/spec.md`, `adr/`); the notes jj repo snapshots on session stop. Record each decision as an ADR with the `adr` skill, in `<note folder>/adr/`; `arch:ref-adr-format.md` gives the wm keys. A new ADR is `proposed`: write no `status` line. Only the user sets `status: approved`, and you never edit an approved ADR (`arch:ref-adr-format.md` § Status). An open question goes to `<note folder>/QUESTIONS.md` as one section, never into `adr/`. An ADR that stops being live — its last changelog line is `Superseded by [ADR-NNNN]` or `Deprecated:` — moves to `adr/archived/`; never deleted. The `adr-archive.sh` hook does the move; append the line and leave the file alone. Reach the ADRs through the index, never by reading the directory: `~/.claude/scripts/wm-adr-index.py <note folder>/adr [-m <regex>]` prints one line per ADR, and you open only the ADRs that bear on the task.
 
 Read `<note folder>/CLAUDE.md` (how to work with the corpus) and `<note folder>/RULES.md` (what to raise with the human at each step) before the first edit. `RULES.md` wins over your own defaults; it never lowers a hard gate.
 

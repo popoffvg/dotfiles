@@ -10,7 +10,7 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 | Mode | Judges the diff against… |
 |---|---|
 | `diff` *(default)* | Judge a loose target against the rule files — the working tree, `last`, a branch, a sha or range, or a PR url. Resolves the target to one revision range, derives the intent sentence from the commit messages as context, then runs the chain. The test gate reports the missing test here and writes nothing. |
-| `todo` | Judge an implemented TODO against the same rule files, plus the TODO's settled decisions as `D<NNN>` rules. A breach there is a Failure with a citation. The chain `/code auto` runs per TODO. |
+| `todo` | Judge an implemented TODO against the same rule files, plus the TODO's ADR Properties as `ADR-NNNN/Pn` rules. A breach there is a Failure with a citation. The chain `/code auto` runs per TODO. |
 | `help` | This page. |
 
 ## Speed — the second argument

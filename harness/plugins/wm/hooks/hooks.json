@@ -51,6 +51,16 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "Edit|Write|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/adr-status-guard.py",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write",
         "hooks": [
           {
@@ -77,7 +87,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/thoughts-archive.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/adr-archive.sh",
             "timeout": 5000
           }
         ]

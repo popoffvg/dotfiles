@@ -1,6 +1,6 @@
 ---
 name: code:squash
-description: "Analyze the fixup commits → distill gotchas into `GOTCHAS.md` (`capture-gotcha`) → `git` fold each fixup into the commit it fixes, one commit per `### Commit` section, and merge the worktree branch w…"
+description: "Analyze the fixup commits → distill gotchas into `GOTCHAS.md` (`capture-gotcha`) → `git` fold each fixup into the commit it fixes, one commit per `### Commit` section, and merge one TODO branch back…"
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

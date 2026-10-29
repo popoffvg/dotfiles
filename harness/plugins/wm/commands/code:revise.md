@@ -1,6 +1,6 @@
 ---
 name: code:revise
-description: "Settle drift from a delta manifest, patching only stale notes and spec sections; resets the spec `status` to `review`."
+description: "Settle drift from a delta manifest, patching only stale ADRs and spec sections; resets the spec `status` to `review`."
 context: fork
 agent: wm:architector
 background: false

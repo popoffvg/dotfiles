@@ -84,6 +84,7 @@ const GATE = {
   properties: {
     result: { enum: ['PASS', 'FAIL'] },
     failures: { type: 'array', items: { type: 'string' }, description: 'file:line — concrete failure — the edit that closes it' },
+    forOperator: { type: 'array', items: { type: 'string' }, description: 'correctness only: each line of ## For the operator, verbatim — impact, consequence for the application, scenario, edit, fix cost' },
     ran: { type: 'string', description: 'the real commands run + their output summary' },
     wroteTests: { type: 'array', items: { type: 'string' }, description: 'test files this gate wrote itself and left uncommitted' },
   },
@@ -176,7 +177,7 @@ const safetyClause =
 // approved spec to close them — the one file a gate round must never touch.
 const scopeClause =
   `SCOPE: judge SOURCE files only. Everything under ${notesDir}/ — the spec, the TODO pair, the ` +
-  `glossary, the thought notes — is the INPUT you judge against, never the subject you judge. ` +
+  `glossary, the ADRs — is the INPUT you judge against, never the subject you judge. ` +
   `Report no finding whose file lives there, and propose no edit to one. A problem you see in the ` +
   `spec itself is a spec bug for a human, not a gate finding: leave it out. `
 
@@ -462,7 +463,7 @@ function judgePrompt(findings) {
     `Triage judge for ${subjectClause()}, round ${round}. The checks wave is red again. Read the ` +
     `real diff and each finding below, and classify every finding:\n` +
     `- BLOCKING: a correctness bug, a lint or test failure, spec drift, a broken rule that is not ` +
-    `Severity: nit, a broken D<NNN> rule, an UNCHECKED rule, a name or comment that states something ` +
+    `Severity: nit, a broken ADR-NNNN/Pn rule, an UNCHECKED rule, a name or comment that states something ` +
     `false, a test that asserts nothing.\n` +
     `- NIT: a style preference, a clearer name for a name that is not wrong, wording, ordering, a ` +
     `redundant but harmless test, anything whose fix changes no behaviour and hides no bug.\n` +
@@ -487,6 +488,29 @@ function blocked(stage, impl) {
 let impl = null
 if (mode === 'todo') {
   phase('Implement')
+  // Only the operator sets an ADR to approved; no TODO is implemented while a live ADR is not.
+  const approval = await agent(
+    `Run exactly: ~/.claude/scripts/wm-constraints.py ${notesDir}/adr --unapproved\n` +
+      `Return its exit code and its whole stdout. Change no file, commit nothing, never edit an ADR.`,
+    {
+      agentType: 'general-purpose',
+      model: 'haiku',
+      phase: 'Implement',
+      label: `adr-approval:TODO-${todo}`,
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['exit', 'stdout'],
+        properties: { exit: { type: 'integer' }, stdout: { type: 'string' } },
+      },
+    },
+  )
+  if (!approval) return blocked('adr-approval', { blocker: 'the ADR approval check agent died' })
+  if (approval.exit !== 0) {
+    return blocked('adr-approval', {
+      blocker: `Every live ADR needs status: approved, set by the operator, before TODO-${todo} is implemented.\n${approval.stdout.trim()}`,
+    })
+  }
   impl = await agent(implPrompt(), { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `impl:TODO-${todo}` })
   if (!impl || impl.status === 'blocked') return blocked('initial', impl)
 } else {
@@ -541,7 +565,7 @@ while (round < MAX_ROUNDS) {
   const checksRuns = checksOut.filter(Boolean)
   const checksDied = CHECKS.filter((g) => !checksRuns.some((r) => r.gate.key === g.key) || !checksRuns.find((r) => r.gate.key === g.key).out)
   if (checksDied.length > 0) return { result: 'ERROR', mode, todo, stage: checksDied.map((g) => g.key).join('+'), round, history }
-  for (const { gate, out } of checksRuns) history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], ran: out.ran || '' })
+  for (const { gate, out } of checksRuns) history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], forOperator: out.forOperator || [], ran: out.ran || '' })
 
   // One fixup carries every failing check's findings — separate fixups would each invalidate the
   // next gate's read of the diff.
@@ -583,7 +607,7 @@ while (round < MAX_ROUNDS) {
         label: `${gate.key}:r${round}`,
       })
       if (!out) return { result: 'ERROR', mode, todo, stage: gate.key, round, history }
-      history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], ran: out.ran || '' })
+      history.push({ round, gate: gate.key, result: out.result, failures: out.failures || [], forOperator: out.forOperator || [], ran: out.ran || '' })
       if (out.result === 'FAIL') {
         failed = { gate, out }
         fails[gate.key] += 1
@@ -599,7 +623,7 @@ while (round < MAX_ROUNDS) {
 
   if (!failed && !uncommitted) {
     log(`${mode === 'todo' ? `TODO-${todo}` : range} green on every gate after ${round} round(s)`)
-    return { result: 'PASS', mode, todo, range: mode === 'diff' ? range : undefined, intent, round, summary: impl ? impl.summary : undefined, waived: history.flatMap((h) => h.waived || []), history }
+    return { result: 'PASS', mode, todo, range: mode === 'diff' ? range : undefined, intent, round, summary: impl ? impl.summary : undefined, waived: history.flatMap((h) => h.waived || []), forOperator: [...new Set(history.flatMap((h) => h.forOperator || []))], history }
   }
 
   if (uncommitted) {

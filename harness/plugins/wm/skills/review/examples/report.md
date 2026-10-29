@@ -73,6 +73,9 @@ reviewed: 2026-09-04T11:09:18+02:00
 
 ## Nits
 - rules · writer/column.py:41 — comments/a-comment-sentence-is-hard-to-read-once — lead with `a null run id`
+
+## For the operator
+- correctness · store/lease.go:63 — retry — a start fails once after a storage outage, and the next start works — a take write lands, its reply is lost, and the confirm fails → the lease stays taken for 90 s — free our own lease after a failed confirm (+18 lines, +2 branches)
 ```
 
 > **The caller merges; a gate reports only itself.** Every mode writes this same file and returns the
@@ -90,6 +93,11 @@ reviewed: 2026-09-04T11:09:18+02:00
 > **Every finding keeps the gate that produced it**, as the first field. A finding whose gate is
 > stripped cannot be re-litigated: the reader needs to know whether a line was rejected by a table or
 > by a judgment.
+>
+> **`## For the operator` carries every correctness finding the chain chose not to fix**, with its
+> impact, its consequence for the application, and the fix cost, so the human weighs the cost against
+> the harm. It changes no verdict and is omitted when no gate raised one. A correctness line in
+> `## Failures` carries the same impact and consequence fields.
 >
 > `## Failures` is omitted when the result is PASS; `## Nits` is omitted when no gate raised one.
 > Each Failure line reads `<gate> · <file:line> — <the scenario or the rule> — <the edit that closes

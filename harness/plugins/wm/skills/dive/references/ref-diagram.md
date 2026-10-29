@@ -53,9 +53,9 @@ Each route's numbered procedure ends with these, in order.
 3. **Keep one legend visible** near the panel (sticky). A diagram whose strokes must be memorised
    is a quiz.
 4. **Annotate only load-bearing decisions** — a short callout per node, tagged with the id the
-   decision record itself carries, so a reader can find that record. For a wm thought note the form
-   is `D<NNN>` — the note's own id, never reused and never renumbered
-   (`arch:ref-todo-sections.md` § Constraints owns it). For a decision recorded outside the wm
+   decision record itself carries, so a reader can find that record. For a wm ADR the form
+   is `ADR-NNNN` — the ADR's own number, never reused and never renumbered, or `ADR-NNNN/Pn` for
+   one Property (`arch:ref-adr-format.md` § Properties are the rules). For a decision recorded outside the wm
    corpus, use that corpus's own id verbatim. An id no record carries is worse than no id.
    Three callouts, not thirty.
 5. **Ship one self-contained HTML file** — inline `<style>`, inline `<svg>`, no external fetch;

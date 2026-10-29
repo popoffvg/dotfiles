@@ -8,6 +8,7 @@
 | Test data | `github.com/brianvoe/gofakeit/v7` | Build values from a seeded `*gofakeit.Faker`. Log the seed, so a failure replays. |
 | DB fixtures | `github.com/go-testfixtures/testfixtures/v3` | YAML files, one per table, under `testdata/fixtures/`. Load before each test that reads the DB. |
 | Real dependencies | `github.com/testcontainers/testcontainers-go` and its modules (`modules/postgres`) | One container per test package, started in `TestMain`. |
+| Time | `testing/synctest` (Go 1.25 and later) | Code reads `time.Now`, `time.Sleep`, and timers directly; no `Clock` interface. A test that moves time runs inside `synctest.Test` and calls `time.Sleep`; the bubble's clock jumps when every goroutine blocks. Stop every goroutine the test started before the bubble ends. |
 | API scenarios | Hurl (`hurl --test`) | Plain-text `.hurl` files under `tests/api/`, run against a server that runs for real. |
 
 testfixtures wins over hand-written `INSERT` helpers and over `go-txdb`: the rows live in files a reviewer reads, and it refuses a database whose name does not contain `test`.

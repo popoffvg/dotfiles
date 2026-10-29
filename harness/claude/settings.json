@@ -129,7 +129,6 @@
       "/tmp"
     ]
   },
-  "model": "opus",
   "skillOverrides": {
     "ast-grep": "off",
     "domain-modeling": "off",
@@ -251,7 +250,6 @@
     "plugin-dev@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": false,
     "typescript-lsp@claude-plugins-official": false,
-    "wm@local-plugins": true,
     "zed-clear-guard@local-plugins": true,
     "worktrunk@worktrunk": true,
     "frontend-design@claude-plugins-official": false,
@@ -263,7 +261,9 @@
     "cc-plugin-you-should-know@builtin": true,
     "line-comment@local-plugins": true,
     "smart-commit@local-plugins": true,
-    "quint@quint": true
+    "quint@quint": true,
+    "wm@local-plugins": true,
+    "lean@leanprover": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -315,6 +315,12 @@
         "source": "git",
         "url": "https://github.com/quint-co/quint.git"
       }
+    },
+    "leanprover": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/leanprover/skills.git"
+      }
     }
   },
   "sandbox": {
@@ -341,35 +347,26 @@
         "~/go"
       ]
     },
-    "allowedCommands": [
+    "excludedCommands": [
       "gh",
+      "gh *",
       "herdr",
+      "herdr *",
       "hunk",
+      "hunk *",
       "lumen",
-      "lumen-pane.sh",
-      "~/.claude/scripts/lumen-pane.sh",
-      "open-file.sh",
-      "~/.claude/scripts/open-file.sh",
-      "zed"
+      "lumen *",
+      "lumen-pane.sh *",
+      "~/.claude/scripts/lumen-pane.sh *",
+      "open-file.sh *",
+      "~/.claude/scripts/open-file.sh *",
+      "/Users/vitaliipopov/.claude/scripts/open-file.sh *",
+      "zed *"
     ]
   },
   "effortLevel": "medium",
-  "modelSettings": {
-    "claude-opus-5-5": {
-      "effortLevel": "medium"
-    },
-    "claude-sonnet-5": {
-      "effortLevel": "high"
-    }
-  },
-  "tui": "fullscreen",
   "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
-  "skipWorkflowUsageWarning": true,
-  "theme": "auto",
-  "editorMode": "normal",
-  "terminalProgressBarEnabled": true,
-  "inputNeededNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "autoMode": {
     "soft_deny": [
@@ -405,5 +402,20 @@
       "routine under harness/extensions/ prefix: adding files there requires a matching ansible deploy-loop entry (per repo skill), not a blanket permission"
     ]
   },
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
+    },
+    "claude-sonnet-5": {
+      "effortLevel": "high"
+    }
+  },
+  "tui": "fullscreen",
+  "skipWorkflowUsageWarning": true,
+  "theme": "auto",
+  "editorMode": "normal",
+  "switchModelsOnFlag": true,
+  "terminalProgressBarEnabled": true,
+  "inputNeededNotifEnabled": true,
   "enableWeakerNestedSandbox": true
 }

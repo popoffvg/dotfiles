@@ -30,8 +30,8 @@
    exits successfully. Check `~/.claude/scripts/wm-open-questions.sh` and
    `~/.claude/scripts/wm-constraints.py`
    exist before relying on the guard's spec gate. After editing a TODO, run
-   `bin/format-todo.py <file>` and `bin/budget-check.py <file>`. After thoughts edits, pipe
-   the checkout `cwd` JSON into `bin/thoughts-archive.sh` and resolve its findings. At the
+   `bin/format-todo.py <file>` and `bin/budget-check.py <file>`. After ADR edits, pipe
+   the checkout `cwd` JSON into `bin/adr-archive.sh` and resolve its findings. At the
    verify or implementation gate, run `bin/spec-lint.py <notes-dir>` and resolve findings;
    an unfinished design may remain incomplete before that gate. At route end, pipe the checkout `cwd`
    JSON into `bin/notes-jj-commit.sh`. Confirm required helpers succeeded; hook wrappers
