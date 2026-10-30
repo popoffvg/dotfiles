@@ -1,0 +1,14 @@
+id = "slash-complete"
+name = "Slash Complete"
+version = "0.1.0"
+schema_version = 1
+description = "Complete Claude skill and command names after / in .prompt files"
+repository = "https://github.com/popoffvg/dotfiles"
+authors = ["Vitalii Popov"]
+
+[lib]
+kind = "Rust"
+
+[language_servers.slash-complete-language-server]
+name = "Slash Complete Language Server"
+languages = ["Markdown"]

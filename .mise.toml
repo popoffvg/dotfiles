@@ -71,6 +71,30 @@ description = "Test the line-comment language server"
 dir = "{{config_root}}/harness/apps/line-comment"
 run = "cargo test -p line-comment-server"
 
+[tasks."harness:slash-complete:build"]
+description = "Build the slash-complete language server → ~/.local/bin/slash-complete-lsp"
+dir = "{{config_root}}/harness/apps/slash-complete"
+sources = ["server/**/*.rs", "server/Cargo.toml"]
+outputs = ["{{env.HOME}}/.local/bin/slash-complete-lsp"]
+run = """
+cargo build --release -p slash-complete-server
+install -m 755 target/release/slash-complete-lsp $HOME/.local/bin/slash-complete-lsp
+"""
+
+[tasks."harness:slash-complete:extension"]
+description = "Build the slash-complete Zed extension wasm and link it into the Zed extensions folder"
+dir = "{{config_root}}/harness/apps/slash-complete"
+run = """
+cargo build --release --target wasm32-wasip2 -p slash-complete-extension
+cp target/wasm32-wasip2/release/slash_complete_extension.wasm extension.wasm
+ln -sfn "$PWD" "$HOME/Library/Application Support/Zed/extensions/installed/slash-complete"
+"""
+
+[tasks."harness:slash-complete:test"]
+description = "Test the slash-complete language server"
+dir = "{{config_root}}/harness/apps/slash-complete"
+run = "cargo test -p slash-complete-server"
+
 [tasks."harness:line-comment:languages"]
 description = "Regenerate line-comment's extension.toml language list from the installed Zed languages"
 run = "{{config_root}}/harness/scripts/sync-line-comment-languages.py"

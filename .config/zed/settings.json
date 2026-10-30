@@ -378,7 +378,7 @@
         "coloring": "fixed",
         "enabled": true
       },
-      "language_servers": ["marksman", "line-comment-language-server"],
+      "language_servers": ["marksman", "line-comment-language-server", "slash-complete-language-server"],
       "inlay_hints": {
         "enabled": true,
         "show_other_hints": true,

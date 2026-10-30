@@ -8,7 +8,8 @@
 set -euo pipefail
 
 marker='<!-- session context: cut when this tab closes -->'
-root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+# The working directory can be deleted while a session runs in it; then the handoff is skipped.
+root=$(git rev-parse --show-toplevel 2>/dev/null || pwd 2>/dev/null) || root=''
 handoff="$root/.notes/handoff.prompt"
 
 opened=()

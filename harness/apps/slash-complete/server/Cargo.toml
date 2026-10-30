@@ -1,0 +1,16 @@
+[package]
+name = "slash-complete-server"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "slash-complete-lsp"
+path = "src/main.rs"
+
+[lib]
+name = "slash_complete"
+path = "src/lib.rs"
+
+[dependencies]
+lsp-server = "0.7"
+serde_json = "1"
