@@ -15,6 +15,7 @@ updated: YYYY-MM-DD
 ## Properties
 
 - P1. [keep|new] {a guarantee the system keeps while this decision holds, in one plain sentence; for a feature, what the user observes}
+  > and-what: {impact} — {what a caller, a user, or an operator sees when the system breaks P1} — recovers by {retry | restart | a human | itself}
 
 <!--
 Optional, only when they add value — placed here, above the changelog:

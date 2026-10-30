@@ -241,7 +241,6 @@
     "claude-md-management@claude-plugins-official": false,
     "code-simplifier@claude-plugins-official": false,
     "engram@engram": true,
-    "first-prompt-model@local-plugins": true,
     "harness-dev@local-plugins": true,
     "prompt-stack@local-plugins": true,
     "hi@local-plugins": false,

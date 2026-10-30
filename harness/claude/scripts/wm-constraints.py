@@ -76,7 +76,7 @@ def properties(text: str) -> list[dict[str, object]]:
         if m:
             body = m.group(2).strip()
             out.append({"n": int(m.group(1)), "text": body, "dropped": bool(DROPPED.match(body))})
-        elif out and line[:1] in (" ", "\t") and line.strip():
+        elif out and line[:1] in (" ", "\t") and line.strip() and not line.strip().startswith(">"):
             out[-1]["text"] = f"{out[-1]['text']} {line.strip()}"
     return out
 

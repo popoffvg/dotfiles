@@ -76,6 +76,7 @@
       - gitleaks
       - jj
       - git-spice
+      - git-lfs
       # terminal
       - zellij
       # apps

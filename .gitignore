@@ -89,3 +89,4 @@ harness/codex/
 
 .config/herdr/plugins/
 .config/herdr/plugins.json
+.config/herdr/release-notes.json

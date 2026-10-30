@@ -5,7 +5,7 @@ updated: 2026-07-02
 source: human
 ---
 
-> Copy to `<notes-dir>/adr/NNNN-<slug>.md` and delete every `>` block except the quote under `## Reason`. The `adr` skill owns the procedure and the title rules.
+> Copy to `<notes-dir>/adr/NNNN-<slug>.md` and delete every `>` block except the quote under `## Reason` and the `> and-what:` quote under each Property. The `adr` skill owns the procedure and the title rules.
 > The wm keys — `kind: implementation` with `todo: TODO-N`, and `source` — are `arch:ref-adr-format.md` § Frontmatter. The `status` line is the operator's: an agent writes none, and the operator sets `approved` (`arch:ref-adr-format.md` § Status).
 
 # Concurrent refreshes are safe and lock-free
@@ -21,7 +21,9 @@ Two refreshes can race on one expired refresh token. The second refresh returns 
 ## Properties
 
 - P1. [new] Two refreshes of one refresh token issue at most one new token pair.
+  > and-what: `data` — two clients hold valid token pairs from one refresh token, so a stolen token stays usable — recovers by a human.
 - P2. [keep] A refresh that issues no new token pair changes no stored token.
+  > and-what: `outage` — a failed refresh revokes the old token, and the user must log in again — recovers by a human.
 - P3. (dropped 2026-07-02: the SDK retries on 409, so the handler sends no `Retry-After` header)
 
 > Each live Property is one rule, `ADR-NNNN/Pn`. Never renumber; P3 shows the dropped form (`arch:ref-adr-format.md` § Properties are the rules).

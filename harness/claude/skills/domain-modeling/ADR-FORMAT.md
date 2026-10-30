@@ -53,6 +53,7 @@ The copyable file is `ADR-TEMPLATE.md`, next to this document. Its body:
 ## Properties
 
 - P1. [keep|new] {a guarantee the system keeps while this decision holds, in one plain sentence}
+  > and-what: {impact} — {what a caller, a user, or an operator sees when the system breaks P1} — recovers by {retry | restart | a human | itself}
 ```
 
 A title, a paragraph, the reason, the Properties, and the changelog section are the whole requirement. The value is in recording *that* a decision was made, *why*, and *what must stay true* while it holds — not in filling out sections.
@@ -83,9 +84,13 @@ theorem stored_is_sent (s : Store) (n : Name) (b : Bytes) (h : (s.write n b).ok)
 
 **Mark each Property `[keep]` or `[new]`, and write it as one plain sentence.** `[keep]` is a guarantee that today's code already gives and the decision keeps. `[new]` is a guarantee the decision adds. List the `[keep]` ones first, so a reader sees what must not break before what changes. A Property carries no source and no evidence words: no file, no line number, no fact name, no link, no "today on X", no "closes Y". The evidence goes in the decision paragraph or in the research it cites. A guarantee of today's code that the decision drops goes under `## Considered Options` or `## Consequences` with the reason.
 
+**Quote the and-what result under each Property.** Run steps 2 to 4 of the [`and-what`](../and-what/SKILL.md) skill on the advice "keep this Property": find what breaks it, and play out what is seen when it breaks. Write the result as one indented quote line under the Property: `> and-what: <impact> — <what a caller, a user, or an operator sees> — recovers by <retry | restart | a human | itself>`. The quote obeys the black-box rule too. A Property whose impact is `none` guarantees nothing: drop it. `wm-constraints.py` reads only the `- Pn.` line, so the quote is not part of the rule.
+
 ```md
 - P1. [keep] A huge file uploads in parallel.
+  > and-what: `delay` — a 10 GB upload takes hours, not minutes, and the user waits — recovers by itself.
 - P2. [new] Every upload can be cancelled.
+  > and-what: `outage` — a stuck upload keeps its slot until the process restarts, and new uploads queue — recovers by a human.
 ```
 
 ### Optional sections
