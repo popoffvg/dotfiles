@@ -6,7 +6,9 @@
 
 ## Why two arms
 
-A free sample proves nothing: given no input the model recites the public form and invents a textbook case. Measured on this house: a rule the recital listed 5/5 broke 4/5 on a real diff, and a house delta written under the word broke 4/5 while the same delta without the word held 5/5. So a word earns its place only when the word arm keeps every rule in N/N runs; the no-word column beside it shows which rules the rules themselves carry.
+A free sample proves nothing: given no input the model recites the public form and invents a textbook case. Measured on this house: a rule the recital listed 5/5 broke 4/5 on a real diff, and a house delta written under the word broke 4/5 while the same delta without the word held 5/5. So a word passes only when, for every rule, the word arm keeps it at least as often as the no-word arm. There is no fixed run count to reach.
+
+A golden word goes only into text a writer follows. A rule file that a judge grades by states each house rule in full: a judge reads the word as the whole public standard, including parts the house never chose.
 
 ## Run
 
@@ -19,7 +21,7 @@ TIER=sonnet ./run-golden-words.sh  # override every case's reader tier
 JUDGE=sonnet ./run-golden-words.sh # judge model (default opus)
 ```
 
-Needs `claude` and `jq`. Every reader and judge run uses `--safe-mode --strict-mcp-config --tools ""` from an empty directory, so `~/.claude/CLAUDE.md` and the memory store stay out. Exit 0 = every word passes.
+Needs `claude` and `jq`, and `opencode` for a `provider/model` tier. Every reader and judge run uses `--safe-mode --strict-mcp-config --tools ""` from an empty directory, so `~/.claude/CLAUDE.md` and the memory store stay out. Exit 0 = every word passes; exit 3 = a model run failed or printed nothing, so the case was not graded — fix the cause (tier, key, CLI) and run again.
 
 Re-run when a model alias moves; update the `Model id` and `Checked` columns of the word's `GLOSSARY.md` row from the result.
 

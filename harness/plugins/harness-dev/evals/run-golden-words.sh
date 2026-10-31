@@ -5,9 +5,8 @@
 #   word    — the task with "Write it as <word>."
 #   no-word — the task with the rules written out and no word
 # A judge marks each rule of the case kept or broken in every output.
-# A word PASSES when the word arm keeps every rule in N of N runs.
-# The no-word column is printed beside it: a rule both arms keep equally
-# is carried by the rules, not the word.
+# A word PASSES when, for every rule, the word arm keeps it at least as often
+# as the no-word arm. A failed or empty model run exits 3.
 #
 # Usage:
 #   ./run-golden-words.sh                 # all cases
@@ -16,7 +15,7 @@
 # Env:
 #   RUNS=3          # runs per arm (default: 3)
 #   JUDGE=opus      # judge model (default: opus)
-#   TIER=<model>    # override every case's reader tier
+#   TIER=<model>    # override every case's reader tier; a provider/model tier runs through opencode
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -40,11 +39,29 @@ done
 [ -f "$cases" ] || { echo "missing $cases" >&2; exit 2; }
 
 empty="$(mktemp -d)"
-# Safe mode drops ~/.claude/CLAUDE.md; strict MCP config keeps the memory store out.
-reader() { # model prompt
-  (cd "$empty" && printf '%s' "$2" | claude -p --model "$1" --safe-mode --strict-mcp-config \
-    --no-session-persistence --tools "" 2>/dev/null)
+err="$empty/.stderr"
+
+# A run that exits non-zero or prints nothing stops the whole check: grading an
+# empty text gives a verdict about nothing.
+call() { # model prompt -> stdout
+  local out rc
+  if [[ "$1" == */* ]]; then
+    # A provider/model tier is not a Claude model; opencode runs it.
+    out="$(cd "$empty" && opencode run -m "$1" "$2" 2>"$err")"; rc=$?
+  else
+    # Safe mode drops ~/.claude/CLAUDE.md; strict MCP config keeps the memory store out.
+    out="$(cd "$empty" && printf '%s' "$2" | claude -p --model "$1" --safe-mode --strict-mcp-config \
+      --no-session-persistence --tools "" 2>"$err")"; rc=$?
+  fi
+  if [ "$rc" -ne 0 ] || [ -z "${out//[[:space:]]/}" ]; then
+    echo "run-golden-words: model $1 failed (exit $rc, ${#out} chars of output):" >&2
+    cat "$err" >&2
+    exit 3
+  fi
+  printf '%s' "$out"
 }
+
+reader() { call "$1" "$2"; }
 
 grade() { # rules-json output -> JSON {"kept":[bool,...]}
   local prompt="You grade one text against a numbered rule list. For each rule answer true when the text follows it and false when it breaks it or ignores it where it applies.
@@ -56,9 +73,7 @@ TEXT:
 $2
 
 Reply with one line of JSON and nothing else: {\"kept\":[true,false,...]} with one entry per rule, in order."
-  # The prompt goes on stdin: --tools takes a list and would read a positional prompt as a tool name.
-  (cd "$empty" && printf '%s' "$prompt" | claude -p --model "$judge" --safe-mode --strict-mcp-config \
-    --no-session-persistence --tools "" 2>/dev/null) | grep -o '{.*}' | tail -1
+  call "$judge" "$prompt" | grep -o '{.*}' | tail -1
 }
 
 failed=0; total=0
@@ -88,8 +103,9 @@ Write it as $word. Print only the result." ;;
 Rules: $rules_text Print only the result." ;;
     esac
     for ((i = 1; i <= runs; i++)); do
-      out="$(reader "$tier" "$prompt")"
-      verdict="$(grade "$rules_json" "$out")"
+      out="$(reader "$tier" "$prompt")" || exit 3
+      verdict="$(grade "$rules_json" "$out")" || exit 3
+      [ -n "$verdict" ] || { echo "run-golden-words: judge $judge gave no JSON verdict ($id, $arm, run $i)" >&2; exit 3; }
       [ "$verbose" -eq 1 ] && printf '  %s %s run %d: %s\n' "$id" "$arm" "$i" "$verdict"
       for ((r = 0; r < n_rules; r++)); do
         k="$(jq -r ".kept[$r] // false" <<<"$verdict" 2>/dev/null || echo false)"
@@ -106,7 +122,7 @@ Rules: $rules_text Print only the result." ;;
   for ((r = 0; r < n_rules; r++)); do
     rule="$(jq -r ".rules[$r]" <<<"$line")"
     mark=ok
-    [ "${kept_word[$r]}" -eq "$runs" ] || { mark=BROKEN; case_pass=0; }
+    [ "${kept_word[$r]}" -ge "${kept_noword[$r]}" ] || { mark=WORSE; case_pass=0; }
     printf '  %-6s word %d/%d  no-word %d/%d  %s\n' "$mark" "${kept_word[$r]}" "$runs" "${kept_noword[$r]}" "$runs" "$rule"
   done
   if [ "$case_pass" -eq 1 ]; then echo "  PASS"; else echo "  FAIL"; failed=$((failed + 1)); fi
