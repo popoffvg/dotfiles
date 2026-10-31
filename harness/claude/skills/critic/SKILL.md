@@ -1,87 +1,29 @@
 ---
 name: critic
-description: Build the strongest case AGAINST a decision that already looks right — two or three opus critics run in sequence, each one MUST find an attack the earlier ones missed, and every attack is settled with evidence. Trigger on "criticize this", "argue against it", "why is this wrong", "poke holes", "red team this", "what am I missing", "devil's advocate", "stress-test the decision", or before you commit to a hard-to-reverse choice, as a second opinion.
-argument-hint: [the decision to attack]
+description: Find the blind spots of a plan or decision — the missed link in its reasoning, the unexpected consequence, the second-order effect — and hand them over as a `to-user` file. Use for "criticize this", "what am I missing", "poke holes", "red team this", "devil's advocate", "second-order effects".
+argument-hint: [the plan or decision]
 ---
 
-# critic — the case against the decision
+# critic — the blind spots of a plan
 
-The decision arrives already defended: its owner has the reasons and the happy path. This skill supplies the other side. The method lives in the `critic` agent; this skill runs it up to three times and merges the result.
+**Product.** One `to-user` file, `critic-<slug>.md`, with the blind spots of one plan or decision.
 
-One critic stops at the attacks it finds first. Each later round reads the earlier reports and MUST find an attack they missed, so the rounds together cover more of the field than one long round.
+**Reader.** The owner of the plan. For each blind spot they change the plan, accept the risk, or reject the point.
 
-## Flow
+**Properties** — the file MUST pass each one:
 
-1. **Fix the decision.** Write the decision in one or two sentences. List the files, links, and conversation facts it rests on. Write the scope: the files, dirs, and repos a critic may search. If the decision is unclear, ask the user before you spawn anything. Pick a report dir: `<scratchpad>/critic-<slug>/`.
-2. **Run the critic loop.** Start with `N = 1` and an empty `prior` list.
+1. Each item is one blind spot of one kind: a **missed link** (a step the plan assumes and nobody checked), an **unexpected consequence** (something else the action changes), or a **second-order consequence** (what the first effect causes next).
+2. Each item states its chain in plain words — plan step → what follows → why it hurts — with evidence the owner can check (`path:line` with a quote, a command and its output line, a source) and one concrete example.
+3. Items are ranked by damage, at most 5. No item repeats a risk the owner already named.
+4. An item that needs the owner's choice is a `[decide]` block with options and a recommendation; the rest are `[info]`. A candidate with no evidence goes under Not checked.
+5. Every term is the owner's or the code's, or is glossed where it first appears.
+6. The run changed nothing outside the scratchpad: no repo edit, no write to a memory store, MCP server, or remote. Reads, searches, and probes of any kind are allowed.
+7. The file reaches the owner in one pass. A subagent runs only when a probe needs a clean context, and the file says why.
 
-   ```
-   loop:
-     spawn a fresh `critic` agent:
-       decision: <step 1>
-       round:    N
-       prior:    <every report path in the prior list>
-       evidence: <dir>/evidence.md   (round 1 creates it)
-       scope:    <step 1>
-       report:   <dir>/round-N.md
-     wait for it to finish
-     append <dir>/round-N.md to prior
-     if round N has no NEW attack with verdict SURVIVES: stop
-     if N = 2 and no NEW SURVIVES attack of round 2 breaks a bet line
-       that no SURVIVES attack of round 1 breaks: stop
-     if N = 3: stop
-     N = N + 1
-   ```
+**Cause.** The owner calls `critic` to see what they did not think of. The old version ran up to three opus rounds in sequence, which was too slow to use, and handed over round tables and invented labels that hid the blind spots.
 
-   The rounds run in sequence, never in parallel: each round needs the earlier reports to know what is not new.
-3. **Grill the owner.** Collect the **Ask the owner** questions from the reports. Drop each question that the evidence in a later round already answers. Ask the rest through the `grilling` skill. Mark each attack its answer settles.
-4. **Rule.** Merge the round reports into one. Rank the surviving attacks by damage, not by how clever they are. If nothing survived the evidence, say the decision holds. A critic that never clears a decision is not read next time.
+## Steps
 
-## Rules
-
-1. **Fresh agent per round.** Do not continue an earlier round with SendMessage. A round that remembers its own reasoning repeats it.
-2. **Do not filter the rounds.** Carry every attack, the killed ones too, into the merged report. The killed attacks prove that the surviving ones are not cheap.
-3. **Cost the alternative.** "This is wrong" is not actionable without the cost of the other way. If there is no alternative, say the decision may be the least-bad option.
-4. **Rule, don't rewrite.** Output the case; the owner decides. Implementing the alternative is a separate request.
-
-## Report
-
-```markdown
-# Critic: <the decision>
-
-## Steelman
-<the decision at its strongest, in its owner's terms>
-
-**The bet** — this is right only if:
-- B1 <must-be-true>
-- B2 <must-be-true>
-
-## Attacks
-| # | Attack | Breaks | Round | Origin | Evidence | Verdict |
-|---|--------|:------:|:-----:|--------|----------|---------|
-| A1 | <claim> | B2 | 1 | border:extremes | `src/x.rs:88` — <what was observed> | SURVIVES |
-| A2 | <claim> | B1 | 3 | unknown-unknown:who-is-absent | grill Q3: owner confirmed <> | SURVIVES |
-| A3 | <claim> | B1 | 2 | in-frame | positive control found the caller — claim false | KILLED |
-
-## What each round added
-- Round 2: <the attacks round 1 missed — or: not run, round 1 found nothing new>
-- Round 3: <the attacks rounds 1–2 missed — or: not run, round <N> found nothing new — or: not run, round 2 hit no new bet line>
-
-## The strongest argument against
-<one paragraph — the attack that does the most damage, and the damage>
-
-## Kill criterion
-<the observation that settles it> — cheapest probe: <what to run/read/ask, and its cost>
-
-## Alternative and its cost
-<what to do instead, what it costs — or: none found, and why the decision may still be least-bad>
-
-## Left open
-<what neither evidence nor the grill could settle>
-```
-
-## Related
-
-- `grilling` — the interview mechanics for step 3; `to-user` for the file shape of the questions.
-- `hunch` — when the output is "the decision is wrong and we have no replacement", start a hunch from it.
-- `adr` — record the surviving argument in the ADR if it changes the decision.
+1. **Fix the plan** in the file's Context: one sentence, the chain of steps the owner expects, and the sources it rests on. When the plan is unclear, ask through `to-user` and stop.
+2. **Walk the chain.** At each step ask: what must be true here that nobody checked? What else does this action change? What does that change cause next? Settle each candidate with evidence — read, run, or probe — on the same model and data the plan targets.
+3. **Hand over** the file through `to-user`, and stop. Applying a change is a separate request.
