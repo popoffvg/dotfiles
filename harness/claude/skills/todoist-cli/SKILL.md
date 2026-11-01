@@ -18,6 +18,10 @@ metadata:
 - Priority mapping: `p1` highest (API 4) through `p4` lowest (API 1).
 - Image attachments on comments: fetch with `td attachment view <file-url>`, never `curl` plus `Read` — see **Comments, Attachments, Notifications, And Reminders**. Skip the fetch unless the user asked for visual analysis.
 
+## Special case: Amp Orbs
+
+This skill owns ordinary Todoist CLI operations; [todoist-amp-webhooks](../todoist-amp-webhooks/SKILL.md) owns connecting Todoist events to an Amp-managed Orb.
+
 ## Shared Flags
 
 - Read and list commands commonly support `--json`, but other output and pagination flags vary by family. Many list commands support subsets of `--ndjson`, `--full`, `--raw`, `--limit <n>`, `--all`, `--cursor <cursor>`, or `--show-urls`; check `td <command> --help` for the exact surface.

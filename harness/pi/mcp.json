@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "engram": {
+      "args": [
+        "mcp",
+        "--tools=agent"
+      ],
+      "command": "/opt/nanobrew/prefix/Cellar/engram/1.16.1/bin/engram",
+      "directTools": false,
+      "lifecycle": "lazy"
+    }
+  }
+}

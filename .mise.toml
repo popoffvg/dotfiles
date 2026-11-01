@@ -20,7 +20,7 @@ depends = ["harness:plugins:sync"]
 run = [
   "stow --target=$HOME --dir={{config_root}}/.. --restow {{ config_root | basename }}",
   "stow --target=$HOME/.claude --dir={{config_root}}/harness --restow claude",
-  "mkdir -p $HOME/.pi/agent",
+  "stow --no-folding --target=$HOME/.cursor --dir={{config_root}}/harness --restow cursor",
   "stow --target=$HOME/.pi/agent --dir={{config_root}}/harness --restow pi",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow zsh",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow git",
@@ -34,6 +34,7 @@ run = [
   "stow --no-folding --target=$HOME/.agents --dir={{config_root}}/harness --delete codex",
   "stow --target=$HOME --dir={{config_root}}/.. --delete {{ config_root | basename }}",
   "stow --target=$HOME/.claude --dir={{config_root}}/harness --delete claude",
+  "stow --no-folding --target=$HOME/.cursor --dir={{config_root}}/harness --delete cursor",
   "stow --target=$HOME/.pi/agent --dir={{config_root}}/harness --delete pi",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --delete zsh",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --delete git",
@@ -71,30 +72,6 @@ description = "Test the line-comment language server"
 dir = "{{config_root}}/harness/apps/line-comment"
 run = "cargo test -p line-comment-server"
 
-[tasks."harness:slash-complete:build"]
-description = "Build the slash-complete language server → ~/.local/bin/slash-complete-lsp"
-dir = "{{config_root}}/harness/apps/slash-complete"
-sources = ["server/**/*.rs", "server/Cargo.toml"]
-outputs = ["{{env.HOME}}/.local/bin/slash-complete-lsp"]
-run = """
-cargo build --release -p slash-complete-server
-install -m 755 target/release/slash-complete-lsp $HOME/.local/bin/slash-complete-lsp
-"""
-
-[tasks."harness:slash-complete:extension"]
-description = "Build the slash-complete Zed extension wasm and link it into the Zed extensions folder"
-dir = "{{config_root}}/harness/apps/slash-complete"
-run = """
-cargo build --release --target wasm32-wasip2 -p slash-complete-extension
-cp target/wasm32-wasip2/release/slash_complete_extension.wasm extension.wasm
-ln -sfn "$PWD" "$HOME/Library/Application Support/Zed/extensions/installed/slash-complete"
-"""
-
-[tasks."harness:slash-complete:test"]
-description = "Test the slash-complete language server"
-dir = "{{config_root}}/harness/apps/slash-complete"
-run = "cargo test -p slash-complete-server"
-
 [tasks."harness:line-comment:languages"]
 description = "Regenerate line-comment's extension.toml language list from the installed Zed languages"
 run = "{{config_root}}/harness/scripts/sync-line-comment-languages.py"
@@ -112,6 +89,10 @@ run = [
   "codex plugin marketplace add {{config_root}}",
   "codex plugin add wm@dotfiles-codex",
 ]
+
+[tasks."harness:amp:publish-skills"]
+description = "Publish named skills to your personal Amp Skills repository"
+run = 'bash "{{config_root}}/harness/scripts/publish-amp-skills.sh"'
 
 [settings]
 env_shell_expand = true

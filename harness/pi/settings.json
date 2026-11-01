@@ -13,10 +13,29 @@
     "../../Documents/git/dotfiles/harness/pi-packages/pi-btw",
     "npm:pi-btw",
     "npm:pi-goal-x",
-    "npm:pi-cache-optimizer"
+    "npm:pi-cache-optimizer",
+    "npm:gentle-engram@0.1.7"
+  ],
+  "npmCommand": [
+    "mise",
+    "exec",
+    "node@20.19.3",
+    "--",
+    "npm"
   ],
   "defaultProvider": "cursor",
   "defaultModel": "grok-4.7@256k",
+  "enabledModels": [
+    "cursor/grok-4.7@256k",
+    "cursor/composer-2-5"
+  ],
+  "subagents": {
+    "agentOverrides": {
+      "scout": {
+        "model": "cursor/composer-2-5"
+      }
+    }
+  },
   "lastChangelogVersion": "1.0.3",
   "extensions": [
     "-builtin:mcp"

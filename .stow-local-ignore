@@ -50,6 +50,8 @@ Library
 \.claude-plugin
 # Codex marketplace belongs to this repo; Codex manages its installed state.
 \.agents/plugins
+# Project-scoped Codex configuration stays in this repository.
+^\.codex$
 
 # Misc files that shouldn't be stowed
 CLAUDE\.md
@@ -63,3 +65,4 @@ nushell
 tmux
 vscode
 s$
+\.config/herdr/\.plugins\.lock

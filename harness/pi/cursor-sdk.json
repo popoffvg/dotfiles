@@ -1,5 +1,6 @@
 {
   "fastDefaults": {
-    "grok-4.6": false
+    "grok-4.6": false,
+    "grok-4.7": false
   }
 }

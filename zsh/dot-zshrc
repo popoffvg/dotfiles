@@ -215,3 +215,6 @@ if (( ${+functions[_yazi_jump]} )); then
   bindkey '^[OB' down-complete-or-yazi
 fi
 
+
+source /Users/popoffvg/Library/Application\ Support/org.dystroy.broot/launcher/bash/br
+export TINYFISH_API_KEY='sk-tinyfish-tRSL8BQiMRsZ-j5JhuM6-0wK4Q5SfObX'

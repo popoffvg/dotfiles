@@ -7,10 +7,7 @@
 // custom settings, run the `open default settings` command
 // from the command palette or from `Zed` application menu.
 {
-  "auto_update": true,
-  "file_types": {
-    "Markdown": ["prompt"]
-  },
+  "auto_update": false,
   "session": {
     "trust_all_worktrees": true
   },
@@ -60,7 +57,7 @@
   "auto_signature_help": true,
   "terminal": {
     "env": {
-      "EDITOR": "/Users/vitaliipopov/.claude/scripts/zed-edit-return.sh",
+      "EDITOR": "zed -e --wait",
     },
     "cursor_shape": "block",
     "toolbar": {
@@ -70,7 +67,11 @@
     "font_family": "FiraMono Nerd Font",
     "show_count_badge": false,
   },
-  "theme": "Catppuccin Latte",
+  "theme": {
+    "mode": "system",
+    "light": "One Light",
+    "dark": "Catppuccin Frappé"
+  },
   // line-comment publishes each line comment as a Hint diagnostic, so inline
   // diagnostics are what put the comment text at the end of its line.
   "diagnostics": {
@@ -124,7 +125,7 @@
   "edit_predictions": {
     "provider": "zed",
   },
-  "diff_view_style": "unified",
+  "diff_view_style": "split",
   "cli_default_open_behavior": "new_window",
   "project_panel": {
     "sticky_scroll": false,
@@ -208,7 +209,16 @@
       "type": "registry",
     },
   },
+  "context_servers": {
+    "fff": {
+      "command": "fff-mcp",
+      "args": [],
+      "env": {},
+    },
+  },
   "agent": {
+    "show_turn_stats": true,
+    "thinking_display": "always_collapsed",
     "expand_edit_card": false,
     "play_sound_when_agent_done": "when_hidden",
     "notify_when_agent_waiting": "all_screens",
@@ -263,7 +273,7 @@
     "default_model": {
       "effort": "MEDIUM",
       "provider": "zed.dev",
-      "model": "gemini-3.8-flash",
+      "model": "gemini-3.5-flash",
       "enable_thinking": true,
     },
     "favorite_models": [
@@ -294,9 +304,6 @@
   "vim_mode": false,
   "ui_font_size": 16,
   "buffer_font_size": 14.0,
-  "auto_install_extensions": {
-    "quint": true,
-  },
   "lsp": {
     "vtsls": {
       "settings": {
@@ -314,12 +321,10 @@
       "enable_lsp_tasks": true,
     },
     "gopls": {
-      "initialization_options": {
-        "renameMovesSubpackages": true,
-      },
       "binary": {
+        "path": "/Users/popoffvg/.local/share/mise/shims/gopls",
         "arguments": [
-          "-logfile=auto",
+          "-logfile=/Users/popoffvg/Library/Logs/gopls-zed.log",
           "-rpc.trace",
         ],
       },
@@ -378,7 +383,7 @@
         "coloring": "fixed",
         "enabled": true
       },
-      "language_servers": ["marksman", "line-comment-language-server", "slash-complete-language-server"],
+      "language_servers": ["marksman", "line-comment-language-server"],
       "inlay_hints": {
         "enabled": true,
         "show_other_hints": true,

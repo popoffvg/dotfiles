@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
-# Global commit-msg hook: strip Claude Co-Authored-By + chain to repo-local hook.
+# Global commit-msg hook: strip Claude and Cursor attribution trailers,
+# then chain to the repo-local hook.
 # Installed via: git config --global core.hooksPath ~/.config/git/hooks
 
 my $file = $ARGV[0];
@@ -7,7 +8,12 @@ open my $fh, '<', $file or die "Cannot read $file: $!";
 my @lines = <$fh>;
 close $fh;
 
-@lines = grep { !/^\s*Co-Authored-By:.*\bclaude\b/i } @lines;
+@lines = grep {
+    !/^\s*Co-Authored-By:.*\bclaude\b/i
+    && !/^\s*Co-Authored-By:.*cursoragent\@cursor\.com/i
+    && !/^\s*Made-with:\s*Cursor\s*$/i
+    && !/^\s*Made with Cursor\s*$/i
+} @lines;
 
 # Remove trailing blank lines
 pop @lines while @lines && $lines[-1] =~ /^\s*$/;

@@ -1,11 +1,11 @@
 ---
 name: adr
-description: Read the current session and record the architecture decisions and the application features it settled as ADRs, each with the Properties a reviewer checks code against. Use for "write an ADR", "record this decision", "ADR for what we just decided", after the SessionEnd ADR reminder fires, and when a session settles a hard-to-reverse choice — the main components and their layering, a platform or technology with lock-in (Cloud Run or Infrastructure Manager, Terraform), where state lives, a trust or process boundary, a deliberate deviation from the obvious path, or a user-visible feature contract such as a `--dry-run` mode that shows the changes and applies none.
+description: Read the current session and record only the global decisions it settled as ADRs, each with the Properties a reviewer checks code against. Use for "write an ADR", "record this decision", "ADR for what we just decided", after the SessionEnd ADR reminder fires, and when a session settles a hard-to-reverse choice — the main components and their layering, a platform or technology with lock-in (Cloud Run or Infrastructure Manager, Terraform), where state lives, a trust or process boundary, a deliberate deviation from the obvious path, or a product-wide contract such as every command having a `--dry-run` mode that shows the changes and applies none.
 ---
 
 # adr — turn a session into an ADR
 
-**Read what the session decided, keep only the main architecture decisions and feature contracts, take each reason from the operator, and ask before writing.** An ADR records what the operator decided; the agent finds it, the operator owns it. Format and lifecycle live in [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md); the file to copy is [ADR-TEMPLATE.md](../domain-modeling/ADR-TEMPLATE.md).
+**Read what the session decided, keep only the global decisions — the ones every later change must obey — take each reason from the operator, and ask before writing.** An ADR records what the operator decided; the agent finds it, the operator owns it. Format and lifecycle live in [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md); the file to copy is [ADR-TEMPLATE.md](../domain-modeling/ADR-TEMPLATE.md).
 
 **Where ADRs land:**
 
@@ -16,21 +16,17 @@ description: Read the current session and record the architecture decisions and 
 
 `.notes/` is its own jj repo, so in a wm project move an archived ADR with `mv`, not `git mv`, and skip the README *Decisions* pointer.
 
-**In a wm project** the wm plugin adds three things. Its `arch:ref-adr-format.md` holds the details.
-
-- **A third kind, `implementation`** — a choice made while writing one TODO. It requires `todo: TODO-N`; the other kinds MUST NOT carry `todo:`. The tests of step 2 do not apply to it.
-- **The open-question gate** — `QUESTIONS.md` sits in the notes dir, and the spec is not ready while it has a section.
-- **The limits apply to `architecture` only** — "most sessions produce zero ADRs" and "about ten live architecture ADRs" do not count `feature` or `implementation` ADRs.
-
 ## 1. Collect the candidate decisions
 
-Work from the conversation in context. When the session is long, compacted, or the reminder named a transcript, read the transcript file instead — the `SessionEnd` reminder prints its path, and a live session's path is `~/.claude/projects/<project-slug>/<session-id>.jsonl`. Also read the grill files and `QUESTIONS.md`.
+Work from the conversation in context. When the session is long, compacted, or the reminder named a transcript, read the transcript file instead — the `SessionEnd` reminder prints its path, and a live session's path is `~/.claude/projects/<project-slug>/<session-id>.jsonl`. Also read the grill files and decision notes the session wrote.
 
 A candidate is a point where the session chose one option over another and acted on it. Take the choice from what the operator said or approved, not from what you proposed.
 
 **Completion criterion**: each candidate has the decision and the session line it comes from.
 
-## 2. Keep only the main decisions
+## 2. Keep only the global decisions
+
+**An ADR records a global decision only.** A decision is global when a later change in another component, another TODO, or another feature must obey it. A decision that shapes one step, one tool, one command, or one pipeline is tactical. It goes where step 2b says, never into an ADR.
 
 An ADR has one of two kinds, set in the `kind` frontmatter key:
 
@@ -52,23 +48,33 @@ A candidate is an architecture ADR only when all four tests pass:
 
 What passes: the main components and their layering; a platform or technology with lock-in (run Terraform in Cloud Run, not in Infrastructure Manager; use Terraform at all); where state and secrets live; a trust or process boundary (no cloud SDK, every cloud call is a CLI); a deliberate deviation from the obvious path.
 
-What fails: a name, a field, a file layout, a function signature, a log format, an error text, a test fixture, a CI step, a value such as a timeout, a scope cut of one TODO. A value or a mechanism that follows from an ADR is a consequence: it goes in that ADR's paragraph or `## Consequences`, not in a new ADR.
+What fails: a name, a field, a file layout, a function signature, a log format, an error text, a test fixture, a CI step, a value such as a timeout, a scope cut of one TODO. A value or a rule that follows from an ADR becomes a **Property** of that ADR, not a new ADR.
 
 ### Feature tests
 
-A candidate is a feature ADR only when all three tests pass:
+A candidate is a feature ADR only when all four tests pass:
 
-1. **User-visible** — the user starts it or sees its result: a command, a mode flag, an output, a prompt, an exit code.
-2. **A promise** — a user or a script depends on it, so a change to it breaks them.
-3. **The operator's choice** — the operator asked for it or approved it.
+1. **Product-wide** — the contract binds every command, every output, or every surface, not one of them.
+2. **User-visible** — the user starts it or sees its result: a command, a mode flag, an output, a prompt, an exit code.
+3. **A promise** — a user or a script depends on it, so a change to it breaks them.
+4. **The operator's choice** — the operator asked for it or approved it.
 
-What passes: `deploy --dry-run` shows every change and applies none; `sync` asks before it deletes a file; `status --json` prints one stable schema; a failed run leaves the target as it was.
+What passes: every command that changes state has a `--dry-run` that applies nothing; every destructive command asks first; every command prints one stable `--json` schema; a failed run leaves the target as it was.
 
-What fails: a flag that only tunes a value, a help text, a color, the order of log lines, an internal option no user sets. A detail of a recorded feature goes in that feature ADR, not in a new ADR. It is a Property only when the user observes it in every run.
+What fails: one command's flag, one output's layout, one reply's shape, one provider's fallback order, a help text, a color, the order of log lines, an internal option no user sets. A detail of a recorded feature becomes a **Property** of that feature ADR, not a new ADR.
 
-Most sessions produce zero ADRs. Say so and stop. A project holds about ten live architecture ADRs; a count far above that means implementation details got in. Feature ADRs grow with the product, one per user-facing contract.
+Most sessions produce zero ADRs. Say so and stop. A project holds about ten live ADRs of both kinds together. A count far above that means tactical decisions got in.
 
-**Completion criterion**: every surviving candidate names its kind and the reading of each test it passes.
+### 2b. Where a tactical decision goes
+
+| Tactical decision | Home |
+|---|---|
+| A rule or a value that follows from a recorded ADR | A Property of that ADR (step 3) |
+| A shape the project repeats across steps — a fallback chain, a retry rule, a delivery format | The project's pattern skill in `.claude/skills/`, one rule per shape. Create the skill when the repo has none. |
+| A choice inside one TODO or one feature | The spec or the TODO, beside the code it shapes |
+| A fact the code shows | Nowhere — the code is its home |
+
+**Completion criterion**: every surviving candidate names its kind and the reading of each test it passes, and every dropped candidate names its home from the 2b table.
 
 ## 3. Merge into what is already recorded
 
@@ -77,7 +83,7 @@ Read both ADR directories before drafting.
 | Finding | Action |
 |---|---|
 | Recorded and unchanged | Stop. Report the file. |
-| The session finds a new invariant of a recorded ADR | Add a Property to that ADR: bump `updated`, append a changelog line. No new number. |
+| The session adds a rule that follows from a recorded ADR | Add a Property to that ADR: bump `updated`, append a changelog line. No new number. |
 | The session **refines** a recorded decision | Edit that ADR the same way. |
 | The session **reverses** a recorded decision | Draft a new ADR that names the one it supersedes, then follow the supersession steps in `ADR-FORMAT.md`. |
 | Nothing recorded | Draft a new ADR. |
@@ -99,10 +105,10 @@ Settle a slot from a source when one exists, as `grilling` step 2 says, and cite
 |---|---|---|
 | Reason | "Why X over Y?" | The reason the context points to, marked as your guess, quoting what points to it. |
 | Alternatives | "What else did you consider, and why did it lose?" | The obvious alternative, with the loss reason you infer. |
-| Properties | "While X holds, what must never happen?" — for a feature: "What does the user see, and what must the feature never do?" | Two to four invariants you can check in code or with one E2E run, each one line. Each one passes the rules of step 5. |
+| Properties | "While X holds, what must never happen?" — for a feature: "What does the user see, and what must the feature never do?" | Two to four invariants you can check in code or with one E2E run, each one line. |
 | Consequences | "What would make you reverse X?" | The fact that breaks the reason. |
 
-An empty Answer slot means the operator accepted the recommendation; record that reason as `(accepted recommendation)`. A candidate whose Reason the operator will not give is not written: it goes to `QUESTIONS.md` as "Why A over B?" ([ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#open-questions)).
+An empty Answer slot means the operator accepted the recommendation; record that reason as `(accepted recommendation)`. A candidate whose Reason the operator will not give stays `proposed`.
 
 **Completion criterion**: every slot of every candidate is filled from a cited session source or from an answered grill block.
 
@@ -123,31 +129,19 @@ Test the title: when it starts with a verb of choice (use, add, move, store, swi
 
 **Each title property is backed by at least one Property below.** The title says the quality in general; the Properties make it checkable. "Builds are reproducible and isolated from the host" needs, for example, "P1. The same commit gives the same artifact digest" for reproducible and "P2. A build reads no file outside its context" for isolated. A title property with no Property under it gets one, or leaves the title.
 
-Write the decision paragraph in one to three sentences: the context and the option chosen. Write the reason under `## Reason` as a Y-statement with a provenance line ([ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#reason)). Write the Properties as the table of [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#properties), one guarantee per row at the level of the title, and keep every mechanism out of the ADR.
+Write the decision paragraph in one to three sentences: the context, the option chosen, and the reason. Quote the operator's reason. List each Property as `P1.`, `P2.`, … — one invariant a reviewer can check against a diff, cited as `ADR-NNNN/P2`. A Property says what the code must do or must never do; it names no file, no ticket, no plan.
 
-**Run the three rules of [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#properties) on each Property: the black box, the option test, and the `[keep]` or `[new]` mark.** Then run the [`and-what`](../and-what/SKILL.md) skill on each Property to fill its `If broken` and `Recovers by` cells. A line that only the chosen option keeps is a consequence: move it into the paragraph or `## Consequences`.
+A feature ADR title names what the user can count on everywhere, such as "Every change is previewable and side-effect free". Its paragraph says who uses the contract, how they start it, and what they get. Its Properties say what the user observes, for example:
 
-| Consequence or test assertion | Property — the guarantee |
-|---|---|
-| `StorageFS` has exactly `Open`, `Create`, `Stat`, `ReadDir`, and `Remove`. | A consumer gets the same behavior from every backend. |
-| The FS store writes into a temp file and renames it at `Close`. | A reader never sees a partial object. |
-| `ReadFrom` cuts the parts from an `io.ReaderAt` source. | A huge file uploads in parallel. |
-| A cancelled call returns an error that matches `context.Canceled`. | Every upload is cancellable. |
-| A store checks a SHA-256 of the bytes it wrote. | A stored object holds exactly the bytes the writer sent. |
+- P1. Every command that changes state accepts `--dry-run` and prints every create, update, and delete it would make.
+- P2. A `--dry-run` run changes no resource and writes no state.
+- P3. A `--dry-run` run exits non-zero when the real run would fail.
 
-A feature ADR title names what the user can count on, such as "Deploy previews are complete and side-effect free". Its paragraph says who uses the feature, how they start it, and what they get. Its Properties say what the user observes, for example:
-
-| Id | Property | If broken | Recovers by |
-|---|---|---|---|
-| P1 | [new] `deploy --dry-run` prints every create, update, and delete that `deploy` would make. | The user approves a plan that hides a delete, and a resource disappears. | a human |
-| P2 | [new] `deploy --dry-run` changes no resource and writes no state. | A preview changes live infrastructure that nobody approved. | a human |
-| P3 | [new] `deploy --dry-run` exits non-zero when `deploy` would fail. | The preview passes, the real deploy fails, and the user runs it again. | retry |
-
-**Completion criterion**: the draft has frontmatter with `status: proposed` and a `kind`, a title that names the properties, passes the title test, and has a Property under each one, the decision paragraph, a quoted reason, at least one Property, no Property that fails the option test, an `If broken` and a `Recovers by` cell in each Property row, no mechanism paragraph, and a closing `## Changelog` section.
+**Completion criterion**: the draft has frontmatter with `status: proposed` and a `kind`, a title that names the properties, passes the title test, and has a Property under each one, the decision paragraph, a quoted reason, at least one Property, and a closing `## Changelog` section.
 
 ## 6. Ask, then write
 
-Show the full draft and the target path. Write it only after the operator approves the wording; the file in the ADR folder is the approval. Create the ADR directory with its `TEMPLATE.md` on the first ADR, and add the README *Decisions* pointer at the same time.
+Show the full draft and the target path. Write it only after the operator approves the wording; approval sets `status: accepted`. Create the ADR directory with its `TEMPLATE.md` on the first ADR, and add the README *Decisions* pointer at the same time.
 
 **Completion criterion**: the file exists at the approved path, or the operator declined and nothing was written.
 

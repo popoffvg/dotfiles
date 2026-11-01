@@ -11,6 +11,8 @@ description: Pick the form that fits what is being shown — pseudocode, a call 
 
 **The medium picks the syntax before the table picks the form.** A flow shown in the chat reply to the user is an ASCII diagram in a fenced block — arrows and boxes in monospace — because chat renders no mermaid. A flow written into a markdown file is mermaid — `flowchart`, `sequenceDiagram`, `stateDiagram`.
 
+**A flow diagram runs top to bottom** — mermaid `flowchart TD`, an ASCII flow drawn downward. The file and the chat scroll down and stay narrow, so a left-to-right chain overflows the pane. Left to right only when the user asks for it.
+
 | The content is | Show it as | Done when |
 | --- | --- | --- |
 | a rule, a branch, an algorithm in code that exists | **pseudocode**, one step per line | the reader can restate the rule without the source; every step that exists carries a clickable trailing `# path:line` |
