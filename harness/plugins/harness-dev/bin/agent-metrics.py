@@ -188,8 +188,17 @@ def report(days: int | None) -> None:
     if understood:
         corrected = sum(labels.get((t["session"], t["turn"], "correction"), 0) >= CORRECTION_CUTOFF for t in understood)
         print(f"\n## Understood lines: {len(understood)}, corrected by the next prompt: {corrected}")
-        print(f"  self-scored prompt quality (share of parts given): "
-              f"mean {statistics.mean(t['understood_score'] / (t.get('understood_max') or 3) for t in understood):.2f}")
+        scored = [t for t in understood if t.get("understood_score") is not None]
+        if scored:
+            print(f"  self-scored prompt quality (share of parts given): "
+                  f"mean {statistics.mean(t['understood_score'] / (t.get('understood_max') or 3) for t in scored):.2f}")
+        risked = [t for t in understood if t.get("correction_risk") is not None]
+        for name, rows in (("stopped", [t for t in risked if t.get("stopped", t.get("risk_stop"))]),
+                           ("went on", [t for t in risked if not t.get("stopped", t.get("risk_stop"))])):
+            if rows:
+                hit = sum(labels.get((t["session"], t["turn"], "correction"), 0) >= CORRECTION_CUTOFF for t in rows)
+                print(f"  correction risk, {name}: {len(rows)} turns, mean estimate "
+                      f"{statistics.mean(t['correction_risk'] for t in rows):.0f}%, corrected {hit}")
 
     groups = paste_groups(sessions)
     print(f"\n## Pasted blocks seen in 2+ sessions: {len(groups)} skill candidates")

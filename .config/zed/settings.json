@@ -271,9 +271,9 @@
     "single_file_review": true,
     "dock": "left",
     "default_model": {
-      "effort": "MEDIUM",
-      "provider": "zed.dev",
-      "model": "gemini-3.5-flash",
+      "effort": "low",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
       "enable_thinking": true,
     },
     "favorite_models": [

@@ -29,19 +29,26 @@ NUDGE_MIN_SESSIONS = 2
 TRIAGE_TAG = re.compile(r"^\W*triage:\s*(done|wait|question)\W*$", re.I)
 UNDERSTOOD_LINE = re.compile(r"^\W*understood:(.*?)prompt\s*([0-4])\s*/\s*([34])", re.I | re.M)
 HINT_LINE = re.compile(r"^\W*hint:\s*(.+)$", re.I | re.M)
+READ_LINE = re.compile(r"^\W*read:\W*(.+)$", re.I | re.M)
+ADDED_LINE = re.compile(r"^\W*added:\W*(.+)$", re.I | re.M)
+RESULT_LINE = re.compile(r"^\W*result:\W*(.+)$", re.I | re.M)
+RISK_LINE = re.compile(r"^\W*risk:\W*(\d{1,3})\s*%\s*(.*)$", re.I | re.M)
+TASK_NOTIFICATION = "<task-notification>"
+WORK_TOOLS = {"Edit", "Write", "NotebookEdit", "Agent", "Workflow"}
 
-# `why` is the intent-debt part: a prompt that states the result but not the reason leaves the agent to guess
-# the reason, and a guessed reason picks the wrong option when the prompt is silent.
 UNDERSTOOD_RULE = (
-    "Start your reply with one line that tells the operator how to make this prompt better:\n"
-    "`hint: <missing part> — I guessed <the choice you had to guess> — next time add: \"<one sentence the operator could have typed>\"`\n"
-    "Check four parts against the prompt and its context: goal, why (the reason or the decision the result serves), "
-    "limits, acceptance (how the result is checked). "
-    "A part counts as given when the prompt, an earlier turn, a CLAUDE.md, or the repo state gives it. "
-    "A reason you guessed is a missing `why`.\n"
-    "Name one missing part and quote a sentence about this task, never a generic tip. "
-    "When `why` is missing, hint at `why` first: the reason lets the agent decide the other parts itself. "
-    "When all four are given, write `hint: none`. Show no score and no summary of the parts."
+    "Before any edit, file write, or agent spawn, write this block as your first text, "
+    "one fact per line, then one empty line. Read-only lookups (read, search, git status) may come first.\n"
+    "> **Read:** <how you read the prompt, in one sentence>\n"
+    "> **Added:** <every fact you add that the prompt, an earlier turn, a CLAUDE.md, or the repo state "
+    "does not give, joined with ` · `, or `none`>\n"
+    "> **Result:** <what you will show the operator at the end of the turn>\n"
+    "> **Risk:** NN% — <the correction the operator most likely makes>\n"
+    "NN is your estimate that the operator's next prompt corrects the read, an added fact, or the result. "
+    "List every assumption in Added; a hidden assumption is worse than a long list. NN decides nothing.\n"
+    "Stop only when the prompt has two plausible readings that lead to different results, "
+    "and a read-only lookup cannot settle them. On a stop, edit nothing and spawn no agent: "
+    "ask one question that names the readings, and end with `triage: question`."
 )
 
 
@@ -80,7 +87,8 @@ def repo_of(cwd: str) -> str:
 def on_prompt(hook: dict) -> None:
     session, prompt = hook["session_id"], hook.get("prompt") or ""
     state = load_state(session)
-    task_start = state["turns"] == 0 or state["last_triage"] == "done" or len(prompt) >= TASK_START_CHARS
+    task_start = not prompt.lstrip().startswith(TASK_NOTIFICATION) and (
+        state["turns"] == 0 or state["last_triage"] == "done" or len(prompt) >= TASK_START_CHARS)
     DATA.mkdir(parents=True, exist_ok=True)
     pastes = record_pastes(DATA / "pastes.jsonl", session, prompt)
     understood_asked = task_start and os.environ.get("HARNESS_DEV_UNDERSTOOD") == "1"
@@ -106,15 +114,16 @@ def on_prompt(hook: dict) -> None:
                                                  "additionalContext": "\n\n".join(context)}}))
 
 
-def called_ask_user(transcript: str, offset: int) -> bool:
+def tool_names(transcript: str, offset: int) -> set[str]:
     try:
         with open(transcript, "rb") as f:
             f.seek(offset)
             tail = f.read().decode(errors="replace")
     except OSError:
-        return False
+        return set()
+    names = set()
     for line in tail.splitlines():
-        if '"AskUserQuestion"' not in line:
+        if '"tool_use"' not in line:
             continue
         try:
             entry = json.loads(line)
@@ -123,9 +132,41 @@ def called_ask_user(transcript: str, offset: int) -> bool:
         if entry.get("type") != "assistant" or entry.get("isSidechain"):
             continue
         for block in (entry.get("message") or {}).get("content") or []:
-            if isinstance(block, dict) and block.get("type") == "tool_use" and block.get("name") == "AskUserQuestion":
-                return True
-    return False
+            if isinstance(block, dict) and block.get("type") == "tool_use":
+                names.add(block.get("name") or "")
+    return names
+
+
+def first_text(transcript: str, offset: int) -> str:
+    try:
+        with open(transcript, "rb") as f:
+            f.seek(offset)
+            tail = f.read().decode(errors="replace")
+    except OSError:
+        return ""
+    for line in tail.splitlines():
+        if '"text"' not in line:
+            continue
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if entry.get("type") != "assistant" or entry.get("isSidechain"):
+            continue
+        for block in (entry.get("message") or {}).get("content") or []:
+            if isinstance(block, dict) and block.get("type") == "text" and block.get("text", "").strip():
+                return block["text"]
+    return ""
+
+
+def leading_block(text: str) -> str:
+    lines = text.strip().splitlines()
+    block = []
+    for line in lines:
+        if not line.lstrip().startswith(">"):
+            break
+        block.append(line)
+    return "\n".join(block)
 
 
 def triage_of(reply: str) -> str | None:
@@ -144,8 +185,17 @@ def on_stop(hook: dict) -> None:
     triage = triage_of(reply)
     understood = UNDERSTOOD_LINE.search(reply)
     hint = HINT_LINE.search(reply)
+    transcript = hook.get("transcript_path") or ""
+    tools = tool_names(transcript, pending["transcript_offset"]) if pending else set()
+    # With no tool call the transcript may lag the Stop event, and the reply is then the whole turn.
+    opening = leading_block((first_text(transcript, pending["transcript_offset"]) if pending else "") or reply)
+    lines = [p.search(opening) for p in (READ_LINE, ADDED_LINE, RESULT_LINE, RISK_LINE)]
+    risk = lines[-1]
+    header = [m.group(0).strip() for m in lines if m]
     row = {"session": session, "ts": int(time.time()), "triage": triage, "reply": reply[-REPLY_TAIL:],
-           "understood": understood.group(0).strip() if understood else None,
+           "understood": understood.group(0).strip() if understood else ("\n".join(header) or None),
+           "correction_risk": min(int(risk.group(1)), 100) if risk else None,
+           "stopped": (triage == "question" and not tools & WORK_TOOLS) if header else None,
            "understood_score": int(understood.group(2)) if understood else None,
            "understood_max": int(understood.group(3)) if understood else None,
            "understood_hint": hint.group(1).strip() if hint else None}
@@ -153,7 +203,7 @@ def on_stop(hook: dict) -> None:
         row.update({k: pending[k] for k in ("turn", "prompt", "prompt_chars", "task_start", "paste_ids",
                                             "paste_groups", "understood_asked")})
         row["repo"] = repo_of(pending["cwd"]) if pending["cwd"] else ""
-        row["asked_tool"] = called_ask_user(hook.get("transcript_path") or "", pending["transcript_offset"])
+        row["asked_tool"] = "AskUserQuestion" in tools
         row["kind"] = "turn"
     else:
         # A Stop with no new prompt: a background task resumed the session. Its tag updates the last turn.

@@ -16,6 +16,10 @@ Use for: a spec/project folder, a docs set, a subsystem of a codebase, a decisio
 
 Do not use for: teaching a general topic from world knowledge (no corpus to ground in), or a plain summary request ("what does this project do?" — answer that directly).
 
+**OpenClaw vault courses:** The telepi **`course` tool** builds daily **course-lesson** notes from research; the server lesson turn applies this skill with **lesson-writer** (not the teach HTML workspace).
+
+**Codebase learning in Cursor:** Use **`/code teach`**. The **teach** skill loads **this** skill for pedagogy and owns `.notes/teach/` (mission, HTML lessons, learning records, quiz).
+
 ## Step 1 — Read the whole corpus, not its front door
 
 Inventory every file and its size before reading. Then read the canonical sources in full.

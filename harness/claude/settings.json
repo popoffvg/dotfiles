@@ -458,7 +458,6 @@
     "claude-md-management@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": false,
     "engram@engram": true,
-    "first-prompt-model@local-plugins": true,
     "harness-dev@local-plugins": true,
     "prompt-stack@local-plugins": true,
     "mictx-ecosystem@mictx-helper-marketplace": true,
@@ -496,9 +495,8 @@
     "local-plugins": {
       "source": {
         "source": "directory",
-        "path": "$HOME/git/dotfiles"
-      },
-      "autoUpdate": true
+        "path": "/Users/popoffvg/Documents/git/dotfiles"
+      }
     },
     "mictx-helper-marketplace": {
       "source": {

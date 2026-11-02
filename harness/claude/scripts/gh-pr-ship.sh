@@ -5,6 +5,8 @@
 set -euo pipefail
 dir="$1" branch="$2" title="$3" body="$4" task="${5:-}"
 cd "$dir"
+# The pre-push hook builds test images; a credential helper in the default Docker config breaks that build.
+if [ -n "${MINIAUTH_DOCKER_CONFIG:-}" ]; then export DOCKER_CONFIG="$MINIAUTH_DOCKER_CONFIG"; fi
 git fetch -q origin main
 git rebase -q origin/main
 git push -q --force-with-lease -u origin "$branch"
