@@ -75,34 +75,52 @@ A title, a paragraph, the reason, the Properties, and the changelog section are 
 
 ### Properties
 
-**Every ADR lists at least one Property under `## Properties`.** A Property is one invariant: a guarantee the system keeps in every run while the decision holds, at the level of the title — "a huge file uploads in parallel parts", "every upload is cancellable", "a reader never sees a partial object". It is not a test assertion such as an error value, an import, or a signature: a test checks the Property, and the assertion lives in that test. It is numbered `P1.`, `P2.`, … and cited as `ADR-NNNN/P2`. A reviewer checks a diff against each one, so a Property is checkable: "the Installer never runs `terraform apply` on the operator's machine", not "deployments are robust". A `feature` Property states what the user observes and is checkable with one E2E run: "`deploy --dry-run` changes no resource", not "dry-run is safe".
+**Every ADR lists at least one Property under `## Properties`. A Property is a theorem over the system's observable behavior.** This definition applies to both ADR kinds. The ADR stores its plain-language statement; the drafting worksheet makes its meaning precise. A reviewer cites it as `ADR-NNNN/P2` and checks whether a change preserves it.
 
-**Read the system as a black box.** A Property is a guarantee of behavior that a caller, a user, or an operator observes at the boundary: what goes in, what comes out, how long it takes, what it costs. It names no component, client, or code structure inside. It names no mechanism of the storage or the transport either: no part, chunk, bucket key, header, checksum, temp file, or rename. Name a backend only when the guarantee itself differs by the backend the user picks. "A huge file uploads in parallel" and "a cancelled upload stops" pass; "the S3 store calls `s3c`" and "the bytes never pass through the controller" do not.
+Model the system at its boundary: calls, results, stored data, outbound requests, time, and resource use. Internal components and implementation steps belong in the decision, consequences, spec, or patterns file. A public format or error result can appear when it is itself the promised behavior.
 
-**The Lean test: a Property must be a theorem over the black box.** Model the system as only what a caller, a user, or an operator sees: the calls, their results, the stored data, the requests the system sends to outside services, the time, and the resources. Try to state the Property as a theorem in Lean over that model. If you can, it is a Property. If the statement needs a component, a protocol step, a format, or an error value from inside, or if the line is too vague to state, rewrite it or drop it. The theorem is a check only; the ADR keeps the plain sentence.
+### Property gate
 
-```lean
--- "A stored object holds exactly the bytes the writer sent."
-theorem stored_is_sent (s : Store) (n : Name) (b : Bytes) (h : (s.write n b).ok) :
-    (s.write n b).store.read n = some b
-```
+Run this gate before adding or changing a Property. Use one worksheet row per candidate, outside the ADR:
 
-**The option test: a Property is not a consequence of the decision.** Ask of each one: would every design that gives the title properties have to keep it? Yes — it is a Property. No, only the chosen option does it — it is a consequence. A consequence names the chosen mechanism: a method list, a package path, a client, a temp file, a value such as a timeout, or a test. Write it in the decision paragraph or under `## Consequences`, never as a Property and never as an ADR of its own.
+| Candidate | Observables | Assumptions | Lean theorem statement | Counterexample | Verdict |
+|---|---|---|---|---|---|
+| Successful reads return successfully written bytes, absent intervening changes. | Write result and subsequent read. | No intervening write or delete; read succeeds. | `∀ b, writeOK b → noInterveningChange → readOK → readBytes = b` | A successful read returns different bytes. | Pass |
+
+1. **Define the model.** Name the observable inputs, outputs, and traces needed to express the claim. Define each theorem symbol in these terms.
+2. **State the assumptions.** Include concurrency, failure, and timing conditions that affect the guarantee. Take them from the approved contract. An assumption that merely restates the conclusion makes the check circular.
+3. **Write the theorem statement.** Use Lean notation with explicit quantifiers, hypotheses, and a conclusion over the model. A theorem signature checks precision; it does not prove the implementation correct. Record unconfirmed assumptions as open questions.
+4. **Give a counterexample.** Describe an observable execution that satisfies the assumptions and violates the conclusion. If the model cannot express it, revise the model or the claim.
+5. **Check independence from the option.** Keep a guarantee that another implementation of the same contract must preserve. Move a chosen mechanism into the decision or consequences.
+
+**Completion criterion:** every retained candidate has defined symbols, approved assumptions, a precise theorem statement, and an observable counterexample. Its plain sentence preserves the theorem's scope and conditions. A candidate that needs internal structure moves out of Properties. A vague candidate returns for clarification.
+
+The worksheet records theorem statements, not Lean proofs. Compile and prove a separate model only when the task requests formal verification.
+
+| Candidate | Gate result |
+|---|---|
+| A successful read returns the last successfully written bytes, absent intervening changes. | Pass: compare observable writes and reads. |
+| A dry-run leaves resources and stored state unchanged. | Pass: compare observable state before and after the run. |
+| A huge file uploads in parallel parts. | Move: this chooses an implementation mechanism. State the approved time or resource guarantee instead. |
+| Uploads are fast. | Clarify: the workload, conditions, and bound are missing. |
+| The storage client calls a particular helper. | Move: the claim needs internal code structure. |
+
+### Property table
 
 **Mark each Property `[keep]` or `[new]`.** `[keep]` is a guarantee that today's code already gives and the decision keeps. `[new]` is a guarantee the decision adds. List the `[keep]` ones first, so a reader sees what must not break before what changes. A Property carries no source and no evidence words: no file, no line number, no fact name, no link, no "today on X", no "closes Y". The evidence goes in the decision paragraph or in the research it cites. A guarantee of today's code that the decision drops goes under `## Considered Options` or `## Consequences` with the reason.
 
-**Write the Properties as one table: `Id`, `Property`, `If broken`, `Recovers by`.** One row per Property, so a reader scans the guarantees and their cost in one look. The `Property` cell is one short sentence, at most about 15 words, with its `[keep]` or `[new]` mark first. Fill `If broken` from steps 2 to 4 of the [`and-what`](../and-what/SKILL.md) skill on the advice "keep this Property": what a caller, a user, or an operator sees when it breaks, in one short clause. `Recovers by` is `retry`, `restart`, `a human`, or `itself`. Both cells obey the black-box rule. A Property whose break nobody sees guarantees nothing: drop it. `wm-constraints.py` reads only the `Id` and `Property` cells as the rule. A `|` inside a cell is written `\|`.
+**Write the Properties as one table: `Id`, `Property`, `If broken`, `Recovers by`.** One row per Property, so a reader scans the guarantees and their cost in one look. The `Property` cell is one short sentence, aiming for about 15 words while preserving the theorem’s conditions, with its `[keep]` or `[new]` mark first. Fill `If broken` from steps 2 to 4 of the [`and-what`](../and-what/SKILL.md) skill on the advice "keep this Property": what a caller, a user, or an operator sees when it breaks, in one short clause. `Recovers by` is `retry`, `restart`, `a human`, or `itself`. Both cells obey the black-box rule. A Property whose break nobody sees guarantees nothing: drop it. `wm-constraints.py` reads only the `Id` and `Property` cells as the rule. A `|` inside a cell is written `\|`.
 
 ```md
 | Id | Property | If broken | Recovers by |
 |---|---|---|---|
-| P1 | [keep] A huge file uploads in parallel. | A 10 GB upload takes hours, not minutes, and the user waits. | itself |
-| P2 | [new] Every upload can be cancelled. | A stuck upload keeps its slot, and new uploads queue. | a human |
+| P1 | [keep] Successful reads return the last written bytes, absent intervening changes. | The caller receives corrupted data. | a human |
+| P2 | [new] A dry-run leaves resources and stored state unchanged. | A preview changes the target. | a human |
 ```
 
 **Never renumber or reuse a Property number.** Code, TODOs, and reviews cite `ADR-NNNN/Pn`. A reversed Property leaves the table: delete its row, write its number and the reason in the changelog line, and keep the gap. A new Property takes the next number after the highest one the ADR ever used.
 
-**Keep the mechanism out of the ADR.** A private helper, an error value, a function name, a call order, or a retry loop is how the code keeps a Property, not a decision. Write it in the spec, the TODO, or the patterns file. When ADRs merge, an absorbed ADR brings its Properties, its Reason quote, and its options; its context becomes at most one sentence of the decision paragraph, never a paragraph of its own.
+**Keep implementation details in the spec, TODO, or patterns file.** A private helper, an error value, a function name, a call order, or a retry loop is how the code keeps a Property, not a decision. Write it in the spec, the TODO, or the patterns file. When ADRs merge, an absorbed ADR brings its Properties, its Reason and provenance, and its options; its context becomes at most one sentence of the decision paragraph, never a paragraph of its own.
 
 ### Optional sections
 

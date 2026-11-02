@@ -32,8 +32,8 @@ An ADR has one of two kinds, set in the `kind` frontmatter key:
 
 | Kind | Records | Properties a reviewer checks |
 |---|---|---|
-| `architecture` | How the system is built: components, platform, state, boundaries. | What the code must do or must never do inside. |
-| `feature` | What the user can do and what the user sees: a command, a mode, an output contract. | What the user observes — each one an E2E check. |
+| `architecture` | How the system is built: components, platform, state, boundaries. | Guarantees observable at the system boundary. |
+| `feature` | What the user can do and what the user sees: a command, a mode, an output contract. | Guarantees observable by the user. |
 
 Sort each candidate into one kind, then run that kind's tests.
 
@@ -48,7 +48,7 @@ A candidate is an architecture ADR only when all four tests pass:
 
 What passes: the main components and their layering; a platform or technology with lock-in (run Terraform in Cloud Run, not in Infrastructure Manager; use Terraform at all); where state and secrets live; a trust or process boundary (no cloud SDK, every cloud call is a CLI); a deliberate deviation from the obvious path.
 
-What fails: a name, a field, a file layout, a function signature, a log format, an error text, a test fixture, a CI step, a value such as a timeout, a scope cut of one TODO. A value or a rule that follows from an ADR becomes a **Property** of that ADR, not a new ADR.
+What fails: a name, a field, a file layout, a function signature, a log format, an error text, a test fixture, a CI step, a value such as a timeout, a scope cut of one TODO. Route a value or rule through the tactical decision table below.
 
 ### Feature tests
 
@@ -61,7 +61,7 @@ A candidate is a feature ADR only when all four tests pass:
 
 What passes: every command that changes state has a `--dry-run` that applies nothing; every destructive command asks first; every command prints one stable `--json` schema; a failed run leaves the target as it was.
 
-What fails: one command's flag, one output's layout, one reply's shape, one provider's fallback order, a help text, a color, the order of log lines, an internal option no user sets. A detail of a recorded feature becomes a **Property** of that feature ADR, not a new ADR.
+What fails: one command's flag, one output's layout, one reply's shape, one provider's fallback order, a help text, a color, the order of log lines, an internal option no user sets. Route a detail of a recorded feature through the tactical decision table below.
 
 Most sessions produce zero ADRs. Say so and stop. A project holds about ten live ADRs of both kinds together. A count far above that means tactical decisions got in.
 
@@ -69,7 +69,7 @@ Most sessions produce zero ADRs. Say so and stop. A project holds about ten live
 
 | Tactical decision | Home |
 |---|---|
-| A rule or a value that follows from a recorded ADR | A Property of that ADR (step 3) |
+| A rule or value that follows from a recorded ADR | A Property only after passing the Property gate; otherwise the spec, TODO, or patterns file |
 | A shape the project repeats across steps — a fallback chain, a retry rule, a delivery format | The project's pattern skill in `.claude/skills/`, one rule per shape. Create the skill when the repo has none. |
 | A choice inside one TODO or one feature | The spec or the TODO, beside the code it shapes |
 | A fact the code shows | Nowhere — the code is its home |
@@ -83,7 +83,7 @@ Read both ADR directories before drafting.
 | Finding | Action |
 |---|---|
 | Recorded and unchanged | Stop. Report the file. |
-| The session adds a rule that follows from a recorded ADR | Add a Property to that ADR: bump `updated`, append a changelog line. No new number. |
+| The session adds a rule that follows from a recorded ADR | Run the Property gate. Add a passing guarantee to that ADR; route a mechanism through the tactical decision table. Bump `updated` and append a changelog line when editing. |
 | The session **refines** a recorded decision | Edit that ADR the same way. |
 | The session **reverses** a recorded decision | Draft a new ADR that names the one it supersedes, then follow the supersession steps in `ADR-FORMAT.md`. |
 | Nothing recorded | Draft a new ADR. |
@@ -105,7 +105,7 @@ Settle a slot from a source when one exists, as `grilling` step 2 says, and cite
 |---|---|---|
 | Reason | "Why X over Y?" | The reason the context points to, marked as your guess, quoting what points to it. |
 | Alternatives | "What else did you consider, and why did it lose?" | The obvious alternative, with the loss reason you infer. |
-| Properties | "While X holds, what must never happen?" — for a feature: "What does the user see, and what must the feature never do?" | Two to four invariants you can check in code or with one E2E run, each one line. |
+| Properties | "What can a caller, user, or operator always count on while X holds?" | Two to four candidate guarantees for the [Property gate](../domain-modeling/ADR-FORMAT.md#property-gate). |
 | Consequences | "What would make you reverse X?" | The fact that breaks the reason. |
 
 An empty Answer slot means the operator accepted the recommendation; record that reason as `(accepted recommendation)`. A candidate whose Reason the operator will not give stays `proposed`.
@@ -127,21 +127,21 @@ Number from the highest number in **both** directories plus one. Copy `TEMPLATE.
 
 Test the title: when it starts with a verb of choice (use, add, move, store, switch to) or names a tool or a product, it names the option. Rewrite it.
 
-**Each title property is backed by at least one Property below.** The title says the quality in general; the Properties make it checkable. "Builds are reproducible and isolated from the host" needs, for example, "P1. The same commit gives the same artifact digest" for reproducible and "P2. A build reads no file outside its context" for isolated. A title property with no Property under it gets one, or leaves the title.
+**Each title property is backed by at least one Property below.** The title says the quality in general; the Properties make it checkable. "Builds are reproducible and isolated from the host" needs, for example, "P1. Identical declared build inputs produce identical artifact digests" for reproducible and "P2. A build reads no file outside its context" for isolated. A title property with no Property under it gets one, or leaves the title.
 
-Write the decision paragraph in one to three sentences: the context, the option chosen, and the reason. Quote the operator's reason. List each Property as `P1.`, `P2.`, … — one invariant a reviewer can check against a diff, cited as `ADR-NNNN/P2`. A Property says what the code must do or must never do; it names no file, no ticket, no plan.
+Write the decision paragraph and Reason using `ADR-FORMAT.md`. Before filling the Properties table, run its [Property gate](../domain-modeling/ADR-FORMAT.md#property-gate) for every candidate. Show the gate worksheet with the draft; keep only the plain guarantees in the ADR.
 
-A feature ADR title names what the user can count on everywhere, such as "Every change is previewable and side-effect free". Its paragraph says who uses the contract, how they start it, and what they get. Its Properties say what the user observes, for example:
+A feature ADR title names what the user can count on everywhere, such as "Every change is previewable and side-effect free". Its paragraph says who uses the contract, how they start it, and what they get. Its candidate Properties say what the user observes. Qualify their conditions through the gate before accepting them:
 
 - P1. Every command that changes state accepts `--dry-run` and prints every create, update, and delete it would make.
 - P2. A `--dry-run` run changes no resource and writes no state.
-- P3. A `--dry-run` run exits non-zero when the real run would fail.
+- P3. A `--dry-run` run exits non-zero when validation of the requested changes fails.
 
-**Completion criterion**: the draft has frontmatter with `status: proposed` and a `kind`, a title that names the properties, passes the title test, and has a Property under each one, the decision paragraph, a quoted reason, at least one Property, and a closing `## Changelog` section.
+**Completion criterion**: the draft follows the template and backs each title quality with a Property. Every Property has a passing gate worksheet row with observables, assumptions, a theorem statement, and a counterexample. Rewrite or move each failed candidate before showing the draft.
 
 ## 6. Ask, then write
 
-Show the full draft and the target path. Write it only after the operator approves the wording; approval sets `status: accepted`. Create the ADR directory with its `TEMPLATE.md` on the first ADR, and add the README *Decisions* pointer at the same time.
+Show the full draft and the target path. Write it only after the operator approves the wording; the operator sets `status: approved`. Create the ADR directory with its `TEMPLATE.md` on the first ADR, and add the README *Decisions* pointer at the same time.
 
 **Completion criterion**: the file exists at the approved path, or the operator declined and nothing was written.
 

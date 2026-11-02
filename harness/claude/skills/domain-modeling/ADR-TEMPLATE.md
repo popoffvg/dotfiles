@@ -17,9 +17,11 @@ Decided by {the operator | the code, for source: auto}, YYYY-MM-DD: {link to the
 
 ## Properties
 
+<!-- Before filling this table, complete ADR-FORMAT.md#property-gate outside the ADR. -->
+
 | Id | Property | If broken | Recovers by |
 |---|---|---|---|
-| P1 | [keep] or [new] {one short guarantee; for a feature, what the user observes} | {what a caller, a user, or an operator sees} | {retry, restart, a human, or itself} |
+| P1 | [keep] or [new] {plain statement of a boundary theorem, preserving its conditions} | {what a caller, a user, or an operator sees} | {retry, restart, a human, or itself} |
 
 <!--
 Optional, only when they add value — placed here, above the changelog:

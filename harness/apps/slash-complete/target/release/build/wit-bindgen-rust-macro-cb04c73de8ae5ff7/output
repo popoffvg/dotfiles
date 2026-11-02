@@ -1,0 +1,2 @@
+cargo:rerun-if-changed=build.rs
+cargo:rustc-env=DEBUG_OUTPUT_DIR=/Users/vitaliipopov/git/dotfiles/harness/apps/slash-complete/target/release/build/wit-bindgen-rust-macro-cb04c73de8ae5ff7/out

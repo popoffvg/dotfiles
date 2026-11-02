@@ -1,0 +1,2 @@
+cargo:rustc-link-lib=static=wit_bindgen_cabi_realloc0_41_0
+cargo:rustc-link-search=native=/Users/vitaliipopov/git/dotfiles/harness/apps/slash-complete/target/wasm32-wasip2/release/build/wit-bindgen-rt-92d33d73efefe428/out
