@@ -5,7 +5,7 @@ description: Blank — rebuild a skill's words from one accepted output when the
 
 # skill-blank
 
-`skill-build` owns the file's shape. This skill owns the words, when those words make a model emit a document.
+`skill-builder` owns the skill. This skill owns the words, when those words make a model emit a document.
 
 1. **Take one accepted output.** Use the output a reader accepted. When a scorer has already graded runs, use its high-scoring output, and take each miss from what it wrote about the low-scoring ones. Done when that text is in hand and every miss names a missing part.
 2. **Replace the skill with a blank of that output.** The slots are the parts of the accepted output, one job each. A line added to the old skill leaves the old shape in place. Done when the accepted output fits the blank with nothing left over and nothing missing, and the old rule list is gone.

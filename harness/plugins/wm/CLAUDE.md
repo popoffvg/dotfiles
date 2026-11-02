@@ -7,7 +7,7 @@ over the gate chain — plus three worker skills reached through them.
 **`INDEX.md` is the map — what is where.** Every skill, every file, and what each one owns. No
 `SKILL.md` restates it; read `INDEX.md` before deciding where something belongs.
 
-Use the `skill-build` skill for changing any skill here.
+Use the `skill-builder` skill to create a skill here.
 
 ## The common layer
 

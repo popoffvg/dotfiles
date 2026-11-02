@@ -2,7 +2,7 @@
 
 ## Golden words
 
-A golden word stands for the public form of a rule block; the house rules beside it stay written out (`skill-build:references/golden-words.md`). One row per word in use. `Tier` is the reader `model:` it passed on, `Model id` the resolved id at that date; the row is stale once the alias moves, and `evals/run-golden-words.sh` re-checks it.
+A golden word stands for the public form of a rule block; the house rules beside it stay written out. One row per word in use. `Tier` is the reader `model:` it passed on, `Model id` the resolved id at that date; the row is stale once the alias moves, and `evals/run-golden-words.sh` re-checks it.
 
 | Word | Stands for | Used by | Tier | Model id | Checked |
 |---|---|---|---|---|---|

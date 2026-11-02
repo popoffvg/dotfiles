@@ -263,7 +263,7 @@
     "default_model": {
       "effort": "MEDIUM",
       "provider": "zed.dev",
-      "model": "gemini-3.5-flash",
+      "model": "gemini-3.8-flash",
       "enable_thinking": true,
     },
     "favorite_models": [
