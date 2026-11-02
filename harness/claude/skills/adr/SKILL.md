@@ -123,9 +123,9 @@ Test the title: when it starts with a verb of choice (use, add, move, store, swi
 
 **Each title property is backed by at least one Property below.** The title says the quality in general; the Properties make it checkable. "Builds are reproducible and isolated from the host" needs, for example, "P1. The same commit gives the same artifact digest" for reproducible and "P2. A build reads no file outside its context" for isolated. A title property with no Property under it gets one, or leaves the title.
 
-Write the decision paragraph in one to three sentences: the context, the option chosen, and the reason. Quote the operator's reason. List each Property as `P1.`, `P2.`, …, cited as `ADR-NNNN/P2`: one guarantee the system keeps, at the level of the title. It names no file, no ticket, no plan.
+Write the decision paragraph in one to three sentences: the context and the option chosen. Write the reason under `## Reason` as a Y-statement with a provenance line ([ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#reason)). Write the Properties as the table of [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#properties), one guarantee per row at the level of the title, and keep every mechanism out of the ADR.
 
-**Run the three rules of [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#properties) on each Property: the black box, the option test, and the `[keep]` or `[new]` mark.** Then run the [`and-what`](../and-what/SKILL.md) skill on each Property, and write its result as a quote line under the Property (the format is in [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#properties)). Drop a Property whose impact is `none`. A line that only the chosen option keeps is a consequence: move it into the paragraph or `## Consequences`.
+**Run the three rules of [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md#properties) on each Property: the black box, the option test, and the `[keep]` or `[new]` mark.** Then run the [`and-what`](../and-what/SKILL.md) skill on each Property to fill its `If broken` and `Recovers by` cells. A line that only the chosen option keeps is a consequence: move it into the paragraph or `## Consequences`.
 
 | Consequence or test assertion | Property — the guarantee |
 |---|---|
@@ -137,14 +137,13 @@ Write the decision paragraph in one to three sentences: the context, the option 
 
 A feature ADR title names what the user can count on, such as "Deploy previews are complete and side-effect free". Its paragraph says who uses the feature, how they start it, and what they get. Its Properties say what the user observes, for example:
 
-- P1. [new] `deploy --dry-run` prints every create, update, and delete that `deploy` would make.
-  > and-what: `outage` — the user approves a plan that hides a delete, and a resource disappears — recovers by a human.
-- P2. [new] `deploy --dry-run` changes no resource and writes no state.
-  > and-what: `data` — a preview changes live infrastructure that nobody approved — recovers by a human.
-- P3. [new] `deploy --dry-run` exits non-zero when `deploy` would fail.
-  > and-what: `retry` — the preview passes, the real deploy fails, and the user fixes it and runs again — recovers by retry.
+| Id | Property | If broken | Recovers by |
+|---|---|---|---|
+| P1 | [new] `deploy --dry-run` prints every create, update, and delete that `deploy` would make. | The user approves a plan that hides a delete, and a resource disappears. | a human |
+| P2 | [new] `deploy --dry-run` changes no resource and writes no state. | A preview changes live infrastructure that nobody approved. | a human |
+| P3 | [new] `deploy --dry-run` exits non-zero when `deploy` would fail. | The preview passes, the real deploy fails, and the user runs it again. | retry |
 
-**Completion criterion**: the draft has frontmatter with a `kind` and no `status`, a title that names the properties, passes the title test, and has a Property under each one, the decision paragraph, a quoted reason, at least one Property, no Property that fails the option test, an and-what quote under each Property, and a closing `## Changelog` section.
+**Completion criterion**: the draft has frontmatter with `status: proposed` and a `kind`, a title that names the properties, passes the title test, and has a Property under each one, the decision paragraph, a quoted reason, at least one Property, no Property that fails the option test, an `If broken` and a `Recovers by` cell in each Property row, no mechanism paragraph, and a closing `## Changelog` section.
 
 ## 6. Ask, then write
 

@@ -18,7 +18,7 @@ parent project. `jj -R . log` is the history.
 | `RULES.md` | What to raise with the human at each step, and what to decide alone | `/code new` Step 0.6 |
 | `PATTERNS.md` | Implementation patterns + reference files the increments follow — for the implementer, not the human | `/code new` Step 0, then any subcommand that finds a pattern |
 | `CONCEPTS.md` | App architecture, data flow, and the flow this work changes — every diagram, drawn with `show-me` | `/code new` Step 0, when there is structure to draw |
-| `adr/` | `NNNN-slug.md` — one ADR per decision; a file here is live, and `status: approved` is set by the operator alone | every phase, with the `adr` skill |
+| `adr/` | `NNNN-slug.md` — one ADR per topic; a file here is live, and `status: approved` is set by the operator alone | every phase, with the `adr` skill |
 | `QUESTIONS.md` | One `## <slug>` section per open question; the spec is not ready while it has one | every phase; an answer deletes its section |
 | `adr/archived/` | Deprecated and superseded ADRs — kept for the trail | a hook, on any ADR that stops being live |
 | `todos/` | `CLAUDE.md` (the pair convention) + `TODO-N.md` + `TODO-N.agent.md` + `TODO-N.test.md` — one self-contained row per ledger row: the human half (Outcome, Delivers, New terms, Components, Surface, Flow changes, Increments, Commit), the test file (Autotest), and the agent half (Files, Pre-reads, Manual test) | `/code new` (the folder + `CLAUDE.md`), `/code todo` (the pairs) |
@@ -47,15 +47,17 @@ Ignore `adr/archived/` unless you are auditing history. Those ADRs were deprecat
   `jj -R <notes-dir> commit -m "<phase>: <main ideas>"` — a TODO, an ADR, `spec.md`, or
   `GLOSSARY.md` edit is not done until it is committed. The message says why, not which files.
   A Stop hook blocks the turn while changes are uncommitted.
-- **Record every decision as an ADR with the `adr` skill, after the human approves it.** A new ADR
-  is `proposed`; only the human sets `status: approved`, and no TODO is implemented before every
+- **One ADR per topic: a component, a contract, or a process.** A decision, a review fix, or an
+  edge case on a topic that a live ADR covers becomes the next Property of that ADR. Write a new ADR
+  with the `adr` skill only when no live ADR covers the topic, after the human approves it. Merge
+  the ADRs before a phase passes 15 live ADRs. A new ADR is `proposed`; only the human sets `status: approved`, and no TODO is implemented before every
   live ADR has it. An open question is a section of `QUESTIONS.md`, never an ADR; the answer becomes
   an ADR and deletes the section. Never ask the same question in two sections.
 - **Refine in place, reverse by supersede.** A new or reworded Property edits the ADR: bump
   `updated`, append a changelog line. A reversal is a new ADR that names the old one; the old one
   gets the changelog line `Superseded by [ADR-NNNN](../NNNN-slug.md)`, and a hook moves it to
-  `adr/archived/`. Never renumber a
-  Property; mark a dropped one `(dropped YYYY-MM-DD: <reason>)`.
+  `adr/archived/`. Never renumber or reuse a
+  Property number; delete a dropped row and name its number in the changelog line.
 - **A fact lives in `research/`** with its source. An ADR that rests on it links that file.
 - **Decisions are not spec sections.** `spec.md` has no `Design Decisions` and no
   `Open Questions` — both live in `adr/`.

@@ -30,7 +30,7 @@ todo: TODO-3              # kind: implementation only, and required there
 ```
 
 - `kind: implementation` is a choice made while writing one TODO. It requires `todo: TODO-N`, the ledger row it binds. `architecture` and `feature` ADRs MUST NOT carry `todo:`. The limits of the `adr` skill ("most sessions produce zero ADRs", "about ten live architecture ADRs") apply to `architecture` only.
-- `source: auto` means the code or a research artifact forced the choice and nobody was asked. Its `## Reason` cites the `file:line` or the research file instead of an operator quote. A reviewer reads `auto` ADRs first.
+- `source: auto` means the code or a research artifact forced the choice and nobody was asked. The provenance line of its `## Reason` says `Decided by the code` and cites the `file:line` or the research file. A reviewer reads `auto` ADRs first.
 
 ## Status
 
@@ -38,15 +38,15 @@ An ADR status is `proposed` or `approved`. A missing `status` key reads as `prop
 
 - An agent MUST NOT write, change, or delete the `status` line. The operator sets `approved` in the editor after reading the ADR. The `adr-status-guard.py` hook blocks an agent edit that changes the status.
 - An agent MUST NOT edit an approved ADR. To refine, supersede, or deprecate one, ask the operator to set it back to `proposed` first. The hook blocks the edit until then.
-- A new ADR is `proposed`: write no `status` line.
+- A new ADR is `proposed`: write `status: proposed`, as the template does.
 - No TODO is implemented while a live ADR is `proposed`. `~/.claude/scripts/wm-constraints.py <notes-dir>/adr --unapproved` lists them and exits 4. `impl` step 2, the `wm-code-impl` workflow, and the `spec.md` → `status: impl` gate in `guard.sh` all stop on it.
 - A `proposed` ADR still gives its rules: the rule table marks them `[proposed]`.
 
 ## Properties are the rules
 
-Each Property of a live ADR is one rule, id `ADR-NNNN/Pn`, text = the Property line verbatim. `wm-constraints.py` prints the rules (`ref-todo-sections.md` § Constraints).
+Each Property of a live ADR is one rule, id `ADR-NNNN/Pn`, text = the `Property` cell of its table row verbatim (a `- Pn.` list line in an older ADR). `wm-constraints.py` prints the rules (`ref-todo-sections.md` § Constraints).
 
-**Properties are never renumbered.** A dropped Property stays in place as `- P3. (dropped YYYY-MM-DD: <reason>)`, so an old citation still resolves. The generator skips it.
+**Properties are never renumbered, and a number is never reused.** A dropped Property leaves the table; the changelog line names its number and the reason, so an old citation still resolves through the history. The table keeps the gap.
 
 ## An open question is a section of QUESTIONS.md
 
@@ -65,7 +65,7 @@ A change that keeps the chosen option is a refinement. A change of the chosen op
 | Change | Action |
 |---|---|
 | Add or refine a Property | Edit the ADR. Bump `updated`, append a changelog line. |
-| Drop a Property | Mark it dropped in place (§ Properties are the rules). |
+| Drop a Property | Delete its row and name it in the changelog line (§ Properties are the rules). |
 | Reverse the decision | First write a new ADR that names the old one in its opening paragraph. Then bump `updated` on the old one and append the changelog line `Superseded by [ADR-NNNN](../NNNN-slug.md)`. The hook archives it. |
 | Drop the decision, nothing replaces it | Bump `updated` and append the changelog line `Deprecated: <reason>`. The hook archives it. |
 | Rename a term | Run `~/.claude/scripts/rename-token.sh`. |

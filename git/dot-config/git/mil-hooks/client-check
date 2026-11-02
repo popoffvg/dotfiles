@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+# Usage: client-check staged | message <file> | files <path>...
+# Skip: MIL_CLIENT_CHECK=0 skips all, MIL_CLIENT_CHECK=grep skips Haiku; `git config mil.clientCheck false` skips one repo.
+set -euo pipefail
+
+mode=${1:?usage: client-check staged | message <file> | files <path>...}
+shift
+export CLIENT_CHECK_MODE=$mode
+level=${MIL_CLIENT_CHECK:-1}
+[ "$level" = 0 ] && exit 0
+[ "$(git config --bool mil.clientCheck 2>/dev/null || echo true)" = false ] && exit 0
+
+here=$(cd "$(dirname "$0")" && pwd)
+client_names=${MIL_CLIENT_NAMES:-$HOME/git/mil/client-names.txt}
+state=${XDG_CACHE_HOME:-$HOME/.cache}/mil-client-check
+chunk_bytes=60000
+mkdir -p "$state/verdicts"
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+
+write_payload() {
+  case "$mode" in
+  staged)
+    git diff --cached --no-color --no-ext-diff --unified=0 --diff-filter=ACMR -- . \
+      ':(exclude,glob)**/*.lock' ':(exclude,glob)**/package-lock.json' ':(exclude,glob)**/pnpm-lock.yaml' ':(exclude,glob)**/go.sum' |
+      perl -ne '
+        if (/^diff --git /) { $header = 1; next }
+        if ($header && /^\+\+\+ b\/(.*)$/) { print "== $1\n"; next }
+        if (/^@@/) { $header = 0; next }
+        print substr($_, 1) if !$header && /^\+/;
+      '
+    ;;
+  message)
+    printf '== commit message\n'
+    grep -v '^#' "${1:?message file}"
+    ;;
+  files)
+    for f in "$@"; do
+      grep -Iq . "$f" 2>/dev/null || continue
+      printf '== %s\n' "$f"
+      cat "$f"
+    done
+    ;;
+  *)
+    echo "client-check: unknown mode $mode" >&2
+    exit 2
+    ;;
+  esac
+}
+
+scan_terms() {
+  perl -e '
+    open my $t, "<", shift @ARGV or exit 0;
+    my @terms = grep { length && !/^#/ } map { chomp; s/^\s+|\s+$//gr } <$t>;
+    exit 0 unless @terms;
+    my $alt = join "|", map { quotemeta } sort { length $b <=> length $a } @terms;
+    my $re = qr/(?<![A-Za-z0-9])($alt)(?![A-Za-z0-9])/i;
+    my ($path, $line) = ("?", 0);
+    my $with_line = $ENV{CLIENT_CHECK_MODE} eq "files";
+    while (<>) {
+      if (/^== (.*)$/) { ($path, $line) = ($1, 0); next }
+      $line++;
+      my $where = $with_line ? "$path:$line" : $path;
+      print "$where: \"$1\" — a known client name\n" while /$re/g;
+    }
+  ' "$client_names" "$1" | sort -u -t: -k1,1 -k2,2n
+}
+
+ask_haiku() {
+  local payload=$1
+  perl -e '
+    my ($limit, $prefix) = @ARGV[0, 1];
+    my ($n, $size, $out) = (0, 0);
+    open STDIN, "<", $ARGV[2] or die;
+    while (<STDIN>) {
+      if (!$out || ($size > $limit && /^== /) || $size > 4 * $limit) {
+        close $out if $out;
+        open $out, ">", sprintf("%s%03d", $prefix, $n++) or die;
+        $size = 0;
+      }
+      print $out $_;
+      $size += length;
+    }
+  ' "$chunk_bytes" "$work/chunk." "$payload"
+  local prompt
+  prompt=$(cat "$here/prompt.md")
+  export prompt
+  # shellcheck disable=SC2016
+  ls "$work"/chunk.* | xargs -P 8 -I{} sh -c '
+    CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 claude -p --model haiku --tools "" --setting-sources "" \
+      --strict-mcp-config --disable-slash-commands --no-session-persistence \
+      --system-prompt "$prompt" <"$1" >"$1.out" 2>"$1.err" || echo "claude exited $?" >>"$1.err"
+  ' _ {}
+  local verdict=0 chunk
+  for chunk in "$work"/chunk.???; do
+    case "$(head -1 "$chunk.out" 2>/dev/null | tr -d '[:space:]')" in
+    PASS) ;;
+    FAIL)
+      tail -n +2 "$chunk.out" | grep -v '^CLIENT:' || true
+      grep '^CLIENT:' "$chunk.out" | sed 's/^CLIENT:[[:space:]]*//' >>"$work/new-clients" || true
+      verdict=1
+      ;;
+    *)
+      echo "client-check: Haiku gave no verdict: $(head -c 300 "$chunk.out" "$chunk.err" 2>/dev/null | tr '\n' ' ')"
+      verdict=1
+      ;;
+    esac
+  done
+  [ -s "$work/new-clients" ] && add_client_names "$work/new-clients"
+  return "$verdict"
+}
+
+add_client_names() {
+  perl -e '
+    my ($list, $found) = @ARGV;
+    my %known;
+    if (open my $l, "<", $list) { $known{lc s/^\s+|\s+$//gr} = 1 for map { chomp; $_ } <$l> }
+    open my $f, "<", $found or die;
+    open my $out, ">>", $list or die "client-check: cannot write $list\n";
+    while (<$f>) {
+      chomp;
+      s/^\s+|\s+$//g;
+      next if length($_) < 2 || $known{lc $_}++;
+      print $out "$_\n";
+      print STDERR "client-check: added \"$_\" to $list\n";
+    }
+  ' "$client_names" "$1"
+}
+
+write_payload "$@" >"$work/payload"
+grep -q -v '^== ' "$work/payload" || exit 0
+
+key=$(cat "$work/payload" "$client_names" "$here/prompt.md" <(echo "$level") 2>/dev/null | shasum -a 256 | cut -c1-40)
+verdict_file="$state/verdicts/$key"
+if [ ! -f "$verdict_file" ]; then
+  {
+    status=0
+    findings=$(scan_terms "$work/payload")
+    [ -n "$findings" ] && { echo "$findings"; status=1; }
+    if [ "$status" = 0 ] && [ "$level" != grep ] && [ "$mode" != message ]; then
+      ask_haiku "$work/payload" || status=1
+    fi
+    echo "status=$status"
+  } >"$verdict_file.$$" 2>&1
+  if grep -q 'Haiku gave no verdict' "$verdict_file.$$"; then
+    mv "$verdict_file.$$" "$work/verdict"
+    verdict_file=$work/verdict
+  else
+    mv "$verdict_file.$$" "$verdict_file"
+  fi
+fi
+
+if [ "$(tail -1 "$verdict_file")" = status=0 ]; then
+  exit 0
+fi
+{
+  echo "client-check: the $mode content may hold client data:"
+  sed '$d' "$verdict_file" | sed 's/^/  /'
+  echo "Remove it, or commit with MIL_CLIENT_CHECK=0 when every finding is a false hit."
+} >&2
+exit 1

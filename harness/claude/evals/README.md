@@ -3,7 +3,7 @@
 | Runner | Cases | Grades |
 |---|---|---|
 | `run-grilling-rounds.sh` | `cases-grilling-rounds.jsonl` | **The pain.** The `grilling` skill writes whole real rounds; the runner counts the needless questions and the missed ones. |
-| `run-adr-properties.sh` | `cases-adr-properties.jsonl`, `cases-adr-properties-write.jsonl` | The ADR Property rules in `domain-modeling/ADR-FORMAT.md`: a Property is a general rule a user can rely on, not an implementation detail. |
+| `run-adr-properties.sh` | `cases-adr-properties.jsonl`, `cases-adr-properties-write.jsonl`, `cases-adr-file.jsonl` | The ADR Property rules in `domain-modeling/ADR-FORMAT.md`: a Property is a general rule a user can rely on, not an implementation detail. |
 | `run-grilling.sh` | `cases-grilling.jsonl` | Diagnostic only. One open point at a time, with the labels named in the prompt. It cannot tell a good skill from a bad one. |
 
 `lib-grilling.sh` holds what both runners share: the skill text at a git revision, the judge call, and the job limit.
@@ -131,11 +131,12 @@ Env: `MODEL`, `SKILL_REV`, `JOBS`, `THRESHOLD` (default 0.85), `MAX_OVER_ASK` (d
 
 The user wants each ADR Property to be a general rule that a caller, a user, or an operator can rely on, such as "a huge file uploads in parallel" or "every upload can be cancelled". A method list, an error value, a mechanism, or a source citation is an implementation detail. The suite grades `ADR-FORMAT.md` § Properties, which the `adr` skill applies.
 
-- **`classify`** — 28 lines. Gold `reject` lines are the drafts the user rejected in the MILAB-7260 session. Gold `property` lines are the user's own examples and the lines that follow them. The model also gives the `[keep]` or `[new]` mark.
+- **`classify`** — 48 lines. Gold `reject` lines are the drafts the user rejected in the MILAB-7260 sessions; 20 of them come from the phase 2 rewrite, where the user ruled that every Property must be a Lean theorem over the black box. Gold `property` lines are the user's own examples and the lines that follow them. The model also gives the `[keep]` or `[new]` mark.
 - **`write`** — 7 decisions from five domains. The model writes a whole `## Properties` section. `check-adr-properties.py` checks the format, the evidence words, the order, and the coverage of the title's qualities. A judge that does not see the skill labels each line a general rule or an implementation detail.
+- **`file`** — 4 session records (three from MILAB-7260 phase 2, one feature). The model writes a whole ADR from `ADR-FORMAT.md` and `ADR-TEMPLATE.md`. `check-adr-file.py` checks `status: proposed`, the title test, one decision paragraph with no bold sub-decision, a Y-statement Reason with a `Decided by` line and no quote, the four-column Property table with no dropped row, short Property cells with no mechanism or evidence, and the coverage. The same Lean judge grades each Property cell. Positive control: the rewritten phase 2 ADRs pass `check-adr-file.py`; negative control: an archived old ADR fails 7 checks.
 
 ```sh
-./run-adr-properties.sh                        # both suites, current rules
+./run-adr-properties.sh                        # all three suites, current rules
 SKILL_REV=2476e753^ ./run-adr-properties.sh    # the control: the rules before the session
 ./run-adr-properties.sh -s write -v            # one suite; print each written section
 ```

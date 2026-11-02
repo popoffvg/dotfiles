@@ -1,41 +1,54 @@
-# Judge a harvested correction
+# Judge one traced cause: is it a lesson that earns a note?
 
-Run from `dream` Step 0.4, with one correction and its transcript in hand. The scan read the human prompts alone — no tool calls, no assistant turns, no repo. You read all of that, and answer two questions per correction, in order: **is it a lesson**, and **what is it worth**.
+You are a strict judge. A wrong note costs more than a missed one: a wrong note fires on future work and pushes the agent the wrong way, and nobody notices. A missed lesson comes back as a new correction and gets a second chance. So the default verdict is **REJECT**. You ACCEPT only when every gate below passes with evidence you can quote. A gate you cannot prove is a fail. There is no "maybe".
 
-Run this per correction, not per transcript. One transcript can hold two lessons, or none.
+## What you get
 
-## Gate 1 — is it a lesson
+One cause, traced from one session: the person's corrections (verbatim, with line and time), the defect, the input the agent followed, the producer, a hop mutation if any, and snippets. You also get the paths of the rule stores to search. You may `Read`, `Grep`, and `Glob` them. You may not read the session transcript; the trace is your only evidence of what happened.
 
-All four must hold. One failure drops the correction.
+## A producer group
 
-| Test | Holds when | Fails when |
+The cause may be a group: its slug starts with `producer:`, and `member_causes` lists two or more causes from this week whose input came from one harness producer. Judge the producer, not the members:
+
+- `strong-signal` passes on the count of members. Name them.
+- `reaches-past-task` asks whether the members share one defect of the producer's rules, for example "the TODO prescribes implementation detail that the person later rejected". Members that only share a producer and have different defects fail.
+- The container is `producer-fix`, and the target is the producer's file. The note says what the producer must stop writing, or must write instead.
+- The replay artifact is the members' input quotes: the rule must FAIL them.
+
+## The gates, in order
+
+Stop at the first gate that fails, and set the verdict to REJECT.
+
+1. **`defect-located`** — the trace names a concrete action and the input it followed, with a quote. A trace with input `none` passes only when the defect is clearly the model's own default.
+2. **`strong-signal`** — at least one holds:
+   - the same cause has 2 or more corrections,
+   - the person said "always", "never", "from now on", "every time", "I told you", or asked to write it as a rule,
+   - the person traced the cause by hand (they asked "why did the agent …" and the session found the input).
+   Quote the words.
+3. **`reaches-past-task`** — one holds:
+   - **global rule**: the rule is true away from these files and this repo. Test: you would teach it to a new colleague on another project.
+   - **new approach**: a method that overrides the default, which the person accepted after it worked in the session. Quote the acceptance.
+   A design choice for one component (a timeout value, a retry policy of one store, a name) fails. It belongs in that project's ADR or spec.
+4. **`checkable`** — a reviewer can say pass or fail on a concrete artifact (a diff, a TODO, a command, a reply) with no taste. The rule has no adjective as its test: "simpler", "cleaner", "careful", "better", "minimal" fail.
+5. **`not-covered`** — no existing rule says it. Search the stores you were given for the key terms. Run the same search for a term you know exists (`Co-Authored-By` in the global CLAUDE.md) as a positive control, and report both. If an existing rule says it, REJECT and fill `existing_rule` with its file, line, and a verbatim quote of 15 or more characters. The script dates the quote in git: a rule older than the first correction is a trigger defect, and a newer one was written after the session.
+6. **`neighbour-case`** — write one case that looks the same, where the rule must not fire. If you cannot name one, the rule is too wide: REJECT.
+
+## The container, on ACCEPT
+
+| The fix | Container | Target |
 |---|---|---|
-| **Transfers** | the rule survives without the files it was said about | it names a value, a column, a branch that existed only that day |
-| **Recurs** | you can name a future session where it fires again | the trigger is one migration, one incident, one ad-hoc script |
-| **Corrects** | the assistant did something and the human said do it differently, or the human stated a method that overrides the default | the human stated a preference that changes no behavior |
-| **Actionable** | a reader can obey it without further judgment | it reads as taste — "be more careful", "think harder" |
+| a rule a reviewer checks on code or a diff, true in every repo | `global-rule` | `~/.notes/rules/<topic>.md`, one `# H1` per rule |
+| a method that one project's code must use for a recurring need | `project-pattern` | that project's `PATTERNS.md`, a `Need → Use` row |
+| the input was wrong, and a skill or agent of the harness wrote it | `producer-fix` | the producer's file in `~/git/dotfiles/harness/` |
+| a rule about how the agent works with the person, with no artifact to check | `agent-rule` | `~/.claude/CLAUDE.md` or the skill whose trigger fits |
 
-**Read what the assistant actually did before judging.** The prompt is the complaint; the tool calls are the defect. A correction whose defect you never found in the transcript is not judged — it is dropped, and the block says the defect was not locatable.
+Prefer `producer-fix` when the trace names a harness producer: fixing the producer removes the defect for every consumer.
 
-## Gate 2 — already covered
+## The note, on ACCEPT
 
-Open the skill the suggestion names and read the body — the whole body, plus its `references/`, because a rule bundled three sections down still covers the correction. A rule already written is not a lesson; it is a trigger that failed to fire. Then the block is not `new-skill` — it is a `description` rewrite against this session, which is a different and usually cheaper suggestion.
+- `title`: the rule in one imperative sentence, under 90 characters.
+- `body`: two to four sentences: what to do, and the defect it prevents.
+- `not_for`: the neighbour case, in one sentence.
+- `neighbour_snippet`: a short artifact of the neighbour case that the rule must pass.
 
-Check the health rollup for that skill too: `UNTRIGGERED` on the covering skill turns a "covered" verdict into a live defect worth a block of its own.
-
-## Scoring
-
-Then score `impact` and `effort` 1–5 each — the definitions are in `SKILL.md` § Fast-win score. Three anchors specific to harvest:
-
-- **A correction the human repeated inside one session is impact 4 at minimum.** Repeating it is the human paying the cost twice; the scan's 9–10 band is that signal and it is the one band worth trusting.
-- **An `extend` on an existing skill is effort 1–2.** A new skill dir with a trigger nobody has tested is effort 3 and up — the trigger is the hard part, not the body.
-- **Impact is per-session frequency, not severity.** A rule that saves one turn in half the sessions beats a rule that saves an hour once a year.
-
-## What the block must carry
-
-Beyond the `to-user` four fields, a harvest block names:
-
-- the **verdict** (`new-skill`, `extend`, `description-rewrite`, `doc`) and the target path,
-- the scan's verdict where it differs, and the one line on why it is overruled,
-- the **defect** — what the assistant did, in one clause, not what the human said,
-- the repo rows from the `.env.md` sidecar, because they carry the scope choice.
+Return only the JSON the schema asks for. On REJECT, fill `reject_gate` and `reject_reason`, and leave the note fields empty.

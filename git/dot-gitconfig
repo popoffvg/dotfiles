@@ -59,3 +59,7 @@
 	directory = *
 [pager]
 	log = less -FRX
+[includeIf "gitdir:~/git/mil/"]
+  path = ~/Documents/git/mil/.gitconfig
+[includeIf "gitdir:~/git/mil/"]
+  path = ~/.config/git/mil-hooks/gitconfig

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Usage: install-local [root]
+# A repo-local core.hooksPath (husky) hides the mil hooks dir. Move it to mil.chainHooksPath, so dispatch runs it.
+# Run it again after `npm install` or `pnpm install`: husky sets core.hooksPath again.
+set -euo pipefail
+
+root=${1:-$HOME/git/mil}
+ours=$HOME/.config/git/mil-hooks
+
+find "$root" -maxdepth 5 -name .git -not -path '*/node_modules/*' 2>/dev/null |
+  while read -r dotgit; do
+    git -C "$(dirname "$dotgit")" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true
+  done | sort -u |
+  while read -r common; do
+    local_path=$(git --git-dir="$common" config --local --get core.hooksPath || true)
+    [ -z "$local_path" ] && continue
+    case "$local_path" in "$ours" | "~/.config/git/mil-hooks") continue ;; esac
+    git --git-dir="$common" config --local mil.chainHooksPath "$local_path"
+    git --git-dir="$common" config --local --unset core.hooksPath
+    echo "install-local: $common chains to $local_path"
+  done
+
+if [ -d "$root/customer-ssot" ]; then
+  git -C "$root/customer-ssot" config --local mil.clientCheck false
+  echo "install-local: customer-ssot skips the client check"
+fi

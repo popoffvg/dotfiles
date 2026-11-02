@@ -281,7 +281,7 @@ def check_rules(notes, f):
             "is not proposed or approved": "ask the operator to set status: proposed or approved; the agent never writes the status",
             "has a ## Question section": "move the question to QUESTIONS.md and delete the ADR, or answer it and delete the section",
             "is not architecture, feature": "set kind to architecture, feature, or implementation",
-            "no Property": "add at least one `- Pn.` line under `## Properties`",
+            "no Property": "add at least one `| Pn | ... |` row to the table under `## Properties`",
             "with no todo:": "add `todo: TODO-N` to the frontmatter",
             "with a todo:": "remove the todo: key, or set kind: implementation",
         }

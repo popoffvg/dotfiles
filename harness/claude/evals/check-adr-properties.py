@@ -6,7 +6,7 @@ import json
 import re
 import sys
 
-LINE = re.compile(r"^- P(\d+)\. \[(keep|new)\] (\S.*)$")
+LINE = re.compile(r"^\| P(\d+) \| \[(keep|new)\] ((?:[^|\\]|\\.)+?) \|(?:[^|\\]|\\.)+\|(?:[^|\\]|\\.)+\|$")
 BANNED = [
     ("link", re.compile(r"\]\(")),
     ("file:line", re.compile(r"\b[\w./-]+\.\w+:\d+")),
@@ -17,7 +17,7 @@ BANNED = [
 def main() -> int:
     text = open(sys.argv[1], encoding="utf-8").read()
     must = json.loads(sys.argv[2])
-    props = [l for l in text.splitlines() if l.startswith("- P")]
+    props = [l for l in text.splitlines() if re.match(r"^\| P\d", l)]
     if not props:
         print("no Property line")
         return 0

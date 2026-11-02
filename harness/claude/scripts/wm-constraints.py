@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the rules of a wm corpus from the Properties of its live ADRs.
 
-One rule per Property line `- Pn. ...` of an ADR in `<notes-dir>/adr/`. Every live ADR
+One rule per Property of an ADR — a table row `| Pn | <Property> | ... |`, or a list line `- Pn. ...` — in `<notes-dir>/adr/`. Every live ADR
 binds. The rule id is `ADR-NNNN/Pn` and the rule text is the Property.
 A dropped Property and an archived ADR give no rule.
 
@@ -25,6 +25,8 @@ DEFAULT_DIRS = (".notes/adr", "_notes/adr", "adr")
 KINDS = ("architecture", "feature", "implementation")
 STATUSES = ("proposed", "approved")
 PROPERTY = re.compile(r"^-\s+P(\d+)\.\s*(.*)$")
+PROPERTY_ROW = re.compile(r"^\|\s*P(\d+)\.?\s*\|(.*)$")
+CELL_SPLIT = re.compile(r"(?<!\\)\|")
 DROPPED = re.compile(r"^\(dropped\b", re.IGNORECASE)
 
 
@@ -72,6 +74,11 @@ def section(text: str, name: str) -> list[str]:
 def properties(text: str) -> list[dict[str, object]]:
     out: list[dict[str, object]] = []
     for line in section(text, "Properties"):
+        row = PROPERTY_ROW.match(line.strip())
+        if row:
+            body = CELL_SPLIT.split(row.group(2))[0].replace("\\|", "|").strip()
+            out.append({"n": int(row.group(1)), "text": body, "dropped": bool(DROPPED.match(body))})
+            continue
         m = PROPERTY.match(line.strip())
         if m:
             body = m.group(2).strip()

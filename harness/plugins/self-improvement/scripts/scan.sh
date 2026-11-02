@@ -6,6 +6,7 @@
 #                          ones (default 2)
 #   scan.sh --all          no budget on either stage — the catch-up run
 #   scan.sh --no-suggest   score only
+#   scan.sh --no-judge     score and suggest, but no cause trace and judge
 #   scan.sh --dry-run      print the plan and change nothing
 #
 # This script *is* the daemon. It holds nothing in memory, is safe to kill at any
@@ -24,10 +25,12 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 dry_run=false
 budget=$scan_max
 suggest_budget=$suggest_max
+judge_budget=$judge_max
 for arg in "$@"; do
   case "$arg" in
-    --all)          budget=1000000; suggest_budget=1000000 ;;
+    --all)          budget=1000000; suggest_budget=1000000; judge_budget=1000000 ;;
     --no-suggest)   suggest_budget=0 ;;
+    --no-judge)     judge_budget=0 ;;
     --dry-run)      dry_run=true ;;
     *) printf 'unknown flag: %s\n' "$arg" >&2; exit 2 ;;
   esac
@@ -109,10 +112,28 @@ if [ "$suggest_budget" -gt 0 ]; then
     | sort -t"$(printf '\t')" -k2,2nr)
 fi
 
+# Third stage: trace each kept session's corrections to their cause, judge each
+# cause strictly, and replay each accepted note against its own defect. A session
+# is judged again when its watermark moved past the last judged mark. Newest
+# first; the producer groups across sessions are /dream's job (judge-week.py).
+judged=0
+if [ "$judge_budget" -gt 0 ]; then
+  while IFS=$'\t' read -r _updated id; do
+    [ "$judged" -lt "$judge_budget" ] || break
+    "$scripts_dir/judge-session.py" "$id" >/dev/null 2>&1 || log "scan: judge failed for $id"
+    judged=$((judged + 1))
+  done < <(jq -r --argjson keep "$keep_score" --arg since "$judge_since" '
+      select((.session | startswith("agent-") | not)
+             and (.updated // "") >= $since
+             and (.score // 0) >= $keep
+             and ((.judged_mark // -1) < (.watermark // 0)))
+      | [.updated, .session] | @tsv' "$records_dir"/*.json 2>/dev/null | sort -r)
+fi
+
 # Health pass: mechanical extraction, no model calls, own lock and watermark.
 # Runs last so a killed scan has already advanced every scoring watermark, and
 # its failure never blocks scoring.
 "$scripts_dir/health-collect.py" 2>/dev/null || log "scan: health-collect failed"
 
 pending=$(awk -F'\t' '$1 == "score"' "$plan" | wc -l | tr -d ' ')
-log "scan: scored=$scored quiet=$quiet reaped=$reaped suggested=$suggested pending=$((pending - examined))"
+log "scan: scored=$scored quiet=$quiet reaped=$reaped suggested=$suggested judged=$judged pending=$((pending - examined))"

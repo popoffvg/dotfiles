@@ -55,6 +55,12 @@ suggest_max=${SELF_IMPROVE_SUGGEST_MAX:-2}
 # change. Scoring is high-volume and mechanical; this is low-volume and the part
 # whose quality the user actually reads.
 suggest_model=${SELF_IMPROVE_SUGGEST_MODEL:-sonnet}
+# Sessions per scan that get the cause trace, the strict judge, and the replay.
+# Each costs about 3 min and $2 (measured over 18 sessions, 2026-10-26..30).
+judge_max=${SELF_IMPROVE_JUDGE_MAX:-2}
+# Older kept sessions are not judged unless this date moves back: about $2 each.
+judge_since=${SELF_IMPROVE_JUDGE_SINCE:-2026-10-26}
+verdicts_dir=${SELF_IMPROVE_VERDICTS_DIR:-$self_improve_root/verdicts}
 
 plugin_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 scripts_dir="$plugin_root/scripts"

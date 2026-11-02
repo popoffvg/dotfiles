@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Grade the ADR Property rules in domain-modeling/ADR-FORMAT.md § Properties.
 #
-# Two suites:
+# Three suites:
 #   classify — the model reads one candidate line and says "property" or "reject", and gives
 #              the [keep] or [new] mark. Gold labels come from the user's corrections.
+#   file     — the model writes a whole ADR from a session record. check-adr-file.py checks the
+#              frontmatter, the title, the paragraph, the Y-statement Reason, and the Property table;
+#              the same Lean judge grades each Property cell.
 #   write    — the model writes a whole `## Properties` section for one decision. A script checks
 #              the format, the evidence words, the order, and the coverage; a judge that does not
 #              see the skill tries to state each line as a Lean theorem over the black box.
@@ -69,7 +72,7 @@ throttle() { while [ "$(jobs -rp | wc -l)" -ge "$jobs_max" ]; do sleep 0.5; done
 # result and not the wording of the rules.
 judge_lines() {
   local props verdicts
-  props="$(grep '^- P' "$1")"
+  props="$(python3 -I "$here/property-cells.py" "$1")"
   [ -n "$props" ] || return 0
   verdicts="$(ask_model "Label each line below. Model the system as only what a caller, a user, or an operator sees: the calls, their results, the stored data, the requests the system sends to outside services, the time, and the resources. Try to state the line as a theorem in Lean over that model.
 
@@ -181,6 +184,49 @@ Write the ## Properties section of this ADR and nothing else."
   [ "$total" -gt 0 ] && printf '\nwrite %s: %d/%d sections clean\n' "$label" "$pass" "$total"
 }
 
+run_file() {
+  local cases="$here/cases-adr-file.jsonl" n=0 line id format template
+  format="$(format_text)"
+  template="$(cat "$root/harness/claude/skills/domain-modeling/ADR-TEMPLATE.md")"
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    id="$(jq -r .id <<<"$line")"
+    [ -z "$only" ] || [ "$only" = "$id" ] || continue
+    n=$((n + 1)); printf '%s\n' "$line" > "$out/f$n.case"
+    (
+      prompt="You write one ADR. Apply these rules literally.
+
+$format
+
+--- TEMPLATE ---
+$template
+--- END TEMPLATE ---
+
+--- SESSION ---
+$(jq -r .context <<<"$line")
+--- END SESSION ---
+
+Today is 2026-10-30. Write the whole ADR file, frontmatter first, and nothing else."
+      ask_model "$prompt" > "$out/f$n.md"
+    ) &
+    throttle
+  done < "$cases"
+  wait
+
+  local pass=0 total=0 i report
+  for i in $(seq 1 "$n"); do
+    line="$(cat "$out/f$i.case")"; id="$(jq -r .id <<<"$line")"
+    report="$(python3 -I "$here/check-adr-file.py" "$out/f$i.md" "$(jq -c .must <<<"$line")")"
+    report="$(printf '%s\n%s\n' "$report" "$(judge_lines "$out/f$i.md")" | sed '/^$/d')"
+    total=$((total + 1))
+    if [ -z "$report" ]; then printf 'PASS %s\n' "$id"; pass=$((pass + 1))
+    else printf 'FAIL %s\n%s\n' "$id" "$(sed 's/^/     ↳ /' <<<"$report")"; status=1; fi
+    [ "$verbose" -eq 1 ] && sed 's/^/     | /' "$out/f$i.md"
+  done
+  [ "$total" -gt 0 ] && printf '\nfile %s: %d/%d ADRs clean\n' "$label" "$pass" "$total"
+}
+
 [ -z "$suite" ] || [ "$suite" = classify ] && run_classify
 [ -z "$suite" ] || [ "$suite" = write ] && run_write
+[ -z "$suite" ] || [ "$suite" = file ] && run_file
 exit "$status"

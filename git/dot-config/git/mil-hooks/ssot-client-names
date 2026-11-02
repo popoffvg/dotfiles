@@ -1,0 +1,47 @@
+#!/usr/bin/env perl
+# Usage: ssot-client-names [--merge <list>] [ssot-dir]
+# Prints the client names of customer-ssot: account name, aliases, email domains, contact names, contact email domains.
+# With --merge, appends the names that <list> lacks and prints only those.
+use strict;
+use warnings;
+use File::Basename qw(dirname);
+
+my $merge;
+if (@ARGV && $ARGV[0] eq '--merge') { shift; $merge = shift or die "ssot-client-names: --merge needs a list file\n" }
+my $ssot = shift // "$ENV{HOME}/git/mil/customer-ssot";
+-d "$ssot/picture/accounts" or die "ssot-client-names: no picture/accounts in $ssot\n";
+
+my $common_file = dirname(__FILE__) . '/common-words';
+my %common;
+if (open my $c, '<', $common_file) { $common{lc s/^\s+|\s+$//gr} = 1 for map { chomp; $_ } <$c> }
+
+my %names;
+for my $file (glob("$ssot/picture/accounts/*/account.md"), glob("$ssot/picture/accounts/*/contacts/*.md")) {
+  open my $fh, '<', $file or next;
+  my $fences = 0;
+  while (<$fh>) {
+    if (/^---\s*$/) { last if ++$fences == 2; next }
+    next unless /^(name|aliases|email-domains|email):\s*(.*)$/;
+    my ($key, $value) = ($1, $2);
+    $value =~ s/\s+#.*//;
+    $value =~ s/^\[|\]\s*$//g;
+    for my $name (split /,\s*/, $value) {
+      $name =~ s/^["']|["']$//g;
+      $name =~ s/^\s+|\s+$//g;
+      $name =~ s/^.*@// if $key eq 'email';
+      next if length($name) < 3 || $name eq 'null' || $common{lc $name};
+      $names{$name} = 1;
+    }
+  }
+}
+
+if (!$merge) { print "$_\n" for sort keys %names; exit 0 }
+
+my %known;
+if (open my $l, '<', $merge) { $known{lc s/^\s+|\s+$//gr} = 1 for map { chomp; $_ } <$l> }
+open my $out, '>>', $merge or die "ssot-client-names: cannot write $merge\n";
+for my $name (sort keys %names) {
+  next if $known{lc $name}++;
+  print $out "$name\n";
+  print "$name\n";
+}

@@ -186,18 +186,38 @@ if [ "$assume_yes" -eq 0 ]; then
   esac
 fi
 
-response="$(gh api "repos/$nwo/pulls/$pr/reviews" --input "$payload" 2>&1)" || {
-  # gh prints GitHub's reason as the JSON body; one open pending review on the PR is the
-  # usual 422: GitHub allows one per user, and it blocks every new review.
-  echo "not sent — the comments stay in the store. GitHub answered:" >&2
-  echo "$response" >&2
+# Keep the exact request and separate CLI diagnostics even if submission or JSON
+# decoding fails. A failed response does not prove GitHub rejected the review.
+mkdir -p "$repo_root/.tmp/review-session"
+session="$(mktemp -d "$repo_root/.tmp/review-session/$(date +%Y%m%d-%H%M%S)-XXXXXX")"
+cp "$payload" "$session/payload.json"
+cp "$report" "$session/report.md"
+
+submission_failed() {
+  echo "Could not confirm review submission; the comments stay in the store." >&2
+  echo "Check the PR before retrying: https://github.com/$nwo/pull/$pr" >&2
+  echo "Request, response, and diagnostics: $session" >&2
+  cat "$session/error.txt" >&2
   exit 1
 }
-comment_url="$(printf '%s' "$response" | python3 -c 'import json,sys; print(json.load(sys.stdin)["html_url"])')"
+
+if ! gh api --method POST "repos/$nwo/pulls/$pr/reviews" --input "$session/payload.json" \
+    >"$session/response.json" 2>"$session/error.txt"; then
+  submission_failed
+fi
+if ! comment_url="$(python3 - "$session/response.json" 2>>"$session/error.txt" <<'PYRESPONSE'
+import json, sys
+with open(sys.argv[1]) as response:
+    url = json.load(response)["html_url"]
+if not isinstance(url, str) or not url.startswith("https://github.com/"):
+    raise ValueError("Review response has no valid html_url")
+print(url)
+PYRESPONSE
+)"; then
+  submission_failed
+fi
 echo "posted: $comment_url"
 
-session="$repo_root/.tmp/review-session/$(date +%Y%m%d-%H%M%S)"
-mkdir -p "$session"
 mv "$store" "$session/line-comment.json"
 {
   echo "# review session $(basename "$session") — sent to PR #$pr"

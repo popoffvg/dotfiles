@@ -1,6 +1,6 @@
 # ADR Format
 
-**An ADR is one markdown file with metadata, a decision paragraph, and a changelog.** An ADR has no status. A file in `docs/adr/` is live and binds the code. A file in `docs/!archived/adr/` is dropped. An open question is never an ADR: it lives in `QUESTIONS.md` ([Open questions](#open-questions)).
+**An ADR is one markdown file with metadata, a decision paragraph, and a changelog.** A file in `docs/adr/` is live and binds the code. A file in `docs/!archived/adr/` is dropped. An open question is never an ADR: it lives in `QUESTIONS.md` ([Open questions](#open-questions)).
 
 **An ADR records a strategic decision, never a tactical one.** A strategic decision shapes the whole system and is hard to reverse: the components and their boundaries, a platform with lock-in, where state lives, a contract a user or a caller depends on. A tactical decision chooses how one part is built: where a package or a file lives, a name, a signature, a library inside one component, a value. Write a tactical decision where it applies — the spec, the TODO, or the patterns file — and never as an ADR.
 
@@ -10,10 +10,11 @@
 
 ## Metadata
 
-**Every ADR carries YAML frontmatter with three keys.** They are required.
+**Every ADR carries YAML frontmatter with four keys.** They are required.
 
 ```yaml
 ---
+status: proposed
 kind: architecture
 created: 2026-08-09
 updated: 2026-08-09
@@ -22,6 +23,7 @@ updated: 2026-08-09
 
 | Key | Holds |
 |---|---|
+| `status` | `proposed` — written by the agent on a new ADR; `approved` — set by the operator after reading it. An agent never changes it. |
 | `kind` | `architecture` — how the system is built; `feature` — what the user can do and see, such as a dry-run mode. |
 | `created` | ISO date the ADR was first written. Never changes. |
 | `updated` | ISO date of the last edit to this file. |
@@ -44,16 +46,19 @@ The copyable file is `ADR-TEMPLATE.md`, next to this document. Its body:
 ```md
 # {The properties the decision gives the system — not the option picked}
 
-{1-3 sentences: what is the context, what did we decide, and why.}
+{1-3 sentences: the context and the decision. The why goes under Reason.}
 
 ## Reason
 
-> {the operator's words: why this option won}
+In the context of {the use case or the component}, facing {the concern or the force}, we decided for {the option} and against {the strongest alternatives}, to achieve {the quality the title names}, accepting {the cost or the downside}.
+
+Decided by {the operator | the code, for source: auto}, YYYY-MM-DD: {link to the grill item, the chat date, or the file:line}.
 
 ## Properties
 
-- P1. [keep|new] {a guarantee the system keeps while this decision holds, in one plain sentence}
-  > and-what: {impact} — {what a caller, a user, or an operator sees when the system breaks P1} — recovers by {retry | restart | a human | itself}
+| Id | Property | If broken | Recovers by |
+|---|---|---|---|
+| P1 | [keep] or [new] {a guarantee the system keeps while this decision holds, in one short sentence} | {what a caller, a user, or an operator sees when the system breaks P1} | {retry, restart, a human, or itself} |
 ```
 
 A title, a paragraph, the reason, the Properties, and the changelog section are the whole requirement. The value is in recording *that* a decision was made, *why*, and *what must stay true* while it holds — not in filling out sections.
@@ -64,7 +69,9 @@ A title, a paragraph, the reason, the Properties, and the changelog section are 
 
 ### Reason
 
-**The reason is the operator's, quoted.** Write it under `## Reason` as a quote from the session or the grill answer. A reason the agent inferred and the operator never confirmed is an open question: ask "Why A over B?" in `QUESTIONS.md`, and write the ADR only when the operator answers.
+**Write the reason as a Y-statement, for a reader who was not in the session.** The form comes from Zdun et al., "Sustainable Architectural Design Decisions" (IEEE Software, 2013): *In the context of* the use case, *facing* the concern, *we decided for* the option *and against* the alternatives, *to achieve* the quality, *accepting* the downside. A manager reads it without the grill files, and it names the cost that a reversal would save. Write one Y-statement per decision the title names, at most three. The decision paragraph states the context and the option; it does not repeat the why.
+
+**End the section with one provenance line.** `Decided by the operator, <date>: <link>` points to the grill item or the chat that holds the operator's words; quote nothing. It is the proof that the operator, not the agent, made the choice. A `source: auto` ADR writes `Decided by the code` and cites the `file:line` or the research file. A reason the agent inferred and the operator never confirmed is an open question: ask "Why A over B?" in `QUESTIONS.md`, and write the ADR only when the operator answers. A choice the operator made without a reason says so in the Y-statement ("the operator set 60 seconds; no measurement backs it"), never with an invented one.
 
 ### Properties
 
@@ -82,16 +89,20 @@ theorem stored_is_sent (s : Store) (n : Name) (b : Bytes) (h : (s.write n b).ok)
 
 **The option test: a Property is not a consequence of the decision.** Ask of each one: would every design that gives the title properties have to keep it? Yes — it is a Property. No, only the chosen option does it — it is a consequence. A consequence names the chosen mechanism: a method list, a package path, a client, a temp file, a value such as a timeout, or a test. Write it in the decision paragraph or under `## Consequences`, never as a Property and never as an ADR of its own.
 
-**Mark each Property `[keep]` or `[new]`, and write it as one plain sentence.** `[keep]` is a guarantee that today's code already gives and the decision keeps. `[new]` is a guarantee the decision adds. List the `[keep]` ones first, so a reader sees what must not break before what changes. A Property carries no source and no evidence words: no file, no line number, no fact name, no link, no "today on X", no "closes Y". The evidence goes in the decision paragraph or in the research it cites. A guarantee of today's code that the decision drops goes under `## Considered Options` or `## Consequences` with the reason.
+**Mark each Property `[keep]` or `[new]`.** `[keep]` is a guarantee that today's code already gives and the decision keeps. `[new]` is a guarantee the decision adds. List the `[keep]` ones first, so a reader sees what must not break before what changes. A Property carries no source and no evidence words: no file, no line number, no fact name, no link, no "today on X", no "closes Y". The evidence goes in the decision paragraph or in the research it cites. A guarantee of today's code that the decision drops goes under `## Considered Options` or `## Consequences` with the reason.
 
-**Quote the and-what result under each Property.** Run steps 2 to 4 of the [`and-what`](../and-what/SKILL.md) skill on the advice "keep this Property": find what breaks it, and play out what is seen when it breaks. Write the result as one indented quote line under the Property: `> and-what: <impact> — <what a caller, a user, or an operator sees> — recovers by <retry | restart | a human | itself>`. The quote obeys the black-box rule too. A Property whose impact is `none` guarantees nothing: drop it. `wm-constraints.py` reads only the `- Pn.` line, so the quote is not part of the rule.
+**Write the Properties as one table: `Id`, `Property`, `If broken`, `Recovers by`.** One row per Property, so a reader scans the guarantees and their cost in one look. The `Property` cell is one short sentence, at most about 15 words, with its `[keep]` or `[new]` mark first. Fill `If broken` from steps 2 to 4 of the [`and-what`](../and-what/SKILL.md) skill on the advice "keep this Property": what a caller, a user, or an operator sees when it breaks, in one short clause. `Recovers by` is `retry`, `restart`, `a human`, or `itself`. Both cells obey the black-box rule. A Property whose break nobody sees guarantees nothing: drop it. `wm-constraints.py` reads only the `Id` and `Property` cells as the rule. A `|` inside a cell is written `\|`.
 
 ```md
-- P1. [keep] A huge file uploads in parallel.
-  > and-what: `delay` — a 10 GB upload takes hours, not minutes, and the user waits — recovers by itself.
-- P2. [new] Every upload can be cancelled.
-  > and-what: `outage` — a stuck upload keeps its slot until the process restarts, and new uploads queue — recovers by a human.
+| Id | Property | If broken | Recovers by |
+|---|---|---|---|
+| P1 | [keep] A huge file uploads in parallel. | A 10 GB upload takes hours, not minutes, and the user waits. | itself |
+| P2 | [new] Every upload can be cancelled. | A stuck upload keeps its slot, and new uploads queue. | a human |
 ```
+
+**Never renumber or reuse a Property number.** Code, TODOs, and reviews cite `ADR-NNNN/Pn`. A reversed Property leaves the table: delete its row, write its number and the reason in the changelog line, and keep the gap. A new Property takes the next number after the highest one the ADR ever used.
+
+**Keep the mechanism out of the ADR.** A private helper, an error value, a function name, a call order, or a retry loop is how the code keeps a Property, not a decision. Write it in the spec, the TODO, or the patterns file. When ADRs merge, an absorbed ADR brings its Properties, its Reason quote, and its options; its context becomes at most one sentence of the decision paragraph, never a paragraph of its own.
 
 ### Optional sections
 

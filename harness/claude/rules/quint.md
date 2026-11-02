@@ -10,6 +10,7 @@ A small model is read in one pass, and its gaps show. A big model hides them beh
 - A Quint model MUST start as one file: types, `const` switches, `var`s, pure defs, actions, `init`, `step`, invariants, witnesses, and the instance modules at the end. Aim for about 200 lines and at most 3 `var`s.
 - A Quint model MUST state, in its head comment, the run command and the expected result (`ok` or `violation`) of each instance and invariant.
 - A task that a small model cannot hold MUST split into several small models, one question each. Do not split one model into many files. Each small model replaces the other parts with a few `nondet` choices or a fixed assumption, and a comment names the source of that assumption (`file:line`, an ADR, or a measured fact).
+- Split by component of the real system, for example a store or a controller, and name each model after its component. Every invariant on the state of a component goes in that component's model. Do not split by part of the design, such as a commit rule or a generation switch: that split spreads the invariants of one component over several models, and no model owns them.
 - A Quint model MAY use the multi-file layout (sections A and B, the entry points, and the split by process) only when one question needs more than the budget and the operator agrees first.
 
 ## Shape the state as named collections

@@ -10,3 +10,5 @@ Scripts driven by an entry in `../tasks.json`. A task calls them as `$HOME/.conf
 | `gh-send-review.sh` | Github: send review | Render the `line-comment-lsp` store as a report, ask before sending, submit it as one GitHub review with a comment on each note's line, then file the batch under `.tmp/review-session/<timestamp>/`. |
 
 `gh-open.sh` is named by the "GitHub: open PR or branch" task. It is a plain file in `~/.config/zed/scripts/` and is not in this repo.
+
+Review submissions retain `payload.json`, `report.md`, `response.json`, and `error.txt` under `.tmp/review-session/`. If submission cannot be confirmed, check the PR before retrying; the comment store stays in place. Run `python3 .config/zed/scripts/test_gh_send_review.py` from the dotfiles root to check the submission failure and success paths.

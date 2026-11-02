@@ -1,4 +1,5 @@
 ---
+status: proposed # proposed | approved — only the operator sets approved
 kind: architecture # or feature: what the user can do and see
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -6,16 +7,19 @@ updated: YYYY-MM-DD
 
 # {The properties the decision gives the system — not the option picked}
 
-{1-3 sentences: what is the context, what did we decide, and why. For a feature: who uses it, how they start it, and what they get.}
+{1-3 sentences: the context and the decision. For a feature: who uses it, how they start it, and what they get. The why goes under Reason, not here.}
 
 ## Reason
 
-> {the operator's words: why this option won}
+In the context of {the use case or the component}, facing {the concern or the force}, we decided for {the option} and against {the strongest alternatives}, to achieve {the quality the title names}, accepting {the cost or the downside}.
+
+Decided by {the operator | the code, for source: auto}, YYYY-MM-DD: {link to the grill item, the chat date, or the file:line}.
 
 ## Properties
 
-- P1. [keep|new] {a guarantee the system keeps while this decision holds, in one plain sentence; for a feature, what the user observes}
-  > and-what: {impact} — {what a caller, a user, or an operator sees when the system breaks P1} — recovers by {retry | restart | a human | itself}
+| Id | Property | If broken | Recovers by |
+|---|---|---|---|
+| P1 | [keep] or [new] {one short guarantee; for a feature, what the user observes} | {what a caller, a user, or an operator sees} | {retry, restart, a human, or itself} |
 
 <!--
 Optional, only when they add value — placed here, above the changelog:

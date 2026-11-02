@@ -1,0 +1,29 @@
+#!/bin/sh
+# Every hook name in this dir links here. The repo's own hook runs next to the client check.
+hook=$(basename "$0")
+here=$(dirname "$0")
+chain_dir=$(git config --get mil.chainHooksPath || printf '%s/hooks' "$(git rev-parse --git-common-dir)")
+next="$chain_dir/$hook"
+
+run_next() {
+  [ -x "$next" ] || return 0
+  "$next" "$@"
+}
+
+case "$hook" in
+pre-commit)
+  # The early run caches its verdict by diff hash; the last run reuses it when the repo hook did not restage.
+  "$here/client-check" staged </dev/null >/dev/null 2>&1 &
+  early=$!
+  run_next "$@" || exit $?
+  wait "$early"
+  exec "$here/client-check" staged </dev/null
+  ;;
+commit-msg)
+  run_next "$@" || exit $?
+  exec "$here/client-check" message "$1"
+  ;;
+*)
+  run_next "$@"
+  ;;
+esac
