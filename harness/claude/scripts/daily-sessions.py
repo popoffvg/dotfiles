@@ -3,7 +3,7 @@
 
 An org is a folder `~/git/<org>/`; a session belongs to it when its
 `cwd` lies under that folder. Per session it prints the cwd, the time span, the
-operator's prompts, outward actions (commits, PRs, issues, tickets) and the last
+operator's prompts, outward actions (commits, PRs, issues, tickets), the MILAB ticket ids, and the last
 assistant text, all from records stamped with the target local date.
 
 Usage: daily-sessions.py <org> [--date YYYY-MM-DD] [--root DIR] [--max-prompt N]
@@ -20,6 +20,7 @@ NOISE = ("<system-reminder", "<command-message", "<local-command", "Caveat: The 
 ACTION = re.compile(
     r"\b(git (commit|push)|gh (pr|issue|api)|jj (commit|describe|git push)|jira|linear|acli)\b"
 )
+TICKET = re.compile(r"\bMILAB-\d+\b")
 
 
 def trim(text: str, limit: int) -> str:
@@ -45,7 +46,7 @@ def local_date(stamp: str) -> date | None:
 
 
 def digest(path: Path, org_dir: Path, day: date, max_prompt: int) -> dict | None:
-    cwd, title, prompts, actions, last_text, stamps = None, None, [], [], "", []
+    cwd, title, prompts, actions, last_text, stamps, tickets = None, None, [], [], "", [], set()
     with path.open() as stream:
         for line in stream:
             try:
@@ -60,12 +61,14 @@ def digest(path: Path, org_dir: Path, day: date, max_prompt: int) -> dict | None
             if not stamp or local_date(stamp) != day:
                 continue
             cwd = cwd or rec.get("cwd")
+            tickets.update(TICKET.findall(f"{rec.get('cwd') or ''} {rec.get('gitBranch') or ''}"))
             stamps.append(stamp)
             msg = rec.get("message") or {}
             if rec.get("type") == "user" and (rec.get("origin") or {}).get("kind") == "human":
                 text = text_of(msg.get("content")).strip()
                 if text and not text.startswith(NOISE):
                     prompts.append(trim(text, max_prompt))
+                    tickets.update(TICKET.findall(text))
             elif rec.get("type") == "assistant":
                 for part in msg.get("content") or []:
                     if not isinstance(part, dict):
@@ -76,6 +79,8 @@ def digest(path: Path, org_dir: Path, day: date, max_prompt: int) -> dict | None
                         command = (part.get("input") or {}).get("command", "")
                         if isinstance(command, str) and ACTION.search(command):
                             actions.append(trim(command, 200))
+                        if isinstance(command, str):
+                            tickets.update(TICKET.findall(command))
     if not cwd or not stamps or not prompts:
         return None
     try:
@@ -90,6 +95,7 @@ def digest(path: Path, org_dir: Path, day: date, max_prompt: int) -> dict | None
         "span": f"{clock(min(stamps))}-{clock(max(stamps))}",
         "prompts": prompts,
         "actions": actions,
+        "tickets": sorted(tickets),
         "last": trim(last_text, 600),
     }
 
@@ -122,6 +128,8 @@ def main() -> None:
         print(f"\n## {s['span']} {s['dir']} ({s['session']})" + (f" — {s['title']}" if s["title"] else ""))
         for prompt in s["prompts"]:
             print(f"U: {prompt}")
+        if s["tickets"]:
+            print(f"T: {', '.join(s['tickets'])}")
         for action in s["actions"]:
             print(f"X: {action}")
         if s["last"]:
