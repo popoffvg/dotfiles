@@ -5,6 +5,8 @@
 | `run-grilling-rounds.sh` | `cases-grilling-rounds.jsonl` | **The pain.** The `grilling` skill writes whole real rounds; the runner counts the needless questions and the missed ones. |
 | `run-adr-properties.sh` | `cases-adr-properties.jsonl`, `cases-adr-properties-write.jsonl`, `cases-adr-file.jsonl` | The ADR Property rules in `domain-modeling/ADR-FORMAT.md`: a Property is a general rule a user can rely on, not an implementation detail. |
 | `run-grilling.sh` | `cases-grilling.jsonl` | Diagnostic only. One open point at a time, with the labels named in the prompt. It cannot tell a good skill from a bad one. |
+| `run-good-design.sh` | `cases-good-design.jsonl` | The descriptions of `good-design-dry`, `good-design-kiss`, and `good-design-solid`. `-m desc`: a judge picks from the three descriptions, so it grades whether they separate. `-m live`: a real session runs the task, so it grades whether they fire. A case lists the skills that must load, `any`, or none. |
+| `run-good-design-conflicts.sh` | `cases-good-design-conflicts.jsonl` | Trade-offs where the good-design rules pull apart. The model reads the three skills, picks design A or B, and names the slugs against its pick. A pick that changes over `REPEATS` runs means the skills give no answer. Last run 2026-11-04, sonnet: stable 11/11, gold 10/10. |
 
 `lib-grilling.sh` holds what both runners share: the skill text at a git revision, the judge call, and the job limit.
 

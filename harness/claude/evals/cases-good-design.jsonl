@@ -1,0 +1,23 @@
+{"id": "copy-retry-block", "task": "Copy the retry loop from client/http.go into worker/poll.go so the poller retries too.", "expect": ["good-design-dry"], "note": "A pasted block. The user never says DRY."}
+{"id": "new-url-parser", "task": "Add a small function in the uploader that splits an s3:// URL into bucket and key.", "expect": ["good-design-dry"], "note": "A helper that most repos already have. Reads as a routine add."}
+{"id": "bucket-name-literal", "task": "In the new export handler, write the bucket name \"pl-data-prod\" where we upload the files.", "expect": ["good-design-dry"], "note": "A literal that likely lives in config already."}
+{"id": "reviewer-we-have-this", "task": "The reviewer says we already have a helper for this in pkg/strutil. Fix the PR.", "expect": ["good-design-dry"], "note": "Review comment phrased as 'already have'."}
+{"id": "second-record-type", "task": "Add a SnapshotRow struct for the DB copy of the snapshot with only the id, phase and size.", "expect": ["good-design-dry"], "note": "A copy reads back whole: a second, smaller type for one entity."}
+{"id": "swap-storage-later", "task": "Put an interface in front of the Postgres store so we can swap the database later.", "expect": ["good-design-kiss"], "note": "Speculative abstraction with one implementation."}
+{"id": "options-for-every-format", "task": "Make the exporter configurable with options for every output format we might need.", "expect": ["good-design-kiss"], "note": "Speculative options."}
+{"id": "generic-cache-one-map", "task": "Write a generic Cache[K, V] type with eviction for the one map of user sessions.", "expect": ["good-design-kiss"], "note": "Type parameter with one user."}
+{"id": "feature-flag-just-in-case", "task": "Add a feature flag around the new sorting in case we need to turn it off.", "expect": ["good-design-kiss"], "note": "The phrase 'in case'."}
+{"id": "too-clever", "task": "This function is too clever, nobody can read it. Rewrite it.", "expect": ["good-design-kiss"], "note": "Direct complaint, no principle named."}
+{"id": "kind-field-on-task", "task": "Add a kind field to Task so the importer can mark batch tasks and skip the timeout for them.", "expect": ["good-design-solid"], "note": "A field and a branch for one kind of need."}
+{"id": "csv-on-repository", "task": "Add an ExportCSV method to UserRepository.", "expect": ["good-design-solid"], "note": "SRP: a repository that also formats files."}
+{"id": "readonly-store-panics", "task": "Add a ReadOnlyStore that implements Store and panics on Write.", "expect": ["good-design-solid"], "note": "LSP: a refused method."}
+{"id": "consumer-calls-get-only", "task": "The handler takes the whole Store interface but only calls Get. Clean that up.", "expect": ["good-design-solid"], "note": "ISP without the word."}
+{"id": "pick-package-style", "task": "Should the new ingest package be hexagonal or vertical slices?", "expect": ["good-design-solid"], "note": "The architecture styles moved from tactical-design."}
+{"id": "spec-with-types", "task": "Write the design doc section for the snapshot store, with the Go type definitions and the interface.", "expect": ["good-design-solid"], "note": "A markdown doc that adds code."}
+{"id": "readme-code-example", "task": "Update the README with a code example that shows how to call the new upload API.", "expect": ["any"], "note": "A markdown doc with code. Any of the three may fire."}
+{"id": "plain-endpoint", "task": "Implement the GET /users endpoint with pagination.", "expect": ["any"], "note": "Generic code writing. The user wants the set to fire on it."}
+{"id": "commit-message", "task": "Write the commit message for the staged changes.", "expect": [], "note": "No code is written."}
+{"id": "ci-log", "task": "Why is CI failing? Read the log of the last run.", "expect": [], "note": "Diagnosis only."}
+{"id": "explain-scheduler", "task": "Explain how the scheduler picks the next job.", "expect": [], "note": "Reading code, no change."}
+{"id": "readme-typo", "task": "Fix the typo in the first paragraph of the README.", "expect": [], "note": "A markdown change with no code."}
+{"id": "run-tests", "task": "Run the tests of the store package.", "expect": [], "note": "No change."}
