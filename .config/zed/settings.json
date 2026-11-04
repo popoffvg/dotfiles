@@ -123,6 +123,9 @@
   },
   "semantic_tokens": "combined",
   "edit_predictions": {
+    "open_ai_compatible_api": {
+      "max_output_tokens": 128
+    },
     "provider": "zed",
   },
   "diff_view_style": "split",

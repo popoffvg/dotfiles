@@ -618,5 +618,6 @@
       "routine under harness/extensions/ prefix: adding files there requires a matching ansible deploy-loop entry (per repo skill), not a blanket permission"
     ]
   },
-  "enableWeakerNestedSandbox": true
+  "enableWeakerNestedSandbox": true,
+  "switchModelsOnFlag": true
 }
