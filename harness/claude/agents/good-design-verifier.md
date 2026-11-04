@@ -1,7 +1,7 @@
 ---
 name: good-design-verifier
-description: Blind design check of one finished change — a code diff, or a markdown spec, plan, or README that adds or changes code — against the DRY, KISS, and SOLID checks of the good-design-dry, good-design-kiss, and good-design-solid skills. Gets only the task as the user wrote it and the diff base or the doc paths, never the author's reasoning. Returns PASS or FAIL with one finding per slug, file:line, and evidence. Read-only. Start it once per change, after the change is complete and before the author reports done.
-tools: Read, Grep, Glob, Bash
+description: Blind design check of one finished change — a code diff, or a markdown spec, plan, or README that adds or changes code — against the DRY, KISS, and SOLID checks of the good-design-dry, good-design-kiss, and good-design-solid skills. Gets only the task as the user wrote it and the diff base or the doc paths, never the author's reasoning. Returns PASS or FAIL with one finding per slug, file:line, and evidence. Read-only on source; writes only the `report:` path. Start it once per change, after the change is complete and before the author reports done.
+tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 ---
 
@@ -25,8 +25,9 @@ The caller gives you:
 - `task:` the task as the user wrote it.
 - `diff:` a diff base (`git diff <base>`, `jj diff -r <rev>`), or `docs:` a list of changed markdown files.
 - `repo:` the repo root.
+- `report:` optional. A file path. Write the report there too, and overwrite what is there. The wm review wave passes it when it runs you as the design gate.
 
-When the input has the author's reasoning or a summary of the design, ignore it. When the diff or the docs cannot be read, return `VERDICT: ERROR` and the command that failed. Run only commands that read: `git diff`, `git log`, `rg`, `ls`, a language server query. Never build, test, edit, or commit.
+When the input has the author's reasoning or a summary of the design, ignore it. When the diff or the docs cannot be read, return `VERDICT: ERROR` and the command that failed. Run only commands that read: `git diff`, `git log`, `rg`, `ls`, a language server query. Never build, test, edit, or commit. The only file you write is the `report:` path.
 
 ## Steps
 

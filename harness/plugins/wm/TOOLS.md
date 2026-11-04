@@ -73,6 +73,8 @@ ADRs that bear on the task (`arch:ref-adr-format.md`).
 | Whether one place the correctness gate suspects is really wrong | `wm:agents/correctness-critic.md` § Steps → one `Agent(subagent_type: "wm:hypothesis-checker")` per hypothesis, all in one message | `CONFIRMED \| REFUTED \| UNSURE` with quoted `file:line` evidence; a CONFIRMED correctness verdict adds the failing input and the edit |
 | Whether the changed lines use their language the way it expects | the `review` wave → `Agent(subagent_type: "wm:idiom-critic")` with a `report:` line | `PASS \| FAIL` with seven fixed rows; each finding names the guide § section and the idiomatic rewrite in the pinned version |
 | Whether the diff writes again a job the repo or its dependencies already do | the `review` wave → `Agent(subagent_type: "wm:reuse-critic")` with a `report:` line | `PASS \| FAIL` with eight fixed rows; each finding names the existing symbol or package at its `file:line` and the rewrite onto it; every empty search carries its positive control |
+| Whether the changed code is more complex, more costly, or shallower than it must be | the `review` wave → `Agent(subagent_type: "wm:simplify-critic")` with a `report:` line | `PASS \| FAIL` with three fixed rows (Simplification, Efficiency, Altitude); each finding names the cost and the simpler form |
+| Whether the change breaks a DRY, KISS, or SOLID check | the `review` wave → `Agent(subagent_type: "good-design-verifier")` with `task:`, `diff:`, and `report:` lines | `VERDICT: PASS \| FAIL \| ERROR` with one row per slug and location |
 
 ## Route a gate verdict
 

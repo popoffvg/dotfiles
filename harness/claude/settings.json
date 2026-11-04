@@ -1,5 +1,6 @@
 {
   "env": {
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/side-chat",
     "ENABLE_LSP_TOOL": "1",
     "HARNESS_DEV_PASTE_NUDGE": "1",
     "HARNESS_DEV_UNDERSTOOD": "1",
@@ -591,6 +592,7 @@
   "skipWorkflowUsageWarning": true,
   "theme": "custom:catppuccin-macchiato-dark",
   "editorMode": "normal",
+  "switchModelsOnFlag": true,
   "terminalProgressBarEnabled": true,
   "inputNeededNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
@@ -629,5 +631,5 @@
     ]
   },
   "enableWeakerNestedSandbox": true,
-  "switchModelsOnFlag": true
+  "agentPushNotifEnabled": true
 }

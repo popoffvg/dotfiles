@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 
 use crate::span;
 use crate::store::Author;
-use crate::{export, journal, Effect, Session};
+use crate::{closed, export, journal, Effect, Session};
 
 /// `<file>:<line>` or `<file>:<line>-<end>` — the lines named the way the input file
 /// header names them.
@@ -285,6 +285,27 @@ pub fn list() -> Result<String, String> {
     let root = current_root();
     let session = open_session(root)?;
     Ok(export::render(session.store()))
+}
+
+/// The store as it is saved, for a caller that reads the comments as data.
+pub fn list_json() -> Result<String, String> {
+    let session = open_session(current_root())?;
+    serde_json::to_string_pretty(session.store()).map_err(|error| error.to_string())
+}
+
+/// Block until the editor closes `file`: the running server logs each close it is sent.
+pub fn wait_close(file: &str) -> Result<String, String> {
+    let path = absolute(Path::new(file));
+    let session = open_session(root_for(&path))?;
+    let key = session
+        .key(&crate::path_to_uri(&path))
+        .ok_or_else(|| format!("the server does not serve `{file}`"))?;
+    let log = session.closed_log_path();
+    let since = journal::now_millis();
+    while !closed::closed_since(&log, &key, since) {
+        std::thread::sleep(std::time::Duration::from_millis(300));
+    }
+    Ok(format!("closed {key}"))
 }
 
 /// Rebuild the store from the journal, as it stood at `until` (Unix ms) or after the last

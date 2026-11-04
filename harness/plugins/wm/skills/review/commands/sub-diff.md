@@ -39,7 +39,7 @@ mode reports and stops — it runs no fixup loop, because a human is reading the
    mode runs one round, so `$SINCE` is the base of the range: a gate the diff gives nothing to judge
    is skipped as PASS.
 6. **Run the wave** — in **one message**, every gate step 5 did not skip: @lint-tester, one @rule-checker per brief in
-   `rules/batches/` (step 3 prints the count), @idiom-critic, @reuse-critic, @correctness-critic, and, on request, one @mutation-tester per batch from step 4, each
+   `rules/batches/` (step 3 prints the count), @idiom-critic, @reuse-critic, @simplify-critic, `good-design-verifier` (`task:` the intent sentence of step 2, `diff:` the range), @correctness-critic, and, on request, one @mutation-tester per batch from step 4, each
    with its own `report: <notes-dir>/review/<slug>/<gate>.md` line. Every mutation agent gets the
    `checkout:` line (`mutation:SKILL.md` § 3) and no `isolation`. The lint gate runs the tests
    covering the changed files, since no `## Autotest` command exists. When the last @rule-checker
@@ -48,7 +48,9 @@ mode reports and stops — it runs no fixup loop, because a human is reading the
 7. **Run the test gate** — @tester over the diff, not in TODO mode,
    `report: <notes-dir>/review/<slug>/test.md`, once the wave is green and the `test` probe printed a
    line. It names the gap and
-   **writes no test** here: there is no implementer to fold one into. Under `fast`, skip this step.
+   **writes no test** here: there is no implementer to fold one into. It also names each added unit test
+   that restates the code (`ref-gates.md` § The test gate also finds the added tests that restate the code)
+   as a `delete` finding, FAIL. Under `fast`, skip this step.
 8. **Report** — the merged shape in `../examples/report.md`, with the resolved range and the intent
    sentence at the top, written to `<notes-dir>/review/<slug>/report.md` and returned.
 

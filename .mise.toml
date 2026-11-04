@@ -74,7 +74,26 @@ run = "cargo test -p line-comment-server"
 
 [tasks."harness:line-comment:languages"]
 description = "Regenerate line-comment's extension.toml language list from the installed Zed languages"
-run = "{{config_root}}/harness/scripts/sync-line-comment-languages.py"
+run = "{{config_root}}/harness/scripts/sync-zed-languages.py --app line-comment"
+
+[tasks."harness:pr-comments:build"]
+description = "Build the pr-comments language server → ~/.local/bin/pr-comments-lsp"
+dir = "{{config_root}}/harness/apps/pr-comments"
+sources = ["server/**/*.rs", "server/Cargo.toml"]
+outputs = ["{{env.HOME}}/.local/bin/pr-comments-lsp"]
+run = """
+cargo build --release -p pr-comments-server
+install -m 755 target/release/pr-comments-lsp $HOME/.local/bin/pr-comments-lsp
+"""
+
+[tasks."harness:pr-comments:test"]
+description = "Test the pr-comments language server"
+dir = "{{config_root}}/harness/apps/pr-comments"
+run = "cargo test -p pr-comments-server"
+
+[tasks."harness:pr-comments:languages"]
+description = "Regenerate pr-comments' extension.toml language list from the installed Zed languages"
+run = "{{config_root}}/harness/scripts/sync-zed-languages.py --app pr-comments"
 
 [tasks."harness:plugins:sync"]
 description = "Regenerate local-plugins marketplace.json from harness/plugins/"

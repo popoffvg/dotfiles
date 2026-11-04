@@ -15,14 +15,16 @@ sees this skill.
 | rules | every rule in the rule files, against each changed file in the rule's scope — comments, names, test worth, tables, language rules, the TODO's decisions | @rule-checker per batch, then one @rule-reducer | haiku; reducer sonnet |
 | idiom | every changed line — is it written the way its language and pinned version expect | @idiom-critic | sonnet |
 | reuse | every new symbol and changed body — does it write again a job the repo or its dependencies already do; `PATTERNS.md` § Need → use is its contract | @reuse-critic | sonnet |
+| simplify | every changed function — does it do its job with needless complexity, wasted work, or a fix at the wrong depth; the Simplification, Efficiency, and Altitude angles of `~/.claude/skills/simplify-code/references/angles.md` | @simplify-critic | sonnet |
+| design | every new and changed symbol — the DRY, KISS, and SOLID check slugs of the `good-design-dry`, `good-design-kiss`, and `good-design-solid` skills | `good-design-verifier` (loose agent; `VERDICT:` maps to `Result:`) | sonnet |
 | correctness | the inputs that make the changed code give a wrong result | @correctness-critic, with one @hypothesis-checker per hypothesis | opus; checkers sonnet |
 | mutation | **only when the operator passes `mutation`** — which unit and table tests the diff added can be deleted — a mutant they alone kill keeps them; E2E tests are the reference, never judged | @mutation-tester | sonnet |
-| test | does a test assert the contract — and writes it when none does | @tester | sonnet |
+| test | does a test assert the contract — and writes it when none does; does an added unit test restate the code — and asks to delete it (§ The test gate also finds the added tests that restate the code) | @tester | sonnet |
 
 **The tier follows the kind of judgment.** A rule is one narrow yes/no question with an example, so
 haiku checks it, and a sonnet reducer drops the false hits. Idiom needs language knowledge,
-reuse needs a search of the repo for the job, correctness needs a guess about inputs, mutation needs to plan mutants that separate one
-test from another, and the test gate writes code. No rule file replaces those five.
+reuse needs a search of the repo for the job, simplify and design need a judgment of the cost of a form, correctness needs a guess about inputs, mutation needs to plan mutants that separate one
+test from another, and the test gate writes code. No rule file replaces those seven.
 
 ### No gate judges the spec
 
@@ -77,13 +79,15 @@ reason, merges duplicates, and sets the bucket: `Severity: nit` → Nit, every o
         │ rules: checker × <batches>   │──▶ rule-reducer
 diff ──▶┤ idiom                        ├──────────────────▶ test (sonnet) ──▶ PASS
         │ reuse                        │
+        │ simplify                     │
+        │ design                       │
         │ correctness                  │
         │ mutation × ≤2 (on request)   │
         └──────────────────────────────┘
                   one wave
 ```
 
-**All judging agents start in one message**: lint, every rule-checker, idiom, reuse, correctness, and — only
+**All judging agents start in one message**: lint, every rule-checker, idiom, reuse, simplify, design, correctness, and — only
 when the operator passed `mutation` (`../SKILL.md` § Mutation) — every mutation batch. They read the same diff and share no state. Spawn the @rule-reducer as soon as the
 last rule-checker returns; it does not wait for the other gates.
 
@@ -97,6 +101,27 @@ cannot land in an increment still waiting for approval; mutation needs a green s
 
 **The test gate runs alone, after the wave is green.** It changes the diff — it writes the missing
 test — so it must not run beside gates reading that diff.
+
+### The test gate also finds the added tests that restate the code
+
+The test gate asks a second question of each unit test and table row that the diff adds: does it
+restate the code instead of a contract? A test restates the code when one of these is true:
+
+- It builds its input by hand in the shape the author expects from a dependency (an SDK error, an
+  HTTP answer, a config struct), and asserts what a lookup, a compare, or a constant of the code
+  returns. It proves the author's idea of the dependency, not the dependency.
+- Another test already asserts the same behavior through the real path, for example a store test on a
+  fake server that sends the real answer through the SDK.
+
+Such a test fails when the code changes, not when the behavior breaks. Example: a test that builds
+`smithy.GenericAPIError{Code: "PreconditionFailed"}` and asserts that `IsConditionalWriteRefused`
+returns true, while the store tests send a real 412 through the SDK.
+
+Each hit is a finding `delete <test> — restates <symbol>; <the covering test, or "no behavior">`, and
+it makes the gate FAIL. The fixup deletes the test. A case that the TODO's `## Autotest` names gets no
+exception: the finding names the case, and the fixup also deletes it from `TODO-N.test.md`. The gate
+deletes nothing itself. The mutation gate measures the same with mutants, but runs only on request;
+this question runs in every `normal` review.
 
 ### Any FAIL restarts the whole chain at the wave
 
@@ -121,6 +146,8 @@ gate is skipped, and a skipped gate is PASS.** The caller runs every probe befor
 | rules | `rules/<rule file stem>` | in the batch file: the lines that rule file judges — comment lines for `comments.md`, test files for `test.md`, every line for the rest |
 | idiom | `idiom` | changed source lines that are not comments |
 | reuse | `reuse` | changed source lines that are not comments; `PATTERNS.md` |
+| simplify | `simplify` | changed source lines that are not comments |
+| design | `design` | changed source lines that are not comments |
 | correctness | `correctness` | changed source lines that are not comments |
 | mutation | `mutation` | the candidate test files, and the source lines they call that are not comments |
 | test | `test` | changed source lines that are not comments, and the test files |
@@ -199,7 +226,7 @@ rule-checker's batch file carries `result:`). The agent writes there — the sam
 before it returns.
 
 ```
-<notes-dir>/review/<target>/<gate>.md              lint, rules, idiom, reuse, correctness, test, judge
+<notes-dir>/review/<target>/<gate>.md              lint, rules, idiom, reuse, simplify, design, correctness, test, judge
 <notes-dir>/review/<target>/rules/                 manifest.json, batches/, results/
 <notes-dir>/review/<target>/probes.json            the change probes and the tree each gate last passed on
 <notes-dir>/review/<target>/mutation/<batch>.md    one file per mutation batch
@@ -251,7 +278,7 @@ whose key is absent, reports `n/a`, never a run of its own.
 | mutation | runs the unit command per mutant, in sandbox copies; runs the `E2E` command from `toolchain.json` only for a mutant a candidate kills, one at a time |
 | test | the sole executor of build and the test suite in the working tree |
 | correctness (and its checkers) | never executes; may cite `toolchain.json` |
-| rules, idiom, reuse | never execute, and get no toolchain input |
+| rules, idiom, reuse, simplify, design | never execute, and get no toolchain input |
 
 ### The lint gate runs in the caller
 

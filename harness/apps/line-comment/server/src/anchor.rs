@@ -16,7 +16,7 @@ pub fn lines(text: &str) -> Vec<&str> {
         .collect()
 }
 
-/// UTF-16 code units in the line — the character offset that puts a hint at the line end.
+/// UTF-16 code units in the line — the character offset of the line end, for a diagnostic range.
 pub fn utf16_len(line: &str) -> u32 {
     line.chars().map(|c| c.len_utf16() as u32).sum()
 }

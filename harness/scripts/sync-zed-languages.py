@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Regenerate the `languages` array of line-comment's language-server entry.
+"""Regenerate the `languages` array of the language-server entry of one Zed extension app.
 
 Zed's `extension.toml` has no wildcard: a language server attaches only to the language
-names listed in `[language_servers.<id>] languages`. line-comment annotates lines, which
-every language has, so the list has to name every language Zed knows on this machine.
+names listed in `[language_servers.<id>] languages`. The apps under harness/apps/ annotate
+lines, which every language has, so the list has to name every language Zed knows on this
+machine.
 
 Two sources, both read at run time:
 
 * the languages compiled into Zed, kept in BUILT_IN below;
 * the languages of every installed Zed extension, read from their `config.toml` files.
 
-Re-run after installing a language extension, otherwise line-comment stays silent in those
-files.
+Re-run after installing a language extension, otherwise the app stays silent in those files.
 """
 
 import argparse
@@ -21,8 +21,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-MANIFEST = REPO / "harness" / "apps" / "line-comment" / "extension.toml"
-SERVER_SECTION = "[language_servers.line-comment-language-server]"
+APPS = REPO / "harness" / "apps"
 
 # `name` of every config.toml under crates/grammars/src/ in zed-industries/zed.
 # Markdown-Inline, JSDoc and Regex are injected sub-languages with no file of their own,
@@ -80,18 +79,23 @@ def render(names: list[str]) -> str:
     return f"languages = [\n{body}\n]\n"
 
 
-def replace_languages(manifest: str, block: str) -> str:
+def replace_languages(manifest: str, section: str, block: str) -> str:
     """Swap the `languages = [...]` array inside the server section for `block`."""
-    start = manifest.index(SERVER_SECTION)
+    start = manifest.index(section)
     array = re.compile(r"^languages = \[[^\]]*\]\n", re.MULTILINE)
     match = array.search(manifest, start)
     if not match:
-        raise SystemExit(f"no `languages` array after {SERVER_SECTION} in {MANIFEST}")
+        raise SystemExit(f"no `languages` array after {section}")
     return manifest[: match.start()] + block + manifest[match.end() :]
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--app",
+        required=True,
+        help="the app directory under harness/apps/, which names its `<app>-language-server`",
+    )
     parser.add_argument(
         "--check",
         action="store_true",
@@ -100,8 +104,10 @@ def main() -> int:
     args = parser.parse_args()
 
     names = sorted(set(BUILT_IN) | installed_languages(), key=str.lower)
-    manifest = MANIFEST.read_text(encoding="utf-8")
-    updated = replace_languages(manifest, render(names))
+    manifest_path = APPS / args.app / "extension.toml"
+    section = f"[language_servers.{args.app}-language-server]"
+    manifest = manifest_path.read_text(encoding="utf-8")
+    updated = replace_languages(manifest, section, render(names))
 
     if updated == manifest:
         print(f"up to date — {len(names)} languages")
@@ -109,8 +115,8 @@ def main() -> int:
     if args.check:
         print(f"out of date — {len(names)} languages available", file=sys.stderr)
         return 1
-    MANIFEST.write_text(updated, encoding="utf-8")
-    print(f"wrote {len(names)} languages to {MANIFEST.relative_to(REPO)}")
+    manifest_path.write_text(updated, encoding="utf-8")
+    print(f"wrote {len(names)} languages to {manifest_path.relative_to(REPO)}")
     return 0
 
 

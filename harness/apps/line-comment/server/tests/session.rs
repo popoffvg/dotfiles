@@ -38,19 +38,6 @@ fn comment(session: &Session, index: usize) -> Comment {
     session.store().comments("docs/spec.md")[index].clone()
 }
 
-fn whole_file() -> Range {
-    Range {
-        start: Position {
-            line: 0,
-            character: 0,
-        },
-        end: Position {
-            line: 10_000,
-            character: 0,
-        },
-    }
-}
-
 fn at(line: u32) -> Position {
     Position { line, character: 0 }
 }
@@ -100,7 +87,7 @@ fn add_writes_a_comment_from_the_input_file() {
         effects,
         vec![
             Effect::PersistStore,
-            Effect::RefreshInlayHints,
+            Effect::RefreshCodeLenses,
             Effect::PublishDiagnostics
         ]
     );
@@ -226,52 +213,38 @@ fn a_multi_line_body_is_kept_whole() {
 }
 
 #[test]
-fn inlay_hint_sits_at_the_end_of_the_line_above_the_comment() {
-    let (mut session, _root, uri) = open("# Title\n## Design\n");
+fn a_comment_lens_sits_on_the_line_after_the_comment_and_opens_it() {
+    let (mut session, _root, uri) = open("# Title\n## Design\nbody\n");
     add(&mut session, &uri, 1, "needs a source");
 
-    let hints = session.inlay_hints(&uri, whole_file());
-    assert_eq!(hints.len(), 1);
+    let lenses = session.code_lenses(&uri);
+    assert_eq!(lenses.len(), 1);
+    assert_eq!(lenses[0].range.start, at(2));
+    assert_eq!(lenses[0].command.title, "💬 needs a source");
+    assert_eq!(lenses[0].command.command, COMMAND_ADD);
     assert_eq!(
-        hints[0].position,
-        Position {
-            line: 0,
-            character: 7
-        }
-    );
-    assert_eq!(hints[0].label, "💬 needs a source");
-    assert!(hints[0].padding_left);
-    assert_eq!(hints[0].tooltip.value, "needs a source");
-    assert_eq!(hints[0].tooltip.kind, "markdown");
-}
-
-#[test]
-fn a_comment_on_the_first_line_keeps_its_hint_on_that_line() {
-    let (mut session, _root, uri) = open("# Title\n## Design\n");
-    add(&mut session, &uri, 0, "needs a source");
-
-    let hints = session.inlay_hints(&uri, whole_file());
-    assert_eq!(
-        hints[0].position,
-        Position {
-            line: 0,
-            character: 7
-        }
+        lenses[0].command.arguments,
+        vec![json!(uri), json!(2), json!(2)]
     );
 }
 
 #[test]
-fn inlay_hint_truncates_long_text_and_keeps_it_in_the_tooltip() {
-    let long = "a claim that runs on well past the width of any inlay hint";
-    let (mut session, _root, uri) = open("## Design\n");
-    add(&mut session, &uri, 0, long);
+fn a_comment_on_the_last_line_shows_its_lens_above_that_line() {
+    let (mut session, _root, uri) = open("# Title\n## Design");
+    add(&mut session, &uri, 1, "needs a source");
 
-    let hints = session.inlay_hints(&uri, whole_file());
+    assert_eq!(session.code_lenses(&uri)[0].range.start, at(1));
+}
+
+#[test]
+fn a_comment_lens_shows_all_its_text_on_one_row() {
+    let (mut session, _root, uri) = open("## Design\nbody\n");
+    add(&mut session, &uri, 0, "first line\nsecond line");
+
     assert_eq!(
-        hints[0].label,
-        "💬 a claim that runs on well past the width…"
+        session.code_lenses(&uri)[0].command.title,
+        "💬 first line second line"
     );
-    assert_eq!(hints[0].tooltip.value, long);
 }
 
 #[test]
@@ -367,8 +340,10 @@ fn a_lost_anchor_becomes_orphaned_and_is_still_shown() {
     let stored = comment(&session, 0);
     assert!(stored.orphaned);
     assert_eq!(stored.line, 2);
-    let hints = session.inlay_hints(&uri, whole_file());
-    assert_eq!(hints[0].label, "💬? needs a source");
+    assert_eq!(
+        session.code_lenses(&uri)[0].command.title,
+        "💬? needs a source"
+    );
 }
 
 #[test]
@@ -631,7 +606,7 @@ fn a_leftover_input_file_is_taken_at_startup() {
         vec![
             Effect::WatchFiles,
             Effect::PersistStore,
-            Effect::RefreshInlayHints,
+            Effect::RefreshCodeLenses,
             Effect::PublishDiagnostics,
             Effect::PublishDiagnostics
         ]
@@ -655,12 +630,12 @@ fn delete_removes_the_comment() {
         effects,
         vec![
             Effect::PersistStore,
-            Effect::RefreshInlayHints,
+            Effect::RefreshCodeLenses,
             Effect::PublishDiagnostics
         ]
     );
     assert!(session.store().comments("docs/spec.md").is_empty());
-    assert!(session.inlay_hints(&uri, whole_file()).is_empty());
+    assert!(session.code_lenses(&uri).is_empty());
 }
 
 #[test]
@@ -767,7 +742,7 @@ fn copy_reanchors_a_file_that_moved_while_it_was_closed() {
 
     assert_eq!(comment(&session, 0).line, 6);
     assert!(effects.contains(&Effect::PersistStore));
-    assert!(effects.contains(&Effect::RefreshInlayHints));
+    assert!(effects.contains(&Effect::RefreshCodeLenses));
     assert!(session
         .export_text()
         .contains("**docs/spec.md** line 6 (RIGHT)"));
@@ -826,7 +801,7 @@ fn reset_asks_first_and_only_clears_on_confirmation() {
         effects,
         vec![
             Effect::PersistStore,
-            Effect::RefreshInlayHints,
+            Effect::RefreshCodeLenses,
             Effect::PublishDiagnostics
         ]
     );
@@ -980,7 +955,7 @@ fn a_store_written_from_outside_is_taken_up_on_the_watch() {
     let effects = session.reload_store();
     assert_eq!(
         effects,
-        vec![Effect::RefreshInlayHints, Effect::PublishDiagnostics]
+        vec![Effect::RefreshCodeLenses, Effect::PublishDiagnostics]
     );
     assert_eq!(comment(&session, 0).text, "from Claude");
     assert_eq!(comment(&session, 0).author, Author::Agent);
@@ -1079,6 +1054,53 @@ fn deleting_the_last_comment_clears_the_file_diagnostics() {
     assert!(cleared[0].diagnostics.is_empty());
     // And once cleared, nothing is republished for that file.
     assert!(session.diagnostics().is_empty());
+}
+
+#[test]
+fn a_list_view_has_a_go_to_source_lens_on_each_heading() {
+    let (mut session, root, uri) = open("a\nb\nc\n");
+    add(&mut session, &uri, 0, "about a");
+    add(&mut session, &uri, 2, "about c");
+    let effects = session.execute_command(COMMAND_LIST, &[]);
+    let (path, view) = effects
+        .iter()
+        .find_map(|effect| match effect {
+            Effect::OpenList { path, contents } => Some((path.clone(), contents.clone())),
+            _ => None,
+        })
+        .expect("list hands over a view");
+    std::fs::write(&path, view).unwrap();
+    let list_uri = line_comment::path_to_uri(&path);
+
+    let lenses = session.code_lenses(&list_uri);
+
+    let source = line_comment::path_to_uri(&root.join("docs").join("spec.md"));
+    let found: Vec<_> = lenses
+        .iter()
+        .map(|lens| {
+            let arguments = &lens.command.arguments;
+            (
+                lens.range.start.line,
+                lens.command.command.as_str(),
+                arguments[2][0]["uri"].clone(),
+                arguments[2][0]["range"]["start"]["line"].clone(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        found,
+        vec![
+            (2, "editor.action.goToLocations", json!(source), json!(0)),
+            (8, "editor.action.goToLocations", json!(source), json!(2)),
+        ]
+    );
+    assert!(
+        session
+            .code_lenses(&uri)
+            .iter()
+            .all(|lens| lens.command.command == COMMAND_ADD),
+        "a source file shows its comments, not go to source"
+    );
 }
 
 #[test]
@@ -1301,8 +1323,7 @@ fn a_comment_in_a_diff_view_is_stored_against_the_repo_file() {
         .join(".tmp")
         .exists());
 
-    let hints = session.inlay_hints(&base_uri, whole_file());
-    assert_eq!(hints.len(), 2);
+    assert_eq!(session.code_lenses(&base_uri).len(), 2);
     let published: Vec<String> = session.diagnostics().into_iter().map(|p| p.uri).collect();
     assert!(published.contains(&base_uri));
     assert!(published.contains(&live_uri));
@@ -1357,4 +1378,30 @@ fn the_hand_over_write_leaves_the_edit_file_for_the_operator() {
 
     assert_eq!(comment(&session, 0).text, "second line");
     assert!(!path.exists());
+}
+
+#[test]
+fn a_file_in_a_folder_under_tmp_is_served_and_the_server_scratch_is_not() {
+    let root = root();
+    let (session, _) = Session::new(root.clone());
+    let key = |rel: &str| session.key(&line_comment::path_to_uri(&root.join(rel)));
+
+    assert_eq!(
+        key(".tmp/annotate/reply.md").as_deref(),
+        Some(".tmp/annotate/reply.md")
+    );
+    assert_eq!(key(".tmp/line-comment.md"), None);
+    assert_eq!(key(".tmp/act-session/1/line-comment.json"), None);
+}
+
+#[test]
+fn closing_a_served_file_records_the_close() {
+    let (mut session, _, uri) = open("one\n");
+
+    assert_eq!(
+        session.did_close(&uri),
+        vec![Effect::RecordClose {
+            key: "docs/spec.md".to_string()
+        }]
+    );
 }

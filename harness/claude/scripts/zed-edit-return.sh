@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # EDITOR for a Zed terminal: open the files in the Zed window on screen, wait for
-# the tabs to close, then press cmd-< so focus goes back to the agent thread.
-# cmd-< must stay bound to agent::FocusAgent or agent::ToggleFocus in keymap.json.
-# The key press needs Accessibility access for Zed (System Settings → Privacy).
+# the tabs to close, then return the focus to the agent thread (zed-focus-agent.sh).
 # A Claude Code Ctrl+G buffer (claude-prompt-<id>.md) opens as claude-prompt-<id>.prompt and moves back on close.
 # It also shows .notes/handoff.prompt below the marker line, and the marker and all below it are cut on close.
 set -euo pipefail
@@ -35,4 +33,4 @@ for file in "${opened[@]}"; do
   printf '%s\n' "$draft" >"${file%.prompt}.md"
   rm -f -- "$file"
 done
-osascript -e 'tell application "System Events" to key code 43 using {command down, shift down}' >/dev/null 2>&1 || true
+"$(dirname "$0")/zed-focus-agent.sh"

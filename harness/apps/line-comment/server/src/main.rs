@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 
 use line_comment::trace::Trace;
 use line_comment::wire::{Change, Position, Range, RESET_CANCEL, RESET_CONFIRM};
-use line_comment::{reveal, uri_to_path, Effect, Session};
+use line_comment::{path_to_uri, uri_to_path, Effect, Session};
 use lsp_server::{Connection, ErrorCode, Message, Notification, Request, RequestId, Response};
 use serde_json::{json, Value};
 
@@ -23,8 +23,11 @@ The subcommands write the same store from a shell, for Claude to place comments:
                                  Zed offers no code action
   drop <file>:<line>...          remove the comment starting on each of those lines
   drop --all                     remove every comment in the workspace
-  list                           print every comment in the export format
+  list [--json]                  print every comment in the export format, or the store as
+                                 JSON
   store                          print the path of the store these commands read
+  root                           print the workspace root these commands resolve
+  wait-close <file>              block until the editor closes that file
   journal                        print every change the store journal holds, oldest first
   restore [--until <unix-ms>]    rebuild the store from the journal, as it stood at that
                                  time or after the last change, and save it
@@ -59,8 +62,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                 targets if !targets.is_empty() => line_comment::cli::drop_comments(targets),
                 _ => Err("usage: line-comment-lsp drop <file>:<line>... | --all".to_string()),
             }),
-            "list" => Some(line_comment::cli::list()),
+            "list" => Some(match rest {
+                [] => line_comment::cli::list(),
+                [flag] if flag == "--json" => line_comment::cli::list_json(),
+                _ => Err("usage: line-comment-lsp list [--json]".to_string()),
+            }),
             "store" => Some(line_comment::cli::store_path()),
+            "root" => Some(Ok(line_comment::cli::current_root().display().to_string())),
+            "wait-close" => Some(match rest {
+                [file] => line_comment::cli::wait_close(file),
+                _ => Err("usage: line-comment-lsp wait-close <file>".to_string()),
+            }),
             "journal" => Some(line_comment::cli::journal_lines()),
             "restore" => Some(match rest {
                 [] => line_comment::cli::restore(None),
@@ -108,6 +120,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "save": { "includeText": false }
                 },
                 "codeActionProvider": { "codeActionKinds": ["refactor"] },
+                "codeLensProvider": {},
                 "executeCommandProvider": {
                     "commands": [
                         "line-comment.add",
@@ -116,8 +129,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         "line-comment.copy",
                         "line-comment.reset"
                     ]
-                },
-                "inlayHintProvider": true
+                }
             },
             "serverInfo": { "name": "line-comment", "version": env!("CARGO_PKG_VERSION") }
         }),
@@ -273,9 +285,9 @@ impl Server {
         };
         self.trace.write(&format!("request {method} {served}"));
         let (result, effects) = match method.as_str() {
-            "textDocument/inlayHint" => {
-                let hints = self.session.inlay_hints(&uri(&params), range(&params));
-                (to_value(Some(hints)), Vec::new())
+            "textDocument/codeLens" => {
+                let lenses = self.session.code_lenses(&uri(&params));
+                (to_value(Some(lenses)), Vec::new())
             }
             "textDocument/codeAction" => {
                 let actions = self.session.code_actions(&uri(&params), range(&params));
@@ -342,10 +354,7 @@ impl Server {
                 self.session.did_change(&uri(&params), &changes)
             }
             "textDocument/didSave" => self.session.did_save(&uri(&params)),
-            "textDocument/didClose" => {
-                self.session.did_close(&uri(&params));
-                Vec::new()
-            }
+            "textDocument/didClose" => self.session.did_close(&uri(&params)),
             // One watch covers the input file and the store, so the notification does not
             // say which moved. Both are cheap to re-read, so both are read.
             //
@@ -381,11 +390,11 @@ impl Server {
                         );
                     }
                 }
-                Effect::RefreshInlayHints => {
+                Effect::RefreshCodeLenses => {
                     let id = self.request_id();
                     self.send(Message::Request(Request {
                         id,
-                        method: "workspace/inlayHint/refresh".to_string(),
+                        method: "workspace/codeLens/refresh".to_string(),
                         params: Value::Null,
                     }));
                 }
@@ -395,6 +404,15 @@ impl Server {
                 Effect::WatchFiles => self.watch_files(),
                 Effect::PublishDiagnostics => self.publish_diagnostics(),
                 Effect::OpenList { path, contents } => self.open_list(path, contents),
+                Effect::RecordClose { key } => {
+                    let log = self.session.closed_log_path();
+                    if let Err(error) = line_comment::closed::append(&log, &key) {
+                        self.show(
+                            true,
+                            format!("line-comment: cannot write {} ({error})", log.display()),
+                        );
+                    }
+                }
             }
         }
     }
@@ -409,28 +427,16 @@ impl Server {
         self.hand_over(path, contents, "open input");
     }
 
-    /// Put a handed-over file in front of the operator through the Zed CLI — the one
-    /// mechanism that works over a review multibuffer as well as a plain tab.
-    ///
-    /// `window/showDocument`, the request that asks the client for this, is one Zed
-    /// leaves unanswered. So the editor is asked from outside.
+    /// Ask the client to show a handed-over file and focus it.
     fn reveal_in_editor(&mut self, path: &Path) {
-        let Some(program) = reveal::zed_cli() else {
-            self.trace.write("reveal: no zed cli");
-            return;
-        };
-        match reveal::with(&program, path) {
-            // The CLI exits as soon as the running editor takes the path. Waiting for it
-            // in a thread of its own reaps it without holding the message loop.
-            Ok(mut child) => {
-                self.trace
-                    .write(&format!("reveal {}", program.to_string_lossy()));
-                std::thread::spawn(move || {
-                    let _ = child.wait();
-                });
-            }
-            Err(error) => self.trace.write(&format!("reveal failed: {error}")),
-        }
+        let id = self.request_id();
+        let uri = path_to_uri(path);
+        self.send(Message::Request(Request {
+            id,
+            method: "window/showDocument".to_string(),
+            params: json!({ "uri": uri, "takeFocus": true }),
+        }));
+        self.trace.write(&format!("show document {uri}"));
     }
 
     /// Ask the client to watch the input files and the store. Without this the server

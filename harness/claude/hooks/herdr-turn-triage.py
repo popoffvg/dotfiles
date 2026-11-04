@@ -3,7 +3,7 @@
 
 UserPromptSubmit asks for the tag in every session. Inside herdr it also clears the pane token
 `triage`, and Stop writes the tag to that token; herdr-zed.sh turns it into the tab icon. A reply
-with no tag counts as done.
+with no tag leaves the token clear.
 """
 
 from __future__ import annotations
@@ -17,7 +17,6 @@ from pathlib import Path
 
 SOURCE = "herdr-turn-triage"
 TOKEN = "triage"
-FALLBACK = "done"
 TAG_RE = re.compile(r"^\W*triage:\s*(done|wait|question)\W*$", re.IGNORECASE)
 
 RULE = (
@@ -65,13 +64,13 @@ def last_reply(transcript_path: str | None) -> str:
     return ""
 
 
-def read_tag(reply: str) -> str:
+def read_tag(reply: str) -> str | None:
     tail = [line for line in reply.splitlines() if line.strip()][-3:]
     for line in reversed(tail):
         match = TAG_RE.match(line.strip())
         if match:
             return match.group(1).lower()
-    return FALLBACK
+    return None
 
 
 def main() -> int:

@@ -2,6 +2,7 @@
 
 pub mod anchor;
 pub mod cli;
+pub mod closed;
 pub mod diff_view;
 pub mod export;
 pub mod input;
@@ -24,16 +25,16 @@ use crate::input::Target;
 use crate::journal::StoreEvent;
 use crate::store::{Author, Comment, LoadError, Store};
 use crate::wire::{
-    Change, CodeAction, Command, Diagnostic, InlayHint, MarkupContent, Position,
-    PublishDiagnostics, Range, CODE_ACTION_KIND, COMMAND_ADD, COMMAND_COPY, COMMAND_DELETE,
-    COMMAND_LIST, COMMAND_RESET, DIAGNOSTIC_SOURCE, SEVERITY_HINT,
+    Change, CodeAction, CodeLens, Command, Diagnostic, Position, PublishDiagnostics, Range,
+    CODE_ACTION_KIND, COMMAND_ADD, COMMAND_COPY, COMMAND_DELETE, COMMAND_GO_TO_LOCATIONS,
+    COMMAND_LIST, COMMAND_RESET, DIAGNOSTIC_SOURCE, LENS_GO_TO_SOURCE, SEVERITY_HINT,
 };
 
-/// Characters of comment text an inlay hint shows before it truncates.
-pub const HINT_WIDTH: usize = 40;
+/// Characters of comment text a code-action title shows before it truncates.
+pub const TITLE_WIDTH: usize = 40;
 
-const HINT_MARK: &str = "💬 ";
-const HINT_MARK_ORPHANED: &str = "💬? ";
+const LENS_MARK: &str = "💬 ";
+const LENS_MARK_ORPHANED: &str = "💬? ";
 
 /// Claude's comments carry this in front of their text. Human and agent comments share
 /// one severity, so the message is the only place the author can show.
@@ -44,7 +45,6 @@ const AGENT_MARK: &str = "🤖 ";
 pub enum Effect {
     PersistStore,
     WriteExport,
-    RefreshInlayHints,
     ShowMessage {
         error: bool,
         text: String,
@@ -60,9 +60,15 @@ pub enum Effect {
     /// Ask the client to watch the input files and the store, so a write by the operator
     /// or by the `comment` subcommand is noticed without an open buffer.
     WatchFiles,
-    /// Push one Hint diagnostic per comment, so the comments show inline and in the
-    /// editor's diagnostics list even when inlay hints are switched off.
+    /// Ask the client for the code lenses again, after the comments changed.
+    RefreshCodeLenses,
+    /// Push one Hint diagnostic per comment, so the comments show in the editor's
+    /// diagnostics list even when code lenses are switched off.
     PublishDiagnostics,
+    /// Append the closed document to the close log `wait-close` reads.
+    RecordClose {
+        key: String,
+    },
     /// Write the export, then put this file in front of the operator.
     OpenList {
         path: PathBuf,
@@ -335,7 +341,7 @@ impl Session {
         }
         vec![
             Effect::PersistStore,
-            Effect::RefreshInlayHints,
+            Effect::RefreshCodeLenses,
             Effect::PublishDiagnostics,
         ]
     }
@@ -357,7 +363,7 @@ impl Session {
             reason: "store file changed on disk".to_string(),
         });
         self.store = store;
-        vec![Effect::RefreshInlayHints, Effect::PublishDiagnostics]
+        vec![Effect::RefreshCodeLenses, Effect::PublishDiagnostics]
     }
 
     /// Store one comment against a line, or against the lines `line..=end_line` a
@@ -580,14 +586,14 @@ impl Session {
     /// The store key for a document this server serves, or `None` when it does not.
     ///
     /// Every file type is served — a comment is a line annotation, and nothing about it
-    /// depends on the language. Only the server's own scratch files under `.tmp/` are
-    /// refused, so a comment never lands on the input file or the export.
+    /// depends on the language. Only the server's own scratch files are refused (see
+    /// `is_server_scratch`), so a comment never lands on the input file or the export.
     pub fn key(&self, uri: &str) -> Option<String> {
         let path = uri_to_path(uri)?;
         let path = self.diff_file(uri).map_or(path, |file| file.repo_path);
         let relative = path.strip_prefix(&self.root).ok();
         if let Some(relative) = relative {
-            if relative.starts_with(".tmp") {
+            if is_server_scratch(relative) {
                 return None;
             }
             return Some(relative.to_string_lossy().replace('\\', "/"));
@@ -625,7 +631,7 @@ impl Session {
             self.record_anchor_move(&key);
             vec![
                 Effect::PersistStore,
-                Effect::RefreshInlayHints,
+                Effect::RefreshCodeLenses,
                 Effect::PublishDiagnostics,
             ]
         }
@@ -697,8 +703,16 @@ impl Session {
         }
     }
 
-    pub fn did_close(&mut self, uri: &str) {
+    pub fn did_close(&mut self, uri: &str) -> Vec<Effect> {
         self.documents.remove(uri);
+        match self.key(uri) {
+            Some(key) => vec![Effect::RecordClose { key }],
+            None => Vec::new(),
+        }
+    }
+
+    pub fn closed_log_path(&self) -> PathBuf {
+        closed::log_path(&self.root)
     }
 
     /// The input file, aimed at one line. The operator types the body and saves.
@@ -747,36 +761,92 @@ impl Session {
         ))
     }
 
-    pub fn inlay_hints(&self, uri: &str, range: Range) -> Vec<InlayHint> {
+    /// A list view gets a `go to source` lens over each heading; any other file gets its
+    /// comments as lenses.
+    pub fn code_lenses(&self, uri: &str) -> Vec<CodeLens> {
+        let Some(path) = uri_to_path(uri) else {
+            return Vec::new();
+        };
+        if self.is_scratch_path(scratch::LIST, &path) {
+            return self.go_to_source_lenses(uri, &path);
+        }
+        self.comment_lenses(uri)
+    }
+
+    /// One lens per comment, on its own row under the last line it covers: Zed draws a
+    /// lens above its line, so the lens sits on the line after. The last line of a file
+    /// has no line after it, and its comment shows above it. A click opens the comment.
+    fn comment_lenses(&self, uri: &str) -> Vec<CodeLens> {
         let Some(key) = self.key(uri) else {
             return Vec::new();
         };
-        let document = self.documents.get(uri).cloned().unwrap_or_default();
-        let lines = anchor::lines(&document);
+        let rows = self
+            .documents
+            .get(uri)
+            .map_or(0, |document| anchor::lines(document).len());
         self.store
             .comments(&key)
             .iter()
-            .map(|comment| (comment, hint_line(comment.line)))
-            .filter(|(_, hint_line)| in_range(*hint_line, range))
-            .map(|(comment, hint_line)| {
-                let anchored = hint_line - 1;
-                let mark = if comment.orphaned {
-                    HINT_MARK_ORPHANED
-                } else {
-                    HINT_MARK
+            .map(|comment| {
+                let after = comment.last_line();
+                let row = if after < rows { after } else { after - 1 };
+                let at = Position {
+                    line: row as u32,
+                    character: 0,
                 };
-                InlayHint {
-                    position: Position {
-                        line: anchored as u32,
-                        character: anchor::utf16_len(lines.get(anchored).copied().unwrap_or("")),
-                    },
-                    label: format!("{mark}{}", truncate(&comment.text)),
-                    padding_left: true,
-                    tooltip: MarkupContent {
-                        kind: "markdown",
-                        value: comment.text.clone(),
+                let mark = if comment.orphaned {
+                    LENS_MARK_ORPHANED
+                } else {
+                    LENS_MARK
+                };
+                CodeLens {
+                    range: Range { start: at, end: at },
+                    command: Command {
+                        title: format!("{mark}{}", comment.text.replace('\n', " ")),
+                        command: COMMAND_ADD.to_string(),
+                        arguments: vec![
+                            json!(uri),
+                            json!(comment.line),
+                            json!(comment.last_line()),
+                        ],
                     },
                 }
+            })
+            .collect()
+    }
+
+    /// It reads the list view, not the store, so a view the server did not write in this
+    /// run still gets its lenses.
+    fn go_to_source_lenses(&self, uri: &str, path: &Path) -> Vec<CodeLens> {
+        let view = std::fs::read_to_string(path).unwrap_or_default();
+        anchor::lines(&view)
+            .into_iter()
+            .enumerate()
+            .filter_map(|(row, text)| {
+                let (file, line, _) = export::read_heading(text)?;
+                let heading = Position {
+                    line: row as u32,
+                    character: 0,
+                };
+                let source = Position {
+                    line: line as u32 - 1,
+                    character: 0,
+                };
+                let location = json!({
+                    "uri": path_to_uri(&self.root.join(file)),
+                    "range": Range { start: source, end: source },
+                });
+                Some(CodeLens {
+                    range: Range {
+                        start: heading,
+                        end: heading,
+                    },
+                    command: Command {
+                        title: LENS_GO_TO_SOURCE.to_string(),
+                        command: COMMAND_GO_TO_LOCATIONS.to_string(),
+                        arguments: vec![json!(uri), json!(heading), json!([location])],
+                    },
+                })
             })
             .collect()
     }
@@ -909,7 +979,7 @@ impl Session {
                 let mut effects = Vec::new();
                 if moved {
                     effects.push(Effect::PersistStore);
-                    effects.push(Effect::RefreshInlayHints);
+                    effects.push(Effect::RefreshCodeLenses);
                     effects.push(Effect::PublishDiagnostics);
                 }
                 effects.push(Effect::WriteExport);
@@ -938,7 +1008,7 @@ impl Session {
                 if self.remove_comment(&key, line) {
                     vec![
                         Effect::PersistStore,
-                        Effect::RefreshInlayHints,
+                        Effect::RefreshCodeLenses,
                         Effect::PublishDiagnostics,
                     ]
                 } else {
@@ -951,7 +1021,7 @@ impl Session {
                 let mut effects = Vec::new();
                 if moved {
                     effects.push(Effect::PersistStore);
-                    effects.push(Effect::RefreshInlayHints);
+                    effects.push(Effect::RefreshCodeLenses);
                     effects.push(Effect::PublishDiagnostics);
                 }
                 effects.push(Effect::WriteExport);
@@ -990,7 +1060,7 @@ impl Session {
         self.clear_comments();
         vec![
             Effect::PersistStore,
-            Effect::RefreshInlayHints,
+            Effect::RefreshCodeLenses,
             Effect::PublishDiagnostics,
         ]
     }
@@ -1000,7 +1070,7 @@ impl Session {
 ///
 /// A comment written from a commit view is about the line as that commit left it, and the
 /// store anchors to the working tree — so whoever reads the comment later needs the
-/// revision to tell whether the two still agree. It goes last: the hint and the export
+/// revision to tell whether the two still agree. It goes last: the lens and the export
 /// heading show the beginning of the text, and the sentence the operator wrote is what
 /// they should show.
 fn with_revision(body: String, commit: Option<&str>) -> String {
@@ -1022,22 +1092,6 @@ fn message_of(comment: &Comment) -> String {
     } else {
         format!("{mark}{}", comment.text)
     }
-}
-
-/// The line a comment's hint is drawn on: the one above the first line it covers, so the
-/// shadow text reads as a heading over the block instead of trailing its opening line. A
-/// comment on the first line of the file has nothing above it and keeps its own line.
-fn hint_line(line: usize) -> usize {
-    if line > 1 {
-        line - 1
-    } else {
-        line
-    }
-}
-
-fn in_range(line: usize, range: Range) -> bool {
-    let anchored = (line - 1) as u32;
-    anchored >= range.start.line && anchored <= range.end.line
 }
 
 /// Whether any line the comment covers falls in the range — a comment over a selection is
@@ -1062,10 +1116,10 @@ fn covered_lines(range: Range) -> (usize, usize) {
 }
 
 fn truncate(text: &str) -> String {
-    if text.chars().count() <= HINT_WIDTH {
+    if text.chars().count() <= TITLE_WIDTH {
         return text.to_string();
     }
-    let head: String = text.chars().take(HINT_WIDTH).collect();
+    let head: String = text.chars().take(TITLE_WIDTH).collect();
     format!("{}…", head.trim_end())
 }
 
@@ -1082,6 +1136,12 @@ fn display_path(root: &Path, path: &Path) -> String {
         .unwrap_or(path)
         .to_string_lossy()
         .replace('\\', "/")
+}
+
+/// The files the server writes itself: directly in `.tmp/`, and the batches `/line-comment:act`
+/// moves to `.tmp/act-session/`. A file in any other folder under `.tmp/` is served.
+fn is_server_scratch(relative: &Path) -> bool {
+    relative.parent() == Some(Path::new(".tmp")) || relative.starts_with(".tmp/act-session")
 }
 
 /// `file://` URI to a path, decoding percent escapes. Any other scheme is not served.

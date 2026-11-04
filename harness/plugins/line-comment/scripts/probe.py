@@ -2,7 +2,7 @@
 """Drive line-comment-lsp over stdio the way Zed does, and print what an editor would see.
 
 Proves the server side of the line-comment extension in isolation: capabilities,
-the code action list, the input file handed over by `add comment`, and the inlay hint
+the code action list, the input file handed over by `add comment`, and the code lens
 that appears once that input file is saved. Any failure here is the server; a pass means the problem is on the
 editor side (extension not loaded, language server not started, settings).
 
@@ -123,7 +123,7 @@ def main() -> int:
         )
         capabilities = reply["result"]["capabilities"]
         print("\ncapabilities:")
-        for key in ("codeActionProvider", "inlayHintProvider"):
+        for key in ("codeActionProvider", "codeLensProvider"):
             print(f"  {key}: {json.dumps(capabilities.get(key))}")
         print(
             "  executeCommandProvider.commands: "
@@ -182,22 +182,18 @@ def main() -> int:
             {"changes": [{"uri": f"file://{input_path}", "type": 2}]},
         )
 
-        whole = {
-            "start": {"line": 0, "character": 0},
-            "end": {"line": len(text.split("\n")), "character": 0},
-        }
-        hints = client.request(
-            "textDocument/inlayHint", {"textDocument": {"uri": uri}, "range": whole}
-        )["result"]
-        print(f"inlay hints  : {len(hints or [])}")
-        for hint in hints or []:
-            print(f"  {hint['position']} {hint['label']!r}")
+        lenses = client.request("textDocument/codeLens", {"textDocument": {"uri": uri}})[
+            "result"
+        ]
+        print(f"code lenses  : {len(lenses or [])}")
+        for lens in lenses or []:
+            print(f"  {lens['range']['start']} {lens['command']['title']!r}")
         print(f"input drained: {not input_path.exists()!r}")
 
         store = root / ".tmp" / "line-comment.json"
         print(f"\nstore written: {store.exists()} ({store})")
-        if not (hints and actions):
-            print("\nFAIL: the server answered but produced no hints or actions")
+        if not (lenses and actions):
+            print("\nFAIL: the server answered but produced no lenses or actions")
             return 1
         print("\nPASS: the server side works. Any missing UI is editor-side.")
         return 0

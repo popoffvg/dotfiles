@@ -22,9 +22,6 @@ impl Server {
         let mut child = Command::new(env!("CARGO_BIN_EXE_line-comment-lsp"))
             // Keep the test runs out of the diagnostic log a person reads.
             .env("LINE_COMMENT_LOG", "off")
-            // A hand-over reveals its file in the editor. Under a test run that would
-            // open a tab in the operator's own window.
-            .env("LINE_COMMENT_ZED", "off")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
@@ -194,7 +191,7 @@ fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
     }));
     let initialized = server.response(1);
     let capabilities = &initialized["result"]["capabilities"];
-    assert_eq!(capabilities["inlayHintProvider"], json!(true));
+    assert_eq!(capabilities["codeLensProvider"], json!({}));
     assert_eq!(
         capabilities["executeCommandProvider"]["commands"],
         json!([
@@ -250,7 +247,7 @@ fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
     assert_eq!(command["command"], json!("line-comment.add"));
 
     // Running it writes the input file under .tmp/ — one file, no client edit, so the
-    // reveal is the only thing that opens it.
+    // showDocument request is the only thing that opens it.
     server.send(json!({
         "jsonrpc": "2.0",
         "id": 3,
@@ -265,6 +262,12 @@ fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
         "<!-- line-comment: docs/spec.md:2 -->\n<!-- commenting on:\n## Design\n-->\n\n"
     );
     assert!(server.asked_for("workspace/applyEdit").is_none());
+    let shown = server.wait_for("window/showDocument");
+    assert_eq!(
+        shown["params"]["uri"],
+        json!(line_comment::path_to_uri(&input))
+    );
+    assert_eq!(shown["params"]["takeFocus"], json!(true));
     server.wait_for("client/registerCapability");
 
     // The operator types and saves; the watch tells the server.
@@ -283,21 +286,18 @@ fn initialize_add_a_comment_through_the_input_file_and_read_back_a_hint() {
     server.send(json!({
         "jsonrpc": "2.0",
         "id": 4,
-        "method": "textDocument/inlayHint",
-        "params": {
-            "textDocument": { "uri": uri },
-            "range": { "start": { "line": 0, "character": 0 }, "end": { "line": 5, "character": 0 } }
-        }
+        "method": "textDocument/codeLens",
+        "params": { "textDocument": { "uri": uri } }
     }));
-    let hints = server.response(4);
-    assert_eq!(hints["result"].as_array().unwrap().len(), 1);
+    let lenses = server.response(4);
+    assert_eq!(lenses["result"].as_array().unwrap().len(), 1);
     assert_eq!(
-        hints["result"][0]["label"],
+        lenses["result"][0]["command"]["title"],
         json!("\u{1f4ac} needs a source")
     );
     assert_eq!(
-        hints["result"][0]["position"],
-        json!({ "line": 0, "character": 7 })
+        lenses["result"][0]["range"]["start"],
+        json!({ "line": 2, "character": 0 })
     );
 
     assert!(
@@ -375,14 +375,11 @@ fn a_comment_written_by_the_subcommand_reaches_the_editor() {
     server.send(json!({
         "jsonrpc": "2.0",
         "id": 2,
-        "method": "textDocument/inlayHint",
-        "params": {
-            "textDocument": { "uri": uri },
-            "range": { "start": { "line": 0, "character": 0 }, "end": { "line": 5, "character": 0 } }
-        }
+        "method": "textDocument/codeLens",
+        "params": { "textDocument": { "uri": uri } }
     }));
-    let hints = server.response(2);
-    assert_eq!(hints["result"].as_array().unwrap().len(), 1);
+    let lenses = server.response(2);
+    assert_eq!(lenses["result"].as_array().unwrap().len(), 1);
 
     let published = server
         .notifications
@@ -425,14 +422,11 @@ fn a_comment_written_by_the_subcommand_reaches_the_editor() {
     server.send(json!({
         "jsonrpc": "2.0",
         "id": 3,
-        "method": "textDocument/inlayHint",
-        "params": {
-            "textDocument": { "uri": uri },
-            "range": { "start": { "line": 0, "character": 0 }, "end": { "line": 5, "character": 0 } }
-        }
+        "method": "textDocument/codeLens",
+        "params": { "textDocument": { "uri": uri } }
     }));
-    let hints = server.response(3);
-    assert!(hints["result"].as_array().unwrap().is_empty());
+    let lenses = server.response(3);
+    assert!(lenses["result"].as_array().unwrap().is_empty());
 
     let published = server
         .notifications

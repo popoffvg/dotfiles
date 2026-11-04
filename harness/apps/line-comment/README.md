@@ -1,8 +1,8 @@
 # line-comment
 
 Review comments on a line, or on a selection of lines, of any file in Zed, kept out of the file. A code action hands you a
-small input file, you type the comment and save, the comment shows at the end of the line as
-an inlay hint and a Hint diagnostic, and `/line-comment:act` hands the collected comments to
+small input file, you type the comment and save, the comment shows on its own row under the
+line as a code lens and as a Hint diagnostic, and `/line-comment:act` hands the collected comments to
 Claude.
 
 `SPEC.md` holds the design. This file is how to install and check it.
@@ -31,7 +31,7 @@ build task.
 **Rebuild only from a Zed started in a shell.** Zed compiles the extension with the `rustc`
 on its own process PATH, and a Zed started from the dock inherits the launchd PATH
 (`/usr/bin:/bin:/usr/sbin:/sbin`), which has no `~/.cargo/bin`. The rebuild then fails and
-takes the whole extension down with it — no server attaches, so every code action, hint and
+takes the whole extension down with it — no server attaches, so every code action, lens and
 diagnostic goes. The Zed log names it:
 
 ```
@@ -52,7 +52,7 @@ mise run harness:line-comment:languages   # then `zed: rebuild dev extension`
 ```
 
 **Either way, finish with `editor: restart language server` on a served file.** A rebuild
-stops the running server and does not start a new one, so the hints and code actions simply
+stops the running server and does not start a new one, so the lenses and code actions simply
 vanish until you restart it — which reads exactly like a crash. The Zed log shows
 `stopping language server line-comment-language-server` with no matching
 `starting language server process`.
@@ -60,26 +60,13 @@ vanish until you restart it — which reads exactly like a crash. The Zed log sh
 The stowed `.config/zed/settings.json` already carries the keys the feature needs:
 
 ```json
-"Markdown": {
-  "language_servers": ["marksman", "line-comment-language-server"],
-  "inlay_hints": { "enabled": true, "show_other_hints": true }
-}
+"code_lens": "on",
+"diagnostics": { "inline": { "enabled": true, "max_severity": "info" } }
 ```
 
-Without `show_other_hints` the hints are hidden — Zed files a kind-less hint under
-"other hints", and that flag is off in the global block. Only Markdown carries that
-override, so **in every other language the inlay hint does not show and the diagnostic is
-the only display.** Turning the flag on globally would also surface every other language
-server's kind-less hints, which is why it stays per-language.
+The comment lens and the `go to source` lens of a list view need `"code_lens": "on"`. Zed has no per-language setting for code lenses, so the lenses of every other language server show too. `editor: toggle code lens` hides them in one editor.
 
-Comments are also published as `Hint` diagnostics, which is the more dependable display:
-they appear in the diagnostics panel with jump-to whatever the hint settings say. The
-end-of-line text needs the global block the settings also carry, because Zed's diagnostics
-settings are editor-wide rather than per-language:
-
-```json
-"diagnostics": { "inline": { "enabled": true, "max_severity": "hint" } }
-```
+Comments are also published as `Hint` diagnostics: they appear in the diagnostics panel with jump-to, and they underline the lines a comment covers. `max_severity` stays above `hint`, so the diagnostic does not repeat the comment as text at the end of the line.
 
 If Zed reports it cannot find the binary, point it straight at the path:
 
@@ -102,7 +89,7 @@ Everything happens in the code-actions menu (`editor: toggle code actions`, or r
 | `add comment on lines <a>-<b>` (selection) | the same, aimed at every line the selection touches; the diagnostic then underlines the whole block |
 | `edit comment: …` (commented line) | the same, aimed at the existing comment and pre-filled with the text it holds; saving replaces that text |
 | `delete comment: …` | drops that comment |
-| `list comments` | re-anchors, writes the export, then opens a fresh `.tmp/line-comment-list-<nonce>.md` — every comment in lumen format |
+| `list comments` | re-anchors, writes the export, then opens a fresh `.tmp/line-comment-list-<nonce>.md` — every comment in lumen format, with a `go to source` lens over each heading that jumps to the commented line |
 | `copy comments` | re-anchors everything, then writes `.tmp/line-comment.md` in lumen format, without opening it |
 | `reset comments` | asks first, then clears every comment in the workspace |
 
@@ -113,8 +100,8 @@ deleting it changes nothing. A selection longer than 10 lines is cut short with 
 the rest.
 
 Saving the input file with **nothing** under the quote cancels the pending comment. The
-body may run to several lines; the hint shows the first 40 characters and the tooltip and
-the export carry all of it.
+body may run to several lines; the lens shows all of it on one row, and the export carries
+it as written.
 
 The server learns of the save through a watch it registers on the input files
 (`workspace/didChangeWatchedFiles`), so the file does not need to stay open. Anything left
@@ -126,13 +113,9 @@ it underneath that buffer is what makes the editor ask whether to overwrite. `li
 works the same way, and drops the views it handed over earlier. The tab of a comment already
 stored is a tab on a file that no longer exists; close it.
 
-The file is put in front of you twice over: the server-side edit that fills it opens it
-over a plain tab, and over a changes-review multibuffer that edit opens nothing at all, so
-the server also runs `zed --existing` on the path. It takes the CLI from
-`LINE_COMMENT_ZED`, then from the PATH, then from `/usr/local/bin`, `/opt/homebrew/bin`
-and `/Applications/Zed.app/Contents/MacOS/cli` — a Zed started from the dock passes on the
-launchd PATH, which names no package manager's prefix. `LINE_COMMENT_ZED=off` opens
-nothing, and that is what the tests and the probe set.
+The server writes the file itself and then sends `window/showDocument`, so Zed opens the file and focuses it. Zed answers that request since 1.21.
+
+The `add` subcommand has no LSP client, so it runs `zed --existing` on the path. It takes the CLI from `LINE_COMMENT_ZED`, then from the PATH, then from `/usr/local/bin`, `/opt/homebrew/bin` and `/Applications/Zed.app/Contents/MacOS/cli`. A Zed started from the dock passes on the launchd PATH, which names no package manager prefix. `LINE_COMMENT_ZED=off` opens nothing, and the tests set it.
 
 In a **commit view** — a past commit opened from the git panel — there is no code-actions
 menu to use. Zed builds those buffers from `git cat-file`, and no language server is attached
@@ -166,14 +149,11 @@ header before saving.
 The comment also records the revision it was read on. `add` asks `git blame` which commit last
 changed that line, writes it as a second marker under the header, and the stored comment ends
 with `read on 36d8b4b6c4a2` — so a later reader can tell whether the line they are looking at is
-still the line you commented on. It sits at the end, so the hint and the export still open with
+still the line you commented on. It sits at the end, so the lens and the export still open with
 your own sentence, and an uncommitted line simply gets no revision. `alt-o` is the other way out — it opens the file as a normal project tab,
 where the code-actions menu works as it does anywhere else.
 
-Two displays carry the same comments: an inlay hint at the end of the line, and a `Hint`
-diagnostic over that line (panel entry, plus inline text when inline diagnostics are on). A
-comment over a selection hints on the first line of the block and underlines all of it, and
-its code actions are offered from every line it covers.
+Two displays carry the same comments: a code lens on its own row under the last line the comment covers, and a `Hint` diagnostic over those lines (a panel entry and an underline). Zed draws a lens above a line, so the server puts it on the line after; a comment on the last line of a file shows above that line. A click on the lens opens the comment for edit. Its code actions are offered from every line it covers.
 
 The store is `<root>/.tmp/line-comment.json`; the export is `<root>/.tmp/line-comment.md`; a
 rendered list view is `<root>/.tmp/line-comment-list-<nonce>.md`. All of them are gitignored —
@@ -189,7 +169,7 @@ Then, in Claude, through the `line-comment` plugin:
 | `/line-comment:prune` | throws comments away without acting on them |
 
 A drop from any of them reaches the running server through its watch on the store, so the
-hints go without a restart.
+lenses go without a restart.
 
 From a shell, the same binary writes and reads the store with no editor involved:
 
@@ -215,7 +195,7 @@ harness/plugins/line-comment/scripts/probe.py <file.md>  # a real file
 ```
 
 It runs the whole flow — capabilities, code actions, `add comment`, the input file, the
-save, the hint — and prints each step. A PASS means the problem is editor-side.
+save, the lens — and prints each step. A PASS means the problem is editor-side.
 
 The server also writes one line per event to `$TMPDIR/line-comment-lsp.log`
 (`LINE_COMMENT_LOG=off` disables it, or set it to another path), because a language server's
@@ -229,8 +209,8 @@ Then in Zed, by hand:
 1. Code actions on a markdown line list `add comment`.
 2. Choosing it opens the input file with a `<!-- line-comment: <file>:<line> -->` header and the
    target line quoted under it.
-3. Type a comment, save — `💬 <text>` appears at the end of the target line.
-4. Code actions on that line now list `edit comment` and `delete comment`; delete removes the hint.
+3. Type a comment, save — `💬 <text>` appears on its own row under the target line.
+4. Code actions on that line now list `edit comment` and `delete comment`; delete removes the lens.
 5. Select several lines — the menu lists `add comment on lines <a>-<b>`; the comment underlines
    every line of the block, and `edit comment` is offered from each of them.
 6. `list comments` — the rendered view opens and matches lumen's format; running it again opens a new one and the previous file is gone.

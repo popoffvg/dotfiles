@@ -10,6 +10,26 @@
     "use_new_terminal": false,
   },
   {
+    "label": "pr-comments: sync",
+    "command": "bash",
+    "args": ["~/.config/zed/scripts/pr-comments-task.sh", "sync"],
+    "tags": ["git-command"],
+    "reveal_target": "center",
+    "hide": "on_success",
+    "allow_concurrent_runs": false,
+    "use_new_terminal": false,
+  },
+  {
+    "label": "pr-comments: list",
+    "command": "bash",
+    "args": ["~/.config/zed/scripts/pr-comments-task.sh", "list"],
+    "tags": ["git-command"],
+    "reveal_target": "center",
+    "hide": "on_success",
+    "allow_concurrent_runs": false,
+    "use_new_terminal": false,
+  },
+  {
     "label": "Go Docs: current package (serve + open)",
     "command": "bash",
     "args": [
@@ -195,7 +215,7 @@
     "show_command": false,
   },
   {
-    "label": "Github",
+    "label": "Github: dashboard",
     "command": "ghui",
     "hide": "never",
     "reveal_target": "center",

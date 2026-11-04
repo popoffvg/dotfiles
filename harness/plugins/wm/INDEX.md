@@ -14,7 +14,7 @@ spec — `/code review` stays as an alias so the flow still reads end to end.
 | `code` | `/code <subcommand>` | **Routes.** Holds the subcommand table, the pipeline, and the shared taxonomy — nothing else. |
 | `arch` | no | **Designs.** The spec corpus and the component taxonomy, before any code exists. |
 | `impl` | no | **Writes source.** Every operation that changes source files or git history. |
-| `review` | `/review <mode>` | **Judges how source is built** — rules, patterns, language idiom, reuse of existing code, correctness. Never whether it is the right thing; that is `code:sub-verify.md` and the `verifier` agent. Writes nothing but its reports. `/code review` is an alias for it. |
+| `review` | `/review <mode>` | **Judges how source is built** — rules, patterns, language idiom, reuse of existing code, simplicity, design, correctness. Never whether it is the right thing; that is `code:sub-verify.md` and the `verifier` agent. Writes nothing but its reports. `/code review` is an alias for it. |
 | `teach` | no | **Teaches.** Builds and measures the human's understanding of the code. |
 
 Split by the kind of work, not by pipeline stage: a reader who knows the kind of work knows the skill.

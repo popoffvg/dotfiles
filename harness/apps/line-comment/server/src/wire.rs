@@ -15,25 +15,16 @@ pub struct Range {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct MarkupContent {
-    pub kind: &'static str,
-    pub value: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InlayHint {
-    pub position: Position,
-    pub label: String,
-    pub padding_left: bool,
-    pub tooltip: MarkupContent,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Command {
     pub title: String,
     pub command: String,
     pub arguments: Vec<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct CodeLens {
+    pub range: Range,
+    pub command: Command,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -73,5 +64,8 @@ pub const COMMAND_LIST: &str = "line-comment.list";
 pub const COMMAND_DELETE: &str = "line-comment.delete";
 pub const COMMAND_COPY: &str = "line-comment.copy";
 pub const COMMAND_RESET: &str = "line-comment.reset";
+/// Zed runs this command itself: it jumps to the locations in the third argument.
+pub const COMMAND_GO_TO_LOCATIONS: &str = "editor.action.goToLocations";
+pub const LENS_GO_TO_SOURCE: &str = "go to source";
 pub const RESET_CONFIRM: &str = "Delete";
 pub const RESET_CANCEL: &str = "Cancel";

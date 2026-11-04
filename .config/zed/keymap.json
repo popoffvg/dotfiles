@@ -357,7 +357,6 @@
     "context": "Workspace",
     "bindings": {
       "cmd-k cmd-t": "tab_switcher::Toggle",
-      "cmd-k t": "agents_sidebar::ToggleThreadSwitcher",
       "cmd-k p": "tab_switcher::Toggle"
     }
   },
@@ -370,7 +369,7 @@
   {
     "context": "Pane",
     "bindings": {
-      "cmd-k t": "agents_sidebar::ToggleThreadSwitcher"
+      "alt-t": "agents_sidebar::ToggleThreadSwitcher"
     }
   },
   {
@@ -424,6 +423,103 @@
         "assistant::InlineAssist",
         {
           "prompt": "Rewrite the selected draft as the next turn to a Claude Code session. Take the goal, the decisions, and the terms from the session context below the marker line, and do not copy it. At most 80 words: the goal as one verb and one object, my why in one sentence, only the limits it would get wrong with their reasons, then a Done when check. Keep my terms and file paths. No steps, no tool choices, no greeting. "
+        }
+      ]
+    }
+  },
+  {
+    "unbind": {
+      "cmd-shift-w": "workspace::CloseWindow"
+    }
+  },
+  {
+    "context": "FileFinder || FileFinder > Picker > Editor || FileFinder > Picker > menu",
+    "bindings": {
+      "cmd-k shift-h": "pane::SplitLeft"
+    }
+  },
+  {
+    "context": "FileFinder || FileFinder > Picker > Editor || FileFinder > Picker > menu",
+    "unbind": {
+      "cmd-h": "pane::SplitLeft"
+    }
+  },
+  {
+    "context": "FileFinder || FileFinder > Picker > Editor || FileFinder > Picker > menu",
+    "bindings": {
+      "cmd-k cmd-h": "pane::SplitLeft"
+    }
+  },
+  {
+    "context": "FileFinder || FileFinder > Picker > Editor || FileFinder > Picker > menu",
+    "unbind": {
+      "cmd-h": "pane::SplitLeft"
+    }
+  },
+  {
+    "context": "FileFinder || FileFinder > Picker > Editor || FileFinder > Picker > menu",
+    "unbind": {
+      "cmd-h": "pane::SplitLeft"
+    }
+  },
+  {
+    "context": "TextFinder || TextFinder > Picker > Editor || TextFinder > Picker > menu",
+    "bindings": {
+      "cmd-k shift-h": "pane::SplitLeft"
+    }
+  },
+  {
+    "context": "TextFinder || TextFinder > Picker > Editor || TextFinder > Picker > menu",
+    "unbind": {
+      "cmd-h": "pane::SplitLeft"
+    }
+  },
+  {
+    "context": "TextFinder || TextFinder > Picker > Editor || TextFinder > Picker > menu",
+    "unbind": {
+      "cmd-h": "pane::SplitLeft"
+    }
+  },
+  {
+    "bindings": {
+      "cmd-k cmd-h": "zed::Hide"
+    }
+  },
+  {
+    "unbind": {
+      "cmd-h": "zed::Hide"
+    }
+  },
+  {
+    "context": "TextFinder || TextFinder > Picker > Editor || TextFinder > Picker > menu",
+    "unbind": {
+      "cmd-h": "pane::SplitLeft"
+    }
+  },
+  {
+    "context": "Workspace",
+    "bindings": {
+      "alt-w": "git::Worktree"
+    }
+  },
+  {
+    "context": "Workspace",
+    "unbind": {
+      "ctrl-cmd-w": "git::Worktree"
+    }
+  },
+  {
+    "bindings": {
+      "cmd-shift-j": "workspace::NewCenterTerminal"
+    }
+  },
+  {
+    "context": "Pane",
+    "unbind": {
+      "cmd-k t": [
+        "pane::CloseItemsToTheRight",
+        {
+          "close_pinned": false
         }
       ]
     }

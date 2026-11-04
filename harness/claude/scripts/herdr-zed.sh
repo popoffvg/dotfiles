@@ -9,7 +9,8 @@ CONFIG="${HERDR_ZED_CONFIG:-$HOME/.config/herdr/zed.toml}"
 START_CMD="${HERDR_ZED_COMMAND:-claudex}"
 WAIT_SECONDS="${HERDR_ZED_WAIT:-15}"
 TITLE_POLL_SECONDS="${HERDR_ZED_TITLE_POLL:-1}"
-DONE_ICON="${HERDR_ZED_DONE_ICON:-○}"
+DONE_ICON="${HERDR_ZED_DONE_ICON:-◉}"
+UNTAGGED_ICON="${HERDR_ZED_UNTAGGED_ICON:-○}"
 QUESTION_ICON="${HERDR_ZED_QUESTION_ICON:-?}"
 WAIT_ICON="${HERDR_ZED_WAIT_ICON:-⧗}"
 read -r -a BUSY_FRAMES <<<"${HERDR_ZED_BUSY_FRAMES:-◰ ◳ ◲ ◱}"
@@ -75,6 +76,7 @@ send_start_command() {
 #
 # The mark at rest comes from the `triage` token that herdr-turn-triage.py sets
 # at each Stop from the tag the session model writes at the end of its reply.
+# With no token, the reply had no tag or no turn ended yet.
 #
 # Writes to $styled, because a command substitution would run this in a subshell
 # and throw away the frame counter.
@@ -85,7 +87,7 @@ restyle_icon() {
     return
   fi
   local state=$1
-  if [[ $state == idle || $state == done ]]; then state=${2:-done}; fi
+  if [[ $state == idle || $state == done ]]; then state=${2:-untagged}; fi
   case $state in
   working)
     printf -v styled "%s %s" "${BUSY_FRAMES[frame]}" "$3"
@@ -95,6 +97,7 @@ restyle_icon() {
   blocked | question) printf -v styled "%s %s" "$QUESTION_ICON" "$3" ;;
   wait) printf -v styled "%s %s" "$WAIT_ICON" "$3" ;;
   done) printf -v styled "%s %s" "$DONE_ICON" "$3" ;;
+  untagged) printf -v styled "%s %s" "$UNTAGGED_ICON" "$3" ;;
   *) styled=$3 ;;
   esac
   frame=0

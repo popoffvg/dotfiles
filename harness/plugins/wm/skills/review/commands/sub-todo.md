@@ -30,7 +30,7 @@ every finding routes back to `impl`, which is the only skill that edits.
    round, run every probe; a probe that prints nothing skips its gate or batch as PASS. Done when
    every gate and batch is marked run or skipped.
 5. **Run the wave** — in **one message**, every gate step 4 did not skip: @lint-tester, one @rule-checker per brief in
-   `rules/batches/` (step 2 prints the count) (`batch: <brief path>`), @idiom-critic, @reuse-critic, @correctness-critic, and, on request, one
+   `rules/batches/` (step 2 prints the count) (`batch: <brief path>`), @idiom-critic, @reuse-critic, @simplify-critic, `good-design-verifier` (`task:` the TODO Outcome, `diff:` the range), @correctness-critic, and, on request, one
    @mutation-tester per batch from step 3. Every gate gets its own `report: <notes-dir>/review/TODO-N/<gate>.md` line.
    Every mutation agent gets the `checkout:` line (`mutation:SKILL.md` § 3), no `isolation`, and
    writes to `<notes-dir>/review/TODO-N/mutation/<batch-slug>.md`. The lint gate needs the pair
@@ -41,8 +41,10 @@ every finding routes back to `impl`, which is the only skill that edits.
    2, a red wave goes to the triage judge first) — a `general-purpose` agent on `opus`,
    `report: <notes-dir>/review/TODO-N/judge.md`.
 6. **Run the test gate** — @tester in TODO mode, `report: <notes-dir>/review/TODO-N/test.md`, once
-   the wave is green and the `test` probe printed a line. The one question: does a test assert this TODO's `## Autotest` contract, both
-   `Unit` and `E2E`? No → it writes that test and returns the files. Under `fast`, skip this step.
+   the wave is green and the `test` probe printed a line. Two questions. Does a test assert this TODO's `## Autotest` contract, both
+   `Unit` and `E2E`? No → it writes that test and returns the files. Does a unit test the diff adds restate the code
+   (`ref-gates.md` § The test gate also finds the added tests that restate the code)? Yes → a `delete` finding, FAIL.
+   Under `fast`, skip this step.
 7. **Merge and report** — the merged shape in `../examples/report.md`, written to
    `<notes-dir>/review/TODO-N/report.md` and returned. On every gate green, the caller advances
    the TODO `status: verify → done`; on a budget exhausted, `status: blocked`. Under `fast` the

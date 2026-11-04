@@ -77,10 +77,10 @@
   "diagnostics": {
     "inline": {
       "enabled": true,
-      "max_severity": "hint",
+      "max_severity": "info",
     },
   },
-  "code_lens": "off",
+  "code_lens": "on",
   "proxy": "",
   "telemetry": {
     "diagnostics": true,
@@ -128,7 +128,7 @@
     },
     "provider": "zed",
   },
-  "diff_view_style": "split",
+  "diff_view_style": "unified",
   "cli_default_open_behavior": "new_window",
   "project_panel": {
     "sticky_scroll": false,

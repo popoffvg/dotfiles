@@ -63,13 +63,24 @@ store="$(line-comment-lsp store)"
   exit 0
 }
 
-if [ -z "$pr" ]; then
-  pr="$(gh pr view --json number --jq .number 2>/dev/null || true)"
+# The active gh account can be one that cannot see this repo (a personal account on an org repo).
+if ! gh repo view --json name >/dev/null 2>&1; then
+  for user in $(gh auth status 2>/dev/null | sed -n 's/.*account \([^ ]*\) .*/\1/p'); do
+    token="$(gh auth token --user "$user")"
+    if GH_TOKEN="$token" gh repo view --json name >/dev/null 2>&1; then
+      export GH_TOKEN="$token"
+      echo "using gh account $user for this repo"
+      break
+    fi
+  done
 fi
-[ -n "$pr" ] || {
-  echo "no pull request for the current branch — pass --pr N" >&2
-  exit 1
-}
+
+if [ -z "$pr" ]; then
+  pr="$(gh pr view --json number --jq .number)" || {
+    echo "cannot find the pull request of the current branch — pass --pr N" >&2
+    exit 1
+  }
+fi
 
 nwo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
 

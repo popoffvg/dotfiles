@@ -1,8 +1,6 @@
 //! Bringing a path up in the editor already on screen, from outside any buffer.
 //!
-//! The server reveals a hand-over this way because `window/showDocument` is a request Zed
-//! leaves unanswered. The `add` subcommand reveals one this way because it has no client
-//! at all.
+//! The `add` subcommand reveals its input file this way because it has no LSP client.
 
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
@@ -18,7 +16,7 @@ const ZED_CLI_PATHS: [&str; 3] = [
 ///
 /// A Zed started from the dock passes the launchd PATH on, which names no package
 /// manager's prefix, so a PATH lookup alone finds nothing. `off` reveals nothing.
-pub fn zed_cli() -> Option<PathBuf> {
+fn zed_cli() -> Option<PathBuf> {
     match std::env::var("LINE_COMMENT_ZED") {
         Ok(value) if value == "off" => return None,
         Ok(value) => return Some(PathBuf::from(value)),
@@ -31,7 +29,7 @@ pub fn zed_cli() -> Option<PathBuf> {
         .find(|candidate| candidate.is_file())
 }
 
-pub fn with(program: &Path, path: &Path) -> Result<Child, std::io::Error> {
+fn with(program: &Path, path: &Path) -> Result<Child, std::io::Error> {
     Command::new(program)
         .arg("--existing")
         .arg("--")

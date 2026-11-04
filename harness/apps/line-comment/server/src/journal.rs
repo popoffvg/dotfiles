@@ -142,7 +142,7 @@ pub fn journal_path(root: &Path) -> PathBuf {
     root.join(".tmp").join(JOURNAL_FILE_NAME)
 }
 
-fn now_millis() -> u128 {
+pub(crate) fn now_millis() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |since| since.as_millis())

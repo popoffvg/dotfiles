@@ -4,15 +4,15 @@
 
 ## Mental model
 
-**A code action hands over an input file.** Zed exposes no LSP request that opens a text box, and a code action's command reaches only the language server, never an editor action. What a server can do is write the file itself and then ask the Zed CLI (`zed --existing`) to bring the path up, which works from whatever the operator was looking at. `workspace/applyEdit` is not used for the hand-over: a create carrying a text edit makes the client open the file too, which over a plain tab is the same file opened twice. And `window/showDocument`, the request that asks the client for exactly this, is one Zed leaves unanswered. So `add comment` writes a header naming the target, and the target lines quoted under it, into `.tmp/line-comment-input-<nonce>.md`; the operator types under that and saves.
+**A code action hands over an input file.** Zed exposes no LSP request that opens a text box, and a code action's command reaches only the language server, never an editor action. What a server can do is write the file itself and then send `window/showDocument`, which Zed answers since 1.21. `workspace/applyEdit` is not used for the hand-over: a create carrying a text edit makes the client open the file too, which over a plain tab is the same file opened twice. So `add comment` writes a header naming the target, and the target lines quoted under it, into `.tmp/line-comment-input-<nonce>.md`; the operator types under that and saves.
 
 **A commit view is reached through the clipboard, not through a code action.** Zed builds the buffers of a past commit from `git cat-file` as its own `GitBlob` file type inside a read-only multibuffer, and `GitBlob::as_local()` is `None` — so `project::File::from_dyn` fails, no language server is attached to those buffers at all, and the code-action menu reports nothing to offer. A task cannot stand in for the menu either: the same `as_local()` gate withholds `ZED_FILE` and every other file variable from that view, leaving a task only `ZED_WORKTREE_ROOT`. What survives there is `editor::CopyFileLocation`, which reads the blob's own path, and the keymap context `CommitDiff`. So the gesture keeps the keystroke it has everywhere else — `cmd-.` in the `CommitDiff` context copies `<file>:<line>` and runs `line-comment-lsp add "$(pbpaste)"` — the same hand-over the code action performs, minted by the binary, revealed with `zed --existing`, and stored by the server's watch when the operator saves. The path a commit view copies is relative to the git repository rather than to the workspace root, and one Zed project can hold several repositories, so `add` looks for the named file inside each repository under the root when it names none from the root itself. The line is the line in that commit's revision of the file: on the tip commit it is the working tree's line, on an older one it can point elsewhere.
 
-**A comment written from a commit view names the revision it was read on.** The store anchors to the working tree, so a later reader has to be able to tell whether the line in front of them is the line that was commented on. `add` asks `git blame` for the revision that last changed the line, writes it under the target header, and the server appends `read on <sha>` to the text when it stores the body — last, so the hint and the export heading still open with the sentence the operator wrote. Blame answers for the branch the working tree is on, which is the commit that was on screen whenever that commit is the newest change to the line; it is a provenance note, not a claim about which view was open. An uncommitted line, a path outside a repository, or no git at all leaves the comment without a revision, exactly as before revisions existed.
+**A comment written from a commit view names the revision it was read on.** The store anchors to the working tree, so a later reader has to be able to tell whether the line in front of them is the line that was commented on. `add` asks `git blame` for the revision that last changed the line, writes it under the target header, and the server appends `read on <sha>` to the text when it stores the body — last, so the lens and the export heading still open with the sentence the operator wrote. Blame answers for the branch the working tree is on, which is the commit that was on screen whenever that commit is the newest change to the line; it is a provenance note, not a claim about which view was open. An uncommitted line, a path outside a repository, or no git at all leaves the comment without a revision, exactly as before revisions existed.
 
 **A repo-relative path can name two files, and then the input file asks.** Nothing a keybinding reaches in that view says which repository the commit came from: the tab title carries a short sha and no path, `editor::CopyPermalinkToLine` refuses a blob outright, `workspace::CopyPath` yields an absolute path only from the excerpt header's context menu and only when each repository is a Zed folder of its own, and the `ZED_GIT_REPOSITORY_PATH` that would settle it is built for the Git Graph's own menu, which the commit view never opens. `ZED_WORKTREE_ROOT` is no help either — with the buffer carrying no project path, Zed falls back to the first visible worktree, which is not the commit's repository. Refusing would leave the gesture dead in a project holding two worktrees of one repository, so `add` takes the first candidate in path order and writes the others into the input file's dropped block, under the lines it quoted. The quote is what shows the guess was wrong, and the header is what the operator corrects — the same header the save is read back through, so a correction costs an edit rather than another command. `git::OpenFileAtHead` is bound in the same context as the other way out: it resolves the repository the way Zed does and opens a project buffer, where the code action serves as always.
 
-**A `zed --diff` view stores its comments in the repo it mirrors.** `zed-diff.sh` copies the changed files into mirror trees `<work_dir>/<tree>/<file>` and writes the repo root into `<work_dir>/.line-comment-repo`. Zed opens each file there as a single-file worktree, so the root is the file's parent. When that root has the marker above it, the root becomes the repo, and `Session::key` maps `<work_dir>/<tree>/<rel>` to `<rel>` — every store and export path is repo-relative. Diagnostics and hints still go to the tree URIs the client opened. A tree other than `working-tree` is a snapshot: its text never moves an anchor or supplies a hash, and a comment written there gets `read on <tree sha>`, stored as a working-tree line.
+**A `zed --diff` view stores its comments in the repo it mirrors.** `zed-diff.sh` copies the changed files into mirror trees `<work_dir>/<tree>/<file>` and writes the repo root into `<work_dir>/.line-comment-repo`. Zed opens each file there as a single-file worktree, so the root is the file's parent. When that root has the marker above it, the root becomes the repo, and `Session::key` maps `<work_dir>/<tree>/<rel>` to `<rel>` — every store and export path is repo-relative. Diagnostics and lenses still go to the tree URIs the client opened. A tree other than `working-tree` is a snapshot: its text never moves an anchor or supplies a hash, and a comment written there gets `read on <tree sha>`, stored as a working-tree line.
 
 **One input file per code action, gone as soon as it is read.** The editor keeps the tab of the previous comment open on its path, so a single reused path is rewritten underneath a live buffer — which the editor reports as a conflicting change on disk and answers with an overwrite prompt. A name nothing holds open cannot conflict, so every code action mints its own and `drain` deletes the file rather than emptying it. Minting also clears away the files nobody typed into, so a cancelled comment leaves nothing behind.
 
@@ -22,13 +22,13 @@
 
 **A comment covers a line, or the lines a selection touches.** The code action reads the range the editor sent: a cursor covers its own line, and a selection covers every line it touches — the trailing line of a whole-line selection excluded, because an editor reports those as ending at column 0 of the line after the last. The first line covered carries the anchor and addresses the comment; the last line is only the end of the block, and a comment covering one line stores no end at all. So `12` and `12-18` are the two forms the store, the input header, the export and the `comment` subcommand all name lines in.
 
-**The comments live beside the file, never in it.** The server keeps one JSON store per Zed project under `.tmp/`. Nothing the server does writes into the commented buffer.
+**The comments live beside the file, never in it.** The server keeps one JSON store per Zed project under `.tmp/`. Nothing the server does writes into the commented buffer. The server refuses only its own files: the files directly in `.tmp/` and the batches in `.tmp/act-session/`. A file in any other folder under `.tmp/` is served, so another tool can put a file there for comments and keep it out of git.
 
-**Two displays carry the comments, and code actions change them.** An inlay hint sits at the end of the line above each commented line, and the same comment is published as a `Hint` diagnostic over the commented line itself — the diagnostic is the dependable one, because it reaches the diagnostics panel whatever the hint settings say, and it renders inline when inline diagnostics are on. Zed drops the `command` field of hint label parts, so neither display can be clicked; add, edit, delete, list, copy and reset are all code actions.
+**Two displays carry the comments, and code actions change them.** A code lens shows each comment on its own row under the last line it covers, and the same comment is published as a `Hint` diagnostic over the commented lines — a panel entry and an underline. Zed draws a lens above its line, so the lens sits on the line after the comment; a comment on the last line of a file shows above that line. A click on the lens opens the comment for edit; delete, list, copy and reset are code actions.
 
 **Claude reads the store through the binary, in the export format.** `line-comment-lsp list` prints every comment as lumen-format markdown, and `/line-comment:act` treats each block as a task on that file and line. Reading the live store rather than a file means the comments are the ones the store holds now, and no second renderer exists to drift from the export.
 
-**An act run claims its batch by moving the store into a session folder.** `/line-comment:act` renames `<root>/.tmp/line-comment.json` to `<root>/.tmp/act-session/<id>/line-comment.json` before any fork edits anything. A rename is atomic, so the batch a run owns is fixed at that instant and cannot grow underneath the forks, and the operator can keep writing comments while they work — the absent store starts a fresh one that the run never reads. The server takes the absence up through its watch and clears the hints, which is what `drop` used to do one comment at a time; a run therefore calls no `drop` at all. The run closes by writing `processed.md` beside the moved store, one block per comment and what became of it, so the session folder holds both the batch as the operator wrote it and the outcome. A comment no fork could act on stays there marked unresolved rather than returning to the live store, because the only way back in is the `comment` subcommand, which would stamp it `agent` and make every later run skip it as Claude's own. The `copy comments` action still writes `.tmp/line-comment.md` for anything else that wants the export as a file.
+**An act run claims its batch by moving the store into a session folder.** `/line-comment:act` renames `<root>/.tmp/line-comment.json` to `<root>/.tmp/act-session/<id>/line-comment.json` before any fork edits anything. A rename is atomic, so the batch a run owns is fixed at that instant and cannot grow underneath the forks, and the operator can keep writing comments while they work — the absent store starts a fresh one that the run never reads. The server takes the absence up through its watch and clears the lenses, which is what `drop` used to do one comment at a time; a run therefore calls no `drop` at all. The run closes by writing `processed.md` beside the moved store, one block per comment and what became of it, so the session folder holds both the batch as the operator wrote it and the outcome. A comment no fork could act on stays there marked unresolved rather than returning to the live store, because the only way back in is the `comment` subcommand, which would stamp it `agent` and make every later run skip it as Claude's own. The `copy comments` action still writes `.tmp/line-comment.md` for anything else that wants the export as a file.
 
 **Claude writes through the same binary, with no editor involved.** `line-comment-lsp comment <file>:<lines> <text>` loads the store, upserts an `agent` comment, and saves. The running server holds a watch on the store as well as on the input file, so it takes the write up and republishes without a restart. The watch reports no path, so the server reads the store first and drains the input second — draining first would leave its comment unpersisted and the reload would then read the file as it stood before and throw that comment away.
 
@@ -44,8 +44,8 @@ commit view ──► cmd-shift-y ──► line-comment-lsp add <file>:<lines> 
 Claude ──► line-comment-lsp comment <file>:<lines> ────────────┘             │
                                                                           │
      ┌────────────────────────────────────────────────────────────────────┘
-     ├─► inlayHint   ──► 💬 hint at end of the line above (Markdown only)
-     ├─► diagnostics ──► panel entry + inline text, 🤖 for a Claude comment
+     ├─► codeLens    ──► 💬 row under the comment; go to source in a list view
+     ├─► diagnostics ──► panel entry + underline, 🤖 for a Claude comment
      ├─► codeAction  ──► edit / delete / list / copy / reset
      ├─► list        ──► .tmp/line-comment-list-<nonce>.md (opened)
      ├─► copy        ──► .tmp/line-comment.md
@@ -125,7 +125,7 @@ The extension must not carry the binary — Zed's extension policy forbids it, a
       "line-comment.delete", "line-comment.copy", "line-comment.reset"
     ]
   },
-  "inlayHintProvider": true
+  "codeLensProvider": {}
 }
 ```
 
@@ -136,7 +136,7 @@ The extension must not carry the binary — Zed's extension policy forbids it, a
 | Request | Behaviour |
 |---|---|
 | `initialize` | Resolve the root, load or create the store, ensure `.tmp/` and its gitignore line. |
-| `textDocument/inlayHint` | One hint per comment whose hint line falls inside the requested range. |
+| `textDocument/codeLens` | In a list view, a `go to source` lens over each heading. In any other file, one lens per comment, titled with its text. |
 | `textDocument/codeAction` | `add comment` when no comment starts on the first line covered, titled `add comment on lines <a>-<b>` over a selection of several lines; `edit comment: <text…>` and `delete comment: <text…>` for each comment any of whose lines the range touches; `list comments`, `copy comments` and `reset comments` always. |
 | `workspace/executeCommand` | The five commands below. |
 | `didOpen` | Reconcile every comment of that file by hash. |
@@ -160,18 +160,16 @@ The extension must not carry the binary — Zed's extension policy forbids it, a
 
 Severity 4 is `Hint`, the quietest level, and the range covers every line the comment does — from column 0 of its first to the end of its last — so the editor marks the text the comment is about. An orphaned comment gets ` (orphaned)` appended to its message. The server publishes for every file in the store — open or not, which is what fills the diagnostics panel — and sends an **empty** list for any file it published before that now has none, because an editor keeps showing what it was last told.
 
-### Inlay hint shape
+### Code lens shape
 
 ```json
 {
-  "position": { "line": 11, "character": 42 },
-  "label": "💬 needs a source",
-  "paddingLeft": true,
-  "tooltip": { "kind": "markdown", "value": "needs a source" }
+  "range": { "start": { "line": 12, "character": 0 }, "end": { "line": 12, "character": 0 } },
+  "command": { "title": "💬 needs a source", "command": "line-comment.add", "arguments": ["file:///…/spec.md", 12, 12] }
 }
 ```
 
-The hint is drawn on the line **above** the first line the comment covers, so the shadow text reads as a heading over the block instead of trailing its opening line; `character` is the UTF-16 length of that line, putting the hint at its end. A comment on the first line of the file has nothing above it and keeps its own line. The diagnostic is what shows how far the block runs. The label is `💬 ` plus the text truncated to 40 characters with a trailing `…`; an orphaned comment uses `💬? `. The hint carries **no `kind`**, which is why `Markdown.inlay_hints.show_other_hints` must be true — Zed treats a missing kind as the `None` bucket and gates it on that flag.
+The lens sits on the line after the last line the comment covers. The title is `💬 ` plus the whole text, with each line break as a space; an orphaned comment uses `💬? `. The command is the one `edit comment` runs. A list view gets `go to source` lenses instead, with the command `editor.action.goToLocations`, which Zed runs itself. Lenses need `"code_lens": "on"`, a setting Zed has only for all languages.
 
 ### Subcommands
 
@@ -184,7 +182,10 @@ The binary answers these before it opens the LSP channel, so Claude writes comme
 | `drop <file>:<line>...` | Remove the comment starting on each line named. Reports every target, whether it held one or not. One session for the batch, so the store is written once and a running server reloads once. |
 | `drop --all` | Remove every comment in the workspace — `reset comments`, from a shell. |
 | `list` | Print the whole store in the export format. |
+| `list --json` | Print the store as it is saved, for a caller that reads the comments as data. |
 | `store` | Print the path of the store the commands resolved, for a caller that opens it itself. |
+| `root` | Print the workspace root the commands resolved. |
+| `wait-close <file>` | Block until the editor closes the file. The server appends `<unix ms> <key>` to `.tmp/line-comment.closed` on each `didClose` of a file it serves, and the command polls that log for a close after its own start. |
 
 The root is the **outermost** ancestor of the target that already holds `.tmp/line-comment.json`, else the nearest ancestor holding `.git`, else the current directory; the walk stops below `$HOME`, so a store left in the home directory claims nothing. It has to match the root the server derived from `initialize`, or the two read different stores. A store outranks `.git` because one Zed project can hold several repositories: with `.git` first, a command run inside `<project>/pl` reads `<project>/pl/.tmp/line-comment.json` and reports no comments while the server writes them to `<project>/.tmp/line-comment.json`.
 
@@ -197,10 +198,10 @@ The root is the **outermost** ancestor of the target that already holds `.tmp/li
 | Command | Arguments | Effect |
 |---|---|---|
 | `line-comment.add` | `[uri, line, end_line]` (1-based lines; `end_line` omitted means the one line) | Write the input file for that target, bring it up with the Zed CLI, and name the path in a message. Also serves `edit comment`, with the existing comment's line — a line that already carries a comment gets its text under the header, so the operator changes what is there instead of retyping it. |
-| `line-comment.delete` | `[uri, line]` (1-based line) | Drop that comment, persist, refresh hints. |
+| `line-comment.delete` | `[uri, line]` (1-based line) | Drop that comment, persist, refresh lenses. |
 | `line-comment.list` | `[]` | Re-anchor, write the export, then hand over a fresh `<root>/.tmp/line-comment-list-<nonce>.md` with the same content, brought up the same way as an input file. The views already handed over are deleted first — each one renders the store as it stood, so the new one replaces them. With no comments, say so and open nothing. |
 | `line-comment.copy` | `[]` | Re-anchor every comment against the file as it stands, then write the export for the whole store and `window/showMessage` (Info): `"12 comments → .tmp/line-comment.md"`. |
-| `line-comment.reset` | `[]` | Ask through `window/showMessageRequest`: `"Delete 12 comments in 3 files?"` with actions `Delete` and `Cancel`. On `Delete`, clear the store, persist, refresh hints. On `Cancel` or a null reply, do nothing. |
+| `line-comment.reset` | `[]` | Ask through `window/showMessageRequest`: `"Delete 12 comments in 3 files?"` with actions `Delete` and `Cancel`. On `Delete`, clear the store, persist, refresh lenses. On `Cancel` or a null reply, do nothing. |
 
 All three return `null`; none returns a workspace edit.
 
@@ -242,7 +243,7 @@ Over a selection the header names both ends — `<!-- line-comment: docs/spec.md
 
 **The quote is the tip, not the comment.** It holds the target lines as the file reads at hand-over — the selection, or the one line the cursor stood on — so the operator sees what the comment is about without leaving the input file, and Zed greys it out as a markdown comment. At most 10 lines are quoted, the rest counted as `… <n> more lines`; a `-->` inside the text is broken up, because it would otherwise close the block and spill the file's own text into the comment. Nothing reads the quote back: the parser drops it, and an operator who edits or deletes it changes nothing.
 
-Parsing takes the first line containing the marker, splits the target on its **last** colon so a path may hold colons, reads what follows as `12` or `12-18`, drops a comment block standing first under the header, and treats the rest as the body, trimmed. A header naming no lines — a zero, or an end above the start — is no header at all. A block the operator never closed is text they wrote, and stays in the body. A body of several lines is kept whole — the hint shows the first 40 characters, the tooltip and the export carry all of it. Draining deletes the file, so a second save of the same content stores nothing. An empty body cancels the pending comment.
+Parsing takes the first line containing the marker, splits the target on its **last** colon so a path may hold colons, reads what follows as `12` or `12-18`, drops a comment block standing first under the header, and treats the rest as the body, trimmed. A header naming no lines — a zero, or an end above the start — is no header at all. A block the operator never closed is text they wrote, and stays in the body. A body of several lines is kept whole — the lens shows it on one row, and the export carries it as written. Draining deletes the file, so a second save of the same content stores nothing. An empty body cancels the pending comment.
 
 A file carrying no header is left alone: that is the empty file the code action just created, before the operator typed anything. Draining reads every input file present, so a save the watch reported late is still taken.
 
@@ -300,9 +301,9 @@ Rules: header line, then one block per comment joined by `---` on its own line, 
 
 **Deleting a commented line keeps the comment.** The change range covers it, so the comment stays at that line index and re-anchors to whatever text now occupies it. This is deliberate: a note is expensive to retype and cheap to ignore.
 
-### Refreshing the hints
+### Refreshing the lenses
 
-**A comment arrives without the commented file changing, so Zed has no reason to re-query inlay hints.** After every store mutation the server sends `workspace/inlayHint/refresh`, and Zed answers it by re-querying hints for that server's buffers. Without this request the hint would only appear after the next buffer edit.
+**A comment arrives without the commented file changing, so Zed has no reason to re-query code lenses.** After every store mutation the server sends `workspace/codeLens/refresh`, and Zed answers it by re-querying lenses for that server's buffers. Without this request the lens would only appear after the next buffer edit.
 
 ### Taking the comment from the input file
 
@@ -314,7 +315,7 @@ Rules: header line, then one block per comment joined by `---` on its own line, 
 
 **The server sees every buffer in the project, so it filters itself.** Zed attaches a language server per language, with no per-file scoping. A comment is a line annotation and no part of it depends on the language, so every file type is served — only paths under `<root>/.tmp/` are refused, which keeps a comment off the server's own input file, store and export. Every refused document returns `null` or an empty list.
 
-**Zed has no wildcard for languages.** `[language_servers.line-comment-language-server] languages` in `extension.toml` has to name each language, so `harness/scripts/sync-line-comment-languages.py` regenerates the array from the languages installed on the machine. Re-run it after installing a language extension.
+**Zed has no wildcard for languages.** `[language_servers.line-comment-language-server] languages` in `extension.toml` has to name each language, so `harness/scripts/sync-zed-languages.py --app line-comment` regenerates the array from the languages installed on the machine. Re-run it after installing a language extension.
 
 ### Crate layout
 
@@ -358,17 +359,16 @@ outputs = ["{{env.HOME}}/.local/bin/line-comment-lsp"]
 run = "cargo build --release -p line-comment-server && install -m 755 target/release/line-comment-lsp $HOME/.local/bin/line-comment-lsp"
 ```
 
-**`.config/zed/settings.json` Markdown block gains the server and the hint flag:**
+**`.config/zed/settings.json` Markdown block gains the server:**
 
 ```json
 "Markdown": {
   "indent_guides": { "coloring": "fixed", "enabled": true },
-  "language_servers": ["marksman", "line-comment-language-server"],
-  "inlay_hints": { "enabled": true, "show_other_hints": true }
+  "language_servers": ["marksman", "line-comment-language-server"]
 }
 ```
 
-**`harness/plugins/line-comment/commands/act.md` mirrors `commands/lumen.md`.** It runs `line-comment-lsp list`, prints each block, treats each as a task on that file and line, and asks before changing anything the comment does not state plainly. Header-only output means no comments; say so and stop. A block marked `(from Claude)` is its own and it acts on none of it. Before any fork runs it moves the store into `<root>/.tmp/act-session/<id>/`, which claims the batch and clears the hints in one atomic rename. The edits themselves happen in fork agents, one per file so two agents never write the same file, spawned in one message; the session that read the store keeps the grilling and the report. It closes by writing `processed.md` into the session folder — one block per comment, acted on and unresolved alike — and calls no `drop`, because the batch already left the store.
+**`harness/plugins/line-comment/commands/act.md` mirrors `commands/lumen.md`.** It runs `line-comment-lsp list`, prints each block, treats each as a task on that file and line, and asks before changing anything the comment does not state plainly. Header-only output means no comments; say so and stop. A block marked `(from Claude)` is its own and it acts on none of it. Before any fork runs it moves the store into `<root>/.tmp/act-session/<id>/`, which claims the batch and clears the lenses in one atomic rename. The edits themselves happen in fork agents, one per file so two agents never write the same file, spawned in one message; the session that read the store keeps the grilling and the report. It closes by writing `processed.md` into the session folder — one block per comment, acted on and unresolved alike — and calls no `drop`, because the batch already left the store.
 
 **`.config/zed/keymap.json` and `.config/zed/tasks.json` carry the commit-view gesture.** A task
 runs the hand-over from the clipboard, and one binding in the `CommitDiff` context copies the
@@ -403,10 +403,10 @@ Answer these before writing code:
 
 1. Why does the `add comment` edit include a text edit as well as a create, and what happens if you send the create alone?
 2. Which two events can drain the input file, and why does the server need both?
-3. Which settings key decides whether the hints are visible at all, and what does the server send as the hint `kind`?
+3. Which settings key decides whether the lenses are visible at all, and why does the lens sit on the line after the comment?
 4. Where does the operator's comment text end up on disk, and which file does Claude read?
 5. A commented line is deleted while the file is open. Which rule applies — shift, refresh, or orphan?
-6. Why can the inlay hint not carry the delete action?
+6. Which command does a click on a comment lens run?
 
 ## Verification
 
@@ -420,32 +420,32 @@ Answer these before writing code:
 | empty body cancels | saving with nothing under the header stores nothing |
 | multi-line body | a body of several lines is stored and exported whole |
 | leftover input | a body left behind by a dead server is taken at startup, anchored against the file on disk |
-| inlay hint | position at end of the line above the first commented line (own line on line 1), `💬 ` prefix, truncation at 40 with `…`, tooltip holds the full text, no `kind` |
+| code lens | on the line after the last commented line (above it on the last line of the file), `💬 ` prefix, whole text on one row, runs `line-comment.add` on the comment |
 | shift down | inserting two lines above moves the comment by two, hash unchanged |
 | edit in place | editing the commented line keeps the comment and updates the hash |
 | delete the line | the comment survives at that index and re-anchors |
 | reconcile moved | reopening a file whose anchor moved by three lines re-anchors by hash |
 | reconcile repeated | with several hash matches, the nearest to the stored line wins |
-| reconcile lost | a vanished anchor sets `orphaned`, and the hint becomes `💬? ` |
+| reconcile lost | a vanished anchor sets `orphaned`, and the lens becomes `💬? ` |
 | code actions | a commented line offers edit plus delete plus copy plus reset; a clean line offers add plus copy plus reset |
 | export bytes | the export equals the expected string byte for byte, including the `(orphaned)` tag and block order |
 | export empty | an empty store writes the header only |
 | reset | `Cancel` leaves the store intact, `Delete` empties it |
 | store round-trip | a store written by a previous run loads unchanged |
-| filtering | `.txt` files and paths under `.tmp/` produce no hints and no actions |
+| filtering | `.txt` files and paths under `.tmp/` produce no lenses and no actions |
 | diagnostic shape | one Hint diagnostic per comment, severity 4, source `line-comment`, range covering the anchored line |
 | orphan diagnostic | the message carries `(orphaned)` |
 | diagnostics cleared | deleting the last comment of a file publishes an empty list once, then nothing |
 | list | the export is written and the same text is handed over as a view; an empty store opens nothing |
 
-**End-to-end smoke test** (`server/tests/stdio.rs`): spawn the binary, run `initialize` → `didOpen` → `codeAction` → `executeCommand`, answer the server's `client/registerCapability`, assert the server wrote the input file itself and asked for no `workspace/applyEdit`, write the operator's text into it, notify `didChangeWatchedFiles`, then `inlayHint` — and assert the hint comes back and the input file is empty.
+**End-to-end smoke test** (`server/tests/stdio.rs`): spawn the binary, run `initialize` → `didOpen` → `codeAction` → `executeCommand`, answer the server's `client/registerCapability`, assert the server wrote the input file itself and asked for no `workspace/applyEdit`, write the operator's text into it, notify `didChangeWatchedFiles`, then `codeLens` — and assert the lens comes back and the input file is empty.
 
 **Manual checklist in Zed**, eight steps, recorded in the README:
 
 1. Code actions on a markdown line list `add comment`.
 2. Choosing it opens the input file with a `<!-- line-comment: <file>:<line> -->` header and the target line quoted under it.
 3. Type a comment and save — the markdown file is unchanged and `💬 <text>` appears at the end of the target line.
-4. Code actions on that line now list `edit comment` and `delete comment`; delete removes the hint.
+4. Code actions on that line now list `edit comment` and `delete comment`; delete removes the lens.
 5. With several lines selected the menu lists `add comment on lines <a>-<b>`, the export names `lines <a>-<b>`, and the diagnostic underlines all of them.
 6. `copy comments` — the message names the path, and the file matches lumen's format.
 7. `reset comments` — the confirmation appears, `Cancel` keeps the comments, `Delete` clears them.
@@ -457,7 +457,7 @@ Answer these before writing code:
 - **`marksman` is not installed on this machine.** Listing it first in `language_servers` is harmless but shows up in the Zed log as a server that never starts.
 - **Truncation at 40 characters is a guess.** Adjust after the first real review pass.
 - **The input file surfaces as an "LSP Edit" multibuffer, not a plain tab.** That is how the client renders a server-initiated edit; the message names the path for when the client does not surface it at all.
-- **A hand-over needs the `zed` CLI to be found.** The edit alone shows the file over a plain tab and shows nothing over a review multibuffer, so the server spawns `zed --existing` as well. It takes `LINE_COMMENT_ZED` first, then the PATH, then `/usr/local/bin`, `/opt/homebrew/bin` and the app bundle — a Zed started from the dock hands the server the launchd PATH, which names no package manager's prefix. `LINE_COMMENT_ZED=off` reveals nothing, which is what the tests and the probe set so a run never opens a tab in the operator's window.
+- **The `add` subcommand needs the `zed` CLI to be found.** It has no LSP client to send `window/showDocument`, so it spawns `zed --existing`. It takes `LINE_COMMENT_ZED` first, then the PATH, then `/usr/local/bin`, `/opt/homebrew/bin` and the app bundle — a Zed started from the dock hands its tasks the launchd PATH, which names no package manager's prefix. `LINE_COMMENT_ZED=off` reveals nothing, which is what the tests and the probe set so a run never opens a tab in the operator's window.
 - **`file_scan_exclusions` would silence the watch.** `.tmp/` is not excluded by default; excluding it would stop the save ever reaching the server, leaving the startup drain as the only path.
 
 ## Glossary

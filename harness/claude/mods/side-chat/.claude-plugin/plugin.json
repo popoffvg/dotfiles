@@ -1,0 +1,1 @@
+{ "name": "side-chat", "version": "0.1.0", "description": "Chat with a fork of this conversation in a pane beside the main chat", "types": "./types/index.d.ts" }

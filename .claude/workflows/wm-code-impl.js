@@ -1,12 +1,12 @@
 export const meta = {
   name: 'wm-code-impl',
   description: 'Run the review gate chain until every gate passes — over one wm TODO it implements first, or over a diff no TODO pair covers',
-  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — wm-rule-batches.py plans the rule batches, one parallel checks wave (lint, one haiku rule-checker per batch then the sonnet rule-reducer, idiom, reuse, and the opus correctness gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks (after a comment-only fixup, rules and the checks that failed; after a comment-and-rename fixup, lint, rules, and the checks that failed). wm-code-auto calls this once per TODO.",
+  whenToUse: "Driving /code impl or /code review diff deterministically. In todo mode sonnet implements + commits first; in diff mode the code already exists and the chain starts at the gates. Then the review skill's chain — wm-rule-batches.py plans the rule batches, one parallel checks wave (lint, one haiku rule-checker per batch then the sonnet rule-reducer, idiom, reuse, simplify, design, and the opus correctness gate), then the sonnet test gate; each FAIL routes back to a wm:implementer fixup and restarts the checks (after a comment-only fixup, rules and the checks that failed; after a comment-and-rename fixup, lint, rules, and the checks that failed). wm-code-auto calls this once per TODO.",
   phases: [
     { title: 'Intent', detail: 'diff mode only — resolve the range and derive the intent sentence', model: 'haiku' },
     { title: 'Implement', detail: 'wm:implementer (sonnet, opus for a red TODO) writes + commits, and fixes every gate finding', model: 'sonnet' },
     { title: 'Plan', detail: 'before each wave — wm-rule-batches.py plan cuts the diff into rule-checker batches; exit 2 stops the run', model: 'haiku' },
-    { title: 'Checks', detail: 'lint-tester + rule-checker per batch then rule-reducer + idiom-critic + reuse-critic + correctness-critic, in parallel', model: 'haiku + sonnet + opus' },
+    { title: 'Checks', detail: 'lint-tester + rule-checker per batch then rule-reducer + idiom-critic + reuse-critic + simplify-critic + good-design-verifier + correctness-critic, in parallel', model: 'haiku + sonnet + opus' },
     { title: 'Judge', detail: 'from round 2, a red checks wave goes to an opus judge that waives it when every finding is a nit', model: 'opus' },
     { title: 'Test', detail: 'wm:tester (sonnet) gates the Autotest contract', model: 'sonnet' },
   ],
@@ -279,6 +279,28 @@ function checks(batches) {
         `Return result PASS/FAIL with failures (file:line — the job — the existing symbol at its file:line — the rewrite onto it).`,
     },
     {
+      key: 'simplify',
+      agentType: 'wm:simplify-critic',
+      model: 'sonnet',
+      prompt:
+        lessonsClause +
+        scopeClause +
+        `Simplify gate for ${theDiff}. Follow the wm:simplify-critic contract. ` +
+        `Return result PASS/FAIL with failures (file:line — angle — the cost — the simpler form).`,
+    },
+    {
+      key: 'design',
+      agentType: 'good-design-verifier',
+      model: 'sonnet',
+      prompt:
+        lessonsClause +
+        scopeClause +
+        `Design gate for ${theDiff}.\n` +
+        `task: ${mode === 'todo' ? `the Outcome of ${todoPath}` : intent}\n` +
+        `diff: ${range}\n` +
+        `Return result PASS when your VERDICT is PASS, FAIL when it is FAIL or ERROR, with failures (slug — file:line — evidence — fix).`,
+    },
+    {
       key: 'correctness',
       agentType: 'wm:correctness-critic',
       model: 'opus',
@@ -479,7 +501,7 @@ let round = 0
 let foldedTests = false
 let rerunOnly = null
 const history = []
-const fails = { lint: 0, rules: 0, idiom: 0, reuse: 0, correctness: 0, test: 0 }
+const fails = { lint: 0, rules: 0, idiom: 0, reuse: 0, simplify: 0, design: 0, correctness: 0, test: 0 }
 
 function blocked(stage, impl) {
   return { result: 'BLOCKED', mode, todo, stage, blocker: impl ? impl.blocker : 'implementer agent died', round, history }
