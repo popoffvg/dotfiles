@@ -23,6 +23,7 @@ from pathlib import Path
 
 DEFAULT_DIRS = (".notes/adr", "_notes/adr", "adr")
 KINDS = ("architecture", "feature", "implementation")
+MAX_PROPERTIES = 6
 STATUSES = ("proposed", "approved")
 PROPERTY = re.compile(r"^-\s+P(\d+)\.\s*(.*)$")
 PROPERTY_ROW = re.compile(r"^\|\s*P(\d+)\.?\s*\|(.*)$")
@@ -153,6 +154,8 @@ def problems(records: list[dict[str, object]]) -> list[str]:
         live = [p for p in a["properties"] if not p["dropped"]]  # type: ignore[union-attr]
         if not live:
             out.append(f"{where}: no Property, so it gives no rule")
+        if len(live) > MAX_PROPERTIES:
+            out.append(f"{where}: {len(live)} Properties, at most {MAX_PROPERTIES}; split the ADR or move the rest to the spec")
         if kind == "implementation" and not todo:
             out.append(f"{where}: kind implementation with no todo: key")
         if kind in KINDS and kind != "implementation" and todo:

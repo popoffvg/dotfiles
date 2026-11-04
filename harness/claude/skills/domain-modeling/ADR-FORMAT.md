@@ -77,6 +77,8 @@ A title, a paragraph, the reason, the Properties, and the changelog section are 
 
 **Every ADR lists at least one Property under `## Properties`. A Property is a theorem over the system's observable behavior.** This definition applies to both ADR kinds. The ADR stores its plain-language statement; the drafting worksheet makes its meaning precise. A reviewer cites it as `ADR-NNNN/P2` and checks whether a change preserves it.
 
+**An ADR holds at most 6 live Properties. Aim for 4.** A reviewer checks every Property on every change, so a long table gets skimmed. More than 6 candidates means the ADR records more than one decision: split it. Otherwise keep the guarantees a caller, a user, or an operator would miss first, and move the rest to the spec. Dropped Properties do not count.
+
 Model the system at its boundary: calls, results, stored data, outbound requests, time, and resource use. Internal components and implementation steps belong in the decision, consequences, spec, or patterns file. A public format or error result can appear when it is itself the promised behavior.
 
 ### Property gate

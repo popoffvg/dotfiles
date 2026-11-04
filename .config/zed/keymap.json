@@ -343,6 +343,10 @@
       "ctrl-alt-shift-a": "workspace::ToggleAllDocks",
       "ctrl-alt-shift-w": "multi_workspace::ToggleWorkspaceSidebar",
       "ctrl-alt-shift-z": "workspace::ToggleCenteredLayout",
+      "cmd-k h": "workspace::ActivatePaneLeft",
+      "cmd-k j": "workspace::ActivatePaneDown",
+      "cmd-k k": "workspace::ActivatePaneUp",
+      "cmd-k l": "workspace::ActivatePaneRight",
       "cmd-k z": [
         "workspace::SendKeystrokes",
         "ctrl-alt-shift-a ctrl-alt-shift-w"

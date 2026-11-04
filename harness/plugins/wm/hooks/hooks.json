@@ -45,6 +45,11 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/bin/notes-locate.sh",
             "timeout": 3000
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/todo-session.sh prompt",
+            "timeout": 3000
           }
         ]
       }
@@ -76,6 +81,16 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/bin/code-mode-mark.sh",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/todo-session.sh skill",
             "timeout": 3000
           }
         ]
@@ -114,6 +129,27 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/bin/verify-naming-reminder.sh",
             "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/todo-session.sh commit",
+            "timeout": 3000
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/adr-tactical-check.sh",
+            "timeout": 5000
           }
         ]
       }

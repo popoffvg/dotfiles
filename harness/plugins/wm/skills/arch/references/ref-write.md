@@ -165,7 +165,7 @@ TODOs of one spec sharing a tree would put two commits in one working copy.
 **Each TODO worktree branches off the spec's `branch`** and carries a branch named for the TODO.
 Every TODO of a spec therefore starts from the same base, and the trees are siblings, not a stack.
 
-**The tree lives in the task folder, at `<task folder>/todo-N`** — `todo-3` for TODO-3. The task folder is the directory that holds the `.notes` the session uses: the parent of `<notes-dir>` as the session names it, not the target of a `.notes` symlink. Create it with `git -C <checkout> worktree add -b <TODO branch> <task folder>/todo-N <spec branch>`, never with `wt switch --create`: `wt` puts the tree at its own path, outside the task folder. Run `mise trust` in the new tree when it has a `.mise.toml`. Then re-root the session with `EnterWorktree`, or work through absolute paths when it is refused.
+**The tree lives in the task folder, at `<task folder>/todo-N`** — `todo-3` for TODO-3. The task folder is the directory that holds the `.notes` the session uses: the parent of `<notes-dir>` as the session names it, not the target of a `.notes` symlink. Create it with `git -C <checkout> worktree add -b <TODO branch> <task folder>/todo-N <spec branch>`, never with `wt switch --create`: `wt` puts the tree at its own path, outside the task folder. Run `mise trust` in the new tree when it has a `.mise.toml`. Add `{"path": "todo-N"}` to the `"folders"` list of every `*.code-workspace` file in the task folder: the editor starts gopls and the other language servers only for the folders in that list. Then re-root the session with `EnterWorktree`, or work through absolute paths when it is refused.
 
 **The branch stays unmerged until the human acts.** `impl` reports the path and the branch and stops
 there; `/code squash` merges one branch back, and stacking them is the human's choice. A `depends_on`
@@ -177,6 +177,10 @@ Where it bites: `impl:sub-impl.md` Step 3.
 Two gates hold the enum, because a foreign value silently sends the work into the wrong checkout.
 `bin/guard.sh` rule 4 refuses the Edit or Write that puts one — or `inherit` on `spec.md` — into
 either file; `bin/spec-lint.py` checks A6 and B3 catch one already on disk.
+
+## Session — the `session` key
+
+`session: <id>` in `todos/TODO-N.md` frontmatter names the Claude session that runs `impl` on the TODO. Nobody writes it by hand: `bin/todo-session.sh` stamps it when a prompt or a `code` / `impl` skill call says `impl TODO-N`, and a later `impl` of the same TODO in another session overwrites it. While the TODO is `status: impl`, the same script reminds that session, on each prompt and after each `git commit --fixup` (also in its subagents), to write each trap it meets to `TODO-N.agent.md` `## Gotchas`. Other sessions get no reminder.
 
 ## Progress — the `increment` key
 

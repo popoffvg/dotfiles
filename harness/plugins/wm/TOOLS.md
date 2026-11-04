@@ -31,7 +31,7 @@ ADRs that bear on the task (`arch:ref-adr-format.md`).
 |---|---|---|
 | The rules this code must obey | `wm-constraints.py <notes>/adr [-m REGEX] [--json]` | one `ADR-NNNN/Pn` row per Property of a live ADR, dropped Properties skipped; `[auto]` marks a rule no operator was asked about. Exit 1 = none |
 | The rules scoped to one row | `wm-constraints.py <notes>/adr --todo TODO-2` | the `architecture` and `feature` rules, plus the `implementation` rules of that row |
-| An ADR that breaks the format | `wm-constraints.py <notes>/adr --check` | exit 3 and one line per problem: a `status` key, a `## Question` section, an unknown kind, no Property, `todo:` missing on `implementation` or present on another kind |
+| An ADR that breaks the format | `wm-constraints.py <notes>/adr --check` | exit 3 and one line per problem: a `status` key, a `## Question` section, an unknown kind, no Property, more than 6 Properties, `todo:` missing on `implementation` or present on another kind |
 
 ## Match spec names to code
 
@@ -55,7 +55,7 @@ ADRs that bear on the task (`arch:ref-adr-format.md`).
 
 | Need | Invocation | Returns |
 |---|---|---|
-| Create the worktree a `where: worktree` spec or TODO asks for | `git -C <checkout> worktree add -b <TODO branch> <task folder>/todo-N <spec branch>` — one tree per TODO, in the task folder that holds `.notes` (`arch:ref-write.md` § Where the work happens) | the session re-rooted in the worktree, or its absolute path when `EnterWorktree` is refused |
+| Create the worktree a `where: worktree` spec or TODO asks for | `git -C <checkout> worktree add -b <TODO branch> <task folder>/todo-N <spec branch>` — one tree per TODO, in the task folder that holds `.notes` (`arch:ref-write.md` § Where the work happens) | the session re-rooted in the worktree, or its absolute path when `EnterWorktree` is refused; the tree added to `"folders"` in the task folder's `*.code-workspace` |
 | Merge that branch back when the TODO is done | `impl:sub-squash.md` — `git rebase --autosquash`, then `wt merge --no-squash` | one commit per `### Commit` section on the spec's branch and the TODO's tree removed; the human runs it, never `impl` |
 
 ## Patch an artifact
@@ -102,4 +102,5 @@ ADRs that bear on the task (`arch:ref-adr-format.md`).
 | One concept spelled two ways | `bin/term-variants.py <notes>/todos/*.md <notes>/spec.md` | exit 1 and each variant group |
 | Whether the spec may advance | `wm-open-questions.sh <notes> [--count\|--slugs]` | the open questions in `QUESTIONS.md`; exit 1 when any is open |
 | Archive a superseded or deprecated ADR | `bin/adr-archive.sh` — PostToolUse hook on `Edit\|Write\|Bash`, reads the hook JSON on stdin | moves each live ADR whose last changelog line starts with `Superseded by [ADR-NNNN]` or `Deprecated:` to `adr/archived/`, and prints the live files that still link to it |
+| Drop a tactical ADR at session end | `bin/adr-tactical-check.sh` — SessionEnd hook, reads the hook JSON on stdin | finds the ADR files the session wrote or edited (from `transcript_path`), and starts a detached `claude -p --model sonnet` that archives each ADR failing the global tests of the `adr` skill with a `Deprecated: tactical, not global` changelog line; log in `~/.claude/logs/adr-tactical-check/` |
 | Where a slow verify spent its time | `wm-verify-profile.py <transcript.jsonl>` | per-phase and per-agent wall clock, turns, tools, tokens |

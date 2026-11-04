@@ -137,7 +137,7 @@ A feature ADR title names what the user can count on everywhere, such as "Every 
 - P2. A `--dry-run` run changes no resource and writes no state.
 - P3. A `--dry-run` run exits non-zero when validation of the requested changes fails.
 
-**Completion criterion**: the draft follows the template and backs each title quality with a Property. Every Property has a passing gate worksheet row with observables, assumptions, a theorem statement, and a counterexample. Rewrite or move each failed candidate before showing the draft.
+**Completion criterion**: the draft follows the template and backs each title quality with a Property. The draft has at most 6 Properties, aiming for 4 ([Properties](../domain-modeling/ADR-FORMAT.md#properties)). Every Property has a passing gate worksheet row with observables, assumptions, a theorem statement, and a counterexample. Rewrite or move each failed candidate before showing the draft.
 
 ## 6. Ask, then write
 

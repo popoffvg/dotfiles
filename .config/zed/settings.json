@@ -325,9 +325,9 @@
     },
     "gopls": {
       "binary": {
-        "path": "/Users/popoffvg/.local/share/mise/shims/gopls",
+        "path": "/Users/vitaliipopov/.local/share/mise/shims/gopls",
         "arguments": [
-          "-logfile=/Users/popoffvg/Library/Logs/gopls-zed.log",
+          "-logfile=/Users/vitaliipopov/Library/Logs/gopls-zed.log",
           "-rpc.trace",
         ],
       },
