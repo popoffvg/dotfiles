@@ -91,3 +91,5 @@ harness/codex/
 .config/herdr/plugins/
 .config/herdr/plugins.json
 .config/herdr/.plugins.lock
+/latest
+/dbg-*.txt
