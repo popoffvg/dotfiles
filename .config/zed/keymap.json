@@ -523,5 +523,34 @@
         }
       ]
     }
+  },
+  {
+    "context": "Workspace",
+    "unbind": {
+      "cmd-w": [
+        "pane::CloseActiveItem",
+        {
+          "close_pinned": false
+        }
+      ]
+    }
+  },
+  {
+    "context": "SettingsWindow",
+    "unbind": {
+      "cmd-w": "workspace::CloseWindow"
+    }
+  },
+  {
+    "context": "SkillCreator",
+    "unbind": {
+      "cmd-w": "workspace::CloseWindow"
+    }
+  },
+  {
+    "context": "SkillCreator > Editor",
+    "unbind": {
+      "cmd-w": "workspace::CloseWindow"
+    }
   }
 ]
