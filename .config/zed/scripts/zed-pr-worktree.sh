@@ -7,7 +7,8 @@ zed-pr-worktree.sh [PR] [--repo DIR] [--no-open]
 
 Pick a GitHub PR of the current repo (fzf picker when PR is omitted), reuse or
 create its worktree at <repo>.pr-<N>, point Zed's diff base at the branch base,
-and open the worktree in Zed.
+and open the worktree in Zed. A reused <repo>.pr-<N> worktree loses its local
+changes and gets `git pull --rebase` from the PR head.
 EOF
 }
 
@@ -82,13 +83,29 @@ worktree_for_branch() {
     '
 }
 
+refresh_review_worktree() {
+  if [ "$1" != "$repo_root.pr-$pr" ]; then
+    echo "worktree $1 is not a review worktree — keeping its changes"
+    return
+  fi
+  echo "resetting $1 and pulling PR #$pr"
+  git -C "$1" reset --quiet --hard
+  git -C "$1" clean --quiet -fd
+  git -C "$1" pull --rebase origin "pull/$pr/head" || {
+    git -C "$1" rebase --abort 2>/dev/null || true
+    echo "warning: pull --rebase of PR #$pr failed; the worktree stays at its old commit" >&2
+  }
+}
+
 worktree_path="$(worktree_for_branch "$head_ref")"
 if [ -n "$worktree_path" ] && [ -d "$worktree_path" ]; then
   echo "reusing worktree: $worktree_path"
+  refresh_review_worktree "$worktree_path"
 else
   worktree_path="$repo_root.pr-$pr"
   if [ -d "$worktree_path" ]; then
     echo "reusing worktree: $worktree_path"
+    refresh_review_worktree "$worktree_path"
   else
     if git show-ref --verify --quiet "refs/heads/$head_ref"; then
       echo "branch $head_ref already exists locally — not updating it from the PR"
