@@ -212,13 +212,6 @@
       "type": "registry",
     },
   },
-  "context_servers": {
-    "fff": {
-      "command": "fff-mcp",
-      "args": [],
-      "env": {},
-    },
-  },
   "agent": {
     "show_turn_stats": true,
     "thinking_display": "always_collapsed",

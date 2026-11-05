@@ -194,13 +194,6 @@
       "type": "registry",
     },
   },
-  "context_servers": {
-    "fff": {
-      "command": "fff-mcp",
-      "args": [],
-      "env": {},
-    },
-  },
   "agent": {
     "expand_edit_card": false,
     "play_sound_when_agent_done": "when_hidden",

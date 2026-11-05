@@ -62,15 +62,6 @@ if [[ "$STRIPPED" != *"|"* ]] && [[ "$STRIPPED" != *">"* ]]; then
   fi
 fi
 
-# --- grep / find on tracked code (CLAUDE.md prefers fff) --------------------
-search_tool=$(printf '%s' "$STRIPPED" | perl -0ne '
-  exit if m{(/private)?/tmp/|/var/folders/|\.claude/projects/|\.jsonl\b};
-  print $1 if m{(?:^|[;&(\n]|\bdo|\bthen|\belse)\s*(?:cd\s+\S+\s*&&\s*)?(grep|egrep|rg|find)\s};
-')
-if [ -n "$search_tool" ]; then
-  reasons+=("\`$search_tool\` starts a command and searches files — use **mcp__fff__grep**, **mcp__fff__multi_grep** or **mcp__fff__find_files**. They are deferred: load them first with ToolSearch \`select:mcp__fff__grep,mcp__fff__find_files,mcp__fff__multi_grep\`. Bash \`grep\` is correct only after a pipe or on files outside the repo.")
-fi
-
 if [ ${#reasons[@]} -eq 0 ]; then
   exit 0
 fi

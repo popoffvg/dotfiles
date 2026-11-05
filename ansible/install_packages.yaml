@@ -210,12 +210,6 @@
       args:
         creates: "{{ ansible_env.HOME }}/.local/bin/tv"
 
-    - name: Install fff-mcp (fast file search MCP server)
-      ansible.builtin.shell:
-        cmd: curl -fsSL https://raw.githubusercontent.com/dmtrKovalenko/fff/main/install-mcp.sh | bash
-      args:
-        creates: "{{ ansible_env.HOME }}/.local/bin/fff-mcp"
-
     # --no-modify-path: dot-zshrc already puts ~/.cargo/bin on PATH.
     # Needed by Zed to compile dev extensions (it adds the wasm target itself).
     - name: Install rustup

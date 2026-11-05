@@ -93,7 +93,7 @@ Read in escalating depth — cheap first, deep only where it pays: **description
 
 # Detection heuristics
 
-- **prune** — `description`/body names a file, flag, path, or workflow; verify it still exists (`mcp__fff__find_files` / `grep`). Gone → prune. Also prune a rule fully subsumed by a broader sibling.
+- **prune** — `description`/body names a file, flag, path, or workflow; verify it still exists (`find` / `grep`). Gone → prune. Also prune a rule fully subsumed by a broader sibling.
 - **unite** — two+ rules whose `description` triggers match the same task shape. Keep the sharper wording; fold the rest in.
 - **generalize** — a cluster of rules that are the same principle at different anchors (e.g. several "verify X before Y" variants). Lift to one rule stated at the shared altitude; the specifics become examples, not separate skills.
 - **move** — a bullet inside skill A whose subject matches skill B's `description` better than A's. Relocate it so each rule sits under the trigger that actually fires it.

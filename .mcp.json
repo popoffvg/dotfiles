@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "fff": {
-      "type": "stdio",
-      "command": "${HOME}/.local/bin/fff-mcp",
-      "args": []
-    }
-  }
-}
