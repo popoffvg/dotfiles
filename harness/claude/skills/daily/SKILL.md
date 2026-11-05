@@ -18,7 +18,7 @@ An **org** is a folder `~/git/<org>/` — for example `mil` holds every project 
 
 ## The line rule
 
-The boss knows the product, the repos, and the people. Write each line as one result in the past tense, in at most about 15 words: what changed and where, for example "Fixed FieldExists not counting as a tracked read, so it didn't conflict with concurrent transactions". A repo, PR, block, flag, or API name the team knows can stay. A line can say what blocked the day, for example "Fought CI all afternoon: CI not triggering, rebases, GitHub Actions outage".
+The boss knows the product and the people, not the code. Write each line as one result in the past tense, in at most about 8 words: what the result gives, not how it works, for example "Fixed transactions missing a conflict". Never name a function, a type, an error code, or a client library. Merge the results of one task into at most 3 lines. A line can say what blocked the day, for example "Lost the afternoon to CI outages".
 
 Drop the files, the tests, the linters, commits to `.notes`, internal ids such as TODO numbers and commit hashes, work on skills, agents, prompts, and the harness unless it is committed to an org repo, and tooling noise such as retries and questions about the agent. When the digest does not show an outcome, write the last known state, for example "Started …", and never invent one.
 
@@ -34,9 +34,9 @@ Example:
 
 ```
 [MILAB-7301](https://app.notion.com/p/4093a83ff4af80cfb431ff30a13f30e2): Tracked reads in transactions
-• Fixed FieldExists not counting as a tracked read, so it didn't conflict with concurrent transactions [pl#2358](https://github.com/milaboratory/pl/pull/2358)
+• Fixed transactions missing a conflict [pl#2358](https://github.com/milaboratory/pl/pull/2358)
 • Reviewed the follow-up PR from the backend team
 ———
 • Reviewed 8 pull requests
-• Fought CI all afternoon: CI not triggering, rebases, GitHub Actions outage
+• Lost the afternoon to CI outages
 ```
