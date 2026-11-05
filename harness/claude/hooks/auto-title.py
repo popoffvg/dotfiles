@@ -3,6 +3,8 @@
 
 Claude Code / Codex の UserPromptSubmit hook として動作し、会話内容から短い
 タイトルを生成して herdr のタブ名 (tab.rename) に反映する。
+In a Zed terminal (CLAUDE_TURN_TITLE is set) it writes the title to that file instead,
+and zed-title.sh shows it as the tab name.
 
 hook は即座に制御を返し、タイトル生成はバックグラウンドで走る。
 """
@@ -153,6 +155,11 @@ def herdr_call(method: str, params: dict, timeout: float = 3.0) -> dict | None:
     except json.JSONDecodeError:
         log(f"bad response for {method}: {line[:200]}")
         return None
+
+
+def zed_title_path() -> Path | None:
+    path = os.environ.get("CLAUDE_TURN_TITLE")
+    return Path(path) if path else None
 
 
 def resolve_tab_id() -> str | None:
@@ -364,7 +371,7 @@ def user_message_for(conversation_log: str, agent: str) -> str:
 def child_env() -> dict:
     env = dict(os.environ)
     # 呼び出し先のエージェントを herdr 連携の対象にしない
-    for key in ("HERDR_ENV", "HERDR_PANE_ID", "HERDR_TAB_ID", "HERDR_WORKSPACE_ID"):
+    for key in ("HERDR_ENV", "HERDR_PANE_ID", "HERDR_TAB_ID", "HERDR_WORKSPACE_ID", "CLAUDE_TURN_STATE", "CLAUDE_TURN_TITLE"):
         env.pop(key, None)
     env.pop("CLAUDECODE", None)
     return env
@@ -559,6 +566,14 @@ def run(hook_input: dict) -> None:
     state["prompt_count"] = prompt_count
     save_state(path, state)
 
+    # A new Zed launch that resumes a titled session starts with no title file.
+    zed_title_file = zed_title_path()
+    if zed_title_file is not None and previous_title and not zed_title_file.exists():
+        try:
+            zed_title_file.write_text(previous_title, encoding="utf-8")
+        except OSError as exc:
+            log(f"cannot write {zed_title_file}: {exc}")
+
     if previous_title is None:
         due = True
     elif REGEN_EVERY > 0:
@@ -569,15 +584,16 @@ def run(hook_input: dict) -> None:
         log(f"prompt {prompt_count}: not due (last generated at {generated_at})")
         return
 
-    tab_id = resolve_tab_id()
-    if not tab_id:
-        log("cannot resolve tab id")
-        return
-
-    label = get_tab_label(tab_id)
-    if not may_overwrite(label, previous_title):
-        log(f"tab {tab_id} has a manual label {label!r}; leaving it alone")
-        return
+    tab_id = None
+    if zed_title_file is None:
+        tab_id = resolve_tab_id()
+        if not tab_id:
+            log("cannot resolve tab id")
+            return
+        label = get_tab_label(tab_id)
+        if not may_overwrite(label, previous_title):
+            log(f"tab {tab_id} has a manual label {label!r}; leaving it alone")
+            return
 
     agent = detect_agent(hook_input)
     log(f"prompt {prompt_count}: agent={agent}")
@@ -596,17 +612,24 @@ def run(hook_input: dict) -> None:
         log("no title generated")
         return
 
-    response = herdr_call("tab.rename", {"tab_id": tab_id, "label": title})
-    if not response or "result" not in response:
-        log(f"tab.rename failed: {response}")
-        return
+    if zed_title_file is not None:
+        try:
+            zed_title_file.write_text(title, encoding="utf-8")
+        except OSError as exc:
+            log(f"cannot write {zed_title_file}: {exc}")
+            return
+    else:
+        response = herdr_call("tab.rename", {"tab_id": tab_id, "label": title})
+        if not response or "result" not in response:
+            log(f"tab.rename failed: {response}")
+            return
 
     state["title"] = title
     state["tab_id"] = tab_id
     state["generated_at_prompt"] = prompt_count
     state["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     save_state(path, state)
-    log(f"tab {tab_id} renamed to {title!r} at prompt {prompt_count}")
+    log(f"title {title!r} sent to {zed_title_file or f'tab {tab_id}'} at prompt {prompt_count}")
 
 
 def daemonize() -> None:
@@ -635,11 +658,12 @@ def main() -> int:
 
     if _env_flag("HERDR_AUTO_TITLE_DISABLE"):
         return 0
-    if os.environ.get("HERDR_ENV") != "1":
-        return 0
-    if not os.environ.get("HERDR_SOCKET_PATH"):
-        return 0
-    if not os.environ.get("HERDR_PANE_ID") and not os.environ.get("HERDR_TAB_ID"):
+    in_herdr = (
+        os.environ.get("HERDR_ENV") == "1"
+        and os.environ.get("HERDR_SOCKET_PATH")
+        and (os.environ.get("HERDR_PANE_ID") or os.environ.get("HERDR_TAB_ID"))
+    )
+    if not in_herdr and zed_title_path() is None:
         return 0
     # サブエージェントからの呼び出しではタブ名を触らない
     if hook_input.get("agent_id"):

@@ -1,9 +1,8 @@
 {
   "env": {
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/side-chat",
     "ENABLE_LSP_TOOL": "1",
     "HARNESS_DEV_PASTE_NUDGE": "1",
-    "HARNESS_DEV_UNDERSTOOD": "1",
+    "PROMPT_RISK_LOG_DIR": "~/.claude/harness-dev/reads",
     "SHELL": "/opt/nanobrew/prefix/bin/bash"
   },
   "permissions": {
@@ -175,6 +174,15 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -z \"${CLAUDE_TURN_STATE:-}\" ] || python3 $HOME/.claude/hooks/turn-triage.py",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PreCompact": [],
@@ -237,6 +245,15 @@
     ],
     "SessionStart": [
       {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $HOME/.claude/hooks/turn-triage.py",
+            "timeout": 10
+          }
+        ]
+      },
+      {
         "matcher": "",
         "hooks": [
           {
@@ -280,7 +297,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 $HOME/.claude/hooks/herdr-auto-title.py",
+            "command": "python3 $HOME/.claude/hooks/auto-title.py",
             "timeout": 10
           }
         ]
@@ -290,7 +307,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 $HOME/.claude/hooks/herdr-turn-triage.py",
+            "command": "python3 $HOME/.claude/hooks/turn-triage.py",
             "timeout": 10
           }
         ]
@@ -330,7 +347,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 $HOME/.claude/hooks/herdr-turn-triage.py",
+            "command": "python3 $HOME/.claude/hooks/turn-triage.py",
             "timeout": 10
           }
         ]
@@ -399,6 +416,15 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -z \"${CLAUDE_TURN_STATE:-}\" ] || python3 $HOME/.claude/hooks/turn-triage.py",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PermissionRequest": [
@@ -458,6 +484,28 @@
           }
         ]
       }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -z \"${CLAUDE_TURN_STATE:-}\" ] || python3 $HOME/.claude/hooks/turn-triage.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -z \"${CLAUDE_TURN_STATE:-}\" ] || python3 $HOME/.claude/hooks/turn-triage.py",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -488,7 +536,10 @@
     "cc-plugin-you-should-know@builtin": true,
     "hi@local-plugins": true,
     "line-comment@local-plugins": true,
-    "smart-commit@local-plugins": true
+    "smart-commit@local-plugins": true,
+    "prompt-risk@prompt-risk": true,
+    "annotate@annotate": true,
+    "side-chat@side-chat": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -539,6 +590,24 @@
         "source": "directory",
         "path": "/Users/vitaliipopov/git/codelens"
       }
+    },
+    "prompt-risk": {
+      "source": {
+        "source": "github",
+        "repo": "popoffvg/prompt-risk"
+      }
+    },
+    "annotate": {
+      "source": {
+        "source": "github",
+        "repo": "popoffvg/annotate"
+      }
+    },
+    "side-chat": {
+      "source": {
+        "source": "github",
+        "repo": "popoffvg/side-chat"
+      }
     }
   },
   "sandbox": {
@@ -547,7 +616,8 @@
       "allowedDomains": [
         "api.github.com",
         "github.com"
-      ]
+      ],
+      "allowLocalBinding": true
     },
     "filesystem": {
       "allowWrite": [
@@ -595,6 +665,7 @@
   "switchModelsOnFlag": true,
   "terminalProgressBarEnabled": true,
   "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "autoMode": {
     "soft_deny": [
@@ -630,6 +701,5 @@
       "routine under harness/extensions/ prefix: adding files there requires a matching ansible deploy-loop entry (per repo skill), not a blanket permission"
     ]
   },
-  "enableWeakerNestedSandbox": true,
-  "agentPushNotifEnabled": true
+  "enableWeakerNestedSandbox": true
 }

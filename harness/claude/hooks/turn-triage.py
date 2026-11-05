@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Turn triage: the session model tags its final reply with `triage: done|wait|question`.
 
-UserPromptSubmit asks for the tag in every session. Inside herdr it also clears the pane token
-`triage`, and Stop writes the tag to that token; herdr-zed.sh turns it into the tab icon. A reply
-with no tag leaves the token clear.
+UserPromptSubmit asks for the tag in every session. When CLAUDE_TURN_STATE names a file, every
+event writes the turn state and the transcript path to it: `working` at UserPromptSubmit, the tag
+at Stop, `untagged` at SessionStart and after a reply with no tag. A permission prompt writes
+`permission`, and the next tool result or denial puts `working` back. zed-title.sh reads that file.
 """
 
 from __future__ import annotations
@@ -11,13 +12,12 @@ from __future__ import annotations
 import json
 import os
 import re
-import subprocess
 import sys
 from pathlib import Path
 
-SOURCE = "herdr-turn-triage"
-TOKEN = "triage"
 TAG_RE = re.compile(r"^\W*triage:\s*(done|wait|question)\W*$", re.IGNORECASE)
+
+TOOL_DONE_EVENTS = ("PostToolUse", "PostToolUseFailure", "PermissionDenied")
 
 RULE = (
     "End your final reply of this turn with one last line `triage: <state>`, where <state> is:\n"
@@ -32,14 +32,29 @@ RULE = (
 )
 
 
-def set_token(pane_id: str, value: str | None) -> None:
-    flag = ["--clear-token", TOKEN] if value is None else ["--token", f"{TOKEN}={value}"]
-    subprocess.run(
-        ["herdr", "pane", "report-metadata", pane_id, "--source", SOURCE, "--agent", "claude", *flag],
-        capture_output=True,
-        timeout=5,
-        check=False,
-    )
+def read_state() -> dict:
+    path = os.environ.get("CLAUDE_TURN_STATE")
+    if not path:
+        return {}
+    try:
+        state = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return state if isinstance(state, dict) else {}
+
+
+def write_state(state: str, transcript_path: str | None) -> None:
+    path = os.environ.get("CLAUDE_TURN_STATE")
+    if not path:
+        return
+    target = Path(path)
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        partial = target.with_suffix(".partial")
+        partial.write_text(json.dumps({"state": state, "transcript": transcript_path or ""}), encoding="utf-8")
+        partial.replace(target)
+    except OSError:
+        pass
 
 
 def last_reply(transcript_path: str | None) -> str:
@@ -78,20 +93,36 @@ def main() -> int:
         hook_input = json.loads(sys.stdin.read() or "{}")
     except json.JSONDecodeError:
         return 0
+    event = hook_input.get("hook_event_name")
+
+    # A subagent can ask for a permission too, so these events skip no agent. They keep the
+    # transcript already in the file, because a subagent event names its own transcript.
+    if event == "Notification":
+        if hook_input.get("notification_type") == "permission_prompt":
+            write_state("permission", read_state().get("transcript"))
+        return 0
+    if event in TOOL_DONE_EVENTS:
+        current = read_state()
+        # A background agent runs tools after Stop; only an open prompt goes back to working.
+        if current.get("state") == "permission":
+            write_state("working", current.get("transcript"))
+        return 0
+
     if hook_input.get("agent_id"):
         return 0
-    # The rule goes to every session: the harness-dev turn ledger reads the tag outside herdr too.
-    pane_id = os.environ.get("HERDR_PANE_ID")
-    in_herdr = os.environ.get("HERDR_ENV") == "1" and pane_id and os.environ.get("HERDR_SOCKET_PATH")
+    transcript_path = hook_input.get("transcript_path")
 
-    if hook_input.get("hook_event_name") == "Stop":
-        if in_herdr:
-            reply = hook_input.get("last_assistant_message") or last_reply(hook_input.get("transcript_path"))
-            set_token(pane_id, read_tag(reply))
+    if event == "SessionStart":
+        write_state("untagged", transcript_path)
         return 0
 
-    if in_herdr:
-        set_token(pane_id, None)
+    if event == "Stop":
+        reply = hook_input.get("last_assistant_message") or last_reply(transcript_path)
+        write_state(read_tag(reply) or "untagged", transcript_path)
+        return 0
+
+    write_state("working", transcript_path)
+    # The rule goes to every session: the harness-dev turn ledger reads the tag too.
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": RULE}}))
     return 0
 

@@ -225,7 +225,7 @@
       "allow_unsandboxed": false
     },
     "expand_terminal_card": false,
-    "terminal_init_command": "~/.claude/scripts/herdr-zed.sh",
+    "terminal_init_command": "claudex",
     "commit_message_model": {
       "provider": "zed.dev",
       "model": "gemini-3.5-flash",
