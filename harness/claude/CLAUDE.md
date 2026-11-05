@@ -39,3 +39,8 @@ Applies to plans, specs, reports, notes, tables, commit messages, and chat repli
 - Refer to a claim, a case, a rule, a finding, or a step by a slug that says what it is, for example `restore-skips-gc` or `queue-before-delete`. A reader MUST understand the reference without a lookup.
 - Do not make up a serial id such as `C1`, `R7`, `F14`, or `H3`. A table cell lists slugs: `| workStorageController | restore-skips-gc, queue-before-delete |`, not `| workStorageController | C1, C2, C7 |`.
 - If an external system already gives the id (a ticket, a `TODO-N`), write the slug after it: `TODO-4 restore-skips-gc`.
+
+# Show
+
+- Before you show something to the user, load the `show-me` skill. This applies to a structure, a flow, types, a test case, or a failure, in chat or in an md file.
+- Use the form that `show-me` picks for that content.
