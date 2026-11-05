@@ -37,7 +37,8 @@ Give the operator the numbers and one action per section; a section with no data
 
 ## Switches
 
-Both ship off; the operator sets them in the `env` block of `settings.json`. Report their state; change it only when asked:
+The nudge ships off; the operator sets it in the `env` block of `settings.json`. Report its state; change it only when asked:
 
 - `HARNESS_DEV_PASTE_NUDGE=1` — after a block is pasted 3+ times in 2+ sessions, the agent offers to make it a skill.
-- `HARNESS_DEV_UNDERSTOOD=1` — each task-start reply opens with a **Read / Added / Result / Risk** quote block; `UNDERSTOOD_RULE` in `bin/turn-ledger.py` holds its text and the stop rule. Risk NN% is recorded only and decides nothing. The Stop hook stores the leading block as `understood` and sets `stopped` when the turn ends in `triage: question` with no edit, write, or agent call; the report compares NN with the `classify` correction label for stopped and went-on turns. Older rows with `risk_stop`, `hint:`, or `understood:` stay readable.
+
+The `prompt-risk` mod ([popoffvg/prompt-risk](https://github.com/popoffvg/prompt-risk)) reads each task prompt in a fork. With `PROMPT_RISK_LOG_DIR=~/.claude/harness-dev/reads` in `settings.json`, it writes **Risk / Read / Added / Result** to `reads/<session>/<id>.json`. `load_turns` joins that file to its turn by session and prompt text as `understood` and `correction_risk`. The Stop hook sets `stopped` when the turn ends in `triage: question` with no edit, write, or agent call; the report compares Risk NN% with the `classify` correction label for stopped and went-on turns. Older rows with `risk_stop`, `hint:`, or `understood:` stay readable.

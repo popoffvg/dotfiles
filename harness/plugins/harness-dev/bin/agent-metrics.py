@@ -14,6 +14,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import statistics
 import subprocess
 import sys
@@ -33,6 +34,8 @@ CORRECTION_MODEL = "cloudflare/clef-flash"
 COSTLY_CAUSES = ("missing-in-prompt", "findable")
 # Clef puts low probabilities on yes: its median on real corrections was 0.16 against 0.09 on none.
 CORRECTION_CUTOFF = 0.3
+# The prompt-risk mod (popoffvg/prompt-risk) writes reads/<session>/<id>.json when PROMPT_RISK_LOG_DIR is DATA/reads.
+RISK_LINE = re.compile(r"^\W*risk:\W*(\d{1,3})\s*%", re.I | re.M)
 
 CAUSE_QUESTION = {
     "type": "choice",
@@ -79,7 +82,26 @@ def load_turns(days: int | None) -> list[dict]:
                 turns[key] = row
             elif key in turns and row.get("triage"):
                 turns[key]["triage"] = row["triage"]  # a resumed turn ends with the later tag
+    reads = load_reads()
+    for row in turns.values():
+        prompt = row.get("prompt", "")
+        text = next((t for p, t in reads.get(row["session"], []) if len(p) == row.get("prompt_chars") and p.startswith(prompt)), None)
+        if text and not row.get("understood"):
+            risk = RISK_LINE.search(text)
+            row["understood"] = text
+            row["correction_risk"] = min(int(risk.group(1)), 100) if risk else None
     return sorted(turns.values(), key=lambda r: (r["session"], r["turn"]))
+
+
+def load_reads() -> dict[str, list[tuple[str, str]]]:
+    reads = defaultdict(list)
+    for path in glob.glob(str(DATA / "reads" / "*" / "*.json")):
+        try:
+            row = json.loads(Path(path).read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        reads[row["session"]].append((row["prompt"], row["text"]))
+    return reads
 
 
 def load_labels() -> dict[tuple, str | float]:

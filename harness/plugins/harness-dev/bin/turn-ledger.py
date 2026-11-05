@@ -2,9 +2,8 @@
 """Turn ledger: one row per main-agent turn in ~/.claude/harness-dev/turns/<session>.jsonl.
 
 UserPromptSubmit saves the prompt as the session's pending turn and records its pastes. Stop joins
-the pending turn with the reply: the `triage:` tag, an AskUserQuestion call, the `understood:` line.
-No model runs here. Two nudges ship off and turn on by env: HARNESS_DEV_PASTE_NUDGE=1 and
-HARNESS_DEV_UNDERSTOOD=1.
+the pending turn with the reply: the `triage:` tag, an AskUserQuestion call, a stop with no work.
+No model runs here. The paste nudge ships off and turns on by env: HARNESS_DEV_PASTE_NUDGE=1.
 """
 from __future__ import annotations
 
@@ -27,30 +26,8 @@ NUDGE_MIN_PASTES = 3
 NUDGE_MIN_SESSIONS = 2
 
 TRIAGE_TAG = re.compile(r"^\W*triage:\s*(done|wait|question)\W*$", re.I)
-UNDERSTOOD_LINE = re.compile(r"^\W*understood:(.*?)prompt\s*([0-4])\s*/\s*([34])", re.I | re.M)
-HINT_LINE = re.compile(r"^\W*hint:\s*(.+)$", re.I | re.M)
-READ_LINE = re.compile(r"^\W*read:\W*(.+)$", re.I | re.M)
-ADDED_LINE = re.compile(r"^\W*added:\W*(.+)$", re.I | re.M)
-RESULT_LINE = re.compile(r"^\W*result:\W*(.+)$", re.I | re.M)
-RISK_LINE = re.compile(r"^\W*risk:\W*(\d{1,3})\s*%\s*(.*)$", re.I | re.M)
 TASK_NOTIFICATION = "<task-notification>"
 WORK_TOOLS = {"Edit", "Write", "NotebookEdit", "Agent", "Workflow"}
-
-UNDERSTOOD_RULE = (
-    "Before any edit, file write, or agent spawn, write this block as your first text, "
-    "one fact per line, then one empty line. Read-only lookups (read, search, git status) may come first.\n"
-    "> **Read:** <how you read the prompt, in one sentence>\n"
-    "> **Added:** <every fact you add that the prompt, an earlier turn, a CLAUDE.md, or the repo state "
-    "does not give, joined with ` · `, or `none`>\n"
-    "> **Result:** <what you will show the operator at the end of the turn>\n"
-    "> **Risk:** NN% — <the correction the operator most likely makes>\n"
-    "NN is your estimate that the operator's next prompt corrects the read, an added fact, or the result. "
-    "List every assumption in Added; a hidden assumption is worse than a long list. NN decides nothing.\n"
-    "Stop only when the prompt has two plausible readings that lead to different results, "
-    "and a read-only lookup cannot settle them. On a stop, edit nothing and spawn no agent: "
-    "ask one question that names the readings, and end with `triage: question`."
-)
-
 
 def nudge_text(match: dict) -> str:
     return (f"The operator pasted this instruction block {match['count']} times in {match['sessions']} sessions "
@@ -91,21 +68,17 @@ def on_prompt(hook: dict) -> None:
         state["turns"] == 0 or state["last_triage"] == "done" or len(prompt) >= TASK_START_CHARS)
     DATA.mkdir(parents=True, exist_ok=True)
     pastes = record_pastes(DATA / "pastes.jsonl", session, prompt)
-    understood_asked = task_start and os.environ.get("HARNESS_DEV_UNDERSTOOD") == "1"
     transcript = hook.get("transcript_path") or ""
     state["pending"] = {
         "turn": state["turns"], "ts": int(time.time()), "cwd": hook.get("cwd") or "",
         "prompt": prompt[:PROMPT_CAP], "prompt_chars": len(prompt), "task_start": task_start,
         "paste_ids": [p["id"] for p in pastes], "paste_groups": [p["group"] for p in pastes],
-        "understood_asked": understood_asked,
         "transcript_offset": os.path.getsize(transcript) if os.path.exists(transcript) else 0,
     }
     state["turns"] += 1
     save_state(session, state)
 
     context = []
-    if understood_asked:
-        context.append(UNDERSTOOD_RULE)
     if os.environ.get("HARNESS_DEV_PASTE_NUDGE") == "1":
         context += [nudge_text(p) for p in pastes
                     if p["count"] >= NUDGE_MIN_PASTES and p["sessions"] >= NUDGE_MIN_SESSIONS]
@@ -137,38 +110,6 @@ def tool_names(transcript: str, offset: int) -> set[str]:
     return names
 
 
-def first_text(transcript: str, offset: int) -> str:
-    try:
-        with open(transcript, "rb") as f:
-            f.seek(offset)
-            tail = f.read().decode(errors="replace")
-    except OSError:
-        return ""
-    for line in tail.splitlines():
-        if '"text"' not in line:
-            continue
-        try:
-            entry = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        if entry.get("type") != "assistant" or entry.get("isSidechain"):
-            continue
-        for block in (entry.get("message") or {}).get("content") or []:
-            if isinstance(block, dict) and block.get("type") == "text" and block.get("text", "").strip():
-                return block["text"]
-    return ""
-
-
-def leading_block(text: str) -> str:
-    lines = text.strip().splitlines()
-    block = []
-    for line in lines:
-        if not line.lstrip().startswith(">"):
-            break
-        block.append(line)
-    return "\n".join(block)
-
-
 def triage_of(reply: str) -> str | None:
     for line in reversed([l for l in reply.splitlines() if l.strip()][-3:]):
         match = TRIAGE_TAG.match(line.strip())
@@ -183,25 +124,13 @@ def on_stop(hook: dict) -> None:
     pending = state.get("pending")
     reply = hook.get("last_assistant_message") or ""
     triage = triage_of(reply)
-    understood = UNDERSTOOD_LINE.search(reply)
-    hint = HINT_LINE.search(reply)
     transcript = hook.get("transcript_path") or ""
     tools = tool_names(transcript, pending["transcript_offset"]) if pending else set()
-    # With no tool call the transcript may lag the Stop event, and the reply is then the whole turn.
-    opening = leading_block((first_text(transcript, pending["transcript_offset"]) if pending else "") or reply)
-    lines = [p.search(opening) for p in (READ_LINE, ADDED_LINE, RESULT_LINE, RISK_LINE)]
-    risk = lines[-1]
-    header = [m.group(0).strip() for m in lines if m]
     row = {"session": session, "ts": int(time.time()), "triage": triage, "reply": reply[-REPLY_TAIL:],
-           "understood": understood.group(0).strip() if understood else ("\n".join(header) or None),
-           "correction_risk": min(int(risk.group(1)), 100) if risk else None,
-           "stopped": (triage == "question" and not tools & WORK_TOOLS) if header else None,
-           "understood_score": int(understood.group(2)) if understood else None,
-           "understood_max": int(understood.group(3)) if understood else None,
-           "understood_hint": hint.group(1).strip() if hint else None}
+           "stopped": triage == "question" and not tools & WORK_TOOLS}
     if pending:
         row.update({k: pending[k] for k in ("turn", "prompt", "prompt_chars", "task_start", "paste_ids",
-                                            "paste_groups", "understood_asked")})
+                                            "paste_groups")})
         row["repo"] = repo_of(pending["cwd"]) if pending["cwd"] else ""
         row["asked_tool"] = "AskUserQuestion" in tools
         row["kind"] = "turn"
