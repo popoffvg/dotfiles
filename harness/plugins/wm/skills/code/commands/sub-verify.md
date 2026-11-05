@@ -6,9 +6,9 @@ Readiness criteria: `arch:ref-write.md`. TODO elements: `arch:sub-todo.md`.
 
 Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 
-## Execution — three phases
+## Execution — four phases
 
-Phase 0 is a script and gates the expensive Phase 1 fan-out; Phase 2 judges the names the corpus
+Phase 0 is a script and gates the expensive Phase 1 fan-out; Phase 1b verifies the missed-change hypotheses that Phase 1 raised; Phase 2 judges the names the corpus
 declares, once the round has returned. Pass the real `<notes-dir>`.
 
 ### Phase 0 — static gate (one call, no agent)
@@ -42,7 +42,8 @@ Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
    + TODO-N.agent.md pair and TODO-N.test.md. Read only those three + the rules `~/.claude/scripts/wm-constraints.py
    <notes-dir>/adr --todo TODO-N` prints + the pair's Files (source). Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md
    § Mission and § What the script cannot judge — the countable checks already ran, so report none of them.
-   Run the claim pass first and return the claim table with your findings.")
+   Run the claim pass first, then the missed-change pass. Return the claim table, the hypothesis
+   table, and your findings.")
 ```
 
 Cross-TODO — the contradiction agent. It reads `spec.md`, the live ADRs in `adr/`, and from **every** TODO: the ledger row, Outcome, Depends on, `## Files`, and the signatures in the `## Increments` diffs. Headers alone hide the conflicts: two TODOs give one function two signatures inside their diffs, not in their outcomes.
@@ -55,7 +56,29 @@ Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
    Return the claim table with your findings.")
 ```
 
-The agents have no Write tool — they **return** findings. The caller merges returned findings + Phase 0 results into the report and writes `<notes-dir>/spec-verify.md`.
+The agents have no Write tool — they **return** findings. The caller merges returned findings, Phase 0 results, and the Phase 1b verdicts into the report and writes `<notes-dir>/spec-verify.md`.
+
+### Phase 1b — verify every missed-change hypothesis (after Phase 1 returns)
+
+Collect the hypothesis tables of every per-TODO agent. Drop a row whose file another TODO's `## Files` lists. Merge rows from any TODOs that name one `file:line` and one changed item, and name every such TODO in `source:` and `look:`. A checker that returns no verdict gives an UNSURE row. Spawn **one `wm:hypothesis-checker` per hypothesis, all in one message**, on sonnet:
+
+```
+Agent(subagent_type="wm:hypothesis-checker", model="sonnet", prompt=
+  "id: <slug>
+   range: HEAD — the code before the spec lands
+   at: <file:line of the search hit, or the search itself for a seam with no control>
+   question: Must <file> change when TODO-N lands, while no TODO's Files lists it?
+   source: missed-change — TODO-N <section>: <the item it changes and how>
+   look: <notes-dir>/todos/TODO-N.md, TODO-N.agent.md, the seam the hypothesis names")
+```
+
+Do not skip a hypothesis because it looks unlikely. A hypothesis with no verdict is an unchecked place, and the report names it as UNSURE.
+
+| Verdict | Becomes |
+|---|---|
+| CONFIRMED | a blocking finding under `## Missed changes`: the file, the TODO that must list it, the checker's Edit |
+| UNSURE | a row under `## Missed changes` with what the checker could not decide; not blocking |
+| REFUTED | a row in the hypothesis table only |
 
 ### Phase 2 — the naming pass (after the round returns)
 
@@ -131,6 +154,24 @@ Do not scan for contradictions by reading and hoping. Extract, then collide.
 **The public surface.** For each package the spec changes, list every public symbol its TODOs create and the caller each one names (`arch:examples/todo.md` § Components, "Every public member names its caller"). A public symbol with no `called by` or `implements`, a planned caller with no link to the design step that calls it, a caller that is only a test, or a caller that calls several public members in a fixed order to keep one invariant, is a finding: the edit makes it private or folds the sequence into one operation.
 
 Work the Goal implies but no TODO covers: error paths, teardown for every setup, a caller left unmigrated after a signature change, auth/validation on a new boundary, a persistence write with no read, config referenced but never defined.
+
+**Missed changes — the hypothesis pass (per-TODO agent).** A TODO misses a change when a file must change for its Outcome to hold, but no TODO's `## Files` lists that file. Do not judge these places. Write each one as a hypothesis; Phase 1b verifies every one.
+
+1. List what the TODO changes: each symbol whose name, signature, or meaning changes or goes away; each new enum value, kind, row, or command; each changed file format, config key, flag, or path.
+2. Search the repo for each item at every seam below. Use the item's name, its old name, and its string forms.
+3. Write one hypothesis for each hit in a file that this pair's `## Files` does not list. Ground each one in its hit. The caller drops the hits that another TODO lists.
+4. Give every seam that returns no hit a positive control: the same search for an item that exists, and its hit. No control → write the seam as a hypothesis with `at:` set to the search and the question "Does a file at this seam use <item>?".
+
+| Seam | Search for | A missed change |
+|---|---|---|
+| Callers | each use of the changed symbol | a caller still passes the old arguments |
+| Siblings | other implementations of the same interface, other cases of the same switch, other rows of the same table | a new enum value with no case in a switch in another package |
+| Registries | the places that list the item: a router, a help table, an index, a manifest, DI wiring, a codegen input | a new command that the help table does not show |
+| Counterparts | the other half: read for a write, decode for an encode, teardown for a setup, the client for a server, a down migration for an up | a new field that is written but never read |
+| Tests and fixtures | tests, golden files, and fixtures that assert the old behavior | a golden file that still holds the old output |
+| Docs and config | README, `GLOSSARY.md`, docs, env files, CI, deploy manifests | a renamed flag that the deploy manifest still sets |
+
+Return the hypotheses as a table, at most 15 per TODO, in this order: production code, registries, tests, docs. Give the count of rows dropped by the cap. Each row has a slug id that names the place and the item (`help-table-misses-sync-command`), the `file:line`, the changed item, the seam, and the yes/no question. Report the count of seams searched beside it, so a reader can tell an empty table from a skipped pass.
 
 ### 3. Edge cases
 
@@ -226,6 +267,15 @@ Claim pass: <N> claims extracted, <M> pairs checked.
 ## Missing parts
 - <what the Goal implies + which TODO should cover it + the edit>
 
+## Missed changes
+Hypothesis pass: <N> raised, <C> confirmed, <U> unsure, <R> refuted, over <S> seams.
+- <file:line — the changed item — the TODO whose Files must list it — the checker's Edit>  (CONFIRMED, blocking)
+- <file:line — what the checker could not decide>  (UNSURE)
+
+| Id | At | Seam | Question | Verdict |
+|---|---|---|---|---|
+| <slug> | <file:line> | <seam> | <the yes/no question> | CONFIRMED \| REFUTED \| UNSURE |
+
 ## Edge cases
 - <the ignored input/state + the TODO whose Outcome must handle it + how>
 
@@ -244,6 +294,6 @@ Claim pass: <N> claims extracted, <M> pairs checked.
 Decide and transition immediately — no generic follow-up question.
 
 - **READY** — all blocking checks pass, no critical unknowns → transition the spec frontmatter `status` to `impl`. `jj commit -m "Spec verification passed"` in `<notes-dir>`.
-- **NEEDS REVISION** — ≥1 blocking issue or unclear dependency → stay at `review` with concise feedback. `jj commit -m "Spec verification failed"`. **Any collision from the claim pass is blocking** — two live claims mean the implementer must guess, and a guess is not a spec.
+- **NEEDS REVISION** — ≥1 blocking issue or unclear dependency → stay at `review` with concise feedback. `jj commit -m "Spec verification failed"`. **Any collision from the claim pass is blocking** — two live claims mean the implementer must guess, and a guess is not a spec. **Any CONFIRMED missed change is blocking** — the implementer edits only the files the pair lists, so the file stays stale.
 
 Report the next command (`/code todo` or `/code impl`) plus the blocking list. Strict on blockers, concise on style nits.

@@ -23,7 +23,7 @@ covered it.
 ## Mission — hunt three failure modes
 
 1. **Contradictions** — two TODOs, or a TODO and a Decision/Term/Goal, that cannot both hold.
-2. **Missing parts** — work the Goal implies but no TODO covers.
+2. **Missing parts** — work the Goal implies but no TODO covers. A per-TODO run also returns the missed-change hypotheses, unjudged (`code:sub-verify.md` § 2. Missing parts).
 3. **Edge cases** — inputs and states the Outcomes ignore.
 
 Run `~/.claude/scripts/wm-spec-code-names.py <notes-dir>` first. Each `variant`, `missing`, or `scope-differs` row is a contradiction: the spec names a symbol the code does not have, or spells it differently. `planned` and `pending-*` rows are the work still to do, not findings.
