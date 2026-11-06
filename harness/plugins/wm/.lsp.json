@@ -1,0 +1,10 @@
+{
+  "wm-lsp": {
+    "command": "wm-lsp",
+    "extensionToLanguage": {
+      ".spec": "wm-notes",
+      ".todo": "wm-notes",
+      ".terms": "wm-notes"
+    }
+  }
+}

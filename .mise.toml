@@ -72,6 +72,22 @@ description = "Test the line-comment language server"
 dir = "{{config_root}}/harness/apps/line-comment"
 run = "cargo test -p line-comment-server"
 
+[tasks."harness:wm-lsp:build"]
+description = "Build the wm notes language server and lint command → ~/.local/bin/wm-lsp"
+dir = "{{config_root}}/harness/apps/wm-lsp"
+sources = ["server/**/*.rs", "server/Cargo.toml", "{{config_root}}/harness/plugins/wm/schema/frontmatter.toml"]
+outputs = ["{{env.HOME}}/.local/bin/wm-lsp"]
+run = """
+cargo build --release -p wm-lsp
+# install replaces through a temp file + rename; macOS SIGKILLs a binary copied over in place.
+install -m 755 target/release/wm-lsp $HOME/.local/bin/wm-lsp
+"""
+
+[tasks."harness:wm-lsp:test"]
+description = "Test the wm notes language server"
+dir = "{{config_root}}/harness/apps/wm-lsp"
+run = "cargo test -p wm-lsp"
+
 [tasks."harness:line-comment:languages"]
 description = "Regenerate line-comment's extension.toml language list from the installed Zed languages"
 run = "{{config_root}}/harness/scripts/sync-zed-languages.py --app line-comment"

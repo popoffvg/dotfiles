@@ -1,0 +1,191 @@
+# One row per file type, then one row per field. The server reads this file and nothing else
+# for names, fields, values, and section order.
+#
+# files.names: the first pattern is the new name; the others are old names that still work.
+#   `*` matches the TODO number, digits only, so `TODO-*.todo` never matches `TODO-1.agent.todo`.
+# files.fields: `frontmatter` reads `key: value` lines between the `---` lines; `entry` reads
+#   `- **Key:** value` lines under each `###` heading.
+# fields.kind: `enum` (one of `values`), `text`, `todo-refs` (`[TODO-N, …]`, each file must
+#   exist), `progress` (`<done>/<total>`).
+
+[[files]]
+type = "spec"
+names = ["INTENT.spec", "spec.md"]
+fields = "frontmatter"
+sections = ["Description", "Goal", "What we're NOT doing", "TODO List (the ledger)"]
+
+[[files]]
+type = "todo-agent"
+names = ["todos/TODO-*.agent.todo", "todos/TODO-*.agent.md"]
+fields = "none"
+sections = ["Files", "Pre-reads (MUST read before editing)", "Manual test"]
+
+[[files]]
+type = "todo-test"
+names = ["todos/TODO-*.test.todo", "todos/TODO-*.test.md"]
+fields = "none"
+sections = ["Autotest"]
+
+[[files]]
+type = "todo"
+names = ["todos/TODO-*.todo", "todos/TODO-*.md"]
+fields = "frontmatter"
+sections = ["Outcome", "Components", "Flow changes", "Increments"]
+
+[[files]]
+type = "terms"
+names = ["GLOSSARY.terms", "GLOSSARY.md"]
+fields = "entry"
+sections = []
+
+[[fields]]
+file = "spec"
+key = "status"
+kind = "enum"
+values = ["init", "review", "impl"]
+required = true
+doc = "The phase of the spec: `init` → `review` → `impl`. The human moves it to `impl` at the gate."
+
+[[fields]]
+file = "spec"
+key = "approve"
+kind = "enum"
+values = ["increment", "todo", "none"]
+required = true
+doc = "What the human approves during impl: each increment, once per TODO, or nothing."
+
+[[fields]]
+file = "spec"
+key = "where"
+kind = "enum"
+values = ["in-place", "worktree"]
+required = true
+doc = "The checkout impl writes into: this one, or one worktree per TODO."
+
+[[fields]]
+file = "spec"
+key = "branch"
+kind = "text"
+values = []
+required = true
+doc = "The branch this spec belongs to. Set once at init."
+
+[[fields]]
+file = "spec"
+key = "drives"
+kind = "text"
+values = []
+required = true
+doc = "One user-facing sentence: what this work delivers."
+
+[[fields]]
+file = "todo"
+key = "status"
+kind = "enum"
+values = ["todo", "impl", "verify", "done", "blocked"]
+required = true
+doc = "The TODO lifecycle: `todo` → `impl` → `verify` → `done`; `blocked` when a dependency is unmet or verify deviates."
+
+[[fields]]
+file = "todo"
+key = "type"
+kind = "enum"
+values = ["new behavior", "signature change", "wiring", "call-site migration", "rename", "move", "deletion", "test", "generated"]
+required = true
+doc = "The change kind of the TODO."
+
+[[fields]]
+file = "todo"
+key = "depends_on"
+kind = "todo-refs"
+values = []
+required = true
+doc = "The TODOs that must reach `status: done` first. Real edges only: this list computes the waves."
+
+[[fields]]
+file = "todo"
+key = "risk"
+kind = "enum"
+values = ["red", "yellow", "green"]
+required = true
+doc = "The worst answer to reach, flow, and recovery. `red` forces approval of each increment."
+
+[[fields]]
+file = "todo"
+key = "size"
+kind = "enum"
+values = ["S", "M", "L"]
+required = true
+doc = "The PR size: S ≤ 3 files and ≤ 3 increments, M ≤ 8 and ≤ 6, L above."
+
+[[fields]]
+file = "todo"
+key = "approve"
+kind = "enum"
+values = ["inherit", "increment", "todo", "none"]
+required = true
+doc = "`inherit` takes the spec value; any other value overrides it for this TODO."
+
+[[fields]]
+file = "todo"
+key = "where"
+kind = "enum"
+values = ["inherit", "in-place", "worktree"]
+required = true
+doc = "`inherit` takes the spec value; any other value overrides it for this TODO."
+
+[[fields]]
+file = "todo"
+key = "increment"
+kind = "progress"
+values = []
+required = true
+doc = "`<approved>/<total>` — impl stamps it after each increment lands."
+
+[[fields]]
+file = "terms"
+key = "Status"
+kind = "enum"
+values = ["new", "existing", "retired"]
+required = true
+doc = "`new`: no code declares it yet. `existing`: the code declares a Code identifier. `retired`: the design dropped it."
+
+[[fields]]
+file = "terms"
+key = "Kind"
+kind = "enum"
+values = ["aggregate", "entity", "value-object", "event", "state", "command", "service", "flow", "gateway", "server", "consumer", "policy", "scheduler", "wiring"]
+required = true
+doc = "The DDD kind of the term, or the brick that implements it."
+
+[[fields]]
+file = "terms"
+key = "Code"
+kind = "text"
+values = []
+required = true
+doc = "The identifiers the code spells the term with, or `none`."
+
+[[fields]]
+file = "terms"
+key = "Forbidden"
+kind = "text"
+values = []
+required = false
+doc = "Other names in use for the concept, which the spec and the code stop using."
+
+[[fields]]
+file = "terms"
+key = "Links"
+kind = "text"
+values = []
+required = false
+doc = "Typed links to the entries this term depends on."
+
+[[fields]]
+file = "terms"
+key = "Source"
+kind = "text"
+values = []
+required = false
+doc = "The `path:line` or spec section the term came from."

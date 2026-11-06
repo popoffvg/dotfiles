@@ -338,6 +338,10 @@
       },
     },
   },
+  // wm notes files are Markdown, so the preview button stays; wm-lsp checks them.
+  "file_types": {
+    "Markdown": ["spec", "todo", "terms"],
+  },
   "languages": {
     "Git Commit": {
       "tab_size": 3,
@@ -379,7 +383,7 @@
         "coloring": "fixed",
         "enabled": true
       },
-      "language_servers": ["marksman", "line-comment-language-server"],
+      "language_servers": ["marksman", "line-comment-language-server", "wm-lsp"],
       "inlay_hints": {
         "enabled": true,
         "show_other_hints": true,

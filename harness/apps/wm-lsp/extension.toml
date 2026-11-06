@@ -1,0 +1,13 @@
+id = "wm-lsp"
+name = "WM Notes"
+version = "0.1.0"
+schema_version = 1
+description = "Field suggestions and diagnostics for wm spec, TODO, and glossary files"
+repository = "https://github.com/popoffvg/dotfiles"
+authors = ["Vitalii Popov"]
+
+# The notes files open as Markdown through `file_types` in Zed's settings.json, which keeps the
+# Markdown preview. The server answers only for files the schema table names.
+[language_servers.wm-lsp]
+name = "WM Notes Language Server"
+languages = ["Markdown"]
