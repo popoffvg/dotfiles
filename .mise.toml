@@ -122,12 +122,8 @@ description = "Deploy plugin components and marketplaces outside the source repo
 depends = ["harness:sync"]
 
 [tasks."harness:codex:wm"]
-description = "Register the generated Codex marketplace and install WM"
+description = "Deploy WM with the three public Codex aliases"
 depends = ["harness:sync"]
-run = [
-  "codex plugin marketplace add $HOME/.codex/harness",
-  "codex plugin add wm@dotfiles-codex",
-]
 
 [tasks."harness:amp:publish-skills"]
 description = "Publish named skills to your personal Amp Skills repository"

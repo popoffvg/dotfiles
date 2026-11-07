@@ -50,18 +50,44 @@ def check(payload, home):
     if is_patch:
         return None
     command = args.get('command') or args.get('cmd') or ''
-    if isinstance(command, str) and re.search(r'(?:\b(?:rm|mv|cp|install|tee|touch|truncate)\b|\bsed\b[^\n]*-[a-z]*i|write_text|write_bytes|\*\*\* Update File:|>{1,2})', command):
+    if isinstance(command, str):
         command = command.replace('${HOME}', str(home)).replace('$HOME', str(home)).replace('~/', str(home) + '/')
-        for path in protected:
-            if str(path) in command:
-                return f'Command edits a generated harness file: {path}. Edit its dotfiles source and run mise run harness:sync.'
+        # Shell writes apply to their operands, not every path in the command.
+        # A read of an installed file followed by a cache redirect is permitted.
         try:
-            tokens = shlex.split(command)
+            lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|<>\n")
+            lexer.whitespace = ' \t\r'
+            tokens = list(lexer)
         except ValueError:
             tokens = []
-        for token in tokens:
-            if len(token) > 1 and token.startswith('/') and any(p.is_relative_to(Path(token)) for p in protected):
-                return f'Command changes an installed harness directory: {token}. Edit source and deploy with mise run harness:sync.'
+        writes = []
+        segment = []
+        for token in tokens + [';']:
+            if token in {';', '&&', '||', '|', '&', '\n'}:
+                if segment:
+                    executable = Path(segment[0]).name
+                    operands = [part for part in segment[1:] if not part.startswith('-')]
+                    if executable in {'rm', 'mv', 'touch', 'truncate', 'tee'}:
+                        writes.extend(operands)
+                    elif executable in {'cp', 'install'} and operands:
+                        writes.append(operands[-1])
+                    elif executable == 'sed' and any(part == '--in-place' or part.startswith('--in-place=') or
+                                                     re.match(r'^-[A-Za-z]*i', part) for part in segment[1:]):
+                        writes.extend(operands)
+                segment = []
+            else:
+                segment.append(token)
+        for index, token in enumerate(tokens[:-1]):
+            if token in {'>', '>>', '>|'}:
+                writes.append(tokens[index + 1])
+        for value in writes:
+            path = normalized(value, cwd)
+            if path in protected or path.resolve() in protected or any(p.is_relative_to(path) for p in protected):
+                return f'Command edits an installed harness path: {path}. Edit source and deploy with mise run harness:sync.'
+        if 'write_text' in command or 'write_bytes' in command:
+            for path in protected:
+                if str(path) in command:
+                    return f'Command edits a generated harness file: {path}. Edit its dotfiles source and run mise run harness:sync.'
     return None
 
 

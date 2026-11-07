@@ -46,6 +46,39 @@ def normalize(path):
     subprocess.run(['node', str(HERE / 'normalize.mjs'), str(CACHE), str(path)], check=True)
 
 
+def prepare_skills(source, canonical):
+    result = subprocess.run(['node', str(HERE / 'invocation.mjs'), str(CACHE), str(source), str(canonical)],
+                            check=True, text=True, stdout=subprocess.PIPE)
+    return json.loads(result.stdout)
+
+
+def worker_base(directory, target):
+    return Path(directory) / ('skills' if target == 'claude' else 'harness/skills')
+
+
+def install_aliases(install, home):
+    for target, directory in TARGETS.items():
+        plugin = home / directory / 'harness/plugins/wm'
+        guide = plugin / 'codex-skills/wm/references/runtime.md'
+        runtime = ('Use native Claude tools and plugin lifecycle hooks.' if target == 'claude' else
+                   f'Read `{guide}` for path resolution and explicit lifecycle checks. ' +
+                   ('Translate its tool instructions to Pi read, edit, write, bash, and available subagents; '
+                    'Claude and Codex tool names mean their Pi equivalents. '
+                    'When independent agents are unavailable, run sequentially and disclose that limit.'
+                    if target == 'pi' else 'Use its Codex tool adapters.'))
+        for name in CONFIG['publicAliases']:
+            source = HERE / 'commands' / (name + '.md')
+            text = source.read_text().replace('{{PLUGIN_ROOT}}', str(plugin)).replace('{{RUNTIME}}', runtime)
+            text = text.replace('{{ARGUMENTS}}', 'the arguments supplied with this skill invocation' if target == 'codex' else '$ARGUMENTS')
+            if target == 'codex':
+                text = text.replace('disable-model-invocation: true\n', '')
+            relative = (Path(directory) / 'skills' / name / 'SKILL.md' if target == 'codex' else
+                        Path(directory) / ('commands' if target == 'claude' else 'prompts') / (name + '.md'))
+            install.add(relative, text.encode(), source)
+            if target == 'codex':
+                install.add(relative.parent / 'agents/openai.yaml', b'policy:\n  allow_implicit_invocation: false\n', source)
+
+
 class Installation:
     def __init__(self, home):
         self.home = home
@@ -73,6 +106,10 @@ class Installation:
             if path.is_file() and '__pycache__' not in path.parts and path.name != '.DS_Store':
                 relative = path.relative_to(src)
                 origin = source / relative
+                if relative.parts[0] == 'internal-commands' and not origin.exists():
+                    origin = source / 'commands' / Path(*relative.parts[1:])
+                if path.name == 'openai.yaml' and not origin.exists() and (origin.parent.parent / 'SKILL.md').exists():
+                    origin = origin.parent.parent / 'SKILL.md'
                 if path.suffix == '.toml' and not origin.exists() and origin.with_suffix('.md').exists():
                     origin = origin.with_suffix('.md')
                 self.add(Path(dest) / relative, path.read_bytes(), origin,
@@ -196,6 +233,20 @@ class Installation:
         print(f'Verified {len(self.files)} generated files and {len(self.links)} skill links.')
 
 
+def retire_native_wm(home):
+    """The private library supersedes WM's native plugin skill exports."""
+    import tomllib
+    config = home / '.codex/config.toml'
+    if not config.is_file():
+        return
+    plugins = tomllib.loads(config.read_text()).get('plugins', {})
+    if 'wm@dotfiles-codex' in plugins:
+        subprocess.run(['codex', 'plugin', 'remove', 'wm@dotfiles-codex', '--json'],
+                       env=dict(os.environ, CODEX_HOME=str(home / '.codex')), check=True,
+                       stdout=subprocess.DEVNULL)
+        print('Retired native WM plugin registration; the three aliases use the private WM library.')
+
+
 def retire_legacy_links(home):
     """Remove only old Codex links whose source was migrated from this checkout."""
     manifest = ROOT / 'harness/codex/.skill-links.json'
@@ -221,6 +272,8 @@ def build(home, stage):
     normalize(raw / '.claude')
     run_rulesync(['import', '--targets', 'claudecode', '--features', 'skills,commands,subagents',
                   '--output-root', str(raw)], raw)
+    loose_catalog = prepare_skills(raw / '.claude/skills', raw / '.rulesync/skills')
+    catalogs = {target: [] for target in TARGETS}
     generated = stage / 'loose-output'
     generated.mkdir()
     run_rulesync(['generate', '--targets', 'claudecode,codexcli,pi', '--features', 'skills',
@@ -230,10 +283,16 @@ def build(home, stage):
     run_rulesync(['generate', '--targets', 'claudecode', '--features', 'commands',
                   '--input-roots', str(raw / '.rulesync'), '--output-roots', str(generated)], raw)
     for target, directory in TARGETS.items():
-        install.tree(generated / SKILL_OUTPUTS[target], Path(directory) / 'skills', ROOT / 'harness/claude/skills')
+        base = worker_base(directory, target)
+        install.tree(generated / SKILL_OUTPUTS[target], base, ROOT / 'harness/claude/skills')
+        catalogs[target].extend((entry, home / base / entry['directory'] / 'SKILL.md') for entry in loose_catalog)
+        if target == 'claude':
+            catalogs[target].extend(({'name': 'command:' + path.stem, 'description': 'Legacy command reference; read when requested or named by a route.', 'automatic': False},
+                                     home / directory / 'harness/internal-commands' / path.relative_to(generated / '.claude/commands'))
+                                    for path in (generated / '.claude/commands').rglob('*.md'))
         # Source overlays retain their actual authoring paths in the ownership map.
         for dest in list(install.sources):
-            skill_base = home / directory / 'skills'
+            skill_base = home / base
             if dest.is_relative_to(skill_base):
                 relative = dest.relative_to(skill_base)
                 for overlay in (ROOT / CONFIG['projectSkills'], ROOT / CONFIG['skills']):
@@ -251,7 +310,7 @@ def build(home, stage):
         elif child.is_file():
             install.add(Path('.claude') / child.name, child.read_bytes(), child, child.stat().st_mode & 0o777)
     install.tree(generated / '.claude/agents', '.claude/agents', ROOT / 'harness/claude/agents')
-    install.tree(generated / '.claude/commands', '.claude/commands', ROOT / 'harness/claude/commands')
+    install.tree(generated / '.claude/commands', '.claude/harness/internal-commands', ROOT / 'harness/claude/commands')
     install.tree(generated / '.codex/agents', '.codex/agents', ROOT / 'harness/claude/agents')
 
     plugin_entries = []
@@ -266,6 +325,7 @@ def build(home, stage):
         features = [feature for feature, path in [('skills', 'skills'), ('subagents', 'agents'), ('commands', 'commands'), ('hooks', 'hooks/hooks.json'), ('mcp', '.mcp.json')] if (native / path).exists()]
         if features:
             run_rulesync(['import', '--targets', 'claudecode-plugin', '--features', ','.join(features), '--output-root', str(native)], work)
+        plugin_catalog = prepare_skills(native / 'skills', work / '.rulesync/skills')
         for target, directory in TARGETS.items():
             output = work / target
             copy_tree(native, output)
@@ -287,6 +347,9 @@ def build(home, stage):
                     import re
                     data = re.sub(r'^name = .*$', 'name = ' + json.dumps(f'{plugin.name}-{agent.stem}'), agent.read_text(), count=1, flags=re.M).encode()
                     install.add(Path(directory) / 'agents' / f'{plugin.name}-{agent.name}', data, plugin / 'agents' / (agent.stem + '.md'))
+            # Top-level legacy commands are references, not public entry points.
+            if (output / 'commands').is_dir():
+                shutil.move(str(output / 'commands'), output / 'internal-commands')
             if target == 'pi' and (output / 'skills').is_dir():
                 import re
                 for skill in (output / 'skills').iterdir():
@@ -299,10 +362,10 @@ def build(home, stage):
                 prefix = home / runtime / '.codex/agents'
                 if destination.is_relative_to(prefix):
                     install.sources[destination] = str(plugin / 'agents' / (destination.stem + '.md'))
-            if target != 'claude' and (output / 'skills').is_dir():
-                for skill in sorted((output / 'skills').iterdir()):
-                    if (skill / 'SKILL.md').is_file():
-                        install.link(Path(directory) / 'skills' / f'{plugin.name}-{skill.name}', runtime / 'skills' / skill.name, plugin / 'skills' / skill.name)
+            catalogs[target].extend((dict(entry, name=plugin.name + ':' + entry['name']), home / runtime / 'skills' / entry['directory'] / 'SKILL.md') for entry in plugin_catalog)
+            catalogs[target].extend(({'name': plugin.name + ':' + path.stem, 'description': 'Legacy command reference; read when requested or named by a route.', 'automatic': False},
+                                     home / runtime / 'internal-commands' / path.relative_to(output / 'internal-commands'))
+                                    for path in (output / 'internal-commands').rglob('*.md'))
         metadata = json.loads((plugin / '.claude-plugin/plugin.json').read_text())
         plugin_entries.append({'name': plugin.name, 'source': './plugins/' + plugin.name, 'version': metadata['version'], 'description': metadata.get('description', '')})
         if (plugin / '.codex-plugin/plugin.json').exists():
@@ -349,7 +412,11 @@ def build(home, stage):
             data = path.read_bytes()
             if path.name == 'claude-plugins.json':
                 config = json.loads(data)
-                config['marketplaces']['local-plugins']['source'] = str(home / '.claude/harness')
+                config['marketplaces'].pop('local-plugins', None)
+                # These plugins are deployed privately above; prevent the bridge from
+                # re-exporting their commands and skills into Pi discovery.
+                config['plugins'] = {name: value for name, value in config['plugins'].items()
+                                     if not name.endswith('@local-plugins')}
                 data = json.dumps(config, indent=2).encode() + b'\n'
             elif path.name == 'mcp.json' and (home / '.pi/agent/mcp.json').is_file():
                 config = json.loads((home / '.pi/agent/mcp.json').read_text())
@@ -365,13 +432,33 @@ def build(home, stage):
             install.tree(path, Path('.pi/agent') / path.name, path)
     # A Codex-specific loose override remains selected over its shared skill.
     for skill in (ROOT / 'harness/codex-skills').iterdir():
-        prefix = home / '.codex/skills' / skill.name
-        for path in list(install.files):
-            if path.is_relative_to(prefix):
-                del install.files[path]
-        install.tree(skill, Path('.codex/skills') / skill.name, skill)
-    instruction = '\n<!-- dotfiles-harness:start -->\nBefore changing a personal skill, plugin, hook, or harness configuration, load the installed harness-maintain skill. Edit the repository source recorded in the runtime harness/installed.json; run mise run harness:sync to regenerate installed copies.\n<!-- dotfiles-harness:end -->\n'
+        for file in skill.rglob('*'):
+            if file.is_file():
+                data = file.read_bytes()
+                if file.name == 'SKILL.md':
+                    data = data.replace(b'../../claude/skills/' + skill.name.encode() + b'/', b'')
+                relative = Path('.codex/harness/skills') / skill.name / file.relative_to(skill)
+                install.files.pop(home / relative, None)
+                install.add(relative, data, file)
     for target, directory in TARGETS.items():
+        base = worker_base(directory, target)
+        index = home / directory / 'harness/skill-index.md'
+        rows = ['# Internal harness skills', '',
+                'Read the matching skill file before following its instructions. Resolve supporting files relative to that file.',
+                'Automatic workers may be selected by description. Explicit workers require a user request or a route that calls them.', '',
+                '| Skill | Selection | When to use / file |', '|---|---|---|']
+        for entry, path in sorted(catalogs[target], key=lambda pair: pair[0]['name']):
+            description = str(entry['description']).replace('\n', ' ').replace('|', r'\|')
+            rows.append(f"| {entry['name']} | {'automatic' if entry['automatic'] else 'explicit'} | {description} — [{entry['name']}]({path}) |")
+        install.add(Path(directory) / 'harness/skill-index.md', ('\n'.join(rows) + '\n').encode(), HERE / 'config.json')
+        discovery = (f'Internal skills: read {index} to select relevant workers for each task, then read their files. '
+                     'Workers outside native skill discovery rely on this index for model selection. '
+                     if target != 'claude' else
+                     f'Internal skill and legacy command references can be read from {index}; load their files when a route names them. ')
+        instruction = ('\n<!-- dotfiles-harness:start -->\n' + discovery +
+                       f'Before changing a personal skill, plugin, hook, or harness configuration, read {home / base / "harness-maintain/SKILL.md"}. '
+                       'Edit the repository source recorded in the runtime harness/installed.json; run mise run harness:sync to regenerate installed copies.\n'
+                       '<!-- dotfiles-harness:end -->\n')
         relative = Path(directory) / ('CLAUDE.md' if target == 'claude' else 'AGENTS.md')
         destination = home / relative
         if destination in install.files:
@@ -384,6 +471,7 @@ def build(home, stage):
         # These are scoped instructions, not a replacement for existing personal rules.
         install.files.pop(destination, None)
         install.add(relative, (content.rstrip() + '\n' + instruction).encode(), HERE / 'skills/harness-maintain/SKILL.md')
+    install_aliases(install, home)
     return install
 
 
@@ -408,6 +496,7 @@ def main():
         else:
             install.publish()
             retire_legacy_links(home)
+            retire_native_wm(home)
 
 
 if __name__ == '__main__':

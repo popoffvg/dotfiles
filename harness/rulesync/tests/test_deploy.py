@@ -18,6 +18,39 @@ deploy = load('deploy')
 guard = load('guard')
 
 
+class InvocationTests(unittest.TestCase):
+    def test_manual_only_source_skill_stays_manual_only_in_codex(self):
+        with tempfile.TemporaryDirectory(dir=deploy.CACHE) as temporary:
+            root = Path(temporary)
+            stage = root / 'stage'
+            stage.mkdir()
+            home = root / 'home'
+            installation = deploy.build(home, stage)
+            personal = home / '.codex/harness/skills/prompt/agents/openai.yaml'
+            router = home / '.codex/harness/plugins/wm/skills/code/agents/openai.yaml'
+            for path in (personal, router):
+                self.assertTrue(path in installation.files, f'Manual-only skill lost its Codex invocation policy: {path}')
+                data = installation.files[path][0]
+                self.assertIn(b'allow_implicit_invocation: false', data)
+
+            # Native discovery sees only the explicit public aliases we own.
+            codex_entries = {path.parts[-2] for path in installation.files
+                             if path.parent.parent == home / '.codex/skills' and path.name == 'SKILL.md'}
+            self.assertEqual(codex_entries, {'wm', 'review', 'dive'})
+            self.assertFalse(installation.links)
+            self.assertTrue(all(Path(source).exists() for source in installation.sources.values()),
+                            'Every installed asset must map to an existing authoring source')
+            for target in ('.codex', '.pi/agent'):
+                index = installation.files[home / target / 'harness/skill-index.md'][0]
+                self.assertIn(b'adr', index)
+                self.assertIn(b'harness-maintain', index)
+            adr = installation.files[home / '.claude/skills/adr/SKILL.md'][0]
+            self.assertIn(b'user-invocable: false', adr)
+            for path, (data, _) in installation.files.items():
+                if path.name == 'SKILL.md' and path.is_relative_to(home / '.claude') and 'codex-skills' not in path.parts:
+                    self.assertIn(b'user-invocable: false', data, str(path))
+
+
 class OwnershipTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -108,6 +141,11 @@ class GuardTests(unittest.TestCase):
             self.assertIsNotNone(guard.check({'tool_input': {'command': f'echo broken > {runtime}'}}, home))
             self.assertIsNotNone(guard.check({'tool_input': {'command': f'rm -rf {runtime.parent.parent}'}}, home))
             self.assertIsNone(guard.check({'tool_input': {'command': f'cat {runtime}'}}, home))
+            self.assertIsNone(guard.check({'tool_input': {'command': f'cat {runtime} > /tmp/harness-audit.log'}}, home))
+            self.assertIsNone(guard.check({'tool_input': {'command': f'python3 /tmp/audit.py {home} > /tmp/harness-audit.log'}}, home))
+            self.assertIsNone(guard.check({'tool_input': {'command': f"cat {runtime}; sed -n '1,5p' /tmp/pi-coding-agent/index.ts"}}, home))
+            self.assertIsNotNone(guard.check({'tool_input': {'command': f"sed -i '' 's/a/b/' {runtime}"}}, home))
+
 
     def test_resolves_runtime_skill_directory_links(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -12,6 +12,12 @@ description: Maintain this user's dotfiles skills, plugins, hooks, and Rulesync 
    in `harness/claude/`; shared maintenance sources in `harness/rulesync/`.
    Read that directory's instructions. Keep skill references and plugin assets together.
    Source files use native Claude frontmatter; deployment imports them with Rulesync.
+   Workers stay internal. Only `wm`, `review`, and `dive` are public aliases, defined
+   in `harness/rulesync/config.json` and `commands/`. Codex and Pi discover workers
+   through `harness/skill-index.md`; retain sibling resources in the private library.
+   Change source invocation flags to choose automatic or explicit selection.
+   Deploy visibility through Rulesync; avoid adding discovery links or reinstalling
+   the native Codex WM plugin, which would expose its workers again.
 3. For a hook change, distinguish configuration conversion from behavior. Claude tool
    names, payloads, environment variables, and blocking responses need target adapters.
    Keep an unsupported hook on its original target until both allow and deny cases pass.

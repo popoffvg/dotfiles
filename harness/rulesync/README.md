@@ -12,17 +12,34 @@ The sources intentionally retain native Claude frontmatter. Rulesync imports the
 into disposable source trees on each deployment, then generates target components.
 The import adds implicit agent names in staging; it never rewrites source metadata.
 
-| Runtime | Installed files |
-|---|---|
-| Claude | `~/.claude/skills/`, `~/.claude/harness/plugins/`, local marketplace under `~/.claude/harness/` |
-| Codex | `~/.codex/skills/`, `~/.codex/harness/plugins/`, maintenance hook in `~/.codex/hooks.json` |
-| Pi | `~/.pi/agent/skills/`, `~/.pi/agent/harness/plugins/`, maintenance extension in `~/.pi/agent/extensions/` |
+## Public aliases and internal workers
 
-Plugin skill links for Codex and Pi point at the installed plugin's own skill
-directory, preserving references to sibling skills and root assets. Links point
-inside the home installation, never back into source. Codex namespaces plugin
-skills itself; WM's entry point comes from its installed native Codex plugin.
-Pi receives `<plugin>-<skill>` names, such as `wm-code`, for plugin skills.
+`config.json` exposes exactly `wm`, `review`, and `dive` for this harness.
+Their templates live in `commands/`. Other installed plugins and built-in commands
+keep their own menus. Source plugin commands remain authoring references and are
+installed under `internal-commands/`; commands nested within skills retain their paths.
+
+| Runtime | Public entry points | Internal workers |
+|---|---|---|
+| Claude | `/wm`, `/review`, `/dive` in `~/.claude/commands/` | Native skills with `user-invocable: false`, plus `~/.claude/harness/plugins/` |
+| Codex | `$wm`, `$review`, `$dive` in `~/.codex/skills/` | `~/.codex/harness/skills/` and `harness/plugins/`; selected through `AGENTS.md` and `harness/skill-index.md` |
+| Pi | `/wm`, `/review`, `/dive` in `~/.pi/agent/prompts/` | `~/.pi/agent/harness/skills/` and `harness/plugins/`; selected through `AGENTS.md` and `harness/skill-index.md` |
+
+Codex and Pi do not provide Claude's separate hidden/model-only switch. Their
+workers are reference files outside native skill discovery. The instruction marker
+requires reading the index and loading relevant workers. This changes discovery:
+worker descriptions are read through the index rather than injected natively.
+ADR remains automatic and has no public alias. Existing manual-only workers stay
+explicit in the index; a requested route can load them. Public aliases are explicit.
+
+After native import, `invocation.mjs` promotes source `disable-model-invocation`
+to Rulesync's shared field. Rulesync emits Codex's `policy.allow_implicit_invocation`
+and Pi's supported flag; target-specific `agents/openai.yaml` settings are preserved.
+All owned Claude worker outputs receive `user-invocable: false`. The native Codex WM
+registration is retired during sync because Codex discovers a plugin's default
+`skills/` even with an empty manifest list. The library remains installed privately.
+Pi's Claude marketplace bridge does not re-export the
+owned plugins already deployed privately by Rulesync.
 
 Only the maintenance guard is added to Codex and Pi. Existing Claude plugin hooks
 stay with Claude; WM's Codex runtime documents explicit lifecycle checks. Importing
