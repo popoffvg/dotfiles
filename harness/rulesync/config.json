@@ -14,5 +14,6 @@
     "wm",
     "review",
     "dive"
-  ]
+  ],
+  "workflows": "harness/rulesync/workflows"
 }

@@ -56,11 +56,33 @@ def worker_base(directory, target):
     return Path(directory) / ('skills' if target == 'claude' else 'harness/skills')
 
 
+def workflow_body(script):
+    # Workflow metadata is a literal object ending at the first column-zero brace.
+    import re
+    parts = re.split(r'^}\s*\n', script, maxsplit=1, flags=re.M)
+    if len(parts) != 2 or not script.startswith('export const meta = {'):
+        raise RuntimeError('Expected literal workflow metadata before the script body')
+    return parts[1]
+
+
+def internal_workflows(source):
+    implementation = (source / 'wm-code-impl.js').read_text()
+    automatic = (source / 'wm-code-auto.js').read_text()
+    call = "workflow('wm-code-impl', "
+    if automatic.count(call) != 1:
+        raise RuntimeError('Expected exactly one implementation workflow call')
+    child = 'async function runImplementation(args) {\n' + workflow_body(implementation) + '\n}\n'
+    # Keep the literal metadata first; insert the private child before executable body.
+    body = workflow_body(automatic)
+    automatic = automatic[:-len(body)] + child + body.replace(call, 'runImplementation(')
+    return {'wm-code-auto.js': automatic, 'wm-code-impl.js': implementation}
+
+
 def install_aliases(install, home):
     for target, directory in TARGETS.items():
         plugin = home / directory / 'harness/plugins/wm'
         guide = plugin / 'codex-skills/wm/references/runtime.md'
-        runtime = ('Use native Claude tools and plugin lifecycle hooks.' if target == 'claude' else
+        runtime = (f'Use native Claude tools and plugin lifecycle hooks. For code auto, code impl, or review diff, read `{home / directory / "harness/workflows/README.md"}` to launch the internal driver by scriptPath.' if target == 'claude' else
                    f'Read `{guide}` for path resolution and explicit lifecycle checks. ' +
                    ('Translate its tool instructions to Pi read, edit, write, bash, and available subagents; '
                     'Claude and Codex tool names mean their Pi equivalents. '
@@ -440,6 +462,11 @@ def build(home, stage):
                 relative = Path('.codex/harness/skills') / skill.name / file.relative_to(skill)
                 install.files.pop(home / relative, None)
                 install.add(relative, data, file)
+    workflows = ROOT / CONFIG['workflows']
+    for name, text in internal_workflows(workflows).items():
+        text = text.replace("'${CLAUDE_PLUGIN_ROOT}'", json.dumps(str(home / '.claude/harness/plugins/wm')))
+        install.add(Path('.claude/harness/workflows') / name, text.encode(), workflows / name)
+    install.add(Path('.claude/harness/workflows/README.md'), (workflows / 'README.md').read_bytes(), workflows / 'README.md')
     for target, directory in TARGETS.items():
         base = worker_base(directory, target)
         index = home / directory / 'harness/skill-index.md'
@@ -454,7 +481,8 @@ def build(home, stage):
         discovery = (f'Internal skills: read {index} to select relevant workers for each task, then read their files. '
                      'Workers outside native skill discovery rely on this index for model selection. '
                      if target != 'claude' else
-                     f'Internal skill and legacy command references can be read from {index}; load their files when a route names them. ')
+                     f'Internal skill and legacy command references can be read from {index}; load their files when a route names them. '
+                     f'Resolve legacy .claude/workflows/wm-code-*.js references through {home / directory / "harness/workflows/README.md"}. ')
         instruction = ('\n<!-- dotfiles-harness:start -->\n' + discovery +
                        f'Before changing a personal skill, plugin, hook, or harness configuration, read {home / base / "harness-maintain/SKILL.md"}. '
                        'Edit the repository source recorded in the runtime harness/installed.json; run mise run harness:sync to regenerate installed copies.\n'

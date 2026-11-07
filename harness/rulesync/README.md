@@ -67,3 +67,13 @@ source before retrying. Do not use deletion sweeps over user skill directories.
 Reload or restart the runtime after deployment; refresh Claude's local marketplace
 when plugin versions change. The git source is the recovery copy: rerun deployment
 from the desired revision after inspecting any installed edits.
+
+## Internal Claude workflows
+
+The former project `.claude/workflows/wm-code-auto.js` and `wm-code-impl.js`
+sources live in `harness/rulesync/workflows/`. Sync installs executable copies in
+`~/.claude/harness/workflows/`, outside native command discovery. The WM aliases
+and instruction marker link their route and `Workflow.scriptPath` usage guide.
+Auto bundles the implementation body as a local async function, preserving its
+arguments without resolving the former saved workflow name. Generated prompts
+resolve the WM plugin root to the installed private library.

@@ -2,6 +2,7 @@ import importlib.util
 import json
 from pathlib import Path
 import tempfile
+import subprocess
 import unittest
 
 BASE = Path(__file__).resolve().parents[1]
@@ -38,6 +39,8 @@ class InvocationTests(unittest.TestCase):
                              if path.parent.parent == home / '.codex/skills' and path.name == 'SKILL.md'}
             self.assertEqual(codex_entries, {'wm', 'review', 'dive'})
             self.assertFalse(installation.links)
+            self.assertTrue(home / '.claude/harness/workflows/wm-code-auto.js' in installation.files)
+            self.assertFalse(any(path.is_relative_to(home / '.claude/workflows') for path in installation.files))
             self.assertTrue(all(Path(source).exists() for source in installation.sources.values()),
                             'Every installed asset must map to an existing authoring source')
             for target in ('.codex', '.pi/agent'):
@@ -49,6 +52,37 @@ class InvocationTests(unittest.TestCase):
             for path, (data, _) in installation.files.items():
                 if path.name == 'SKILL.md' and path.is_relative_to(home / '.claude') and 'codex-skills' not in path.parts:
                     self.assertIn(b'user-invocable: false', data, str(path))
+
+
+class WorkflowTests(unittest.TestCase):
+    def test_private_auto_driver_passes_child_arguments_without_saved_name_lookup(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary)
+            header = 'export const meta = {\n  name: "example", description: "example"\n}\n'
+            (source / 'wm-code-impl.js').write_text(header + 'return {todo: args.todo, deploy: args.deploy}\n')
+            (source / 'wm-code-auto.js').write_text(header + "return await workflow('wm-code-impl', args)\n")
+            script = deploy.internal_workflows(source)['wm-code-auto.js']
+            runner = """let input='';for await (const chunk of process.stdin) input+=chunk;
+const {body,args}=JSON.parse(input);
+const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
+console.log(JSON.stringify(await new AsyncFunction('args',body)(args)));"""
+            result = subprocess.run(['node', '--input-type=module', '-e', runner],
+                                    input=json.dumps({'body': deploy.workflow_body(script), 'args': {'todo': 2, 'deploy': False}}),
+                                    text=True, capture_output=True, check=True)
+            self.assertEqual(json.loads(result.stdout), {'todo': 2, 'deploy': False})
+
+    def test_real_scripts_parse_and_preserve_early_failure_without_agents(self):
+        scripts = deploy.internal_workflows(deploy.HERE / 'workflows')
+        runner = """let input='';for await (const chunk of process.stdin) input+=chunk;
+const scripts=JSON.parse(input);const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
+const run=body=>new AsyncFunction('args','agent','phase','log','parallel','pipeline',body);
+const auto=await run(scripts.auto)({},async()=>null,()=>{},()=>{});
+if(auto.result!=='ERROR'||auto.stage!=='ledger')throw new Error('lost ledger failure');
+let rejected=false;try{await run(scripts.impl)({})}catch(error){rejected=error.message.includes('Name the work')}
+if(!rejected)throw new Error('lost implementation argument guard');"""
+        subprocess.run(['node', '--input-type=module', '-e', runner], text=True, check=True,
+                       input=json.dumps({'auto': deploy.workflow_body(scripts['wm-code-auto.js']),
+                                         'impl': deploy.workflow_body(scripts['wm-code-impl.js'])}))
 
 
 class OwnershipTests(unittest.TestCase):
