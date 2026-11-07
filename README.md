@@ -1,6 +1,6 @@
 # dotfiles
 
-Personal dotfiles. Managed with **GNU Stow** + **mise**. Repo layout mirrors `~/` — stow symlinks files into place.
+Personal dotfiles. Managed with **GNU Stow**, **mise**, and **Rulesync**. Stow links ordinary dotfiles; Rulesync installs the Claude, Codex, and Pi harness.
 
 ## Structure
 
@@ -16,10 +16,11 @@ Personal dotfiles. Managed with **GNU Stow** + **mise**. Repo layout mirrors `~/
 ├── .mcp.json            # global MCP server config
 ├── .stow-local-ignore   # exclusions for repo-root stow package
 │
-├── harness/             # Per-harness packages (separate stow targets)
-│   ├── claude/          # → ~/.claude   (settings.json, hooks, agents, commands, scripts, skills, CLAUDE.md, RTK.md, agent-settings)
+├── harness/             # Harness authoring sources
+│   ├── claude/          # Native personal definitions and helper scripts
 │   ├── plugins/         # Plugin source dirs (wm, self-improvement); NOT stowed directly
-│   └── scripts/         # sync-marketplace.sh — regenerates /.claude-plugin/marketplace.json + /plugins/ symlinks
+│   ├── rulesync/        # Pinned generator, deployer, ownership guards and maintenance skill
+│   └── scripts/         # Deployment compatibility entry points
 │
 ├── ansible/             # Package installation playbook (run in-place)
 ├── scripts/             # Misc shell scripts (not stowed)
@@ -34,7 +35,7 @@ Personal dotfiles. Managed with **GNU Stow** + **mise**. Repo layout mirrors `~/
 | Source | Target | Contents |
 |---|---|---|
 | repo root | `~` | shell, .config/*, .tmux.conf, etc. (gated by `.stow-local-ignore`) |
-| `harness/claude` | `~/.claude` | Claude Code user config + plugin marketplace |
+| `harness/` through Rulesync | `~/.claude`, `~/.codex`, `~/.pi/agent` | Generated harness files; no Stow links into source |
 
 ## Install
 
@@ -47,7 +48,7 @@ nix run nix-darwin -- switch --flake .config/nix-darwin
 # 2. Other packages via ansible
 ansible-playbook ansible/install_packages.yaml
 
-# 3. Symlink everything into ~ (repo root + harness/claude)
+# 3. Link dotfiles and install the harness
 mise run stow
 ```
 
@@ -59,9 +60,9 @@ mise run unstow
 
 ## Claude Code plugins
 
-Two registries, both in `harness/claude/settings.json` (stowed to `~/.claude/settings.json`):
+Two registries are authored in `harness/claude/settings.json` and deployed to `~/.claude/settings.json`:
 
-- **`extraKnownMarketplaces`** — where plugins come from. This repo's own plugins ship via the `local-plugins` directory marketplace (`source.path` = repo root, so Claude reads `/.claude-plugin/marketplace.json` directly). External plugins point at GitHub repos.
+- **`extraKnownMarketplaces`** — where plugins come from. This repo's own plugins ship via the `local-plugins` directory marketplace under `~/.claude/harness/`; deployment sets the installed path. External plugins point at GitHub repos.
 - **`enabledPlugins`** — which plugins are on. Each entry is `"<name>@<marketplace>": true|false`.
 
 ### Install a plugin
@@ -77,10 +78,16 @@ Two registries, both in `harness/claude/settings.json` (stowed to `~/.claude/set
 }
 ```
 
-Then `mise run stow` (to symlink the edited settings) and `/reload-plugins` in Claude Code — or do both steps interactively with `/plugin`. After enabling, the first launch caches the plugin under `~/.claude/plugins/cache/`.
+Then `mise run harness:sync` (to deploy the edited sources) and `/reload-plugins` in Claude Code — or do both steps interactively with `/plugin`. After enabling, the first launch caches the plugin under `~/.claude/plugins/cache/`.
 
-> Local plugins are **disabled by default** in committed settings (`wm@local-plugins: false`) — flip to `true` to turn one on.
+Load `harness-maintain` before changing installed skills or plugin components.
 
 ### Author a local plugin (in this repo)
 
-Each plugin directory under `harness/plugins/<name>/` **is** the plugin root — markdown only (agents, commands, hooks, skills), no `claude/` wrapper, no build step. `harness/scripts/sync-marketplace.sh` (run via `mise run harness:plugins:sync`) regenerates `/.claude-plugin/marketplace.json` with one entry per plugin, `source: ./harness/plugins/<name>` pointing **directly** at the dir — no symlink layer. Edit the source, re-sync, then `/reload-plugins`.
+Each `harness/plugins/<name>/` directory is an editable, self-contained native plugin source.
+`mise run harness:sync` imports it with Rulesync and installs generated components, scripts,
+and assets under the home harness directories. Manifest versioning and subcommand generation
+remain repository tasks. Refresh Claude plugins after deploying a new version.
+
+See [the deployment contract](harness/rulesync/README.md) for ownership, target paths,
+verification, and how to resolve installed edits without overwriting third-party files.

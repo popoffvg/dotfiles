@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "targets": ["claude", "codex", "pi"],
+  "sourceFormat": "claude-native",
+  "plugins": "harness/plugins",
+  "loose": "harness/claude",
+  "projectSkills": ".claude/skills",
+  "skills": "harness/rulesync/skills"
+}

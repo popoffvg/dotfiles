@@ -1,0 +1,7 @@
+{
+  "name": "dotfiles-harness-rulesync",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": { "rulesync": "43.7.0" },
+  "engines": { "node": ">=22.22.0" }
+}
