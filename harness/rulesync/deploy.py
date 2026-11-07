@@ -266,7 +266,7 @@ def retire_native_wm(home):
         subprocess.run(['codex', 'plugin', 'remove', 'wm@dotfiles-codex', '--json'],
                        env=dict(os.environ, CODEX_HOME=str(home / '.codex')), check=True,
                        stdout=subprocess.DEVNULL)
-        print('Retired native WM plugin registration; the three aliases use the private WM library.')
+        print('Retired native WM plugin registration; the public aliases use the private WM library.')
 
 
 def retire_legacy_links(home):

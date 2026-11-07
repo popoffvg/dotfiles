@@ -122,7 +122,7 @@ description = "Deploy plugin components and marketplaces outside the source repo
 depends = ["harness:sync"]
 
 [tasks."harness:codex:wm"]
-description = "Deploy WM with the three public Codex aliases"
+description = "Deploy WM with the public Codex aliases"
 depends = ["harness:sync"]
 
 [tasks."harness:amp:publish-skills"]

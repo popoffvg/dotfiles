@@ -37,7 +37,7 @@ class InvocationTests(unittest.TestCase):
             # Native discovery sees only the explicit public aliases we own.
             codex_entries = {path.parts[-2] for path in installation.files
                              if path.parent.parent == home / '.codex/skills' and path.name == 'SKILL.md'}
-            self.assertEqual(codex_entries, {'wm', 'review', 'dive'})
+            self.assertEqual(codex_entries, {'wm', 'code', 'review', 'dive'})
             self.assertFalse(installation.links)
             self.assertTrue(home / '.claude/harness/workflows/wm-code-auto.js' in installation.files)
             self.assertFalse(any(path.is_relative_to(home / '.claude/workflows') for path in installation.files))

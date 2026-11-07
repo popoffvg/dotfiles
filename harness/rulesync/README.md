@@ -14,16 +14,16 @@ The import adds implicit agent names in staging; it never rewrites source metada
 
 ## Public aliases and internal workers
 
-`config.json` exposes exactly `wm`, `review`, and `dive` for this harness.
+`config.json` exposes exactly `wm`, `code`, `review`, and `dive` for this harness.
 Their templates live in `commands/`. Other installed plugins and built-in commands
 keep their own menus. Source plugin commands remain authoring references and are
 installed under `internal-commands/`; commands nested within skills retain their paths.
 
 | Runtime | Public entry points | Internal workers |
 |---|---|---|
-| Claude | `/wm`, `/review`, `/dive` in `~/.claude/commands/` | Native skills with `user-invocable: false`, plus `~/.claude/harness/plugins/` |
-| Codex | `$wm`, `$review`, `$dive` in `~/.codex/skills/` | `~/.codex/harness/skills/` and `harness/plugins/`; selected through `AGENTS.md` and `harness/skill-index.md` |
-| Pi | `/wm`, `/review`, `/dive` in `~/.pi/agent/prompts/` | `~/.pi/agent/harness/skills/` and `harness/plugins/`; selected through `AGENTS.md` and `harness/skill-index.md` |
+| Claude | `/wm`, `/code`, `/review`, `/dive` in `~/.claude/commands/` | Native skills with `user-invocable: false`, plus `~/.claude/harness/plugins/` |
+| Codex | `$wm`, `$code`, `$review`, `$dive` in `~/.codex/skills/` | `~/.codex/harness/skills/` and `harness/plugins/`; selected through `AGENTS.md` and `harness/skill-index.md` |
+| Pi | `/wm`, `/code`, `/review`, `/dive` in `~/.pi/agent/prompts/` | `~/.pi/agent/harness/skills/` and `harness/plugins/`; selected through `AGENTS.md` and `harness/skill-index.md` |
 
 Codex and Pi do not provide Claude's separate hidden/model-only switch. Their
 workers are reference files outside native skill discovery. The instruction marker
