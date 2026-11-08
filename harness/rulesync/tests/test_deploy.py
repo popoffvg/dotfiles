@@ -39,13 +39,17 @@ class InvocationTests(unittest.TestCase):
                              if path.parent.parent == home / '.codex/skills' and path.name == 'SKILL.md'}
             self.assertEqual(codex_entries, {'wm', 'code', 'review', 'dive', 'line-comment-act', 'line-comment-write',
                                                    'line-comment-unresolved', 'line-comment-prune', 'line-comment-distill',
-                                                   'huh', 'minions', 'show-me', 'tour'})
+                                                   'huh', 'minions', 'show-me', 'tour',
+                                                   'zed-diff', 'with-proof', 'prompt', 'lessons', 'hunch', 'handoff',
+                                                   'gist', 'drunk-claude', 'daily', 'and-what', 'critic'})
             for operation in ['act', 'write', 'unresolved', 'prune', 'distill']:
                 alias = home / '.codex/skills' / ('line-comment-' + operation)
                 self.assertIn(str(home / '.codex/harness/plugins/line-comment/internal-commands' / (operation + '.md')).encode(),
                               installation.files[alias / 'SKILL.md'][0])
                 self.assertIn(b'allow_implicit_invocation: false', installation.files[alias / 'agents/openai.yaml'][0])
-            for name in ['huh', 'minions', 'show-me', 'tour']:
+            for name in ['huh', 'minions', 'show-me', 'tour',
+                         'zed-diff', 'with-proof', 'prompt', 'lessons', 'hunch', 'handoff',
+                         'gist', 'drunk-claude', 'daily', 'and-what', 'critic']:
                 alias = home / '.codex/skills' / name
                 self.assertIn(str(home / '.codex/harness/skills' / name / 'SKILL.md').encode(),
                               installation.files[alias / 'SKILL.md'][0])

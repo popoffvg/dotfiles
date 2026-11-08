@@ -14,7 +14,7 @@ description: Maintain this user's dotfiles skills, plugins, hooks, and Rulesync 
    Source files use native Claude frontmatter; deployment imports them with Rulesync.
    Workers stay internal. Public aliases are defined in `harness/rulesync/config.json`
    and `commands/`: WM entry points, the five `line-comment-*` commands, and
-   selected personal skills (`huh`, `minions`, `show-me`, `tour`).
+   selected personal skills listed in the configuration.
    Codex and Pi discover workers
    through `harness/skill-index.md`; retain sibling resources in the private library.
    Change source invocation flags to choose automatic or explicit selection.

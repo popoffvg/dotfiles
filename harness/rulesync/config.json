@@ -23,7 +23,18 @@
     "huh",
     "minions",
     "show-me",
-    "tour"
+    "tour",
+    "zed-diff",
+    "with-proof",
+    "prompt",
+    "lessons",
+    "hunch",
+    "handoff",
+    "gist",
+    "drunk-claude",
+    "daily",
+    "and-what",
+    "critic"
   ],
   "workflows": "harness/rulesync/workflows"
 }

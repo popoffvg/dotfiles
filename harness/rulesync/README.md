@@ -16,7 +16,8 @@ The import adds implicit agent names in staging; it never rewrites source metada
 
 `config.json` exposes `wm`, `code`, `review`, `dive`, and the five
 `line-comment-*` aliases: `act`, `write`, `unresolved`, `prune`, and `distill`.
-`huh`, `minions`, `show-me`, and `tour` also expose their existing internal skills.
+Selected personal aliases also expose their existing internal skills;
+`publicAliases` in `config.json` is the full list.
 All public aliases require explicit invocation. Line-comment aliases load the
 installed plugin commands with their sibling references and scripts intact.
 Alias templates live in `commands/`. Other installed plugins and built-in commands
