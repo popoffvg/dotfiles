@@ -91,6 +91,7 @@ def install_aliases(install, home):
         for name in CONFIG['publicAliases']:
             source = HERE / 'commands' / (name + '.md')
             text = source.read_text().replace('{{PLUGIN_ROOT}}', str(plugin)).replace('{{RUNTIME}}', runtime)
+            text = text.replace('{{SKILL_ROOT}}', str(home / worker_base(directory, target)))
             text = text.replace('{{LINE_COMMENT_ROOT}}', str(home / directory / 'harness/plugins/line-comment'))
             text = text.replace('{{ARGUMENTS}}', 'the arguments supplied with this skill invocation' if target == 'codex' else '$ARGUMENTS')
             if target == 'codex':

@@ -19,7 +19,11 @@
     "line-comment-write",
     "line-comment-unresolved",
     "line-comment-prune",
-    "line-comment-distill"
+    "line-comment-distill",
+    "huh",
+    "minions",
+    "show-me",
+    "tour"
   ],
   "workflows": "harness/rulesync/workflows"
 }

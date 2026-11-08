@@ -38,12 +38,19 @@ class InvocationTests(unittest.TestCase):
             codex_entries = {path.parts[-2] for path in installation.files
                              if path.parent.parent == home / '.codex/skills' and path.name == 'SKILL.md'}
             self.assertEqual(codex_entries, {'wm', 'code', 'review', 'dive', 'line-comment-act', 'line-comment-write',
-                                                   'line-comment-unresolved', 'line-comment-prune', 'line-comment-distill'})
+                                                   'line-comment-unresolved', 'line-comment-prune', 'line-comment-distill',
+                                                   'huh', 'minions', 'show-me', 'tour'})
             for operation in ['act', 'write', 'unresolved', 'prune', 'distill']:
                 alias = home / '.codex/skills' / ('line-comment-' + operation)
                 self.assertIn(str(home / '.codex/harness/plugins/line-comment/internal-commands' / (operation + '.md')).encode(),
                               installation.files[alias / 'SKILL.md'][0])
                 self.assertIn(b'allow_implicit_invocation: false', installation.files[alias / 'agents/openai.yaml'][0])
+            for name in ['huh', 'minions', 'show-me', 'tour']:
+                alias = home / '.codex/skills' / name
+                self.assertIn(str(home / '.codex/harness/skills' / name / 'SKILL.md').encode(),
+                              installation.files[alias / 'SKILL.md'][0])
+            self.assertIn(b'references/workflow.md', installation.files[home / '.codex/harness/skills/minions/SKILL.md'][0])
+            self.assertTrue(home / '.codex/harness/skills/minions/ledger.md' in installation.files)
             self.assertFalse(installation.links)
             self.assertTrue(home / '.claude/harness/workflows/wm-code-auto.js' in installation.files)
             self.assertFalse(any(path.is_relative_to(home / '.claude/workflows') for path in installation.files))
