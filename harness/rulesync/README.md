@@ -14,8 +14,11 @@ The import adds implicit agent names in staging; it never rewrites source metada
 
 ## Public aliases and internal workers
 
-`config.json` exposes exactly `wm`, `code`, `review`, and `dive` for this harness.
-Their templates live in `commands/`. Other installed plugins and built-in commands
+`config.json` exposes `wm`, `code`, `review`, `dive`, and the five
+`line-comment-*` aliases: `act`, `write`, `unresolved`, `prune`, and `distill`.
+All public aliases require explicit invocation. Line-comment aliases load the
+installed plugin commands with their sibling references and scripts intact.
+Alias templates live in `commands/`. Other installed plugins and built-in commands
 keep their own menus. Source plugin commands remain authoring references and are
 installed under `internal-commands/`; commands nested within skills retain their paths.
 
@@ -47,6 +50,10 @@ an event does not translate its payload or make its script portable. The Pi guar
 uses its native `tool_call` payload, which Rulesync's command-hook adapter does not
 pass to the command. Guards cover direct edit/write/patch tools; they are workflow
 checks, not an operating-system sandbox for arbitrary shell code.
+
+Line-comment uses `$line-comment-<operation>` in Codex and
+`/line-comment-<operation>` in Claude and Pi. These aliases read the original
+command procedures; they do not migrate Claude hooks or run the commands during sync.
 
 ## Ownership and verification
 

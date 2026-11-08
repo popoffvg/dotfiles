@@ -37,7 +37,13 @@ class InvocationTests(unittest.TestCase):
             # Native discovery sees only the explicit public aliases we own.
             codex_entries = {path.parts[-2] for path in installation.files
                              if path.parent.parent == home / '.codex/skills' and path.name == 'SKILL.md'}
-            self.assertEqual(codex_entries, {'wm', 'code', 'review', 'dive'})
+            self.assertEqual(codex_entries, {'wm', 'code', 'review', 'dive', 'line-comment-act', 'line-comment-write',
+                                                   'line-comment-unresolved', 'line-comment-prune', 'line-comment-distill'})
+            for operation in ['act', 'write', 'unresolved', 'prune', 'distill']:
+                alias = home / '.codex/skills' / ('line-comment-' + operation)
+                self.assertIn(str(home / '.codex/harness/plugins/line-comment/internal-commands' / (operation + '.md')).encode(),
+                              installation.files[alias / 'SKILL.md'][0])
+                self.assertIn(b'allow_implicit_invocation: false', installation.files[alias / 'agents/openai.yaml'][0])
             self.assertFalse(installation.links)
             self.assertTrue(home / '.claude/harness/workflows/wm-code-auto.js' in installation.files)
             self.assertFalse(any(path.is_relative_to(home / '.claude/workflows') for path in installation.files))

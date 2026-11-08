@@ -14,7 +14,12 @@
     "wm",
     "code",
     "review",
-    "dive"
+    "dive",
+    "line-comment-act",
+    "line-comment-write",
+    "line-comment-unresolved",
+    "line-comment-prune",
+    "line-comment-distill"
   ],
   "workflows": "harness/rulesync/workflows"
 }
