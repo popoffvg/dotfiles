@@ -38,9 +38,7 @@ A list of entry points. Each may be:
 - A symbol (`HandleRequest`, `userController.create`)
 - A URL or doc reference
 
-If the user provides a free-form description, find the entry points with the **code graph tools**: `mcp__codebase-memory-mcp__search_graph` turns a concept into the symbols that carry it, and `mcp__codebase-memory-mcp__get_code_snippet` gives one symbol its exact source. Fall back to `grep` / `find` when the repo has no index, or when you are matching literal text rather than structure.
-
-Once the entry points are fixed, use `mcp__codebase-memory-mcp__trace_path` to check whether the list is complete — a caller the graph reports and the list omits is a missing entry point. Give each subagent the graph facts for its entry point in the prompt, so it does not re-derive them.
+For a free-form description, use `rg` and source reads to identify entry points. Check direct callers and dependencies relevant to the requested behavior for missing entry points, and include the relevant source locations in each subagent prompt.
 
 The user may pass a **destination folder** inline with a `dst:<path>` token (see "Output location").
 

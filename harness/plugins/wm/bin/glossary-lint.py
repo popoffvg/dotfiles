@@ -2,7 +2,7 @@
 """Check a wm `<notes-dir>/GLOSSARY.md` against itself and against the corpus that uses it.
 
 An entry is any heading whose block carries a `- **Status:**` bullet. A heading without one is a
-context (`#`) or a cluster (`##`); an entry is a `###` under a cluster. Shape: `arch:examples/glossary.md`.
+context (`#`) or a cluster (`##`); an entry is a `###` under a cluster. Shape: common `terms` skill, `CONTEXT-FORMAT.md`.
 
 The live corpus is `spec.md`, `todos/*.md`, `adr/*.md` (archived ADRs excluded), the
 glossary's own definitions, and every `--code` root. A name matches across case and across the

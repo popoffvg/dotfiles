@@ -89,7 +89,7 @@ rename across every file that carries it.
 **Only the new names are in scope.** A term `GLOSSARY.md` marks `existing` names something the code
 already calls that, and renaming it is a refactor with its own TODO — not a finding against this
 spec. The gate reads each entry's `Status` field and judges the `new` terms alone
-(`arch:examples/glossary.md`). A glossary whose entries carry no `Status` is not ready for this
+(the common `terms` skill). A glossary whose entries carry no `Status` is not ready for this
 phase: fill it in first, or every existing name is re-litigated every round.
 
 Run the mechanical half first — it is a second and it hands the agent its list:

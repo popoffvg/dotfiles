@@ -38,7 +38,7 @@ Model the problem domain-first, not implementation-first:
   write, and add a term there before any artifact uses it (`code:ref-subcommand-rules.md` § Glossary).
   Reuse its terms verbatim in every Outcome and TODO — no synonyms, no Forbidden or retired names.
 - **Tactical building blocks** — classify each Term by its Kind, one word from the data set or the
-  brick set (the **Kind** rule in `arch:examples/glossary.md`).
+  brick set (the **Kind** rule in the common `terms` skill).
 - **Aggregates and boundaries** — group entities under an aggregate root; state which invariants
   the aggregate enforces. TODOs should respect aggregate boundaries — one TODO shouldn't reach
   across two aggregates' internals.

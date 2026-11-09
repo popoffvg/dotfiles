@@ -17,7 +17,7 @@ never as a code edit.
 ├── CLAUDE.md       # how to work with this corpus — map, read order, write rules (example: examples/notes-claude.md)
 ├── RULES.md        # what to discuss directly at each step (example: examples/rules.md)
 ├── spec.md         # the target picture + the ledger (example: examples/spec.md)
-├── GLOSSARY.md     # project ubiquitous language (example: examples/glossary.md)
+├── GLOSSARY.md     # project ubiquitous language (owner: terms skill)
 ├── PATTERNS.md     # implementation patterns + reference files the implementer follows (example: examples/patterns.md)
 ├── CONCEPTS.md     # app architecture, data flow, the flow — drawn with `show-me` (example: examples/concepts.md)
 ├── adr/            # NNNN-slug.md — one ADR per decision or open question (format: ref-adr-format.md)

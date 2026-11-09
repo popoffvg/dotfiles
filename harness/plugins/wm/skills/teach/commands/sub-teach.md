@@ -27,7 +27,7 @@ The example file for each is `teach:SKILL.md`. Create each directory lazily, on 
 needs it. `MISSION.md` is the exception — it comes first, before any lesson.
 
 **One glossary, not two.** The workspace has no glossary of its own: the project's ubiquitous
-language lives in `<notes-dir>/GLOSSARY.md` (`arch:examples/glossary.md`), and every lesson uses those terms
+language lives in `<notes-dir>/GLOSSARY.md` (the common `terms` skill), and every lesson uses those terms
 verbatim. A term the human learns and can use correctly belongs there — add it in the same commit,
 per `code:ref-subcommand-rules.md` § Glossary.
 

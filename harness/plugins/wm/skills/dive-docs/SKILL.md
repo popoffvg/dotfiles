@@ -70,14 +70,13 @@ After all agents finish:
 
 ## Glossary
 
-Research is where the project's words are found, so research is where `<notes-dir>/GLOSSARY.md` starts. Each artifact's `## Terms` table names the words of one path; this step turns the whole set into one language. There is no second glossary in `$RESEARCH_DIR/` — the notes-dir file is the one home, and `arch` keeps writing to it through the spec phase (`arch:examples/glossary.md`).
+Research is where the project's words are found, so research is where `<notes-dir>/GLOSSARY.md` starts. Each artifact's `## Terms` table names the words of one path; this step turns the whole set into one language. There is no second glossary in `$RESEARCH_DIR/` — the notes-dir file is the one home, and `arch` keeps writing to it through the spec phase (the common `terms` skill).
 
 1. **Collect** every `## Terms` row from every `$RESEARCH_DIR/<ep-slug>.md`.
-2. **Merge them with the `terms` skill.** Load it and run its cluster-and-canonicalize pass over the collected rows. It picks one canonical word per concept, lists the rest as the entry's Forbidden names, and reports a collision — one word carrying two meanings — as two concepts instead of one. Do not restate its algorithm here.
+2. **Merge them with the `terms` skill.** Load it and run its cluster-and-canonicalize pass over the collected rows. Use the collected rows as its source set.
 3. **Diff against the existing file.** A term already in `<notes-dir>/GLOSSARY.md` with the same meaning is not a change. What remains is the change set: new terms, reworded definitions, and collisions.
 4. **Get the user's approval on the change set** — `code:ref-subcommand-rules.md` § Glossary owns how. A collision goes to the user as a question, never as a merge you picked.
-5. **Group the approved terms into clusters and link them.** A cluster is the set of terms one aggregate, one flow, or one lifecycle joins — read it off the artifacts' call paths, not off the names. Each term gets **Links** to the terms it depends on: `part of`, `holds`, `consumes`, `emits`, `kind of`.
-6. **Write the approved terms** into `<notes-dir>/GLOSSARY.md` as one `###` entry each under its `##` cluster, in the `arch:examples/glossary.md` shape — the term as its heading, the definition, then `Status: existing`, `Code` (the identifiers the artifacts cite), `Forbidden`, and `Links`. The artifact's `path:line` stays in the artifact; the entry carries no source. Leave **Kind** out; the spec phase types each term against the brick roster. Drop the rejected terms; they do not return next run.
+5. **Write the approved change set with the common `terms` skill** into `<notes-dir>/GLOSSARY.md`. Use the collected research as evidence; the spec phase supplies brick-specific Kind values. Leave rejected proposals out.
 
 ## INDEX.md
 

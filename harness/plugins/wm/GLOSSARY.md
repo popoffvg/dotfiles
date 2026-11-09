@@ -6,7 +6,7 @@ understanding). A word used in two of them is defined here once; a word private 
 defined there.
 
 Not the project's ubiquitous language — that lives in the notes-dir `GLOSSARY.md`
-(example: `arch:examples/glossary.md`).
+(example: the common `terms` skill).
 
 | Word | Meaning |
 |------|---------|

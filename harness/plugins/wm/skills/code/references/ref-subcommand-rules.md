@@ -46,8 +46,7 @@ An ADR whose last changelog line is `Superseded by [ADR-NNNN]` or `Deprecated:` 
 linking to it — repoint them.
 
 ## Glossary
-`<notes-dir>/GLOSSARY.md` grows through the whole flow. Entry shape and the three statuses:
-`arch:examples/glossary.md`.
+`<notes-dir>/GLOSSARY.md` grows through the whole flow. Load the common `terms` skill for every glossary creation or update; it owns `CONTEXT-FORMAT.md`.
 
 **Glossary first.** A term reaches `GLOSSARY.md` before any artifact uses it — a spec section, a TODO
 half, an ADR, a grill file, or code. Every writer that meets a domain word the file lacks, or uses
@@ -67,7 +66,7 @@ of questions in a file the human edits). One block per term:
 - **Source** — the `path:line` or spec section the term came from.
 - **Original** — the word as the code or the user writes it today, with the other names in use.
 - **Overlaps** — the existing entries whose definition covers part of this one, or `none`.
-- **Recommended** — the entry as it would land, every field of `arch:examples/glossary.md`.
+- **Recommended** — the entry as it would land, every field of the common `terms` skill.
 - **Answer** — pre-filled with the recommendation. The user accepts it, rewords it, or writes
   `drop` to reject the term.
 
