@@ -4,8 +4,6 @@ Fix the **ADR** before the code. Code changed without correcting the ADR drifts 
 
 Obeys the shared subcommand rules — see `code:ref-subcommand-rules.md`. Commit rules: `sub-commit.md`; the message itself: the `commit-message` skill.
 
-The user points at a gap — a **bug** (behavior wrong), a **missing part** (behavior absent), or an **adjust** (behavior works but should change). The loop: locate the ADR → refine it, supersede it, or record a new one → fix the code.
-
 ## Trigger kinds
 
 | Kind | What the user points at | ADR action |
@@ -20,14 +18,13 @@ The user points at a gap — a **bug** (behavior wrong), a **missing part** (beh
 
 - **Start at the ADR.** Every fix opens with: *"Refine or supersede an existing ADR, record a new one, or is the ADR already correct (code-only drift)?"* Rule the correct-ADR case out before touching code.
 - **One ADR per fix.** Multiple affected ADRs → one `/code fix` each, in sequence.
-- Correct the ADR (or confirm it's already right) before changing code. A code change over a standing wrong ADR is deferred drift.
 
 ## Step 1: Analyze the cause
 
 Before touching code, answer three, one sentence each:
 
 1. **What's the gap?** — observable symptom (bug), absent behavior (missing), or desired change (adjust).
-2. **Which ADR is involved?** — the ADR, and the Property `ADR-NNNN/Pn`, that is wrong, outdated, or absent. An `implementation` ADR of the TODO counts.
+2. **Which ADR is involved?** — the ADR, and the Property `ADR-NNNN/Pn`, that is wrong, outdated, or absent.
 3. **What should the ADR say instead?** — the corrected Property, or the new decision.
 
 No existing ADR covers the gap (always for **missing**, sometimes **adjust**) → the cause is a missing decision; record a new ADR in Step 3.
@@ -46,14 +43,16 @@ Show the user: *"Found it: `ADR-0003/P2` is wrong because X. The correction is Y
 
 ## Step 2: Correct the ADR
 
-On confirmation, refine or supersede as `arch:ref-adr-format.md` § Refine in place, reverse by supersede says:
+When the ADR is approved, ask the operator to set it back to `proposed`, and wait. The `adr-status-guard.py` hook blocks every edit of an approved ADR, so a Refine or a Supersede that starts before the operator does this stops half done.
+
+Then refine or supersede as `arch:ref-adr-format.md` § Refine in place, reverse by supersede says:
 
 - **Refine** — edit the Property in place, with the reason in the changelog line. Commit in `<notes-dir>`: `fix: refine ADR-NNNN/Pn`.
 - **Supersede** — the decision itself reverses: the option it chose loses to one it rejected. A changed value or error code under the same option is a refine. Write the replacement in Step 3 first, then append the changelog line `Superseded by [ADR-MMMM](../MMMM-slug.md)` to the old ADR. Leave the file where it is; the `adr-archive.sh` hook moves it and prints the live ADRs whose links you repoint. Commit in `<notes-dir>`: `fix: supersede ADR-NNNN by ADR-MMMM`.
 
 ## Step 3: Record the new ADR
 
-Only for a supersede, or a gap no ADR covers. Record it as an ADR with the `adr` skill, at the next number in `adr/` and `adr/archived/`, same `kind` as the original (`architecture`, `feature`, or `implementation` with `todo: TODO-N`). A supersede names the old ADR in its opening paragraph as `[ADR-NNNN](NNNN-slug.md)`.
+Only for a supersede, or a gap no ADR covers. Record it as an ADR with the `adr` skill, at the next number in `adr/` and `adr/archived/`, same `kind` as the original (`architecture` or `feature`). A gap inside one TODO is tactical: fix the pair, not an ADR (`arch:sub-todo.md` § Implementation decisions). A supersede names the old ADR in its opening paragraph as `[ADR-NNNN](NNNN-slug.md)`.
 
 **The rule set follows on its own.** The generator reads the Properties of the live ADRs: a refined Property is the new rule text, and a superseded ADR leaves the rule set when the hook archives it. There is nothing to repoint in a TODO. A new ADR binds once it is in `adr/`, and it is written there only after the user approves it. Show the draft and wait for that approval before Step 4.
 

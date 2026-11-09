@@ -19,7 +19,7 @@ func Submit(ctx context.Context, id loginflows.ID, ev FlowEvent) error // right
 
 A domain package that holds an entity MUST be named in the plural: `users`, not `user`; `loginflows`, not `loginflow`. The singular is the entity type, so a variable of that type keeps the plain name: `user := users.User{}`, not a clash with the package.
 
-Inside the package, a name MUST NOT repeat the entity the package already names: `users.ID`, `users.Login`, `users.Repository`, `users.Service`; not `users.UserID` or `users.UserRepository`. The entity type itself (`users.User`) is the one exception.
+A public name MUST make sense without its package name, as the `searchable-names` skill requires: `users.UserID`, `users.UserLogin`, `users.UserRepository`; not `users.ID` or `users.Repository`. A grep for `UserID` then finds the type in every file, also inside the package.
 
 ## Kinds of type
 
@@ -40,9 +40,8 @@ Inside the package, a name MUST NOT repeat the entity the package already names:
 
 ## Public surface
 
-- A symbol is public only when a caller outside its package calls it, a design names a planned caller for it, or it implements an interface that such a caller uses. A test is not a caller. Code kept for a feature that no design plans stays private.
+- A symbol is public only when a caller outside its package calls it, a design names a planned caller for it, or it implements an interface that such a caller uses. A test is not a caller. Code kept for a feature that no design plans stays private. A helper with no such caller is private: a key builder, a check, a format helper.
 - A package exposes its caller's operation, not the steps: when a caller must call several methods in a fixed order to keep one invariant (take the lease, write, release), make the sequence one public method and the steps private.
-- A helper that only its package calls MUST be private: a key builder, a check, a format helper. Make it public only when code outside the package calls it.
 - A mechanism a caller must not drive by hand MUST be a private type, owned by the one public type that needs it. Example: the store takes, renews, checks, and releases its own lease, and no write takes a `*Lease` argument. Only the errors a caller matches on stay public.
 - When a value already carries its kind (an id with a `G` or `S` prefix), write one function for every kind, not one function per kind plus a check that refuses the wrong kind.
 - A function that cannot fail MUST NOT return an `error`. Example: a `crypto/rand` read does not fail on Go 1.24 and later.
@@ -74,7 +73,6 @@ Before you change the fields of an SDK input struct that the caller passed in, m
 ## References
 
 - Text, YAML, and JSON forms MUST follow [references/encoding.md](references/encoding.md): the text interfaces instead of `ParseX`, no `Encode`/`Decode` wrappers, yaml tags with `gopkg.in/yaml.v3`, `validate()` inside the unmarshal method, and `IsZero` for `omitempty`.
-
 - An HTTP server MUST follow [references/http-server.md](references/http-server.md): one route table drives the standard `ServeMux`, the auth wrapping, and the OpenAPI spec that `swaggest/openapi-go` generates from the request and response types; a slog middleware logs each request.
 - A test MUST follow [references/testing.md](references/testing.md): testify and gofakeit for unit tests, testfixtures on a Postgres testcontainer for the DB, `httptest` through the real router for the API, Hurl against the shipped image for E2E.
 - An HTTP server and a database layer MUST follow [references/observability.md](references/observability.md): OpenTelemetry set up from the `OTEL_*` env vars, `otelhttp` outermost with the span named after the route row, `otelpgx` with spans named after the sqlc query, and no secret or personal data in any span.

@@ -80,7 +80,6 @@ def load(path: Path) -> dict[str, object]:
     return {
         "id": f"ADR-{path.stem.split('-', 1)[0]}",
         "kind": fm.get("kind", ""),
-        "todo": fm.get("todo", ""),
         "source": fm.get("source", ""),
         "updated": fm.get("updated", ""),
         "title": title,
@@ -101,7 +100,7 @@ def records(dirpath: Path, archived: bool) -> list[dict[str, object]]:
 def text_matches(adr: dict[str, object], pattern: re.Pattern[str] | None) -> bool:
     if pattern is None:
         return True
-    keys = ("id", "kind", "todo", "title", "summary", "properties")
+    keys = ("id", "kind", "title", "summary", "properties")
     haystack = " ".join([str(adr[k]) for k in keys] + [Path(str(adr["path"])).stem])
     return bool(pattern.search(haystack))
 
@@ -115,7 +114,6 @@ def main() -> int:
     ap.add_argument("dir", nargs="?", help=f"adr dir or notes dir (default: first of {', '.join(DEFAULT_DIRS)})")
     ap.add_argument("-m", "--match", help="case-insensitive regex over id, kind, title, paragraph, Properties, slug")
     ap.add_argument("-k", "--kind", action="append", default=[], help="keep only this kind (repeatable)")
-    ap.add_argument("--todo", help="keep only ADRs whose frontmatter `todo:` is this TODO (e.g. TODO-2)")
     ap.add_argument("--archived", action="store_true", help="include adr/archived/")
     ap.add_argument("--files", action="store_true", help="print matching paths only, one per line")
     ap.add_argument("--json", action="store_true", help="print matching ADRs as one JSON array")
@@ -130,8 +128,6 @@ def main() -> int:
     rows = records(dirpath, args.archived)
     if args.kind:
         rows = [a for a in rows if a["kind"] in args.kind]
-    if args.todo:
-        rows = [a for a in rows if a["todo"] == args.todo]
     rows = [a for a in rows if text_matches(a, pattern)]
 
     if args.json:
@@ -143,7 +139,7 @@ def main() -> int:
         print(f"no ADR matched in {dirpath}")
     else:
         for a in rows:
-            flags = "".join([" [archived]" if a["archived"] else "", f" [{a['todo']}]" if a["todo"] else ""])
+            flags = " [archived]" if a["archived"] else ""
             print(f"{a['id']}  {a['kind']:<14} {a['title'] or '<no title>'}{flags}  {a['path']}")
         print("---")
         print(f"{len(rows)} ADR(s). Open only the ones whose title covers your task.")

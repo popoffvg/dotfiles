@@ -78,8 +78,6 @@ Write `$TMPDIR/smart-commit/proposal.md` with the Write tool, in the format the 
 Print the resolved absolute path — expand `$TMPDIR`, never print the literal variable. Your final
 message is the path plus one line: how many commits across how many repos.
 
-Run no git write command in this phase.
-
 ---
 
 # Phase: apply
@@ -112,8 +110,7 @@ resolved plan — repo, commit number, message, hunk count — before touching g
 ## 2. Build the patches
 
 Write `plan.json` per repo and run the splitter with `--outdir "$OUT"`. `ref-patch-split.md` holds
-the schema and the failure modes. The script validates the plan and rewrites every hunk header
-itself, so a patch it emits either applies or names the reason it cannot.
+the schema and the failure modes.
 
 ```bash
 REPO=<repo>; SLUG=$(basename "$REPO"); OUT="$TMPDIR/smart-commit/$SLUG/out"; mkdir -p "$OUT"
@@ -165,8 +162,6 @@ diff -u <(python3 "$SC" normalize --patch "$OUT/expected.patch") \
         <(python3 "$SC" normalize --patch "$OUT/reconstructed.patch")
 ```
 
-`normalize` drops index SHAs and file ordering, which differ for legitimate reasons.
-
 **Count.** `git -C "$WT" rev-list --count "$BASE"..HEAD` equals the number of surviving blocks.
 
 ## 5. Cherry-pick back
@@ -214,11 +209,9 @@ Your final message: per repo, the commits created, and whatever is still uncommi
 
 - Always `git -C <repo>` — never a bare `git` command that leans on the current directory.
 - Repos are independent: run their worktree flows in parallel. Commits within one repo are sequential.
-- Never `git add .` or `git add -A`.
 - Never `--no-verify`. A hook that fails is a real failure — fix it, re-stage, make a **new** commit.
 - Never amend a pushed commit.
-- Never write a patch file or a Python script through a heredoc. The shell mangles backslashes,
-  backticks, and `!` inside diff content. Use the Write tool, or let the splitter write it.
+- Never write a patch file or a Python script through a heredoc (`ref-patch-split.md`).
 - Two attempts at a failing step, then abort and report. A patch that fails `--check` gets no
-  retry: abort at once.
+  retry (step 3).
 - On abort, the reason goes in your final message.

@@ -1,6 +1,7 @@
 ---
 name: todoist-spec
 description: Todoist spec layout — one spec becomes one Todoist project with state sections, one task per TODO, and `decision` tasks, driven with the `td` CLI. Use for "put this spec in Todoist", "plan this in Todoist", "organize spec work in Todoist", "use Todoist with /code".
+user-invocable: false
 ---
 
 # todoist-spec — one spec, one Todoist project

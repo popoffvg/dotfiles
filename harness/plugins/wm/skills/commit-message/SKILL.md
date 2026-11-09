@@ -72,6 +72,6 @@ When to commit, how to split, and what a user correction lands as: `impl:sub-com
 **A TODO already holds the message; the implementer copies it, never re-derives it.** Each
 `### Commit <c>` section of the TODO carries the `Title` and `Body` of one commit, both approved by the human as the last link of the
 verification chain, and the ledger row's `Why` is the Cause and Goal in compressed form. The
-Decision part comes from the ADRs the TODO obeys, including its `kind: implementation` ADRs. Shapes:
+Decision part comes from the ADRs the TODO obeys and from the tactical choices its pair states. Shapes:
 `arch:examples/todo.md`. When no TODO exists — a `fix`, a hot patch, a one-off — read the diff and the
 conversation that asked for it, and write the three parts from there.

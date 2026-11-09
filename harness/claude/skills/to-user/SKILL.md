@@ -9,11 +9,11 @@ version: 0.5.0
 
 Host: !`~/.claude/scripts/open-file.sh --host`
 
-**The operator reads the file cold.** They did not see the code, the chat, or the research. The file carries that context in words and in `show-me` figures before it asks anything, and each block stands alone.
+**The operator reads the file cold.** They did not see the code, the chat, or the research. The file carries that context in words and in `show-me` figures before it asks anything, and each block stands alone. Apply `i-have-adhd` to every field.
 
 ## Steps
 
-1. **Write the file** to the repo, or to the scratchpad when no repo owns it. Name it for the task: `pr-answers.md`, `decisions.md`, `findings.md`. Use **File shape** for a batch, **Prose** for a draft. Fill each field from a source you read — the thread, the diff, the code. A fact you could not read goes under Not checked, never into a field. Done when every item has a block, every field rests on a read source, every term is in Terms or glossed where it first appears, and no `[decide]` block is a bare question — each carries Why asked that names the fork and its and-what, a Detail paragraph, and, past a one-sentence set of options, a `show-me` figure. Test each `[decide]` block: a reader who sees only that block can say why it exists and what each option changes.
+1. **Write the file** to the repo, or to the scratchpad when no repo owns it. Name it for the task: `pr-answers.md`, `decisions.md`, `findings.md`. Use **File shape** for a batch, **Prose** for a draft. Fill each field from a source you read — the thread, the diff, the code. A fact you could not read goes under Not checked, never into a field. Done when every item has a block, and a reader who sees only one `[decide]` block can say why it exists and what each option changes.
 2. **Open it.** When Host is `zed`, run `~/.claude/scripts/zed-edit-return.sh <file>` with Bash `run_in_background: true` and `dangerouslyDisableSandbox: true`. When the operator closes the tab, focus goes back to the chat and the task exit starts your next turn: run `check-answers` then. In any other host, run `~/.claude/scripts/open-file.sh <file>`. Tell the operator the path, how many items need an answer, and how to answer: the option letter or the reply on the `Answer:` line.
 3. **When Host is not `zed`, arm the watch in the same turn**: `Monitor` with `command: ~/.claude/scripts/watch-answers.sh <file>`, `persistent: true`, and a description that names the file. Keep working; `check-answers` owns each report. A file with only `[info]` items gets no watch. When the next step cannot start until the operator finishes, use `open-file.sh --wait` instead.
 
@@ -98,10 +98,6 @@ Open design choices before a build go through these steps too, including a desig
 ## Figures
 
 **Pick every figure with `show-me`**, with two changes for a file read as text in an editor: flows, sequences, and states are ASCII in a fenced block; options are a comparison table with lettered rows the operator answers by. Context gets one figure of the whole, always. A block gets one whenever writing each option as one sentence would lose something the operator decides on — which is most blocks with more than two options, or any option that touches more than one file.
-
-## Language
-
-Apply `i-have-adhd` to every field. **Use the same name every time** — a synonym reads as a new thing.
 
 ## Prose
 

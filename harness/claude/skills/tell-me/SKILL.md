@@ -13,14 +13,14 @@ Host: !`~/.claude/scripts/open-file.sh --host`
 ## Steps
 
 1. **Pick the approach.** Match the operator's words to **Reader asks** in **Approaches**. Take one. Take a second only when the operator's words also match its Reader asks, and put the one that explains before the one that judges: "our Terraform state is broken" is Mechanism, then Failure. Done when each approach you took answers a question the operator asked.
-2. **Read before you write.** Open every file the thing owns, its `git log` and `git status`, its notes in `.notes/`, and the chat. A fact you did not read goes under Not checked. When the repo has no such thing, say so in chat and write no file. Done when every claim rests on a source you read this session.
+2. **Read before you write.** Open every file the thing owns, its `git log` and `git status`, its notes in `.notes/`, and the chat. A fact you did not read this session goes under Not checked. When the repo has no such thing, say so in chat and write no file. Done when every claim rests on a source you read this session.
 3. **Size the topic.** The file holds at most 400 words of prose; figures and tables do not count. The topic is big when it passes the **Big when** limit of an approach, or needs more than 400 words to answer the exit questions. For a big topic, ask with `AskUserQuestion`: **A — lessons** (recommended), a lesson series from the `lessons` skill, or **B — tell-me**, this file cut to 400 words, with the rest under Not covered. Draft the prose first, then count it; give the count and the word total in the question. On A, hand the work to `lessons` and stop. Done when the topic fits, or the operator chose.
 4. **Write the file** in **Frame**, to the scratchpad unless the operator names a place, as `tell-me-<thing>.md`. Done when the body answers every exit question and the prose is at most 400 words.
 5. **Open it.** When Host is `zed`, run `~/.claude/scripts/zed-edit-return.sh <file>` with Bash `run_in_background: true` and `dangerouslyDisableSandbox: true`. In any other host, run `~/.claude/scripts/open-file.sh <file>`. Do not wait for the tab to close. Done when you told the operator the path and the one-sentence answer. Arm no watch: the file asks nothing.
 
 ## Frame
 
-Every file has these sections. The approach sections go in the middle. The reader stops after any section and still has a correct, smaller model.
+Every file has these sections. The reader stops after any section and still has a correct, smaller model.
 
 ```markdown
 # <thing>: <the answer in one sentence>
@@ -57,7 +57,7 @@ For: <what the reader knows> · not for: <what the file does not teach>
 - **It is not** lists 1–3 wrong models. Take them from a nearby tool or from what the operator said. Omit the section when no wrong model is likely.
 - Write the exit questions of the approach before the body; they go under Check yourself with the answers folded. A question the body does not answer is a gap: fix the body, or move the question to Not checked.
 - Pick each figure with `show-me`. Use mermaid, because this is a file. Put each label inside its box or on its arrow, never in a list under the figure. A part the rest of the file never names again is cut.
-- Gloss each term once, where the file first uses it: plain words first, the symbol after. Use the same name every time.
+- Gloss each term once, where the file first uses it: plain words first, the symbol after.
 - Apply `i-have-adhd` to every section.
 
 ## Approaches

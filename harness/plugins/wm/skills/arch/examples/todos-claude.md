@@ -24,7 +24,7 @@ gain a step or a check, and what each commit says. `TODO-N.test.md` is what prov
 ## Read order
 
 1. `TODO-N.md` — what to build, one increment at a time; `TODO-N.test.md` — what proves it.
-2. Run `~/.claude/scripts/wm-constraints.py ../adr --todo TODO-N` before the first edit, and obey
+2. Run `~/.claude/scripts/wm-constraints.py ../adr` before the first edit, and obey
    every rule it prints. This line is the one place the command is named: no pair file carries a
    rule or the command.
 3. `TODO-N.agent.md` — the files and pre-reads of each increment.

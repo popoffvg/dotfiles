@@ -5,7 +5,7 @@ description: Read the current session and record only the global decisions it se
 
 # adr — turn a session into an ADR
 
-**Read what the session decided, keep only the global decisions — the ones every later change must obey — take each reason from the operator, and ask before writing.** An ADR records what the operator decided; the agent finds it, the operator owns it. Format and lifecycle live in [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md); the file to copy is [ADR-TEMPLATE.md](../domain-modeling/ADR-TEMPLATE.md).
+**Read what the session decided, keep only the global decisions — the ones every later change must obey — take each reason from the operator, and ask before writing.** Format and lifecycle live in [ADR-FORMAT.md](../domain-modeling/ADR-FORMAT.md); the file to copy is [ADR-TEMPLATE.md](../domain-modeling/ADR-TEMPLATE.md).
 
 **Where ADRs land:**
 
@@ -13,6 +13,8 @@ description: Read the current session and record only the global decisions it se
 |---|---|---|
 | A wm project — it has a `.notes/` notes dir | `.notes/adr/` | `.notes/adr/archived/` |
 | Any other repo | `docs/adr/` | `docs/!archived/adr/` |
+
+Each ADR has a gate file with the same name in `gates/` under its folder.
 
 `.notes/` is its own jj repo, so in a wm project move an archived ADR with `mv`, not `git mv`, and skip the README *Decisions* pointer.
 
@@ -129,7 +131,7 @@ Test the title: when it starts with a verb of choice (use, add, move, store, swi
 
 **Each title property is backed by at least one Property below.** The title says the quality in general; the Properties make it checkable. "Builds are reproducible and isolated from the host" needs, for example, "P1. Identical declared build inputs produce identical artifact digests" for reproducible and "P2. A build reads no file outside its context" for isolated. A title property with no Property under it gets one, or leaves the title.
 
-Write the decision paragraph and Reason using `ADR-FORMAT.md`. Before filling the Properties table, run its [Property gate](../domain-modeling/ADR-FORMAT.md#property-gate) for every candidate. Show the gate worksheet with the draft; keep only the plain guarantees in the ADR.
+Write the decision paragraph and Reason using `ADR-FORMAT.md`. Before filling the Properties table, run its [Property gate](../domain-modeling/ADR-FORMAT.md#property-gate) for every candidate, and write the passing rows to the gate file `gates/NNNN-slug.md`. Keep only the plain guarantees in the ADR. Then run the two checks of the gate as [adr-property-checker.md: For the caller](../../agents/adr-property-checker.md#for-the-caller) says.
 
 A feature ADR title names what the user can count on everywhere, such as "Every change is previewable and side-effect free". Its paragraph says who uses the contract, how they start it, and what they get. Its candidate Properties say what the user observes. Qualify their conditions through the gate before accepting them:
 
@@ -137,11 +139,11 @@ A feature ADR title names what the user can count on everywhere, such as "Every 
 - P2. A `--dry-run` run changes no resource and writes no state.
 - P3. A `--dry-run` run exits non-zero when validation of the requested changes fails.
 
-**Completion criterion**: the draft follows the template and backs each title quality with a Property. The draft has at most 6 Properties, aiming for 4 ([Properties](../domain-modeling/ADR-FORMAT.md#properties)). Every Property has a passing gate worksheet row with observables, assumptions, a theorem statement, and a counterexample. Rewrite or move each failed candidate before showing the draft.
+**Completion criterion**: the draft follows the template and backs each title quality with a Property. The draft has at most 6 Properties, aiming for 4 ([Properties](../domain-modeling/ADR-FORMAT.md#properties)). Every Property has a passing row in the gate file. `wm-constraints.py --check` exits 0, and `adr-property-checker` returns PASS. Rewrite or move each failed candidate before showing the draft.
 
 ## 6. Ask, then write
 
-Show the full draft and the target path. Write it only after the operator approves the wording; the operator sets `status: approved`. Create the ADR directory with its `TEMPLATE.md` on the first ADR, and add the README *Decisions* pointer at the same time.
+Show the full draft, its gate file, and the target paths. Write it only after the operator approves the wording; the operator sets `status: approved`. Create the ADR directory with its `TEMPLATE.md` on the first ADR, and add the README *Decisions* pointer at the same time.
 
 **Completion criterion**: the file exists at the approved path, or the operator declined and nothing was written.
 

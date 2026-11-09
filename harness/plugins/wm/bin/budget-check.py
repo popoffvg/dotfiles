@@ -47,7 +47,7 @@ Checked, by file kind:
   spec.md                 <= 200 lines                 (arch:ref-write.md - Spec-Readiness)
 
 Not checked here: whether a diff carries a BODY rather than a surface (a shell script, a
-function body, a fixture - `arch:sub-todo.md` § A diff carries the surface, not a body).
+function body, a fixture - `arch:ref-todo-sections.md` § A diff carries the surface, not a body).
 That is a judgment, not a count; it is graded by `wm:evals/` and audited by `/code verify`.
 This script counts only what is countable, so every message it prints is a real overrun.
 

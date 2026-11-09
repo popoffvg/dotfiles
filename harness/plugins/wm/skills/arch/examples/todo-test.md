@@ -115,10 +115,7 @@ Reuse and expiry end the stale pair, never the live session.
 
 - **Command:** `go test -tags e2e ./test/e2e/ -run TestAuthRefresh`
 
-> **Two levels, both required.** One TODO ships the behavior *and* the proof at both scales — that is
-> what makes it self-contained. Neither level is optional by default. What the change *proves* is a
-> design question the reviewer answers at the gate: a capability nobody can assert is a capability
-> nobody agreed to.
+> **Two levels, both required.** One TODO ships the behavior *and* the proof at both scales.
 >
 > | Level | Proves | Scope |
 > |-------|--------|-------|
@@ -128,8 +125,7 @@ Reuse and expiry end the stale pair, never the live session.
 > Each level carries, in this order:
 >
 > - **Under test** — opens the level, above **Target files**: the symbol or symbols the level
->   exercises, then one clause naming the behaviour the whole block proves. A reader knows what is
->   verified before reading a single case.
+>   exercises, then one clause naming the behaviour the whole block proves.
 > - **Target files** — the test file path, `create` if new.
 > - **Entry point** — `E2E` only: where the request or command enters, named as a caller enters it
 >   (`POST /auth/refresh` on the running server), so each case asserts the Outcome as an observer sees
@@ -147,8 +143,8 @@ Reuse and expiry end the stale pair, never the live session.
 >
 > **Each case is `Case <what it proves>:` followed by its steps, four spaces in.** A step line is a
 > plain sentence in run order; a step that produces a value binds it with `, which gives <name>`.
-> The outcome lines open with `Then`, and every further outcome with `And`. One step, one line —
-> never a chain joined by `;` or `→`. A case over several inputs writes `for each <value> in …:` and
+> The outcome lines open with `Then`, and every further outcome with `And`. One step, one line
+> (`arch:sub-todo.md` § `TODO-N.test.md` — the test file). A case over several inputs writes `for each <value> in …:` and
 > indents the steps under it two more spaces.
 >
 > **A property is a case whose label carries its domain.** When the case has algebraic shape (round

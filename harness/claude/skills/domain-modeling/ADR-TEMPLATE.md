@@ -17,7 +17,7 @@ Decided by {the operator | the code, for source: auto}, YYYY-MM-DD: {link to the
 
 ## Properties
 
-<!-- Before filling this table, complete ADR-FORMAT.md#property-gate outside the ADR. -->
+<!-- Before filling this table, write one row per Property in gates/<this file name> (ADR-FORMAT.md#property-gate). -->
 
 | Id | Property | If broken | Recovers by |
 |---|---|---|---|

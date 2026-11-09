@@ -1,6 +1,6 @@
 # The per-repo adr skill
 
-Write `.claude/skills/adr/SKILL.md` — a **workflow** skill that reads what the session decided and drafts an ADR from it. It is model-invocable: Claude offers an ADR when it notices a qualifying decision, which is the point.
+Write `.claude/skills/adr/SKILL.md` — a **workflow** skill that reads what the session decided and drafts an ADR from it. It is model-invocable, so Claude offers an ADR when it notices a qualifying decision.
 
 ## Everything is copied, not referenced
 
@@ -41,6 +41,6 @@ Six parts, in order:
 - **Most sessions produce zero ADRs.** Reporting "nothing qualifies" is a correct outcome.
 - **Number from both directories.** Scan `docs/adr/` and `docs/!archived/adr/` for the highest number and add one. A number is never reused.
 - **Every edit updates metadata.** Bump `updated` and append a line to the `## Changelog` section at the end of the file, including when only the status changes.
-- **Create `docs/adr/` lazily.** The first ADR creates the directory together with `TEMPLATE.md`. An empty directory tells a reader nothing.
+- **Create `docs/adr/` lazily.** The first ADR creates the directory together with `TEMPLATE.md`.
 - **Create `docs/!archived/adr/` on the first supersession.** Not before.
-- **Add the README pointer with the first ADR.** README section *Decisions* appears once `docs/adr/` holds an ADR.
+- **Add the README pointer with the first ADR.** The *Decisions* section is defined in [readme.md](readme.md).

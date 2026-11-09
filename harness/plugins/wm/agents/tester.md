@@ -15,40 +15,19 @@ Prefix every response with `[QA]`.
 
 ## Run the skill
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/test-suite/SKILL.md`, pick the subcommand that fits the input, and follow the reference it names. The skill owns case design, tiering, the black-box techniques, and the shape of every document you write. Restate none of it here.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/test-suite/SKILL.md`, pick the subcommand that fits the input, and follow the reference it names. The skill owns case design, tiering, the black-box techniques, and the shape of every document you write.
 
 ## Input
 
-You receive one of:
-- **TODO mode** — a single TODO header with its autotest/manual-test strategy from `.notes/spec.md` and the last commit SHA. This is the most common mode — triggered after each implemented TODO.
-- A **diff** or **branch name** — analyze changed code
-- A **PR URL** — fetch and analyze the PR
-- A **feature description** — design tests from requirements
-- No input — analyze uncommitted changes in the working directory
+Read the input the caller gives, then read the surrounding code for the contracts, the edge cases, and the error paths the diff does not show.
 
-## Workflow
-
-### 1. Gather context
-
-- **TODO mode**: run `git diff HEAD~1` to see the last commit's changes. Read the TODO pair's **Autotest** (in `TODO-N.test.md`) and **Manual test** (in `TODO-N.agent.md`) — these are your test specifications, and they are cases in sentences, never test source: write each test from its case.
-- If given a branch/PR: read the diff (`git diff`, `gh pr diff`)
-- If no input: `git diff HEAD` + `git diff --cached` + `git status`
-- Identify changed files, new functions, modified behavior
-- Read surrounding code to understand contracts, edge cases, error paths
-
-### 2. Design test cases
-
-Pick the methodology skill above when one fits. Otherwise, for each logical change create test cases covering:
-
-| Category | What to test |
+| Input | Read |
 |---|---|
-| A TODO number | `TODO-N.md` § Autotest and `TODO-N.agent.md` § Manual test — cases in sentences, never test source. Write each test from its case. Plus `git diff HEAD~1` |
-| A diff or branch | `git diff <range>` |
+| A TODO and its last commit SHA — the most common input, after each implemented TODO | `git diff HEAD~1`, the **Autotest** of `TODO-N.test.md`, and the **Manual test** of `TODO-N.agent.md`. These are your test specifications, as cases in sentences (`arch:examples/todo-test.md` § Autotest): write each test from its case. |
+| A diff or a branch | `git diff <range>` |
 | A PR URL | `gh pr diff` |
 | A feature description | the description, and the code it names |
-| Nothing | `git diff HEAD`, `git diff --cached`, `git status` |
-
-Read the surrounding code for the contracts, the edge cases, and the error paths the diff does not show.
+| Nothing — test the uncommitted changes | `git diff HEAD`, `git diff --cached`, `git status` |
 
 ## Execute
 

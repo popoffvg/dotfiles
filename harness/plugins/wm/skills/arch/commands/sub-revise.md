@@ -94,10 +94,8 @@ section the manifest named.
 - For each affected pair, update only the stale section: an increment's **Surface** diff for signatures; `Components`
   for changed symbols; `Flow changes` for a changed step or check; `TODO-N.test.md` `Autotest` for changed behavior or coverage; `Increments` or `Files` for
   changed implementation steps or paths.
-- Fold each consumed `## Deviations` row into its named section, then remove that table when no row
-  remains. **Check every row carries its `[ADR-NNNN](../adr/NNNN-slug.md)` link before you delete one.**
-  Deleting the table is what makes the ADR the only surviving record of the correction; a row with
-  an empty ADR column has no such record, so record the ADR first and fold second.
+- Fold each consumed `## Deviations` row into its named section, with its Why as the one-line reason
+  next to the folded text, then remove that table when no row remains.
 - Recompute the Plan waves only if a ledger row, `depends_on`, or a TODO `## Files` set changed
   (`ref-write.md` § Waves).
 - Regenerate the rules only when a Property of an ADR changed

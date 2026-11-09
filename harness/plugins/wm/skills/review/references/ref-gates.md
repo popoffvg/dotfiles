@@ -1,8 +1,5 @@
 # The gate roster
 
-The gates both `review` modes run: which one judges what, which agent runs it, at which model tier,
-and how a FAIL routes back. One home — no mode restates a row.
-
 A **gate** is one read-only step that returns `PASS | FAIL` with findings over one diff. Each agent
 carries its own verdict contract in its own file, because an agent is a separate prompt that never
 sees this skill.
@@ -195,8 +192,7 @@ that asks to rename a settled name again, unless it names a rule no earlier roun
 
 ### From round 2, a red wave goes to the triage judge first
 
-A late round fails mostly on taste, and each taste finding costs a fixup round that moves no
-behaviour. The **triage judge** — one opus agent — reads the diff and marks each finding
+The **triage judge** — one opus agent — reads the diff and marks each finding
 **blocking** or **nit**.
 
 | Kind | Findings |
@@ -247,8 +243,6 @@ batches into `mutation.md`.
 overwrite, so the timestamp tells whether the file is from the round that just ran. The returned
 text starts at its `Result:` line.
 
-**These are notes-dir files, never source.**
-
 ## One toolchain run per round
 
 Build, lint, and Autotest each run **once per round**, before the wave — the caller runs them and
@@ -282,8 +276,7 @@ whose key is absent, reports `n/a`, never a run of its own.
 
 ### The lint gate runs in the caller
 
-Its output is fixed by its inputs — one linter exit and two recorded Autotest exits — so no agent
-runs it. The caller does, in the toolchain step, before it spawns the wave:
+No agent runs it. The caller does, in the toolchain step, before it spawns the wave:
 
 1. **Run the linter** the repo configures (`golangci-lint run <pkgs>`, `eslint`, `ruff`,
    `shellcheck` — read the repo config, never guess a tool that is not configured) over the changed

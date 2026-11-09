@@ -1,11 +1,11 @@
 # The artifact contract
 
 The one home for what a `<ep-slug>.md` must contain. `explorer` writes against it; `explore-critic`
-grades against it. Neither restates it — both read this file.
+grades against it.
 
 **The shape is `examples/research-artifact.md`** — the artifact filled against one real entry point,
 with the rules for each section written as the `>` block under it. Open it before writing or grading
-one: no section rule is written twice, so this file holds none of them.
+one.
 
 ## Result criteria — the 6-step chain (MANDATORY)
 
@@ -28,6 +28,5 @@ re-spawns any entry point whose artifact leaves a step thin.
 - Tables over prose. Prose only in "Scope", the closing Trace, and per-row clarifiers. The `.md` is read by humans planning a refactor, so each section is short, scannable, and citation-dense.
 - **Cite code as `` `path:line` `` in backticks**, repo-relative, with no markdown link around it — that is the form an editor and Claude Code both make clickable, while a link to a `.rs:139` target resolves nowhere.
 - Every `path:line` must be verified — open the file before you cite it.
-- Decision points and edge cases are numbered (`DP-1`, `EC-1`, …) so other docs and TODOs can reference them, and a number is never reused for a different branch.
+- Each decision point and edge case has a slug that says what it is (`lease-renew-on-timeout`), so other docs and TODOs can cite it with no lookup. A slug is never reused for a different branch.
 - If a section is genuinely empty (e.g. no decisions), write "None." rather than omitting the heading.
-- All 6 chain steps must be covered. A thin step is a gap the convergence loop will catch and re-spawn.

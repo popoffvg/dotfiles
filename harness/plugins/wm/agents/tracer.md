@@ -35,9 +35,6 @@ worse than none.
    chain that resolves only under `adr/archived/` is superseded or deprecated — follow its
    `Superseded by` link and name the ADR that replaced it.
 
-An implementation ADR carries the TODO it was written for in `todo: TODO-N`; `--todo TODO-N`
-narrows to those when the anchor names a TODO.
-
 ## Return — the trace and one verdict
 
 At most **8 rows**, oldest decision first, so the chain reads forward:

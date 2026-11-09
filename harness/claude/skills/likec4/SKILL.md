@@ -5,8 +5,6 @@ description: Use when working with `.c4`/`.likec4` files or LikeC4 CLI/config qu
 
 # LikeC4 DSL Skill
 
-Architecture-as-code tool. Describe systems in `.c4`/`.likec4` files and LikeC4 generates interactive diagrams.
-
 ## Rules
 
 1. **Projects** - it is possible to have multiple likec4 projects in a workspace, project is determined by presence of a config file (`.likec4rc`, `likec4.config.{ts,js,json}`). LikeC4 files belong to the project of the nearest config file in the directory hierarchy.
@@ -33,7 +31,8 @@ Architecture-as-code tool. Describe systems in `.c4`/`.likec4` files and LikeC4 
 - Export family: use `likec4 export` (never substitute with other command families).
 - Validation flags contract for strict evals: `--json --no-layout --file <path> ... <project-dir>`.
 - Multi-file validation contract: repeat `--file` once per edited `.c4` / `.likec4` source file.
-- Export output flags contract: prefer `--outdir` or `-o` (avoid invented aliases).
+- Export output flags contract: use `--outdir` or `-o`. `--out-dir` does not exist. Some versions accept `--output` as an alias; answer with `--outdir` or `-o`.
+- Use only the flags that `references/cli.md` documents. Do not guess a flag.
 
 ## Exact Syntax Guardrails (high-signal only)
 
@@ -74,12 +73,12 @@ Compact ambiguity rule:
 
 ## Workflow
 
-1. (Required) Find existing or create new project config (section below). Directory with project config defines the scope for all LikeC4 files in that directory and subdirectories. Ask user if you are uncertain about the scope.
+1. (Required) Find existing or create new project config (section below). Ask user if you are uncertain about the scope.
 2. (Required) Find existing or create new `specification { ... }`, this enables what kinds of elements/deployments/relationships/tags you can use. See Specification section below.
 3. Architecture elements and relationships are defined in `model { ... }` block. See Model section below.
 4. Deployment topology is defined in `deployment { ... }` block. See Deployment section below.
 5. Views (diagrams) are defined in `views { ... }` block. See Views section below.
-6. After editing LikeC4 files, validate with the CLI
+6. After editing LikeC4 files, validate with the CLI (see Validation). Done when `filteredErrors` is 0 and `filteredFiles` equals the number of `.c4`/`.likec4` files you passed to `--file`.
 
 ## Generate → Self-check → Finalize
 
@@ -108,21 +107,11 @@ Never claim CLI execution happened unless it actually ran.
 <runtime> likec4 validate --json --no-layout --file <edited-file> <project-dir>
 ```
 
-Runtime launchers are equivalent for this command family:
-
-```bash
-npx likec4 validate --json --no-layout --file <edited-file> <project-dir>
-bunx likec4 validate --json --no-layout --file <edited-file> <project-dir>
-pnpm dlx likec4 validate --json --no-layout --file <edited-file> <project-dir>
-```
-
 - `--json` — structured output (stdout), logging goes to stderr
 - `--no-layout` — skip layout drift checks (faster, only syntax+semantic)
 - `--file <path>` — use with `--json` to scope results to the edited files. Without `--json`, text output still prints all diagnostics. Repeat once per edited source file.
 - `<project-dir>` — path to the project directory
-- There is **no** `likec4 check` command; use `likec4 validate`.
-
-For evals/gradings/executions, be **runner-tolerant** (`npx`/`bunx`/`pnpm dlx`), and judge correctness by subcommand + flags + project scope.
+- `<runtime>` is `npx`, `bunx`, or `pnpm dlx`. All three are equivalent: for evals/gradings/executions, judge correctness by subcommand + flags + project scope.
 
 If workspace already has `likec4` as a dependency, check its version from package.json and ensure it is at least 1.53.0. If pinning is needed, use the active runner (`npx`/`bunx`/`pnpm dlx`) with `likec4@1.53.0`.
 
@@ -139,16 +128,11 @@ Example output:
       "range": { "start": { "line": 5, "character": 2 }, "end": { "line": 5, "character": 20 } }
     }
   ],
-  "stats": {
-    "totalFiles": 100, // Total number of files in the project
-    "totalErrors": 500, // Total number of errors in the project
-    "filteredFiles": 1, // Number of files that match the --file filter
-    "filteredErrors": 1 // Number of errors in the filtered files
-  }
+  "stats": { "totalFiles": 100, "totalErrors": 500, "filteredFiles": 1, "filteredErrors": 1 }
 }
 ```
 
-Broken specification/model in a large project can cascade into lots of errors across all files. Always use `--file` to focus on the files you edited. If `filteredErrors` is 0 but `totalErrors` is high, your files are clean but something else in the project is broken (not your problem). Selfcheck that `filteredFiles` matches the number of files you passed to `--file`.
+Broken specification/model in a large project can cascade into lots of errors across all files. If `filteredErrors` is 0 but `totalErrors` is high, your files are clean but something else in the project is broken (not your problem). Selfcheck that `filteredFiles` matches the number of files you passed to `--file`.
 
 Field semantics (must be explicit in answers):
 
@@ -157,17 +141,6 @@ Field semantics (must be explicit in answers):
 - `totalErrors`: errors across the full project model
 
 Example edge case: if you pass 3 files but one is `likec4.config.json`, `filteredFiles` may be `2` because config JSON is not a `.c4`/`.likec4` source file for DSL validation.
-
-## Export PNG flags (precision)
-
-Canonical output directory flags:
-
-- `--outdir` (long form)
-- `-o` (short form)
-
-Do not invent flags like `--out-dir`. Depending on LikeC4 version, `--output` may appear as compatibility alias; prefer `--outdir`/`-o` for deterministic answers.
-
-Full CLI reference → `references/cli.md`
 
 ## Canonical Snippets for High-Variance Families
 
@@ -243,8 +216,6 @@ Mini-reminder: in deployment views, treat `include ... with {}` and `global styl
 
 ## LikeC4 Project Configuration
 
-Config file (`likec4.config.json`, `.likec4rc`, or `likec4.config.{ts,js}`) defines a project. Its location sets the project scope (LikeC4 files belong to the project of the nearest config file in the directory hierarchy).
-
 ```json
 {
   "$schema": "https://likec4.dev/schemas/config.json",
@@ -278,7 +249,7 @@ Style properties control visual appearance: `color`, `shape`, `border`, `opacity
 
 Full color token table, all shape values, border/opacity/size tokens, icon pack prefixes (`aws:`, `azure:`, `gcp:`, `tech:`, `bootstrap:`), and correct usage patterns → `references/style-tokens-colors.md`
 
-To discover available icons, use the CLI: `likec4 list-icons` (text, one per line). Filter by group with `--group <name>`. Icon groups and approximate counts: `aws` (~307), `azure` (~614), `gcp` (~216), `tech` (~2000), `bootstrap` (~2051) (see `references/cli.md` for details).
+To discover available icons, use the CLI: `likec4 list-icons` (text, one per line). Filter by group with `--group <name>`: `aws`, `azure`, `gcp`, `tech`, `bootstrap`.
 
 ## Deployment
 
@@ -379,35 +350,12 @@ Flow-control blocks (experimental) — all take an optional title and nest to an
 Return-arrow precision:
 
 - If the prompt asks for **response arrows back out**, prefer `<-` steps rather than replacing them with new forward arrows.
-- If the prompt asks for a body on a specific hop in a chain, attach the block only to that hop.
+- If the prompt asks for a body on a specific hop in a chain, follow [Hop-local body](references/dynamic-views.md#hop-local-body-exactness-for-evals).
 - If the prompt asks for one fan-out, keep sibling actions in one `parallel { ... }` block instead of multiple one-step parallel blocks.
-
-## Anti-Patterns to Avoid in Strict Prompts
-
-| Anti-pattern                                                       | Why it fails                                   | Correct behavior                                          |
-| ------------------------------------------------------------------ | ---------------------------------------------- | --------------------------------------------------------- |
-| Substituting command families (`check`/`build`) for `validate`     | Breaks exact command contract                  | Keep `likec4 validate`                                    |
-| Inventing/guessing flags                                           | Creates non-portable invalid commands          | Use canonical documented flags only                       |
-| Multiple alternative snippets for one strict ask                   | Reduces precision; fails strict-output grading | Output one final answer unless alternatives are requested |
-| Extending typed relationship without kind/title in ambiguous graph | Can target wrong relationship                  | Match with source + target + kind (+ title when needed)   |
-
-## Common Mistakes & Debugging
-
-When a model errors or an eval answer seems wrong, load `references/troubleshooting.md` which contains:
-
-- **Syntax errors** — identifier format (dots forbidden in identifiers), unknown kinds, duplicate FQNs, malformed `where` predicates
-- **Model & Hierarchy** — broken FQN references, parent-child relationship constraint, cross-file visibility
-- **View Predicates** — `*` vs `**` confusion, missing neighbor elements, `WHERE` case sensitivity
-- **Deployment** — `instanceOf` FQN resolution, undefined `deploymentNode` kinds
-- **Dynamic Views** — flow-control blocks (`parallel`/`opt`/`loop`/`alt`/`try`), `alt`-branch placement rules, no nested `parallel`, response arrow symmetry, exact `variant sequence` keyword
-- **Validation & Import** — config not found, import path resolution, upstream error cascade
-- **Performance** — spec in separate file, splitting large views
-- **5-step debugging workflow** — validation-first with `--file`, FQN integrity, predicate isolation, spec-first validation
-- **7 Skill Best Practices** — response discipline, relationship disambiguation, FQN usage, safe editing rules
 
 ## Reference Index
 
-Load a reference file when the task involves the corresponding topic. Claude reads SKILL.md first; these files are loaded on demand only when needed.
+Load a reference file when the task involves its topic. When a model errors or an eval answer seems wrong, load `references/troubleshooting.md` first.
 
 | File                                         | Purpose — load when...                                                                                                          |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |

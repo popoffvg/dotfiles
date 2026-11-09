@@ -7,7 +7,7 @@ version: 0.5.0
 
 # tour
 
-**The operator reads the tour with the code open beside it.** The tour does not replace the diff. The first page answers two questions before any code: why does this change exist, and which parts are critical? Then the tour gives the order to read the diff in, what each part does and why, and which test proves it. A point that needs a verdict goes to a `to-user` file, and the tour links to it.
+**The operator reads the tour with the code open beside it.** The tour does not replace the diff. The first page answers two questions before any code: why does this change exist, and which parts are critical?
 
 ## Steps
 
@@ -114,7 +114,7 @@ Close the code. Answer each question from memory. Then open the file and check.
 
 #### Memory techniques
 
-The operator must keep the core files and the core functions in mind after the tour is closed. The last section of the README holds one memory aid, built with one technique from this table. Step 4 picks the technique at random, and [memory-log.md](memory-log.md) records whether it helped. A core file is a file that a "read line by line" page or the README figure names.
+The operator must keep the core files and the core functions in mind after the tour is closed. A core file is a file that a "read line by line" page or the README figure names.
 
 | Slug | The technique | What the README section holds |
 |---|---|---|
@@ -128,7 +128,7 @@ The operator must keep the core files and the core functions in mind after the t
 - **Take every fact from a page.** The memory aid adds no fact that the pages do not prove.
 - **Put a bug or an open point in the memory aid too**, and link its slug.
 - **The recall drill has 4 to 8 questions** for every technique. It is the check that the technique worked.
-- The `story-chain` story is the one place in the tour where an image is allowed. Every other sentence of the README follows the **Language** rules.
+- The `story-chain` story is the one place in the tour where an image is allowed. Every other sentence of the README follows `i-have-adhd`.
 
 ### `<n>-<slug>.md`, one per concern
 
@@ -170,16 +170,13 @@ The operator must keep the core files and the core functions in mind after the t
 
 ## Rules
 
-- **The first page answers why and what is critical before any code.** "Why this change" and "Main parts" come right after the intro, above the figure. The table has 3 to 6 parts, one per page, except the tests page. Put the critical parts first. Each critical part names what breaks, and its page is marked "read line by line". A part that is only a rename, a move, or a config value is not critical.
+- **The first page answers why and what is critical before any code.** The table has 3 to 6 parts, one per page, except the tests page. Put the critical parts first. Each critical part names what breaks, and its page is marked "read line by line". A part that is only a rename, a move, or a config value is not critical.
 - **Every code reference is the full repo-relative path with its line**: `util/objfs/s3fs/s3_fs_store.go:61-74`. Write it in full every time: in a heading, a table cell, a test row, and a flow. Never write a bare `:61-74`, a path relative to a heading or a table header, or a short path such as `s3fs/s3_fs_store.go`. The reader copies one reference into the editor and lands on the line, with no context from the lines around it. A reference to a whole file is the full path too.
 - **Every code reference points to the pinned tip sha.** Give a range (`util/objfs/s3fs/s3_fs_part_uploader.go:160-171`) for a function and one line for a test case. After the source changes, rewrite each reference against the new tip, and update the sha in the README. For the working tree, the references point to the files on disk, and the README says "uncommitted on top of `<HEAD sha>`".
 - **A table maps, a flow decides.** Use a table for a mapping (an option to a header, a config field to a limit, a test to a behavior). Use a mermaid flow for each function with more than two branches.
-- **Every figure and flow is mermaid.** The pages are markdown files, and the `show-me` skill draws a flow in a markdown file as mermaid. ASCII is for the chat reply only.
+- **Every figure and flow is mermaid.** ASCII is for the chat reply only.
 - **Show the output, not only the code that builds it.** For each edge output, write a sample the reader could see after the change, in its true format. Build the sample from the code that writes it: the struct and its tags, the template, the format string. Take values from a test fixture when one exists, and say so. A change with no edge output says so in one line under the heading.
 - **Say why in the same paragraph as what.** A branch that exists for a reason the code does not show gets the reason next to it: a backend that rejects a request, an earlier review round, the operator's choice.
 - **Name the operator's choices as theirs**: "your choice", with the answer it came from. A reader must see which behavior they decided and which the implementer decided.
 - **Link open points, do not repeat them.** A gap that waits for a verdict gets one bullet with its slug and a link to the `to-user` file.
-
-## Language
-
-Load the `i-have-adhd` skill and apply it to every page. **Use the same name every time**: a synonym reads as a new thing.
+- **Load the `i-have-adhd` skill** and apply it to every page.

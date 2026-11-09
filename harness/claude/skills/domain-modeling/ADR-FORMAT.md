@@ -1,6 +1,6 @@
 # ADR Format
 
-**An ADR is one markdown file with metadata, a decision paragraph, and a changelog.** A file in `docs/adr/` is live and binds the code. A file in `docs/!archived/adr/` is dropped. An open question is never an ADR: it lives in `QUESTIONS.md` ([Open questions](#open-questions)).
+**An ADR is one markdown file with metadata, a decision paragraph, and a changelog, plus its gate file in `gates/` ([Property gate](#property-gate)).** A file in `docs/adr/` is live and binds the code. A file in `docs/!archived/adr/` is dropped. An open question is never an ADR: it lives in `QUESTIONS.md` ([Open questions](#open-questions)).
 
 **An ADR records a strategic decision, never a tactical one.** A strategic decision shapes the whole system and is hard to reverse: the components and their boundaries, a platform with lock-in, where state lives, a contract a user or a caller depends on. A tactical decision chooses how one part is built: where a package or a file lives, a name, a signature, a library inside one component, a value. Write a tactical decision where it applies — the spec, the TODO, or the patterns file — and never as an ADR.
 
@@ -28,7 +28,7 @@ updated: 2026-08-09
 | `created` | ISO date the ADR was first written. Never changes. |
 | `updated` | ISO date of the last edit to this file. |
 
-**The changelog is the last section of the file, not frontmatter.** It grows with every edit, so it belongs below the decision a reader came for.
+**The changelog is the last section of the file, not frontmatter.**
 
 ```md
 ## Changelog
@@ -37,7 +37,7 @@ updated: 2026-08-09
 - 2026-09-01 — Reworded P2 after the load test.
 ```
 
-**Every edit updates `updated` and appends a changelog line.** A move to the archive is an edit. The changelog is why the metadata exists: it separates "this decision was made in 2024 and still holds" from "this was rewritten twice and nobody says why".
+**Every edit updates `updated` and appends a changelog line.** A move to the archive is an edit.
 
 ## Template
 
@@ -61,7 +61,7 @@ Decided by {the operator | the code, for source: auto}, YYYY-MM-DD: {link to the
 | P1 | [keep] or [new] {a guarantee the system keeps while this decision holds, in one short sentence} | {what a caller, a user, or an operator sees when the system breaks P1} | {retry, restart, a human, or itself} |
 ```
 
-A title, a paragraph, the reason, the Properties, and the changelog section are the whole requirement. The value is in recording *that* a decision was made, *why*, and *what must stay true* while it holds — not in filling out sections.
+A title, a paragraph, the reason, the Properties, and the changelog section are the whole requirement.
 
 ### Title
 
@@ -69,7 +69,7 @@ A title, a paragraph, the reason, the Properties, and the changelog section are 
 
 ### Reason
 
-**Write the reason as a Y-statement, for a reader who was not in the session.** The form comes from Zdun et al., "Sustainable Architectural Design Decisions" (IEEE Software, 2013): *In the context of* the use case, *facing* the concern, *we decided for* the option *and against* the alternatives, *to achieve* the quality, *accepting* the downside. A manager reads it without the grill files, and it names the cost that a reversal would save. Write one Y-statement per decision the title names, at most three. The decision paragraph states the context and the option; it does not repeat the why.
+**Write the reason as a Y-statement, for a reader who was not in the session.** The form: *In the context of* the use case, *facing* the concern, *we decided for* the option *and against* the alternatives, *to achieve* the quality, *accepting* the downside. Write one Y-statement per decision the title names, at most three. The decision paragraph states the context and the option; it does not repeat the why.
 
 **End the section with one provenance line.** `Decided by the operator, <date>: <link>` points to the grill item or the chat that holds the operator's words; quote nothing. It is the proof that the operator, not the agent, made the choice. A `source: auto` ADR writes `Decided by the code` and cites the `file:line` or the research file. A reason the agent inferred and the operator never confirmed is an open question: ask "Why A over B?" in `QUESTIONS.md`, and write the ADR only when the operator answers. A choice the operator made without a reason says so in the Y-statement ("the operator set 60 seconds; no measurement backs it"), never with an invented one.
 
@@ -83,11 +83,15 @@ Model the system at its boundary: calls, results, stored data, outbound requests
 
 ### Property gate
 
-Run this gate before adding or changing a Property. Use one worksheet row per candidate, outside the ADR:
+Run this gate before adding or changing a Property. **Save the worksheet in the gate file `gates/NNNN-slug.md`, next to the ADR, with the same file name.** It holds one row per Property, keyed by the same `Pn`:
 
-| Candidate | Observables | Assumptions | Lean theorem statement | Counterexample | Verdict |
+```md
+| Id | Observables | Assumptions | Theorem | Counterexample | Verdict |
 |---|---|---|---|---|---|
-| Successful reads return successfully written bytes, absent intervening changes. | Write result and subsequent read. | No intervening write or delete; read succeeds. | `∀ b, writeOK b → noInterveningChange → readOK → readBytes = b` | A successful read returns different bytes. | Pass |
+| P1 | Write result and subsequent read. | No intervening write or delete; read succeeds. | `∀ b, writeOK b → noInterveningChange → readOK → readBytes = b` | A successful read returns different bytes. | Pass |
+```
+
+A candidate that does not pass gets no row: rewrite it, or move it out of Properties. Edit the gate row in the same change as its Property, and delete it with its Property.
 
 1. **Define the model.** Name the observable inputs, outputs, and traces needed to express the claim. Define each theorem symbol in these terms.
 2. **State the assumptions.** Include concurrency, failure, and timing conditions that affect the guarantee. Take them from the approved contract. An assumption that merely restates the conclusion makes the check circular.
@@ -96,6 +100,13 @@ Run this gate before adding or changing a Property. Use one worksheet row per ca
 5. **Check independence from the option.** Keep a guarantee that another implementation of the same contract must preserve. Move a chosen mechanism into the decision or consequences.
 
 **Completion criterion:** every retained candidate has defined symbols, approved assumptions, a precise theorem statement, and an observable counterexample. Its plain sentence preserves the theorem's scope and conditions. A candidate that needs internal structure moves out of Properties. A vague candidate returns for clarification.
+
+**Two checks enforce the gate.** Run them in this order after each draft round:
+
+1. `~/.claude/scripts/wm-constraints.py <adr-dir> --check` checks the shape. Each live `Pn` has a gate row with no empty cell, a Theorem with a `∀` or `∃` and a `→`, and the Verdict `Pass`. Each gate row has a live Property. The Properties table passes the [Property table](#property-table) rules that a script can decide.
+2. The `adr-property-checker` agent checks the meaning. It reads only the ADR and its gate file, and reports each Property that drops a condition of its theorem, widens its scope, uses an internal observable, has a circular assumption or a wrong counterexample, or names a mechanism.
+
+An ADR goes to the operator only when both checks pass.
 
 The worksheet records theorem statements, not Lean proofs. Compile and prove a separate model only when the task requests formal verification.
 
@@ -111,7 +122,7 @@ The worksheet records theorem statements, not Lean proofs. Compile and prove a s
 
 **Mark each Property `[keep]` or `[new]`.** `[keep]` is a guarantee that today's code already gives and the decision keeps. `[new]` is a guarantee the decision adds. List the `[keep]` ones first, so a reader sees what must not break before what changes. A Property carries no source and no evidence words: no file, no line number, no fact name, no link, no "today on X", no "closes Y". The evidence goes in the decision paragraph or in the research it cites. A guarantee of today's code that the decision drops goes under `## Considered Options` or `## Consequences` with the reason.
 
-**Write the Properties as one table: `Id`, `Property`, `If broken`, `Recovers by`.** One row per Property, so a reader scans the guarantees and their cost in one look. The `Property` cell is one short sentence, aiming for about 15 words while preserving the theorem’s conditions, with its `[keep]` or `[new]` mark first. Fill `If broken` from steps 2 to 4 of the [`and-what`](../and-what/SKILL.md) skill on the advice "keep this Property": what a caller, a user, or an operator sees when it breaks, in one short clause. `Recovers by` is `retry`, `restart`, `a human`, or `itself`. Both cells obey the black-box rule. A Property whose break nobody sees guarantees nothing: drop it. `wm-constraints.py` reads only the `Id` and `Property` cells as the rule. A `|` inside a cell is written `\|`.
+**Write the Properties as one table: `Id`, `Property`, `If broken`, `Recovers by`.** One row per Property, so a reader scans the guarantees and their cost in one look. The `Property` cell is one short sentence, aiming for about 15 words and at most 25, while preserving the theorem’s conditions, with its `[keep]` or `[new]` mark first. Fill `If broken` from steps 2 to 4 of the [`and-what`](../and-what/SKILL.md) skill on the advice "keep this Property": what a caller, a user, or an operator sees when it breaks, in one short clause. `Recovers by` is `retry`, `restart`, `a human`, or `itself`. Both cells obey the black-box rule. A Property whose break nobody sees guarantees nothing: drop it. `wm-constraints.py` reads only the `Id` and `Property` cells as the rule. A `|` inside a cell is written `\|`.
 
 ```md
 | Id | Property | If broken | Recovers by |
@@ -120,26 +131,28 @@ The worksheet records theorem statements, not Lean proofs. Compile and prove a s
 | P2 | [new] A dry-run leaves resources and stored state unchanged. | A preview changes the target. | a human |
 ```
 
-**Never renumber or reuse a Property number.** Code, TODOs, and reviews cite `ADR-NNNN/Pn`. A reversed Property leaves the table: delete its row, write its number and the reason in the changelog line, and keep the gap. A new Property takes the next number after the highest one the ADR ever used.
+**Never renumber or reuse a Property number.** Code, TODOs, and reviews cite `ADR-NNNN/Pn`. A reversed Property leaves the table: delete its row and its gate row, write its number and the reason in the changelog line, and keep the gap. A new Property takes the next number after the highest one the ADR ever used.
 
 **Keep implementation details in the spec, TODO, or patterns file.** A private helper, an error value, a function name, a call order, or a retry loop is how the code keeps a Property, not a decision. Write it in the spec, the TODO, or the patterns file. When ADRs merge, an absorbed ADR brings its Properties, its Reason and provenance, and its options; its context becomes at most one sentence of the decision paragraph, never a paragraph of its own.
 
 ### Optional sections
 
-Include these only when they add value, between the decision and the changelog. Most ADRs need none of them.
+Add these between the decision and the changelog, and only when they add value. Most ADRs need none of them.
 
 - **Considered Options** — when the rejected alternatives are worth remembering.
 - **Consequences** — when non-obvious downstream effects need to be called out.
 
 ## Lifecycle
 
-**An ADR is written once the operator approves it, and it is live until it moves to the archive.** The folder is the only state.
+**An ADR file is written once the operator approves its wording. It starts as `status: proposed`; the operator sets `approved` after reading the file.** It is live until it moves to the archive. The folder is the only state.
 
 | Change | What to do |
 |---|---|
 | The operator approves a draft | Write the file into `docs/adr/`. Nothing is written before the approval. |
-| The decision no longer applies and nothing replaced it | Bump `updated`, add the changelog line `Deprecated: <reason>`, and move the file to `docs/!archived/adr/`. |
-| A new ADR replaces it | Write the new ADR first; its opening paragraph names the ADR it replaces. Then bump `updated` on the old one, add the changelog line `Superseded by [ADR-NNNN](../NNNN-slug.md)`, and move the file to `docs/!archived/adr/`. |
+| The decision no longer applies and nothing replaced it | Bump `updated`, add the changelog line `Deprecated: <reason>`, and move the file to `docs/!archived/adr/` and its gate file to `docs/!archived/adr/gates/`. |
+| A new ADR replaces it | Write the new ADR first; its opening paragraph names the ADR it replaces. Then bump `updated` on the old one, add the changelog line `Superseded by [ADR-NNNN](../NNNN-slug.md)`, and move the file to `docs/!archived/adr/` and its gate file to `docs/!archived/adr/gates/`. |
+
+Move archived files with `git mv`, so the history follows the file.
 
 ## Open questions
 
@@ -160,17 +173,13 @@ Include these only when they add value, between the decision and the changelog. 
 - A question that stops mattering is deleted, with the reason in the commit message.
 - A spec is ready when `QUESTIONS.md` has no section.
 
-**Move archived files with `git mv`** so the history follows the file.
-
 ## When to offer an ADR
 
 All three of these must be true:
 
-1. **Hard to reverse** — the cost of changing your mind later is meaningful.
-2. **Surprising without context** — a future reader will look at the code and wonder "why on earth did they do it this way?"
-3. **The result of a real trade-off** — there were genuine alternatives and you picked one for specific reasons.
-
-If a decision is easy to reverse, skip it — you'll just reverse it. If it's not surprising, nobody will wonder why. If there was no real alternative, there's nothing to record beyond "we did the obvious thing."
+1. **Hard to reverse** — a later change of the decision has a real cost.
+2. **Surprising without context** — a future reader of the code asks why it is this way.
+3. **A real trade-off** — real alternatives existed, and the choice has specific reasons.
 
 ### When to offer a feature ADR
 

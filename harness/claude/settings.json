@@ -129,17 +129,14 @@
       "/tmp"
     ]
   },
-  "model": "opus",
   "skillOverrides": {
-    "ast-grep": "off",
     "domain-modeling": "off",
     "grilling": "on",
     "harness-dev:help-command": "off",
     "harness-dev:prompt-dry-run": "off",
     "harness-dev:prune-text": "off",
     "hunch": "off",
-    "quint-spec": "off",
-    "tracker-task-drafting": "off"
+    "quint-spec": "off"
   },
   "hooks": {
     "PostToolUse": [
@@ -539,7 +536,8 @@
     "smart-commit@local-plugins": true,
     "prompt-risk@prompt-risk": true,
     "annotate@annotate": true,
-    "side-chat@side-chat": true
+    "side-chat@side-chat": true,
+    "pins@pins": true
   },
   "extraKnownMarketplaces": {
     "ast-grep-marketplace": {
@@ -601,12 +599,19 @@
       "source": {
         "source": "github",
         "repo": "popoffvg/annotate"
-      }
+      },
+      "autoUpdate": true
     },
     "side-chat": {
       "source": {
         "source": "github",
         "repo": "popoffvg/side-chat"
+      }
+    },
+    "pins": {
+      "source": {
+        "source": "github",
+        "repo": "popoffvg/pins"
       }
     }
   },

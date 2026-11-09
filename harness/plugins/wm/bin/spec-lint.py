@@ -30,7 +30,7 @@ BRICKS = {
     "command", "service", "flow", "gateway",
     "server", "consumer", "policy", "scheduler", "wiring",
 }
-TOUCHES = {"create", "modify", "delete"}
+MARKS = {"+", "~", "-"}
 TYPES = {
     "new behavior", "signature change", "wiring", "call-site migration",
     "rename", "move", "deletion", "test", "generated",
@@ -62,7 +62,6 @@ READER_CHECK = "> **Check:**"
 COMPONENT_LINE = re.compile(r"^\*`[^`]+`\*$")
 MAX_SURPRISES = 7
 FILES_INCREMENTS = re.compile(r"\binc\s+(\d+\.\d+(?:\s*,\s*\d+\.\d+)*)")
-ADR_LINK = re.compile(r"\[ADR-\d{4}\]\(")
 SPEC_BANNED = ["Design Decisions", "Open Questions", "Implementation Guidelines"]
 
 # A skip or a `none` level that names no concrete reason. Lowercased substring match.
@@ -280,10 +279,9 @@ def check_rules(notes, f):
         fixes = {
             "is not proposed or approved": "ask the operator to set status: proposed or approved; the agent never writes the status",
             "has a ## Question section": "move the question to QUESTIONS.md and delete the ADR, or answer it and delete the section",
-            "is not architecture, feature": "set kind to architecture, feature, or implementation",
+            "is not architecture or feature": "set kind to architecture or feature",
             "no Property": "add at least one `| Pn | ... |` row to the table under `## Properties`",
-            "with no todo:": "add `todo: TODO-N` to the frontmatter",
-            "with a todo:": "remove the todo: key, or set kind: implementation",
+            "has a todo: key": "remove the todo: key; write a choice inside one TODO in that TODO (arch:sub-todo.md § Implementation decisions)",
         }
         for line in proc.stdout.splitlines():
             line = line.strip()
@@ -450,7 +448,6 @@ def check_human(n, path, lines, pairs, f, checks):
     if "Deviations" in found and fm.get("status") == "todo":
         f.fail(row, label, "`## Deviations` written at status todo", "impl writes it, never arch")
     if "Deviations" in found:
-        # `revise` deletes this table, so the linked ADR is the only record of the reason.
         for i, line in enumerate(section(body, "Deviations"), 1):
             text = line.strip()
             if not text.startswith("|") or set(text) <= set("|- "):
@@ -458,9 +455,9 @@ def check_human(n, path, lines, pairs, f, checks):
             cells = [c.strip() for c in text.strip("|").split("|")]
             if cells[:1] == ["What"]:
                 continue
-            if not any(ADR_LINK.search(c) for c in cells):
-                f.fail(row, label, f"`## Deviations` row {i} links no ADR: {cells[0]}",
-                       "link the implementation ADR with the reason, [ADR-NNNN](../adr/NNNN-slug.md), before revise deletes the table")
+            if len(cells) < 3 or not cells[2]:
+                f.fail(row, label, f"`## Deviations` row {i} has no Why: {cells[0]}",
+                       "write the reason the approved version lost in the Why column")
     tail = [l for l in body if l.strip()]
     if not tail or "TODO-%d.agent.md" % n not in tail[-1]:
         f.fail(row, label, "last line is not the link to the agent half",
@@ -477,23 +474,23 @@ def check_human(n, path, lines, pairs, f, checks):
             continue
         if not fenced or "#" not in line:
             continue
-        name = line.split("#", 1)[0].strip(" │├└─|+`-").strip()
+        name = line.split("#", 1)[0].strip(" │├└─|+~`-").strip()
         note = line.split("#", 1)[1].strip()
         if note.startswith("OWNS"):
             roots += 1
             continue
         if "·" not in note:
-            continue  # a member line: one method, field, or case, and no touch/brick/part
+            continue  # a member line: one method, field, or case, and no brick/part
         head = note.split("—", 1)
-        fields = [c.strip().lower() for c in head[0].split("·")]
+        fields = [line[:1]] + [c.strip().lower() for c in head[0].split("·")]
         comps += 1
         if len(fields) != 3 or len(head) < 2 or not head[1].strip():
-            f.fail(row, label, f"{name}: comment is not `touch · brick · part — role`",
-                   "modify · server · main — one sentence on its slice of the job")
+            f.fail(row, label, f"{name}: line is not `<mark> <tree> # brick · part — role`",
+                   "~ ├── Handler  # server · main — one sentence on its slice of the job")
             continue
-        touch, brick, part = fields
-        if touch not in TOUCHES:
-            f.fail(row, label, f"{name}: touch `{touch}` outside {sorted(TOUCHES)}", "")
+        mark, brick, part = fields
+        if mark not in MARKS:
+            f.fail(row, label, f"{name}: mark `{mark}` outside {sorted(MARKS)}", "the `## Flow changes` marker: + new, ~ changed, - gone")
         if brick not in BRICKS:
             f.fail(row, label, f"{name}: `{brick}` is not a brick", f"one of {sorted(BRICKS)}")
         if part == "main":
@@ -899,8 +896,8 @@ def run(notes, as_json=False, quiet=False):
 
     checks = {
         "B3": f.check("B3", "human half frontmatter — keys, risk color, size S/M/L, approve, where, type, depends_on"),
-        "B4": f.check("B4", "human half sections — present, ordered, link out, each deviation links an ADR"),
-        "B5": f.check("B5", "Components — one tree per package, brick, touch, exactly one main"),
+        "B4": f.check("B4", "human half sections — present, ordered, link out, each deviation has a Why"),
+        "B5": f.check("B5", "Components — one tree per package, brick, mark, exactly one main"),
         "B6": f.check("B6", "every increment carries its surface — one diff, a contract block, or `none` with a reason; no diff outside `## Increments`"),
         "B12": f.check("B12", "Flow changes — flows as ```python pseudocode with a marked change, or `none` with a reason"),
         "B13": f.check("B13", "test file — no frontmatter, link back, holds ## Autotest"),

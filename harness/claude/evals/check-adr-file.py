@@ -2,20 +2,20 @@
 
 Usage: check-adr-file.py <adr.md> '<json list of regexes the Property cells must cover>'
 """
+import importlib.util
 import json
 import re
 import sys
+from pathlib import Path
+
+spec = importlib.util.spec_from_file_location("wm_constraints", Path.home() / ".claude/scripts/wm-constraints.py")
+wm = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(wm)
 
 HEADER = "| Id | Property | If broken | Recovers by |"
-ROW = re.compile(r"^\| P(\d+) \| \[(keep|new)\] ((?:[^|\\]|\\.)+?) \| ((?:[^|\\]|\\.)+?) \| (retry|restart|a human|itself) \|$")
 Y = re.compile(r"In the context of .+?, facing .+?, we decided for .+? and against .+?, to .+?, accepting .+?\.", re.S)
 CHOICE_VERB = re.compile(r"^# (use|add|move|store|switch to|adopt|introduce)\b", re.I)
 MECHANISM = re.compile(r"`[A-Za-z_][\w.]*\(\)`|\b[a-z]+[A-Z]\w*\b|\berr[A-Z]\w*")
-BANNED = [
-    ("link", re.compile(r"\]\(")),
-    ("file:line", re.compile(r"\b[\w./-]+\.\w+:\d+")),
-    ("evidence word", re.compile(r"\b(today on|closes|today:|new:)", re.I)),
-]
 
 
 def sections(text):
@@ -80,28 +80,15 @@ def main() -> int:
     props = secs.get("Properties", [])
     if HEADER not in [l.strip() for l in props]:
         defects.append("properties: no table header " + HEADER)
-    rows = [l.strip() for l in props if l.strip().startswith("| P")]
-    if not rows:
+    live = wm.numbered(wm.table(props))
+    if not live:
         defects.append("properties: no Property row")
-    cells, marks = [], []
-    for raw in rows:
-        m = ROW.match(raw)
-        if not m:
-            defects.append(f"properties: row format: {raw[:80]}")
-            continue
-        if "dropped" in m.group(3).lower():
-            defects.append(f"properties: a dropped row: P{m.group(1)}")
-        marks.append(m.group(2))
-        cell = m.group(3)
-        cells.append(cell)
-        if len(cell.split()) > 20:
-            defects.append(f"properties: P{m.group(1)} has {len(cell.split())} words, want about 15")
-        for name, rx in BANNED + [("mechanism", MECHANISM)]:
-            hit = rx.search(cell)
-            if hit:
-                defects.append(f"properties: {name} '{hit.group(0)}' in P{m.group(1)}")
-    if "keep" in marks and "new" in marks and marks.index("new") < len(marks) - marks[::-1].index("keep") - 1:
-        defects.append("properties: a [new] row comes before a [keep] row")
+    defects += [f"properties: {d}" for d in wm.table_problems(live)]
+    cells = [row.get("Property", "") for row in live.values()]
+    for n, cell in live.items():
+        hit = MECHANISM.search(cell.get("Property", ""))
+        if hit:
+            defects.append(f"properties: mechanism '{hit.group(0)}' in P{n}")
     body = "\n".join(cells)
     for rx in must:
         if not re.search(rx, body, re.I):

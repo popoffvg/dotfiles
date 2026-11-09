@@ -11,8 +11,7 @@ your final message.
 ## The contract you grade against
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/dive-docs/references/ref-artifact.md`. It holds the 6-step chain
-the artifact was written against. You grade against that file, so the writer and the judge can never
-drift apart.
+the artifact was written against.
 
 ## What counts as a gap
 
@@ -22,10 +21,10 @@ Verify against the real code, not against how confident the artifact sounds. A s
 |---|---|
 | **Tests (2)** | Marked UNTESTED but tests exist, or test rows cite paths that don't exercise this path. |
 | **Follow data (3)** | An identity/data carrier named in the path has no row. |
-| **Failure path (5)** | A branch, `throw`, or early return in the path has no matching DP-N/EC-N, or a partial failure has no rollback note. |
+| **Failure path (5)** | A branch, `throw`, or early return in the path has no matching decision point or edge case, or a partial failure has no rollback note. |
 | **One-sentence trace (6)** | Missing, or it references a step/branch absent from the body — which means the body is incomplete, not the trace. |
-| **Terms** | A domain word the artifact uses in its own prose or table rows has no glossary entry, an entry has no `path:line`, or one concept holds two entries under different names — the merge step feeds `<notes-dir>/GLOSSARY.md`, so a thin table starves it. |
-| **Caller-enforced invariant** | The artifact states an invariant is enforced at the call sites rather than in the carrier ("caller-enforced", "any path that calls X directly breaks this", "mutable via a direct setter") and lists only a sample of callers. Run `grep '<setter>('` yourself and cross-check the full list against what the artifact cites. The unlisted caller is exactly where the next bug hides. |
+| **Terms** | A domain word the artifact uses in its own prose or table rows has no glossary entry, an entry has no `path:line`, or one concept holds two entries under different names. |
+| **Caller-enforced invariant** | The artifact states an invariant is enforced at the call sites rather than in the carrier ("caller-enforced", "any path that calls X directly breaks this", "mutable via a direct setter") and lists only a sample of callers. Run `grep '<setter>('` yourself and cross-check the full list against what the artifact cites. |
 
 ## New entry points
 

@@ -2,6 +2,7 @@
 name: reuse-audit
 description: Reuse audit — find the code in one Go directory that does again a job the module, its go.mod deps, or the stdlib already do, report it, then fix the chosen groups in parallel writers.
 argument-hint: <target-dir in a Go module> [fix]
+user-invocable: true
 disable-model-invocation: true
 ---
 

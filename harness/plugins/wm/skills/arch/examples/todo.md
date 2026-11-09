@@ -44,7 +44,7 @@ increment: 0/6              # <approved>/<total> — impl stamps it after each i
 > A red TODO is a signal to keep it small, not a block.
 >
 > **`size`** — `S`, `M`, or `L`: how big the PR is that a reviewer opens when this TODO lands. Work
-> and reading time, not reach — a one-line edit to a core type is `risk: 5, size: S`.
+> and reading time, not reach — a one-line edit to a core type is `risk: red, size: S`.
 >
 > Read it off two counts, and take the band that holds **both** — the paths in the agent half's `## Files` and the increments in `## Increments`:
 >
@@ -58,8 +58,8 @@ increment: 0/6              # <approved>/<total> — impl stamps it after each i
 > counts are in the pair, so `spec-lint` B14 recomputes the letter — a hand-picked `S` over nine
 > files fails.
 >
-> **`L` needs the human's word before the pair is written.** Nine files is Operating principle 4's
-> ask-first line, and the honest fix is usually two ledger rows. When the human keeps it as one row,
+> **`L` needs the human's word before the pair is written.** Nine files is past the ask-first line of
+> `arch:sub-todo.md` § Operating principles, and the honest fix is usually two ledger rows. When the human keeps it as one row,
 > the comment carries their reason instead of the counts.
 >
 # TODO-1: A stolen refresh token stops working at the next refresh
@@ -88,10 +88,10 @@ increment: 0/6              # <approved>/<total> — impl stamps it after each i
 > **Rules every section shares.** A section's own `>` block states only what is specific to it.
 >
 > - **Symbols, not paths.** Name a symbol as `## Components` does (`pkg/auth.Handler`) and write a
->   `GLOSSARY.md` term verbatim. A file path belongs in the agent half's **Files**, never in this half.
+>   `GLOSSARY.md` term verbatim. A file path belongs in the agent half's `## Files`, keyed by increment, never in this half.
 > - **A required section with nothing to say writes one line: `none — <concrete reason>`.** A section
 >   marked *optional* is omitted instead, never written with `none` under it.
-> - **Tables are unlimited.** No row cap, and the 550-line budget does not count a table
+> - **Tables are unlimited.** No row cap, and the 200-line budget does not count a table
 >   (`arch:sub-todo.md` § Budget). A row left out to keep a section short is a fact the implementer guesses.
 > - **A size cap is a split signal.** Past the cap the ledger row does two things — split the row, do
 >   not shorten the section.
@@ -113,8 +113,7 @@ increment: 0/6              # <approved>/<total> — impl stamps it after each i
 - The refresh TTL is a setting, 15 minutes by default — a config key.
 
 > **One feature per bullet, capability first.** Answers *"what new can the system do once this
-> lands, and what lands to do it?"* The reviewer reads this list, then knows what `## Components`
-> and `## Increments` below will show before scrolling to them.
+> lands, and what lands to do it?"*
 >
 > Each bullet is `<actor> can <capability> [when <condition>]` or `<aggregate> emits <event> when
 > <command> succeeds`, present tense, active — then an em dash and what lands: `<plain-words kind>
@@ -146,7 +145,7 @@ increment: 0/6              # <approved>/<total> — impl stamps it after each i
 
 > **Optional** — one row per domain term this TODO adds that `GLOSSARY.md` does not already carry.
 >
-> **Every row here is `new` by definition** — that is what the section is — and it reaches
+> **Every row here is `new`**, and it reaches
 > `GLOSSARY.md` with `Status: new`. A term the code already carries belongs in `GLOSSARY.md` as
 > `existing` and never in this table.
 >
@@ -165,23 +164,21 @@ increment: 0/6              # <approved>/<total> — impl stamps it after each i
 > **Check:** this tree is the whole reach of the change. Find the component you know must change and do not see here. Confirm that the `main` component is the one that carries the Outcome.
 
 ```text
-pkg/auth                            # OWNS the refresh exchange
-├── Handler                         #   modify · server · main — exchanges a valid refresh token for a new pair
-│   └── Refresh()                   #     takes a `RefreshRequest`, returns a `TokenPair`, and invalidates the old refresh token
-└── TokenMinter                     #   modify · command · supporting — mints an access/refresh pair for a user id
-    └── MintPair()                  #     returns a `TokenPair` instead of one token string
+  pkg/auth                            # OWNS the refresh exchange
+~ ├── Handler                         #   server · main — exchanges a valid refresh token for a new pair
+~ │   └── Refresh()                   #     takes a `RefreshRequest`, returns a `TokenPair`, and invalidates the old refresh token
+~ └── TokenMinter                     #   command · supporting — mints an access/refresh pair for a user id
+~     └── MintPair()                  #     returns a `TokenPair` instead of one token string
 
-cmd/api                             # OWNS the HTTP routes
-└── Routes                          #   modify · wiring · supporting — maps `POST /auth/refresh` to the handler
+  cmd/api                             # OWNS the HTTP routes
+~ └── Routes                          #   wiring · supporting — maps `POST /auth/refresh` to the handler
 
-scripts                             # OWNS the release scripts
-└── ReleaseCheck                    #   create · command · supporting — builds from clean and checks every asset against the manifest
+  scripts                             # OWNS the release scripts
++ └── ReleaseCheck                    #   command · supporting — builds from clean and checks every asset against the manifest
 ```
 
 
-> The symbols this TODO touches, drawn as a **component tree** with the `show-me` skill. A human
-> reads this tree *instead of* any diff: it is the whole reach of the change, stated for a reader who
-> never opens the agent half.
+> The symbols this TODO touches, drawn as a **component tree** with the `show-me` skill.
 >
 > **One tree per package. The root is the package path and carries `# OWNS <one clause>`** — what the
 > package is answerable for once this TODO lands. Two packages are two trees, never one stretched
@@ -191,14 +188,15 @@ scripts                             # OWNS the release scripts
 > root already says the package. A symbol, never a file path — paths live in the agent half's
 > **Files**.
 >
-> **Every component line ends with `<touch> · <brick> · <part> — <role>`**, in one aligned comment
-> column, indented one step past its root.
+> **Every component line starts with its mark and ends with `# <brick> · <part> — <role>`**. The mark
+> sits in the first column, as in a diff, and a root line starts with two spaces. The comments form one
+> aligned column, indented one step past the root.
 >
-> **Touch** — `create | modify | delete`. **It types the symbol, not the file**: a `create` component
-> may land in a file **Files** marks `modify`, and a `modify` component may need a new file. A
-> component this TODO only reads belongs in **Pre-reads**, not here. An all-`create` tree is a
-> greenfield slice; a `delete` component names its replacement in the same tree, or the TODO that
-> already shipped it.
+> **Mark** — the marker of `## Flow changes`: `+` new, `~` changed, `-` gone.
+> **It types the symbol, not the file**: a `+` component may land in a file **Files** marks `modify`,
+> and a `~` component may need a new file. A component this TODO only reads belongs in **Pre-reads**,
+> not here. An all-`+` tree is a greenfield slice; a `-` component names its replacement in the same
+> tree, or the TODO that already shipped it.
 >
 > **Brick** — `command | service | flow | gateway | server | consumer | policy | scheduler | wiring`.
 > The roster, with the metric and common structure of each, is `arch:ref-bricks.md`. A component that
@@ -209,8 +207,8 @@ scripts                             # OWNS the release scripts
 >
 > **Role** — one sentence, this TODO's slice of the component's job. Not the component's full purpose.
 >
-> **A child of a component is one member this TODO decides** — a method, a field, a case. It carries a
-> comment and no `·` triple, and it says what the member does for this TODO. Draw only the members
+> **A child of a component is one member this TODO decides** — a method, a field, a case. It starts with
+> its mark too, and its comment has no `·` pair: it says what the member does for this TODO. Draw only the members
 > the change decides; a member the TODO leaves alone is noise. The signatures stay in each increment's **Surface**.
 >
 > Every component maps to at least one path in the agent half's **Files**, and every non-test path
@@ -254,7 +252,7 @@ def Refresh(body):
     if token.used:                                  # +
         revoke(token.session)                       # +
         return 409                                  # +
-    pair = TokenPair(                               # ~ was: one access token
+~     pair = TokenPair(                               # was: one access token
         access=sign_access_token(token.user_id),
         refresh=sign_refresh_token(token.user_id),  # +
     )
@@ -263,9 +261,8 @@ def Refresh(body):
     return pair, 200
 ```
 
-> **Which running paths this TODO changes, and how, step by step.** The increments below show what the
-> symbols become. This section shows what a call does, in order, and which steps are new. A reviewer
-> reads it to see every new step and every new check before any code exists.
+> **Which running paths this TODO changes, step by step.** It shows what a call does, in order, and which
+> steps are new; the increments below show what the symbols become.
 >
 > **One H3 per flow.** A flow is one path a call takes from its entry point to its result: a request
 > handler, a CLI command, a job, an event consumer. The heading names the entry point in domain
@@ -316,9 +313,7 @@ def Refresh(body):
 
 > **The whole contract change, cut into the steps `impl` applies, one H3 per step in apply order,
 > grouped into commits.** An increment is the smallest step worth approving on its own. A commit is
-> the smallest group of increments with a clear border. `## Components` says *which* symbols move;
-> each increment says *what they become* and *what will surprise the reader*; each `### Commit`
-> section says what the group ships.
+> the smallest group of increments with a clear border.
 >
 > **One TODO, one deliverable, one or more commits.** Cut a new commit when the next increments ship
 > a second cause: a refactor that prepares the change, the change itself, a tool beside it. A TODO
@@ -331,9 +326,6 @@ def Refresh(body):
 > - The commit has its own **Title** and **Body**, with one cause.
 > - The Autotest cases its **Proves** line names pass.
 >
-> So a signature change and the increment that migrates its callers are always in one commit. A
-> broken build never crosses a commit border.
->
 > **Each increment is self-contained for review.** A reviewer reads one H3 and nothing else, and
 > can approve or reject it. So the summary never points elsewhere ("as above", "see increment 1.1"),
 > and the diff holds every symbol the summary names as new or changed.
@@ -341,11 +333,7 @@ def Refresh(body):
 > **One increment, one component.** The component line names exactly one `## Components` row, and the
 > increment changes code of that component only. A change in a second component — a caller moved to
 > a new signature, a route that calls the new method, a constructor that passes the new dependency —
-> is its own increment, with **Change** `call-site migration` or `wiring`. Every row is named by at
-> least one increment, and no increment names a component missing from that table.
->
-> **No file paths.** Name a symbol as `## Components` does. Which file each increment touches is in
-> the agent half's **Files**, keyed by increment number.
+> is its own increment, with **Change** `call-site migration` or `wiring`.
 >
 > Heading: `### <c>.<i>. <imperative title>` — `c` is the commit, `i` the increment inside it. Both
 > are 1-indexed and contiguous, and `i` starts again at 1 in each commit. The title is in domain
@@ -604,30 +592,24 @@ A script now builds the release from clean and checks every asset against the ma
 
 ## Deviations
 
-| What | Shipped instead | Why | ADR |
-|------|-----------------|-----|------|
-| `## Increments` 2.1: `Refresh` | takes `ctx context.Context` as its first argument | the store call it now makes must be cancellable | [ADR-0012](../adr/0012-refresh-is-cancellable.md) |
+| What | Shipped instead | Why |
+|------|-----------------|-----|
+| `## Increments` 2.1: `Refresh` | takes `ctx context.Context` as its first argument | the store call it now makes must be cancellable |
 
 > **Not yours to write.** `todo` never creates this section; the pair leaves the gate with the
 > sections above and nothing after them. `impl` appends it when the user corrects a shown diff into
 > something a section above forbids, and only when the correction stays inside this TODO.
 >
-> Read it as a reader of the pair: the approved text above still says what the human approved, and
-> this table says where the shipped code went elsewhere and which ADR holds the reason. One row per
-> correction, four columns:
+> The approved text above still says what the human approved. One row per correction, three columns:
 >
 > - **What** — the section and the symbol, id, or case the correction contradicts: `## Increments 2.1:
 >   Refresh`, `## Autotest Unit: case 3`, `## Outcome`.
 > - **Shipped instead** — the shape or behavior that actually landed, one line.
-> - **Why** — the reason the approved version lost, one line.
-> - **ADR** — a markdown link to the `kind: implementation` ADR holding the full reasoning.
->   **Required on every row, and written before the row is.** This block is temporary: `revise`
->   folds the rows in and deletes it, so the ADR is the only thing that survives. A row with an empty ADR column takes
->   the reason with it, and the approved text it replaced then reads as if nobody chose against it.
->   `spec-lint.py` check B4 fails a row without one.
+> - **Why** — the reason the approved version lost, one line. A deviation stays inside this TODO, so it is
+>   tactical and never an ADR (`arch:sub-todo.md` § Implementation decisions). The fixup commit
+>   message carries the same reason, so it survives when `revise` folds the row in and deletes the table.
 >
-> `revise` folds every row into the section it names and deletes the whole block. A correction that
-> reaches past this TODO — another TODO's symbol, a ledger row, a settled `architecture` or `feature` ADR — is not a
+> A correction that reaches past this TODO — another TODO's symbol, a ledger row, a settled `architecture` or `feature` ADR — is not a
 > deviation: it routes to `revise`.
 
 ---

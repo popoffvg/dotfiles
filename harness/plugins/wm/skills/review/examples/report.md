@@ -5,7 +5,7 @@
 > the content, delete the `>` lines — each one states the rules for the piece above it.
 > The roster behind both — which gate judges what, the order, the FAIL routing, the budget, and the
 > rule that a green gate still writes its file — is `ref-gates.md`. Each gate's own `## Covered` rows
-> live in its agent file, because an agent is a separate prompt that never reads this one.
+> live in its agent file, as `ref-gates.md` says.
 
 ## One gate's file — `<notes-dir>/review/TODO-3/rules.md`
 
@@ -81,8 +81,7 @@ reviewed: 2026-09-04T11:09:18+02:00
 > **The caller merges; a gate reports only itself.** Every mode writes this same file and returns the
 > same text, so a reader opens one path whatever ran.
 >
-> `Result:` is `PASS | FAIL` plus the rounds the chain spent — the number a human needs to tell a
-> first-pass green from one that took two fixups.
+> `Result:` is `PASS | FAIL` plus the rounds the chain spent.
 >
 > **`## Gates` names every gate in the roster on one line**, in roster order, each with its own
 > verdict. A gate missing from the line is a gate whose file nobody read.
@@ -90,9 +89,7 @@ reviewed: 2026-09-04T11:09:18+02:00
 > **A gate that returned nits alone is `PASS`.** Nits never block, so they change no verdict — the
 > nit above still reaches the human.
 >
-> **Every finding keeps the gate that produced it**, as the first field. A finding whose gate is
-> stripped cannot be re-litigated: the reader needs to know whether a line was rejected by a table or
-> by a judgment.
+> **Every finding keeps the gate that produced it**, as the first field.
 >
 > **`## For the operator` carries every correctness finding the chain chose not to fix**, with its
 > impact, its consequence for the application, and the fix cost, so the human weighs the cost against

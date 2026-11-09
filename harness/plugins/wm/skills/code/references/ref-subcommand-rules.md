@@ -1,7 +1,5 @@
 # code — shared subcommand rules
 
-The contract every `/code` subcommand obeys.
-
 ## Obey RULES.md
 Read `<notes-dir>/RULES.md` before the first step. It says what to raise with the human and what
 to decide alone; it wins over a subcommand's own default, and never lowers a hard gate. Missing file →
@@ -13,11 +11,11 @@ question, each with the source anchor, the question, and a recommended answer th
 as written. Load `to-user` for the block shape and the extraction rule — it owns the field roster,
 and the only thing written here is how each field reads for one kind of batch (§ Glossary, a term).
 The grill, the init knobs, a quiz, a glossary change set, a batch of open questions: all of these
-are batches. The user answers them in their editor, at their pace, with the file in front of them.
+are batches.
 
 **One question that blocks the current step stays inline** — `AskUserQuestion`, answered now. A
 route the agent cannot pick without stopping work (`impl:sub-impl.md` § When a correction contradicts the pair) is the
-case this covers. A file the user may not open for an hour is the wrong place for it.
+case this covers.
 
 **Every question carries its own context, in either form.** Give what forced the question, what
 each option changes in the work, and what breaks if the guess is wrong — in the question text, not
@@ -40,10 +38,7 @@ subcommand restates one. A rule that changes is an edit to its ADR, or a new ADR
 is not in the table: run the `trace` skill when a rule has to be argued with rather than obeyed.
 
 ## Archive an ADR that stops being live
-An ADR whose last changelog line is `Superseded by [ADR-NNNN]` or `Deprecated:` moves to
-`adr/archived/` — never deleted, never left among the live ADRs. **Append that line and the
-`adr-archive.sh` hook moves the file; never `mv` it yourself** (`arch:ref-adr-format.md` § Location and archive). The hook reports the live ADRs still
-linking to it — repoint them.
+The rule, the hook, and the repointing of links are in `arch:ref-adr-format.md` § Location and archive.
 
 ## Glossary
 `<notes-dir>/GLOSSARY.md` grows through the whole flow. Entry shape and the three statuses:

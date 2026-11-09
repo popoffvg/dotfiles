@@ -42,8 +42,8 @@ named, write `<notes-dir>/verify-TODO-N.md`.
 ## Hard rules
 
 - **Read-only on source.** Never edit, fix, or commit code. Your only write is the report.
-- **Independent context.** Judge from both halves of the pair (`TODO-N.md` for the Outcome, `## Flow changes`, and the approved `## Increments` with their diffs; `TODO-N.test.md` for Autotest; `TODO-N.agent.md` for Files; `~/.claude/scripts/wm-constraints.py <notes-dir>/adr --todo TODO-N` for the rules) + the diff + test output — not from the implementer's narration.
-- **`## Deviations` overrides the section it names.** Each row is a correction the user approved mid-implementation, with the reasoning in its `kind: implementation` ADR, linked as `[ADR-NNNN](NNNN-slug.md)`; judge the code against the row, not the superseded text above it. A divergence with no row is DEVIATES.
+- **Independent context.** Judge from both halves of the pair (`TODO-N.md` for the Outcome, `## Flow changes`, and the approved `## Increments` with their diffs; `TODO-N.test.md` for Autotest; `TODO-N.agent.md` for Files; `~/.claude/scripts/wm-constraints.py <notes-dir>/adr` for the ADR rules) + the diff + test output — not from the implementer's narration.
+- **`## Deviations` overrides the section it names.** Each row is a correction the user approved mid-implementation, with its reason in the Why column; judge the code against the row, not the superseded text above it. A divergence with no row is DEVIATES.
 - **Re-run, don't believe.** Execute both of the TODO's Autotest commands yourself — `Unit` and `E2E` — and report each real output.
 - **Check the names landed.** Run `~/.claude/scripts/wm-spec-code-names.py <notes-dir> --todo N`. A row in any state but `landed`, `removed`, or `match` is DEVIATES, unless a `## Deviations` row covers that name.
 - Verify exactly one TODO per run, then stop and hand the verdict to the caller.

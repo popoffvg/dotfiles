@@ -9,7 +9,7 @@ version: 0.2.0
 
 Host: !`~/.claude/scripts/open-file.sh --host`
 
-**The operator reads the snapshot to understand, not to answer.** They did not see the code, the chat, or the research. The file gives them the picture of the work as it stands now. It asks no question, so it has no `Answer:` slot and no Recommended field.
+**The operator reads the snapshot to understand, not to answer.** They did not see the code, the chat, or the research. The file gives them the picture of the work as it stands now. It asks no question, so it has no `Answer:` slot and no Recommended field. Load the `i-have-adhd` skill and apply it to every section.
 
 ## Steps
 
@@ -67,7 +67,3 @@ Host: !`~/.claude/scripts/open-file.sh --host`
 - **Open** is plain bullets. An open point that blocks the next step needs a verdict: hand it over with `to-user`, and leave a link to that file here.
 - **Terms** lists every codebase symbol, project word, and abbreviation. Omit it when there are none.
 - **Not checked** is required: it is how far the operator can trust the file.
-
-## Language
-
-Load the `i-have-adhd` skill and apply it to every section. **Use the same name every time** — a synonym reads as a new thing.

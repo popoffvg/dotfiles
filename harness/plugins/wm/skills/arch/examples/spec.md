@@ -11,7 +11,7 @@ drives: A stolen refresh token stops working the moment the real client refreshe
 > A filled `<notes-dir>/spec.md`. Copy the file, replace the content, delete the `>` lines — each one
 > states the rules for the section above it. The contract around the file — status machine, the gate,
 > TODO ordering and waves, the readiness checklist — is `arch:ref-write.md`.
-> Budget: ≤ 200 lines. Over budget → move detail to `adr/` or split the spec, never shrink the ledger.
+> The line budget and the over-budget rule are in the `spec.md` row of the readiness checklist in `arch:ref-write.md` § Spec-Readiness Checklist.
 > The prose follows `harness-dev:text-style`, and — because a human reads this file to make a
 > decision — the `i-have-adhd` rules for that human half.
 
@@ -102,9 +102,8 @@ away.
 > implementation nouns. Full rules: `arch:examples/todo.md` § Outcome. A row hiding an "and" splits; two
 > rows sharing an outcome merge.
 >
-> **`Concretely` is the plain-language twin of `Outcome`, and it is not optional.** `Outcome` is
-> abstract and glossary-bound, which is what makes it checkable and what makes it unreadable to
-> anyone who does not already hold the design. `Concretely` is written for comprehension: a two-column
+> **`Concretely` is the plain-language twin of `Outcome`, and it is not optional.** `Concretely` is written
+> for a reader who does not hold the design: a two-column
 > **Today | After** table, then one **Done when** line.
 >
 > |  | **Today** | **After** |

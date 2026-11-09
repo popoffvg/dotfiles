@@ -1,8 +1,5 @@
 # Tools — which one answers which need
 
-Every script, agent, and skill the five wm skills reach for, by the need it serves. `INDEX.md` maps
-files to owners; this file maps a situation to the thing that resolves it.
-
 **Search the ADRs before reading them** — run the index, read the decision paragraphs, open only the
 ADRs that bear on the task (`arch:ref-adr-format.md`).
 
@@ -14,7 +11,6 @@ ADRs that bear on the task (`arch:ref-adr-format.md`).
 |---|---|---|
 | Which ADRs mention these terms | `wm-adr-index.py <notes>/adr -m 'token\|scope'` | one line per live ADR: number, kind, title, path. `-m` also reads the decision paragraph and the Properties. Exit 1 = no match |
 | Every ADR of a kind | `wm-adr-index.py <notes>/adr -k architecture --files` | paths only, for a batch read. `--archived` adds the dropped ADRs |
-| The implementation ADRs of one row | `wm-adr-index.py <notes>/adr --todo TODO-2` | the ADRs whose frontmatter `todo:` is that row |
 | Whether an ADR was superseded or deprecated | `wm-adr-index.py <notes>/adr -m '<term>' --archived` | the same rows, plus `adr/archived/` |
 
 ## Find code
@@ -29,9 +25,9 @@ ADRs that bear on the task (`arch:ref-adr-format.md`).
 
 | Need | Invocation | Returns |
 |---|---|---|
-| The rules this code must obey | `wm-constraints.py <notes>/adr [-m REGEX] [--json]` | one `ADR-NNNN/Pn` row per Property of a live ADR, dropped Properties skipped; `[auto]` marks a rule no operator was asked about. Exit 1 = none |
-| The rules scoped to one row | `wm-constraints.py <notes>/adr --todo TODO-2` | the `architecture` and `feature` rules, plus the `implementation` rules of that row |
-| An ADR that breaks the format | `wm-constraints.py <notes>/adr --check` | exit 3 and one line per problem: a `status` key, a `## Question` section, an unknown kind, no Property, more than 6 Properties, `todo:` missing on `implementation` or present on another kind |
+| The rules this code must obey | `wm-constraints.py <notes>/adr [-m REGEX] [--json]` | one `ADR-NNNN/Pn` row per Property of a live ADR; `[auto]` marks a rule no operator was asked about. Exit 1 = none |
+| An ADR that breaks the format | `wm-constraints.py <notes>/adr --check` | exit 3 and one line per problem: a `status` key, a `## Question` section, an unknown kind, no Property, more than 6 Properties, a `todo:` key; a Property with no `[keep]`/`[new]` mark, a `[keep]` after a `[new]`, over 25 words, evidence words, an empty `If broken`, or a `Recovers by` outside `retry`, `restart`, `a human`, `itself`; no gate file in `adr/gates/`, a Property with no gate row, an empty gate cell, a Theorem with no `∀`/`∃` and `→`, a Verdict other than `Pass`, a gate row with no Property |
+| Whether each Property says what its theorem says | `adr-property-checker` agent (haiku), `adrs:` the ADR paths only | PASS or FAIL, one finding per `ADR-NNNN/Pn` and slug: a dropped condition, a wider scope, an internal observable, an undefined symbol, a circular assumption, a counterexample that misses, a named mechanism |
 
 ## Match spec names to code
 

@@ -56,7 +56,7 @@ every finding routes back to `impl`, which is the only skill that edits.
 **The pair is a rule source, not a spec to check against.** No gate judges the Outcome, the
 Surface, or drift (`ref-gates.md` § No gate judges the spec).
 
-**`--todo` turns settled decisions into rules.** Each Property of a live ADR under
+**`--todo` turns settled decisions into rules.** It switches the ADR rules on; it does not select ADRs by TODO. Each Property of every live ADR under
 `<notes-dir>/adr/` becomes one `ADR-NNNN/Pn` rule, so a breach is a Failure with a citation. A
 loose diff has no ADRs.
 
@@ -65,5 +65,5 @@ not a finding by itself: the gates judge it like every other changed file.
 
 **An Autotest case the human wrote is still droppable.** The test-worth rules and the mutation gate
 judge the test the diff wrote, not the case that asked for it. Dropping a listed case contradicts the approved pair,
-which makes it a **deviation**: the implementer records the `kind: implementation` ADR and the
+which makes it a **deviation**: the implementer records the
 `## Deviations` row, and never edits the Autotest table (`arch:examples/todo-test.md` § Autotest).

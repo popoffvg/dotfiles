@@ -4,7 +4,7 @@
 
 `commands/sub-impl.md` holds only the steps that are the same under every ruleset. Where a step changes with a key, it says "as the ruleset says" and nothing more. The change itself is a line in `rulesets/approve-<value>.md` or `rulesets/risk-<color>.md`.
 
-`bin/impl-ruleset.py` resolves both keys for one TODO and prints the two matching files. The session never resolves the keys by hand.
+`bin/impl-ruleset.py` resolves both keys for one TODO and prints the two matching files (`commands/sub-impl.md` step 1).
 
 **The identity-branch test.** A sentence in `sub-impl.md` that starts "Under `approve: todo`…" or "When the TODO is `risk: red`…" is a ruleset line in the wrong file. Move it to the ruleset file; leave "as the ruleset says" at the step.
 

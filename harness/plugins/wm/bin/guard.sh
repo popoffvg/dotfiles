@@ -67,7 +67,7 @@ if [[ "$BASE" == "spec.md" ]]; then
         block "$(printf '%s\n\n%s\n\n%s' \
           "The spec cannot enter status: impl. An ADR in $ADR breaks the format, so a rule is missing or wrong." \
           "$REPORT" \
-          "Fix each line: a status of proposed or approved, no ## Question section, a known kind, at least one Property, and a todo: key on an implementation ADR only. Owned by arch:ref-adr-format.md.")"
+          "Fix each line: a status of proposed or approved, no ## Question section, a kind of architecture or feature, no todo: key, at least one Property, and a passing Property gate. Owned by arch:ref-adr-format.md.")"
       fi
 
       WAITING=$("$CONSTRAINTS" "$ADR" --unapproved 2>&1) && URC=0 || URC=$?

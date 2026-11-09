@@ -71,6 +71,7 @@
       - ansible
       - shellcheck
       - elan-init
+      - ollama
       # git
       - lefthook
       - gitleaks

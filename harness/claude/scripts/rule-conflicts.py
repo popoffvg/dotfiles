@@ -24,7 +24,7 @@ from pathlib import Path
 import numpy as np
 
 HOME = os.path.expanduser("~")
-REPO = f"{HOME}/Documents/git/dotfiles"
+REPO = f"{HOME}/git/dotfiles"
 DEFAULT_SOURCES = [
     f"{REPO}/harness/claude/CLAUDE.md",
     f"{REPO}/harness/claude/skills/**/*.md",

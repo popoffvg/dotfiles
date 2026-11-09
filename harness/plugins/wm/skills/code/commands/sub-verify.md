@@ -8,8 +8,7 @@ Obeys the shared subcommand rules — see `ref-subcommand-rules.md`.
 
 ## Execution — four phases
 
-Phase 0 is a script and gates the expensive Phase 1 fan-out; Phase 1b verifies the missed-change hypotheses that Phase 1 raised; Phase 2 judges the names the corpus
-declares, once the round has returned. Pass the real `<notes-dir>`.
+Pass the real `<notes-dir>`.
 
 ### Phase 0 — static gate (one call, no agent)
 
@@ -17,30 +16,27 @@ declares, once the round has returned. Pass the real `<notes-dir>`.
 ${CLAUDE_PLUGIN_ROOT}/bin/spec-lint.py <notes-dir>
 ```
 
-One call, about a second. It parses `spec.md` and both halves of every ledger row and prints every
-countable check with its verdict — the budgets (it runs `budget-sweep.sh` itself), the frontmatter
-ranges, the section sets and their order, the Components tree, the increment sequence, both
-Autotest levels, the wave plan, the rule set, the open questions. **Exit 1 → write the report
-`Result: NEEDS REVISION` with the findings under `## Checks` and stop.**
+It parses `spec.md` and both halves of every ledger row and prints every countable check with its
+verdict. **Exit 1 → write the report `Result: NEEDS REVISION` with the findings under `## Checks`
+and stop.**
 
-Take the remedy each finding names — never a raised budget, never a loosened check. `--json` gives
-the same rows for a caller that merges them into a larger report.
+Take the remedy each finding names — never a raised budget, never a loosened check.
 
 **A green line is evidence the check ran.** The script prints every check, passed or failed, so a
 missing id means a missing check rather than a clean corpus.
 
 ### Phase 1 — adversarial hunt (parallel agents)
 
-All pass → fan out **one `spec-verifier` per TODO** plus one cross-TODO agent, in a single message (wall-clock = slowest TODO, not the sum).
+All pass → fan out **one `spec-verifier` per TODO** plus one cross-TODO agent, in a single message.
 
-**Every verify agent runs on sonnet.** Pass `model="sonnet"` on each call — never opus, never haiku, never the caller's model. Sonnet is also the `spec-verifier` frontmatter default; the explicit argument keeps the pin if that default moves.
+**Every verify agent runs on sonnet.** Pass `model="sonnet"` on each call — never opus, never haiku, never the caller's model.
 
 Per-TODO:
 ```
 Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
   "[VERIFY TODO-N] Hunt contradictions / missing-parts / edge-cases in the <notes-dir>/todos/TODO-N.md
    + TODO-N.agent.md pair and TODO-N.test.md. Read only those three + the rules `~/.claude/scripts/wm-constraints.py
-   <notes-dir>/adr --todo TODO-N` prints + the pair's Files (source). Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md
+   <notes-dir>/adr` prints + the pair's Files (source). Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md
    § Mission and § What the script cannot judge — the countable checks already ran, so report none of them.
    Run the claim pass first, then the missed-change pass. Return the claim table, the hypothesis
    table, and your findings.")
@@ -83,8 +79,7 @@ Do not skip a hypothesis because it looks unlikely. A hypothesis with no verdict
 ### Phase 2 — the naming pass (after the round returns)
 
 Every round ends with one naming review over the names this spec **mints**, before `status` moves to
-`impl`. A name fixed here is one edit in a table; the same name fixed after the code lands is a
-rename across every file that carries it.
+`impl`.
 
 **Only the new names are in scope.** A term `GLOSSARY.md` marks `existing` names something the code
 already calls that, and renaming it is a refactor with its own TODO — not a finding against this
@@ -92,7 +87,7 @@ spec. The gate reads each entry's `Status` field and judges the `new` terms alon
 (`arch:examples/glossary.md`). A glossary whose entries carry no `Status` is not ready for this
 phase: fill it in first, or every existing name is re-litigated every round.
 
-Run the mechanical half first — it is a second and it hands the agent its list:
+Run the mechanical half first — it hands the agent its list:
 
 ```
 ${CLAUDE_PLUGIN_ROOT}/bin/term-variants.py <notes-dir>/todos/*.md <notes-dir>/spec.md
@@ -106,7 +101,7 @@ Then the judgment half, one agent over the whole corpus:
 ```
 Agent(subagent_type="wm:name-critic", model="haiku", prompt=
   "[NAME spec] Judge the names <notes-dir> MINTS, not a diff. In scope: every `## New terms` row,
-   every `## Components` symbol whose touch is `create`, and every symbol an `## Increments` diff adds,
+   every `## Components` symbol marked `+`, and every symbol an `## Increments` diff adds,
    across all TODO pairs. Out of scope, silently: every term GLOSSARY.md marks `Status: existing`,
    and every symbol the code already carries — the diff modifies it, it does not name it.
    GLOSSARY.md is the domain vocabulary; a new name that contradicts a row there is a Failure.
@@ -119,11 +114,9 @@ re-run this phase alone — a rename cannot break a countable check that already
 
 ## Mission — hunt three failure modes (Phase 1)
 
-Find what breaks the spec before code does. **Contradictions come first** — they are the only failure mode that makes two correct implementations impossible at once, so the claim pass below runs before any missing-part or edge-case reading.
+Find what breaks the spec before code does. **Contradictions come first:** the claim pass below runs before any missing-part or edge-case reading.
 
 ### 1. Contradictions — run the claim pass
-
-Do not scan for contradictions by reading and hoping. Extract, then collide.
 
 **Step 1 — extract claims.** Read the TODO (per-TODO agent) or the whole set (cross agent) and write one row per claim. A claim is any statement the implementation must honour:
 
@@ -139,7 +132,7 @@ Do not scan for contradictions by reading and hoping. Extract, then collide.
 **Step 2 — collide pairwise.** Compare every claim against every other claim of the same kind. A collision is two claims that cannot both hold:
 
 - same symbol, two signatures (or one call site passing the other TODO's arity)
-- same term, two meanings — the sharpest signal that the spec was written in two sittings
+- same term, two meanings
 - same file owned by two TODOs in one wave
 - an order claim whose edge reverses another, or closes a `Depends on` cycle
 - a state transition whose start state an earlier Outcome already consumed
@@ -183,7 +176,7 @@ Each finding names the exact TODO/section, states the concrete scenario that fai
 `spec-lint.py` rules on every countable field. What is left needs a reader, so each per-TODO agent
 carries it beside the three hunts. Each one is a hard block when it fires.
 
-**A body in an increment diff**, and the most common finding here. Read every ```diff for
+**A body in an increment diff.** Read every ```diff for
 content that *is* the implementation rather than the surface a caller sees: a function body, a loop
 or branch chain, a shell script, a SQL query, a regex, a fixture, a table of literal expected
 values, a test file's assertions. The edit is the same each time — delete the body, keep the
@@ -191,7 +184,7 @@ signature, move each decision a reader cannot guess into the increment's **Surpr
 when the file has no surface at all (`arch:ref-todo-sections.md` § A diff carries the surface, not a
 body).
 **The one legal body is one the human asked for**, and it carries a `**Body requested:**` bullet
-naming the symbol. Judge `## Autotest` the same way: its Cases are sentences, never test source.
+naming the symbol. Judge `## Autotest` by the rule *Cases, never the test* in `arch:examples/todo-test.md` § Autotest.
 
 **Self-containment.** Read one TODO with `spec.md` and the `adr/` ADRs closed and the printed
 rule set open — that is what the implementer sees. A term or a test expectation knowable only from
@@ -206,8 +199,7 @@ the approval decision. Two ideas in one sentence, a stacked clause chain, a meta
 a plain word, and a fact restated a second way each fire. A finding quotes the sentence and gives the
 rewrite, never "tighten this". The agent half is out of scope.
 
-**Over-statement, the same gate in reverse.** The gate may only push text *in* if it can also push
-text *out*, or every pass grows the pair. It fires when a rule was copied out of the printed rule
+**Over-statement, the same gate in reverse.** It fires when a rule was copied out of the printed rule
 set into a TODO, when spec Description/Goal prose was copied into the human half, or when
 an increment diff carries a symbol no component claims. Name the cut, never a move into the agent
 half — that half has no line budget to absorb it.
@@ -243,9 +235,7 @@ behavior.
 | UI / frontend | `.vue`, `.tsx`, `.svelte`, css | manual test with screenshot or browser steps |
 
 **An E2E deferral is legal only when the named TODO carries the case.** `none — observable only via
-TODO-3` binds TODO-3's `TODO-3.test.md` `## Autotest` `E2E` to a case that asserts this path; a deferral to a TODO
-whose E2E never mentions it is an untested path with a citation. Deferring to a `Manual test` never
-counts (`arch:examples/todo-test.md` § Autotest).
+TODO-3` binds TODO-3's `TODO-3.test.md` `## Autotest` `E2E` to a case that asserts this path. The other deferral rules, among them that a `Manual test` never counts, are in `arch:examples/todo-test.md` § Autotest.
 
 ## Output contract
 
@@ -294,6 +284,6 @@ Hypothesis pass: <N> raised, <C> confirmed, <U> unsure, <R> refuted, over <S> se
 Decide and transition immediately — no generic follow-up question.
 
 - **READY** — all blocking checks pass, no critical unknowns → transition the spec frontmatter `status` to `impl`. `jj commit -m "Spec verification passed"` in `<notes-dir>`.
-- **NEEDS REVISION** — ≥1 blocking issue or unclear dependency → stay at `review` with concise feedback. `jj commit -m "Spec verification failed"`. **Any collision from the claim pass is blocking** — two live claims mean the implementer must guess, and a guess is not a spec. **Any CONFIRMED missed change is blocking** — the implementer edits only the files the pair lists, so the file stays stale.
+- **NEEDS REVISION** — ≥1 blocking issue or unclear dependency → stay at `review` with concise feedback. `jj commit -m "Spec verification failed"`. **Any collision from the claim pass is blocking.** **Any CONFIRMED missed change is blocking.**
 
 Report the next command (`/code todo` or `/code impl`) plus the blocking list. Strict on blockers, concise on style nits.

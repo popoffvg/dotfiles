@@ -38,21 +38,21 @@ A list of entry points. Each may be:
 - A symbol (`HandleRequest`, `userController.create`)
 - A URL or doc reference
 
-If the user provides a free-form description, find the entry points with the **code graph tools**: `mcp__codebase-memory-mcp__search_graph` turns a concept into the symbols that carry it, and `mcp__codebase-memory-mcp__get_code_snippet` gives one symbol its exact source. Fall back to `grep` / `find` when the repo has no index, or when you are matching literal text rather than structure.
+If the user provides a free-form description, find the entry points with `grep` / `find`, or with the `LSP` tool for symbols and references.
 
-Once the entry points are fixed, use `mcp__codebase-memory-mcp__trace_path` to check whether the list is complete — a caller the graph reports and the list omits is a missing entry point. Give each subagent the graph facts for its entry point in the prompt, so it does not re-derive them.
+Once the entry points are fixed, search the callers of each one to check whether the list is complete — a caller the list omits is a missing entry point. Give each subagent the facts you found for its entry point in the prompt, so it does not re-derive them.
 
 The user may pass a **destination folder** inline with a `dst:<path>` token (see "Output location").
 
 ## Parallel subagents
 
-Every route that fans out over entry points spawns its subagents the same way. This section is the one home for the rule — a route's procedure says *spawn the fan-out* and points here.
+Every route that fans out over entry points spawns its subagents the same way.
 
 - **Put all `Agent` calls in one assistant message.** Calls in separate messages run serially, not in parallel.
-- **Use `subagent_type: "Explore"` with `model: "sonnet"` for a read-only fan-out.** Sonnet does read-only investigation at a fraction of the cost. Switch to `general-purpose` only for an entry point that needs cross-file design reasoning, and keep `model: "sonnet"` unless the reasoning itself is the hard part. A fan-out that writes files — the `workflow` route — MUST use `general-purpose`: Explore cannot write.
+- **Use `subagent_type: "Explore"` with `model: "sonnet"` for a read-only fan-out.** Switch to `general-purpose` only for an entry point that needs cross-file design reasoning, and keep `model: "sonnet"` unless the reasoning itself is the hard part. A fan-out that writes files — the `workflow` route — MUST use `general-purpose`: Explore cannot write.
 - **Give each subagent a self-contained prompt.** A subagent cannot see this conversation. Include the entry point's inputs verbatim — for `workflow`, the `<ep-slug>.md` plus the `examples/workflows/` path — and the absolute output path.
 
-**The `docs` route uses the two named agents of `dive-docs`.** Every call, in every round, carries all three of these:
+**The `docs` route uses the two named agents of `dive-docs`.** Every call, in every round — the first, the gap-filling, and the grading rounds — carries all three of these. Prompts and contracts: see `dive-docs:SKILL.md`.
 
 | Field | Value | Why |
 |---|---|---|
@@ -61,8 +61,6 @@ Every route that fans out over entry points spawns its subagents the same way. T
 | `name` | `"explorer-<ep-slug>"` or `"critic-<ep-slug>-r<round>"` | The progress label. Name the agent here — never by inventing a new `subagent_type`, which throws the definition away. |
 
 **Never invent an agent type for a `docs` fan-out.** `dive-critic`, `explorer-rotation`, and every other made-up type is an agent with no definition: no contract, no tool list, and no model of its own. Use `name` for the per-entry-point label and keep `subagent_type` at one of the two real values.
-
-**Later rounds run on sonnet too.** The gap-filling rounds and the grading rounds read code exactly as the first round does, so the three fields above stay the same in every round. Prompts and contracts: see `dive-docs:SKILL.md`.
 
 ## Output location
 
@@ -93,9 +91,8 @@ typing files (`components/`, `_flow.entities.d.ts`, `tsconfig.json`) and `flows.
 
 ## Integration with wm
 
-- During the **research phase**, the `docs` route writes one per-entry-point deep dive under `$RESEARCH_DIR`.
-- The `docs` route also **starts the glossary**: the terms it finds in the code are merged into `<notes-dir>/GLOSSARY.md`, the same file `arch` keeps current through the spec phase. Research names the words that exist; the spec names the words that will (`dive-docs:SKILL.md` § Glossary).
-- During **spec phase**, `code new` may reference `research/<ep-slug>.md#DP-N` or `#EC-N` from a TODO's **Pre-reads** so the implementer doesn't re-derive the analysis.
+- The `docs` route **starts the glossary**: the terms it finds in the code are merged into `<notes-dir>/GLOSSARY.md`, the same file `arch` keeps current through the spec phase. Research names the words that exist; the spec names the words that will (`dive-docs:SKILL.md` § Glossary).
+- During **spec phase**, `code new` may reference `research/<ep-slug>.md#<decision-point-or-edge-case-slug>` from a TODO's **Pre-reads** so the implementer doesn't re-derive the analysis.
 - `research/` is committed alongside `spec.md` and `todos/` — it travels with the task.
 
 ## What this skill is NOT

@@ -1,11 +1,9 @@
 # Driving the splitter
 
-`${CLAUDE_PLUGIN_ROOT}/scripts/split_patches.py` owns every byte of patch parsing. It exists so
-nobody writes a splitter from scratch again — the edge cases below are handled once, in code, and
-verified by applying the output with real git.
+`${CLAUDE_PLUGIN_ROOT}/scripts/split_patches.py` owns every byte of patch parsing.
 
-**Never hand-edit a patch, and never write one through a heredoc.** The shell mangles backslashes,
-backticks, and `!` inside diff content.
+**Never hand-edit a patch, and never write a patch file or a Python script through a heredoc.** The shell mangles backslashes,
+backticks, and `!` inside diff content. Use the Write tool, or let the splitter write it.
 
 ## Three modes
 
@@ -83,8 +81,7 @@ plan names hunks that are not in the patch: h9
 | `expected.patch` | every committed hunk, against the original tree | nothing — compare against it |
 | `dropped.patch` | the dropped hunks, against the tree after **all** commits | the operator's repo, after the cherry-pick |
 
-`dropped.patch` is offset for the post-commit state on purpose. Restoring dropped work is the last
-step of the apply phase, after `git checkout -- .` has discarded the working tree.
+`dropped.patch` is offset for the post-commit state on purpose.
 
 ## What the script guarantees
 

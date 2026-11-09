@@ -79,6 +79,10 @@ while IFS= read -r file; do
     continue
   fi
   move "$file" "$archived/$base" || continue
+  if [[ -f "$adr/gates/$base" ]]; then
+    mkdir -p "$archived/gates"
+    move "$adr/gates/$base" "$archived/gates/$base" || true
+  fi
   report="${report}  $base ($status)"$'\n'
 
   if [[ "$status" == superseded-by-* ]]; then

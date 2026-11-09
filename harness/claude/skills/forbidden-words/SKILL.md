@@ -1,7 +1,7 @@
 ---
 name: forbidden-words
-description: Add a word to the forbidden-words list in the global rules, so it never again appears in code. Use for "forbid the word X", "ban X in code", "add X to forbidden words", or `/forbidden-words <word>...`.
-user-invocation: false
+description: Add a word to the forbidden-words list in the global rules, so it never again appears in code. Use for "forbid the word X", "ban X in code", or "add X to forbidden words".
+user-invocable: false
 ---
 
 # Add a forbidden word to the rules

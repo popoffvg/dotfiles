@@ -8,7 +8,7 @@
       "name": "harness-dev",
       "source": "./harness/plugins/harness-dev",
       "description": "Authoring aids for the Claude Code harness — skill shapes (workflow, loop, instruction, router), golden words that stand in for a rule set, pruning an existing skill or doc corpus into the house style, repo bootstrap (README, CLAUDE.md, deploy and adr skills, settings), and agent-work metrics from a per-turn ledger (re-ask ratio and causes, prompts to done, pasted blocks that should be a skill).",
-      "version": "0.24.0"
+      "version": "0.25.0"
     },
     {
       "name": "hi",
@@ -38,13 +38,13 @@
       "name": "smart-commit",
       "source": "./harness/plugins/smart-commit",
       "description": "Split the working tree of every nearby git repo into logical commits at hunk granularity. A sonnet subagent proposes the split into an editable file, the operator answers each block, a second subagent builds the commits in a throwaway worktree and cherry-picks them back.",
-      "version": "0.3.0"
+      "version": "0.4.0"
     },
     {
       "name": "wm",
       "source": "./harness/plugins/wm",
       "description": "Work lifecycle management v2 — phased workflows (research, plan, implement) with agents, commands, and hooks.",
-      "version": "2.98.0"
+      "version": "2.99.0"
     },
     {
       "name": "zed-clear-guard",

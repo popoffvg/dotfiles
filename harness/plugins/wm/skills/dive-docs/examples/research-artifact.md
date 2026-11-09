@@ -1,7 +1,6 @@
 > A filled `$RESEARCH_DIR/<ep-slug>.md` — one entry point's research artifact. Copy the file, replace
 > the content, delete the `>` lines; each one states the rules for the piece above it. The contract
 > around the file — the 6-step chain and the cross-cutting rules — is `ref-artifact.md`.
-> The `explorer` agent writes this shape; the `explore-critic` agent grades it.
 
 # anchor::reconcile — where a stored comment lands when the file has changed
 
@@ -23,7 +22,7 @@ comment (`input.rs`), and the export format (`export.rs`) — none of them move 
 | store | One JSON file per workspace root holding every comment, keyed by repo-relative path. | database, index | `harness/apps/line-comment/server/src/store.rs:62` |
 
 > The `## Terms` table is the raw material of `<notes-dir>/GLOSSARY.md`, so it is opinionated rather
-> than a word list. Columns: | Term | Definition | Avoid | Source |.
+> than a word list.
 > **Definition** — one or two sentences saying what the term *is*, never what it does or how it is
 > built.
 > **Avoid** — the other names the code uses for the same concept, comma-separated, `—` when the
@@ -51,10 +50,9 @@ comment (`input.rs`), and the export format (`export.rs`) — none of them move 
 | `a_span_moves_whole_when_its_first_line_moves` | A span keeps the number of lines it covered wherever its hashed first line turns up. | `harness/apps/line-comment/server/tests/session.rs:537` |
 | `copy_leaves_anchors_alone_when_the_file_cannot_be_read` | An unreadable file is not evidence its text is gone; anchors stay untouched. | `harness/apps/line-comment/server/tests/session.rs:795` |
 
-> Columns: | Test | What intent it pins | Source (file:line) |. One row per test that exercises this path, and
+> One row per test that exercises this path, and
 > **What intent it pins** states the behaviour the code must keep, not what the test calls.
-> With no test on the path, write `None — UNTESTED PATH` and carry it into § 6 as a refactor risk. An
-> artifact with no test trail cannot claim it understood what the code is *for*.
+> With no test on the path, write `None — UNTESTED PATH` and carry it into § Refactor risks as a hotspot.
 
 ## TL;DR
 
@@ -95,11 +93,11 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 | 2 | Re-anchor every comment of the file by hash. | `harness/apps/line-comment/server/src/anchor.rs:139` |
 | 3 | Sort by line and compare against the snapshot to decide the effects. | `harness/apps/line-comment/server/src/lib.rs:475` |
 
-> Numbered table: | # | Step | File:line |. Give parallel paths their own labeled sub-tables.
+> Give parallel paths their own labeled sub-tables.
 
 ## 2. Decision points
 
-**DP-1 — does the change carry a range?**
+**`change-carries-range` — does the change carry a range?**
 
 - **Condition:** `change.range` is `Some(..)`, `harness/apps/line-comment/server/src/lib.rs:495`.
 - **Branches:**
@@ -109,7 +107,7 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 | `Some` — incremental | Shift, apply, re-hash. Anchors move by arithmetic; hashes are only recomputed for lines the change touched. | `harness/apps/line-comment/server/src/lib.rs:496` |
 | `None` — full text | Apply, then reconcile by hash. Arithmetic is impossible, so every anchor is searched for. | `harness/apps/line-comment/server/src/lib.rs:514` |
 
-**DP-2 — does the stored line still hash to the stored hash?**
+**`stored-line-hash-matches` — does the stored line still hash to the stored hash?**
 
 - **Condition:** `line_hash(document[comment.line - 1]) == comment.hash`,
   `harness/apps/line-comment/server/src/anchor.rs:144`.
@@ -118,9 +116,9 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 | Branch | Effect | File:line |
 |---|---|---|
 | matches | Clear `orphaned`, keep the line, search nothing. | `harness/apps/line-comment/server/src/anchor.rs:148` |
-| no match | Search the whole document for the hash → DP-3. | `harness/apps/line-comment/server/src/anchor.rs:151` |
+| no match | Search the whole document for the hash → `same-hash-elsewhere`. | `harness/apps/line-comment/server/src/anchor.rs:151` |
 
-**DP-3 — did any line in the document hash the same?**
+**`same-hash-elsewhere` — did any line in the document hash the same?**
 
 - **Condition:** the `min_by_key` over hash-equal lines yields an index,
   `harness/apps/line-comment/server/src/anchor.rs:155`.
@@ -128,10 +126,10 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 
 | Branch | Effect | File:line |
 |---|---|---|
-| nearest match found | Move the comment there and keep the number of lines it covered. See EC-2. | `harness/apps/line-comment/server/src/anchor.rs:158` |
-| no match anywhere | Set `orphaned`; the line is kept and the hint shows `💬?`. See EC-3. | `harness/apps/line-comment/server/src/anchor.rs:162` |
+| nearest match found | Move the comment there and keep the number of lines it covered. See `shrunk-span-keeps-count`. | `harness/apps/line-comment/server/src/anchor.rs:158` |
+| no match anywhere | Set `orphaned`; the line is kept and the hint shows `💬?`. See `anchored-line-deleted`. | `harness/apps/line-comment/server/src/anchor.rs:162` |
 
-**DP-4 — can the file be read at all?**
+**`file-readable` — can the file be read at all?**
 
 - **Condition:** `current_text` finds an open buffer or reads the file from disk,
   `harness/apps/line-comment/server/src/lib.rs:415`.
@@ -140,9 +138,9 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 | Branch | Effect | File:line |
 |---|---|---|
 | readable | Reconcile against that text. | `harness/apps/line-comment/server/src/lib.rs:441` |
-| unreadable | Skip the file, leaving its anchors untouched. See EC-4. | `harness/apps/line-comment/server/src/lib.rs:437` |
+| unreadable | Skip the file, leaving its anchors untouched. See `file-renamed-while-closed`. | `harness/apps/line-comment/server/src/lib.rs:437` |
 
-> `DP-N` numbering and cross-reference rules: `references/ref-artifact.md` § Rules.
+> Slug and cross-reference rules: `references/ref-artifact.md` § Rules.
 
 ## 3. Identity / data carriers
 
@@ -150,7 +148,7 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 |---|---|---|---|---|
 | store file map | the repo-relative path string | exact string, `\` normalised to `/` (`harness/apps/line-comment/server/src/lib.rs:459`) | the `Vec<Comment>` under the key | the key itself |
 | one comment | `line` inside its file — `upsert` finds by `line` alone (`harness/apps/line-comment/server/src/store.rs:116`) | same `line` in the same file | `line`, `end_line`, `hash`, `orphaned` | `author` |
-| re-anchoring | `hash` — the only field that survives an edit made while the file was closed | hash-equal lines are indistinguishable, which is what DP-3 breaks by distance | — | `hash`, until `rehash` recomputes it |
+| re-anchoring | `hash` — the only field that survives an edit made while the file was closed | hash-equal lines are indistinguishable, which is what `same-hash-elsewhere` breaks by distance | — | `hash`, until `rehash` recomputes it |
 | span | the first line's hash; `end_line` is derived from the covered count | — | both ends, by `cover` (`harness/apps/line-comment/server/src/store.rs:50`) | the covered count, across a whole-span move |
 
 > Identity/data-carrier criterion: `references/ref-artifact.md` § Result criteria.
@@ -167,18 +165,18 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 
 ## 5. Edge cases
 
-| # | Case | Effect | Source (file:line) |
+| Slug | Case | Effect | Source (file:line) |
 |---|---|---|---|
-| EC-1 | The document holds several identical lines (`}`, a blank line, a repeated `return nil`). | The comment jumps to whichever of them is nearest the stored line, which may not be the one it was written on. | `harness/apps/line-comment/server/src/anchor.rs:151` |
-| EC-2 | A span's first line moves and its body shrinks. | The span keeps its old covered count, so it can now cover lines that were never selected. | `harness/apps/line-comment/server/src/anchor.rs:159` |
-| EC-3 | The anchored line is deleted outright. | `orphaned` is set, the stored line is kept, and the hint renders `💬?` with `(orphaned)` appended. | `harness/apps/line-comment/server/src/lib.rs:604` |
-| EC-4 | The file is renamed or deleted while the editor is closed. | `reconcile_all` skips it; the comments stay under the old key forever, with no path that removes them. | `harness/apps/line-comment/server/src/lib.rs:437` |
-| EC-5 | A change swallows the whole span. | Both ends collapse onto the line the change starts at. | `harness/apps/line-comment/server/src/anchor.rs:96` |
-| EC-6 | An anchor points past the end of the shortened document. | `rehash` clamps every line into `1..=len`, so two comments can end up on the same last line. | `harness/apps/line-comment/server/src/anchor.rs:122` |
-| EC-7 | The line differs only in trailing whitespace. | The hash strips trailing whitespace, so the anchor still matches and no re-hash is needed. | `harness/apps/line-comment/server/src/anchor.rs:9` |
-| EC-8 | The store file exists but cannot be parsed. | The session starts with an empty store and shows an error; the next `PersistStore` overwrites the unreadable file. | `harness/apps/line-comment/server/src/lib.rs:95` |
+| `identical-lines-jump` | The document holds several identical lines (`}`, a blank line, a repeated `return nil`). | The comment jumps to whichever of them is nearest the stored line, which may not be the one it was written on. | `harness/apps/line-comment/server/src/anchor.rs:151` |
+| `shrunk-span-keeps-count` | A span's first line moves and its body shrinks. | The span keeps its old covered count, so it can now cover lines that were never selected. | `harness/apps/line-comment/server/src/anchor.rs:159` |
+| `anchored-line-deleted` | The anchored line is deleted outright. | `orphaned` is set, the stored line is kept, and the hint renders `💬?` with `(orphaned)` appended. | `harness/apps/line-comment/server/src/lib.rs:604` |
+| `file-renamed-while-closed` | The file is renamed or deleted while the editor is closed. | `reconcile_all` skips it; the comments stay under the old key forever, with no path that removes them. | `harness/apps/line-comment/server/src/lib.rs:437` |
+| `change-swallows-span` | A change swallows the whole span. | Both ends collapse onto the line the change starts at. | `harness/apps/line-comment/server/src/anchor.rs:96` |
+| `anchor-past-end` | An anchor points past the end of the shortened document. | `rehash` clamps every line into `1..=len`, so two comments can end up on the same last line. | `harness/apps/line-comment/server/src/anchor.rs:122` |
+| `trailing-whitespace-only` | The line differs only in trailing whitespace. | The hash strips trailing whitespace, so the anchor still matches and no re-hash is needed. | `harness/apps/line-comment/server/src/anchor.rs:9` |
+| `unparsable-store` | The store file exists but cannot be parsed. | The session starts with an empty store and shows an error; the next `PersistStore` overwrites the unreadable file. | `harness/apps/line-comment/server/src/lib.rs:95` |
 
-> `EC-N` rules and failure-path criterion: `references/ref-artifact.md`.
+> Edge-case rules and failure-path criterion: `references/ref-artifact.md`.
 
 ## 6. Refactor risks (hotspots)
 
@@ -201,16 +199,16 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
 | `harness/apps/line-comment/server/src/lib.rs` | The session: the three re-anchoring call sites, the effect list each emits, and the inlay-hint rendering that shows the orphan mark. |
 | `harness/apps/line-comment/server/tests/session.rs` | Every behaviour above, driven through `Session` with no transport. |
 
-> Table: | File | Role |. Include every referenced file and state its role.
+> Include every referenced file and state its role.
 
 ## Grill answers
 
 1. **Which tests exercise this path, and what intent does each pin?** The nine rows of § Intent. All
    of them drive `Session` directly; no test reaches the anchoring code through the LSP transport.
-2. **Is any part of the path UNTESTED?** Yes — EC-6 (two anchors clamped onto the same last line) and
-   EC-8 (an unparseable store overwritten by the next save) have no test.
+2. **Is any part of the path UNTESTED?** Yes — `anchor-past-end` (two anchors clamped onto the same last line) and
+   `unparsable-store` (an unparseable store overwritten by the next save) have no test.
 3. **What are the ordered atomic steps from entry to exit?** § 1, one sub-table per path.
-4. **What does every branch check?** DP-1 through DP-4, each with its predicate and `path:line`.
+4. **What does every branch check?** `change-carries-range` through `file-readable`, each with its predicate and `path:line`.
 5. **What carries identity at each layer?** § 3 — the path string, then `line` within the file, then
    `hash` across an edit made while closed.
 6. **Which fields are locked after creation?** `author` only. `line`, `end_line`, `hash`, and
@@ -219,8 +217,8 @@ Full-text change and reopen (`did_change` with no range, `did_open`, `reconcile_
    stored state. It is written to the JSON store, which makes it look sticky, and every reconcile
    overwrites it.
 
-> Answer the agenda in order — one numbered answer per section, covering its questions. A section
-> reference avoids duplicating an answer.
+> Answer the agenda in order — one numbered answer per section, covering its questions. Point to a
+> section instead of repeating its answer.
 
 ## Trace
 

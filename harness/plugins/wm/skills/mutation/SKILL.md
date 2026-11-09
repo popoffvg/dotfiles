@@ -12,8 +12,7 @@ description: >
 
 # mutation — a test earns its place by killing a mutant nothing else kills
 
-A passing test proves it ran. It does not prove it guards anything. Break the code it covers: a
-test that never goes red, or goes red only where another test already does, can be deleted.
+A passing test proves it ran. It does not prove it guards anything. Break the code it covers: a test that never goes red, or goes red only where another test already does, can be deleted.
 
 | Term | Meaning |
 |---|---|
@@ -30,31 +29,23 @@ test that never goes red, or goes red only where another test already does, can 
 | REDUNDANT | every mutant it kills, a reference or a kept candidate kills too | delete; the report names who covers it |
 | NO-VERDICT | covers no mutated line | nothing — no mutant reached it |
 
-The operators that make a mutant, and the rows that make one equivalent, are
-@references/ref-operators.md. Read it before spawning anything.
+The operators that make a mutant, and the rows that make one equivalent, are @references/ref-operators.md. Read it before spawning anything.
 
 ## Run it
 
 ### 1. Resolve the candidates and the surface
 
-**Candidates** are the unit tests and table rows the diff adds or changes, written as Go test ids:
-`TestName`, or `TestName/row_name` for one row (spaces become `_`, as `go test -json` prints them).
-An E2E test is never a candidate. No candidate → the gate is `n/a — no unit or table test changed`.
+**Candidates** are the unit tests and table rows the diff adds or changes, written as Go test ids: `TestName`, or `TestName/row_name` for one row (spaces become `_`, as `go test -json` prints them). An E2E test is never a candidate. No candidate → the gate is `n/a — no unit or table test changed`.
 
-**The surface** is the source code the candidates call: the functions their bodies reach, in the
-diff's changed files first. A test file is never mutated.
+**The surface** is the source code the candidates call: the functions their bodies reach, in the diff's changed files first. A test file is never mutated.
 
-**The E2E command** is the `E2E` entry of `toolchain.json` in `todo` mode (`review:ref-gates.md` §
-One toolchain run per round), or the repo's own E2E task in `diff` mode. None → judge without it:
-no candidate can be E2E-COVERED.
+**The E2E command** is the `E2E` entry of `toolchain.json` in `todo` mode (`review:ref-gates.md` § One toolchain run per round), or the repo's own E2E task in `diff` mode. None → judge without it: no candidate can be E2E-COVERED.
 
-Done when you have the candidate ids per package, the source files they call, and the E2E command
-or `none`.
+Done when you have the candidate ids per package, the source files they call, and the E2E command or `none`.
 
 ### 2. Batch by package — at most two batches
 
-One `mutation-tester` agent per batch, and **at most two batches per wave**. Deal the packages that
-hold candidates to the batch with fewer candidates so far. One package → one batch.
+One `mutation-tester` agent per batch, and **at most two batches per wave**. Deal the packages that hold candidates to the batch with fewer candidates so far. One package → one batch.
 
 ### 3. Point every agent at the checkout
 
@@ -87,9 +78,9 @@ Done when every agent has returned `PASS | FAIL | n/a` and written its report fi
 
 ## What this skill never does
 
-**Never judges an E2E test.** E2E tests are the reference; they decide what a candidate adds.
+**Never judges an E2E test, and never reports a missing test.** E2E tests are the reference; they decide what a candidate adds. A missing test is the test gate's.
 
-**Never mutates a test file, and never edits the checkout.** Every mutant lands in a sandbox copy that the script deletes.
+**Never mutates a test file, a fixture, generated code, or the build config, and never edits the checkout.** Every mutant lands in a sandbox copy that the script deletes.
 
 **Never deletes a test, and never commits.** It names the test to delete; the implementer deletes it.
 

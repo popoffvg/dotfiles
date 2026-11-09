@@ -10,12 +10,8 @@ background: true
 
 # Implement Agent
 
-You are an implementer agent that executes code writing tasks.
-
 ## DO NOT DO
-- commit a user correction as a plain commit — it must be `--fixup`.
 - run more than one TODO per invocation.
-- leave comments contain reference to the brief or spec.
 - write a comment that repeats the code, carries a banned fact, or states a fact the code contradicts — `~/.claude/CLAUDE.md` § comment rules.
 
 ## Working directory
@@ -24,11 +20,11 @@ The caller names the checkout to write in. Run every read, edit, test, and `git`
 
 ## Questions
 
-Never ask what the TODO pair or a written rule already answers. **Files** is where to start, not a border: edit any file the increment's summary needs, and name it in your report. Stop and report only when the pair and the rules do not decide the case.
+Never ask what the TODO pair or a written rule already answers (`code:ref-subcommand-rules.md` § Put a batch of questions in a file the human edits). **Files** is where to start, not a border: edit any file the increment's summary needs, and name it in your report. Stop and report only when the pair and the rules do not decide the case.
 
 ## Rules
 
-Before the first edit, run `~/.claude/scripts/wm-constraints.py <notes-dir>/adr --todo TODO-N` and obey every rule it prints. No TODO file repeats the command.
+Before the first edit, run `~/.claude/scripts/wm-constraints.py <notes-dir>/adr` and obey every rule it prints. No TODO file repeats the command.
 
 Read `<notes-dir>/PATTERNS.md` before the first edit. A job the **Need → use** table lists is done with that row's **Use** — never a hand-written retry, poll loop, state machine, or worker pool beside the one the row names.
 
@@ -39,15 +35,14 @@ Read `<notes-dir>/GLOSSARY.md` before the first edit. Name every new symbol with
 Before you write code that shares state between goroutines, list the events first: who starts the work, which terminal events it has (done, lost, failed, canceled), who sends each one, and who waits on it.
 
 - Give each piece of mutable state one owner goroutine. Send a one-time event by closing a channel (`done`, `lost`), and let readers `select` on it.
-- Use a lock only to make a whole operation exclusive. Never use a lock to share a flag between goroutines.
-- A `bool` field that one goroutine sets and another goroutine reads is a defect. Replace it with a closed channel.
+- Use a lock only to make a whole operation exclusive. The rules for a one-time event, a flag under a lock, and `context.WithCancel` are in the `golang` skill, section Concurrency.
 - In Go tests under `testing/synctest`, a goroutine that waits on a `sync.Mutex` is not durably blocked, so the fake clock stops. A wait on a channel is durably blocked and can also `select` on `ctx.Done()`.
 - When the TODO names a primitive that conflicts with these rules, follow the events, and record the conflict as a `## Deviations` row.
-- A simplification pass (KISS) counts the shared mutable fields too, not only the lines and the helpers. A design with fewer fields under a lock is simpler, also when it has more lines. Do not replace a channel that marks an event with a `context.WithCancel` when other code reads that event.
+- A simplification pass (KISS) counts the shared mutable fields too, not only the lines and the helpers. A design with fewer fields under a lock is simpler, also when it has more lines.
 
 ## Increments
 
-Each increment makes its summary true and keeps each item of its **Surprises**. It adds only the public types, functions, and methods its own **Surface** diff names. A public type, function, or method — reachable from outside its package or module — that no **Surface** diff declares is never yours to add: stop and report it as a replan. A private helper that a body needs is yours to add.
+Each increment makes its summary true and keeps each item of its **Surprises**. It adds only the public types, functions, and methods its own **Surface** diff names. Any other public type, function, or method is a replan: stop and report it (`impl:sub-impl.md` step 5). A private helper that a body needs is yours to add.
 
 When the caller gives you a start increment and no end, apply that increment and every one after it, in `## Increments` order, one at a time. Read an increment's **Files** and **Pre-reads** only when you reach it. Finish each increment with `impl:sub-impl.md` step 5.5 — the commit or amend, the `**Landed:** yes` flip, the `increment` raise — and the last increment of each commit with step 5.6, the border check, before you start the next one. A replan stops the run at that increment; report its number.
 
@@ -57,17 +52,12 @@ Read `TODO-N.agent.md` `## Gotchas` before the first edit. When you find a trap 
 
 ## Bug fixes: red-green-refactor
 
-When the TODO is a bug fix (or you encounter a bug during implementation), follow `${CLAUDE_PLUGIN_ROOT}/skills/red-green-refactor/SKILL.md`:
-- **Red**: write a failing test that reproduces the bug *before* touching production code.
-- **Green**: minimal change to pass the test.
-- **Refactor**: clean up without changing behavior.
-- Never skip Red. A fix without a reproducing test is a guess.
+When the TODO is a bug fix, or you find a bug during implementation, follow `${CLAUDE_PLUGIN_ROOT}/skills/red-green-refactor/SKILL.md`. Write the failing test that reproduces the bug before any production edit: a fix without a reproducing test is a guess.
 
 ## Commit rules
 
 - Close each commit at its border: the build, the existing tests, and the cases its **Proves** line names are green (`impl:sub-impl.md` step 5.6). Use `code commit` format: `<prefix>: <why>`. The TODO's `### Commit <c>` section is the primary message of commit `c`.
-- One commit per logical chunk. Don't batch unrelated changes.
-- Do **not** stage unrelated files. Do **not** commit test-only changes under `feat`/`fix`.
+- Stage and prefix as `impl:sub-commit.md` says.
 
 ## Fixup rules — user corrections
 
@@ -78,7 +68,7 @@ When the caller hands back a correction the user asked for:
    ```bash
    git commit --fixup=<sha-of-commit-this-corrects>
    ```
-3. Report that the fixup is committed. Never fold a user correction into a normal commit.
+3. Report that the fixup is committed (`impl:sub-commit.md` § Fixups).
 
 ## Diff report — the last step of every run
 

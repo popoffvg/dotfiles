@@ -7,7 +7,7 @@ source: human
 ---
 
 > Copy to `<notes-dir>/adr/NNNN-<slug>.md` and delete every `>` block. The `adr` skill owns the procedure and the title rules.
-> The wm keys — `kind: implementation` with `todo: TODO-N`, and `source` — are `arch:ref-adr-format.md` § Frontmatter. A new ADR carries `status: proposed`; only the operator sets `approved` (`arch:ref-adr-format.md` § Status).
+> The wm key `source` is in `arch:ref-adr-format.md` § Frontmatter. A new ADR carries `status: proposed`; only the operator sets `approved` (`arch:ref-adr-format.md` § Status).
 
 # Concurrent refreshes are safe and lock-free
 
@@ -28,7 +28,7 @@ Decided by the operator, 2026-06-18: [QUESTIONS.md answer refresh-race](../QUEST
 | P1 | [keep] A refresh that issues no new token pair changes no stored token. | A failed refresh revokes the old token, and the user must log in again. | a human |
 | P2 | [new] Two refreshes of one refresh token issue at most one new token pair. | Two clients hold valid pairs from one token, so a stolen token stays usable. | a human |
 
-> Each live Property is one rule, `ADR-NNNN/Pn`. Never renumber or reuse a number; P3 was dropped, so the table has a gap and the changelog names it (`arch:ref-adr-format.md` § Properties are the rules).
+> Each live Property is one rule, `ADR-NNNN/Pn`. P3 was dropped, so the table has a gap and the changelog names it. The numbering rule is in `arch:ref-adr-format.md` § Properties are the rules.
 
 ## Considered Options
 

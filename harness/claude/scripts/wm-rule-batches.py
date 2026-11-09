@@ -147,12 +147,12 @@ def parse_rule_file(scope: str, path: Path, base: Path) -> list[dict]:
     return out
 
 
-def adr_rules(notes_dir: Path, todo: str | None) -> list[dict]:
+def adr_rules(notes_dir: Path) -> list[dict]:
     adr = notes_dir / "adr"
     if not adr.is_dir():
         return []
     script = Path(__file__).with_name("wm-constraints.py")
-    cmd = [sys.executable, str(script), str(adr), "--json"] + (["--todo", todo] if todo else [])
+    cmd = [sys.executable, str(script), str(adr), "--json"]
     run = subprocess.run(cmd, capture_output=True, text=True)
     if run.returncode not in (0, 1):
         die(f"wm-constraints.py failed: {run.stderr.strip()}")
@@ -173,7 +173,7 @@ def load_rules(notes_dir: Path | None, todo: str | None) -> list[dict]:
         for rule in parse_rule_file(scope, path, base):
             seen.setdefault(rule["id"], rule)
     if notes_dir and todo:
-        for rule in adr_rules(notes_dir, todo):
+        for rule in adr_rules(notes_dir):
             seen.setdefault(rule["id"], rule)
     return list(seen.values())
 
@@ -328,7 +328,7 @@ def main() -> int:
     for name in ("rules", "plan"):
         p = sub.add_parser(name)
         p.add_argument("--notes-dir", type=Path, help="project notes dir; omit for global rules only")
-        p.add_argument("--todo", help="add the rules of the live accepted ADRs for this TODO (wm-constraints.py --todo)")
+        p.add_argument("--todo", help="TODO id; turns on the rules of every live ADR (wm-constraints.py). It selects no ADR by TODO")
         if name == "plan":
             p.add_argument("--range", required=True, help="`worktree`, or any range `git diff` takes")
             p.add_argument("--out", type=Path, required=True, help="dir for manifest.json, batches/, results/")
