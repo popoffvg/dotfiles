@@ -1,0 +1,41 @@
+{
+  "instructions": "Apply each rule only when the changed code provides evidence of a violation. Cite the existing symbol or behavior that establishes the preferred form. Treat a preference or a change requiring a wider contract decision as a suggestion, not a failure.",
+  "rules": [
+    {
+      "id": "reuse-existing-job",
+      "rule": "When changed code reimplements a job already handled by a symbol or dependency available in the reviewed repository, use or extend the existing implementation. Check retries, polling, state transitions, worker pools, external clients, error mapping, registries, and helpers. Name the existing implementation in a finding.",
+      "severity": "medium"
+    },
+    {
+      "id": "single-source-of-fact",
+      "rule": "A new literal, limit, schema, list, or ordering that represents the same fact in two changed locations must have one authoritative definition, with the other location reading it.",
+      "severity": "medium"
+    },
+    {
+      "id": "no-unused-extension-point",
+      "rule": "A new option, flag, parameter, interface, wrapper, or extension point must serve a current caller or implementation. Flag one introduced only for a hypothetical future need, unless the repository's established architecture requires it.",
+      "severity": "low"
+    },
+    {
+      "id": "no-derivable-state",
+      "rule": "Flag newly stored state that can be derived from another authoritative value and can become inconsistent with it. Prefer computing it at the point of use when that preserves behavior and has acceptable cost.",
+      "severity": "medium"
+    },
+    {
+      "id": "avoid-repeat-work",
+      "rule": "Flag repeated I/O inside a changed path or sequential execution of independent operations when the same behavior can be achieved without the extra work. State the actual extra call or wait and the behavior-preserving alternative.",
+      "severity": "medium"
+    },
+    {
+      "id": "fix-at-owning-layer",
+      "rule": "When a changed caller adds a special case for behavior owned by shared infrastructure, put the fix at the shared owner if the same contract applies to its other callers. Identify the owner and affected callers before raising a finding.",
+      "severity": "medium"
+    },
+    {
+      "id": "tests-assert-real-contract",
+      "rule": "A new test must assert observable behavior through a path that exercises the relevant dependency contract. Flag a test that hand-builds a dependency response in the shape the author assumes and only checks a lookup, comparison, or constant; identify the real path or a missing behavioral assertion. Flag a duplicate when an existing test already covers the same behavior through that real path.",
+      "scope": ["**/*_test.*", "**/test/**", "**/tests/**"],
+      "severity": "medium"
+    }
+  ]
+}
