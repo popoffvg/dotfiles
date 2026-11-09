@@ -90,6 +90,13 @@ harness/apps/wm-lsp/extension.wasm
 # Machine-local Codex skill links generated from repository and installed sources.
 harness/codex/
 
+# Generated agent setup and machine-local runtime state; project skill sources stay tracked.
+/.claude/*
+!/.claude/skills/
+/.codex/
+/.agents/
+/.claude-plugin/
+
 .config/herdr/plugins/
 .config/herdr/plugins.json
 .config/herdr/.plugins.lock

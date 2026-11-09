@@ -31,7 +31,7 @@ A `${CLAUDE_PLUGIN_ROOT}` path that is not on disk means the installed plugin is
 ## Design in DDD style
 
 - **Ubiquitous language** — `<notes-dir>/GLOSSARY.md` is the shared vocabulary. Read it before you write, and add a term there before any artifact uses it (`code:ref-subcommand-rules.md` § Glossary). Reuse its terms verbatim in every Outcome and TODO — no synonyms, no Forbidden or retired names.
-- **Tactical building blocks** — classify each Term by its Kind, one word from the data set or the brick set (the **Kind** rule in `arch:examples/glossary.md`).
+- **Tactical building blocks** — classify each Term by its Kind, one word from the data set or the brick set (the **Kind** rule in the common `terms` skill).
 - **Aggregates and boundaries** — group entities under an aggregate root; state which invariants the aggregate enforces. TODOs should respect aggregate boundaries — one TODO shouldn't reach across two aggregates' internals.
 - **Bounded contexts** — each context is one `#` section of `GLOSSARY.md`; when terms mean different things in different parts, name the contexts and keep their models separate; note the translation at the seam.
 - **Behavior over data** — frame Outcomes as commands/events on the domain (`<actor> can issue <Command>; on success <Aggregate> emits <Event>`), not as table/field mutations.

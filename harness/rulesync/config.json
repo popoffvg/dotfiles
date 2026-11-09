@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "targets": [
+    "claude",
+    "codex",
+    "pi"
+  ],
+  "sourceFormat": "claude-native",
+  "plugins": "harness/plugins",
+  "loose": "harness/claude",
+  "projectSkills": ".claude/skills",
+  "skills": "harness/rulesync/skills",
+  "publicAliases": [
+    "wm",
+    "code",
+    "review",
+    "dive",
+    "line-comment-act",
+    "line-comment-write",
+    "line-comment-unresolved",
+    "line-comment-prune",
+    "line-comment-distill",
+    "huh",
+    "minions",
+    "show-me",
+    "tour",
+    "zed-diff",
+    "with-proof",
+    "prompt",
+    "lessons",
+    "hunch",
+    "handoff",
+    "gist",
+    "drunk-claude",
+    "daily",
+    "and-what",
+    "critic",
+    "reuse-audit"
+  ],
+  "workflows": "harness/rulesync/workflows"
+}

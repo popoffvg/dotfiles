@@ -1,5 +1,6 @@
 ---
 name: adr
+user-invocable: false
 description: Read the current session and record only the global decisions it settled as ADRs, each with the Properties a reviewer checks code against. Use for "write an ADR", "record this decision", "ADR for what we just decided", after the SessionEnd ADR reminder fires, and when a session settles a hard-to-reverse choice — the main components and their layering, a platform or technology with lock-in (Cloud Run or Infrastructure Manager, Terraform), where state lives, a trust or process boundary, a deliberate deviation from the obvious path, or a product-wide contract such as every command having a `--dry-run` mode that shows the changes and applies none.
 ---
 

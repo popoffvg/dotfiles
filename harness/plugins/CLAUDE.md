@@ -20,11 +20,11 @@ A plugin may register an MCP server via `.mcp.json`, but only by **binary name**
 
 The same split covers a plugin's companion CLI or TUI, which is not an MCP server and is never named in the plugin at all — the user runs it from a terminal. See `harness/apps/self-improve` (built by `mise run harness:self-improve:build`), the TUI over the `self-improvement` plugin's session scan: the algorithm stays in the plugin's shell scripts and the TUI shells out to them, so the viewer cannot drift from what a scan actually does.
 
-## Marketplace (`/.claude-plugin/marketplace.json`)
+## Marketplace and Rulesync deployment
 
-`harness/scripts/sync-marketplace.sh` regenerates `/.claude-plugin/marketplace.json` from the plugin sources — one entry per plugin, `source: ./harness/plugins/<name>` pointing **directly** at the plugin dir (no symlink layer).
-
-Claude Code registers `local-plugins` as a **directory marketplace** pointing at the repo root (`$HOME/git/dotfiles` in `settings.json` `extraKnownMarketplaces`), so it reads `.claude-plugin/marketplace.json` straight from the repo — no stow step needed for the marketplace.
+Edit these directories as native Claude plugin sources. Load `harness-maintain` for source lookup,
+guards, and deployment. `harness/rulesync/README.md` owns output paths, asset copying, and the
+Claude/Codex marketplace contract. Generate and install with `mise run harness:sync`.
 
 ## Router skill + worker skills
 
@@ -60,7 +60,7 @@ A command that belongs to a router is named `<router>:<sub>.md`, so it invokes a
 
 Claude Code copies marketplace plugins to `~/.claude/plugins/cache/`. **Path traversal (`../`) is blocked** and symlinks are **not followed** during caching — that's why plugin sources are self-contained markdown under `harness/plugins/<name>/`.
 
-Always edit the source at `harness/plugins/<name>/`, then re-sync (`mise run harness:plugins:sync`) and reinstall/refresh the marketplace in Claude Code.
+Always edit the source at `harness/plugins/<name>/`, then deploy (`mise run harness:sync`) and reinstall/refresh the marketplace in Claude Code.
 
 **To bypass cache entirely** during development:
 ```bash
@@ -69,4 +69,4 @@ claude --plugin-dir ~/git/dotfiles/harness/plugins/wm
 
 ## Version bump (pre-commit)
 
-`lefthook.yml` runs `harness/scripts/bump-plugin-version.sh` on `pre-commit`: any plugin with staged changes gets its `plugin.json` **minor** version bumped (`x.Y.z → x.(Y+1).0`), the marketplace is regenerated, and both are re-staged.
+`lefthook.yml` runs `harness/scripts/bump-plugin-version.sh` on `pre-commit`: any plugin with staged changes gets its `plugin.json` **minor** version bumped (`x.Y.z → x.(Y+1).0`), the changed manifests are re-staged. Run `mise run harness:sync` after the commit to deploy the new version and regenerate installed marketplaces.

@@ -3,6 +3,7 @@ GIT_SSH_COMMAND = "ssh -i ~/.ssh/id_ed25519"
 FIRECRAWL_API_KEY = "fc-6369ed54b3374805af4b30196cd98c83"
 
 [tools]
+node = "24.7.0"
 neovim = "latest"
 go = "1.25.9"
 
@@ -15,27 +16,20 @@ description = "Check if OPENROUTER_API_KEY is available in current shell"
 run = "[ -n \"$OPENROUTER_API_KEY\" ] && echo OPENROUTER_API_KEY=SET || echo OPENROUTER_API_KEY=NOT_SET"
 
 [tasks.stow]
-description = "Stow everything: repo, Claude, Codex skills, zsh and git"
-depends = ["harness:plugins:sync"]
+description = "Stow dotfiles and deploy Claude, Codex and Pi through Rulesync"
 run = [
   "stow --target=$HOME --dir={{config_root}}/.. --restow {{ config_root | basename }}",
-  "stow --target=$HOME/.claude --dir={{config_root}}/harness --restow claude",
   "stow --no-folding --target=$HOME/.cursor --dir={{config_root}}/harness --restow cursor",
-  "stow --target=$HOME/.pi/agent --dir={{config_root}}/harness --restow pi",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow zsh",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow git",
-  "bash {{config_root}}/harness/claude/scripts/prune-stale-skill-links.sh $HOME/.claude/skills",
-  "python3 {{config_root}}/harness/scripts/sync-codex-skills.py",
+  "python3 {{config_root}}/harness/rulesync/deploy.py",
 ]
 
 [tasks.unstow]
-description = "Unstow everything"
+description = "Unstow ordinary dotfiles; Rulesync installations remain managed separately"
 run = [
-  "stow --no-folding --target=$HOME/.agents --dir={{config_root}}/harness --delete codex",
   "stow --target=$HOME --dir={{config_root}}/.. --delete {{ config_root | basename }}",
-  "stow --target=$HOME/.claude --dir={{config_root}}/harness --delete claude",
   "stow --no-folding --target=$HOME/.cursor --dir={{config_root}}/harness --delete cursor",
-  "stow --target=$HOME/.pi/agent --dir={{config_root}}/harness --delete pi",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --delete zsh",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --delete git",
 ]
@@ -111,19 +105,25 @@ run = "cargo test -p pr-comments-server"
 description = "Regenerate pr-comments' extension.toml language list from the installed Zed languages"
 run = "{{config_root}}/harness/scripts/sync-zed-languages.py --app pr-comments"
 
+[tasks."harness:sync"]
+description = "Generate and install the harness into ~/.claude, ~/.codex and ~/.pi/agent"
+run = "python3 {{config_root}}/harness/rulesync/deploy.py"
+
+[tasks."harness:check"]
+description = "Compare installed harness files with Rulesync output"
+run = "python3 {{config_root}}/harness/rulesync/deploy.py --check"
+
+[tasks."harness:test"]
+description = "Test deployment ownership and runtime maintenance guards"
+run = "python3 -m unittest discover -s {{config_root}}/harness/rulesync/tests -v"
+
 [tasks."harness:plugins:sync"]
-description = "Regenerate local-plugins marketplace.json from harness/plugins/"
-sources = ["harness/plugins/*/.claude-plugin/plugin.json"]
-outputs = [".claude-plugin/marketplace.json"]
-run = "bash {{config_root}}/harness/scripts/sync-marketplace.sh"
+description = "Deploy plugin components and marketplaces outside the source repository"
+depends = ["harness:sync"]
 
 [tasks."harness:codex:wm"]
-description = "Register the dotfiles Codex marketplace and install WM"
-depends = ["harness:plugins:sync"]
-run = [
-  "codex plugin marketplace add {{config_root}}",
-  "codex plugin add wm@dotfiles-codex",
-]
+description = "Deploy WM with the public Codex aliases"
+depends = ["harness:sync"]
 
 [tasks."harness:amp:publish-skills"]
 description = "Publish named skills to your personal Amp Skills repository"

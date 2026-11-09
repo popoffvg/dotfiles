@@ -66,3 +66,6 @@ tmux
 vscode
 s$
 \.config/herdr/\.plugins\.lock
+
+# Project Claude state is not global configuration.
+^\.claude$
