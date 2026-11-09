@@ -8,6 +8,7 @@
   "sourceFormat": "claude-native",
   "plugins": "harness/plugins",
   "loose": "harness/claude",
+  "looseSkills": "harness/skills",
   "projectSkills": ".claude/skills",
   "skills": "harness/rulesync/skills",
   "publicAliases": [

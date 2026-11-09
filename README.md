@@ -17,7 +17,8 @@ Personal dotfiles. Managed with **GNU Stow**, **mise**, and **Rulesync**. Stow l
 ├── .stow-local-ignore   # exclusions for repo-root stow package
 │
 ├── harness/             # Harness authoring sources
-│   ├── claude/          # Native personal definitions and helper scripts
+│   ├── skills/          # Loose skills shared by Claude, Codex, and Pi
+│   ├── claude/          # Claude settings, agents, commands, and hooks
 │   ├── plugins/         # Plugin source dirs (wm, self-improvement); NOT stowed directly
 │   ├── rulesync/        # Pinned generator, deployer, ownership guards and maintenance skill
 │   └── scripts/         # Deployment compatibility entry points

@@ -24,7 +24,7 @@ CALL_TIMEOUT = 1800
 RULE_STORES = [
     "~/.claude/CLAUDE.md",
     "~/git/dotfiles/harness/claude/rules/",
-    "~/git/dotfiles/harness/claude/skills/",
+    "~/git/dotfiles/harness/skills/",
     "~/git/dotfiles/harness/plugins/*/skills/",
     "~/git/dotfiles/harness/plugins/*/agents/",
     "~/.notes/rules/",

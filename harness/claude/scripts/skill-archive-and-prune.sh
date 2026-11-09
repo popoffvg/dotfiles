@@ -23,14 +23,14 @@
 #   skill-archive-and-prune.sh NAME... [options]
 # Options:
 #   --repo DIR        dotfiles repo (default ~/git/dotfiles)
-#   --dest SUBDIR     skills path inside the repo (default harness/claude/skills)
+#   --dest SUBDIR     skills path inside the repo (default harness/skills)
 #   --skills-dir DIR  live skills dir (default ~/.claude/skills)
 #   --keep            archive and commit only; leave the skill active
 #   --dry-run         print the plan, change nothing
 set -euo pipefail
 
 repo="${HOME}/git/dotfiles"
-dest_rel="harness/claude/skills"
+dest_rel="harness/skills"
 skills_dir="${HOME}/.claude/skills"
 dry_run=false
 keep=false

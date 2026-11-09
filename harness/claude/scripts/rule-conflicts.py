@@ -27,7 +27,7 @@ HOME = os.path.expanduser("~")
 REPO = f"{HOME}/git/dotfiles"
 DEFAULT_SOURCES = [
     f"{REPO}/harness/claude/CLAUDE.md",
-    f"{REPO}/harness/claude/skills/**/*.md",
+    f"{REPO}/harness/skills/**/*.md",
     f"{REPO}/harness/plugins/**/skills/**/*.md",
     f"{HOME}/.notes/rules/*.md",
 ]

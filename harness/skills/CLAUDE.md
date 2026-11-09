@@ -1,7 +1,8 @@
-# Loose `~/.claude` skills
+# Loose skills
 
 One directory per skill, each with a `SKILL.md` carrying `name:` + `description:` frontmatter and
-optional `references/` docs. Stowed to `~/.claude/skills`.
+optional `references/` docs. These skills are shared by Claude, Codex, and Pi. Rulesync installs
+the copies. Claude settings, agents, commands, and hooks stay in `harness/claude/`.
 
 ## Rule: run `prune-text` after writing markdown here
 

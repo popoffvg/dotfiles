@@ -1,6 +1,6 @@
 # Shared by run-grilling.sh and run-grilling-rounds.sh. Source it; do not run it.
 
-grilling_skill_path="harness/claude/skills/grilling/SKILL.md"
+grilling_skill_path="harness/skills/grilling/SKILL.md"
 # The main session runs grilling, and the main session is opus: the baseline writer.
 grilling_model="${MODEL:-opus}"
 grilling_jobs="${JOBS:-8}"

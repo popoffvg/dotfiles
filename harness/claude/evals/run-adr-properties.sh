@@ -26,7 +26,7 @@ set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(git -C "$here" rev-parse --show-toplevel)" || exit 2
-format_path="harness/claude/skills/domain-modeling/ADR-FORMAT.md"
+format_path="harness/skills/domain-modeling/ADR-FORMAT.md"
 model="${MODEL:-sonnet}"
 jobs_max="${JOBS:-6}"
 threshold="${THRESHOLD:-0.9}"
@@ -187,7 +187,7 @@ Write the ## Properties section of this ADR and nothing else."
 run_file() {
   local cases="$here/cases-adr-file.jsonl" n=0 line id format template
   format="$(format_text)"
-  template="$(cat "$root/harness/claude/skills/domain-modeling/ADR-TEMPLATE.md")"
+  template="$(cat "$root/harness/skills/domain-modeling/ADR-TEMPLATE.md")"
   while IFS= read -r line; do
     [ -n "$line" ] || continue
     id="$(jq -r .id <<<"$line")"

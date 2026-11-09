@@ -16,4 +16,4 @@ depends = ["plugins:sync"]
 
 [tasks."claude:watch"]
 description = "Regenerate the installed harness when source changes"
-run = "watchexec --watch {{config_root}}/claude --watch {{config_root}}/plugins --watch {{config_root}}/rulesync -- python3 {{config_root}}/rulesync/deploy.py"
+run = "watchexec --watch {{config_root}}/skills --watch {{config_root}}/claude --watch {{config_root}}/plugins --watch {{config_root}}/rulesync -- python3 {{config_root}}/rulesync/deploy.py"

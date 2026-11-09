@@ -6,8 +6,9 @@ generates installed copies outside the repository. Node 22.22 or newer is requir
 
 ## Edit and deploy
 
-Edit plugins in `harness/plugins/`, personal Claude definitions and helper files in
-`harness/claude/`, Pi settings in `harness/pi/`, and shared maintenance behavior here.
+Edit plugins in `harness/plugins/`, loose skills in `harness/skills/`, personal Claude
+definitions and helper files in `harness/claude/`, Pi settings in `harness/pi/`, and
+shared maintenance behavior here.
 The sources intentionally retain native Claude frontmatter. Rulesync imports them
 into disposable source trees on each deployment, then generates target components.
 The import adds implicit agent names in staging; it never rewrites source metadata.

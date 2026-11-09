@@ -6,7 +6,7 @@ user-invocable: false
 
 # show-cases — Gherkin scenarios
 
-**Every test case and every failure is a Gherkin scenario**, fenced as ` ```gherkin `, in chat and in md files. Prose such as "it breaks when the cache is stale" is not a failure description. Write each scenario to the BRIEF checks in [`wm:test-suite` bdd](../../../plugins/wm/skills/test-suite/references/sub-bdd.md#brief--the-six-checks-for-one-example). A runnable `.feature` file is that skill's job, not this one.
+**Every test case and every failure is a Gherkin scenario**, fenced as ` ```gherkin `, in chat and in md files. Prose such as "it breaks when the cache is stale" is not a failure description. Write each scenario to the BRIEF checks in [`wm:test-suite` bdd](../../plugins/wm/skills/test-suite/references/sub-bdd.md#brief--the-six-checks-for-one-example). A runnable `.feature` file is that skill's job, not this one.
 
 - Name each scenario with a slug that says the behavior: `Scenario: save-invalidates-changed-content`.
 - For a failure, `Then` says what must happen. A `# actual:` comment under it says what happened, with the `path:line` or the test that shows it.

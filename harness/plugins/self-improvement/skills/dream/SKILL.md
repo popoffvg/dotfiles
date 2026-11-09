@@ -89,7 +89,7 @@ Read in escalating depth — cheap first, deep only where it pays: **description
    - **unite** → merge bodies into the surviving skill (widen its `description` to cover both triggers), delete the losers.
    - **generalize** → write the broader rule, delete the specifics it subsumes.
    - **move** → cut the rule from the source body, paste into the target skill; widen the target's `description` if the moved rule adds a trigger. If the source body empties, prune the source skill.
-   Preserve the origin marker on survivors. Edit and delete in `harness/claude/skills/` — a global skill lives there and reaches `~/.claude/skills` as a stow symlink, so deleting the link leaves the source and the skill returns on the next stow. Run `mise run stow` after a prune or a rename.
+   Preserve the origin marker on survivors. Edit and delete in `harness/skills/`. Rulesync installs the copy. Run `mise run harness:sync` after a prune or a rename.
 
 # Detection heuristics
 

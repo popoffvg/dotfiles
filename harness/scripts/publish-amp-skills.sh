@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SKILLS_DIR="$ROOT/harness/claude/skills"
+SKILLS_DIR="$ROOT/harness/skills"
 REPO="$HOME/.cache/amp/repositories/ampcode.com-user-skills"
 
 if [[ $# -eq 0 ]]; then

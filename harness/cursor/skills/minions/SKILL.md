@@ -10,5 +10,5 @@ before selecting subagents or models. Cursor does not run Claude's `!`-shell
 injection, so read the ledger explicitly.
 
 Apply that ledger, then follow the shared workflow at
-`~/Documents/git/dotfiles/harness/claude/skills/minions/references/workflow.md`
+`~/Documents/git/dotfiles/harness/skills/minions/references/workflow.md`
 (read it in full; it is harness-neutral).

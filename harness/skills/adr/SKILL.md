@@ -132,7 +132,7 @@ Test the title: when it starts with a verb of choice (use, add, move, store, swi
 
 **Each title property is backed by at least one Property below.** The title says the quality in general; the Properties make it checkable. "Builds are reproducible and isolated from the host" needs, for example, "P1. Identical declared build inputs produce identical artifact digests" for reproducible and "P2. A build reads no file outside its context" for isolated. A title property with no Property under it gets one, or leaves the title.
 
-Write the decision paragraph and Reason using `ADR-FORMAT.md`. Before filling the Properties table, run its [Property gate](../domain-modeling/ADR-FORMAT.md#property-gate) for every candidate, and write the passing rows to the gate file `gates/NNNN-slug.md`. Keep only the plain guarantees in the ADR. Then run the two checks of the gate as [adr-property-checker.md: For the caller](../../agents/adr-property-checker.md#for-the-caller) says.
+Write the decision paragraph and Reason using `ADR-FORMAT.md`. Before filling the Properties table, run its [Property gate](../domain-modeling/ADR-FORMAT.md#property-gate) for every candidate, and write the passing rows to the gate file `gates/NNNN-slug.md`. Keep only the plain guarantees in the ADR. Then run the two checks of the gate as [adr-property-checker.md: For the caller](../../claude/agents/adr-property-checker.md#for-the-caller) says.
 
 A feature ADR title names what the user can count on everywhere, such as "Every change is previewable and side-effect free". Its paragraph says who uses the contract, how they start it, and what they get. Its candidate Properties say what the user observes. Qualify their conditions through the gate before accepting them:
 

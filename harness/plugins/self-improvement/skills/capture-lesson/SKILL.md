@@ -64,7 +64,7 @@ The teachability test: **would you teach this rule to a student or a new colleag
 
 | Test | Scope | Location |
 |---|---|---|
-| Yes — it is worth teaching someone new; the situation recurs and the rule stays useful | global | `harness/claude/skills/<slug>/SKILL.md` in the dotfiles repo, then `mise run stow` |
+| Yes — it is worth teaching someone new; the situation recurs and the rule stays useful | global | `harness/skills/<slug>/SKILL.md` in the dotfiles repo, then `mise run harness:sync` |
 | No, but the situation is tied to **this** content — these files, this layout, this repo's tooling — and will come back here | project | `<repo-root>/.claude/skills/<slug>/SKILL.md` |
 | Neither — a one-off that will not recur and teaches nobody | **skip** — write no skill |
 
@@ -76,7 +76,7 @@ That session may also already have a suggestion at `~/.claude/self-improvement/s
 
 A lesson can be teachable *and* anchored to this machine — a vault path, an MCP server, a CLI on `PATH`. That is still global; name the anchor in the body and say what to do when it is absent, so the skill degrades instead of hard-failing.
 
-A global skill is written to `harness/claude/skills/<slug>/` in the dotfiles repo, then made live with `mise run stow` — `~/.claude/skills` is a farm of stow symlinks, so a directory written there is a stray outside git. Project root is `git rev-parse --show-toplevel`; if the cwd is not a git repo, the scope is global.
+A global skill is written to `harness/skills/<slug>/` in the dotfiles repo, then made live with `mise run harness:sync`. A directory written under `~/.claude/skills` is a stray outside git. Project root is `git rev-parse --show-toplevel`; if the cwd is not a git repo, the scope is global.
 
 For a global skill, phrase the lesson generally and strip this project's names and paths. For a project skill, keep the real paths and commands — concreteness helps at project scope.
 

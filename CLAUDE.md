@@ -10,13 +10,14 @@ Every rule about a plugin — the plugin root, the marketplace, the router/worke
 
 ### Skills
 
-- **Loose `~/.claude` skills** live in `harness/claude/skills/<name>/SKILL.md` (installed by Rulesync to `~/.claude/skills`).
+- **Loose skills** live in `harness/skills/<name>/SKILL.md`. Rulesync installs them for Claude, Codex, and Pi.
 - **Plugin skills** live in `harness/plugins/<name>/skills/`.
 - **Project skills** (repo-scoped) live in `.claude/skills/` — e.g. `laptop-setup`.
+- **Claude settings, agents, commands, and hooks** live in `harness/claude/`. That directory is not the skill library.
 
 Each skill: `SKILL.md` with `name:` + `description:` frontmatter; optional `references/` docs or helper scripts.
 
-When a skill in this repo must cite a skill that exists only as a real directory under `~/.claude/skills/` — not in this repo — move that skill into `harness/claude/skills/` and run `mise run harness:sync` so the installed reference resolves; never rewrite the link to an absolute `~/.claude/...` path to route around the stray.
+When a skill in this repo must cite a skill that exists only as a real directory under `~/.claude/skills/` — not in this repo — move that skill into `harness/skills/` and run `mise run harness:sync` so the installed reference resolves; never rewrite the link to an absolute `~/.claude/...` path to route around the stray.
 
 ### WM Flow
 

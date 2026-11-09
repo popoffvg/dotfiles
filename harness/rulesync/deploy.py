@@ -291,6 +291,7 @@ def build(home, stage):
     install = Installation(home)
     raw = stage / 'loose'
     copy_tree(ROOT / CONFIG['loose'], raw / '.claude')
+    copy_tree(ROOT / CONFIG['looseSkills'], raw / '.claude/skills')
     copy_tree(ROOT / CONFIG['projectSkills'], raw / '.claude/skills')
     copy_tree(ROOT / CONFIG['skills'], raw / '.claude/skills')
     normalize(raw / '.claude')
@@ -308,7 +309,7 @@ def build(home, stage):
                   '--input-roots', str(raw / '.rulesync'), '--output-roots', str(generated)], raw)
     for target, directory in TARGETS.items():
         base = worker_base(directory, target)
-        install.tree(generated / SKILL_OUTPUTS[target], base, ROOT / 'harness/claude/skills')
+        install.tree(generated / SKILL_OUTPUTS[target], base, ROOT / CONFIG['looseSkills'])
         catalogs[target].extend((entry, home / base / entry['directory'] / 'SKILL.md') for entry in loose_catalog)
         if target == 'claude':
             catalogs[target].extend(({'name': 'command:' + path.stem, 'description': 'Legacy command reference; read when requested or named by a route.', 'automatic': False},
@@ -460,7 +461,7 @@ def build(home, stage):
             if file.is_file():
                 data = file.read_bytes()
                 if file.name == 'SKILL.md':
-                    data = data.replace(b'../../claude/skills/' + skill.name.encode() + b'/', b'')
+                    data = data.replace(b'../skills/' + skill.name.encode() + b'/', b'')
                 relative = Path('.codex/harness/skills') / skill.name / file.relative_to(skill)
                 install.files.pop(home / relative, None)
                 install.add(relative, data, file)
@@ -487,7 +488,9 @@ def build(home, stage):
                      f'Resolve legacy .claude/workflows/wm-code-*.js references through {home / directory / "harness/workflows/README.md"}. ')
         instruction = ('\n<!-- dotfiles-harness:start -->\n' + discovery +
                        f'Before changing a personal skill, plugin, hook, or harness configuration, read {home / base / "harness-maintain/SKILL.md"}. '
-                       'Edit the repository source recorded in the runtime harness/installed.json; run mise run harness:sync to regenerate installed copies.\n'
+                       f'Author loose skills in {ROOT / "harness/skills"}, plugins in {ROOT / "harness/plugins"}, '
+                       f'and Claude settings, agents, and commands in {ROOT / "harness/claude"}. '
+                       'Edit that repository source, recorded in the runtime harness/installed.json; run mise run harness:sync to regenerate installed copies.\n'
                        '<!-- dotfiles-harness:end -->\n')
         relative = Path(directory) / ('CLAUDE.md' if target == 'claude' else 'AGENTS.md')
         destination = home / relative

@@ -11,4 +11,4 @@ before selecting models. To inject its current contents into tool context, run
 SKILL's canonical path. Codex reads this ledger explicitly; Claude's shell-injection
 syntax belongs to the Claude entry point.
 
-Apply that ledger, then follow [the shared workflow](../../claude/skills/minions/references/workflow.md).
+Apply that ledger, then follow [the shared workflow](../skills/minions/references/workflow.md).
