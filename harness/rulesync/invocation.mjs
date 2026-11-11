@@ -4,7 +4,8 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 const require = createRequire(process.argv[2] + '/package.json');
 const YAML = require('js-yaml');
-const [, , , sourceRoot, canonicalRoot] = process.argv;
+const [, , , sourceRoot, canonicalRoot, publicJson = '[]'] = process.argv;
+const publicNames = new Set(JSON.parse(publicJson));
 const catalog = [];
 function parse(path) {
   const text = readFileSync(path, 'utf8');
@@ -20,10 +21,11 @@ if (existsSync(sourceRoot)) for (const directory of readdirSync(sourceRoot)) {
   const { text, header, metadata } = parse(output);
   if (typeof native['disable-model-invocation'] === 'boolean')
     metadata['disable-model-invocation'] = native['disable-model-invocation'];
-  metadata['user-invocable'] = false;
+  const userInvocable = publicNames.has(native.name);
+  metadata['user-invocable'] = userInvocable;
   // Imported target overrides take precedence over the shared field.
   for (const field of ['claudecode', 'claudecode-plugin'])
-    if (metadata[field]) metadata[field]['user-invocable'] = false;
+    if (metadata[field]) metadata[field]['user-invocable'] = userInvocable;
   const sidecar = join(sourceRoot, directory, 'agents/openai.yaml');
   if (existsSync(sidecar)) {
     const existing = YAML.load(readFileSync(sidecar, 'utf8'));

@@ -6,7 +6,7 @@ Edit source in this repository. `mise run harness:sync` generates the copies und
 
 | Kind | Source |
 |---|---|
-| Loose skill, shared by Claude, Codex, and Pi | `harness/skills/<name>/SKILL.md` |
+| Loose skill, shared by Claude, Codex, and Pi | `harness/skills/<group>/<name>/SKILL.md` |
 | Plugin, including that plugin's skills | `harness/plugins/<plugin>/` |
 | Claude settings, agents, commands, and hooks | `harness/claude/` |
 | Project skill for this repo | `.claude/skills/<name>/` |

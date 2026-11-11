@@ -1,0 +1,5 @@
+{
+  "name": "dollar-skills",
+  "version": "0.2.0",
+  "description": "Type $ to search skills in the typeahead; a $name in the prompt makes Claude load that skill"
+}

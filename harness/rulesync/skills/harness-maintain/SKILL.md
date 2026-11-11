@@ -9,7 +9,7 @@ description: Maintain this user's dotfiles skills, plugins, hooks, and Rulesync 
    `~/.codex/harness/installed.json`, or `~/.pi/agent/harness/installed.json`.
    The `source` field names the checkout; `files` maps installed files to source files.
 2. Edit the mapped source. Plugin sources live in `harness/plugins/`; loose skills
-   in `harness/skills/`; Claude settings, agents, commands, and hooks in `harness/claude/`;
+   in `harness/skills/<group>/<name>/`; Claude settings, agents, commands, and hooks in `harness/claude/`;
    shared maintenance sources in `harness/rulesync/`.
    Read that directory's instructions. Keep skill references and plugin assets together.
    Source files use native Claude frontmatter; deployment imports them with Rulesync.

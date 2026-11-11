@@ -10,7 +10,7 @@ Every rule about a plugin — the plugin root, the marketplace, the router/worke
 
 ### Skills
 
-- **Loose skills** live in `harness/skills/<name>/SKILL.md`. Rulesync installs them for Claude, Codex, and Pi.
+- **Loose skills** live in `harness/skills/<group>/<name>/SKILL.md`. Rulesync installs them for Claude, Codex, and Pi.
 - **Plugin skills** live in `harness/plugins/<name>/skills/`.
 - **Project skills** (repo-scoped) live in `.claude/skills/` — e.g. `laptop-setup`.
 - **Claude settings, agents, commands, and hooks** live in `harness/claude/`. That directory is not the skill library.

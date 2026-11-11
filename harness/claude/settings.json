@@ -8,7 +8,6 @@
   "permissions": {
     "allow": [
       "Bash(ssh openclaw *)",
-      "Bash(~/.claude/scripts/lumen-pane.sh:*)",
       "Bash(~/.claude/scripts/open-file.sh:*)",
       "Bash(herdr:*)",
       "Bash(hunk:*)",
@@ -510,7 +509,6 @@
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
-    "ast-grep@ast-grep-marketplace": false,
     "claude-md-management@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": false,
     "engram@engram": true,
@@ -537,15 +535,10 @@
     "prompt-risk@prompt-risk": true,
     "annotate@annotate": true,
     "side-chat@side-chat": true,
-    "pins@pins": true
+    "pins@pins": true,
+    "dollar-skills@local-plugins": true
   },
   "extraKnownMarketplaces": {
-    "ast-grep-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "ast-grep/agent-skill"
-      }
-    },
     "engram": {
       "source": {
         "source": "github",
@@ -555,7 +548,7 @@
     "local-plugins": {
       "source": {
         "source": "directory",
-        "path": "/Users/popoffvg/Documents/git/dotfiles"
+        "path": "~/.claude/harness"
       }
     },
     "mictx-helper-marketplace": {
@@ -564,18 +557,6 @@
         "repo": "milaboratory/mictx-helper"
       },
       "autoUpdate": true
-    },
-    "plannotator": {
-      "source": {
-        "source": "github",
-        "repo": "backnotprop/plannotator"
-      }
-    },
-    "trace-marketplace": {
-      "source": {
-        "source": "directory",
-        "path": "$HOME/.claude/plugins/trace-marketplace"
-      }
     },
     "worktrunk": {
       "source": {
@@ -644,9 +625,6 @@
       "gh",
       "herdr",
       "hunk",
-      "lumen",
-      "lumen-pane.sh",
-      "~/.claude/scripts/lumen-pane.sh",
       "open-file.sh",
       "~/.claude/scripts/open-file.sh",
       "zed"

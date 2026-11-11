@@ -13,7 +13,7 @@ sees this skill.
 | idiom | every changed line — is it written the way its language and pinned version expect | @idiom-critic | sonnet |
 | reuse | every new symbol and changed body — does it write again a job the repo or its dependencies already do; `PATTERNS.md` § Need → use is its contract | @reuse-critic | sonnet |
 | simplify | every changed function — does it do its job with needless complexity, wasted work, or a fix at the wrong depth; the Simplification, Efficiency, and Altitude angles of `~/.claude/skills/simplify-code/references/angles.md` | @simplify-critic | sonnet |
-| design | every new and changed symbol — the DRY, KISS, and SOLID check slugs of the `good-design-dry`, `good-design-kiss`, and `good-design-solid` skills | `good-design-verifier` (loose agent; `VERDICT:` maps to `Result:`) | sonnet |
+| design | every new and changed symbol — the DRY, KISS, SOLID, and phase-cost check slugs of the `good-design-dry`, `good-design-kiss`, `good-design-solid`, and `good-design` skills | `good-design-verifier` (loose agent; `VERDICT:` maps to `Result:`) | sonnet |
 | correctness | the inputs that make the changed code give a wrong result | @correctness-critic, with one @hypothesis-checker per hypothesis | opus; checkers sonnet |
 | mutation | **only when the operator passes `mutation`** — which unit and table tests the diff added can be deleted — a mutant they alone kill keeps them; E2E tests are the reference, never judged | @mutation-tester | sonnet |
 | test | does a test assert the contract — and writes it when none does; does an added unit test restate the code — and asks to delete it (§ The test gate also finds the added tests that restate the code) | @tester | sonnet |

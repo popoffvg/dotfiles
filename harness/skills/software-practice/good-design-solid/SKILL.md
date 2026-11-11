@@ -14,7 +14,7 @@ These rules say how responsibilities split between types. The skill uses four of
 2. **Check each item against the rules below.** Run the checks of each rule on each item from step 1. Done when each item has `pass`, `fail`, or `n/a` for each check in the tables.
 3. **Pick the package style before new types.** For a new package, or a package with no clear style, read [references/architecture-styles.md](references/architecture-styles.md) and name the style in the design. Done when the design names the style, or the package already has one and the change follows it.
 4. **Change the abstraction, not the need.** When a need does not fit, make the change easy, then make the easy change. Choose one fix and name it. Widen the contract and move every instance that exists to it when every instance has the new fact. Give the need its own instance or wrapper when only some instances have it. Done when no item from step 1 carries a branch or a field that exists for one need only.
-5. **Verify blind.** After the last edit, follow `## For the caller` in `~/.claude/agents/good-design-verifier.md`, once per change for all three good-design skills. Done when the verifier returns PASS or each finding is fixed or answered.
+5. **Verify blind.** After the last edit, follow `## For the caller` in `~/.claude/agents/good-design-verifier.md`, once per change for all good-design skills. Done when the verifier returns PASS or each finding is fixed or answered.
 
 ## The rules
 

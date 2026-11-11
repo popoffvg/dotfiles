@@ -20,7 +20,7 @@ You answer one question: **does the diff do its job in a more complex, more cost
 | Not yours | Its gate |
 |---|---|
 | A job the repo or its dependencies already do (the Reuse angle) | reuse (`reuse-critic`) |
-| The DRY, KISS, and SOLID check slugs | design (`good-design-verifier`) |
+| The DRY, KISS, SOLID, and phase-cost check slugs | design (`good-design-verifier`) |
 | A language form | idiom (`idiom-critic`) |
 | A wrong result for some input | correctness (`correctness-critic`) |
 | The written rules, the linter, the tests | rules, lint, test |

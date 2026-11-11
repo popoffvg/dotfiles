@@ -33,7 +33,7 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 | idiom | every line the diff changes — written the way its language and pinned version expect | sonnet |
 | reuse | every new symbol and changed body — does it write again a job the repo or its dependencies already do | sonnet |
 | simplify | every changed function — needless complexity, wasted work, or a fix at the wrong depth | sonnet |
-| design | every new and changed symbol — the DRY, KISS, and SOLID checks of the good-design skills | sonnet |
+| design | every new and changed symbol — the DRY, KISS, SOLID, and phase-cost checks of the good-design skills | sonnet |
 | correctness | the inputs that make the changed code give a wrong result — opus asks one yes/no question per suspected defect, one sonnet checker answers each | opus; checkers sonnet |
 | mutation | **only with the `mutation` argument** — which unit and table tests the diff added can be deleted — a mutant they alone kill keeps them; E2E tests are the reference, never judged | sonnet |
 | test | does a test assert the contract — and writes it when none does | sonnet |

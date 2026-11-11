@@ -147,8 +147,7 @@
     "use_new_terminal": true,
     "allow_concurrent_runs": false,
     "reveal_target": "center",
-    "hide": "on_success",
-    "show_summary": false,
+    "show_summary": true,
     "show_command": false,
   },
   {

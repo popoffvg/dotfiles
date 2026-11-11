@@ -42,18 +42,44 @@ def copy_tree(src, dst):
                         ignore=shutil.ignore_patterns('__pycache__', '*.pyc', '.DS_Store', '.git', 'node_modules'))
 
 
+def loose_skill_dirs(root=ROOT / CONFIG['looseSkills']):
+    found = {}
+    flat = next(root.glob('*/SKILL.md'), None)
+    if flat:
+        raise RuntimeError(f'Loose skill outside a group folder: {flat.parent}')
+    for skill in sorted(root.glob('*/*/SKILL.md')):
+        name = skill.parent.name
+        if name in found:
+            raise RuntimeError(f'Loose skill name in two group folders: {found[name]} and {skill.parent}')
+        found[name] = skill.parent
+    return found
+
+
 def normalize(path):
     subprocess.run(['node', str(HERE / 'normalize.mjs'), str(CACHE), str(path)], check=True)
 
 
-def prepare_skills(source, canonical):
-    result = subprocess.run(['node', str(HERE / 'invocation.mjs'), str(CACHE), str(source), str(canonical)],
+def prepare_skills(source, canonical, public=()):
+    result = subprocess.run(['node', str(HERE / 'invocation.mjs'), str(CACHE), str(source), str(canonical), json.dumps(list(public))],
                             check=True, text=True, stdout=subprocess.PIPE)
     return json.loads(result.stdout)
 
 
 def worker_base(directory, target):
     return Path(directory) / ('skills' if target == 'claude' else 'harness/skills')
+
+
+def shared_instructions(target):
+    source = ROOT / 'harness/claude/AGENTS.md'
+    content = source.read_text()
+    if target == 'claude':
+        return content
+    # Claude expands @rules imports. Codex and Pi read AGENTS.md as text.
+    import re
+    def expand(match):
+        rule = ROOT / 'harness/claude' / match.group(1)
+        return rule.read_text().rstrip()
+    return re.sub(r'^@(rules/[^\n]+)$', expand, content, flags=re.M)
 
 
 def workflow_body(script):
@@ -79,6 +105,7 @@ def internal_workflows(source):
 
 
 def install_aliases(install, home):
+    loose = loose_skill_dirs()
     for target, directory in TARGETS.items():
         plugin = home / directory / 'harness/plugins/wm'
         guide = plugin / 'codex-skills/wm/references/runtime.md'
@@ -89,6 +116,8 @@ def install_aliases(install, home):
                     'When independent agents are unavailable, run sequentially and disclose that limit.'
                     if target == 'pi' else 'Use its Codex tool adapters.'))
         for name in CONFIG['publicAliases']:
+            if target == 'claude' and name in loose:
+                continue
             source = HERE / 'commands' / (name + '.md')
             text = source.read_text().replace('{{PLUGIN_ROOT}}', str(plugin)).replace('{{RUNTIME}}', runtime)
             text = text.replace('{{SKILL_ROOT}}', str(home / worker_base(directory, target)))
@@ -291,13 +320,15 @@ def build(home, stage):
     install = Installation(home)
     raw = stage / 'loose'
     copy_tree(ROOT / CONFIG['loose'], raw / '.claude')
-    copy_tree(ROOT / CONFIG['looseSkills'], raw / '.claude/skills')
+    loose = loose_skill_dirs()
+    for name, skill in loose.items():
+        copy_tree(skill, raw / '.claude/skills' / name)
     copy_tree(ROOT / CONFIG['projectSkills'], raw / '.claude/skills')
     copy_tree(ROOT / CONFIG['skills'], raw / '.claude/skills')
     normalize(raw / '.claude')
     run_rulesync(['import', '--targets', 'claudecode', '--features', 'skills,commands,subagents',
                   '--output-root', str(raw)], raw)
-    loose_catalog = prepare_skills(raw / '.claude/skills', raw / '.rulesync/skills')
+    loose_catalog = prepare_skills(raw / '.claude/skills', raw / '.rulesync/skills', CONFIG['publicAliases'])
     catalogs = {target: [] for target in TARGETS}
     generated = stage / 'loose-output'
     generated.mkdir()
@@ -309,7 +340,8 @@ def build(home, stage):
                   '--input-roots', str(raw / '.rulesync'), '--output-roots', str(generated)], raw)
     for target, directory in TARGETS.items():
         base = worker_base(directory, target)
-        install.tree(generated / SKILL_OUTPUTS[target], base, ROOT / CONFIG['looseSkills'])
+        for skill in sorted((generated / SKILL_OUTPUTS[target]).iterdir()):
+            install.tree(skill, base / skill.name, loose.get(skill.name, ROOT / CONFIG['looseSkills'] / skill.name))
         catalogs[target].extend((entry, home / base / entry['directory'] / 'SKILL.md') for entry in loose_catalog)
         if target == 'claude':
             catalogs[target].extend(({'name': 'command:' + path.stem, 'description': 'Legacy command reference; read when requested or named by a route.', 'automatic': False},
@@ -461,7 +493,7 @@ def build(home, stage):
             if file.is_file():
                 data = file.read_bytes()
                 if file.name == 'SKILL.md':
-                    data = data.replace(b'../skills/' + skill.name.encode() + b'/', b'')
+                    data = data.replace(os.path.relpath(loose[skill.name], skill).encode() + b'/', b'')
                 relative = Path('.codex/harness/skills') / skill.name / file.relative_to(skill)
                 install.files.pop(home / relative, None)
                 install.add(relative, data, file)
@@ -488,22 +520,26 @@ def build(home, stage):
                      f'Resolve legacy .claude/workflows/wm-code-*.js references through {home / directory / "harness/workflows/README.md"}. ')
         instruction = ('\n<!-- dotfiles-harness:start -->\n' + discovery +
                        f'Before changing a personal skill, plugin, hook, or harness configuration, read {home / base / "harness-maintain/SKILL.md"}. '
-                       f'Author loose skills in {ROOT / "harness/skills"}, plugins in {ROOT / "harness/plugins"}, '
+                       f'Author loose skills in {ROOT / "harness/skills"}/<group>/<name>, plugins in {ROOT / "harness/plugins"}, '
                        f'and Claude settings, agents, and commands in {ROOT / "harness/claude"}. '
                        'Edit that repository source, recorded in the runtime harness/installed.json; run mise run harness:sync to regenerate installed copies.\n'
                        '<!-- dotfiles-harness:end -->\n')
-        relative = Path(directory) / ('CLAUDE.md' if target == 'claude' else 'AGENTS.md')
+        relative = Path(directory) / 'AGENTS.md'
         destination = home / relative
-        if destination in install.files:
+        if target == 'claude':
             content = install.files[destination][0].decode()
         else:
             content = destination.read_text() if destination.is_file() else ''
             install.shared.add(destination)
         import re
         content = re.sub(r'\n?<!-- dotfiles-harness:start -->.*?<!-- dotfiles-harness:end -->\n?', '', content, flags=re.S)
+        content = re.sub(r'\n?<!-- dotfiles-shared:start -->.*?<!-- dotfiles-shared:end -->\n?', '', content, flags=re.S)
+        if target != 'claude':
+            content = ('<!-- dotfiles-shared:start -->\n' + shared_instructions(target).rstrip() +
+                       '\n<!-- dotfiles-shared:end -->\n\n' + content.strip())
         # These are scoped instructions, not a replacement for existing personal rules.
         install.files.pop(destination, None)
-        install.add(relative, (content.rstrip() + '\n' + instruction).encode(), HERE / 'skills/harness-maintain/SKILL.md')
+        install.add(relative, (content.rstrip() + '\n' + instruction).encode(), ROOT / 'harness/claude/AGENTS.md')
     install_aliases(install, home)
     return install
 

@@ -16,7 +16,7 @@ DRY means one fact in one place, and one way to do one job. This skill owns "doe
 4. **Keep one type per entity.** A copy of a record in a second store reads back as the full record type, not as a second, smaller type, and not as the same type with fields left zero. Compare two copies as `~/.notes/rules/records.md` says. Done when the `mirror-type` check passes.
 5. **Extract new shared code at the third copy.** A new function with one call site is normal code, not shared code. Two copies of a new block with no existing symbol stay two copies. At the third copy, extract one function, named for the job. Done when the `early-extraction` and `pasted-block` checks pass.
 6. **In a doc, point to the code.** A spec or a README that shows code names the existing symbol at its `file:line` and does not paste a second version of it. A code sketch of new code follows steps 1–5 like real code. Done when the `doc-restates-code` check passes.
-7. **Verify blind.** After the last edit, follow `## For the caller` in `~/.claude/agents/good-design-verifier.md`, once per change for all three good-design skills. Done when the verifier returns PASS or each finding is fixed or answered.
+7. **Verify blind.** After the last edit, follow `## For the caller` in `~/.claude/agents/good-design-verifier.md`, once per change for all good-design skills. Done when the verifier returns PASS or each finding is fixed or answered.
 
 ## Checks
 

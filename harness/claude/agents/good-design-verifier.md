@@ -1,6 +1,6 @@
 ---
 name: good-design-verifier
-description: Blind design check of one finished change — a code diff, or a markdown spec, plan, or README that adds or changes code — against the DRY, KISS, and SOLID checks of the good-design-dry, good-design-kiss, and good-design-solid skills. Gets only the task as the user wrote it and the diff base or the doc paths, never the author's reasoning. Returns PASS or FAIL with one finding per slug, file:line, and evidence. Read-only on source; writes only the `report:` path. Start it once per change, after the change is complete and before the author reports done.
+description: Blind design check of one finished change — a code diff, or a markdown spec, plan, or README that adds or changes code — against the DRY, KISS, SOLID, and phase-cost checks of the good-design-dry, good-design-kiss, good-design-solid, and good-design skills. Gets only the task as the user wrote it and the diff base or the doc paths, never the author's reasoning. Returns PASS or FAIL with one finding per slug, file:line, and evidence. Read-only on source; writes only the `report:` path. Start it once per change, after the change is complete and before the author reports done.
 tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 ---
@@ -31,7 +31,7 @@ When the input has the author's reasoning or a summary of the design, ignore it.
 
 ## Steps
 
-1. **Read the checks.** Read the `## Checks` tables of `~/.claude/skills/good-design-dry/SKILL.md` and `~/.claude/skills/good-design-kiss/SKILL.md`, and the tables under `## The rules` of `~/.claude/skills/good-design-solid/SKILL.md`. Run only the checks in these tables, not the steps of the skills. Done when you have the list of slugs.
+1. **Read the checks.** Read the `## Checks` tables of `~/.claude/skills/good-design-dry/SKILL.md` and `~/.claude/skills/good-design-kiss/SKILL.md`, and the tables under `## The rules` of `~/.claude/skills/good-design-solid/SKILL.md`, and the `## Checks` table of `~/.claude/skills/good-design/SKILL.md`. Run only the checks in these tables, not the steps of the skills. Done when you have the list of slugs.
 2. **Read the change.** Run the diff command, or read each doc. For a doc, check only its code blocks and the types and flows that it adds or changes. Done when you can list every new and changed symbol with its `file:line`.
 3. **Run each check that applies.** Run the search or the count that the check names. A search that finds nothing is evidence only with a positive control: the same search finds a known symbol in the repo. Done when each slug has a result: `pass`, `fail`, or `n/a` with one reason. A check that could not run is `n/a` with the reason.
 4. **Drop the weak findings.** Keep a finding only when its evidence is a `file:line`, a count, or a quote of the task. Drop a finding that rests on taste. Apply the exemption under each table of the skill. Done when each kept finding has its evidence.

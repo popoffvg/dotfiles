@@ -36,7 +36,8 @@
     "daily",
     "and-what",
     "critic",
-    "reuse-audit"
+    "to-user",
+    "skill-builder"
   ],
   "workflows": "harness/rulesync/workflows"
 }

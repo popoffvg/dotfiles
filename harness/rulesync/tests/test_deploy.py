@@ -41,7 +41,7 @@ class InvocationTests(unittest.TestCase):
                                                    'line-comment-unresolved', 'line-comment-prune', 'line-comment-distill',
                                                    'huh', 'minions', 'show-me', 'tour',
                                                    'zed-diff', 'with-proof', 'prompt', 'lessons', 'hunch', 'handoff',
-                                                   'gist', 'drunk-claude', 'daily', 'and-what', 'critic'})
+                                                   'gist', 'drunk-claude', 'daily', 'and-what', 'critic', 'to-user'})
             for operation in ['act', 'write', 'unresolved', 'prune', 'distill']:
                 alias = home / '.codex/skills' / ('line-comment-' + operation)
                 self.assertIn(str(home / '.codex/harness/plugins/line-comment/internal-commands' / (operation + '.md')).encode(),
@@ -64,11 +64,54 @@ class InvocationTests(unittest.TestCase):
                 index = installation.files[home / target / 'harness/skill-index.md'][0]
                 self.assertIn(b'adr', index)
                 self.assertIn(b'harness-maintain', index)
+                instructions = installation.files[home / target / 'AGENTS.md'][0]
+                self.assertIn(b'Before you show something to the user, load the `show-me` skill.', instructions)
+                self.assertIn(b'# Quint models', instructions)
+                self.assertNotIn(b'@rules/', instructions)
+            self.assertEqual(installation.files[home / '.claude/CLAUDE.md'][0], b'@AGENTS.md\n')
+            self.assertIn(b'@rules/quint.md', installation.files[home / '.claude/AGENTS.md'][0])
             adr = installation.files[home / '.claude/skills/adr/SKILL.md'][0]
             self.assertIn(b'user-invocable: false', adr)
+            public_skills = {'huh', 'minions', 'show-me', 'tour', 'zed-diff', 'with-proof', 'prompt', 'lessons', 'hunch',
+                             'handoff', 'gist', 'drunk-claude', 'daily', 'and-what', 'critic', 'to-user'}
+            for name in public_skills:
+                self.assertIn(b'user-invocable: true', installation.files[home / '.claude/skills' / name / 'SKILL.md'][0], name)
+                self.assertNotIn(home / '.claude/commands' / (name + '.md'), installation.files)
+            for name in ['wm', 'code', 'review', 'dive', 'line-comment-act']:
+                self.assertIn(home / '.claude/commands' / (name + '.md'), installation.files)
             for path, (data, _) in installation.files.items():
-                if path.name == 'SKILL.md' and path.is_relative_to(home / '.claude') and 'codex-skills' not in path.parts:
+                if (path.name == 'SKILL.md' and path.is_relative_to(home / '.claude') and 'codex-skills' not in path.parts
+                        and path.parent.name not in public_skills):
                     self.assertIn(b'user-invocable: false', data, str(path))
+
+
+class LooseSkillGroupTests(unittest.TestCase):
+    def skill(self, root, path):
+        (root / path).mkdir(parents=True)
+        (root / path / 'SKILL.md').write_text('---\nname: x\n---\n')
+
+    def test_grouped_skills_map_by_name(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.skill(root, 'base/show-me')
+            self.skill(root, 'other/firecrawl')
+            self.assertEqual(deploy.loose_skill_dirs(root),
+                             {'show-me': root / 'base/show-me', 'firecrawl': root / 'other/firecrawl'})
+
+    def test_same_name_in_two_groups_stops_the_deploy(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.skill(root, 'base/tour')
+            self.skill(root, 'everyday/tour')
+            with self.assertRaisesRegex(RuntimeError, 'two group folders'):
+                deploy.loose_skill_dirs(root)
+
+    def test_skill_outside_a_group_stops_the_deploy(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.skill(root, 'tour')
+            with self.assertRaisesRegex(RuntimeError, 'outside a group folder'):
+                deploy.loose_skill_dirs(root)
 
 
 class WorkflowTests(unittest.TestCase):

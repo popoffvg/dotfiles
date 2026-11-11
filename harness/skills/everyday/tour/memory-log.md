@@ -7,3 +7,5 @@ One row per tour. Step 4 of [SKILL.md](SKILL.md) drops every technique with a `b
 | — | earlier guides | `memory-palace` | bad | "memory place works bad for me" |
 | 2026-11-04 | PR #2339 instance statistics context | `chunks` |  |  |
 | 2026-11-05 | PR #2339 instance statistics context (PR head 98e4ae6d1) | `flashcards` |  |  |
+| 2026-11-09 | PR #1962 middle layer instance stats | `flashcards` |  |  |
+| 2026-11-09 | branch MILAB-7164 live block status | `why-questions` |  |  |

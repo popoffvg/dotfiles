@@ -16,7 +16,7 @@ KISS means the smallest design that does the task the user gave today. Every abs
 4. **Copy the local pattern.** A new instance copies the constructor shape, the method set, and the file layout of the instances that exist. When the user says "do X like Y", copy Y from the real code, not a better variant of it, even when Y breaks a rule of these skills. Then report that breach and its fix to the user. Done when the `foreign-pattern` check passes.
 5. **Write straight-line code.** Return an error early. Keep nesting at three levels or less. Do not write a clever form when a plain loop does the job. Use the standard library before a new dependency. Done when the `deep-nesting` and `dependency-for-a-small-job` checks pass.
 6. **In a doc, show the direct flow.** A code sketch in a spec shows the calls that run, not a framework around them. Done when the `framework-in-sketch` check passes.
-7. **Verify blind.** After the last edit, follow `## For the caller` in `~/.claude/agents/good-design-verifier.md`, once per change for all three good-design skills. Done when the verifier returns PASS or each finding is fixed or answered.
+7. **Verify blind.** After the last edit, follow `## For the caller` in `~/.claude/agents/good-design-verifier.md`, once per change for all good-design skills. Done when the verifier returns PASS or each finding is fixed or answered.
 
 ## Checks
 
