@@ -1,0 +1,8 @@
+[ui]
+theme = "catppuccin"
+
+# Keep the default popup bindings and add Ctrl+J/K navigation and Esc Esc toggle.
+[keys]
+toggle = ["alt-esc", "ctrl-space"]
+next = ["tab", "down", "ctrl-n", "ctrl-j"]
+prev = ["shift-tab", "up", "ctrl-p", "ctrl-k"]

@@ -8,6 +8,7 @@
     brew_packages:
       # shell
       - Giammarco-Ferranti/deja/deja
+      - kevengoncalves/tap/lig
       - zsh-completions
       - zsh-syntax-highlighting
       - fzf
@@ -116,6 +117,7 @@
       - starship.toml
       - atuin
       - yazi
+      - lig
 
   tasks:
     # --- nanobrew (nb) ---

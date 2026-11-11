@@ -3,6 +3,9 @@ font-family = "FiraCode Nerd Font"
 keybind = global:cmd+grave_accent=toggle_quick_terminal
 keybind = cmd+k=text:\x02
 
+# Send lig's Alt+Esc toggle when Esc is pressed twice.
+keybind = escape>escape=text:\x1b\x1b
+
 # Pane navigation (aligned with VS Code ctrl+arrow)
 keybind = ctrl+right=goto_split:right
 keybind = ctrl+left=goto_split:left

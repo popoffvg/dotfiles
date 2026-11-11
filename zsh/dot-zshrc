@@ -1,13 +1,18 @@
+# >>> lig pre >>>
+eval "$("/opt/nanobrew/prefix/opt/lig/bin/lig" init zsh pre)"
+# <<< lig pre <<<
 
 
 # Package manager prefix (nanobrew or homebrew)
-if [[ -x /opt/nanobrew/prefix/bin/nb ]]; then
+if [[ -d /opt/nanobrew/prefix/bin ]]; then
   export BREW_PREFIX=/opt/nanobrew/prefix
   export PATH="$BREW_PREFIX/bin:$PATH"
 elif [[ -x /opt/homebrew/bin/brew ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
   export BREW_PREFIX="$(command brew --prefix)"  # 'command' bypasses the brew=nb alias on re-source
 fi
+
+# Start lig before plugins; its inner shell loads the rest of this file once.
 
 # Extra completions from brew
 FPATH=$FPATH:$BREW_PREFIX/share/zsh-completions
@@ -209,6 +214,8 @@ if (( ${+functions[_yazi_jump]} )); then
   DEJA_IGNORE_WIDGETS+=(yazi-jump down-complete-or-yazi)
   zle -N yazi-jump _yazi_jump
   bindkey '^O' yazi-jump
+  bindkey -M emacs '^O' yazi-jump
+  bindkey -M viins '^O' yazi-jump
 
   zle -N down-complete-or-yazi _down_complete_or_yazi
   bindkey '^[[B' down-complete-or-yazi
@@ -216,4 +223,9 @@ if (( ${+functions[_yazi_jump]} )); then
 fi
 
 
-source "$HOME/.config/broot/launcher/bash/br"
+[[ -r "$HOME/.config/broot/launcher/bash/br" ]] && source "$HOME/.config/broot/launcher/bash/br"
+
+# Register lig's buffer hooks after Deja and the other ZLE integrations.
+# >>> lig post >>>
+eval "$("/opt/nanobrew/prefix/opt/lig/bin/lig" init zsh post)"
+# <<< lig post <<<

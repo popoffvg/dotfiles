@@ -27,7 +27,6 @@ cspell\.json
 \.config/zed
 \.config/direnv
 \.config/fish
-\.config/ghostty
 \.config/git
 \.config/helix
 \.config/nix
