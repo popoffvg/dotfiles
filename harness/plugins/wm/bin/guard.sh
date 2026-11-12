@@ -93,7 +93,7 @@ if [[ "$BASE" == "spec.md" || "$BASE" == TODO-*.md ]]; then
 The whole enum:
   increment — show the real diff after each increment and wait
   todo      — apply every increment, then show the whole diff once and wait
-  none      — never stop; the review gate chain is the only review the change gets
+  none      — never stop; the reviewrules run is the only review the change gets
   inherit   — TODO-N.md only: take the spec's value
 
 Defaults: a missing key on spec.md reads as `increment`, a missing key on a TODO-N.md

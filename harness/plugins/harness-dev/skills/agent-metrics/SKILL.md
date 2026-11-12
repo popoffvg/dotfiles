@@ -39,6 +39,6 @@ Give the operator the numbers and one action per section; a section with no data
 
 The nudge ships off; the operator sets it in the `env` block of `settings.json`. Report its state; change it only when asked:
 
-- `HARNESS_DEV_PASTE_NUDGE=1` — after a block is pasted 3+ times in 2+ sessions, the agent offers to make it a skill.
+- `HARNESS_DEV_PASTE_NUDGE=1` — after a block is pasted 3+ times in 2+ sessions, the agent offers a slash command for a short block, and a skill for a longer block (`OFFER_BY_LENGTH` in `bin/turn-ledger.py`).
 
 The `prompt-risk` mod ([popoffvg/prompt-risk](https://github.com/popoffvg/prompt-risk)) reads each task prompt in a fork. With `PROMPT_RISK_LOG_DIR=~/.claude/harness-dev/reads` in `settings.json`, it writes **Risk / Read / Added / Result** to `reads/<session>/<id>.json`. `load_turns` joins that file to its turn by session and prompt text as `understood` and `correction_risk`. The Stop hook sets `stopped` when the turn ends in `triage: question` with no edit, write, or agent call; the report compares Risk NN% with the `classify` correction label for stopped and went-on turns. Older rows with `risk_stop`, `hint:`, or `understood:` stay readable.

@@ -29,10 +29,18 @@ TRIAGE_TAG = re.compile(r"^\W*triage:\s*(done|wait|question)\W*$", re.I)
 TASK_NOTIFICATION = "<task-notification>"
 WORK_TOOLS = {"Edit", "Write", "NotebookEdit", "Agent", "Workflow"}
 
+OFFER_BY_LENGTH = [
+    (400, "a short block", "offer a slash command that pastes the block"),
+    (2000, "a medium block", "offer a skill whose arguments are the parts that change between pastes"),
+    (float("inf"), "a long block", "offer a skill with the steps in SKILL.md, the long reference text in references/, "
+                                     "and the parts that change between pastes as arguments"),
+]
+
+
 def nudge_text(match: dict) -> str:
+    size, offer = next((size, offer) for max_chars, size, offer in OFFER_BY_LENGTH if match["chars"] <= max_chars)
     return (f"The operator pasted this instruction block {match['count']} times in {match['sessions']} sessions "
-            f"({', '.join(match['dates'][-4:])}). After the task, offer to turn it into a skill whose arguments "
-            f"are the parts that change between pastes.")
+            f"({', '.join(match['dates'][-4:])}). It is {match['chars']} chars, {size}. After the task, {offer}.")
 
 
 def state_path(session: str) -> Path:

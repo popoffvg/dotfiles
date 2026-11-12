@@ -144,7 +144,7 @@ Find what breaks the spec before code does. **Contradictions come first:** the c
 
 ### 2. Missing parts
 
-**The public surface.** For each package the spec changes, list every public symbol its TODOs create and the caller each one names (`arch:examples/todo.md` § Components, "Every public member names its caller"). A public symbol with no `called by` or `implements`, a planned caller with no link to the design step that calls it, a caller that is only a test, or a caller that calls several public members in a fixed order to keep one invariant, is a finding: the edit makes it private or folds the sequence into one operation.
+**The public surface.** For each package the spec changes, list every public symbol its TODOs create and the caller each one names (`change-review` § Components, "Every public member names its caller"). A public symbol with no `called by` or `implements`, a planned caller with no link to the design step that calls it, a caller that is only a test, or a caller that calls several public members in a fixed order to keep one invariant, is a finding: the edit makes it private or folds the sequence into one operation.
 
 Work the Goal implies but no TODO covers: error paths, teardown for every setup, a caller left unmigrated after a signature change, auth/validation on a new boundary, a persistence write with no read, config referenced but never defined.
 

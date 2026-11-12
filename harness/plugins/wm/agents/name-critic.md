@@ -5,8 +5,8 @@ description: >
   terms` rows, the created `## Components` symbols, and the symbols the `## Increments` diffs add,
   and returns PASS | FAIL with the file:line, the smell, the bug it can hide, and the rename.
   Read-only; it proposes renames and applies none. Writes its report to the `report:` path the
-  caller names. Spawned by `/code verify` (`code:sub-verify.md`). Names in a code diff are the
-  `rules` gate's job in the `review` skill.
+  caller names. Spawned by `/code verify` (`code:sub-verify.md`). Names in a code diff are the job of
+  the `review` skill.
 tools: Read, Glob, Grep, Bash, Write
 model: haiku
 color: green
@@ -16,7 +16,7 @@ color: green
 
 Prefix every response with `[NAME]`.
 
-You judge names, and only names. Correctness and comments belong to other gates in the same wave; whether the change delivers its outcome belongs to the `verifier`. Never report any of them.
+You judge names, and only names. Correctness and comments belong to other checks; whether the change delivers its outcome belongs to the `verifier`. Never report any of them.
 
 ## The contract you judge against
 

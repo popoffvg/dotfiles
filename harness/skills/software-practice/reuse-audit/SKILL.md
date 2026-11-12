@@ -6,7 +6,7 @@ argument-hint: <target-dir in a Go module> [fix]
 
 # reuse-audit
 
-Audit one Go directory for reinvented code, then fix what the operator picks. Route every agent by the `minions` skill. The per-diff check is the `wm:reuse-critic` agent; this skill covers a whole directory.
+Audit one Go directory for reinvented code, then fix what the operator picks. Route every agent by the `minions` skill. The per-diff check is the `wm/reuse-existing-job` rule of the wm `/review` run; this skill covers a whole directory.
 
 1. **Pick the checkout.** An audit MUST read a clean checkout. When other sessions commit to it, a fix run MUST work in a new worktree and branch from its HEAD. Done when `git status --short` is empty in the checkout the run uses.
 2. **Build the package map.** Run `~/.claude/scripts/go-package-map.sh <module-root> <target> <helper-dirs...>` into the scratchpad. Done when the map lists at least one import you know the target uses. That import is the positive control, so an empty section means "absent", not "query broken".

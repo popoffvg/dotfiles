@@ -2,72 +2,40 @@
 name: review
 description: >
   The judging half of the wm flow — subcommand router. Every operation that reads code and rules on
-  it without writing any: the gate chain over one implemented TODO (todo), and the same gates over a
-  loose diff, branch, PR, or working tree with no TODO pair (diff). Owns which gate judges what,
-  which agent runs it, and at which model tier. Invoke as `/review <todo|diff>` (default `diff`);
+  it without writing any: one implemented TODO (todo), and a loose diff, branch, PR, or working tree
+  with no TODO pair (diff). Both run the `reviewrules` tool, which checks every rule in one fork per
+  rule and the correctness hypotheses. Invoke as `/review <todo|diff>` (default `diff`);
   `/code review` is the same skill under its old name. Never edits source and never commits.
-argument-hint: "[diff (default), todo — full list /review:help] [normal (default), fast] [mutation] + the target to judge"
+argument-hint: "[diff (default), todo — full list /review:help] + the target to judge"
 ---
 
 # review — subcommand router
 
 `/review <mode>`. Pick the mode, read its file in `commands/`, follow it. Default is `diff`.
 
-`/code review <mode>` is an alias for this page and takes the same modes — the `code` router keeps
-the row so the flow reads end to end, and owns nothing about judging.
+`/code review <mode>` is an alias for this page and takes the same modes.
 
-Both modes ask one question — **is this built right?** — and run the same gates to answer it. They
-differ only in how much the gates can cite. The roster — which gate judges what, which agent runs
-it, at which model tier, the wave order, and how a FAIL routes back — is one file:
-@references/ref-gates.md. Read it before either mode.
+Both modes ask one question: **is this built right?** Both launch one `reviewrules` run over one
+diff. The run, the rule sources, the exit codes, the report files, and how a FAIL routes back are in
+@references/ref-reviewrules.md. Read it before either mode.
 
-| Mode | Judges the diff against… | File |
+| Mode | What it does | File |
 |---|---|---|
-| `diff` *(default)* | the rule files in `<notes-dir>/rules/` and `~/.notes/rules/`, the project's `RULES.md` and `PATTERNS.md`, the language idiom, reuse of the code the repo already has, simplicity, the DRY, KISS, and SOLID design checks, and correctness. A loose diff, a branch, a PR, or the working tree. | `commands/sub-diff.md` |
-| `todo` | the same, plus the TODO's ADR Properties as `ADR-NNNN/Pn` rules. A breach there is a Failure with a citation. The chain `impl:sub-auto.md` runs per TODO. | `commands/sub-todo.md` |
+| `diff` *(default)* | Run reviewrules over a loose diff (the working tree, `last`, a branch, a sha or range, or a PR) against the repo rules, the `wm` skill rules, and the ADR rules of `.notes/adr/`. Reports once and stops. | `commands/sub-diff.md` |
+| `todo` | Run reviewrules over the commits of one TODO against the same rules. `/code auto` and `/code impl` run it per TODO and per increment. | `commands/sub-todo.md` |
 | `help` | This page. | `SKILL.md` |
 
-Pick `todo` when a `<notes-dir>/todos/TODO-N.md` covers the diff, `diff` when none does. A TODO
-whose pair the diff has outgrown is still `todo` — the pair's rule files apply either way, and the
-mismatch itself is for `/code verify`, not for a gate here.
-
-## Speed — `normal` or `fast`
-
-The second argument sets which gates run, in either mode. No speed named → `normal`.
-
-| Speed | Runs | Caller |
-|---|---|---|
-| `normal` *(default)* | the whole chain: the wave, then the test gate | `/code impl` TODO review under `approve: todo` and `none`, `/code auto`, a human |
-| `fast` | the wave over the diff the caller names — no test gate | `/code impl` increment review under `approve: increment` |
-
-A `fast` run is never a TODO's verdict: its caller sets no `status` from it.
-
-## Mutation — only when the operator asks
-
-The `mutation` argument adds the mutation gate to the wave: `/review todo mutation`,
-`/review diff last mutation`. It finds the unit and table tests the diff can delete
-(`mutation:SKILL.md`). Without the argument no gate of it runs. No caller adds it on its own —
-`/code impl` and `/code auto` never pass it. It needs a green suite, so `fast` ignores it.
+Pick `todo` when a `<notes-dir>/todos/TODO-N.md` covers the diff, `diff` when none does.
 
 ## Examples
 
-`examples/report.md` is the finished artifact filled with real content — one gate's own report file
-and the merged `report.md` — and every piece carries its own rules as a `>` block underneath: what it
-must contain, and when it is wrong. Copy the one you are writing, replace the content, delete the
-`>` lines. A rule about one piece is written there and nowhere else.
+`examples/report.md` is a filled `report.md` with its rules as `>` blocks underneath.
 
 ## What this skill never does
 
-**Read-only on source, always.** Every gate returns findings; the caller routes them back to
-`impl`. No gate edits source, and no gate commits — with two named exceptions the roster states.
-The test gate writes the missing test and leaves it uncommitted for the implementer to fold in. The
-mutation gate edits source on purpose — that is how it measures the tests — but only inside sandbox
-copies of the checkout, which are thrown away; the checkout never changes.
+**Read-only on source.** reviewrules forks have only read tools. The caller routes each finding back
+to `impl`, which is the only skill that edits.
 
-**Every gate does write its own report**, to the `report:` path the caller names under
-`<notes-dir>/review/<target>/`. That is a notes-dir file, not source, and it is not optional — a
-green gate writes it too (@references/ref-gates.md § Every gate writes its report to a file).
-
-**Judges how, never whether.** Whether the code should have been built at all, whether it delivers
-its Outcome, and whether a rule was right are three other questions, owned by `code:sub-verify.md`,
-the `verifier` agent, and `arch:sub-revise.md` (@references/ref-gates.md § No gate judges the spec).
+**Judges how, never whether.** Whether the code should exist, whether it delivers its Outcome, and
+whether a rule is right are owned by `code:sub-verify.md`, the `verifier` agent, and
+`arch:sub-revise.md`.

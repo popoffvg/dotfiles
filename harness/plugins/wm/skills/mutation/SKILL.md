@@ -6,8 +6,8 @@ description: >
   time (a **mutant**) to the code the tests cover, record which tests and table rows each mutant
   fails, and mark a test that kills nothing, or only what E2E or a kept test already kills. E2E
   tests are the reference and are never judged. Runs as at most two `mutation-tester` agents; every
-  mutant lands in a sandbox copy, so the checkout is never edited. Load it from the `mutation`
-  gate of `review:ref-gates.md`, or when a diff adds unit tests that look like noise.
+  mutant lands in a sandbox copy, so the checkout is never edited. A standalone check, not part of
+  `/review`: load it on request, or when a diff adds unit tests that look like noise.
 ---
 
 # mutation — a test earns its place by killing a mutant nothing else kills
@@ -35,23 +35,23 @@ The operators that make a mutant, and the rows that make one equivalent, are @re
 
 ### 1. Resolve the candidates and the surface
 
-**Candidates** are the unit tests and table rows the diff adds or changes, written as Go test ids: `TestName`, or `TestName/row_name` for one row (spaces become `_`, as `go test -json` prints them). An E2E test is never a candidate. No candidate → the gate is `n/a — no unit or table test changed`.
+**Candidates** are the unit tests and table rows the diff adds or changes, written as Go test ids: `TestName`, or `TestName/row_name` for one row (spaces become `_`, as `go test -json` prints them). An E2E test is never a candidate. No candidate → the verdict is `n/a — no unit or table test changed`.
 
 **The surface** is the source code the candidates call: the functions their bodies reach, in the diff's changed files first. A test file is never mutated.
 
-**The E2E command** is the `E2E` entry of `toolchain.json` in `todo` mode (`review:ref-gates.md` § One toolchain run per round), or the repo's own E2E task in `diff` mode. None → judge without it: no candidate can be E2E-COVERED.
+**The E2E command** is the `E2E` command of `TODO-N.test.md` § Autotest when a TODO covers the diff, or the repo's own E2E task otherwise. None → judge without it: no candidate can be E2E-COVERED.
 
 Done when you have the candidate ids per package, the source files they call, and the E2E command or `none`.
 
 ### 2. Batch by package — at most two batches
 
-One `mutation-tester` agent per batch, and **at most two batches per wave**. Deal the packages that hold candidates to the batch with fewer candidates so far. One package → one batch.
+One `mutation-tester` agent per batch, and **at most two batches per run**. Deal the packages that hold candidates to the batch with fewer candidates so far. One package → one batch.
 
 ### 3. Point every agent at the checkout
 
-Every agent runs against the code checkout itself: the working tree for a working-tree diff; for any other diff, a checkout whose `HEAD` is the diff's head and whose `git status` is clean. `~/.claude/scripts/go-test-worth.py` edits only hardlinked sandbox copies, so the batches run at the same time and the other gates of the wave read a tree that never changes.
+Every agent runs against the code checkout itself: the working tree for a working-tree diff; for any other diff, a checkout whose `HEAD` is the diff's head and whose `git status` is clean. `~/.claude/scripts/go-test-worth.py` edits only hardlinked sandbox copies, so the batches run at the same time and read a tree that never changes.
 
-**Spawn without `isolation: "worktree"`.** It makes a worktree of the repo the session runs in, and in the wm flow that can be the notes repo and not the code. When no such checkout exists, make one worktree for the whole wave: `git -C <code checkout> worktree add --detach $TMPDIR/mutation-<target> <head sha>`. Remove it with `git -C <code checkout> worktree remove --force <path>` when every agent has returned, a failed one too.
+**Spawn without `isolation: "worktree"`.** It makes a worktree of the repo the session runs in, and in the wm flow that can be the notes repo and not the code. When no such checkout exists, make one worktree for the whole run: `git -C <code checkout> worktree add --detach $TMPDIR/mutation-<target> <head sha>`. Remove it with `git -C <code checkout> worktree remove --force <path>` when every agent has returned, a failed one too.
 
 ### 4. Spawn the batch — one message, all agents
 
@@ -78,7 +78,7 @@ Done when every agent has returned `PASS | FAIL | n/a` and written its report fi
 
 ## What this skill never does
 
-**Never judges an E2E test, and never reports a missing test.** E2E tests are the reference; they decide what a candidate adds. A missing test is the test gate's.
+**Never judges an E2E test, and never reports a missing test.** E2E tests are the reference; they decide what a candidate adds. A missing test is the `test-suite` skill's.
 
 **Never mutates a test file, a fixture, generated code, or the build config, and never edits the checkout.** Every mutant lands in a sandbox copy that the script deletes.
 

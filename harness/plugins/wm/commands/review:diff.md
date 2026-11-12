@@ -1,6 +1,6 @@
 ---
 name: review:diff
-description: "Judge a loose target against the rule files — the working tree, `last`, a branch, a sha or range, or a PR url."
+description: "Run reviewrules over a loose diff (the working tree, `last`, a branch, a sha or range, or a PR) against the repo rules, the `wm` skill rules, and the ADR rules of `.notes/adr/`."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

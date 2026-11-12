@@ -109,7 +109,7 @@ def install_aliases(install, home):
     for target, directory in TARGETS.items():
         plugin = home / directory / 'harness/plugins/wm'
         guide = plugin / 'codex-skills/wm/references/runtime.md'
-        runtime = (f'Use native Claude tools and plugin lifecycle hooks. For code auto, code impl, or review diff, read `{home / directory / "harness/workflows/README.md"}` to launch the internal driver by scriptPath.' if target == 'claude' else
+        runtime = (f'Use native Claude tools and plugin lifecycle hooks. For code auto or code impl, read `{home / directory / "harness/workflows/README.md"}` to launch the internal driver by scriptPath.' if target == 'claude' else
                    f'Read `{guide}` for path resolution and explicit lifecycle checks. ' +
                    ('Translate its tool instructions to Pi read, edit, write, bash, and available subagents; '
                     'Claude and Codex tool names mean their Pi equivalents. '

@@ -1,6 +1,6 @@
 # Cleanup angles
 
-The four angles of the `simplify-code` skill. The `wm:simplify-critic` gate runs the last three: the `reuse-critic` gate owns Reuse. Each finding has `file`, `line`, a one-line `summary`, and the concrete cost: what is duplicated, wasted, or harder to maintain.
+The four angles of the `simplify-code` skill. Each finding has `file`, `line`, a one-line `summary`, and the concrete cost: what is duplicated, wasted, or harder to maintain.
 
 ## Reuse
 

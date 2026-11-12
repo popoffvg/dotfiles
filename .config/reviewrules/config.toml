@@ -1,0 +1,31 @@
+[local]
+agent = "claude"
+model = "sonnet"
+hypothesis_model = "opus"
+hypothesis_check_model = "sonnet"
+reasoning_effort = "medium"
+rule_reasoning_effort = "medium"
+plugin_dir = "~/.config/reviewrules/plugins"
+
+[local.profiles.light]
+model = "haiku"
+reasoning_effort = "low"
+
+[local.profiles.medium]
+model = "sonnet"
+reasoning_effort = "medium"
+
+[local.profiles.heavy]
+model = "opus"
+reasoning_effort = "high"
+fork_steps = 16
+
+[local.rule_dirs]
+wm = "~/git/dotfiles/harness/reviewrules"
+personal = "~/git/dotfiles/harness/reviewrules-personal"
+notes = ".notes"
+
+[local.prices.opus]
+input = 5.00
+cached = 0.50
+output = 25.00

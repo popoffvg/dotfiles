@@ -99,7 +99,7 @@ away.
 > § TODO ordering and waves).
 >
 > **Outcome** — a post-condition (what is true after), ≤ 25 words, `GLOSSARY.md` terms verbatim, no
-> implementation nouns. Full rules: `arch:examples/todo.md` § Outcome. A row hiding an "and" splits; two
+> implementation nouns. Full rules: `change-review` § Outcome. A row hiding an "and" splits; two
 > rows sharing an outcome merge.
 >
 > **`Concretely` is the plain-language twin of `Outcome`, and it is not optional.** `Concretely` is written

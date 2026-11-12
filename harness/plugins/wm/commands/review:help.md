@@ -1,49 +1,24 @@
 ---
 name: review:help
-description: Show all /review modes and the gates they run, with one-line descriptions.
+description: Show all /review modes, with one-line descriptions.
 ---
 
 Print the following table verbatim. No preamble, no commentary, no tool calls — output only the markdown below.
 
 ## `/review <mode>` — full list
 
-| Mode | Judges the diff against… |
+| Mode | What it does |
 |---|---|
-| `diff` *(default)* | Judge a loose target against the rule files — the working tree, `last`, a branch, a sha or range, or a PR url. Resolves the target to one revision range, derives the intent sentence from the commit messages as context, then runs the chain. The test gate reports the missing test here and writes nothing. |
-| `todo` | Judge an implemented TODO against the same rule files, plus the TODO's ADR Properties as `ADR-NNNN/Pn` rules. A breach there is a Failure with a citation. The chain `/code auto` runs per TODO. |
+| `diff` *(default)* | Run reviewrules over a loose diff (the working tree, `last`, a branch, a sha or range, or a PR) against the repo rules, the `wm` skill rules, and the ADR rules of `.notes/adr/`. Reports once and stops. |
+| `todo` | Run reviewrules over the commits of one TODO against the same rules. `/code auto` and `/code impl` run it per TODO and per increment. |
 | `help` | This page. |
 
-## Speed — the second argument
+## What one review runs
 
-| Speed | Runs |
-|---|---|
-| `normal` *(default)* | The whole chain: the wave, then the test gate. `/code impl` runs it as the TODO review under `approve: todo` and `none`. |
-| `fast` | The wave over the named diff — no test gate. `/code impl` runs it over each increment under `approve: increment`. Sets no TODO `status`. |
+One `reviewrules` run in the background. It reads the diff once in a parent session, then forks it once per rule whose scope matches a changed file, with the model, effort, and steps of the rule's profile (`light`, `medium`, `heavy`). A generator fork writes correctness hypotheses, and a checker fork answers them.
 
-## Mutation — the third argument
+Exit 0 is green, 1 is a FAIL or a confirmed hypothesis, and 2 is a run that did not finish. The summary goes to `<notes-dir>/review/<target>/report.md`, and the full JSON report goes to `reviewrules.json` beside it. `<target>` is `TODO-N`, or the slug of the range in `diff` mode.
 
-`mutation` adds the mutation gate: `/review todo mutation`, `/review diff last mutation`. It finds the unit and table tests the diff can delete. Without it no mutation agent runs; `/code impl` and `/code auto` never pass it, and `fast` ignores it.
+Every mode asks one question: **is this built right?** Read-only on source: the forks have only read tools.
 
-## The gates each mode runs
-
-| Gate | Judges | Model |
-|---|---|---|
-| lint | the repo's linter over the changed files, and the tests that cover them | haiku |
-| rules | every rule in `<notes-dir>/rules/` and `~/.notes/rules/` — one `# H1` per rule — against each changed file in its scope: comments, names, test worth, tables, language rules, and the TODO's decisions. At most 8 haiku checkers, each over the rules that cover the same files; one sonnet reducer drops false hits | haiku; reducer sonnet |
-| idiom | every line the diff changes — written the way its language and pinned version expect | sonnet |
-| reuse | every new symbol and changed body — does it write again a job the repo or its dependencies already do | sonnet |
-| simplify | every changed function — needless complexity, wasted work, or a fix at the wrong depth | sonnet |
-| design | every new and changed symbol — the DRY, KISS, SOLID, and phase-cost checks of the good-design skills | sonnet |
-| correctness | the inputs that make the changed code give a wrong result — opus asks one yes/no question per suspected defect, one sonnet checker answers each | opus; checkers sonnet |
-| mutation | **only with the `mutation` argument** — which unit and table tests the diff added can be deleted — a mutant they alone kill keeps them; E2E tests are the reference, never judged | sonnet |
-| test | does a test assert the contract — and writes it when none does | sonnet |
-
-Order: `wm-rule-batches.py plan` cuts the rules into batches, then all judging agents run as one parallel wave — lint, every rule checker, idiom, reuse, simplify, design, correctness, and — only with the `mutation` argument — the mutation gate as at most two agents. The rule reducer runs when the last rule checker returns; a (file, rule) pair with no verdict fails the gate. Then the sonnet test gate runs alone, because it writes. Any FAIL merges into one fixup brief for `/code fix` and restarts the chain at the plan step. A fixup that changes only comments re-runs only the rules gate and the gates that failed.
-
-Every gate writes its own findings file: `<notes-dir>/review/<target>/<gate>.md` — mutation writes one per batch under `mutation/` — plus the merged `<notes-dir>/review/<target>/report.md`. `<target>` is `TODO-N`, or the resolved range slug in `diff` mode. Each round overwrites, so the files always show the current verdict — a green gate writes its file too, so a missing file means the gate did not run.
-
-Every mode asks one question: **is this built right?** (`review:ref-gates.md` § No gate judges the spec).
-
-Read-only on source: every gate returns findings and applies none. Two exceptions: the sonnet test gate writes the missing test and leaves it uncommitted, and the mutation gate edits source inside its own throwaway worktree, never the tree you are reviewing.
-
-`/code review <mode>` and `/wm:code:review <mode> [speed]` are aliases — same modes, same gates.
+`/code review <mode>` and `/wm:code:review <mode>` are aliases.

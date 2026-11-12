@@ -1,6 +1,6 @@
 ---
 name: review:todo
-description: "Judge an implemented TODO against the same rule files, plus the TODO's ADR Properties as `ADR-NNNN/Pn` rules."
+description: "Run reviewrules over the commits of one TODO against the same rules."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

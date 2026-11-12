@@ -1,12 +1,12 @@
 # Sign-off — the human accepts or rejects what shipped
 
-The implementation is in the working tree and the gates have run. This step puts the result in front
+The implementation is in the working tree and the review has run. This step puts the result in front
 of the human, in the form they can decide on, and then routes the decision they make. It writes no
 source and runs no test — the numbers it reports come from runs that already happened.
 
 Naming: this step is the **human's** accept-or-reject. Auditing a test set for missed cases is
 [`sub-verify.md`](sub-verify.md), and judging whether the code is built right is the `review` skill's
-gate chain (`review:SKILL.md`). Neither of those asks the human anything.
+`reviewrules` run (`review:SKILL.md`). Neither of those asks the human anything.
 
 ## Step 1 — collect the criteria the human agreed to
 
@@ -16,7 +16,7 @@ Read them from the artifacts that hold them, in this order:
 |---|---|
 | `<notes-dir>/spec.md` | The ledger row for this TODO — its `Outcome` and `Concretely` lines, which are what the human aligned on before any body existed. |
 | `<notes-dir>/todos/TODO-N.md` + `TODO-N.test.md` | `Outcome`, `Surface`, `Flow changes`, and `Autotest` — the human half and the test file, restating the ledger outcome verbatim at the top. |
-| `<notes-dir>/review/TODO-N/report.md` | The merged gate verdict, if the gate chain ran. |
+| `<notes-dir>/review/TODO-N/report.md` | The `reviewrules` summary, if the review ran. |
 
 The artifact set is `arch:ref-write.md` § Artifacts. Done when every criterion you will report traces
 to a line in one of those files — a criterion you invented is a criterion the human never agreed to.

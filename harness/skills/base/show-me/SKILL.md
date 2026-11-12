@@ -55,7 +55,7 @@ Show one running path per heading. Name its entry point. Write one `python` bloc
 
 For a changed flow, mark each new step with `# +`. Mark changed behavior with `# ~ was: <before>`. Mark a moved step with `# moved, was: after <step>`. Show a removed step as `# - <step>` on its own line. Leave unchanged steps unmarked. Mark every line of a new path with `# +`. If code exists, add its `path:line` after the marker. Give each unchanged step a trailing `# path:line`.
 
-Show the whole path through 20 lines. For a longer unchanged path, keep its entry, result, branches, and key steps. For a longer changed path, keep each changed line, its enclosing control lines, and one unchanged line on each side. Use `...` for omitted steps. Give each new loop, wait, retry, timer, or background task its own path when a call hides its steps. The [TODO example](../../../plugins/wm/skills/arch/examples/todo.md#flow-changes) shows the form.
+Show the whole path through 20 lines. For a longer unchanged path, keep its entry, result, branches, and key steps. For a longer changed path, keep each changed line, its enclosing control lines, and one unchanged line on each side. Use `...` for omitted steps. Give each new loop, wait, retry, timer, or background task its own path when a call hides its steps. The [change-review example](../change-review/references/example.md#flow-changes) shows the form.
 
 ## Three rules for every form
 

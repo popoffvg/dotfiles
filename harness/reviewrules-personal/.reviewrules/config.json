@@ -1,0 +1,10 @@
+{
+  "rules": [
+    {
+      "id": "release-on-every-exit",
+      "rule": "When the diff adds an acquire (open, register, lock, lease, in-flight mark, floor) whose release runs in a hook, callback, or deferred call that another layer invokes, find every caller of that layer up to the entry point. Quote each early return between the acquire and the call that runs the release. FAIL when one exit skips the release and nothing later releases it. First search the repo for a sibling mechanism of the same shape (an in-flight set, a finalize, a release in a defer) and compare where it releases; name it in the finding.",
+      "severity": "high",
+      "profile": "heavy"
+    }
+  ]
+}

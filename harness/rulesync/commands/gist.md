@@ -1,6 +1,6 @@
 ---
 name: gist
-description: Create a session handoff and publish it as a private GitHub gist.
+description: Write a change-review document of the session change and publish it as a private GitHub gist.
 disable-model-invocation: true
 ---
 

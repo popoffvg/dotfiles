@@ -2,10 +2,9 @@
 name: hypothesis-checker
 description: >
   Answers one hypothesis about a diff or a spec — a yes/no question whose yes is a defect at one
-  file:line. The `correctness-critic` gate raises the diff hypotheses; `/code verify` raises the
-  missed-change hypotheses of a spec. Reads only what the question needs: the lines, their callers, the types,
+  file:line. `/code verify` raises the missed-change hypotheses of a spec. Reads only what the question needs: the lines, their callers, the types,
   the rule the question cites. Returns CONFIRMED | REFUTED | UNSURE with quoted evidence. Read-only —
-  writes no file, runs no build and no test. Spawned by `correctness-critic` or by `/code verify`, one per hypothesis, all
+  writes no file, runs no build and no test. Spawned by `/code verify`, one per hypothesis, all
   in one message.
 model: sonnet
 color: blue

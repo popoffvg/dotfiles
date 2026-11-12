@@ -4,7 +4,7 @@
 [`examples/todo.md`](../examples/todo.md) (human half),
 [`examples/todo-agent.md`](../examples/todo-agent.md) (agent half), and
 [`examples/todo-test.md`](../examples/todo-test.md) (test file). Open the half you are writing and
-read the block under each heading — there is no second copy of a section rule anywhere.
+read the block under each heading. The human half is a change review: the `change-review` skill owns the rules of its sections, and the `>` blocks of `examples/todo.md` hold only what the wm flow adds. There is no second copy of a section rule anywhere.
 
 This file holds only what no single section owns. `sub-todo.md` owns the procedure — the fan-out, the budgets, the verification chain, the
 pre-save checklist. Which half each heading lives in: `sub-todo.md` § Required elements.
@@ -12,7 +12,7 @@ pre-save checklist. Which half each heading lives in: `sub-todo.md` § Required 
 | Section | Half | Its rules |
 |---|---|---|
 | frontmatter (`status`, `type`, `depends_on`, `risk`, `size`, `approve`, `increment`) | `TODO-N.md` | `examples/todo.md` |
-| Outcome, New terms, Components, Flow changes, Increments with their `### Commit` sections, Deviations | `TODO-N.md` | `examples/todo.md` |
+| Outcome, New terms, Components, Flow changes, Increments with their `### Commit` sections, Deviations | `TODO-N.md` | `change-review` skill, plus `examples/todo.md` |
 | Autotest | `TODO-N.test.md` | `examples/todo-test.md` |
 | Files, Pre-reads, Manual test, Gotchas | `TODO-N.agent.md` | `examples/todo-agent.md` |
 

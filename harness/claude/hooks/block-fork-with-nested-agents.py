@@ -12,7 +12,7 @@ NESTED_AGENT_SIGNS = [
     (r"\b(sonnet|haiku)\b", "names a cheaper model"),
     (r"\bsub-?agents?\b|\bspawn", "asks for subagents"),
     (r"@[a-z][a-z-]+\b|\bwm:[a-z-]+(er|critic|checker|tester)\b", "names an agent type"),
-    (r"/code (impl|auto|review)\b|/review\b|\bgate (wave|chain)\b", "runs a loop that starts agents"),
+    (r"/code (impl|auto)\b", "runs a loop that starts agents"),
 ]
 
 call = json.load(sys.stdin)

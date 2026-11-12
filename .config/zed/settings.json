@@ -129,7 +129,7 @@
     "provider": "zed",
   },
   "diff_view_style": "unified",
-  "cli_default_open_behavior": "new_window",
+  "cli_default_open_behavior": "existing_window",
   "project_panel": {
     "sticky_scroll": false,
     "git_status": false,

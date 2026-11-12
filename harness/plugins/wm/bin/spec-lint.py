@@ -13,7 +13,7 @@ diff, and the three hunts (contradictions, missing parts, edge cases). Those are
 judgments, and no parser reaches them.
 
 Every check prints its verdict, pass or fail, so a clean run proves the check ran - the
-same rule the review gates' `Covered` table follows.
+same rule as the one verdict line per rule in a `reviewrules` report.
 
 usage: spec-lint.py <notes-dir> [--json] [--quiet]
 exit 0 every check passed - 1 at least one finding - 2 unusable notes dir
@@ -444,7 +444,7 @@ def check_human(n, path, lines, pairs, f, checks):
             first = next((l.strip() for l in section(body, name) if l.strip()), "")
             if not first.startswith(READER_CHECK):
                 f.fail(row, label, f"`## {name}` does not open with a `{READER_CHECK}` line",
-                       "copy the section's reader check from arch:examples/todo.md")
+                       "copy the section's reader check from the change-review skill")
     if "Deviations" in found and fm.get("status") == "todo":
         f.fail(row, label, "`## Deviations` written at status todo", "impl writes it, never arch")
     if "Deviations" in found:

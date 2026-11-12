@@ -55,7 +55,7 @@ not. None of them is a template to copy.
 **This file owns the ordered parts of each brick; `flow-sketch` owns the notation and picks the
 variant** from the change shape and the `main` component's brick (`flow-sketch` § Variants). Both
 are read together by any sketch in the flow, including a TODO's `## Flow changes` pseudocode
-(`examples/todo.md` § Flow changes).
+(`change-review` § Flow changes).
 
 ### command
 

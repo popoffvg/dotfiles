@@ -28,6 +28,8 @@ RULE_STORES = [
     "~/git/dotfiles/harness/plugins/*/skills/",
     "~/git/dotfiles/harness/plugins/*/agents/",
     "~/.notes/rules/",
+    "~/git/dotfiles/harness/reviewrules/.reviewrules/config.json",
+    "<the session's repo>/.reviewrules/config.json",
     "<the session's repo>/.notes/**/PATTERNS.md and <repo>/.notes/**/RULES.md",
 ]
 

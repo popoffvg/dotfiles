@@ -84,6 +84,8 @@ harness/apps/line-comment/target/
 harness/apps/pr-comments/target/
 harness/apps/wm-lsp/target/
 harness/apps/wm-lsp/extension.wasm
+harness/apps/review-mark/target/
+harness/apps/review-mark/extension.wasm
 .tmp/
 .config/herdr/sessions/
 

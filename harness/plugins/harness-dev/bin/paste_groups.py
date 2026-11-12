@@ -79,7 +79,7 @@ def record_pastes(store: Path, session: str, prompt: str) -> list[dict]:
             out.write(json.dumps(row) + "\n")
             earlier.append(row)
             members = [e for e in earlier if e["group"] == group]
-            results.append({"id": paste_id, "group": group, "count": len(members),
+            results.append({"id": paste_id, "group": group, "chars": len(block), "count": len(members),
                             "sessions": len({e["session"] for e in members}),
                             "dates": sorted({time.strftime("%Y-%m-%d", time.localtime(e["ts"])) for e in members})})
     return results

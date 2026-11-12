@@ -36,6 +36,11 @@
       "rule": "A new test must assert observable behavior through a path that exercises the relevant dependency contract. Flag a test that hand-builds a dependency response in the shape the author assumes and only checks a lookup, comparison, or constant; identify the real path or a missing behavioral assertion. Flag a duplicate when an existing test already covers the same behavior through that real path.",
       "scope": ["**/*_test.*", "**/test/**", "**/tests/**"],
       "severity": "medium"
+    },
+    {
+      "id": "claim-matches-code",
+      "rule": "Each added comment, doc comment, or test name that states a behavior (what happens, what never happens, when something opens or closes) must be true of the code it describes. Follow the code path in the diff and quote the line that makes the claim true. FAIL when the path contradicts the claim, for example a guard that runs after the effect it claims to prevent. For a test name or a step comment that claims a behavior, FAIL when the test never calls the function that has that behavior, so it cannot fail when the behavior breaks.",
+      "severity": "medium"
     }
   ]
 }

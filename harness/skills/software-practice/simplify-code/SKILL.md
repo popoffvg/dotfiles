@@ -1,6 +1,6 @@
 ---
 name: simplify-code
-description: Review the changed code for reuse, simplification, efficiency, and altitude cleanups, then apply the fixes. Quality only — it does not hunt for bugs; `/code-review` does that. A copy of the built-in `/simplify` that this repo owns. Use on `/simplify-code [<target>]`, "simplify the diff", "clean up the changed code without changing behavior". The read-only check of the same angles inside the wm review wave is the `wm:simplify-critic` gate.
+description: Review the changed code for reuse, simplification, efficiency, and altitude cleanups, then apply the fixes. Quality only — it does not hunt for bugs; `/code-review` does that. A copy of the built-in `/simplify` that this repo owns. Use on `/simplify-code [<target>]`, "simplify the diff", "clean up the changed code without changing behavior". The wm `/review` run checks the same angles read-only, through the `wm` rules of reviewrules.
 argument-hint: "[<target>]"
 ---
 

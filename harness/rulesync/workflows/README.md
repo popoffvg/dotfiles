@@ -1,13 +1,13 @@
 # Internal Claude workflows
 
 These scripts are outside Claude's `workflows/` discovery directory. Reach them
-through `/wm code auto`, `/wm code impl`, or `/review diff`.
+through `/wm code auto` or `/wm code impl`. `/review diff` runs `reviewrules` once and needs no workflow.
 
 | Route | Script beside this file | Arguments |
 |---|---|---|
 | `wm code auto` | `wm-code-auto.js` | `{ notesDir, deploy, maxGateFails }` |
 | `wm code impl` | `wm-code-impl.js` | `{ todo, notesDir, risk, lessonsFile, maxGateFails }` |
-| `review diff` | `wm-code-impl.js` | `{ mode: "diff", range, intent, notesDir }` |
+| fixup loop over a diff | `wm-code-impl.js` | `{ mode: "diff", range, intent, notesDir }` |
 
 Read the selected script and pass its absolute path as `scriptPath` to Claude's
 `Workflow` tool, with `args` as a JSON object. Read the script's argument comments

@@ -1,7 +1,7 @@
 export const meta = {
   name: 'wm-code-auto',
-  description: 'Drive the whole wm ledger unattended: every open TODO through the gate chain, then optional deploy, then the E2E verification',
-  whenToUse: 'Running /code auto deterministically: read the ledger, run wm-code-impl per open TODO in wave order, carry LESSONS.md between rounds, block a stuck TODO and drop its dependents, then deploy (optional) and verify end-to-end. The gates replace the human — nothing pauses for approval.',
+  description: 'Drive the whole wm ledger unattended: every open TODO through implementation and the reviewrules review, then optional deploy, then the E2E verification',
+  whenToUse: 'Running /code auto deterministically: read the ledger, run wm-code-impl per open TODO in wave order, carry LESSONS.md between rounds, block a stuck TODO and drop its dependents, then deploy (optional) and verify end-to-end. The review replaces the human — nothing pauses for approval.',
   phases: [
     { title: 'Ledger', detail: 'read spec.md + every todos/TODO-N.md → the work list', model: 'haiku' },
     { title: 'Squash', detail: "fold the round's fixups into the TODO's one commit, distilling them into GOTCHAS.md" },
@@ -181,7 +181,7 @@ for (const item of workList) {
     continue
   }
 
-  log(`TODO-${item.todo} (${item.wave || 'no wave'}) → gate chain`)
+  log(`TODO-${item.todo} (${item.wave || 'no wave'}) → implement + review`)
   // A child that throws blocks its TODO — it never ends the run (sub-auto.md Step 2, last rule).
   let round = null
   try {

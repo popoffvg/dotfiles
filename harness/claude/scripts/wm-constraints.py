@@ -12,6 +12,9 @@ The `status` key is `proposed` or `approved`; a missing key reads as `proposed`.
 operator sets `approved`. `--unapproved` lists the live ADRs that are not approved: no TODO is
 implemented while one exists.
 
+`--reviewrules` writes the same rules to `<notes-dir>/.reviewrules/config.json`, severity medium and profile heavy, and
+replaces the file each run, so a removed Property stops binding.
+
 Exit 0 = at least one rule printed, or --unapproved found none · 1 = no rule matched · 2 = usage
 or missing dir · 3 = --check found an ADR that breaks the format · 4 = --unapproved found one.
 """
@@ -239,6 +242,7 @@ def main() -> int:
     ap.add_argument("dir", nargs="?", help=f"adr dir or notes dir (default: first of {', '.join(DEFAULT_DIRS)})")
     ap.add_argument("-m", "--match", help="case-insensitive regex over rule id, rule text, ADR title, file name")
     ap.add_argument("--json", action="store_true", help="print the rules as one JSON array")
+    ap.add_argument("--reviewrules", action="store_true", help="write the rules to <notes-dir>/.reviewrules/config.json, the rule dir that reviewrules reads; print its path")
     ap.add_argument("--check", action="store_true", help="report ADRs that break the format or give no rule; exit 3 if any")
     ap.add_argument("--unapproved", action="store_true", help="list the live ADRs the operator has not approved; exit 4 if any")
     args = ap.parse_args()
@@ -281,6 +285,14 @@ def main() -> int:
     if args.json:
         print(json.dumps(rows, indent=2))
         return 0 if rows else 1
+
+    if args.reviewrules:
+        out = Path(dirpath).parent / ".reviewrules" / "config.json"
+        out.parent.mkdir(exist_ok=True)
+        entries = [{"id": r["id"], "rule": MARK.sub("", r["rule"]), "severity": "medium", "profile": "heavy"} for r in rows]
+        out.write_text(json.dumps({"rules": entries}, indent=2) + "\n")
+        print(out)
+        return 0
 
     if not rows:
         print(f"no rule in {dirpath}: no live ADR has a Property that matches")

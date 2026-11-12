@@ -1,0 +1,56 @@
+id = "review-mark"
+name = "Review Mark"
+version = "0.1.0"
+schema_version = 1
+description = "Mark diff hunks and files as reviewed"
+repository = "https://github.com/popoffvg/dotfiles"
+authors = ["Vitalii Popov"]
+
+[lib]
+kind = "Rust"
+
+[language_servers.review-mark-language-server]
+name = "Review Mark Language Server"
+languages = [
+  "C",
+  "C++",
+  "CSS",
+  "Diff",
+  "Docker Compose",
+  "Dockerfile",
+  "Elisp",
+  "Gherkin",
+  "Git Attributes",
+  "Git Commit",
+  "Git Config",
+  "Git Ignore",
+  "Git Rebase",
+  "Go",
+  "Go Mod",
+  "Go Work",
+  "HCL",
+  "Helm",
+  "HTML",
+  "JavaScript",
+  "JSON",
+  "JSONC",
+  "Markdown",
+  "Mermaid",
+  "Proto",
+  "Python",
+  "Python constraints",
+  "Python requirements",
+  "Quint",
+  "Rust",
+  "Shell Script",
+  "Tengo",
+  "Terraform",
+  "Terraform Vars",
+  "Todotxt",
+  "TOML",
+  "Tree",
+  "TSX",
+  "TypeScript",
+  "Vue.js",
+  "YAML",
+]

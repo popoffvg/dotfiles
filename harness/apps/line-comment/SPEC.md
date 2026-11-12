@@ -376,7 +376,7 @@ location and spawns it:
 
 ```json
 { "label": "line-comment: add comment from clipboard",
-  "command": "line-comment-lsp add \"$(pbpaste)\"",
+  "command": "loc=$(pbpaste | tr -d '\\n'); printf '%s' \"$loc\" | grep -Eq '^[^:]+:[0-9]+(-[0-9]+)?$' || loc=\"$ZED_RELATIVE_FILE:$ZED_ROW\"; line-comment-lsp add \"$loc\"",
   "cwd": "$ZED_WORKTREE_ROOT" }
 ```
 
@@ -392,7 +392,7 @@ location and spawns it:
 `cmd-.` is the one-key gesture, taking over the keystroke that asks for code actions everywhere
 else — in this context alone, where Zed's own menu is always empty. `cmd-alt-y` is the half of it
 that reads whatever the clipboard already holds, so a copy made by any other means comments the
-same way, and `alt-o` is the way out when the path names two files: a real project tab, where the
+same way. When the clipboard holds no `<file>:<line>`, the task falls back to the cursor location that Zed gives. `alt-o` is the way out when the path names two files: a real project tab, where the
 code action serves as always.
 
 **The extension is installed once per machine.** `zed: install dev extension` pointed at `harness/apps/line-comment` — the directory holding `extension.toml`, which is why the manifest and the shim crate sit at the app root and the server sits in `server/`. After editing the shim, `zed: rebuild dev extension`. Zed compiles the WASM itself and needs `rustup` with the `wasm32-wasip2` target. The `laptop-setup` skill records both steps.

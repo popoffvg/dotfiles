@@ -533,9 +533,10 @@
     "line-comment@local-plugins": true,
     "smart-commit@local-plugins": true,
     "prompt-risk@prompt-risk": true,
-    "annotate@annotate": true,
+    "annotate@annotate": false,
     "side-chat@side-chat": true,
     "pins@pins": true,
+    "compact-ask@compact-ask": true,
     "dollar-skills@local-plugins": true
   },
   "extraKnownMarketplaces": {
@@ -593,6 +594,12 @@
       "source": {
         "source": "github",
         "repo": "popoffvg/pins"
+      }
+    },
+    "compact-ask": {
+      "source": {
+        "source": "github",
+        "repo": "popoffvg/compact-ask"
       }
     }
   },

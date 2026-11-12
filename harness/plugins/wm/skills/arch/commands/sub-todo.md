@@ -9,7 +9,7 @@ approves the row's `TODO-N.md`, `TODO-N.test.md`, and `GLOSSARY.md` entries.
 **Open the filled examples first** — [`examples/todo.md`](../examples/todo.md) (human half),
 [`examples/todo-agent.md`](../examples/todo-agent.md) (agent half), and
 [`examples/todo-test.md`](../examples/todo-test.md) (test file). They are the artifact you are
-producing, and each carries the rules for every section as a `>` block under the heading it governs.
+producing, and each carries the rules for every section as a `>` block under the heading it governs. The human half is a change review: load the `change-review` skill first, because `examples/todo.md` holds only what the wm flow adds to it.
 The rule set that bounds them is printed, not written: run
 `~/.claude/scripts/wm-constraints.py <notes-dir>/adr`.
 
@@ -20,7 +20,7 @@ Spec contract + the gate: `ref-write.md`. Vocabulary: `wm:GLOSSARY.md`.
 | File | Read by | Holds | Length |
 |------|---------|-------------|--------|
 | `TODO-N.md` | the human, repo closed | frontmatter, Outcome, New terms, Components, **Flow changes**, **Increments (the work, its diffs, and its commits)** | ≤ 200 lines, New terms + Components + Increments uncounted |
-| `TODO-N.test.md` | the human at the gate, then the implementer and the gates | Autotest — Unit and E2E | **unlimited** |
+| `TODO-N.test.md` | the human at the gate, then the implementer and the review | Autotest — Unit and E2E | **unlimited** |
 | `TODO-N.agent.md` | the implementer | Files (each path keyed to its increments), Pre-reads, Manual test, Gotchas | **unlimited** |
 
 The split is by audience, not by size. The human approves `TODO-N.test.md` at the same gate as `TODO-N.md`.
@@ -103,7 +103,7 @@ nothing more; the context is already there.
 ```
 Agent(subagent_type="fork", prompt=
   "[TODO-N stage 1] Author the design for ledger row N: <the row's outcome, verbatim>.
-   Follow ${CLAUDE_PLUGIN_ROOT}/skills/arch/commands/sub-todo.md, the `>` rule blocks in
+   Load the `change-review` skill. Follow ${CLAUDE_PLUGIN_ROOT}/skills/arch/commands/sub-todo.md, the `>` rule blocks in
    examples/todo.md and examples/todo-test.md, and references/ref-todo-sections.md in full — you
    are past the spec gate, before the TODO gate.
    Write exactly two files: <notes-dir>/todos/TODO-N.md (with `increment: 0/<total>`) and
@@ -269,8 +269,8 @@ rather than a row of its own — is `ref-write.md` § Merges that fall out of th
 5. **The surface ships as a diff; the logic ships as a sketch.** Every changed type, field, signature, and setting is a unified diff in the increment that lands it, never prose the implementer translates. Every body — the code behind those signatures — is pseudocode (the `flow-sketch` skill) the implementer writes from. Neither substitutes for the other, and a body pasted as a diff is the one shape both rules reject (`ref-todo-sections.md` § A diff carries the surface, not a body).
 6. **No outward links** — reference other TODOs only via `Depends on`.
 7. **Pre-reads are mandatory** — every file to understand before editing.
-8. **New terms are defined, not assumed** — a domain term missing from `GLOSSARY.md` gets a `## New terms` row (`examples/todo.md` § New terms).
-9. **Components come before changes** — name the `package.Class` set and mark the one holding the main part, then split the work into ordered increments over those components (`examples/todo.md` § Components, § Increments).
+8. **New terms are defined, not assumed** — a domain term missing from `GLOSSARY.md` gets a `## New terms` row (`change-review` § New terms, `examples/todo.md` § New terms).
+9. **Components come before changes** — name the `package.Class` set and mark the one holding the main part, then split the work into ordered increments over those components (`change-review` § Components, § Increments).
 
 ## File location
 
@@ -369,8 +369,8 @@ design read, and these two are answerable only against code:
 
 - **The generated rules** — do the settled decisions actually bound this slice? The human *made* those
   decisions during the grill, so re-reading them here checks nothing; what matters is whether an
-  increment violates one, which `verify` audits against the generated rules and the `rules` gate
-  checks against the diff as `ADR-NNNN/Pn` rules.
+  increment violates one, which `verify` audits against the generated rules and the `review` run
+  checks against the diff as `notes/ADR-NNNN/Pn` rules.
 - **Does the real code match each increment?** The gate approves each increment as a prediction. The
   human walks them again while they are applied, at the grain the `approve` key sets
   (`impl:sub-impl.md` step 5 and its § Approval), where each block is compared with its real diff.
@@ -388,7 +388,7 @@ all that stays — the only place the *why* is written for a reader who has just
 
 ## Section rules
 
-What goes inside each heading is the `>` block under that heading in @../examples/todo.md,
+What goes inside each heading of the human half is the `change-review` skill plus the `>` block under that heading in @../examples/todo.md,
 @../examples/todo-agent.md, and @../examples/todo-test.md. What cuts across the sections — the prose rule, where the generated rules
 come from, the two diff doctrines, and what an approval buys — is
 @../references/ref-todo-sections.md. A fork authoring a row reads all four; the caller running the

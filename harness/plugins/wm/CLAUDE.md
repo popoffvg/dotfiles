@@ -2,7 +2,7 @@
 
 The work-management flow: design a change, implement it, judge it, teach it. Two user-invocable
 routers — `/code <subcommand>` (default `new`) over the flow, and `/review <mode>` (default `diff`)
-over the gate chain — plus three worker skills reached through them.
+over one `reviewrules` run — plus three worker skills reached through them.
 
 **`INDEX.md` is the map — what is where.** Every skill, every file, and what each one owns. No
 `SKILL.md` restates it; read `INDEX.md` before deciding where something belongs.
@@ -28,7 +28,7 @@ work — `arch` designs, `impl` writes source, `review` judges it, `teach` teach
 
 `review` is user-invocable too, because judging a diff is a whole job that starts without a spec.
 Its `/code review` row is an alias: the row names `review:SKILL.md` and restates no mode and no
-gate.
+rule.
 
 A procedure added to `code` that is neither routing nor shared vocabulary is in the wrong skill.
 Put it where the work lives and cite it from the table.

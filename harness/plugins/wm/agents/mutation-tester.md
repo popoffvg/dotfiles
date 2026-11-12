@@ -1,13 +1,13 @@
 ---
 name: mutation-tester
 description: >
-  Mutation gate for one batch of candidate tests — the unit tests and table rows a diff adds or
+  Mutation check for one batch of candidate tests — the unit tests and table rows a diff adds or
   changes. Applies one behavior-changing edit at a time to the code they call, records which tests
   and rows each mutant fails, and marks every candidate that kills nothing, or only what E2E or a
   kept test already kills. E2E tests are the reference and are never judged. Returns PASS | FAIL |
   n/a with the test to delete and who covers it, and writes the report to the `report:` path. Every
   mutant lands in a sandbox copy that `go-test-worth.py` makes, so it never edits the checkout and
-  never commits. At most two run at once, in the `mutation` gate of the `review` skill's wave.
+  never commits. At most two run at once, started by the `mutation` skill.
 tools: Read, Glob, Grep, Bash, Write
 model: sonnet
 color: red

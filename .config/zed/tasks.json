@@ -1,7 +1,8 @@
 [
   {
     "label": "line-comment: add comment from clipboard",
-    "command": "line-comment-lsp add \"$(pbpaste)\"",
+    // The clipboard target wins only when it is <file>:<line>; any other clipboard text falls back to the cursor.
+    "command": "loc=$(pbpaste | tr -d '\\n'); printf '%s' \"$loc\" | grep -Eq '^[^:]+:[0-9]+(-[0-9]+)?$' || loc=\"$ZED_RELATIVE_FILE:$ZED_ROW\"; line-comment-lsp add \"$loc\"",
     "cwd": "$ZED_WORKTREE_ROOT",
     "shell": { "program": "sh" },
     "hide": "on_success",
@@ -293,7 +294,8 @@
   {
     "label": "open file",
     "command": "bash",
-    "args": ["-lc", "zed $(pbpaste)"],
+    "args": ["-lc", "\"$HOME/.config/zed/scripts/open-file-prompt.sh\""],
+    "cwd": "$ZED_WORKTREE_ROOT",
     "use_new_terminal": true,
     "allow_concurrent_runs": true,
     "reveal_target": "center",
@@ -326,6 +328,19 @@
     "args": ["\"$ZED_FILE\""],
     "use_new_terminal": true,
     "allow_concurrent_runs": true,
+    "reveal_target": "center",
+    "hide": "on_success",
+    "show_summary": false,
+    "show_command": false,
+  },
+  {
+    // Ask for a title, create a worktree on a new branch named after it, open it, start a terminal thread there.
+    "label": "worktree: new thread",
+    "command": "bash",
+    "args": ["-lc", "\"$HOME/.config/zed/scripts/new-worktree-thread.sh\""],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "use_new_terminal": true,
+    "allow_concurrent_runs": false,
     "reveal_target": "center",
     "hide": "on_success",
     "show_summary": false,

@@ -86,6 +86,25 @@ run = "cargo test -p wm-lsp"
 description = "Regenerate line-comment's extension.toml language list from the installed Zed languages"
 run = "{{config_root}}/harness/scripts/sync-zed-languages.py --app line-comment"
 
+[tasks."harness:review-mark:build"]
+description = "Build the review-mark language server → ~/.local/bin/review-mark-lsp"
+dir = "{{config_root}}/harness/apps/review-mark"
+sources = ["server/**/*.rs", "server/Cargo.toml"]
+outputs = ["{{env.HOME}}/.local/bin/review-mark-lsp"]
+run = """
+cargo build --release -p review-mark-server
+install -m 755 target/release/review-mark-lsp $HOME/.local/bin/review-mark-lsp
+"""
+
+[tasks."harness:review-mark:test"]
+description = "Test the review-mark language server"
+dir = "{{config_root}}/harness/apps/review-mark"
+run = "cargo test -p review-mark-server"
+
+[tasks."harness:review-mark:languages"]
+description = "Regenerate review-mark's extension.toml language list from the installed Zed languages"
+run = "{{config_root}}/harness/scripts/sync-zed-languages.py --app review-mark"
+
 [tasks."harness:pr-comments:build"]
 description = "Build the pr-comments language server → ~/.local/bin/pr-comments-lsp"
 dir = "{{config_root}}/harness/apps/pr-comments"

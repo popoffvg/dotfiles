@@ -26,6 +26,6 @@ forms, and the error messages.
 
 ## Where it fits
 
-- `/review` and `/test-suite verify` — hand each gate finding back as an inline comment
+- `/review` and `/test-suite verify` — hand each finding back as an inline comment
   instead of a wall of terminal text.
 - `/smart-commit` — show the proposed hunks while the user answers the proposal file.

@@ -17,6 +17,7 @@ The author of a change reads this section; the verifier skips it.
 2. Give it the user's task as written and the diff base (`HEAD` for uncommitted work) or the doc paths. Never give it your reasoning.
 3. Fix each finding, or answer it with a `file:line` or a quote of the task.
 4. When a finding conflicts with what the user asked for by name, do what was asked, and report the finding and its fix to the user.
+5. After the verifier returns, report the result to the user in the next reply: the verdict, each finding with its slug and `file:line`, and what you did about it (fixed, or answered and why). Report a PASS too, in one line.
 
 ## Input
 
@@ -25,7 +26,7 @@ The caller gives you:
 - `task:` the task as the user wrote it.
 - `diff:` a diff base (`git diff <base>`, `jj diff -r <rev>`), or `docs:` a list of changed markdown files.
 - `repo:` the repo root.
-- `report:` optional. A file path. Write the report there too, and overwrite what is there. The wm review wave passes it when it runs you as the design gate.
+- `report:` optional. A file path. Write the report there too, and overwrite what is there.
 
 When the input has the author's reasoning or a summary of the design, ignore it. When the diff or the docs cannot be read, return `VERDICT: ERROR` and the command that failed. Run only commands that read: `git diff`, `git log`, `rg`, `ls`, a language server query. Never build, test, edit, or commit. The only file you write is the `report:` path.
 

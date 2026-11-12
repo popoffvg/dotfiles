@@ -17,6 +17,6 @@ A background fork cannot ask the user anything. The skill args name the TODO (`i
 1. **Resolve `approve`** with `${CLAUDE_PLUGIN_ROOT}/bin/impl-ruleset.py <notes-dir> TODO-N`. Not `none` → stop, apply nothing, and report: "impl-background: TODO-N resolves `approve: <value>`, run `/code impl` in the foreground". Done when the key is `none`; the step 9 report names the file that set it.
 2. **Follow `impl:sub-impl.md` under `approve: none`**, with these changes:
    - Apply each increment yourself. You already run as `wm:implementer`; a child agent can outlive this fork.
-   - Skip the TODO review: its gates are child agents too. Say in the step 9 report that no review ran, and name `/code:review todo` as the command that runs it.
+   - Skip the TODO review: its `reviewrules` run is a background process that can outlive this fork too. Say in the step 9 report that no review ran, and name `/code:review todo` as the command that runs it.
    - Step 6 needs a new or renamed glossary term → do not write the row. Put the term and its proposed row in the step 9 report under "Needs your approval".
    - Any other point where `sub-impl.md` asks the user → set `status: blocked`, apply nothing after it (no hand-off to another skill either), and put the question in the step 9 report.

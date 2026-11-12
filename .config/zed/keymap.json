@@ -361,6 +361,12 @@
     }
   },
   {
+    "context": "Workspace",
+    "bindings": {
+      "ctrl-alt-cmd-t": "agent::NewTerminalThread"
+    }
+  },
+  {
     "context": "Editor",
     "bindings": {
       "cmd-k p": "tab_switcher::Toggle"

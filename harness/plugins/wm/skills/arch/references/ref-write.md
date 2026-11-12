@@ -26,14 +26,15 @@ never as a code edit.
 ├── todos/          # one pair per ledger row (authored by `todo`, past the gate)
 │   ├── CLAUDE.md   # the pair convention — two files per row, read order, write rules (example: examples/todos-claude.md)
 │   └── TODO-N.md + TODO-N.agent.md + TODO-N.test.md
-└── review/         # <target>/<gate>.md + report.md — one dir per judged target (written by the `review` gates)
+├── .reviewrules/   # config.json — the ADR rules for reviewrules, written by `wm-constraints.py --reviewrules` before each review
+└── review/         # <target>/report.md + reviewrules.json + reviewrules.log — one dir per judged target (written by the `review` run)
 ```
 
 - **`CLAUDE.md`** and **`RULES.md`** are written once, by `new` Step 0, and are never rewritten by a later subcommand. `CLAUDE.md` tells any agent entering the folder how to read and write it; `RULES.md` says which choices go to the human at each step. Every subcommand reads `RULES.md` before it starts and obeys it over its own defaults — a rule there never lowers a hard gate (the `review→impl` read, destructive-git confirmation).
-- **The ADR rules every TODO obeys are stored in no file.** `~/.claude/scripts/wm-constraints.py <notes-dir>/adr` prints them from the Properties of the live ADRs (`ref-todo-sections.md` § Constraints). No TODO copies a rule or the command; `todos/CLAUDE.md` names the command once.
+- **The ADR rules every TODO obeys are stored in no file.** `~/.claude/scripts/wm-constraints.py <notes-dir>/adr` prints them from the Properties of the live ADRs (`ref-todo-sections.md` § Constraints). No TODO copies a rule or the command; `todos/CLAUDE.md` names the command once. `.reviewrules/config.json` is a generated copy for `reviewrules`, replaced before each review; never edit it.
 - An ADR that stops being live — its last changelog line is `Superseded by [ADR-NNNN]` or `Deprecated:` — moves to `adr/archived/`. Never deleted; the `adr-archive.sh` hook performs the move (`ref-adr-format.md` § Location and archive).
 
-- **`review/`** holds one directory per judged target — `TODO-N` or a resolved range slug — with one file per gate plus the merged `report.md`. Every gate overwrites its file each round. Owned by the `review` skill (`review:ref-gates.md` § Every gate writes its report to a file); no other subcommand writes there.
+- **`review/`** holds one directory per judged target — `TODO-N`, `TODO-N/inc-<k>`, or a resolved range slug — with the `report.md`, `reviewrules.json`, and `reviewrules.log` of the last `reviewrules` run. Each run overwrites them. Owned by the `review` skill (`review:ref-reviewrules.md` § Report files); no other subcommand writes there.
 
 - **`spec.md`** is read by humans + the audit — the **target picture** plus the **ledger** plus the **Plan**. No bodies, no checkboxes, no file paths.
 - **Decisions and open questions are not spec sections.** Every choice and every unresolved question is an ADR in `adr/`, and every fact sits in the research artifact that established it — `spec.md` has no `Design Decisions` and no `Open Questions` section, and the Plan carries no decision-trail table. One place per decision; `spec.md` says what the world will look like, `adr/` says why.
@@ -75,11 +76,11 @@ todo  →  impl  →  verify  →  done
 
 - `todo` — body authored past the gate; not started.
 - `impl` — the implementer is executing it (set at `impl` start once every `depends_on` TODO is `done`).
-- `verify` — committed + autotest green; awaiting the review gate chain (`review:sub-todo.md`).
+- `verify` — committed + autotest green; awaiting the review (`review:sub-todo.md`).
 - `done` — review passed; the ledger entry's Commit is filled with the title of the commit that holds the `main` component's `new behavior` increment.
 - `blocked` — a `depends_on` TODO is not `done`, **or** the review returned FAIL / DEVIATES. Routes back to `impl`.
 
-Set by: `todo` (writes `todo`, or `blocked` if a dep is unmet), `impl` (`todo → impl`, then `→ verify` on green; `→ blocked` if a dep is unmet), the review gate (`verify → done` on PASS, `→ blocked` on FAIL), `revise` (`→ todo` when it reopens a diverged TODO).
+Set by: `todo` (writes `todo`, or `blocked` if a dep is unmet), `impl` (`todo → impl`, then `→ verify` on green; `→ blocked` if a dep is unmet), the review (`verify → done` on exit 0, `→ blocked` when the budget of red runs is spent), `revise` (`→ todo` when it reopens a diverged TODO).
 
 **The gate** sits at the spec's `review→impl` boundary. `new` produces a reviewable spec and stops; a
 human reads Goal, `adr/`, GLOSSARY.md, the ledger, and the Plan; only then does `todo` author bodies.
@@ -290,7 +291,7 @@ upward (callers depend on callees); commits land the same direction — leaf →
 Each row ships as one PR. When the repo has Greptile settings, Greptile reviews that PR, so its PR-level rules shape the ledger before the review does.
 
 1. Look for `.greptile/` (`config.json`, `rules.md`, `files.json`) and `greptile.json`, at the repo root and in the directories the work touches. None found → skip this section.
-2. Read the `rules` in `config.json` and the `Always check` part of `rules.md`. Read each doc in `files.json` whose description covers planning, refactoring, or PR shape. Skip the line-level rules (style, error handling, test idioms): `impl` and the review gates own them.
+2. Read the `rules` in `config.json` and the `Always check` part of `rules.md`. Read each doc in `files.json` whose description covers planning, refactoring, or PR shape. Skip the line-level rules (style, error handling, test idioms): `impl` and the review own them.
 3. Apply each PR-level rule to the rows:
 
 | The rule says | The ledger does |
