@@ -302,6 +302,7 @@ A `---` frontmatter block carries the technicals; the body carries prose only.
 | `approve` | always (`inherit` unless this TODO needs its own depth — `arch:ref-write.md` § Approval) |
 | `where` | always (`inherit` unless this TODO needs its own checkout — `arch:ref-write.md` § Where the work happens) |
 | `increment` | always — authored as `0/<total>`, `<total>` = the count of `## Increments` H3s (`arch:ref-write.md` § Progress) |
+| `prs` | always — authored as `[]`; `bin/todo-session.sh` appends each PR link (`arch:ref-write.md` § Pull requests) |
 
 | # | Element | Level | Required |
 |---|---------|-------|----------|

@@ -7,6 +7,8 @@
 #   todo-session.sh skill    PreToolUse(Skill): the `code` / `impl` skill with `impl TODO-N` args stamps it.
 #   todo-session.sh commit   PostToolUse(Bash): a `git commit --fixup` of this session gets the reminder,
 #                            because a fixup means a trap was found. Reaches subagents too.
+#   todo-session.sh pr       PostToolUse(Bash): `gh pr create` or a `gs` submit appends each PR link
+#                            of its output to `prs:` of this session's TODO.
 #
 # The notes dir is the first `.notes` at or above cwd. Silent when no TODO matches.
 set -euo pipefail
@@ -49,6 +51,33 @@ stamp_session() {
   ' "$file"
 }
 
+# session_todo: the TODO-N.md whose `session:` is this session, the newest when several match.
+session_todo() {
+  local file newest=""
+  while IFS= read -r -d '' file; do
+    grep -q "^session:[[:space:]]*$SESSION" "$file" || continue
+    if [[ -z "$newest" || "$file" -nt "$newest" ]]; then newest=$file; fi
+  done < <(find "$notes" -path '*/todos/TODO-*.md' -not -name '*.agent.md' -not -name '*.test.md' -not -path '*/archived/*' -print0 2>/dev/null)
+  echo "$newest"
+}
+
+# append_prs FILE URL...: add each URL to `prs: [...]` in the frontmatter of FILE, once.
+append_prs() {
+  local file="$1"; shift
+  URLS="$*" perl -0pi -e '
+    my @new = split / /, $ENV{URLS};
+    s{\A(---\n.*?)(\n---\n)}{
+      my ($head, $end) = ($1, $2);
+      my @old = $head =~ /^prs:[ \t]*\[([^\]\n]*)\]/m ? grep { length } split /[\s,]+/, $1 : ();
+      my %seen; my @all = grep { !$seen{$_}++ } @old, @new;
+      my $line = "prs: [" . join(", ", @all) . "]";
+      if ($head =~ /^prs:/m) { $head =~ s/^prs:[ \t]*\[[^\]\n]*\]/$line/m; }
+      else { $head .= "\n$line                     # PR links of this TODO; written by bin\/todo-session.sh"; }
+      "$head$end"
+    }se;
+  ' "$file"
+}
+
 # reminder: one line per `status: impl` TODO whose `session:` is this session.
 reminder() {
   local file n agent
@@ -83,6 +112,16 @@ case "$MODE" in
     [[ -n "$text" ]] || exit 0
     jq -n --arg t "A fixup landed. $text" \
       '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $t}}'
+    ;;
+  pr)
+    cmd=$(field .tool_input.command)
+    echo "$cmd" | grep -qE 'gh[[:space:]]+pr[[:space:]]+create|(^|[^[:alnum:]_-])gs[[:space:]]' || exit 0
+    urls=$(printf '%s\n%s\n' "$(field .tool_response.stdout)" "$(field .tool_response.stderr)" \
+      | grep -oE 'https://[^[:space:]]+/pull/[0-9]+' | awk '!seen[$0]++' | tr '\n' ' ' || true)
+    [[ -n "${urls// /}" ]] || exit 0
+    file=$(session_todo)
+    [[ -n "$file" ]] || exit 0
+    append_prs "$file" $urls
     ;;
 esac
 exit 0

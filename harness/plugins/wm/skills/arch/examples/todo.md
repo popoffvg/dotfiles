@@ -7,9 +7,10 @@ size: M                     # 5 files, 6 increments — the PR this TODO becomes
 approve: increment          # inherit | increment | todo | none — override the spec, with the reason: every caller of Refresh moves, so the human reads each step. ref-write.md § Approval
 where: inherit              # inherit | in-place | worktree — the checkout impl writes into; override the spec with the reason. ref-write.md § Where the work happens
 increment: 0/6              # <approved>/<total> — impl stamps it after each increment lands; `todo` writes `0/<total>`. ref-write.md § Progress
+prs: []                     # PR links of this TODO — bin/todo-session.sh appends each PR that `gh pr create` or `gs ... submit` creates. ref-write.md § Pull requests
 ---
 
-> Eight keys, all metadata — the inline `#` comments above are part of the shape, keep them.
+> Nine keys, all metadata — the inline `#` comments above are part of the shape, keep them.
 >
 > `status`, `type`, `approve`, `where`, and `increment` rules: `arch:ref-write.md` § Status,
 > § Approval, § Where the work happens, and § Progress; change-kind rules:

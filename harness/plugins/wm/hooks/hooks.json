@@ -139,6 +139,11 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/bin/todo-session.sh commit",
             "timeout": 3000
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/todo-session.sh pr",
+            "timeout": 3000
           }
         ]
       }

@@ -177,6 +177,10 @@ either file; `bin/spec-lint.py` checks A6 and B3 catch one already on disk.
 
 `session: <id>` in `todos/TODO-N.md` frontmatter names the Claude session that runs `impl` on the TODO. Nobody writes it by hand: `bin/todo-session.sh` stamps it when a prompt or a `code` / `impl` skill call says `impl TODO-N`, and a later `impl` of the same TODO in another session overwrites it. While the TODO is `status: impl`, the same script reminds that session, on each prompt and after each `git commit --fixup` (also in its subagents), to write each trap it meets to `TODO-N.agent.md` `## Gotchas`. Other sessions get no reminder.
 
+## Pull requests — the `prs` key
+
+`prs: [<url>, …]` in `todos/TODO-N.md` frontmatter lists the PRs that ship the TODO. `todo` authors `prs: []`. Nobody adds a link by hand: after a Bash call with `gh pr create` or a `gs` submit, `bin/todo-session.sh pr` reads each `…/pull/<n>` link from the output and appends it to the TODO whose `session:` is this session (the newest file when several match). A link that is already in the list is not added again, so a second submit of the same branch changes nothing. A stack of branches gives several links.
+
 ## Progress — the `increment` key
 
 Where `impl` got to inside one TODO, written in two shapes for two readers.
