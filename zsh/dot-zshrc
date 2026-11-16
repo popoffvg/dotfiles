@@ -1,5 +1,9 @@
+# Lig is installed by nanobrew; GUI terminals may start with only the system PATH.
+export PATH="/opt/nanobrew/prefix/bin:$PATH"
 
-
+# >>> lig pre >>>
+eval "$(lig init zsh pre)"
+# <<< lig pre <<<
 # Package manager prefix (nanobrew or homebrew)
 if [[ -x /opt/nanobrew/prefix/bin/nb ]]; then
   export BREW_PREFIX=/opt/nanobrew/prefix
@@ -47,15 +51,9 @@ zinit snippet OMZP::git                      # 150+ git aliases (gst, gco, gp, .
 zinit snippet OMZP::brew                     # Homebrew completions
 zinit snippet OMZP::eza                      # eza aliases + completions
 # dropped: OMZL::async_prompt (starship owns the prompt), OMZP::direnv (hooked in .zshrc_aliases)
-# deja: do not also zinit-light it — that double-sources init.zsh and
-# recurses _deja_line_init into FUNCNEST. Loaded once at the bottom.
 
 eval "$(mise activate)"
-# Claude Code runs each Bash tool call in a fresh non-interactive shell; atuin's
-# preexec/precmd hooks add startup cost and record every agent command as history.
-if [[ -z "$CLAUDECODE" ]]; then
-  eval "$(atuin init zsh --disable-up-arrow)"
-fi
+# Lig owns history search (Ctrl+R); do not load Atuin or Deja's hooks.
 eval "$(sg completions zsh)"
 
 # Use Apple clang for CGO (nanobrew LLVM lacks macOS SDK sysroot)
@@ -69,7 +67,6 @@ export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$PATH:"$(go env GOPATH)/bin"
 export PATH=$PATH:~/local/bin
-export PATH=$PATH:/opt/nanobrew/prefix/bin
 
 
 if [[ $ZED_TERM == true ]]; then
@@ -118,9 +115,8 @@ compdef _git git
 compdef g=git
 zstyle ':completion:*:git-checkout:*' sort false
 
-# fzf-tab after every completer (gcloud) and before deja, which
-# wraps widgets. It steals Tab; deja reclaims it below. Down is rebound to
-# fzf-tab-complete after deja so the picker is the extra key, not deja's.
+# fzf-tab after every completer (gcloud). It provides shell
+# completion when Lig's popup is closed.
 _fzf_tab=
 for _fzf_tab_prefix in ${BREW_PREFIX:-} /opt/homebrew /opt/nanobrew/prefix; do
   [[ -r "$_fzf_tab_prefix/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh" ]] && {
@@ -134,26 +130,6 @@ if [[ -n "$_fzf_tab" ]]; then
 fi
 unset _fzf_tab _fzf_tab_prefix
 
-# On the prompt, Tab and Shift+Tab both drive deja. Tab is deja's own default
-# key; Shift+Tab is added after the source, where deja's per-prompt re-bind of
-# its own keys will leave it alone. With no ghost showing, deja's cycle falls
-# through to whatever ^I held when it loaded — the completion widget.
-if [[ -r "$HOME/.local/share/deja/init.zsh" ]]; then source "$HOME/.local/share/deja/init.zsh"; else eval "$(deja init zsh)"; fi
-bindkey '^[[Z' deja-cycle
-# deja wraps every user widget at source time, then we ignore these so precmd
-# will not wrap them again. Restore the unwrapped fzf-tab widgets or Down is a
-# deja-modify wrapper and the picker stays empty.
-if (( ${+widgets[fzf-tab-complete]} )); then
-  DEJA_IGNORE_WIDGETS+=(fzf-tab-complete fzf-tab-dummy fzf-tab-debug)
-  local _dj_prefix="${DEJA_ORIGINAL_WIDGET_PREFIX:-deja-orig-}" _dj_w _dj_orig
-  for _dj_w in fzf-tab-complete fzf-tab-dummy fzf-tab-debug; do
-    for _dj_orig in ${(k)widgets[(I)${_dj_prefix}*-${_dj_w}]}; do
-      zle -A "$_dj_orig" "$_dj_w"
-    done
-  done
-  unset _dj_prefix _dj_w _dj_orig
-fi
-
 # Down opens fzf-tab (fuzzy list + descriptions). fzf-tab-complete is a user
 # widget that calls the orig completion widget internally, so it is allowed
 # to complete — unlike a homegrown wrapper around expand-or-complete.
@@ -161,9 +137,7 @@ if (( ${+widgets[fzf-tab-complete]} )); then
   bindkey '^[[B' fzf-tab-complete
   bindkey '^[OB' fzf-tab-complete
 else
-  # Down opens completion. Costs the old next-history-line; atuin owns history
-  # anyway. A user-defined widget on this key completes nothing until deja is told
-  # to leave it alone — see the yazi block below, which rebinds the key.
+  # Down opens completion; Ctrl+R opens Lig history.
   bindkey '^[[B' expand-or-complete
   bindkey '^[OB' expand-or-complete
 fi
@@ -180,14 +154,8 @@ bindkey -M menuselect '^[[Z' reverse-menu-complete
 
 # yazi answers on Ctrl+O anywhere, and on Down when the line holds nothing but
 # `cd` — the completion a bare `cd` would open lists the same directories yazi
-# browses. Tab cannot share: deja owns it, and the key it re-binds every prompt
-# must be the completion widget itself.
-#
-# Both widgets go in DEJA_IGNORE_WIDGETS. deja wraps every widget in the table
-# on every precmd, and its wrapper is what makes a user-defined widget on Down
-# complete nothing.
+# browses.
 if (( ${+functions[_yazi_jump]} )); then
-  DEJA_IGNORE_WIDGETS+=(yazi-jump down-complete-or-yazi)
   zle -N yazi-jump _yazi_jump
   bindkey '^O' yazi-jump
 
@@ -197,4 +165,6 @@ if (( ${+functions[_yazi_jump]} )); then
 fi
 
 
-source "$HOME/.config/broot/launcher/bash/br"
+# >>> lig post >>>
+eval "$(lig init zsh post)"
+# <<< lig post <<<

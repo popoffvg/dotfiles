@@ -407,7 +407,7 @@ function y() {
 }
 
 # Ctrl+O → y (yazi), landing the shell in whatever directory yazi exits from.
-# Bound after deja loads (see dot-zshrc). The line you were typing survives.
+# Bound in dot-zshrc. The line you were typing survives.
 _yazi_jump() {
 	zle -I
 	y

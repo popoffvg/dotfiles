@@ -7,13 +7,12 @@
     nb: /opt/nanobrew/prefix/bin/nb
     brew_packages:
       # shell
-      - Giammarco-Ferranti/deja/deja
+      - kevengoncalves/tap/lig
       - zsh-completions
       - zsh-syntax-highlighting
       - fzf
       - fzf-tab
       - carapace
-      - atuin
       - starship
       - direnv
       # tools
@@ -140,14 +139,6 @@
       loop: "{{ brew_packages }}"
       register: nb_pkg
       changed_when: "'Already installed' not in nb_pkg.stdout"
-
-    # One-shot history load. The db is the skip marker; later shells only
-    # append as commands run. zshrc already sources ~/.local/share/deja/init.zsh.
-    - name: Import zsh history into deja
-      ansible.builtin.command:
-        cmd: "{{ nb | dirname }}/deja import"
-      args:
-        creates: "{{ ansible_env.HOME }}/.local/share/deja/deja.db"
 
     # Casks install in one command: nanobrew continues past individual
     # failures, and warm casks exit 1 with "refusing to overwrite".
