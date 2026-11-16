@@ -17,11 +17,6 @@ setopt PUSHD_MINUS                 # exchange the meanings of '+' and '-'
 setopt CDABLE_VARS                 # expand the expression (allows 'cd -2/tmp')
 
 
-if secret="$(security find-generic-password -s CURSOR -w 2>/dev/null)"; then
-  export CURSOR_API_KEY="$secret"
-fi
-unset secret
-
 autoload -Uz add-zsh-hook
 autoload -Uz compinit && compinit -i
 zstyle ':completion:*' special-dirs true
@@ -63,10 +58,6 @@ if [[ -z "$CLAUDECODE" ]]; then
 fi
 eval "$(sg completions zsh)"
 
-# Argument completion for the ~1000 CLIs carapace knows, most of which ship no
-# zsh completion of their own. Registers via compdef, so it has to follow the
-# compinit call above.
-source <(carapace _carapace zsh)
 # Use Apple clang for CGO (nanobrew LLVM lacks macOS SDK sysroot)
 export CC=/usr/bin/clang
 
@@ -100,11 +91,6 @@ get_keychain_secret() {
   security find-generic-password -s "$1" -a "$USER" -w 2>/dev/null
 }
 
-if secret="$(get_keychain_secret OPENROUTER_API_KEY)"; then
-  export OPENROUTER_API_KEY="$secret"
-fi
-unset secret
-
 # Source satellite configs
 for f in ~/.zshrc_*; do
   [[ -f "$f" ]] && source "$f"
@@ -127,17 +113,12 @@ if [ -f '/Users/vitaliipopov/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . 
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/vitaliipopov/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/vitaliipopov/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
 
-# Added by GitButler installer
-eval "$(but completions zsh)"
-
-# carapace's git completer is not captured by fzf-tab (empty picker). Native
-# _git is. `g` has no completer of its own; carapace looks up $words[1] as `g`
-# and returns nothing. Point both at _git after carapace and after `alias g=git`.
+# `g` has no completer of its own. Point it at _git after `alias g=git`.
 compdef _git git
 compdef g=git
 zstyle ':completion:*:git-checkout:*' sort false
 
-# fzf-tab after every completer (carapace, gcloud, but) and before deja, which
+# fzf-tab after every completer (gcloud) and before deja, which
 # wraps widgets. It steals Tab; deja reclaims it below. Down is rebound to
 # fzf-tab-complete after deja so the picker is the extra key, not deja's.
 _fzf_tab=

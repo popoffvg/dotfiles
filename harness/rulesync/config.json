@@ -3,7 +3,8 @@
   "targets": [
     "claude",
     "codex",
-    "pi"
+    "pi",
+    "opencode"
   ],
   "sourceFormat": "claude-native",
   "plugins": "harness/plugins",
@@ -38,7 +39,8 @@
     "and-what",
     "critic",
     "to-user",
-    "skill-builder"
+    "skill-builder",
+    "wait-merge"
   ],
   "workflows": "harness/rulesync/workflows"
 }

@@ -58,6 +58,7 @@
       - gentleman-programming/tap/engram
       # dev
       - mise
+      - uv
       - go
       - nodejs
       - bun
@@ -204,6 +205,13 @@
         cmd: bun install -g github:nitsanavni/bash-history-mcp
       args:
         creates: "{{ ansible_env.HOME }}/.bun/bin/bash-history-mcp"
+
+    - name: Install LiteLLM via uv
+      tags: litellm
+      ansible.builtin.command:
+        cmd: uv tool install --python 3.12 'litellm[proxy]==1.109.1'
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/share/uv/tools/litellm/bin/litellm"
 
     - name: Install television
       ansible.builtin.shell:

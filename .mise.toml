@@ -125,12 +125,27 @@ description = "Regenerate pr-comments' extension.toml language list from the ins
 run = "{{config_root}}/harness/scripts/sync-zed-languages.py --app pr-comments"
 
 [tasks."harness:sync"]
-description = "Generate and install the harness into ~/.claude, ~/.codex and ~/.pi/agent"
+description = "Generate and install the harness for Claude, Codex, Pi, and OpenCode"
 run = "python3 {{config_root}}/harness/rulesync/deploy.py"
 
 [tasks."harness:check"]
 description = "Compare installed harness files with Rulesync output"
 run = "python3 {{config_root}}/harness/rulesync/deploy.py --check"
+
+[tasks."harness:opencode:deps"]
+description = "Install the pinned OpenCode plugin dependencies"
+dir = "{{config_root}}/harness/apps/opencode-pins"
+run = "npm ci"
+
+[tasks."harness:opencode:check"]
+description = "Check the OpenCode pins sidebar and rewind dialog"
+dir = "{{config_root}}/harness/apps/opencode-pins"
+run = "npm run check"
+
+[tasks."harness:opencode:test"]
+description = "Test OpenCode pins and the rewind dialog"
+dir = "{{config_root}}/harness/apps/opencode-pins"
+run = "npm test"
 
 [tasks."harness:test"]
 description = "Test deployment ownership and runtime maintenance guards"

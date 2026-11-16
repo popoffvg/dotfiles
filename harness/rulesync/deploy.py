@@ -21,12 +21,40 @@ CACHE = Path(os.environ.get('XDG_CACHE_HOME', str(Path.home() / '.cache'))) / 'd
 CONFIG = json.loads((HERE / 'config.json').read_text())
 if CONFIG['sourceFormat'] != 'claude-native':
     raise RuntimeError('Unknown Rulesync source format')
-TARGETS = {'claude': '.claude', 'codex': '.codex', 'pi': '.pi/agent'}
-SKILL_OUTPUTS = {'claude': '.claude/skills', 'codex': '.agents/skills', 'pi': '.pi/skills'}
+TARGETS = {'claude': '.claude', 'codex': '.codex', 'pi': '.pi/agent', 'opencode': '.config/opencode'}
+SKILL_OUTPUTS = {'claude': '.claude/skills', 'codex': '.agents/skills', 'pi': '.pi/skills', 'opencode': '.opencode/skills'}
+RULESYNC_TARGETS = {'claude': 'claudecode-plugin', 'codex': 'codexcli', 'pi': 'pi', 'opencode': 'opencode'}
+ALIAS_OUTPUTS = {'claude': 'commands/{name}.md', 'codex': 'skills/{name}/SKILL.md',
+                 'pi': 'prompts/{name}.md', 'opencode': 'commands/{name}.md'}
+RUNTIME_ADAPTERS = {
+    'codex': 'Use its Codex tool adapters.',
+    'pi': ('Translate its tool instructions to Pi read, edit, write, bash, and available subagents; '
+           'Claude and Codex tool names mean their Pi equivalents. '
+           'When independent agents are unavailable, run sequentially and disclose that limit.'),
+    'opencode': 'Read `{{HOME}}/.config/opencode/harness/runtime.md` for OpenCode tools and lifecycle checks.',
+}
+PLUGIN_SKILL_NAMES = {
+    'claude': {'format': '{plugin}:{skill}', 'rewrite_skill_file': False},
+    'codex': {'format': '{plugin}:{skill}', 'rewrite_skill_file': False},
+    'pi': {'format': '{plugin}-{skill}', 'rewrite_skill_file': True},
+    'opencode': {'format': '{plugin}:{skill}', 'rewrite_skill_file': False},
+}
 
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def merge_settings(existing, managed):
+    result = dict(existing)
+    for key, value in managed.items():
+        if isinstance(value, dict) and isinstance(result.get(key), dict):
+            result[key] = merge_settings(result[key], value)
+        elif isinstance(value, list) and isinstance(result.get(key), list):
+            result[key] = result[key] + [item for item in value if item not in result[key]]
+        else:
+            result[key] = value
+    return result
 
 
 def run_rulesync(args, cwd):
@@ -111,12 +139,9 @@ def install_aliases(install, home):
         guide = plugin / 'codex-skills/wm/references/runtime.md'
         runtime = (f'Use native Claude tools and plugin lifecycle hooks. For code auto or code impl, read `{home / directory / "harness/workflows/README.md"}` to launch the internal driver by scriptPath.' if target == 'claude' else
                    f'Read `{guide}` for path resolution and explicit lifecycle checks. ' +
-                   ('Translate its tool instructions to Pi read, edit, write, bash, and available subagents; '
-                    'Claude and Codex tool names mean their Pi equivalents. '
-                    'When independent agents are unavailable, run sequentially and disclose that limit.'
-                    if target == 'pi' else 'Use its Codex tool adapters.'))
+                   RUNTIME_ADAPTERS[target].replace('{{HOME}}', str(home)))
         for name in CONFIG['publicAliases']:
-            if target == 'claude' and name in loose:
+            if target == 'claude' and (name in loose or (ROOT / CONFIG['plugins'] / 'wm/skills' / name / 'SKILL.md').is_file()):
                 continue
             source = HERE / 'commands' / (name + '.md')
             text = source.read_text().replace('{{PLUGIN_ROOT}}', str(plugin)).replace('{{RUNTIME}}', runtime)
@@ -125,8 +150,7 @@ def install_aliases(install, home):
             text = text.replace('{{ARGUMENTS}}', 'the arguments supplied with this skill invocation' if target == 'codex' else '$ARGUMENTS')
             if target == 'codex':
                 text = text.replace('disable-model-invocation: true\n', '')
-            relative = (Path(directory) / 'skills' / name / 'SKILL.md' if target == 'codex' else
-                        Path(directory) / ('commands' if target == 'claude' else 'prompts') / (name + '.md'))
+            relative = Path(directory) / ALIAS_OUTPUTS[target].format(name=name)
             install.add(relative, text.encode(), source)
             if target == 'codex':
                 install.add(relative.parent / 'agents/openai.yaml', b'policy:\n  allow_implicit_invocation: false\n', source)
@@ -332,9 +356,9 @@ def build(home, stage):
     catalogs = {target: [] for target in TARGETS}
     generated = stage / 'loose-output'
     generated.mkdir()
-    run_rulesync(['generate', '--targets', 'claudecode,codexcli,pi', '--features', 'skills',
+    run_rulesync(['generate', '--targets', 'claudecode,codexcli,pi,opencode', '--features', 'skills',
                   '--input-roots', str(raw / '.rulesync'), '--output-roots', str(generated)], raw)
-    run_rulesync(['generate', '--targets', 'claudecode,codexcli', '--features', 'subagents',
+    run_rulesync(['generate', '--targets', 'claudecode,codexcli,opencode', '--features', 'subagents',
                   '--input-roots', str(raw / '.rulesync'), '--output-roots', str(generated)], raw)
     run_rulesync(['generate', '--targets', 'claudecode', '--features', 'commands',
                   '--input-roots', str(raw / '.rulesync'), '--output-roots', str(generated)], raw)
@@ -369,6 +393,7 @@ def build(home, stage):
     install.tree(generated / '.claude/agents', '.claude/agents', ROOT / 'harness/claude/agents')
     install.tree(generated / '.claude/commands', '.claude/harness/internal-commands', ROOT / 'harness/claude/commands')
     install.tree(generated / '.codex/agents', '.codex/agents', ROOT / 'harness/claude/agents')
+    install.tree(generated / '.opencode/agents', '.config/opencode/agents', ROOT / 'harness/claude/agents')
 
     plugin_entries = []
     codex_entries = []
@@ -391,9 +416,9 @@ def build(home, stage):
                 # Shipping a Claude registration there would activate unported code.
                 (output / 'hooks/hooks.json').unlink(missing_ok=True)
             if features:
-                enabled = features if target == 'claude' else [f for f in features if f == 'skills' or (f == 'subagents' and target == 'codex')]
+                enabled = features if target == 'claude' else [f for f in features if f == 'skills' or (f == 'subagents' and target in {'codex', 'opencode'})]
                 if enabled:
-                    run_rulesync(['generate', '--targets', {'claude': 'claudecode-plugin', 'codex': 'codexcli', 'pi': 'pi'}[target],
+                    run_rulesync(['generate', '--targets', RULESYNC_TARGETS[target],
                                   '--features', ','.join(enabled), '--input-roots', str(work / '.rulesync'), '--output-roots', str(output)], work)
                 if target != 'claude' and (output / SKILL_OUTPUTS[target]).exists():
                     shutil.rmtree(output / 'skills', ignore_errors=True)
@@ -404,22 +429,27 @@ def build(home, stage):
                     import re
                     data = re.sub(r'^name = .*$', 'name = ' + json.dumps(f'{plugin.name}-{agent.stem}'), agent.read_text(), count=1, flags=re.M).encode()
                     install.add(Path(directory) / 'agents' / f'{plugin.name}-{agent.name}', data, plugin / 'agents' / (agent.stem + '.md'))
+            if target == 'opencode':
+                for agent in (output / '.opencode/agents').glob('*.md'):
+                    data = agent.read_text().replace('${CLAUDE_PLUGIN_ROOT}', str(home / directory / 'harness/plugins' / plugin.name))
+                    install.add(Path(directory) / 'agents' / f'{plugin.name}-{agent.name}', data.encode(), plugin / 'agents' / agent.name)
             # Top-level legacy commands are references, not public entry points.
             if (output / 'commands').is_dir():
                 shutil.move(str(output / 'commands'), output / 'internal-commands')
-            if target == 'pi' and (output / 'skills').is_dir():
+            if PLUGIN_SKILL_NAMES[target]['rewrite_skill_file'] and (output / 'skills').is_dir():
                 import re
                 for skill in (output / 'skills').iterdir():
                     entry = skill / 'SKILL.md'
                     if entry.is_file():
-                        entry.write_text(re.sub(r'^name:.*$', f'name: {plugin.name}-{skill.name}', entry.read_text(), count=1, flags=re.M))
+                        name = PLUGIN_SKILL_NAMES[target]['format'].format(plugin=plugin.name, skill=skill.name)
+                        entry.write_text(re.sub(r'^name:.*$', 'name: ' + name, entry.read_text(), count=1, flags=re.M))
             runtime = Path(directory) / 'harness/plugins' / plugin.name
             install.tree(output, runtime, plugin)
             for destination in list(install.sources):
-                prefix = home / runtime / '.codex/agents'
-                if destination.is_relative_to(prefix):
+                agent_roots = (home / runtime / '.codex/agents', home / runtime / '.opencode/agents')
+                if any(destination.is_relative_to(prefix) for prefix in agent_roots):
                     install.sources[destination] = str(plugin / 'agents' / (destination.stem + '.md'))
-            catalogs[target].extend((dict(entry, name=plugin.name + ':' + entry['name']), home / runtime / 'skills' / entry['directory'] / 'SKILL.md') for entry in plugin_catalog)
+            catalogs[target].extend((dict(entry, name=PLUGIN_SKILL_NAMES[target]['format'].format(plugin=plugin.name, skill=entry['name'])), home / runtime / 'skills' / entry['directory'] / 'SKILL.md') for entry in plugin_catalog)
             catalogs[target].extend(({'name': plugin.name + ':' + path.stem, 'description': 'Legacy command reference; read when requested or named by a route.', 'automatic': False},
                                      home / runtime / 'internal-commands' / path.relative_to(output / 'internal-commands'))
                                     for path in (output / 'internal-commands').rglob('*.md'))
@@ -497,6 +527,20 @@ def build(home, stage):
                 relative = Path('.codex/harness/skills') / skill.name / file.relative_to(skill)
                 install.files.pop(home / relative, None)
                 install.add(relative, data, file)
+    opencode = ROOT / 'harness/opencode'
+    for file in opencode.rglob('*'):
+        if file.is_file():
+            relative = Path('.config/opencode') / file.relative_to(opencode)
+            data = file.read_bytes().replace(b'{{HOME}}', str(home).encode()).replace(b'{{ROOT}}', str(ROOT).encode())
+            if file.name == 'opencode.json':
+                destination = home / relative
+                settings = json.loads(destination.read_text()) if destination.is_file() else {}
+                settings = merge_settings(settings, json.loads(data))
+                data = (json.dumps(settings, indent=2) + '\n').encode()
+                install.shared.add(destination)
+            install.add(relative, data, file)
+    triage = ROOT / 'harness/claude/scripts/turn-triage.json'
+    install.add(Path('.config/opencode/harness/turn-triage.json'), triage.read_bytes(), triage)
     workflows = ROOT / CONFIG['workflows']
     for name, text in internal_workflows(workflows).items():
         text = text.replace("'${CLAUDE_PLUGIN_ROOT}'", json.dumps(str(home / '.claude/harness/plugins/wm')))
@@ -519,10 +563,7 @@ def build(home, stage):
                      f'Internal skill and legacy command references can be read from {index}; load their files when a route names them. '
                      f'Resolve legacy .claude/workflows/wm-code-*.js references through {home / directory / "harness/workflows/README.md"}. ')
         instruction = ('\n<!-- dotfiles-harness:start -->\n' + discovery +
-                       f'Before changing a personal skill, plugin, hook, or harness configuration, read {home / base / "harness-maintain/SKILL.md"}. '
-                       f'Author loose skills in {ROOT / "harness/skills"}/<group>/<name>, plugins in {ROOT / "harness/plugins"}, '
-                       f'and Claude settings, agents, and commands in {ROOT / "harness/claude"}. '
-                       'Edit that repository source, recorded in the runtime harness/installed.json; run mise run harness:sync to regenerate installed copies.\n'
+                       f'Before changing a personal skill, plugin, hook, or harness configuration, read {home / base / "harness-maintain/SKILL.md"}.\n'
                        '<!-- dotfiles-harness:end -->\n')
         relative = Path(directory) / 'AGENTS.md'
         destination = home / relative

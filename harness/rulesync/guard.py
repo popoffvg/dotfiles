@@ -15,7 +15,7 @@ def normalized(path, cwd):
 
 def protected_paths(home):
     paths = []
-    for root in (home / '.claude', home / '.codex', home / '.pi/agent'):
+    for root in (home / '.claude', home / '.codex', home / '.pi/agent', home / '.config/opencode'):
         manifest = root / 'harness/installed.json'
         paths.append(str(manifest))
         if manifest.is_file():
@@ -94,7 +94,7 @@ def check(payload, home):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--home', type=Path, default=Path.home())
-    parser.add_argument('--protocol', choices=('claude', 'codex', 'pi'), default='claude')
+    parser.add_argument('--protocol', choices=('claude', 'codex', 'pi', 'opencode'), default='claude')
     args = parser.parse_args()
     try:
         reason = check(json.load(sys.stdin), args.home)

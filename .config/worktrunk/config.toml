@@ -3,3 +3,4 @@ command = "CLAUDECODE= MAX_THINKING_TOKENS=0 claude -p --model=haiku --tools='' 
 
 [post-create]
 mise-trust = "mise trust"
+reviewrules = "[ ! -d '{{ primary_worktree_path }}/.reviewrules' ] || [ -e .reviewrules ] || cp -R '{{ primary_worktree_path }}/.reviewrules' ."

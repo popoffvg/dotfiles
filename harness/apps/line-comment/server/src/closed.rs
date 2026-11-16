@@ -13,6 +13,9 @@ pub fn log_path(root: &Path) -> PathBuf {
 }
 
 pub fn append(path: &Path, key: &str) -> io::Result<()> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
     let mut log = OpenOptions::new().create(true).append(true).open(path)?;
     writeln!(log, "{} {key}", now_millis())
 }
@@ -45,6 +48,10 @@ mod tests {
         assert!(!closed_since(&path, "b.md", 0));
         append(&path, "b.md").unwrap();
         assert!(closed_since(&path, "b.md", 300));
+
+        let missing = dir.join(".tmp").join("line-comment.closed");
+        append(&missing, "c.md").unwrap();
+        assert!(closed_since(&missing, "c.md", 0));
         fs::remove_dir_all(dir).unwrap();
     }
 }

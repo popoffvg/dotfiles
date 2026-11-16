@@ -1,22 +1,23 @@
 [local]
-agent = "claude"
-model = "sonnet"
-hypothesis_model = "opus"
-hypothesis_check_model = "sonnet"
+agent = "fantasy"
+base_url = "http://127.0.0.1:4000/v1"
+model = "gpt-6.1-sol"
+hypothesis_model = "gpt-6-astra"
+hypothesis_check_model = "gpt-6.1-sol"
 reasoning_effort = "medium"
 rule_reasoning_effort = "medium"
 plugin_dir = "~/.config/reviewrules/plugins"
 
 [local.profiles.light]
-model = "haiku"
+model = "gpt-6-luna"
 reasoning_effort = "low"
 
 [local.profiles.medium]
-model = "sonnet"
+model = "gpt-6.1-sol"
 reasoning_effort = "medium"
 
 [local.profiles.heavy]
-model = "opus"
+model = "gpt-6-astra"
 reasoning_effort = "high"
 fork_steps = 16
 

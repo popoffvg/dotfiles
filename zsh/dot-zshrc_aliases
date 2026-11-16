@@ -428,6 +428,16 @@ _down_complete_or_yazi() {
 	fi
 }
 
+opencode() {
+  if [[ ${ZED_TERM:-} == true ]]; then
+    local settings
+    settings=$(jq -cn --argjson current "${OPENCODE_CLI_CONFIG_CONTENT:-"{}"}" '$current * {terminal: {title: false}}') || return
+    OPENCODE_CLI_CONFIG_CONTENT="$settings" command opencode "$@"
+  else
+    command opencode "$@"
+  fi
+}
+
 # claudex — launch claude. Subcommands: `claudex pick` opens fzf agent picker.
 # Default (no subcommand): starts general claude.
 # Runs claude in the current terminal. herdr is started by hand, not from here.

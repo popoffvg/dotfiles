@@ -51,7 +51,7 @@ ADRs that bear on the task (`arch:ref-adr-format.md`).
 
 | Need | Invocation | Returns |
 |---|---|---|
-| Create the worktree a `where: worktree` spec or TODO asks for | `git -C <checkout> worktree add -b <TODO branch> <task folder>/todo-N <spec branch>` — one tree per TODO, in the task folder that holds `.notes` (`arch:ref-write.md` § Where the work happens) | the session re-rooted in the worktree, or its absolute path when `EnterWorktree` is refused; the tree added to `"folders"` in the task folder's `*.code-workspace` |
+| Create the worktree a `where: worktree` spec or TODO asks for | `git -C <checkout> worktree add -b <TODO branch> <task folder>/todo-N <spec branch>` — one tree per TODO, in the task folder that holds `.notes` (`arch:ref-write.md` § Where the work happens) | `<checkout>/.reviewrules/` copied into the new tree when it exists; the session re-rooted in the worktree, or its absolute path when `EnterWorktree` is refused; the tree added to `"folders"` in the task folder's `*.code-workspace` |
 | Merge that branch back when the TODO is done | `impl:sub-squash.md` — `git rebase --autosquash`, then `wt merge --no-squash` | one commit per `### Commit` section on the spec's branch and the TODO's tree removed; the human runs it, never `impl` |
 
 ## Patch an artifact

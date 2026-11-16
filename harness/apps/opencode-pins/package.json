@@ -1,0 +1,23 @@
+{
+  "name": "opencode-session-pins",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/pin-server.ts",
+    "./tui": "./src/pin-sidebar.tsx",
+    "./rpc": "./src/pin-rpc.ts"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@opencode/plugin": "^2.3.0",
+    "@opentui/solid": "^0.9.1",
+    "@types/bun": "^1.4.4",
+    "solid-js": "^1.9.19",
+    "typescript": "^5.9.3",
+    "zod": "^4.6.7"
+  }
+}

@@ -12,3 +12,7 @@ for _zsh_prefix in /opt/nanobrew/prefix /opt/homebrew; do
   break
 done
 unset _zsh_prefix
+
+if [[ -z ${LITELLM_API_KEY:-} && -r "$HOME/.config/litellm/.env" ]]; then
+  export LITELLM_API_KEY="$(. "$HOME/.config/litellm/.env"; printf '%s' "$LITELLM_MASTER_KEY")"
+fi

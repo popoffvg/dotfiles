@@ -12,7 +12,7 @@
 
 # Push
 
-- Before every push, run the repo's own linter over the changed files, with the PR base as the diff base. Use the version the repo pins (for example `go tool golangci-lint`, `npx`, `mise run lint`), not a global binary.
+- Before every push, run `~/.claude/scripts/pre-push-check.sh --base <PR base>` in the background. It runs the repo linter and `reviewrules` over the diff from the PR base to HEAD. The linter is the version the repo pins (for example `go tool golangci-lint`, `npx`, `mise run lint`), not a global binary. The `pre-push-gate.sh` hook blocks `git push` and `gs ... submit` until this check passes for the HEAD you push. This applies to subagents too.
 - Before every push, run the tests of the changed packages. After a merge-conflict resolution, run them before the push, not after CI fails.
 - If the local linter or tests cannot run, fix the call or tell the user. Do not push and leave lint to CI.
 - When a pre-push or pre-commit hook fails, fix the cause: the hook script, a missing or wrong tool version (install the pinned one), or the finding. Then push again with all hooks. Do not offer `--no-verify` as an option. Stop and ask only when the fix needs a credential, a login, or a force push.

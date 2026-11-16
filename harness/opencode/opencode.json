@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "openai/gpt-6.1-sol",
+  "snapshots": true,
+  "plugins": ["{{ROOT}}/harness/apps/opencode-pins"],
+  "providers": {
+    "openai": {
+      "models": {
+        "gpt-6.1-sol": {
+          "settings": {
+            "reasoningEffort": "medium"
+          }
+        }
+      }
+    }
+  }
+}

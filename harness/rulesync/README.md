@@ -30,6 +30,7 @@ installed under `internal-commands/`; commands nested within skills retain their
 | Claude | `/wm`, `/code`, `/review`, `/dive` in `~/.claude/commands/`; public loose skills in `~/.claude/skills/` | Native skills with `user-invocable: false`, plus `~/.claude/harness/plugins/` |
 | Codex | `$wm`, `$code`, `$review`, `$dive` in `~/.codex/skills/` | `~/.codex/harness/skills/` and `harness/plugins/`; selected through `AGENTS.md` and `harness/skill-index.md` |
 | Pi | `/wm`, `/code`, `/review`, `/dive` in `~/.pi/agent/prompts/` | `~/.pi/agent/harness/skills/` and `harness/plugins/`; selected through `AGENTS.md` and `harness/skill-index.md` |
+| OpenCode | `/wm`, `/code`, `/review`, `/dive` in `~/.config/opencode/commands/` | `~/.config/opencode/harness/skills/` and `harness/plugins/`; selected through `AGENTS.md` and `harness/skill-index.md` |
 
 Codex and Pi do not provide Claude's separate hidden/model-only switch. Their
 workers are reference files outside native skill discovery. The instruction marker
@@ -77,6 +78,16 @@ source before retrying. Do not use deletion sweeps over user skill directories.
 Reload or restart the runtime after deployment; refresh Claude's local marketplace
 when plugin versions change. The git source is the recovery copy: rerun deployment
 from the desired revision after inspecting any installed edits.
+
+## OpenCode
+
+Install OpenCode v2 with `npm install -g @opencode/cli`. Connect OpenAI with `opencode auth login openai`. The managed configuration selects `openai/gpt-6.1-sol` with medium reasoning effort. [OpenCode installation](https://opencode.ai/docs/), [provider authentication](https://opencode.ai/docs/providers/), [model settings](https://opencode.ai/docs/models/).
+
+Edit runtime settings and native plugins in `harness/opencode/`. Sync merges managed JSON settings into the existing global configuration. Other providers and unrelated settings remain in that configuration. Credentials remain in OpenCode's credential storage.
+
+Rulesync generates OpenCode skills and agents from the shared sources. Public aliases become native commands. Internal workers remain outside native discovery, as in Codex. OpenCode subagents inherit the selected model. The native source guard checks edit and shell calls against the ownership manifests. [Runtime adapter](../opencode/harness/runtime.md), [guard adapter](../opencode/plugins/harness-source-guard/index.ts).
+
+Codex sessions and connected ChatGPT plugins remain in Codex. The migration does not convert conversation history or plugin connections. Claude lifecycle hooks require explicit checks from the runtime adapter.
 
 ## Internal Claude workflows
 

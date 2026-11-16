@@ -54,7 +54,7 @@ gs branch submit --fill     # only the current branch
 
 `--fill` takes the PR title and body from the commits, so the command does not prompt. Each PR gets the branch below it as its base.
 
-Before a push, run the repo linter and the tests of the changed packages, as the global CLAUDE.md requires.
+Before a push, run `~/.claude/scripts/pre-push-check.sh --base <base branch>` and the tests of the changed packages, as the global CLAUDE.md requires. For `gs stack submit`, run the check on each branch of the stack.
 
 Done when each branch shows a PR link in `gs log short`.
 

@@ -37,11 +37,7 @@ class InvocationTests(unittest.TestCase):
             # Native discovery sees only the explicit public aliases we own.
             codex_entries = {path.parts[-2] for path in installation.files
                              if path.parent.parent == home / '.codex/skills' and path.name == 'SKILL.md'}
-            self.assertEqual(codex_entries, {'wm', 'code', 'review', 'dive', 'line-comment-act', 'line-comment-write',
-                                                   'line-comment-unresolved', 'line-comment-prune', 'line-comment-distill',
-                                                   'huh', 'minions', 'show-me', 'tour',
-                                                   'zed-diff', 'with-proof', 'prompt', 'lessons', 'hunch', 'handoff',
-                                                   'gist', 'drunk-claude', 'daily', 'and-what', 'critic', 'to-user'})
+            self.assertEqual(codex_entries, set(deploy.CONFIG['publicAliases']))
             for operation in ['act', 'write', 'unresolved', 'prune', 'distill']:
                 alias = home / '.codex/skills' / ('line-comment-' + operation)
                 self.assertIn(str(home / '.codex/harness/plugins/line-comment/internal-commands' / (operation + '.md')).encode(),
@@ -58,9 +54,9 @@ class InvocationTests(unittest.TestCase):
             self.assertFalse(installation.links)
             self.assertTrue(home / '.claude/harness/workflows/wm-code-auto.js' in installation.files)
             self.assertFalse(any(path.is_relative_to(home / '.claude/workflows') for path in installation.files))
-            self.assertTrue(all(Path(source).exists() for source in installation.sources.values()),
-                            'Every installed asset must map to an existing authoring source')
-            for target in ('.codex', '.pi/agent'):
+            missing_sources = {str(path): source for path, source in installation.sources.items() if not Path(source).exists()}
+            self.assertFalse(missing_sources, 'Installed assets need authoring sources: ' + str(missing_sources))
+            for target in ('.codex', '.pi/agent', '.config/opencode'):
                 index = installation.files[home / target / 'harness/skill-index.md'][0]
                 self.assertIn(b'adr', index)
                 self.assertIn(b'harness-maintain', index)
@@ -68,17 +64,34 @@ class InvocationTests(unittest.TestCase):
                 self.assertIn(b'Before you show something to the user, load the `show-me` skill.', instructions)
                 self.assertIn(b'# Quint models', instructions)
                 self.assertNotIn(b'@rules/', instructions)
+            opencode = home / '.config/opencode'
+            commands = {path.stem for path in installation.files if path.parent == opencode / 'commands'}
+            self.assertEqual(commands, set(deploy.CONFIG['publicAliases']))
+            self.assertFalse(any(path.is_relative_to(opencode / 'skills') for path in installation.files))
+            settings = json.loads(installation.files[opencode / 'opencode.json'][0])
+            self.assertEqual(settings['model'], 'openai/gpt-6.1-sol')
+            self.assertTrue(settings['snapshots'])
+            triage = installation.files[opencode / 'harness/turn-triage.json'][0]
+            self.assertEqual(triage, installation.files[home / '.claude/scripts/turn-triage.json'][0])
+            plugin = installation.files[opencode / 'plugins/turn-triage/triage-state.ts'][0]
+            self.assertIn(str(opencode / 'harness/turn-triage.json').encode(), plugin)
+            self.assertNotIn(b'{{HOME}}', plugin)
+            agent = installation.files[opencode / 'agents/wm-researcher.md'][0]
+            self.assertIn(b'mode: subagent', agent)
+            self.assertNotIn(b'${CLAUDE_PLUGIN_ROOT}', agent)
+            self.assertNotIn(b'model: sonnet', agent)
             self.assertEqual(installation.files[home / '.claude/CLAUDE.md'][0], b'@AGENTS.md\n')
             self.assertIn(b'@rules/quint.md', installation.files[home / '.claude/AGENTS.md'][0])
             adr = installation.files[home / '.claude/skills/adr/SKILL.md'][0]
             self.assertIn(b'user-invocable: false', adr)
-            public_skills = {'huh', 'minions', 'show-me', 'tour', 'zed-diff', 'with-proof', 'prompt', 'lessons', 'hunch',
-                             'handoff', 'gist', 'drunk-claude', 'daily', 'and-what', 'critic', 'to-user'}
+            public_skills = set(deploy.CONFIG['publicAliases']) & set(deploy.loose_skill_dirs())
             for name in public_skills:
                 self.assertIn(b'user-invocable: true', installation.files[home / '.claude/skills' / name / 'SKILL.md'][0], name)
                 self.assertNotIn(home / '.claude/commands' / (name + '.md'), installation.files)
-            for name in ['wm', 'code', 'review', 'dive', 'line-comment-act']:
-                self.assertIn(home / '.claude/commands' / (name + '.md'), installation.files)
+            for name in ['wm', 'line-comment-act']:
+                self.assertTrue(home / '.claude/commands' / (name + '.md') in installation.files, name)
+            for name in ['code', 'review', 'dive']:
+                self.assertTrue(home / '.claude/harness/plugins/wm/skills' / name / 'SKILL.md' in installation.files, name)
             for path, (data, _) in installation.files.items():
                 if (path.name == 'SKILL.md' and path.is_relative_to(home / '.claude') and 'codex-skills' not in path.parts
                         and path.parent.name not in public_skills):
@@ -176,6 +189,19 @@ class OwnershipTests(unittest.TestCase):
         self.assertFalse((self.home / '.claude/skills/new/SKILL.md').exists())
         self.assertEqual(destination.read_text(), 'third party')
 
+    def test_opencode_settings_preserve_other_provider_fields(self):
+        existing = {'providers': {'acme': {'name': 'Acme'}, 'openai': {'headers': {'X-Team': 'test'}}},
+                    'plugins': ['personal-plugin'], 'theme': 'personal'}
+        managed = {'model': 'openai/gpt-6.1-sol', 'providers': {'openai': {'models': {'gpt-6.1-sol': {'settings': {'reasoningEffort': 'medium'}}}}},
+                   'plugins': ['session-pins']}
+        result = deploy.merge_settings(existing, managed)
+        self.assertEqual(result['providers']['acme'], existing['providers']['acme'])
+        self.assertEqual(result['providers']['openai']['headers'], {'X-Team': 'test'})
+        self.assertEqual(result['providers']['openai']['models'], managed['providers']['openai']['models'])
+        self.assertEqual(result['plugins'], ['personal-plugin', 'session-pins'])
+        self.assertEqual(deploy.merge_settings(result, managed), result)
+        self.assertEqual(result['theme'], 'personal')
+
     def test_detaches_directory_link_before_writing(self):
         source = BASE / 'skills/harness-maintain'
         original = (source / 'SKILL.md').read_bytes()
@@ -216,6 +242,17 @@ class OwnershipTests(unittest.TestCase):
 
 
 class GuardTests(unittest.TestCase):
+    def test_opencode_manifest_protects_generated_files_and_allows_source(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            home = Path(temporary)
+            runtime = home / '.config/opencode/commands/code.md'
+            manifest = home / '.config/opencode/harness/installed.json'
+            manifest.parent.mkdir(parents=True)
+            manifest.write_text(json.dumps({'files': {str(runtime): {}}}))
+            self.assertIsNotNone(guard.check({'tool_name': 'edit', 'tool_input': {'path': str(runtime)}}, home))
+            self.assertIsNone(guard.check({'tool_name': 'read', 'tool_input': {'path': str(runtime)}}, home))
+            self.assertIsNone(guard.check({'tool_name': 'edit', 'tool_input': {'path': str(BASE / 'commands/code.md')}}, home))
+
     def test_blocks_installed_edits_and_allows_source_and_project_edits(self):
         with tempfile.TemporaryDirectory() as temporary:
             home = Path(temporary)

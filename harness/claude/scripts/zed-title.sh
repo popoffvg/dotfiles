@@ -11,11 +11,8 @@ fi
 STATE_FILE=$1 TITLE_FILE=$2 CLAUDE_PID=$3 TTY_PATH=$4
 
 POLL_SECONDS="1"
-QUESTION_MARK="?"
-WAIT_MARK="⧗"
-DONE_MARK="◉"
-UNTAGGED_MARK="○"
-BUSY_FRAMES=(◰ ◳ ◲ ◱)
+TRIAGE_MARKS=$(jq -c '.marks' "$(dirname "$0")/turn-triage.json")
+BUSY_FRAMES=($(jq -r '.working[]' <<<"$TRIAGE_MARKS"))
 
 trap 'rm -f "$STATE_FILE" "$TITLE_FILE"' EXIT
 
@@ -48,10 +45,7 @@ while kill -0 "$CLAUDE_PID" 2>/dev/null; do
     mark=${BUSY_FRAMES[frame]}
     frame=$(((frame + 1) % ${#BUSY_FRAMES[@]}))
     ;;
-  question | permission) mark=$QUESTION_MARK frame=0 ;;
-  wait) mark=$WAIT_MARK frame=0 ;;
-  done) mark=$DONE_MARK frame=0 ;;
-  *) mark=$UNTAGGED_MARK frame=0 ;;
+  *) mark=$(jq -r --arg state "$state" '.[$state][0] // .untagged[0]' <<<"$TRIAGE_MARKS") frame=0 ;;
   esac
   title="$mark $name"
   [[ $title != "$last" ]] || continue

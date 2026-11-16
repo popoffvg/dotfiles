@@ -19,17 +19,7 @@ TAG_RE = re.compile(r"^\W*triage:\s*(done|wait|question)\W*$", re.IGNORECASE)
 
 TOOL_DONE_EVENTS = ("PostToolUse", "PostToolUseFailure", "PermissionDenied")
 
-RULE = (
-    "End your final reply of this turn with one last line `triage: <state>`, where <state> is:\n"
-    "question - you ask the user something, offer options, or need a decision, a confirmation, "
-    "or information before the work can continue;\n"
-    "wait - the turn ends but the work goes on without the user: a background task, agent, or "
-    "workflow still runs and will resume this session when it exits;\n"
-    "done - the work stopped: the request is answered, or files changed or a step failed.\n"
-    "If question applies, write question. Else if wait applies, write wait. Else write done.\n"
-    "With question, the line just above the triage line MUST repeat the question in full, as one "
-    "direct sentence that ends with `?` — even when the reply asked it before."
-)
+RULE = json.loads((Path(__file__).resolve().parent.parent / "scripts/turn-triage.json").read_text())["rule"]
 
 
 def read_state() -> dict:

@@ -89,6 +89,7 @@ const IMPL = {
     status: { enum: ['done', 'blocked'] },
     summary: { type: 'string', description: 'what shipped + the commit sha' },
     blocker: { type: 'string', description: 'set only when blocked: what was tried + why stopped' },
+    uncommitted: { type: 'boolean', description: 'true only when blocked after the code is written and both Autotest commands are green, but the commit failed' },
   },
 }
 const INTENT = {
@@ -183,7 +184,9 @@ function implPrompt(failures) {
         `widen no scope. Leave the tests that cover the changed files green. `) +
     `Commit per ${PLUGIN}/skills/impl/commands/sub-commit.md. ` +
     `Return status:"done" once green + committed, or status:"blocked" with the blocker if you hit a hard-stop ` +
-    `(3+ edits without green, 2 failed fix attempts, tool/permission error, or a request to replan).`
+    `(3+ edits without green, 2 failed fix attempts, tool/permission error, or a request to replan). ` +
+    `When the code is written and green but the commit fails (a hook, a permission), leave the change in the ` +
+    `working tree and return status:"blocked" with uncommitted:true.`
   if (!failures || failures.length === 0) return brief
   return (
     `${brief}\n\n${scopeClause}CORRECTION round — the review failed. Address these failures, then commit a FIXUP ` +
@@ -194,14 +197,15 @@ function implPrompt(failures) {
 }
 
 // ── the review ───────────────────────────────────────────────────────────────
+const reviewDir = () => `${notesDir}/review/${target}`
 // One reviewrules run per round (review:references/ref-reviewrules.md). The ADR rules are written
 // again first, so a Property added mid-run binds the next round.
 async function runReview() {
   phase('Review')
-  const reportDir = `${notesDir}/review/${target}`
+  const reportDir = reviewDir()
   const baseStep =
     base === null
-      ? `First find the base: the parent of the first TODO-${todo} commit, found with git log --oneline. Use it as <base>.\n`
+      ? `First find the base: the parent of the first TODO-${todo} commit, found with git log --oneline, or HEAD when no TODO-${todo} commit exists. Use it as <base>.\n`
       : ''
   const out = await agent(
     safetyClause +
@@ -281,6 +285,20 @@ function blocked(stage, impl) {
   return { result: 'BLOCKED', mode, todo, stage, blocker: impl ? impl.blocker : 'implementer agent died', round, history }
 }
 
+// A failed commit leaves green code in the working tree: review it before the run reports BLOCKED.
+async function blockedAfterReview(stage, impl) {
+  if (!impl || !impl.uncommitted) return blocked(stage, impl)
+  worktree = true
+  round++
+  const review = await runReview()
+  const result = blocked(stage, impl)
+  if (!review) return { ...result, review: { exit: null, blocker: 'the review agent died' } }
+  return {
+    ...result,
+    review: { exit: review.exit, report: `${reviewDir()}/report.md`, failures: findingLines(review.failed), log: review.log },
+  }
+}
+
 let impl = null
 if (mode === 'todo') {
   phase('Implement')
@@ -308,7 +326,7 @@ if (mode === 'todo') {
     })
   }
   impl = await agent(implPrompt(), { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `impl:TODO-${todo}` })
-  if (!impl || impl.status === 'blocked') return blocked('initial', impl)
+  if (!impl || impl.status === 'blocked') return blockedAfterReview('initial', impl)
 } else {
   // review:sub-diff.md step 1 — resolve the target into a base and a head, and derive the intent,
   // because a fixup has nothing approved to work against without it.
@@ -344,12 +362,12 @@ while (round < MAX_ROUNDS) {
   round++
   const review = await runReview()
   if (!review) return { result: 'ERROR', mode, todo, stage: 'review', round, history }
-  const report = `${notesDir}/review/${target}/report.md`
+  const report = `${reviewDir()}/report.md`
   const nits = findingLines(review.failed.filter((f) => f.severity === 'low'))
 
   if (review.exit === 2) {
     log(`round ${round}: reviewrules did not finish — ${review.log.trim()}`)
-    return { result: 'ERROR', mode, todo, stage: 'reviewrules', blocker: `reviewrules exit 2; see ${notesDir}/review/${target}/reviewrules.log\n${review.log.trim()}`, round, history }
+    return { result: 'ERROR', mode, todo, stage: 'reviewrules', blocker: `reviewrules exit 2; see ${reviewDir()}/reviewrules.log\n${review.log.trim()}`, round, history }
   }
   if (review.exit === 0) {
     history.push({ round, gate: 'reviewrules', result: 'PASS', failures: nits })
@@ -403,7 +421,7 @@ while (round < MAX_ROUNDS) {
 
   phase('Implement')
   impl = await agent(implPrompt(failures.length > 0 ? failures : [`read ${report} and close every FAIL in it`]), { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `fixup:r${round}` })
-  if (!impl || impl.status === 'blocked') return blocked('review-fixup', impl)
+  if (!impl || impl.status === 'blocked') return blockedAfterReview('review-fixup', impl)
 }
 
 log(`${mode === 'todo' ? `TODO-${todo}` : range}: hit MAX_ROUNDS=${MAX_ROUNDS} without a green review — stopping (backstop, not a silent truncation)`)
