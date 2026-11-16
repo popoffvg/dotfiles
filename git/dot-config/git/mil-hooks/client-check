@@ -87,6 +87,8 @@ ask_haiku() {
   export prompt
   # shellcheck disable=SC2016
   ls "$work"/chunk.* | xargs -P 8 -I{} sh -c '
+    # git exports these to hooks; a git run inside claude (a plugin update) would write into this repo.
+    unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_COMMON_DIR
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 claude -p --model haiku --tools "" --setting-sources "" \
       --strict-mcp-config --disable-slash-commands --no-session-persistence \
       --system-prompt "$prompt" <"$1" >"$1.out" 2>"$1.err" || echo "claude exited $?" >>"$1.err"
