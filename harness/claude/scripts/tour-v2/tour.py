@@ -4,13 +4,15 @@
 A tour folder holds TODO.md and tour.json. A stop is one comment at one line
 range of the change tip. The order of the stops array is the reading order.
 
-Usage:
-  tour.py check <tour-dir>
-  tour.py serve <tour-dir> [--port 8792] [--no-open]   add the tour; start the server when none runs
-  tour.py close <tour-dir>                             remove the tour from the viewer
+Usage (the tour command runs this file):
+  tour open <tour-dir>    add the tour as a tab and open it in the browser
+  tour close <tour-dir>   remove the tab
+  tour list               print the open tours
+  tour check <tour-dir>   exit 1 when TODO.md or tour.json breaks a rule
+  tour serve              run the viewer on 127.0.0.1:8792; the com.vitalii.tour-v2 LaunchAgent runs it
 
-The open tours are the folders listed in ~/.cache/tour-v2/open-tours.txt, so a
-second serve only adds a line, and the running server shows the new tour.
+The open tours are the folders listed in ~/.cache/tour-v2/open-tours.txt, so
+open only adds a line, and the running server shows the new tour.
 
 Endpoints, where T is the absolute tour folder:
   GET  /                     the viewer page
@@ -36,6 +38,9 @@ PAGE = HERE / "index.html"
 WORKTREE_TIP = "worktree"
 TODO_SECTIONS = ["## Problem", "## Domain", "### Map", "### Terms", "## Map of stops", "## Open points"]
 STOP_FIELDS = ["file", "line", "end", "node", "title", "body", "critical"]
+PORT = 8792
+VIEWER = f"http://127.0.0.1:{PORT}/"
+DAEMON = "com.vitalii.tour-v2"
 OPEN_TOURS = Path.home() / ".cache" / "tour-v2" / "open-tours.txt"
 HUNK_HEADER = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
 
@@ -203,23 +208,25 @@ def make_handler():
     return Handler
 
 
-def server_runs(port: int) -> bool:
+def server_runs() -> bool:
     with socket.socket() as probe:
-        return probe.connect_ex(("127.0.0.1", port)) == 0
+        return probe.connect_ex(("127.0.0.1", PORT)) == 0
 
 
-def serve(folder: Path, port: int, no_open: bool):
+def open_tour(folder: Path):
     close_tour(folder)
     write_open_tours(open_tours() + [folder])
-    url = f"http://127.0.0.1:{port}/?tour={quote(str(folder))}"
-    print(f"tour   {folder}")
-    print(f"viewer {url}")
-    if not no_open:
-        subprocess.run(["open", url], check=False)
-    if server_runs(port):
-        print("the server already runs; the tour is added to it")
+    url = f"{VIEWER}?tour={quote(str(folder))}"
+    print(url)
+    if not server_runs():
+        print(f"tour: no viewer on port {PORT}; start it with: launchctl kickstart gui/$(id -u)/{DAEMON}")
         return
-    server = ThreadingHTTPServer(("127.0.0.1", port), make_handler())
+    subprocess.run(["open", url], check=False)
+
+
+def serve():
+    server = ThreadingHTTPServer(("127.0.0.1", PORT), make_handler())
+    print(f"viewer {VIEWER}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -228,19 +235,24 @@ def serve(folder: Path, port: int, no_open: bool):
 
 def main():
     sys.stdout.reconfigure(line_buffering=True)
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog="tour")
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("check").add_argument("folder")
-    serve_parser = commands.add_parser("serve")
-    serve_parser.add_argument("folder")
-    serve_parser.add_argument("--port", type=int, default=8792)
-    serve_parser.add_argument("--no-open", action="store_true")
-    commands.add_parser("close").add_argument("folder")
+    for name in ["open", "close", "check"]:
+        commands.add_parser(name).add_argument("folder")
+    commands.add_parser("list")
+    commands.add_parser("serve")
     args = parser.parse_args()
 
-    folder = Path(args.folder).resolve()
     if args.command == "serve":
-        serve(folder, args.port, args.no_open)
+        serve()
+        return
+    if args.command == "list":
+        for folder in open_tours():
+            print(f"{folder}\t{load_tour(folder)['title']}")
+        return
+    folder = Path(args.folder).resolve()
+    if args.command == "open":
+        open_tour(folder)
         return
     if args.command == "close":
         close_tour(folder)
@@ -249,7 +261,7 @@ def main():
     errors = find_errors(folder)
     for error in errors:
         print(error)
-    print(f"tour-v2 check: {len(errors)} errors in {folder}")
+    print(f"tour check: {len(errors)} errors in {folder}")
     sys.exit(1 if errors else 0)
 
 

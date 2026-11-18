@@ -274,7 +274,7 @@ async function start() {
   setInterval(renderTabs, 4000);
   if (!tourId && tours.length) return location.replace(tourUrl(tours[0].id));
   if (!tours.some((t) => t.id === tourId)) {
-    $("main").innerHTML = '<div id="empty">No open tour. Run <code>~/.claude/scripts/tour-v2/tour.py serve &lt;tour-dir&gt;</code> to add one.</div>';
+    $("main").innerHTML = '<div id="empty">No open tour. Run <code>tour open &lt;tour-dir&gt;</code> to add one.</div>';
     return;
   }
   const { tour, todo } = await (await fetch("/tour?" + tourQuery())).json();

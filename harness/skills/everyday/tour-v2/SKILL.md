@@ -1,13 +1,13 @@
 ---
 name: tour-v2
 description: Write a tour of a code change as one TODO page (the problem, a domain map that introduces the terms and links each node to its stops, the map of stops) and a list of comments anchored to line ranges at the tip, then serve both in a local viewer that shows each comment next to its code and opens the line in Zed. Use on "tour-v2", "tour with comments at the code", "walk me through the diff in the viewer", or when the operator wants to read a change stop by stop beside the code. The markdown-only tour, one page per increment, is `tour`.
-allowed-tools: Bash(~/.claude/scripts/tour-v2/tour.py:*)
-version: 0.3.0
+allowed-tools: Bash(tour:*)
+version: 0.4.0
 ---
 
 # tour-v2
 
-**The product is a folder with two files and a tab in the viewer.** `TODO.md` explains the change before any code. `tour.json` holds the stops: one comment per line range, in reading order. `~/.claude/scripts/tour-v2/tour.py serve` shows `TODO.md` on the left and the code with the current comment on the right. Each open tour is one tab; `tour.py close <folder>` or the × on the tab removes it. The keys `n` and `p` move between stops, and `o` or a click on a line number opens the line in Zed.
+**The product is a folder with two files and a tab in the viewer.** `TODO.md` explains the change before any code. `tour.json` holds the stops: one comment per line range, in reading order. The viewer at http://127.0.0.1:8792/ shows `TODO.md` on the left and the code with the current comment on the right. The `com.vitalii.tour-v2` LaunchAgent keeps it running. Each open tour is one tab; `tour close <folder>` or the × on the tab removes it. The keys `n` and `p` move between stops, and `o` or a click on a line number opens the line in Zed.
 
 ## Steps
 
@@ -15,8 +15,8 @@ version: 0.3.0
 2. **Read the change.** Do step 3 of [tour: Steps](../tour/SKILL.md#steps). Done when you can say in 1 to 3 sentences what goes wrong without the change, with its source.
 3. **Draw the domain map.** The map introduces a reader who does not know the domain, and it is the way to move between stops. Write the terms first: each thing the change reads, writes, or reacts to, glossed in one line, with the place it lives. Then draw the map as [Domain map](#domain-map) says. In `TODO.md` the map comes before the terms table: the reader moves by the map and looks a term up. Add a second view from [Views](#views) only when its row matches the change. Draw from the code at the tip, not from the commit messages. Done when every term that a stop title or body uses is in the terms table, every map node names a real thing, and every node that a stop explains links to it.
 4. **Cut the stops and order them.** One stop is one line range that one comment explains, at most about 40 lines. Order the stops by call: from the entry point that starts the flow down to the leaves. Mark a stop critical by the rule of [tour: Steps](../tour/SKILL.md#steps) step 4. Done when every changed hunk is in a stop or in "Not on the tour" of `TODO.md`.
-5. **Write the folder.** Put it where [tour: Where the folder goes](../tour/SKILL.md#where-the-folder-goes) says, named `tour-v2-<slug>/`. Write `tour.json` first, then `TODO.md`, in the [Layout](#layout) below. Load the `i-have-adhd` skill and apply it to `TODO.md` and to each stop body. Done when `~/.claude/scripts/tour-v2/tour.py check <folder>` prints `0 errors`.
-6. **Serve it.** Run `~/.claude/scripts/tour-v2/tour.py serve <folder>` in the background with the sandbox off: the server starts `zed --existing`, which the sandbox blocks. One server shows every open tour as a tab. When it already runs, `serve` adds the tour to it and exits. Done when `curl -s http://127.0.0.1:8792/tours` lists the folder.
+5. **Write the folder.** Put it where [tour: Where the folder goes](../tour/SKILL.md#where-the-folder-goes) says, named `tour-v2-<slug>/`. Write `tour.json` first, then `TODO.md`, in the [Layout](#layout) below. Load the `i-have-adhd` skill and apply it to `TODO.md` and to each stop body. Done when `tour check <folder>` prints `0 errors`.
+6. **Open it.** Run `tour open <folder>` with the sandbox off: it opens the browser, which the sandbox blocks. It adds the tour as a tab of the running viewer. When it prints "no viewer on port 8792", run the `launchctl kickstart` line it prints. Done when `tour list` shows the folder.
 7. **Hand it over.** Tell the operator the URL, the folder path, the problem in one sentence, and the stops in a table: number, title, critical or not. Done when the operator has the URL.
 
 ## Domain map
@@ -75,7 +75,7 @@ Add one of these as a second view when its row matches the change.
 ```markdown
 # <the title from tour.json>
 
-Tip `<sha>` in `<repo>`. Run `~/.claude/scripts/tour-v2/tour.py serve <folder>` to open the viewer.
+Tip `<sha>` in `<repo>`. Run `tour open <folder>` to open the viewer.
 
 ## Problem
 
@@ -110,4 +110,4 @@ Tip `<sha>` in `<repo>`. Run `~/.claude/scripts/tour-v2/tour.py serve <folder>` 
 - <slug>: <the question>, or "none"
 ```
 
-`tour.py check` fails when a section is missing, a stop range is outside its file at the tip, the map of stops has no `(#stop-n)` link for a stop, or the domain map has no `click … href "#stop-n"` or no node text equal to the `node` of a stop.
+`tour check` fails when a section is missing, a stop range is outside its file at the tip, the map of stops has no `(#stop-n)` link for a stop, or the domain map has no `click … href "#stop-n"` or no node text equal to the `node` of a stop.

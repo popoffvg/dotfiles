@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.vitalii.tour-v2</string>
+  <!-- The tour-v2 viewer on 127.0.0.1:8792. `tour open <dir>` then only adds a tab. PATH holds zed and python3. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>export PATH="/opt/nanobrew/prefix/bin:$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"; exec python3 "$HOME/.claude/scripts/tour-v2/tour.py" serve &gt;&gt;"$HOME/Library/Logs/tour-v2.log" 2&gt;&amp;1</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+</dict>
+</plist>
