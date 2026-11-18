@@ -20,11 +20,22 @@
     --accent:#8aadf4; --green:#a6da95; --red:#ed8796; --yellow:#eed49f; --range:rgba(238,212,159,.09); --card:#2b2f45; --shadow:0 8px 24px rgba(0,0,0,.35);
   } }
   * { box-sizing:border-box; }
-  body { margin:0; height:100vh; overflow:hidden; display:grid; grid-template-columns:minmax(360px, 36%) 1fr; font:14px/1.6 Inter, -apple-system, system-ui, sans-serif; background:var(--base); color:var(--text); }
+  body { margin:0; height:100vh; overflow:hidden; display:flex; flex-direction:column; font:14px/1.6 Inter, -apple-system, system-ui, sans-serif; background:var(--base); color:var(--text); }
   a { color:var(--accent); }
   code { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.88em; background:var(--mantle); padding:1px 5px; border-radius:4px; }
 
-  #todo { height:100vh; overflow:auto; padding:28px 32px 64px; background:var(--mantle); border-right:1px solid var(--crust); }
+  #main { flex:1; min-height:0; display:grid; grid-template-columns:minmax(360px, 36%) 1fr; }
+  #empty { padding:48px; color:var(--subtext); }
+  #tabs { display:flex; gap:2px; padding:6px 10px 0; background:var(--crust); overflow-x:auto; flex-shrink:0; }
+  #tabs .tab { display:flex; align-items:center; gap:8px; max-width:320px; padding:7px 10px 7px 14px; border-radius:8px 8px 0 0; color:var(--subtext); text-decoration:none; font-size:13px; white-space:nowrap; }
+  #tabs .tab:hover { background:var(--mantle); color:var(--text); }
+  #tabs .tab.current { background:var(--mantle); color:var(--text); font-weight:600; }
+  #tabs .tab span.name { overflow:hidden; text-overflow:ellipsis; }
+  #tabs .count { font-size:11px; background:var(--surface); border-radius:999px; padding:0 7px; }
+  #tabs .count.crit { background:var(--red); color:var(--base); }
+  #tabs .x { border:none; background:none; color:var(--overlay); cursor:pointer; font-size:15px; line-height:1; padding:0 2px; border-radius:4px; }
+  #tabs .x:hover { color:var(--red); }
+  #todo { height:100%; overflow:auto; padding:28px 32px 64px; background:var(--mantle); border-right:1px solid var(--crust); }
   #todo h1 { font-size:22px; line-height:1.3; margin:0 0 8px; letter-spacing:-.01em; }
   #todo h2 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--subtext); margin:28px 0 8px; }
   #todo h3 { font-size:15px; margin:12px 0 8px; }
@@ -38,10 +49,18 @@
   #todo a.current { background:var(--accent); color:var(--base); }
   #todo svg a.current :is(rect, circle, polygon, path) { stroke:var(--accent) !important; stroke-width:3px !important; }
   .mermaid { background:var(--card); border-radius:12px; padding:16px; box-shadow:var(--shadow); text-align:center; }
-  .mermaid svg { max-width:100% !important; height:auto; }
+  .mermaid { position:relative; }
+  .mermaid svg { max-width:none !important; height:auto; }
+  .zoom-open { position:sticky; float:right; top:0; right:0; z-index:2; }
+  #overlay { position:fixed; inset:0; z-index:10; display:none; flex-direction:column; background:var(--base); }
+  #overlay.on { display:flex; }
+  #overlay .tools { display:flex; gap:8px; align-items:center; padding:10px 16px; border-bottom:1px solid var(--crust); }
+  #overlay .tools span { flex:1; color:var(--subtext); font-size:13px; }
+  #overlay .canvas { flex:1; overflow:auto; padding:24px; cursor:grab; }
+  #overlay .canvas svg { max-width:none !important; height:auto; }
   .mermaid .node { cursor:pointer; }
 
-  #right { display:grid; grid-template-rows:auto 3px auto 1fr auto; min-width:0; min-height:0; height:100vh; }
+  #right { display:grid; grid-template-rows:auto 3px auto 1fr auto; min-width:0; min-height:0; height:100%; }
   #bar { display:flex; gap:12px; align-items:center; padding:12px 20px; }
   #bar .title { flex:1; font-weight:600; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   #count { font-variant-numeric:tabular-nums; color:var(--subtext); font-size:13px; }
@@ -84,6 +103,9 @@
 </style>
 </head>
 <body>
+<nav id="tabs"></nav>
+<div id="overlay"><div class="tools"><span>Map: scroll or drag to move, click a green node to go to its stop</span><button class="btn" data-zoom="0.8">−</button><button class="btn" data-zoom="0">Fit</button><button class="btn" data-zoom="1.25">+</button><button class="btn primary" data-zoom="close">Close (Esc)</button></div><div class="canvas"></div></div>
+<div id="main">
 <div id="todo"></div>
 <div id="right">
   <div id="bar">
@@ -97,16 +119,19 @@
   <div id="progress"><div></div></div>
   <div id="stops"></div>
   <div id="code"></div>
-  <div id="help"><kbd>n</kbd> <kbd>→</kbd> next · <kbd>p</kbd> <kbd>←</kbd> previous · <kbd>o</kbd> open in Zed · click a line number to open that line</div>
+  <div id="help"><kbd>n</kbd> <kbd>→</kbd> next · <kbd>p</kbd> <kbd>←</kbd> previous · <kbd>o</kbd> open in Zed · <kbd>m</kbd> large map · click a line number to open that line</div>
+</div>
 </div>
 <script>
+const tourId = new URLSearchParams(location.search).get("tour");
 const state = { tour: null, files: {}, current: 0, seen: new Set() };
+const tourQuery = () => "tour=" + encodeURIComponent(tourId);
 const $ = (id) => document.getElementById(id);
 const escapeHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
 async function loadFile(path) {
   if (!state.files[path]) {
-    const reply = await fetch("/file?path=" + encodeURIComponent(path));
+    const reply = await fetch("/file?" + tourQuery() + "&path=" + encodeURIComponent(path));
     state.files[path] = await reply.json();
   }
   return state.files[path];
@@ -131,7 +156,7 @@ async function show(index) {
   state.seen.add(state.current);
   const stop = stops[state.current];
   const number = state.current + 1;
-  if (location.hash !== "#stop-" + number) history.replaceState(null, "", "#stop-" + number);
+  if (location.hash !== "#stop-" + number) history.replaceState(null, "", location.search + "#stop-" + number);
   $("count").textContent = number + " / " + stops.length;
   $("title").textContent = stop.title;
   $("crit").innerHTML = stop.critical ? '<span class="tag crit">critical</span>' : "";
@@ -160,8 +185,50 @@ async function show(index) {
 
 async function openInZed(line) {
   const stop = state.tour.stops[state.current];
-  const reply = await fetch("/open?path=" + encodeURIComponent(stop.file) + "&line=" + (line || stop.line), { method: "POST" });
+  const reply = await fetch("/open?" + tourQuery() + "&path=" + encodeURIComponent(stop.file) + "&line=" + (line || stop.line), { method: "POST" });
   if (!reply.ok) alert(await reply.text());
+}
+
+const overlay = { svg: null, width: 0 };
+
+function fitWidth() {
+  const canvas = document.querySelector("#overlay .canvas");
+  const svg = overlay.svg;
+  const ratio = svg.viewBox.baseVal.height / svg.viewBox.baseVal.width;
+  return Math.min(canvas.clientWidth - 48, (canvas.clientHeight - 48) / ratio);
+}
+
+function openOverlay(svg) {
+  const canvas = document.querySelector("#overlay .canvas");
+  overlay.svg = svg.cloneNode(true);
+  canvas.replaceChildren(overlay.svg);
+  $("overlay").classList.add("on");
+  overlay.width = fitWidth();
+  overlay.svg.setAttribute("width", overlay.width);
+}
+
+function closeOverlay() {
+  $("overlay").classList.remove("on");
+}
+
+function setupOverlay() {
+  const canvas = document.querySelector("#overlay .canvas");
+  document.querySelector("#overlay .tools").onclick = (event) => {
+    const zoom = event.target.closest("[data-zoom]")?.dataset.zoom;
+    if (!zoom) return;
+    if (zoom === "close") return closeOverlay();
+    overlay.width = zoom === "0" ? fitWidth() : overlay.width * Number(zoom);
+    overlay.svg.setAttribute("width", overlay.width);
+  };
+  canvas.onclick = (event) => { if (event.target.closest("a")) closeOverlay(); };
+  let drag = null;
+  canvas.onmousedown = (event) => { drag = { x: event.clientX, y: event.clientY, left: canvas.scrollLeft, top: canvas.scrollTop }; };
+  addEventListener("mouseup", () => { drag = null; });
+  canvas.onmousemove = (event) => {
+    if (!drag) return;
+    canvas.scrollLeft = drag.left - (event.clientX - drag.x);
+    canvas.scrollTop = drag.top - (event.clientY - drag.y);
+  };
 }
 
 function stopFromHash() {
@@ -169,8 +236,41 @@ function stopFromHash() {
   return match ? Number(match[1]) - 1 : null;
 }
 
+function tourUrl(id) {
+  return "/?tour=" + encodeURIComponent(id);
+}
+
+async function renderTabs() {
+  const tours = await (await fetch("/tours")).json();
+  $("tabs").innerHTML = tours.map((t) =>
+    '<a class="tab' + (t.id === tourId ? " current" : "") + '" href="' + tourUrl(t.id) + '" title="' + escapeHtml(t.id) + '">' +
+    '<span class="name">' + escapeHtml(t.title) + '</span>' +
+    '<span class="count' + (t.critical ? " crit" : "") + '">' + t.stops + '</span>' +
+    '<button class="x" data-close="' + escapeHtml(t.id) + '" title="Close the tour">×</button></a>').join("");
+  return tours;
+}
+
+async function closeTour(id) {
+  await fetch("/close?tour=" + encodeURIComponent(id), { method: "POST" });
+  const tours = await renderTabs();
+  if (id === tourId) location.href = tours.length ? tourUrl(tours[0].id) : "/";
+}
+
 async function start() {
-  const { tour, todo } = await (await fetch("/tour")).json();
+  const tours = await renderTabs();
+  $("tabs").onclick = (event) => {
+    const x = event.target.closest("[data-close]");
+    if (!x) return;
+    event.preventDefault();
+    closeTour(x.dataset.close);
+  };
+  setInterval(renderTabs, 4000);
+  if (!tourId && tours.length) return location.replace(tourUrl(tours[0].id));
+  if (!tours.some((t) => t.id === tourId)) {
+    $("main").innerHTML = '<div id="empty">No open tour. Run <code>~/.claude/scripts/tour-v2/tour.py serve &lt;tour-dir&gt;</code> to add one.</div>';
+    return;
+  }
+  const { tour, todo } = await (await fetch("/tour?" + tourQuery())).json();
   state.tour = tour;
   document.title = tour.title;
   $("todo").innerHTML = marked.parse(todo);
@@ -184,6 +284,20 @@ async function start() {
   mermaid.initialize({ startOnLoad: false, securityLevel: "loose", theme: dark ? "dark" : "neutral", fontFamily: "Inter, system-ui, sans-serif" });
   await document.fonts.ready;
   await mermaid.run();
+  document.querySelectorAll("#todo .mermaid").forEach((box) => {
+    const svg = box.querySelector("svg");
+    svg.dataset.width = parseFloat(svg.style.maxWidth) || svg.getBBox().width;
+    svg.setAttribute("width", "100%");
+    svg.style.maxWidth = "none";
+    svg.style.cursor = "zoom-in";
+    svg.addEventListener("click", (event) => { if (!event.target.closest("a")) openOverlay(svg); });
+    const button = document.createElement("button");
+    button.className = "btn zoom-open";
+    button.textContent = "⤢ Open large";
+    button.onclick = () => openOverlay(svg);
+    box.prepend(button);
+  });
+  setupOverlay();
   $("stops").innerHTML = tour.stops.map((s, i) => '<a href="#stop-' + (i + 1) + '" class="' + (s.critical ? "crit" : "") + '" title="' + escapeHtml(s.title) + '">' + (i + 1) + '</a>').join("");
   $("prev").onclick = () => show(state.current - 1);
   $("next").onclick = () => show(state.current + 1);
@@ -200,6 +314,9 @@ async function start() {
   addEventListener("hashchange", () => { const i = stopFromHash(); if (i !== null && i !== state.current) show(i); });
   addEventListener("keydown", (event) => {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.key === "Escape") return closeOverlay();
+    if (event.key === "m") return openOverlay(document.querySelector("#todo .mermaid svg"));
+    if ($("overlay").classList.contains("on")) return;
     if (["n", "j", "ArrowRight"].includes(event.key)) show(state.current + 1);
     if (["p", "k", "ArrowLeft"].includes(event.key)) show(state.current - 1);
     if (event.key === "o") openInZed();
