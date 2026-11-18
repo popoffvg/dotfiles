@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>tour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" media="(prefers-color-scheme: light)" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github.min.css">
+<link rel="stylesheet" media="(prefers-color-scheme: dark)" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --base:#eff1f5; --mantle:#e6e9ef; --crust:#dce0e8; --surface:#ccd0da; --text:#4c4f69; --subtext:#6c6f85; --overlay:#9ca0b0;
+    --accent:#1e66f5; --green:#40a02b; --red:#d20f39; --yellow:#df8e1d; --range:rgba(223,142,29,.13); --card:#ffffff; --shadow:0 8px 24px rgba(76,79,105,.12);
+  }
+  @media (prefers-color-scheme: dark) { :root {
+    --base:#24273a; --mantle:#1e2030; --crust:#181926; --surface:#363a4f; --text:#cad3f5; --subtext:#a5adcb; --overlay:#6e738d;
+    --accent:#8aadf4; --green:#a6da95; --red:#ed8796; --yellow:#eed49f; --range:rgba(238,212,159,.09); --card:#2b2f45; --shadow:0 8px 24px rgba(0,0,0,.35);
+  } }
+  * { box-sizing:border-box; }
+  body { margin:0; height:100vh; overflow:hidden; display:grid; grid-template-columns:minmax(360px, 36%) 1fr; font:14px/1.6 Inter, -apple-system, system-ui, sans-serif; background:var(--base); color:var(--text); }
+  a { color:var(--accent); }
+  code { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.88em; background:var(--mantle); padding:1px 5px; border-radius:4px; }
+
+  #todo { height:100vh; overflow:auto; padding:28px 32px 64px; background:var(--mantle); border-right:1px solid var(--crust); }
+  #todo h1 { font-size:22px; line-height:1.3; margin:0 0 8px; letter-spacing:-.01em; }
+  #todo h2 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--subtext); margin:28px 0 8px; }
+  #todo h3 { font-size:15px; margin:12px 0 8px; }
+  #todo > p:first-of-type { color:var(--subtext); font-size:12.5px; word-break:break-all; }
+  #todo table { width:100%; border-collapse:separate; border-spacing:0; background:var(--card); border-radius:10px; overflow:hidden; box-shadow:var(--shadow); font-size:13px; }
+  #todo th { text-align:left; font-weight:600; color:var(--subtext); background:var(--crust); }
+  #todo td code { word-break:break-all; }
+  #todo td, #todo th { padding:8px 10px; border-bottom:1px solid var(--crust); vertical-align:top; }
+  #todo tr:last-child td { border-bottom:none; }
+  #todo td a { display:inline-grid; place-items:center; min-width:24px; height:24px; border-radius:12px; background:var(--crust); text-decoration:none; font-weight:600; }
+  #todo a.current { background:var(--accent); color:var(--base); }
+  #todo svg a.current :is(rect, circle, polygon, path) { stroke:var(--accent) !important; stroke-width:3px !important; }
+  .mermaid { background:var(--card); border-radius:12px; padding:16px; box-shadow:var(--shadow); text-align:center; }
+  .mermaid svg { max-width:100% !important; height:auto; }
+  .mermaid .node { cursor:pointer; }
+
+  #right { display:grid; grid-template-rows:auto 3px auto 1fr auto; min-width:0; min-height:0; height:100vh; }
+  #bar { display:flex; gap:12px; align-items:center; padding:12px 20px; }
+  #bar .title { flex:1; font-weight:600; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #count { font-variant-numeric:tabular-nums; color:var(--subtext); font-size:13px; }
+  #progress { background:var(--crust); } #progress div { height:100%; background:var(--accent); transition:width .25s ease; }
+  .tag { font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px; }
+  .tag.crit { background:var(--red); color:var(--base); }
+  .btn { font:inherit; font-size:13px; border:1px solid var(--surface); background:var(--card); color:var(--text); padding:5px 12px; border-radius:8px; cursor:pointer; transition:background .15s, border-color .15s; }
+  .btn:hover { border-color:var(--accent); }
+  .btn.primary { background:var(--accent); border-color:var(--accent); color:var(--base); font-weight:600; }
+  #stops { display:flex; flex-wrap:wrap; gap:6px; padding:10px 20px; border-bottom:1px solid var(--crust); }
+  #stops a { position:relative; display:grid; place-items:center; min-width:30px; height:30px; padding:0 8px; border-radius:8px; background:var(--mantle); color:var(--subtext); text-decoration:none; font-size:12.5px; font-weight:600; transition:all .15s; }
+  #stops a:hover { color:var(--text); background:var(--crust); }
+  #stops a.crit::after { content:""; position:absolute; top:4px; right:4px; width:6px; height:6px; border-radius:3px; background:var(--red); }
+  #stops a.seen { color:var(--text); }
+  #stops a.current { background:var(--accent); color:var(--base); }
+
+  #code { overflow:auto; min-height:0; font:12.5px/1.6 "JetBrains Mono", ui-monospace, monospace; }
+  #code .path { position:sticky; top:0; z-index:1; padding:8px 20px; background:var(--base); border-bottom:1px solid var(--crust); color:var(--subtext); font-size:12px; backdrop-filter:blur(6px); }
+  #code .path b { color:var(--text); font-weight:600; }
+  .hljs { background:transparent; }
+  .row { display:grid; grid-template-columns:64px 1fr; }
+  .num { text-align:right; padding-right:14px; color:var(--overlay); user-select:none; border-left:3px solid transparent; cursor:pointer; }
+  .num:hover { color:var(--accent); }
+  .num.added { border-left-color:var(--green); }
+  .src { white-space:pre; padding-right:24px; }
+  .row.range { background:var(--range); }
+  .row.range .num { color:var(--yellow); font-weight:600; }
+  .card { margin:10px 24px 14px 64px; padding:16px 20px; background:var(--card); border-radius:12px; border-left:4px solid var(--accent); box-shadow:var(--shadow); font:14px/1.6 Inter, system-ui, sans-serif; white-space:normal; animation:rise .2s ease; }
+  .card.crit { border-left-color:var(--red); }
+  .card .head { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .card .node { font-size:11.5px; color:var(--subtext); background:var(--mantle); padding:2px 8px; border-radius:999px; }
+  .card h3 { margin:0 0 6px; font-size:16px; }
+  .card p { margin:6px 0; }
+  .card .actions { display:flex; gap:8px; margin-top:12px; }
+  .marker { font:600 10.5px Inter, sans-serif; color:var(--accent); background:var(--mantle); border-radius:999px; padding:1px 8px; margin-left:12px; cursor:pointer; }
+  @keyframes rise { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+  #help { padding:6px 20px; border-top:1px solid var(--crust); color:var(--overlay); font-size:12px; }
+  kbd { font:600 11px "JetBrains Mono", monospace; background:var(--mantle); border:1px solid var(--surface); border-bottom-width:2px; border-radius:4px; padding:0 5px; color:var(--subtext); }
+</style>
+</head>
+<body>
+<div id="todo"></div>
+<div id="right">
+  <div id="bar">
+    <button class="btn" id="prev" title="p">←</button>
+    <span id="count"></span>
+    <button class="btn" id="next" title="n">→</button>
+    <span class="title" id="title"></span>
+    <span id="crit"></span>
+    <button class="btn primary" id="open" title="o">Open in Zed</button>
+  </div>
+  <div id="progress"><div></div></div>
+  <div id="stops"></div>
+  <div id="code"></div>
+  <div id="help"><kbd>n</kbd> <kbd>→</kbd> next · <kbd>p</kbd> <kbd>←</kbd> previous · <kbd>o</kbd> open in Zed · click a line number to open that line</div>
+</div>
+<script>
+const state = { tour: null, files: {}, current: 0, seen: new Set() };
+const $ = (id) => document.getElementById(id);
+const escapeHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+async function loadFile(path) {
+  if (!state.files[path]) {
+    const reply = await fetch("/file?path=" + encodeURIComponent(path));
+    state.files[path] = await reply.json();
+  }
+  return state.files[path];
+}
+
+function highlightLines(path, text) {
+  const extension = path.split(".").pop();
+  const language = hljs.getLanguage(extension) ? extension : "plaintext";
+  return text.split("\n").map((line) => hljs.highlight(line, { language, ignoreIllegals: true }).value);
+}
+
+function cardHtml(stop, number) {
+  return '<div class="card' + (stop.critical ? " crit" : "") + '" id="card">' +
+    '<div class="head"><span class="node">' + escapeHtml(stop.node) + '</span>' + (stop.critical ? '<span class="tag crit">critical</span>' : "") + '</div>' +
+    '<h3>' + number + '. ' + escapeHtml(stop.title) + '</h3>' + marked.parse(stop.body) +
+    '<div class="actions"><button class="btn" data-go="-1">← Previous</button><button class="btn" data-go="1">Next →</button><button class="btn primary" data-open="1">Open in Zed</button></div></div>';
+}
+
+async function show(index) {
+  const stops = state.tour.stops;
+  state.current = Math.max(0, Math.min(stops.length - 1, index));
+  state.seen.add(state.current);
+  const stop = stops[state.current];
+  const number = state.current + 1;
+  if (location.hash !== "#stop-" + number) history.replaceState(null, "", "#stop-" + number);
+  $("count").textContent = number + " / " + stops.length;
+  $("title").textContent = stop.title;
+  $("crit").innerHTML = stop.critical ? '<span class="tag crit">critical</span>' : "";
+  $("progress").firstElementChild.style.width = (100 * number / stops.length) + "%";
+  document.querySelectorAll("#stops a").forEach((a, i) => {
+    a.classList.toggle("current", i === state.current);
+    a.classList.toggle("seen", state.seen.has(i));
+  });
+  document.querySelectorAll("#todo a").forEach((a) => a.classList.toggle("current", (a.getAttribute("href") || a.getAttribute("xlink:href")) === "#stop-" + number));
+
+  const file = await loadFile(stop.file);
+  const added = new Set(file.changed);
+  const others = new Map();
+  stops.forEach((s, i) => { if (s.file === stop.file && i !== state.current) others.set(s.line, i); });
+  const rows = highlightLines(stop.file, file.text).map((html, i) => {
+    const line = i + 1;
+    const inRange = line >= stop.line && line <= stop.end;
+    const marker = others.has(line) ? '<span class="marker" data-stop="' + others.get(line) + '">stop ' + (others.get(line) + 1) + '</span>' : "";
+    const row = '<div class="row' + (inRange ? " range" : "") + '" id="L' + line + '"><span class="num' + (added.has(line) ? " added" : "") + '" data-line="' + line + '">' + line + '</span><span class="src hljs">' + html + marker + '</span></div>';
+    return line === stop.end ? row + cardHtml(stop, number) : row;
+  });
+  const slash = stop.file.lastIndexOf("/");
+  $("code").innerHTML = '<div class="path">' + escapeHtml(stop.file.slice(0, slash + 1)) + '<b>' + escapeHtml(stop.file.slice(slash + 1)) + '</b>:' + stop.line + '-' + stop.end + '</div>' + rows.join("");
+  $("code").scrollTop = $("L" + stop.line).offsetTop - 96;
+}
+
+async function openInZed(line) {
+  const stop = state.tour.stops[state.current];
+  const reply = await fetch("/open?path=" + encodeURIComponent(stop.file) + "&line=" + (line || stop.line), { method: "POST" });
+  if (!reply.ok) alert(await reply.text());
+}
+
+function stopFromHash() {
+  const match = location.hash.match(/^#stop-(\d+)$/);
+  return match ? Number(match[1]) - 1 : null;
+}
+
+async function start() {
+  const { tour, todo } = await (await fetch("/tour")).json();
+  state.tour = tour;
+  document.title = tour.title;
+  $("todo").innerHTML = marked.parse(todo);
+  document.querySelectorAll("#todo code.language-mermaid").forEach((code) => {
+    const box = document.createElement("div");
+    box.className = "mermaid";
+    box.textContent = code.textContent;
+    code.parentElement.replaceWith(box);
+  });
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  mermaid.initialize({ startOnLoad: false, securityLevel: "loose", theme: dark ? "dark" : "neutral", fontFamily: "Inter, system-ui, sans-serif" });
+  await document.fonts.ready;
+  await mermaid.run();
+  $("stops").innerHTML = tour.stops.map((s, i) => '<a href="#stop-' + (i + 1) + '" class="' + (s.critical ? "crit" : "") + '" title="' + escapeHtml(s.title) + '">' + (i + 1) + '</a>').join("");
+  $("prev").onclick = () => show(state.current - 1);
+  $("next").onclick = () => show(state.current + 1);
+  $("open").onclick = () => openInZed();
+  $("code").onclick = (event) => {
+    const marker = event.target.closest(".marker");
+    if (marker) return show(Number(marker.dataset.stop));
+    const go = event.target.closest("[data-go]");
+    if (go) return show(state.current + Number(go.dataset.go));
+    if (event.target.closest("[data-open]")) return openInZed();
+    const num = event.target.closest(".num");
+    if (num) openInZed(Number(num.dataset.line));
+  };
+  addEventListener("hashchange", () => { const i = stopFromHash(); if (i !== null && i !== state.current) show(i); });
+  addEventListener("keydown", (event) => {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (["n", "j", "ArrowRight"].includes(event.key)) show(state.current + 1);
+    if (["p", "k", "ArrowLeft"].includes(event.key)) show(state.current - 1);
+    if (event.key === "o") openInZed();
+  });
+  await show(stopFromHash() ?? 0);
+}
+start();
+</script>
+</body>
+</html>
