@@ -9,7 +9,6 @@
 <link rel="stylesheet" media="(prefers-color-scheme: dark)" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github-dark.min.css">
 <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <style>
   :root {
     --base:#eff1f5; --mantle:#e6e9ef; --crust:#dce0e8; --surface:#ccd0da; --text:#4c4f69; --subtext:#6c6f85; --overlay:#9ca0b0;
@@ -48,17 +47,13 @@
   #todo td a { display:inline-grid; place-items:center; min-width:24px; height:24px; border-radius:12px; background:var(--crust); text-decoration:none; font-weight:600; }
   #todo a.current { background:var(--accent); color:var(--base); }
   #todo svg a.current :is(rect, circle, polygon, path) { stroke:var(--accent) !important; stroke-width:3px !important; }
-  .mermaid { background:var(--card); border-radius:12px; padding:16px; box-shadow:var(--shadow); text-align:center; }
-  .mermaid { position:relative; }
-  .mermaid svg { max-width:none !important; height:auto; }
-  .zoom-open { position:sticky; float:right; top:0; right:0; z-index:2; }
+  .mermaid { position:relative; background:var(--card); border-radius:12px; padding:16px; box-shadow:var(--shadow); text-align:center; cursor:zoom-in; }
   #overlay { position:fixed; inset:0; z-index:10; display:none; flex-direction:column; background:var(--base); }
   #overlay.on { display:flex; }
   #overlay .tools { display:flex; gap:8px; align-items:center; padding:10px 16px; border-bottom:1px solid var(--crust); }
   #overlay .tools span { flex:1; color:var(--subtext); font-size:13px; }
   #overlay .canvas { flex:1; overflow:auto; padding:24px; cursor:grab; }
-  #overlay .canvas svg { max-width:none !important; height:auto; }
-  .mermaid .node { cursor:pointer; }
+  #todo, #overlay { --pele-bg:transparent; --pele-fg:var(--text); --pele-muted:var(--subtext); --pele-line:var(--overlay); --pele-surface:var(--mantle); --pele-surface-alt:var(--crust); --pele-border:var(--surface); --pele-accent:var(--accent); --pele-font:Inter, system-ui, sans-serif; --pele-radius:6px; }
 
   #right { display:grid; grid-template-rows:auto 3px auto 1fr auto; min-width:0; min-height:0; height:100%; }
   #bar { display:flex; gap:12px; align-items:center; padding:12px 20px; }
@@ -78,24 +73,15 @@
   #stops a.current { background:var(--accent); color:var(--base); }
 
   #code { overflow:auto; min-height:0; font:12.5px/1.6 "JetBrains Mono", ui-monospace, monospace; }
-  #code .path { position:sticky; top:0; z-index:1; padding:8px 20px; background:var(--base); border-bottom:1px solid var(--crust); color:var(--subtext); font-size:12px; backdrop-filter:blur(6px); }
-  #code .path b { color:var(--text); font-weight:600; }
-  .hljs { background:transparent; }
-  .row { display:grid; grid-template-columns:64px 1fr; }
-  .num { text-align:right; padding-right:14px; color:var(--overlay); user-select:none; border-left:3px solid transparent; cursor:pointer; }
-  .num:hover { color:var(--accent); }
-  .num.added { border-left-color:var(--green); }
-  .src { white-space:pre; padding-right:24px; }
-  .row.range { background:var(--range); }
-  .row.range .num { color:var(--yellow); font-weight:600; }
-  .card { margin:10px 24px 14px 64px; padding:16px 20px; background:var(--card); border-radius:12px; border-left:4px solid var(--accent); box-shadow:var(--shadow); font:14px/1.6 Inter, system-ui, sans-serif; white-space:normal; animation:rise .2s ease; }
+  pre code.hljs { border-radius:8px; }
+  .card { margin:10px 16px 14px; padding:16px 20px; background:var(--card); border-radius:12px; border-left:4px solid var(--accent); box-shadow:var(--shadow); font:14px/1.6 Inter, system-ui, sans-serif; white-space:normal; animation:rise .2s ease; }
   .card.crit { border-left-color:var(--red); }
   .card .head { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
   .card .node { font-size:11.5px; color:var(--subtext); background:var(--mantle); padding:2px 8px; border-radius:999px; }
   .card h3 { margin:0 0 6px; font-size:16px; }
   .card p { margin:6px 0; }
   .card .actions { display:flex; gap:8px; margin-top:12px; }
-  .marker { font:600 10.5px Inter, sans-serif; color:var(--accent); background:var(--mantle); border-radius:999px; padding:1px 8px; margin-left:12px; cursor:pointer; }
+  .marker { display:inline-block; margin:4px 16px; font:600 11.5px Inter, sans-serif; color:var(--accent); background:var(--mantle); border-radius:999px; padding:2px 10px; cursor:pointer; }
   @keyframes rise { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
 
   #help { padding:6px 20px; border-top:1px solid var(--crust); color:var(--overlay); font-size:12px; }
@@ -122,12 +108,22 @@
   <div id="help"><kbd>n</kbd> <kbd>→</kbd> next · <kbd>p</kbd> <kbd>←</kbd> previous · <kbd>o</kbd> open in Zed · <kbd>m</kbd> large map · click a line number to open that line</div>
 </div>
 </div>
-<script>
+<script type="module">
+import { File as CodeFile, FileDiff } from "https://esm.sh/@pierre/diffs@1";
+import { mount, render as renderDiagram } from "https://cdn.jsdelivr.net/npm/pele@1/dist/pele.js";
+
 const tourId = new URLSearchParams(location.search).get("tour");
-const state = { tour: null, files: {}, current: 0, seen: new Set() };
+const state = { tour: null, files: {}, current: 0, seen: new Set(), view: null, scrolled: false };
 const tourQuery = () => "tour=" + encodeURIComponent(tourId);
 const $ = (id) => document.getElementById(id);
 const escapeHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+function markdown(text) {
+  const box = document.createElement("div");
+  box.innerHTML = marked.parse(text);
+  box.querySelectorAll("pre code:not(.language-mermaid)").forEach((code) => hljs.highlightElement(code));
+  return box.innerHTML;
+}
 
 async function loadFile(path) {
   if (!state.files[path]) {
@@ -138,17 +134,33 @@ async function loadFile(path) {
   return state.files[path];
 }
 
-function highlightLines(path, text) {
-  const extension = path.split(".").pop();
-  const language = hljs.getLanguage(extension) ? extension : "plaintext";
-  return text.split("\n").map((line) => hljs.highlight(line, { language, ignoreIllegals: true }).value);
+function cardElement(stop, number) {
+  const card = document.createElement("div");
+  card.className = "card" + (stop.critical ? " crit" : "");
+  card.id = "card";
+  card.innerHTML = '<div class="head"><span class="node">' + escapeHtml(stop.node) + '</span>' + (stop.critical ? '<span class="tag crit">critical</span>' : "") + '</div>' +
+    '<h3>' + number + '. ' + escapeHtml(stop.title) + '</h3>' + markdown(stop.body) +
+    '<div class="actions"><button class="btn" data-go="-1">← Previous</button><button class="btn" data-go="1">Next →</button><button class="btn primary" data-open="1">Open in Zed</button></div>';
+  return card;
 }
 
-function cardHtml(stop, number) {
-  return '<div class="card' + (stop.critical ? " crit" : "") + '" id="card">' +
-    '<div class="head"><span class="node">' + escapeHtml(stop.node) + '</span>' + (stop.critical ? '<span class="tag crit">critical</span>' : "") + '</div>' +
-    '<h3>' + number + '. ' + escapeHtml(stop.title) + '</h3>' + marked.parse(stop.body) +
-    '<div class="actions"><button class="btn" data-go="-1">← Previous</button><button class="btn" data-go="1">Next →</button><button class="btn primary" data-open="1">Open in Zed</button></div></div>';
+function annotationElement(index) {
+  const stop = state.tour.stops[index];
+  if (index === state.current) return cardElement(stop, index + 1);
+  const marker = document.createElement("span");
+  marker.className = "marker";
+  marker.dataset.stop = index;
+  marker.textContent = "stop " + (index + 1) + ": " + stop.title;
+  return marker;
+}
+
+function scrollToCard() {
+  const card = $("card");
+  if (state.scrolled || !card) return;
+  state.scrolled = true;
+  const pane = $("code");
+  const offset = card.getBoundingClientRect().top - pane.getBoundingClientRect().top;
+  pane.scrollTop += offset - Math.max(80, (pane.clientHeight - card.offsetHeight) / 2);
 }
 
 async function show(index) {
@@ -175,19 +187,29 @@ async function show(index) {
     $("code").innerHTML = '<div id="empty">tour-v2: cannot load ' + escapeHtml(stop.file) + ": " + escapeHtml(error.message) + ". Reload the page; the server may have restarted.</div>";
     return;
   }
-  const added = new Set(file.changed);
-  const others = new Map();
-  stops.forEach((s, i) => { if (s.file === stop.file && i !== state.current) others.set(s.line, i); });
-  const rows = highlightLines(stop.file, file.text).map((html, i) => {
-    const line = i + 1;
-    const inRange = line >= stop.line && line <= stop.end;
-    const marker = others.has(line) ? '<span class="marker" data-stop="' + others.get(line) + '">stop ' + (others.get(line) + 1) + '</span>' : "";
-    const row = '<div class="row' + (inRange ? " range" : "") + '" id="L' + line + '"><span class="num' + (added.has(line) ? " added" : "") + '" data-line="' + line + '">' + line + '</span><span class="src hljs">' + html + marker + '</span></div>';
-    return line === stop.end ? row + cardHtml(stop, number) : row;
-  });
-  const slash = stop.file.lastIndexOf("/");
-  $("code").innerHTML = '<div class="path">' + escapeHtml(stop.file.slice(0, slash + 1)) + '<b>' + escapeHtml(stop.file.slice(slash + 1)) + '</b>:' + stop.line + '-' + stop.end + '</div>' + rows.join("");
-  $("code").scrollTop = $("L" + stop.line).offsetTop - 96;
+  state.view?.cleanUp();
+  $("code").replaceChildren();
+  state.scrolled = false;
+  const changed = file.old !== file.new;
+  const side = changed ? { side: "additions" } : {};
+  const lineAnnotations = stops.flatMap((s, i) => s.file === stop.file ? [{ ...side, lineNumber: s.end, metadata: { stop: i } }] : []);
+  const options = {
+    theme: { dark: "pierre-dark", light: "pierre-light" },
+    lineHoverHighlight: "number",
+    onLineNumberClick: ({ lineNumber, side }) => { if (side !== "deletions") openInZed(lineNumber); },
+    renderAnnotation: (annotation) => annotationElement(annotation.metadata.stop),
+    onPostRender: (node, instance, phase) => { if (phase !== "unmount") scrollToCard(); },
+  };
+  const newFile = { name: stop.file, contents: file.new };
+  if (changed) {
+    state.view = new FileDiff({ ...options, diffStyle: "unified", expandUnchanged: true });
+    state.view.render({ oldFile: file.old === null ? null : { name: stop.file, contents: file.old }, newFile, lineAnnotations, containerWrapper: $("code") });
+  } else {
+    state.view = new CodeFile(options);
+    state.view.render({ file: newFile, lineAnnotations, containerWrapper: $("code") });
+  }
+  state.view.setSelectedLines({ start: stop.line, end: stop.end, ...side });
+  scrollToCard();
 }
 
 async function openInZed(line) {
@@ -200,18 +222,23 @@ const overlay = { svg: null, width: 0 };
 
 function fitWidth() {
   const canvas = document.querySelector("#overlay .canvas");
-  const svg = overlay.svg;
-  const ratio = svg.viewBox.baseVal.height / svg.viewBox.baseVal.width;
-  return Math.min(canvas.clientWidth - 48, (canvas.clientHeight - 48) / ratio);
+  const box = overlay.svg.viewBox.baseVal;
+  return Math.min(canvas.clientWidth - 48, (canvas.clientHeight - 48) * box.width / box.height);
 }
 
-function openOverlay(svg) {
+function setOverlayWidth(width) {
+  overlay.width = width;
+  overlay.svg.style.maxWidth = "none";
+  overlay.svg.style.width = width + "px";
+  overlay.svg.style.height = "auto";
+}
+
+function openOverlay(source) {
   const canvas = document.querySelector("#overlay .canvas");
-  overlay.svg = svg.cloneNode(true);
-  canvas.replaceChildren(overlay.svg);
+  canvas.innerHTML = renderDiagram(source, { autoDirection: false, responsive: false, fontSize: 14 }).svg;
+  overlay.svg = canvas.querySelector("svg");
   $("overlay").classList.add("on");
-  overlay.width = fitWidth();
-  overlay.svg.setAttribute("width", overlay.width);
+  setOverlayWidth(fitWidth());
 }
 
 function closeOverlay() {
@@ -224,8 +251,7 @@ function setupOverlay() {
     const zoom = event.target.closest("[data-zoom]")?.dataset.zoom;
     if (!zoom) return;
     if (zoom === "close") return closeOverlay();
-    overlay.width = zoom === "0" ? fitWidth() : overlay.width * Number(zoom);
-    overlay.svg.setAttribute("width", overlay.width);
+    setOverlayWidth(zoom === "0" ? fitWidth() : overlay.width * Number(zoom));
   };
   canvas.onclick = (event) => { if (event.target.closest("a")) closeOverlay(); };
   let drag = null;
@@ -236,6 +262,22 @@ function setupOverlay() {
     canvas.scrollLeft = drag.left - (event.clientX - drag.x);
     canvas.scrollTop = drag.top - (event.clientY - drag.y);
   };
+}
+
+function mountDiagrams() {
+  document.querySelectorAll("#todo code.language-mermaid").forEach((code) => {
+    const box = document.createElement("div");
+    box.className = "mermaid";
+    box.dataset.source = code.textContent;
+    code.parentElement.replaceWith(box);
+    try {
+      mount(box, box.dataset.source, { fontSize: 13 });
+    } catch (error) {
+      box.textContent = error.message;
+      return;
+    }
+    box.addEventListener("click", (event) => { if (!event.target.closest("a")) openOverlay(box.dataset.source); });
+  });
 }
 
 function stopFromHash() {
@@ -280,30 +322,9 @@ async function start() {
   const { tour, todo } = await (await fetch("/tour?" + tourQuery())).json();
   state.tour = tour;
   document.title = tour.title;
-  $("todo").innerHTML = marked.parse(todo);
-  document.querySelectorAll("#todo code.language-mermaid").forEach((code) => {
-    const box = document.createElement("div");
-    box.className = "mermaid";
-    box.textContent = code.textContent;
-    code.parentElement.replaceWith(box);
-  });
-  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
-  mermaid.initialize({ startOnLoad: false, securityLevel: "loose", theme: dark ? "dark" : "neutral", fontFamily: "Inter, system-ui, sans-serif" });
+  $("todo").innerHTML = markdown(todo);
   await document.fonts.ready;
-  await mermaid.run();
-  document.querySelectorAll("#todo .mermaid").forEach((box) => {
-    const svg = box.querySelector("svg");
-    svg.dataset.width = parseFloat(svg.style.maxWidth) || svg.getBBox().width;
-    svg.setAttribute("width", "100%");
-    svg.style.maxWidth = "none";
-    svg.style.cursor = "zoom-in";
-    svg.addEventListener("click", (event) => { if (!event.target.closest("a")) openOverlay(svg); });
-    const button = document.createElement("button");
-    button.className = "btn zoom-open";
-    button.textContent = "⤢ Open large";
-    button.onclick = () => openOverlay(svg);
-    box.prepend(button);
-  });
+  mountDiagrams();
   setupOverlay();
   $("stops").innerHTML = tour.stops.map((s, i) => '<a href="#stop-' + (i + 1) + '" class="' + (s.critical ? "crit" : "") + '" title="' + escapeHtml(s.title) + '">' + (i + 1) + '</a>').join("");
   $("prev").onclick = () => show(state.current - 1);
@@ -315,14 +336,13 @@ async function start() {
     const go = event.target.closest("[data-go]");
     if (go) return show(state.current + Number(go.dataset.go));
     if (event.target.closest("[data-open]")) return openInZed();
-    const num = event.target.closest(".num");
-    if (num) openInZed(Number(num.dataset.line));
   };
   addEventListener("hashchange", () => { const i = stopFromHash(); if (i !== null && i !== state.current) show(i); });
   addEventListener("keydown", (event) => {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
     if (event.key === "Escape") return closeOverlay();
-    if (event.key === "m") return openOverlay(document.querySelector("#todo .mermaid svg"));
+    const first = document.querySelector("#todo .mermaid");
+    if (event.key === "m" && first) return openOverlay(first.dataset.source);
     if ($("overlay").classList.contains("on")) return;
     if (["n", "j", "ArrowRight"].includes(event.key)) show(state.current + 1);
     if (["p", "k", "ArrowLeft"].includes(event.key)) show(state.current - 1);

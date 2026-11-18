@@ -18,14 +18,13 @@ Endpoints, where T is the absolute tour folder:
   GET  /                     the viewer page
   GET  /tours                [{"id": T, "title": ..., "stops": N, "critical": N}]
   GET  /tour?tour=T          {"tour": <tour.json>, "todo": <TODO.md text>}
-  GET  /file?tour=T&path=P   {"text": <P at the tip>, "changed": [<tip line numbers the diff adds>]}
+  GET  /file?tour=T&path=P   {"old": <P at the base or null>, "new": <P at the tip or null>}
   POST /open?tour=T&path=P&line=N   open P at line N in the Zed window on screen
   POST /close?tour=T         remove T from the open tours
 """
 
 import argparse
 import json
-import re
 import socket
 import subprocess
 import sys
@@ -42,7 +41,6 @@ PORT = 8792
 VIEWER = f"http://127.0.0.1:{PORT}/"
 DAEMON = "com.vitalii.tour-v2"
 OPEN_TOURS = Path.home() / ".cache" / "tour-v2" / "open-tours.txt"
-HUNK_HEADER = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
 
 
 def load_tour(folder: Path):
@@ -71,29 +69,13 @@ def tour_summary(folder: Path):
     return {"id": str(folder), "title": tour["title"], "stops": len(tour["stops"]), "critical": critical}
 
 
-def file_at_tip(tour, path: str) -> str:
+def file_at(tour, rev: str, path: str) -> str | None:
     repo = Path(tour["repo"])
-    if tour["tip"] == WORKTREE_TIP:
-        return (repo / path).read_text()
-    return subprocess.run(
-        ["git", "-C", str(repo), "show", f"{tour['tip']}:{path}"],
-        capture_output=True, text=True, check=True,
-    ).stdout
-
-
-def changed_lines(tour, path: str) -> list[int]:
-    revs = [tour["base"]] if tour["tip"] == WORKTREE_TIP else [tour["base"], tour["tip"]]
-    diff = subprocess.run(
-        ["git", "-C", tour["repo"], "diff", "-U0", *revs, "--", path],
-        capture_output=True, text=True, check=True,
-    ).stdout
-    lines = []
-    for header in diff.splitlines():
-        match = HUNK_HEADER.match(header)
-        if match:
-            start, count = int(match[1]), int(match[2] or 1)
-            lines.extend(range(start, start + count))
-    return lines
+    if rev == WORKTREE_TIP:
+        target = repo / path
+        return target.read_text() if target.exists() else None
+    shown = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:{path}"], capture_output=True, text=True)
+    return shown.stdout if shown.returncode == 0 else None
 
 
 def find_errors(folder: Path) -> list[str]:
@@ -113,11 +95,11 @@ def find_errors(folder: Path) -> list[str]:
         if missing:
             errors.append(f"{where}: no fields {missing}")
             continue
-        try:
-            line_count = len(file_at_tip(tour, stop["file"]).splitlines())
-        except (OSError, subprocess.CalledProcessError):
+        text = file_at(tour, tour["tip"], stop["file"])
+        if text is None:
             errors.append(f"{where}: {stop['file']} not found at tip {tour['tip']}")
             continue
+        line_count = len(text.splitlines())
         if not 1 <= stop["line"] <= stop["end"] <= line_count:
             errors.append(f"{where}: lines {stop['line']}-{stop['end']} outside 1-{line_count} of {stop['file']}")
         if f"#stop-{number})" not in todo:
@@ -177,7 +159,7 @@ def make_handler():
             elif url.path == "/file":
                 tour, path = self._stop_path(query)
                 if path:
-                    body = {"text": file_at_tip(tour, path), "changed": changed_lines(tour, path)}
+                    body = {"old": file_at(tour, tour["base"], path), "new": file_at(tour, tour["tip"], path)}
                     self._send(200, json.dumps(body).encode())
             else:
                 self._send(404)
