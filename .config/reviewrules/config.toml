@@ -14,11 +14,11 @@ reasoning_effort = "low"
 
 [local.profiles.medium]
 model = "gpt-6.1-sol"
-reasoning_effort = "medium"
+reasoning_effort = "low"
 
 [local.profiles.heavy]
 model = "gpt-6-astra"
-reasoning_effort = "high"
+reasoning_effort = "medium"
 fork_steps = 16
 
 [local.rule_dirs]

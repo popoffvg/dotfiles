@@ -381,6 +381,7 @@
     "side-chat@side-chat": true,
     "pins@pins": true,
     "compact-ask@compact-ask": true,
+    "supervoc-prompt-checks@supervoc": true,
     "dollar-skills@local-plugins": true,
     "modern-web-guidance@googlechrome": true,
     "pm-discover@pm-skills": true,
@@ -459,6 +460,13 @@
       "source": {
         "source": "github",
         "repo": "popoffvg/compact-ask"
+      },
+      "autoUpdate": true
+    },
+    "supervoc": {
+      "source": {
+        "source": "github",
+        "repo": "popoffvg/supervoc"
       },
       "autoUpdate": true
     }

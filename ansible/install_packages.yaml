@@ -65,6 +65,7 @@
       - neovim
       - helix
       - kubectl
+      - docker-credential-helper
       - helm
       - k3d
       - kind
@@ -95,6 +96,8 @@
       - raycast
       - zed
       - google-chrome
+    # Kiri has no cask; it updates itself after the first install.
+    kiri_dmg_url: "https://download.runkiri.com/Kiri-0.2.1-{{ 'arm64' if ansible_architecture == 'arm64' else 'x86_64' }}.dmg"
     home_symlinks:
       - .zshrc
       - .zshrc_aliases
@@ -139,6 +142,14 @@
       register: nb_pkg
       changed_when: "'Already installed' not in nb_pkg.stdout"
 
+    # One-shot history load. The db is the skip marker; later shells only
+    # append as commands run.
+    - name: Import zsh history into deja
+      ansible.builtin.command:
+        cmd: "{{ nb | dirname }}/deja import"
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/share/deja/deja.db"
+
     # Casks install in one command: nanobrew continues past individual
     # failures, and warm casks exit 1 with "refusing to overwrite".
     - name: Install casks
@@ -147,6 +158,17 @@
       register: nb_cask
       changed_when: "'Installing' in nb_cask.stdout"
       failed_when: false
+
+    - name: Install Kiri container runtime
+      ansible.builtin.shell:
+        cmd: |
+          set -e
+          tmp=$(mktemp -d)
+          trap 'hdiutil detach -quiet "$tmp/mnt" 2>/dev/null; rm -rf "$tmp"' EXIT
+          curl -fsSL -o "$tmp/Kiri.dmg" "{{ kiri_dmg_url }}"
+          hdiutil attach -nobrowse -readonly -quiet -mountpoint "$tmp/mnt" "$tmp/Kiri.dmg"
+          ditto "$tmp/mnt/Kiri.app" /Applications/Kiri.app
+        creates: /Applications/Kiri.app
 
     - name: Install nerd font
       ansible.builtin.command:
@@ -284,6 +306,19 @@
         state: link
         force: true
       loop: "{{ config_symlinks }}"
+
+    - name: Ensure the lig app support dir exists
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/Library/Application Support/lig"
+        state: directory
+        mode: "0755"
+
+    - name: Symlink lig config
+      ansible.builtin.file:
+        src: "{{ dotfiles_dir }}/.config/lig/config.toml"
+        dest: "{{ ansible_env.HOME }}/Library/Application Support/lig/config.toml"
+        state: link
+        force: true
 
     # --- Git scripts ---
     - name: Find git scripts

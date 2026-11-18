@@ -1,0 +1,3 @@
+[ui]
+# Use the 16 ANSI colors of the terminal, so the popup follows the light or dark Zed theme.
+theme = "terminal"

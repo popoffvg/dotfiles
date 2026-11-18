@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Turn triage: the session model tags its final reply with `triage: done|wait|question`.
+"""Turn triage: the session model tags its final reply with `triage: done|wait|question|review`.
 
 UserPromptSubmit asks for the tag in every session. When CLAUDE_TURN_STATE names a file, every
 event writes the turn state and the transcript path to it: `working` at UserPromptSubmit, the tag
@@ -15,7 +15,7 @@ import re
 import sys
 from pathlib import Path
 
-TAG_RE = re.compile(r"^\W*triage:\s*(done|wait|question)\W*$", re.IGNORECASE)
+TAG_RE = re.compile(r"^\W*triage:\s*(done|wait|question|review)\W*$", re.IGNORECASE)
 
 TOOL_DONE_EVENTS = ("PostToolUse", "PostToolUseFailure", "PermissionDenied")
 

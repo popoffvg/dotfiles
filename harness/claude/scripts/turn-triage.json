@@ -1,9 +1,10 @@
 {
-  "rule": "End your final reply of this turn with one last line `triage: <state>`, where <state> is:\nquestion - you ask the user something, offer options, or need a decision, a confirmation, or information before the work can continue;\nwait - the turn ends but the work goes on without the user: a background task, agent, or workflow still runs and will resume this session when it exits;\ndone - the work stopped: the request is answered, or files changed or a step failed.\nIf question applies, write question. Else if wait applies, write wait. Else write done.\nWith question, the line just above the triage line MUST repeat the question in full, as one direct sentence that ends with `?` — even when the reply asked it before.",
+  "rule": "End your final reply of this turn with one last line `triage: <state>`, where <state> is:\nquestion - you ask the user something, offer options, or need a decision, a confirmation, or information before the work can continue;\nreview - the work is ready and the user must read or check a result: a diff, a file, a page, or a PR;\nwait - the turn ends but the work goes on without the user: a background task, agent, or workflow still runs and will resume this session when it exits;\ndone - the work stopped: the request is answered, or files changed or a step failed.\nIf question applies, write question. Else if review applies, write review. Else if wait applies, write wait. Else write done.\nWith question, the line just above the triage line MUST repeat the question in full, as one direct sentence that ends with `?` — even when the reply asked it before.",
   "marks": {
     "working": ["◰", "◳", "◲", "◱"],
     "question": ["?"],
     "permission": ["?"],
+    "review": ["👀"],
     "wait": ["⧗"],
     "done": ["◉"],
     "untagged": ["○"]

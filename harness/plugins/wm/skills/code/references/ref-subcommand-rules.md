@@ -81,6 +81,13 @@ the sweep stops at the notes and the remaining code uses become a ledger row.
 **Done when** `${CLAUDE_PLUGIN_ROOT}/bin/glossary-lint.py <notes-dir>` reports no finding the change
 added — inside `impl`, with `--code <checkout>`.
 
+## Run the checks on the diff, through the repo's own targets
+**Look for a helper target before you write a test or lint command.** Read the targets of the `Makefile` (`make help`, or `grep -E '^[A-Za-z0-9_-]+:' Makefile`), then `mise tasks ls`, `Taskfile.yml`, and the `package.json` scripts. Use the target that checks only the diff, for example `make test-diff` or `make lint-diff`. That target already knows the diff base, the paths to skip, and the environment the repo needs.
+
+**Run the tests of the changed packages, not the whole suite.** With no diff target, test each package that holds a file changed since the merge base of the branch base, uncommitted and untracked files included. Run the whole suite only when a command written in the pair, CI, or the user names it.
+
+**Done when** the report names the target or the command that ran, and its real output.
+
 ## Source is read-only
 Every subcommand outside the `impl` skill is read-only over project source and writes only under `<notes-dir>` (`arch:ref-write.md`). The `impl` skill's subcommands — `impl`, `auto`, `fix`, `squash`, `commit` — edit project source without asking: any file the work needs, inside the checkout the `where` key names.
 

@@ -25,7 +25,7 @@ TASK_START_CHARS = 200
 NUDGE_MIN_PASTES = 3
 NUDGE_MIN_SESSIONS = 2
 
-TRIAGE_TAG = re.compile(r"^\W*triage:\s*(done|wait|question)\W*$", re.I)
+TRIAGE_TAG = re.compile(r"^\W*triage:\s*(done|wait|question|review)\W*$", re.I)
 TASK_NOTIFICATION = "<task-notification>"
 WORK_TOOLS = {"Edit", "Write", "NotebookEdit", "Agent", "Workflow"}
 

@@ -25,6 +25,7 @@ CACHE = Path(os.environ.get('XDG_CACHE_HOME', str(Path.home() / '.cache'))) / 'd
 CONFIG = json.loads((HERE / 'config.json').read_text())
 if CONFIG['sourceFormat'] != 'claude-native':
     raise RuntimeError('Unknown Rulesync source format')
+ENTRY_PLUGIN = 'wm'
 EFFORT_LEDGER = effort.load_effort_ledger()
 TARGETS = {name: EFFORT_LEDGER['runtimes'][name]['directory'] for name in CONFIG['targets']}
 MANIFEST_DIRS = tuple(row['directory'] for row in EFFORT_LEDGER['runtimes'].values())
@@ -219,7 +220,7 @@ def install_aliases(install, home):
                    f'Read `{guide}` for path resolution and explicit lifecycle checks. ' +
                    RUNTIME_ADAPTERS[target].replace('{{HOME}}', str(home)))
         for name in CONFIG['publicAliases']:
-            if target == 'claude' and (name in loose or (ROOT / CONFIG['plugins'] / 'wm/skills' / name / 'SKILL.md').is_file()):
+            if target == 'claude' and (name in loose or (ROOT / CONFIG['plugins'] / ENTRY_PLUGIN / 'skills' / name / 'SKILL.md').is_file()):
                 continue
             source = HERE / 'commands' / (name + '.md')
             text = source.read_text().replace('{{PLUGIN_ROOT}}', str(plugin)).replace('{{RUNTIME}}', runtime)
@@ -498,7 +499,8 @@ def build(home, stage):
         features = [feature for feature, path in [('skills', 'skills'), ('subagents', 'agents'), ('commands', 'commands'), ('hooks', 'hooks/hooks.json'), ('mcp', '.mcp.json')] if (native / path).exists()]
         if features:
             run_rulesync(['import', '--targets', 'claudecode-plugin', '--features', ','.join(features), '--output-root', str(native)], work)
-        plugin_catalog = prepare_skills(native / 'skills', work / '.rulesync/skills')
+        plugin_catalog = prepare_skills(native / 'skills', work / '.rulesync/skills',
+                                        CONFIG['publicAliases'] if plugin.name == ENTRY_PLUGIN else ())
         for target, directory in TARGETS.items():
             output = work / target
             copy_tree(native, output)

@@ -262,7 +262,6 @@ Before, `mintTokens` signed one access token for a user id. Now it also signs a 
   - `Refresh` keeps its old behavior here: increment 2.1 changes it.
 - **Surface:** none — no signature or field changes; only the two call sites change.
 
----
 
 ### Commit 1
 
@@ -284,6 +283,11 @@ The minter now signs both tokens and returns them as one pair. Login and refresh
 > - **Proves** names cases of `TODO-N.test.md` `## Autotest`. Every Autotest case is named by
 >   exactly one commit. Fix a mismatch between the commit titles and the Outcome at `todo`, not at
 >   commit time.
+
+
+> put splitter betwwn sections 
+---
+
 
 ### 2.1. Exchange the token in the handler
 

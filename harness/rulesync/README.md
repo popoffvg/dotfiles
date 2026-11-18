@@ -37,7 +37,7 @@ installed under `internal-commands/`; commands nested within skills retain their
 
 | Runtime | Public entry points | Internal workers |
 |---|---|---|
-| Claude | `/wm`, `/code`, `/review`, `/dive` in `~/.claude/commands/`; public loose skills in `~/.claude/skills/` | Native skills with `user-invocable: false`, plus `~/.claude/harness/plugins/` |
+| Claude | `/wm` in `~/.claude/commands/`; `/wm:code`, `/wm:review`, `/wm:dive` as WM plugin skills; public loose skills in `~/.claude/skills/` | Native skills with `user-invocable: false`, plus `~/.claude/harness/plugins/` |
 | Codex | `$wm`, `$code`, `$review`, `$dive` in `~/.codex/skills/` | `~/.codex/harness/skills/` and `harness/plugins/`; selected through `AGENTS.md` and `harness/skill-index.md` |
 | Pi | `/wm`, `/code`, `/review`, `/dive` in `~/.pi/agent/prompts/` | `~/.pi/agent/harness/skills/` and `harness/plugins/`; selected through `AGENTS.md` and `harness/skill-index.md` |
 | OpenCode | `/wm`, `/code`, `/review`, `/dive` in `~/.config/opencode/commands/` | `~/.config/opencode/harness/skills/` and `harness/plugins/`; selected through `AGENTS.md` and `harness/skill-index.md` |
@@ -52,7 +52,7 @@ explicit in the index; a requested route can load them. Public aliases are expli
 After native import, `invocation.mjs` promotes source `disable-model-invocation`
 to Rulesync's shared field. Rulesync emits Codex's `policy.allow_implicit_invocation`
 and Pi's supported flag; target-specific `agents/openai.yaml` settings are preserved.
-A loose skill named in `publicAliases` is the Claude entry point itself: it gets `user-invocable: true`, and no Claude command is written for it. Every other owned Claude skill gets `user-invocable: false`. The native Codex WM
+A loose skill or a WM plugin skill named in `publicAliases` is the Claude entry point itself: it gets `user-invocable: true`, and no Claude command is written for it. Every other owned Claude skill gets `user-invocable: false`. The native Codex WM
 registration is retired during sync because Codex discovers a plugin's default
 `skills/` even with an empty manifest list. The library remains installed privately.
 Pi's Claude marketplace bridge does not re-export the

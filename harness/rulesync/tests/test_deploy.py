@@ -118,11 +118,13 @@ class InvocationTests(unittest.TestCase):
                 self.assertNotIn(home / '.claude/commands' / (name + '.md'), installation.files)
             for name in ['wm', 'line-comment-act']:
                 self.assertTrue(home / '.claude/commands' / (name + '.md') in installation.files, name)
-            for name in ['code', 'review', 'dive']:
-                self.assertTrue(home / '.claude/harness/plugins/wm/skills' / name / 'SKILL.md' in installation.files, name)
+            entry_skills = {home / '.claude/harness/plugins/wm/skills' / name / 'SKILL.md' for name in ['code', 'review', 'dive']}
+            for path in entry_skills:
+                self.assertIn(b'user-invocable: true', installation.files[path][0], str(path))
+                self.assertNotIn(home / '.claude/commands' / (path.parent.name + '.md'), installation.files)
             for path, (data, _) in installation.files.items():
                 if (path.name == 'SKILL.md' and path.is_relative_to(home / '.claude') and 'codex-skills' not in path.parts
-                        and path.parent.name not in public_skills):
+                        and path.parent.name not in public_skills and path not in entry_skills):
                     self.assertIn(b'user-invocable: false', data, str(path))
 
 

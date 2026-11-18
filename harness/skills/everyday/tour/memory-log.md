@@ -10,3 +10,4 @@ One row per tour. Step 4 of [SKILL.md](SKILL.md) drops every technique with a `b
 | 2026-11-09 | PR #1962 middle layer instance stats | `flashcards` |  |  |
 | 2026-11-09 | branch MILAB-7164 live block status | `why-questions` |  |  |
 | 2026-11-12 | PR #2421 notification seen token (tip 9b3f77c7b) | `chunks` |  |  |
+| 2026-11-17 | branch MILAB-3370 context resolver retry rollback (tip b964f0122) | `draw-from-memory` |  |  |

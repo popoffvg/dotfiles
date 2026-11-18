@@ -65,6 +65,11 @@ review_line="reviewrules: skipped: $skip_review"
 if [ -z "$skip_review" ]; then
   echo "pre-push-check: reviewrules --base $base, report in $out/report.md" >&2
   rc=0
+  # reviewrules sends the key sk-local when LITELLM_API_KEY is empty, and the proxy rejects it; a session started before zshenv set the key has none.
+  if [ -z "${LITELLM_API_KEY:-}" ] && [ -r "$HOME/.config/litellm/.env" ]; then
+    LITELLM_API_KEY=$(. "$HOME/.config/litellm/.env"; printf '%s' "$LITELLM_MASTER_KEY")
+    export LITELLM_API_KEY
+  fi
   reviewrules --repo "$root" --base "$base" --json-out "$out/reviewrules.json" \
     >"$out/report.md" 2>"$out/reviewrules.log" || rc=$?
   cat "$out/report.md"
