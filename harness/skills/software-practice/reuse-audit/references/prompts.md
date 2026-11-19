@@ -2,7 +2,7 @@
 
 Fill `<...>`. Every prompt names absolute paths and a report file in the scratchpad.
 
-## Area auditor (sonnet, read-only)
+## Area auditor ({medium}, read-only)
 
 ```
 Deliverable: a report at <scratchpad>/audit-<X>.md. Return only its path and a one-line verdict.
@@ -23,7 +23,7 @@ Report, one entry per finding, ranked by lines removed × risk reduced, max 25:
 Then "Checked, not reinvented": the patterns you checked and found fine.
 ```
 
-## Mechanical scan (sonnet, read-only; may write scripts in the scratchpad)
+## Mechanical scan ({medium}, read-only; may write scripts in the scratchpad)
 
 ```
 Deliverable: a report at <scratchpad>/audit-scan.md. Return the path and a one-line verdict.
@@ -37,7 +37,7 @@ Before you report "none found" for a method, run the same query where a hit sure
 End with "Top 10 to fix" ranked by lines removed.
 ```
 
-## Writer (sonnet, edits files, never runs git)
+## Writer ({medium}, edits files, never runs git)
 
 ```
 Deliverable: <the fix>, tests green, report at <scratchpad>/fix-<U>.md (changed files, behavior changes, test results). Return the path and a one-line verdict.

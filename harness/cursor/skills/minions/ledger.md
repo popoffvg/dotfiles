@@ -1,37 +1,21 @@
-# Cursor routing ledger
+# Cursor effort ledger
 
-Cursor delegates through its Task (subagent) tool. A model is pinned by a subagent
-definition: a `.md` file in `~/.cursor/agents/` (or `.cursor/agents/` in the repo)
-with `model:` and optionally `readonly: true` in its frontmatter. Read a named
-agent's definition before delegating and keep its model; a definition without
-`model` runs on the session model. For a Claude agent definition, carry its role and
-instructions into the prompt and use this ledger's routing instead of its Claude
-model identifiers. For units with no named agent:
+Read `~/.cursor/harness/effort-ledger.json`. Resolve the task's tier to its model selector, including the reasoning parameter.
 
-| Unit | Shape | Subagent / model |
-|---|---|---|
-| One tool call or short edit | inline | current |
-| Needs the conversation and would flood it | one general-purpose subagent with the needed context pasted into its prompt | inherited |
-| Bounded audit, summary, triage, or lookup | one subagent | `composer` (composer-2.5, read-only) |
-| Independent bounded reading units | one `composer` subagent per unit, launched together in one message | composer-2.5 |
-| Writes source with bounded input | one general-purpose subagent, self-contained prompt | inherited |
-| Judges a design or holds the whole task | inline, or one subagent for heavy reading | current |
+An explicit task symbol wins over a named agent's default tier. Otherwise, keep the named role's source tier. Use the first matching row for unnamed work.
 
-Subagents start blind: they do not see this conversation, so every prompt must be
-self-contained. Launch independent units in the same message so they run in
-parallel. If the needed model has no definition, inherit and disclose the fallback,
-or offer to add a definition under `~/.cursor/agents/`.
+| Unit | Effort |
+|---|---|
+| Architecture, difficult diagnosis, or high-risk implementation | `{heavy}` |
+| Source changes or focused reviews | `{medium}` |
+| Bounded audits, summaries, triage, lookups, or mechanical checks | `{light}` |
 
-A subagent's final message reaches the parent. Return short verdicts there; for a
-large deliverable, name an absolute output file in the prompt, have the agent write
-it there and reply with the path, then read that file.
+Use Cursor's Task tool with the named agent's compiled profile. Use `effort-light`, `effort-medium`, or `effort-heavy` for unnamed work. Keep the specialized role's instructions and read-only permissions. Block that unit if its required named variant is unavailable.
 
-Parallel writers get disjoint write scopes. When they would share paths, create a
-separate `git worktree` per writer before launching and name each absolute checkout
-in its prompt. A `composer` unit is read-only and must not be given writing work.
+Give each agent a self-contained prompt. Launch independent units together. Give parallel writers disjoint paths or separate worktrees and name their absolute checkout paths.
 
-A deficient bounded `composer` result re-runs as one unit on a general-purpose
-subagent with the inherited model. Other deficient units keep their routed model.
+Return short verdicts in final messages. Put large reports in explicit files and await completion before reading them.
 
-Describe a model as requested unless Cursor's subagent output confirms the actual
-model; Claude transcript paths under `~/.claude/projects/` are no evidence for Cursor.
+A result is deficient when reasoning misses an explicit acceptance check or required deliverable. Escalate that unit from `{light}` to `{medium}`, then to `{heavy}`. After a deficient `{heavy}` result, report its unmet check and block that unit. Continue authorized independent units. Repair authentication, quota, and transport failures without changing tiers.
+
+Cursor can substitute a model because of plan or administrator restrictions. A confirmed mismatch blocks that unit pending configuration repair. Report requested settings separately from confirmed metadata. Mark absent model or reasoning metadata unconfirmed.

@@ -18,7 +18,7 @@
 #                   record names the event, not the script, so a marker the hook
 #                   echoes is the only proof that THIS plugin's hook ran.
 #   --cwd DIR       where the session runs (default: a fresh temp dir, so project
-#                   settings and a project CLAUDE.md cannot answer for the plugin)
+#                   settings and a project AGENTS.md cannot answer for the plugin)
 #   --model NAME    model for the session (default: sonnet)
 #   --out FILE      keep the stream-json transcript here (default: a temp file, printed)
 #   --timeout SECS  give up after this long (default: 180)

@@ -8,7 +8,7 @@ user-invocable: false
 
 ## Pseudocode
 
-One step per line, in Python syntax, fenced as ` ```python `: `def`, `if` / `elif` / `else`, `for`, `with`, `try` / `except`, `return`, `raise`. Use the code's own names, whatever the language of the source. No type hints, no `await`, no imports. A step with no call in the code is a call with a plain name, or a `#` comment.
+One step per line, in Python syntax, fenced as ` ```python `: `def`, `if` / `elif` / `else`, `for`, `with`, `try` / `except`, `return`, `raise`. In an existing-code trace, use the code's exact names, whatever the language of the source. For a change review, defer to `change-review`: use domain words and its rules for exact symbols and references. No type hints, no `await`, no imports. A step with no call in the code is a call with a plain name, or a `#` comment.
 
 **A step the code already has carries a trailing reference; a step being proposed carries none.** The blank right column is what tells the reader which half of the rule is written. Write the reference as a repo-relative path plus line — `src/session/save.ts:94` — which is the form a Zed terminal turns into a click. A bare basename is not clickable; an absolute path is noise. Name the root once above the block when the paths are long.
 
@@ -23,7 +23,7 @@ def save(content):                          # src/session/save.ts:88
 
 Here the last two lines are the change: the cache is read today and never invalidated.
 
-A `flow-sketch` carries no references at all: nothing is written yet, so there is nothing to click.
+A proposed flow carries no references at all: nothing is written yet, so there is nothing to click.
 
 ## Call tree
 
@@ -61,4 +61,3 @@ Use a Codemap only for a code path across files that someone will revisit. `code
 Same flow as **Pseudocode** above, same locations as a **call tree** — the step names carry the rule, the nesting carries the calls, and the pin makes both re-checkable months later.
 
 `#` is the question, `@` the commit pin, `>` an entry point, `-` a stage or `path:line:symbol` Node, and `|` a fact the code alone does not say. Indentation means part of the current step, not necessarily a direct call; expand a location once and repeat it bare thereafter.
-

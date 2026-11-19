@@ -22,7 +22,7 @@ $C --keychain VAULT_MCP_TOKEN $V tools/call "$(jq -n --rawfile t note.md '{name:
 
 An empty reply from the shell call means a 401: go to **Repair a 401**.
 
-Writing straight into `~/obsidian/Z-Core` also syncs to the server, but then the file MUST carry the frontmatter `~/obsidian/Z-Core/CLAUDE.md` defines.
+Writing straight into `~/obsidian/Z-Core` also syncs to the server, but then the file MUST carry the frontmatter `~/obsidian/Z-Core/AGENTS.md` defines.
 
 ## Repair a 401
 

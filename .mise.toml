@@ -20,6 +20,7 @@ description = "Stow dotfiles and deploy Claude, Codex and Pi through Rulesync"
 run = [
   "stow --target=$HOME --dir={{config_root}}/.. --restow {{ config_root | basename }}",
   "stow --no-folding --target=$HOME/.cursor --dir={{config_root}}/harness --restow cursor",
+  'if test -f "{{config_root}}/harness/codex-settings/config.toml"; then stow --no-folding --target="$HOME/.codex" --dir="{{config_root}}/harness" --restow codex-settings; fi',
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow zsh",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --restow git",
   "python3 {{config_root}}/harness/rulesync/deploy.py",
@@ -30,6 +31,7 @@ description = "Unstow ordinary dotfiles; Rulesync installations remain managed s
 run = [
   "stow --target=$HOME --dir={{config_root}}/.. --delete {{ config_root | basename }}",
   "stow --no-folding --target=$HOME/.cursor --dir={{config_root}}/harness --delete cursor",
+  'if test -f "{{config_root}}/harness/codex-settings/config.toml"; then stow --no-folding --target="$HOME/.codex" --dir="{{config_root}}/harness" --delete codex-settings; fi',
   "stow --dotfiles --target=$HOME --dir={{config_root}} --delete zsh",
   "stow --dotfiles --target=$HOME --dir={{config_root}} --delete git",
 ]
@@ -126,11 +128,15 @@ run = "{{config_root}}/harness/scripts/sync-zed-languages.py --app pr-comments"
 
 [tasks."harness:sync"]
 description = "Generate and install the harness for Claude, Codex, Pi, and OpenCode"
-run = "python3 {{config_root}}/harness/rulesync/deploy.py"
+run = 'PATH="$(mise where node)/bin:$PATH" python3 "{{config_root}}/harness/rulesync/deploy.py"'
 
 [tasks."harness:check"]
 description = "Compare installed harness files with Rulesync output"
 run = "python3 {{config_root}}/harness/rulesync/deploy.py --check"
+
+[tasks."harness:opencode:install"]
+description = "Install and verify the OpenCode extensions"
+run = 'bash "{{config_root}}/harness/claude/scripts/install-opencode-extensions.sh" "{{config_root}}"'
 
 [tasks."harness:opencode:deps"]
 description = "Install the pinned OpenCode plugin dependencies"
@@ -158,6 +164,11 @@ depends = ["harness:sync"]
 [tasks."harness:codex:wm"]
 description = "Deploy WM with the public Codex aliases"
 depends = ["harness:sync"]
+
+[tasks."harness:codex:rtk"]
+description = "Deploy the Codex RTK hook and enable SQLite recall"
+depends = ["harness:sync"]
+run = "rtk config recall sqlite"
 
 [tasks."harness:amp:publish-skills"]
 description = "Publish named skills to your personal Amp Skills repository"

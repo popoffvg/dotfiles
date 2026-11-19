@@ -35,7 +35,7 @@ A negative fast-win is kept, not dropped — it goes at the bottom, and its bloc
 
 The background scan (driven by the SessionStart hook) runs three stages per session and writes each result next to the record `~/.claude/self-improvement/sessions/<session-id>.json`:
 
-1. **Score** (`capture-lesson:references/score.md`, haiku, typed prompts only): 0–10, a scope, one line. A score at or above the keep threshold copies the transcript to `lessons/<scope>/`.
+1. **Score** (`capture-lesson:references/score.md`, {light}, typed prompts only): 0–10, a scope, one line. A score at or above the keep threshold copies the transcript to `lessons/<scope>/`.
 2. **Suggestion** (`capture-lesson:references/suggest.md`): one reader's draft target, from the typed prompts and the skill inventory.
 3. **Cause verdicts** (`scripts/judge-session.py`, the prompts in `references/trace.md`, `references/judge.md`, `references/replay.md`): the trace finds, per correction, the defect, the input the agent followed, and the harness producer of that input. The strict judge rejects a cause unless six gates pass with quoted evidence. The replay checks each accepted note against its own defect. Output: `verdicts/<session-id>/`.
 

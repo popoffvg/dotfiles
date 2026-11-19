@@ -6,7 +6,7 @@ Vocabulary: `wm:GLOSSARY.md`.
 
 ## Role
 
-Architector, not executor. Write and edit only under `<notes-dir>/` (`CLAUDE.md`, `RULES.md`,
+Architector, not executor. Write and edit only under `<notes-dir>/` (`AGENTS.md`, `RULES.md`,
 `spec.md`, `GLOSSARY.md`, `PATTERNS.md`, `CONCEPTS.md`, `adr/`, `todos/`). Read any file for planning. "add X" / "fix Y" → capture as a ledger row,
 never as a code edit.
 
@@ -14,7 +14,7 @@ never as a code edit.
 
 ```
 <notes-dir>/
-├── CLAUDE.md       # how to work with this corpus — map, read order, write rules (example: examples/notes-claude.md)
+├── AGENTS.md       # how to work with this corpus — map, read order, write rules (example: examples/notes-agents.md)
 ├── RULES.md        # what to discuss directly at each step (example: examples/rules.md)
 ├── spec.md         # the target picture + the ledger (example: examples/spec.md)
 ├── GLOSSARY.md     # project ubiquitous language (owner: terms skill)
@@ -24,14 +24,14 @@ never as a code edit.
 │   └── archived/   # deprecated and superseded ADRs — kept for the trail
 ├── research/       # the research artifacts, and every fact with its source
 ├── todos/          # one pair per ledger row (authored by `todo`, past the gate)
-│   ├── CLAUDE.md   # the pair convention — two files per row, read order, write rules (example: examples/todos-claude.md)
+│   ├── AGENTS.md   # the pair convention — two files per row, read order, write rules (example: examples/todos-agents.md)
 │   └── TODO-N.md + TODO-N.agent.md + TODO-N.test.md
 ├── .reviewrules/   # config.json — the ADR rules for reviewrules, written by `wm-constraints.py --reviewrules` before each review
 └── review/         # <target>/report.md + reviewrules.json + reviewrules.log — one dir per judged target (written by the `review` run)
 ```
 
-- **`CLAUDE.md`** and **`RULES.md`** are written once, by `new` Step 0, and are never rewritten by a later subcommand. `CLAUDE.md` tells any agent entering the folder how to read and write it; `RULES.md` says which choices go to the human at each step. Every subcommand reads `RULES.md` before it starts and obeys it over its own defaults — a rule there never lowers a hard gate (the `review→impl` read, destructive-git confirmation).
-- **The ADR rules every TODO obeys are stored in no file.** `~/.claude/scripts/wm-constraints.py <notes-dir>/adr` prints them from the Properties of the live ADRs (`ref-todo-sections.md` § Constraints). No TODO copies a rule or the command; `todos/CLAUDE.md` names the command once. `.reviewrules/config.json` is a generated copy for `reviewrules`, replaced before each review; never edit it.
+- **`AGENTS.md`** and **`RULES.md`** are written once, by `new` Step 0, and are never rewritten by a later subcommand. `AGENTS.md` tells any agent entering the folder how to read and write it; `RULES.md` says which choices go to the human at each step. Every subcommand reads `RULES.md` before it starts and obeys it over its own defaults — a rule there never lowers a hard gate (the `review→impl` read, destructive-git confirmation).
+- **The ADR rules every TODO obeys are stored in no file.** `~/.claude/scripts/wm-constraints.py <notes-dir>/adr` prints them from the Properties of the live ADRs (`ref-todo-sections.md` § Constraints). No TODO copies a rule or the command; `todos/AGENTS.md` names the command once. `.reviewrules/config.json` is a generated copy for `reviewrules`, replaced before each review; never edit it.
 - An ADR that stops being live — its last changelog line is `Superseded by [ADR-NNNN]` or `Deprecated:` — moves to `adr/archived/`. Never deleted; the `adr-archive.sh` hook performs the move (`ref-adr-format.md` § Location and archive).
 
 - **`review/`** holds one directory per judged target — `TODO-N`, `TODO-N/inc-<k>`, or a resolved range slug — with the `report.md`, `reviewrules.json`, and `reviewrules.log` of the last `reviewrules` run. Each run overwrites them. Owned by the `review` skill (`review:ref-reviewrules.md` § Report files); no other subcommand writes there.
@@ -41,14 +41,13 @@ never as a code edit.
 - **ledger** = the TODO List, an index of **outcomes**, one `#### TODO-N` entry each (the line roster: § Spec-Readiness Checklist). The outcome is the discussion object — the user aligns on outcomes here before any body exists. Unclear or contested outcome → the spec is not ready. An outcome the user cannot *read* is contested by default, which is what `Concretely` exists to prevent (§ spec.md shape).
 - **`CONCEPTS.md`** carries every diagram — app architecture, data flow, and the flow this work changes — drawn with the `show-me` skill. It is the human's first read, and `spec.md` carries no diagram. Written when a picture changes a layer, a wave, or where a row splits; a change with no structure to draw has none (example: `examples/concepts.md`).
 - **`PATTERNS.md`** is read by the implementer, not the human — the patterns and reference files a TODO's increments follow. `spec.md` mentions `@PATTERNS.md` and carries none of the content.
-- **`todos/TODO-N.md` + `todos/TODO-N.agent.md`** are one **pair** per ledger row, split by audience: `TODO-N.md` is the human's gate read, and `TODO-N.agent.md` is the context-free Sonnet implementer's. `todos/TODO-N.test.md` holds the row's `## Autotest` alone. What each file holds and its budget: `sub-todo.md` § One ledger row, three files. Written in two stages with a human gate between them (`sub-todo.md` § Execution); all three are renumbered and deleted together. Owned by `todo` (`sub-todo.md`). `todos/CLAUDE.md` states the pair convention for any agent entering the folder — scaffolded with the folder by `new` Step 0, written once, never rewritten (example: `examples/todos-claude.md`).
+- **`todos/TODO-N.md` + `todos/TODO-N.agent.md`** are one **pair** per ledger row, split by audience: `TODO-N.md` is the human's gate read, and `TODO-N.agent.md` is the context-free {medium} implementer's. `todos/TODO-N.test.md` holds the row's `## Autotest` alone. What each file holds and its budget: `sub-todo.md` § One ledger row, three files. Written in two stages with a human gate between them (`sub-todo.md` § Execution); all three are renumbered and deleted together. Owned by `todo` (`sub-todo.md`). `todos/AGENTS.md` states the pair convention for any agent entering the folder — scaffolded with the folder by `new` Step 0, written once, never rewritten (example: `examples/todos-agents.md`).
 - **ADR** — one file per decision; its `status` (`proposed` | `approved`) is set by the operator alone (`ref-adr-format.md` § Status). An open question is a section of `QUESTIONS.md` (`ref-adr-format.md` § An open question is a section of QUESTIONS.md); filled example: `examples/questions.md`. ADRs cite each other with markdown links. Format: `ref-adr-format.md`; filled example: `examples/adr.md`.
 - History lives in the notes' jj repo (`jj log`) — `code:ref-jj-notes.md`.
 
 ## Status — metadata, not prose
 
-Every `status` lives in **YAML frontmatter**, never as a body header line. `spec.md` and each
-`todos/TODO-N.md` open with a `---` block; the body below it is human prose only. `TODO-N.agent.md`
+Every `status` lives in **YAML frontmatter**, never as a body header line. `TODO-N.agent.md`
 carries **no frontmatter at all** — the pair has one `status`, in the human half. Two machines:
 
 ### Spec phase — `spec.md` frontmatter `status`
@@ -342,7 +341,7 @@ The definition of READY. `verify` Phase 0 runs these; `new`/`revise` self-check 
 - [ ] Implementation patterns sit in `PATTERNS.md` and every diagram sits in `CONCEPTS.md`; `spec.md` mentions `@PATTERNS.md` and `@CONCEPTS.md` and carries neither
 - [ ] `spec.md` is ≤ 200 lines — over budget → move detail to `adr/` or split the spec, never shrink the ledger. The `budget-check` hook warns on every write and `code:sub-verify.md` Phase 0 fails on it (`arch:sub-todo.md` § Budget)
 - [ ] `GLOSSARY.md` exists (sibling), holds every domain term the spec, the TODOs, and the live ADRs use, and `bin/glossary-lint.py <notes-dir>` is clean
-- [ ] `CLAUDE.md`, `RULES.md`, and `PATTERNS.md` exist in the notes dir; `RULES.md` carries the three answered knobs, no `<…>` placeholder left
+- [ ] `AGENTS.md`, `RULES.md`, and `PATTERNS.md` exist in the notes dir; `RULES.md` carries the three answered knobs, no `<…>` placeholder left
 - [ ] Every rule is well formed: `~/.claude/scripts/wm-constraints.py <notes-dir>/adr --check` exits 0 (`ref-adr-format.md` § Frontmatter)
 - [ ] Every deprecated and superseded ADR sits in `adr/archived/` — marked, and moved by the hook; no live ADR links to an archived one
 - [ ] **No open question in `QUESTIONS.md`** (hard block) — `~/.claude/scripts/wm-open-questions.sh <notes-dir>` exits 0. The `guard.sh` hook re-checks this the moment an edit sets `spec.md` to `status: impl`, and denies the edit

@@ -4,6 +4,10 @@ Obeys the shared subcommand rules — see `code:ref-subcommand-rules.md`.
 
 ## Step 0: Starting state
 
+Resolve the current checkout root, or use cwd outside git. Locate or declare the notes store through `code:ref-jj-notes.md`. Run `python3 "${CLAUDE_PLUGIN_ROOT}/bin/wm-agents.py" "<project-root>" "<notes-dir>"` before checking whether the spec exists.
+
+This creates the project, notes, and TODO `AGENTS.md` guides. It does not create `RULES.md`. It preserves existing instructions and imports legacy instructions when the canonical file is absent. Done when all three guides exist and the project guide describes the workflow.
+
 > The notes jj repo is inited on session start and committed on stop — `code:ref-jj-notes.md`. No manual init.
 
 No `<notes-dir>/spec.md` → write a minimal one (full artifact with the rules per section: `examples/spec.md`):
@@ -12,13 +16,11 @@ No `<notes-dir>/spec.md` → write a minimal one (full artifact with the rules p
 - **Description** — one sentence from the request. **Goal** — 2–3 plain sentences.
 - **Open questions** — seed 1–3 as sections of `QUESTIONS.md` (`ref-adr-format.md` § An open question is a section of QUESTIONS.md, example `examples/questions.md`). They live in `QUESTIONS.md`, not in `adr/` and not in `spec.md`; the spec has no Open Questions section. **TODO List** — empty until the grill closes.
 - Load the common `terms` skill to create `<notes-dir>/GLOSSARY.md`, initially with one context heading and no entries.
-- Create `<notes-dir>/CLAUDE.md` from `examples/notes-claude.md` — the corpus guide any agent entering the folder reads. Copy the example's fenced block verbatim, not its header.
-- Create `<notes-dir>/todos/CLAUDE.md` from `examples/todos-claude.md` — the pair convention any agent entering that folder reads: two files per ledger row, which half holds what, the read order, the write rules. The folder is scaffolded here, empty; `todo` fills it past the gate.
 - Create `<notes-dir>/PATTERNS.md` from `examples/patterns.md` — the **need → use** table and the reference files the implementer follows. Fill the first rows at init: read the dependency manifest (`go.mod`, `package.json`, `pyproject.toml`, `Cargo.toml`), then search the repo for the code that already meets each common need — retry, poll a remote state, change a state, run calls at once, map an error, reach each external system. One row per need found, each with its `path:line`. Done when every need the repo already meets has a row. `spec.md` mentions `@PATTERNS.md` and holds no pattern content.
 - Create `<notes-dir>/CONCEPTS.md` from `examples/concepts.md` when the work has structure to draw — app architecture, data flow, the flow it changes — using the `show-me` skill. Draw before the ledger: the pictures are what decide a layer, a wave, and where a row splits. Nothing structural → no file, and `spec.md` mentions none.
 - What we're NOT doing — empty or "follow language defaults". No `Design Decisions` and no `Open Questions` section: both live in `adr/` (`ref-write.md` § Artifacts).
 
-`CLAUDE.md`, `todos/CLAUDE.md`, and `RULES.md` are written **once**; if one already exists, leave it — the user owns it after init. `PATTERNS.md` is created once and stays open to extension — patterns as they surface. It is never rewritten from the example after init. Generated implementation constraints have no file: they come from the ADR Properties (`ref-todo-sections.md` § Constraints).
+`AGENTS.md`, `todos/AGENTS.md`, and `RULES.md` are written **once**; if one already exists, leave it — the user owns it after init. `PATTERNS.md` is created once and stays open to extension — patterns as they surface. It is never rewritten from the example after init. Generated implementation constraints have no file: they come from the ADR Properties (`ref-todo-sections.md` § Constraints).
 
 spec.md exists → check the frontmatter `branch` against the current branch (`ref-write.md` § Spec ownership by branch):
 
@@ -29,7 +31,7 @@ spec.md exists → check the frontmatter `branch` against the current branch (`r
 
 Run every time. Check `<notes-dir>/research/`:
 
-- Empty or missing → skip to Step 1.
+- Empty or missing → continue with Step 0.6.
 - Present → read `INDEX.md` first (else every `.md`). A concrete finding — observed code behavior, user assertion — stays in its research artifact with its source; an ADR that rests on it cites that file. Write each research gap as one section of `QUESTIONS.md` (example `examples/questions.md`) **before the grill starts**. Print: `Ingested explore artifacts: M questions.`
 
 ## Step 0.6: Set the rules

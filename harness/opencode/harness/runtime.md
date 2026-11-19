@@ -1,6 +1,6 @@
 # OpenCode runtime
 
-Use OpenCode v2 tools for the shared workflows. Keep the selected model unless the user requests another model.
+Use OpenCode v2 tools for the shared workflows. Resolve `{light}`, `{medium}`, and `{heavy}` through `~/.config/opencode/harness/effort-ledger.json`. The model selector includes its reasoning variant.
 
 | Source instruction | OpenCode tool |
 |---|---|
@@ -15,6 +15,6 @@ Use `/wm`, `/code`, `/review`, and `/dive` for the shared workflows. Public comm
 
 Resolve `${CLAUDE_PLUGIN_ROOT}` against the selected plugin under `~/.config/opencode/harness/plugins/`. Use the named OpenCode subagent when a procedure requests an independent check. Await its report before the next dependent step.
 
-Claude hooks and Codex collaboration calls do not run in OpenCode. Follow the explicit lifecycle checks in `~/.config/opencode/harness/plugins/wm/codex-skills/wm/references/runtime.md`. Translate that guide's tools with the table above. Run ledger loops in the current session. Reload the route and notes after compaction.
+The native `wm-hooks` plugin runs WM session, prompt, compaction, tool, and stop hooks. It translates tool inputs and block decisions through `harness/wm_hooks.py`. The WM manifest remains the hook roster. Read the explicit lifecycle checks in `~/.config/opencode/harness/plugins/wm/codex-skills/wm/references/runtime.md` only when the adapter is unavailable. Codex collaboration calls remain unavailable. Run ledger loops in the current session.
 
 Codex conversations remain in Codex. OpenCode starts new sessions with the shared rules, skills, commands, and agents. Connected ChatGPT plugins require separate OpenCode integrations; they do not transfer with authentication.

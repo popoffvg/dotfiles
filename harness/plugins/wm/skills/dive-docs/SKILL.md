@@ -33,7 +33,7 @@ the artifact contract into a prompt.**
 | `wm:explore-critic` | Grades one `<ep-slug>.md` and reports unexplored entry points. | One per artifact, each convergence round. |
 
 **Spawn both exactly as `dive:SKILL.md` § Parallel subagents states** — the prefixed
-`subagent_type`, `model: "sonnet"`, and the label in `name`. That is the one home for the spawn
+`subagent_type`, {medium}, and the label in `name`. That is the one home for the spawn
 form, and it holds for the first round and every later round.
 
 **Each prompt carries** the entry point, the absolute `$RESEARCH_DIR`, and the contents of its

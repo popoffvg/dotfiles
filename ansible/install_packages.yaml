@@ -8,6 +8,7 @@
     brew_packages:
       # shell
       - kevengoncalves/tap/lig
+      - Giammarco-Ferranti/deja/deja
       - zsh-completions
       - zsh-syntax-highlighting
       - fzf
@@ -101,7 +102,6 @@
       - .zshrc_fish
       - .zshrc_git
       - .zshrc_go
-      - .zshrc_atuin
       - .zshrc_mise
       - .zshrc_sq
       - .zshrc_starship
@@ -115,7 +115,6 @@
       - zellij
       - helix
       - starship.toml
-      - atuin
       - yazi
 
   tasks:
@@ -168,6 +167,12 @@
         cmd: npm install -g git-split-diffs
       changed_when: false
 
+    - name: Install the Plannotator CLI
+      ansible.builtin.shell:
+        cmd: curl -fsSL https://plannotator.ai/install.sh | bash -s -- --minimal --non-interactive
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/plannotator"
+
     # Terminal diff viewer. The npm package is named hunkdiff; the binary is
     # `hunk`. The gh-review extension needs hunk >= 0.19 for its pane and
     # keyboard-mode APIs, so this must stay on latest.
@@ -183,19 +188,6 @@
         cmd: hunk extension install phl28/hunk-gh-review --yes
       args:
         creates: "{{ ansible_env.HOME }}/.config/hunk/extensions/installed/hunk-gh-review"
-
-    # Records every agent shell command into atuin. The PostToolUse:Bash hook in
-    # harness/claude/settings.json calls the installed binary, NOT `bunx`:
-    # bunx re-resolves the GitHub package per invocation, and on a hook that
-    # fires on every Bash call that raced into "Failed to link <pkg>: EEXIST"
-    # and "could not determine executable to run for package" — 40+ crashes
-    # observed. The same package still backs the bash-history MCP server, where
-    # bunx is harmless because it resolves once per session.
-    - name: Install bash-history-mcp globally via bun
-      ansible.builtin.shell:
-        cmd: bun install -g github:nitsanavni/bash-history-mcp
-      args:
-        creates: "{{ ansible_env.HOME }}/.bun/bin/bash-history-mcp"
 
     - name: Install LiteLLM via uv
       tags: litellm

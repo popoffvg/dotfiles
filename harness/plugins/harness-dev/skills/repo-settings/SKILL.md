@@ -1,6 +1,6 @@
 ---
 name: repo-settings
-description: Set up a repository's base documentation and Claude configuration — README.md, CLAUDE.md, a per-repo deploy skill, a per-repo adr skill, and .claude/settings.json. Use for "set up this repo", "add repo settings", "bootstrap README and CLAUDE.md", "add a deploy skill to this repo", "set up ADRs here".
+description: Set up a repository's base documentation and Claude configuration — README.md, AGENTS.md, a per-repo deploy skill, a per-repo adr skill, and .claude/settings.json. Use for "set up this repo", "add repo settings", "bootstrap README and AGENTS.md", "add a deploy skill to this repo", "set up ADRs here".
 disable-model-invocation: true
 ---
 
@@ -14,7 +14,7 @@ Produces six artifacts in the target repo:
 | `.claude/skills/deploy/SKILL.md` | The deploy procedure for this repo. |
 | `.claude/skills/adr/SKILL.md` | When and how to record a decision in `docs/adr/`, and how a superseded one moves to `docs/!archived/adr/`. |
 | `.claude/hooks/adr-session-end.sh` | `SessionEnd` hook that asks for an ADR when a session decided something and recorded nothing. |
-| `CLAUDE.md` | The maintenance contract — when Claude fires deploy, when Claude writes an ADR. |
+| `AGENTS.md` | The maintenance contract — when Claude fires deploy, when Claude writes an ADR. |
 | `.claude/settings.json` | Repo-scoped permissions, and the registration of the ADR reminder hook. |
 
 Run the steps in order. Each artifact depends on facts the earlier steps collect.
@@ -30,7 +30,7 @@ Collect the facts the artifacts need. Read, do not guess.
 | Build / test / lint commands | `Makefile`, `mise.toml`, `package.json` scripts, `justfile`, CI workflow steps |
 | Deploy target and mechanism | `.github/workflows/`, `Dockerfile`, `helm/`, `k8s/`, `terraform/`, `fly.toml`, release scripts |
 | Environments and their order | CI workflow `environment:` keys, branch protection, deploy script arguments |
-| Existing Claude configuration | `CLAUDE.md`, `.claude/` |
+| Existing Claude configuration | `AGENTS.md`, `.claude/` |
 
 **Completion criterion**: every row answered from a named file, or marked `unknown` for the user.
 
@@ -88,12 +88,12 @@ Consult the `update-config` skill for the settings.json schema and permission sy
 
 **Completion criterion**: `.claude/settings.json` parses as JSON, each permission entry traces to a command found in step 1, and the `SessionEnd` entry points at the hook written in step 6.
 
-## 8. Write CLAUDE.md
+## 8. Write AGENTS.md
 
-Follow `references/claude-md.md`. This is the maintenance contract, not a repeat of the README.
+Follow `references/agents-md.md`. This is the maintenance contract, not a repeat of the README.
 
-**Completion criterion**: `CLAUDE.md` states the trigger for the deploy skill, the trigger for the adr skill, and the rule that both stay current when the underlying mechanism changes.
+**Completion criterion**: `AGENTS.md` states the trigger for the deploy skill, the trigger for the adr skill, and the rule that both stay current when the underlying mechanism changes.
 
 ## Revising an existing repo
 
-An artifact that already exists gets **revised in place** — edit the sections that are wrong or missing, keep the rest. Report which sections changed. Overwriting a hand-written README or CLAUDE.md loses knowledge no file states.
+An artifact that already exists gets **revised in place** — edit the sections that are wrong or missing, keep the rest. Report which sections changed. Overwriting a hand-written README or AGENTS.md loses knowledge no file states.

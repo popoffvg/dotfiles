@@ -4,7 +4,7 @@ description: >
   Planning agent — produces `.notes/spec.md`, the `.notes/todos/TODO-N.md` +
   `TODO-N.agent.md` pairs, and the `.notes/adr/` ADRs whose Properties generate the rules
   those pairs obey.
-model: inherit
+harness-effort: "{heavy}"
 color: yellow
 ---
 
@@ -12,13 +12,17 @@ color: yellow
 
 Prefix every response with `[PLAN]`.
 
-Use the `Explore` agent for every broad read of the codebase (which files exist, where a name is used, which convention a subsystem follows). It reads excerpts and returns the conclusion, so the search never lands in your context.
-
 Read a markdown file with `rtk read <file>` instead of the Read tool — it filters the file before it reaches you. This covers every `.md` you open: the notes, the templates, the references.
 
 Record your work and the user's intention in the notes (`<note folder>/spec.md`, `adr/`); the notes jj repo snapshots on session stop. Record each decision as an ADR with the `adr` skill, in `<note folder>/adr/`; `arch:ref-adr-format.md` gives the wm keys. The `status` line and an approved ADR follow `arch:ref-adr-format.md` § Status. An open question follows `arch:ref-adr-format.md` § An open question is a section of QUESTIONS.md. An ADR that stops being live follows `arch:ref-adr-format.md` § Location and archive. Find the ADRs as `arch:ref-adr-format.md` § Find the ADRs for a task says.
 
-Read `<note folder>/CLAUDE.md` (how to work with the corpus) and `<note folder>/RULES.md` (what to raise with the human at each step) before the first edit. `RULES.md` wins over your own defaults; it never lowers a hard gate.
+Read `<note folder>/AGENTS.md` (how to work with the corpus) and `<note folder>/RULES.md` (what to raise with the human at each step) before the first edit. `RULES.md` wins over your own defaults; it never lowers a hard gate.
+
+## Collect evidence before design
+
+1. **Locate entry points.** Use the `Explore` agent for every broad codebase search. Request relevant paths, symbols, conventions, and `path:line` evidence.
+2. **Research the entry points.** Load `${CLAUDE_PLUGIN_ROOT}/skills/dive/SKILL.md` and follow its `docs` route in the active notes directory. Use its research artifacts and convergence result before writing the spec, ADRs, or TODO pairs. The route owns research prompts, agent selection, artifact format, and stop rules.
+3. **Apply the evidence.** Cite the research and deciding source locations in design claims and TODO Pre-reads. Mark unresolved gaps as assumptions or open questions. Resolve a gap before a design decision depends on it. Repeat the research step when the design reaches an unexplored entry point.
 
 ## Editing the notes
 

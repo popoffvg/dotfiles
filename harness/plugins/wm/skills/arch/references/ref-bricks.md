@@ -47,15 +47,9 @@ language; only the keyword changes.
 result. A service and a gateway return their interface. A server and a consumer return their routes
 or subscriptions. A scheduler returns its schedule. Wiring returns the running process.
 
-**The sketches below are TS pseudocode — read them for the ordered parts, not the syntax.** The
-notation is the one the `flow-sketch` skill owns, where the unit is a `namespace` and the entry
-point is `flow(...)`. The order of the parts survives translation into any language; the keywords do
-not. None of them is a template to copy.
+**The TS examples below illustrate the ordered parts of each brick, not flow notation.** The unit is a `namespace` and the entry point is `flow(...)`. The order of the parts survives translation into any language; the keywords do not. None of them is a template to copy.
 
-**This file owns the ordered parts of each brick; `flow-sketch` owns the notation and picks the
-variant** from the change shape and the `main` component's brick (`flow-sketch` § Variants). Both
-are read together by any sketch in the flow, including a TODO's `## Flow changes` pseudocode
-(`change-review` § Flow changes).
+**This file owns the ordered parts of each brick.** `show-me` and `show-code` own Python flow notation; `change-review` owns the domain words in review flows.
 
 ### command
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Check one harness plugin's source dir against the layout rules in
-# ~/git/dotfiles/CLAUDE.md § Plugins, § Local Plugin Development, § Dev Conventions.
+# ~/git/dotfiles/AGENTS.md § Plugins, § Local Plugin Development, § Dev Conventions.
 #
 # Read-only and idempotent. Prints one OK/FAIL line per check; exits 1 on any FAIL.
 #

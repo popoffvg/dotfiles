@@ -90,7 +90,7 @@ prx does not post. On `/prx post`:
 ## Where it fits
 
 - `prx` (shell function, `zsh/dot-zshrc_aliases`) — builds the worktree and opens
-  the session this skill writes into. The "Start here" pane and the file order come from a haiku ranking of the changed files.
+  the session this skill writes into. The "Start here" pane and the file order come from a {light} agent's ranking of the changed files.
 - `~/.claude/scripts/prx-comments.sh` — carries notes between runs: restores the
   saved ones into a new session and drops the ones already on the PR. It never
   posts. Called by the shell function, not by this skill.

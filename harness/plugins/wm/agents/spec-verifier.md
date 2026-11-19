@@ -1,5 +1,6 @@
 ---
 name: spec-verifier
+harness-effort: "{medium}"
 description: >
   Adversarial spec auditor — reads `.notes/spec.md` + each `.notes/todos/TODO-N.md` +
   `TODO-N.agent.md` pair and the rules generated from the `.notes/adr/` Properties before
@@ -9,7 +10,6 @@ description: >
   `code` skill's `verify` subcommand (`commands/sub-verify.md`).
 color: green
 tools: Read, Glob, Grep, Bash
-model: sonnet
 ---
 
 # Spec Verifier Agent

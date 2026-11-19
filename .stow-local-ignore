@@ -23,7 +23,6 @@ cspell\.json
 ^zsh$
 
 # .config paths managed by dotfiles repo
-\.config/atuin
 \.config/zed
 \.config/direnv
 \.config/fish

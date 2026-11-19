@@ -1,11 +1,15 @@
 import importlib.util
+from itertools import product
 import json
+import os
 from pathlib import Path
 import tempfile
 import subprocess
+import sys
 import unittest
 
 BASE = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(BASE))
 
 
 def load(name):
@@ -20,6 +24,10 @@ guard = load('guard')
 
 
 class InvocationTests(unittest.TestCase):
+    def assert_effort_profile(self, data, profile):
+        for value in profile['fields'].values():
+            self.assertIn(value.encode(), data)
+
     def test_manual_only_source_skill_stays_manual_only_in_codex(self):
         with tempfile.TemporaryDirectory(dir=deploy.CACHE) as temporary:
             root = Path(temporary)
@@ -79,7 +87,27 @@ class InvocationTests(unittest.TestCase):
             agent = installation.files[opencode / 'agents/wm-researcher.md'][0]
             self.assertIn(b'mode: subagent', agent)
             self.assertNotIn(b'${CLAUDE_PLUGIN_ROOT}', agent)
-            self.assertNotIn(b'model: sonnet', agent)
+            ledger = deploy.effort.load_effort_ledger()
+            for runtime, row in ledger['runtimes'].items():
+                for tier in ledger['tiers']:
+                    profile = deploy.effort.resolve_effort_profile(ledger, runtime, tier)
+                    suffix = '.toml' if row['agent_format'] == 'toml' else '.md'
+                    data = installation.files[home / row['directory'] / 'agents' / ('effort-' + tier + suffix)][0]
+                    self.assert_effort_profile(data, profile)
+                self.assertIn(home / row['directory'] / 'harness/effort-ledger.json', installation.files)
+            for runtime in ('claude', 'opencode', 'codex', 'pi', 'cursor'):
+                row = ledger['runtimes'][runtime]
+                name = 'implementer-heavy' if runtime == 'claude' else 'wm-implementer-heavy'
+                folder = 'harness/plugins/wm/agents' if runtime == 'claude' else 'agents'
+                suffix = '.toml' if runtime == 'codex' else '.md'
+                data = installation.files[home / row['directory'] / folder / (name + suffix)][0]
+                self.assert_effort_profile(data, deploy.effort.resolve_effort_profile(ledger, runtime, 'heavy'))
+            for runtime in ('.claude/skills', '.codex/harness/skills', '.pi/agent/harness/skills', '.config/opencode/harness/skills'):
+                ledger = installation.files[home / runtime / 'minions/ledger.md'][0]
+                self.assertIn(b'effort-ledger.json', ledger)
+                for tier in (b'light', b'medium', b'heavy'):
+                    self.assertIn(tier, ledger)
+                self.assertNotRegex(ledger, rb'haiku|sonnet|opus|gpt-\d|composer')
             self.assertEqual(installation.files[home / '.claude/CLAUDE.md'][0], b'@AGENTS.md\n')
             self.assertIn(b'@rules/quint.md', installation.files[home / '.claude/AGENTS.md'][0])
             adr = installation.files[home / '.claude/skills/adr/SKILL.md'][0]
@@ -128,6 +156,42 @@ class LooseSkillGroupTests(unittest.TestCase):
 
 
 class WorkflowTests(unittest.TestCase):
+    def test_workflow_agents_keep_effort_through_implementation_and_fixups(self):
+        scripts = deploy.internal_workflows(deploy.HERE / 'workflows')
+        runner = """let input='';for await(const chunk of process.stdin)input+=chunk;
+const scripts=JSON.parse(input);
+const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
+for(const [name,body] of Object.entries(scripts)){
+  const calls=[];let reviews=0;let deploys=0;
+  const agent=async(prompt,options)=>{
+    if(Object.hasOwn(options,'model'))throw new Error('model override: '+options.label);
+    if(options.agentType==='general-purpose')throw new Error('missing effort route: '+options.label);
+    if((options.label.startsWith('impl:')||options.label.startsWith('fixup:'))&&options.agentType!=='wm:implementer-heavy')
+      throw new Error('red risk did not retain heavy effort');
+    calls.push(options.label);
+    if(options.label==='ledger')return {todos:[{todo:1,status:'todo',risk:'red'}],deployTask:'deploy',e2eCommand:'verify'};
+    if(options.label.startsWith('adr-approval:'))return {exit:0,stdout:''};
+    if(options.phase==='Review')return ++reviews===1
+      ? {exit:1,base:'base',failed:[{rule:'rule',severity:'high',findings:['Fix the behavior.']}]}
+      : {exit:0,base:'base',failed:[]};
+    if(options.phase==='Deploy')return {result:++deploys===1?'red':'green',ran:'deploy',output:''};
+    if(options.phase==='Verify')return {result:'green',ran:'verify',output:''};
+    if(options.phase==='Lessons')return {appended:[]};
+    if(options.phase==='Status')return {status:'done',commit:'commit',outcome:'done'};
+    if(options.phase==='Reconcile')return {statuses:[{todo:1,status:'done'}]};
+    return {status:'done',summary:'done'};
+  };
+  const result=await new AsyncFunction('args','agent','phase','log','parallel','pipeline',body)
+    ({todo:1,risk:'red'},agent,()=>{},()=>{},()=>{},()=>{});
+  if(result.result!=='PASS')throw new Error(name+': '+JSON.stringify(result));
+  if(!calls.some(label=>label.startsWith('impl:')))throw new Error('implementation not exercised');
+  if(reviews<2)throw new Error('review fixup not exercised');
+  if(name==='auto'&&!calls.some(label=>label.startsWith('fix:')))throw new Error('deploy fix not exercised');
+}"""
+        subprocess.run(['node', '--input-type=module', '-e', runner], text=True, check=True,
+                       input=json.dumps({'auto': deploy.workflow_body(scripts['wm-code-auto.js']),
+                                         'impl': deploy.workflow_body(scripts['wm-code-impl.js'])}))
+
     def test_private_auto_driver_passes_child_arguments_without_saved_name_lookup(self):
         with tempfile.TemporaryDirectory() as temporary:
             source = Path(temporary)
@@ -155,7 +219,52 @@ let rejected=false;try{await run(scripts.impl)({})}catch(error){rejected=error.m
 if(!rejected)throw new Error('lost implementation argument guard');"""
         subprocess.run(['node', '--input-type=module', '-e', runner], text=True, check=True,
                        input=json.dumps({'auto': deploy.workflow_body(scripts['wm-code-auto.js']),
-                                         'impl': deploy.workflow_body(scripts['wm-code-impl.js'])}))
+                                          'impl': deploy.workflow_body(scripts['wm-code-impl.js'])}))
+
+class EffortHelperTests(unittest.TestCase):
+    def test_skill_helpers_apply_effort_and_preserve_model_override(self):
+        for script, model in product(('agent-impl.sh', 'dive-grill-questions.sh'), ('', 'requested-model')):
+            with self.subTest(script=script, model=model), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                routing = root / '.claude/harness'
+                routing.mkdir(parents=True)
+                for name in ('effort.py', 'effort-ledger.json'):
+                    (routing / name).write_bytes((BASE / name).read_bytes())
+                cli = root / 'claude'
+                cli.write_text('#!/usr/bin/env python3\nimport json, os, sys\n'
+                               'from pathlib import Path\n'
+                               'Path(os.environ["CALL_ARGS"]).write_text(json.dumps(sys.argv[1:]))\n'
+                               'print("## Intent\\n" + "question " * 120)\n')
+                cli.chmod(0o755)
+                env = dict(os.environ, PATH=str(root) + os.pathsep + os.environ['PATH'],
+                           CALL_ARGS=str(root / 'args.json'), RESEARCH_DIR=str(root / 'research'),
+                           TASK_CONTEXT='effort routing check', MODEL=model, HOME=str(root))
+                args = ['-p', '--', '--model', model, 'prompt'] if model else ['-p', 'prompt']
+                if script == 'dive-grill-questions.sh':
+                    args = ['entry=Entry point']
+                subprocess.run(['bash', str(deploy.ROOT / 'harness/claude/scripts' / script), *args],
+                               env=env, text=True, capture_output=True, check=True)
+                actual = json.loads((root / 'args.json').read_text())
+                tier = 'medium' if script == 'agent-impl.sh' else 'light'
+                profile = deploy.effort.resolve_effort_profile(deploy.effort.load_effort_ledger(), 'claude', tier)
+                self.assertEqual(actual[actual.index('--model') + 1], model or profile['model'])
+                self.assertEqual(actual[actual.index('--effort') + 1], profile['reasoning'])
+
+    def test_fork_guard_checks_structure_not_model_names(self):
+        guard_path = deploy.ROOT / 'harness/claude/hooks/block-fork-with-nested-agents.py'
+        for tool_input, denied in [
+            ({'subagent_type': 'fork', 'prompt': 'Summarize the Sonnet and Haiku incident.'}, False),
+            ({'subagent_type': 'fork', 'prompt': 'Spawn subagents for the checks.'}, True),
+            ({'subagent_type': 'fork', 'prompt': 'Summarize the input.', 'model': 'requested-model'}, True),
+            ({'subagent_type': 'general-purpose', 'prompt': 'Spawn subagents for the checks.'}, False),
+        ]:
+            with self.subTest(tool_input=tool_input):
+                result = subprocess.run(['python3', str(guard_path)],
+                                        input=json.dumps({'tool_input': tool_input}), text=True,
+                                        capture_output=True, check=True)
+                self.assertEqual(bool(result.stdout), denied)
+                if denied:
+                    self.assertEqual(json.loads(result.stdout)['hookSpecificOutput']['permissionDecision'], 'deny')
 
 
 class OwnershipTests(unittest.TestCase):
@@ -201,6 +310,7 @@ class OwnershipTests(unittest.TestCase):
         self.assertEqual(result['plugins'], ['personal-plugin', 'session-pins'])
         self.assertEqual(deploy.merge_settings(result, managed), result)
         self.assertEqual(result['theme'], 'personal')
+        self.assertEqual(deploy.merge_settings(result, {'plugins': []})['plugins'], [])
 
     def test_detaches_directory_link_before_writing(self):
         source = BASE / 'skills/harness-maintain'
@@ -242,16 +352,17 @@ class OwnershipTests(unittest.TestCase):
 
 
 class GuardTests(unittest.TestCase):
-    def test_opencode_manifest_protects_generated_files_and_allows_source(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            home = Path(temporary)
-            runtime = home / '.config/opencode/commands/code.md'
-            manifest = home / '.config/opencode/harness/installed.json'
-            manifest.parent.mkdir(parents=True)
-            manifest.write_text(json.dumps({'files': {str(runtime): {}}}))
-            self.assertIsNotNone(guard.check({'tool_name': 'edit', 'tool_input': {'path': str(runtime)}}, home))
-            self.assertIsNone(guard.check({'tool_name': 'read', 'tool_input': {'path': str(runtime)}}, home))
-            self.assertIsNone(guard.check({'tool_name': 'edit', 'tool_input': {'path': str(BASE / 'commands/code.md')}}, home))
+    def test_runtime_manifests_protect_generated_files_and_allow_source(self):
+        for directory in ('.config/opencode', '.cursor'):
+            with self.subTest(directory=directory), tempfile.TemporaryDirectory() as temporary:
+                home = Path(temporary)
+                runtime = home / directory / 'agents/effort-light.md'
+                manifest = home / directory / 'harness/installed.json'
+                manifest.parent.mkdir(parents=True)
+                manifest.write_text(json.dumps({'files': {str(runtime): {}}}))
+                self.assertIsNotNone(guard.check({'tool_name': 'edit', 'tool_input': {'path': str(runtime)}}, home))
+                self.assertIsNone(guard.check({'tool_name': 'read', 'tool_input': {'path': str(runtime)}}, home))
+                self.assertIsNone(guard.check({'tool_name': 'edit', 'tool_input': {'path': str(BASE / 'commands/code.md')}}, home))
 
     def test_blocks_installed_edits_and_allows_source_and_project_edits(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -67,7 +67,7 @@ Deploy is a step that may be **skipped**, never one that fails by being absent:
 
 | The caller said | Step 3 does |
 |---|---|
-| nothing | probe for the task — the notes-dir `CLAUDE.md`, then `mise run deploy` / `make deploy` / a package script. Found → run it. None configured → **skip** |
+| nothing | probe for the task — the notes-dir `AGENTS.md`, then `mise run deploy` / `make deploy` / a package script. Found → run it. None configured → **skip** |
 | a command | run that command, no probe |
 | no deploy | **skip** without probing — this ledger does not deploy |
 

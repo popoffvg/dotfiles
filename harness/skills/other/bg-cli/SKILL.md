@@ -13,7 +13,7 @@ description: Drive the `bg` CLI (the `background` binary) — launch a detached 
 
 | Situation | Use |
 | --- | --- |
-| Build, test, lint, dev server for this session | `Bash` with `run_in_background: true` — see `bg-build-and-test` |
+| Build, test, lint, dev server for this session | `Bash` with `run_in_background: true` |
 | Must outlive the session or the shell | `bg -- <cmd>` |
 | User wants it in their own task list / TUI | `bg -- <cmd>` |
 | Nested agent run (`claude -p`, `opencode run`) | `bg -- <cmd>` — adapters pretty-render the stream |

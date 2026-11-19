@@ -29,11 +29,11 @@ missing id means a missing check rather than a clean corpus.
 
 All pass → fan out **one `spec-verifier` per TODO** plus one cross-TODO agent, in a single message.
 
-**Every verify agent runs on sonnet.** Pass `model="sonnet"` on each call — never opus, never haiku, never the caller's model.
+**Run every spec verifier and hypothesis checker at {medium}.** Resolve {medium} through the active harness effort ledger. Use each named agent's `harness-effort`, not the caller's model.
 
 Per-TODO:
 ```
-Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
+Agent(subagent_type="wm:spec-verifier", prompt=
   "[VERIFY TODO-N] Hunt contradictions / missing-parts / edge-cases in the <notes-dir>/todos/TODO-N.md
    + TODO-N.agent.md pair and TODO-N.test.md. Read only those three + the rules `~/.claude/scripts/wm-constraints.py
    <notes-dir>/adr` prints + the pair's Files (source). Follow ${CLAUDE_PLUGIN_ROOT}/skills/code/commands/sub-verify.md
@@ -44,7 +44,7 @@ Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
 
 Cross-TODO — the contradiction agent. It reads `spec.md`, the live ADRs in `adr/`, and from **every** TODO: the ledger row, Outcome, Depends on, `## Files`, and the signatures in the `## Increments` diffs. Headers alone hide the conflicts: two TODOs give one function two signatures inside their diffs, not in their outcomes.
 ```
-Agent(subagent_type="wm:spec-verifier", model="sonnet", prompt=
+Agent(subagent_type="wm:spec-verifier", prompt=
   "[VERIFY CROSS] Read <notes-dir>/spec.md, the live ADRs in adr/, and every TODO's row, Outcome,
    Depends on, Files, and the signatures in its increment diffs.
    Run the claim pass over the whole set — pairwise, not per-TODO. Report every collision plus
@@ -56,10 +56,10 @@ The agents have no Write tool — they **return** findings. The caller merges re
 
 ### Phase 1b — verify every missed-change hypothesis (after Phase 1 returns)
 
-Collect the hypothesis tables of every per-TODO agent. Drop a row whose file another TODO's `## Files` lists. Merge rows from any TODOs that name one `file:line` and one changed item, and name every such TODO in `source:` and `look:`. A checker that returns no verdict gives an UNSURE row. Spawn **one `wm:hypothesis-checker` per hypothesis, all in one message**, on sonnet:
+Collect the hypothesis tables of every per-TODO agent. Drop a row whose file another TODO's `## Files` lists. Merge rows from any TODOs that name one `file:line` and one changed item, and name every such TODO in `source:` and `look:`. A checker that returns no verdict gives an UNSURE row. Spawn **one `wm:hypothesis-checker` per hypothesis, all in one message**:
 
 ```
-Agent(subagent_type="wm:hypothesis-checker", model="sonnet", prompt=
+Agent(subagent_type="wm:hypothesis-checker", prompt=
   "id: <slug>
    range: HEAD — the code before the spec lands
    at: <file:line of the search hit, or the search itself for a seam with no control>
@@ -98,8 +98,10 @@ the spelling `GLOSSARY.md` carries, and fix the others.
 
 Then the judgment half, one agent over the whole corpus:
 
+Resolve {light} through the active harness effort ledger for `wm:name-critic`.
+
 ```
-Agent(subagent_type="wm:name-critic", model="haiku", prompt=
+Agent(subagent_type="wm:name-critic", prompt=
   "[NAME spec] Judge the names <notes-dir> MINTS, not a diff. In scope: every `## New terms` row,
    every `## Components` symbol marked `+`, and every symbol an `## Increments` diff adds,
    across all TODO pairs. Out of scope, silently: every term GLOSSARY.md marks `Status: existing`,

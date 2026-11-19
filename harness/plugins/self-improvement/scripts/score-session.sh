@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Score one session and write its record. `score-session.sh <id> <transcript> <from-line>`
 #
-# One model call, on haiku, in this process — never in the session that triggered
+# One model call in this process — never in the session that triggered
 # the scan. The call gets the human prompts as text in the prompt and no tools,
 # so it cannot wander into the transcript, the repo, or the network: the whole
 # judgment is "here are the prompts, return the JSON in the rubric".
@@ -123,8 +123,7 @@ EOF
 export SELF_IMPROVE_CHILD=1
 
 verdict_schema='{"type":"object","properties":{"score":{"type":"integer","minimum":0,"maximum":10},"scope":{"type":"string","enum":["global","project","none"]},"why":{"type":"string"}},"required":["score","scope","why"],"additionalProperties":false}'
-verdict=$(printf '%s' "$request" | claude -p \
-  --model haiku \
+verdict=$(printf '%s' "$request" | python3 "$HOME/.claude/harness/effort.py" claude light -- claude -p \
   --output-format json \
   --json-schema "$verdict_schema" \
   --disallowedTools Bash Read Edit Write Glob Grep Task WebFetch WebSearch \

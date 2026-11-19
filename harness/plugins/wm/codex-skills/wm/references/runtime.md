@@ -13,16 +13,16 @@
 
 2. **Translate tools.** Read a named agent's `agents/<name>.md` before delegating and include
    its instructions and checkout path in a Codex agent task. Use available Codex agent roles
-   and inherit the session model; Claude's `haiku`, `sonnet`, and `opus` are source workflow
-   tiers, not Codex model identifiers. Use Codex collaboration for independent jobs and
+   and resolve the source agent's `harness-effort` through the active harness effort ledger.
+   Apply both the model and reasoning effort from `~/.codex/harness/effort-ledger.json`.
+   Use Codex collaboration for independent jobs and
    explicitly await their completion. When collaboration is unavailable, run those jobs
    sequentially and disclose that the review was not independent. `Skill` means read the
    named skill; `Read`, `Bash`, `Edit`, and `Write` mean the available file, shell, and patch
    tools. Ask workflow questions with the available user-input tool, or in conversation
    when none exists. Existing user authorization controls approval gates.
 
-3. **Run lifecycle checks explicitly.** This manifest registers skills only; Claude hook
-   events and skill frontmatter hooks are not active in Codex. At route start, pipe a JSON
+3. **Check lifecycle support.** The harness registers WM lifecycle hooks through the native runtime adapter. Check the runtime hook list before relying on it. Codex requires review and trust through `/hooks`. Treat absent, disabled, untrusted, or incomplete registration as unavailable. In that case, run the full sequence below explicitly. At route start, pipe a JSON
    object with the checkout's `cwd` into `bin/notes-locate.sh`, then `bin/notes-jj-init.sh`.
    Read the resulting notes context before selecting artifacts. Before changing spec or
    TODO metadata, run `bin/guard.sh` with `tool_input.file_path` and the full proposed

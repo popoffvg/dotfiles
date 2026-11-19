@@ -56,10 +56,10 @@ Each prompt carries the file path, every comment on that file (`<lines> — <tex
 
 ## Triage pattern candidates
 
-**In the same message as the forks, start one haiku agent for the whole batch.** `/line-comment:distill` later turns what it saves into rules.
+**In the same message as the forks, start one {light} agent for the whole batch.** Resolve {light} through the active harness effort ledger. `/line-comment:distill` later turns what it saves into rules.
 
 ```
-Agent(subagent_type: "general-purpose", model: "haiku", name: "pattern-triage", prompt: "<every operator comment, the contract below>")
+Agent(subagent_type: "effort-light", name: "pattern-triage", prompt: "<every operator comment, the contract below>")
 ```
 
 The prompt carries every operator comment, unresolved ones too, as `<file>:<lines> — <text>`, with the meaning grilling settled. A `(from Claude)` comment is left out. The contract:

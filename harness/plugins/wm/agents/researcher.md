@@ -4,7 +4,7 @@ description: >
   Research teammate — explores codebase, gathers context, writes the research artifacts of the
   `dive` docs route. Cannot edit source code.
 tools: Read, Glob, Grep, Bash, Agent, Write, AskUserQuestion, mcp__qmd__search, mcp__qmd__get
-model: inherit
+harness-effort: "{heavy}"
 color: green
 ---
 

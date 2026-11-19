@@ -6,7 +6,7 @@ description: >
   artifact to a path and returns that path alone. Read-only on the corpus: it names what is
   there and never judges what to cut. Spawned in parallel, one per batch or per file.
 tools: Read, Glob, Grep, Write
-model: haiku
+harness-effort: "{light}"
 color: green
 ---
 

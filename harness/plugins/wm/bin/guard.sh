@@ -22,6 +22,12 @@ block() {
 
 # The text this call puts into the file — Write sends content, Edit sends new_string.
 new_text() {
+  local move_from
+  move_from=$(echo "$INPUT" | jq -r '.tool_input.move_from // ""')
+  if [[ -n "$move_from" ]]; then
+    echo "$INPUT" | python3 "${CLAUDE_PLUGIN_ROOT}/bin/file_edit.py"
+    return
+  fi
   echo "$INPUT" | jq -r '
     [.tool_input.content?, .tool_input.new_string?, (.tool_input.edits[]?.new_string)]
     | map(select(. != null)) | join("\n")' 2>/dev/null
@@ -41,7 +47,7 @@ BASE=$(basename "$FILE_PATH")
 
 # --- the gate: no open question when the spec enters impl -------------------
 if [[ "$BASE" == "spec.md" ]]; then
-  NEW_TEXT=$(new_text) || exit 0
+  NEW_TEXT=$(new_text) || block "WM cannot validate the proposed spec content."
 
   if grep -qE '^status:[[:space:]]*impl([[:space:]]|#|$)' <<<"$NEW_TEXT"; then
     ADR="$(dirname "$FILE_PATH")/adr"
@@ -86,10 +92,9 @@ fi
 # `bin/spec-lint.py` check B3 re-checks the TODO half at verify time; this hook is what
 # stops a value impl cannot read from reaching the file in the first place.
 if [[ "$BASE" == "spec.md" || "$BASE" == TODO-*.md ]]; then
-  APPROVE_TEXT=$(new_text) || exit 0
+  APPROVE_TEXT=$(new_text) || block "WM cannot validate the proposed approval metadata."
 
-  ENUM=$(
-    cat <<'EOF'
+  read -r -d '' ENUM <<'EOF' || true
 The whole enum:
   increment — show the real diff after each increment and wait
   todo      — apply every increment, then show the whole diff once and wait
@@ -100,13 +105,12 @@ Defaults: a missing key on spec.md reads as `increment`, a missing key on a TODO
 reads as `inherit`. Write an override's reason as a trailing comment on the key.
 Owned by arch:ref-write.md § Approval.
 EOF
-  )
 
   while IFS= read -r line; do
     value=${line#*:}
     value=${value%%\#*}
     value=${value%%—*}
-    value=$(trim "$(tr -d '`"'"'" <<<"$value")")
+    value=$(trim "$(tr -d "\140\042\047" <<<"$value")")
 
     case "$value" in
       increment | todo | none) ;;
@@ -131,10 +135,9 @@ fi
 # work happens. `bin/spec-lint.py` checks A6 and B3 catch one already on disk; this hook
 # stops it landing.
 if [[ "$BASE" == "spec.md" || "$BASE" == TODO-*.md ]]; then
-  WHERE_TEXT=$(new_text) || exit 0
+  WHERE_TEXT=$(new_text) || block "WM cannot validate the proposed checkout metadata."
 
-  WHERE_ENUM=$(
-    cat <<'EOF'
+  read -r -d '' WHERE_ENUM <<'EOF' || true
 The whole enum:
   in-place — write into the current checkout, on the spec's branch
   worktree — create this TODO's own worktree first, at <task folder>/todo-N, off the spec's branch, and work there
@@ -144,13 +147,12 @@ Defaults: a missing key on spec.md reads as `in-place`, a missing key on a TODO-
 reads as `inherit`. Write an override's reason as a trailing comment on the key.
 Owned by arch:ref-write.md § Where the work happens.
 EOF
-  )
 
   while IFS= read -r line; do
     value=${line#*:}
     value=${value%%\#*}
     value=${value%%—*}
-    value=$(trim "$(tr -d '`"'"'" <<<"$value")")
+    value=$(trim "$(tr -d "\140\042\047" <<<"$value")")
 
     case "$value" in
       in-place | worktree) ;;

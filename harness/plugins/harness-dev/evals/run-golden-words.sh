@@ -49,7 +49,7 @@ call() { # model prompt -> stdout
     # A provider/model tier is not a Claude model; opencode runs it.
     out="$(cd "$empty" && opencode run -m "$1" "$2" 2>"$err")"; rc=$?
   else
-    # Safe mode drops ~/.claude/CLAUDE.md; strict MCP config keeps the memory store out.
+    # Safe mode drops ~/.claude/AGENTS.md; strict MCP config keeps the memory store out.
     out="$(cd "$empty" && printf '%s' "$2" | claude -p --model "$1" --safe-mode --strict-mcp-config \
       --no-session-persistence --tools "" 2>"$err")"; rc=$?
   fi

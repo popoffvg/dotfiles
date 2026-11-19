@@ -1,4 +1,6 @@
 import { execFileSync } from "node:child_process";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
 export interface ChangedFile {
   readonly path: string;
@@ -101,15 +103,17 @@ export function agentCommand(): string {
   return declared && declared.length > 0 ? declared : "claude";
 }
 
-// Ranking is a triage pass, not a review: it names the files and one line each, and the
-// slower tiers spent minutes on it. The whole point is to answer before the TUI opens.
 export function agentModel(): string {
   const declared = process.env.REVIEW_FOCUS_AGENT_MODEL?.trim();
-  return declared && declared.length > 0 ? declared : "haiku";
+  return declared ?? "";
 }
 
 export function askAgent(repoRoot: string, prompt: string, timeoutMs: number): string {
-  return execFileSync(agentCommand(), ["-p", "--model", agentModel(), prompt], {
+  const model = agentModel();
+  return execFileSync("python3", [
+    join(homedir(), ".claude/harness/effort.py"), "claude", "light", "--",
+    agentCommand(), "-p", ...(model ? ["--model", model] : []), prompt,
+  ], {
     cwd: repoRoot,
     encoding: "utf8",
     timeout: timeoutMs,

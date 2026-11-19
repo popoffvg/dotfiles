@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# agent-impl.sh — launch the `implementer` agent (sonnet, git add/commit denied).
+# agent-impl.sh — launch the `implementer` agent (git add/commit denied).
 #
 # Usage:
 #   agent-impl.sh                       # interactive session, current dir
@@ -10,7 +10,6 @@
 # Hard rules (enforced by .claude/settings.json + agent prompt):
 #   - cannot run `git add`, `git commit`, `git stage` (or amend)
 #   - read-only git is fine (status/diff/log/show/blame)
-#   - model is pinned to sonnet via the agent frontmatter
 
 set -euo pipefail
 
@@ -28,7 +27,7 @@ while (("$#")); do
   esac
 done
 
-cmd=(claude --agent implementer --model sonnet --permission-mode acceptEdits)
+cmd=(python3 "$HOME/.claude/harness/effort.py" claude medium -- claude --agent implementer --permission-mode acceptEdits)
 if (( PRINT )); then
   cmd+=(-p)
 fi

@@ -1,6 +1,6 @@
 You judge instruction rules for contradictions. Work dir: `<OUT>`.
 
-Input: these group files in `groups/`: `<FILES>`. Each file is `{"group": "<artifact> | <aspect>", "rules": [{"where": "<file>:<line>", "polarity": "require|forbid|limit", "text": "<rule sentence>"}]}`. The rules come from a coding agent's instruction corpus: a global CLAUDE.md, skills, and rule files. An embedding model made the groups, so a group can mix unrelated rules. A regex set the polarity, so it can be wrong.
+Input: these group files in `groups/`: `<FILES>`. Each file is `{"group": "<artifact> | <aspect>", "rules": [{"where": "<file>:<line>", "polarity": "require|forbid|limit", "text": "<rule sentence>"}]}`. The rules come from a coding agent's instruction corpus: a global AGENTS.md, skills, and rule files. An embedding model made the groups, so a group can mix unrelated rules. A regex set the polarity, so it can be wrong.
 
 Do these steps for each group.
 
@@ -12,7 +12,7 @@ Do these steps for each group.
    - two limits that no single artifact can meet.
    If no ordinary situation breaks a rule, the pair does not conflict. A rule that is only stricter inside a narrower scope is not a conflict.
 4. **Find duplicates.** Two rules in different files that say the same thing, with the same condition, are `duplicate`.
-5. **Propose a fix.** For each pair, write the change that makes the corpus agree. Prefer the rule with the narrower scope when it was written for that scope; prefer the global CLAUDE.md for a general habit; for a duplicate, keep the rule in the file that owns the subject and point the other file at it.
+5. **Propose a fix.** For each pair, write the change that makes the corpus agree. Prefer the rule with the narrower scope when it was written for that scope; prefer the global AGENTS.md for a general habit; for a duplicate, keep the rule in the file that owns the subject and point the other file at it.
 
 Do not report a sentence that quotes another rule as a "Bad:" example, or a rule about a different artifact.
 

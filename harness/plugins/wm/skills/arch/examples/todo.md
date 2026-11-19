@@ -38,9 +38,9 @@ prs: []                     # PR links of this TODO — bin/todo-session.sh appe
 >
 > | Color | Approval | Autotest + Manual test cover | First pass |
 > |-------|----------|------------------------------|------------|
-> | red | `increment`, whatever `approve` says (`ref-write.md` § Approval) | every consumer, and the main user flow end to end | opus `@implementer` |
-> | yellow | as `approve` says | the component and its callers | sonnet `@implementer` |
-> | green | as `approve` says | the new path | sonnet `@implementer` |
+> | red | `increment`, whatever `approve` says (`ref-write.md` § Approval) | every consumer, and the main user flow end to end | {heavy} `@implementer-heavy` |
+> | yellow | as `approve` says | the component and its callers | {medium} `@implementer` |
+> | green | as `approve` says | the new path | {medium} `@implementer` |
 >
 > A red TODO is a signal to keep it small, not a block.
 >

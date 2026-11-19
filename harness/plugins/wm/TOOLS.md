@@ -25,9 +25,10 @@ ADRs that bear on the task (`arch:ref-adr-format.md`).
 
 | Need | Invocation | Returns |
 |---|---|---|
+| Create the workflow entry files | `python3 bin/wm-agents.py <project> <notes>` | project, notes, and TODO `AGENTS.md` files; existing instructions remain intact |
 | The rules this code must obey | `wm-constraints.py <notes>/adr [-m REGEX] [--json]` | one `ADR-NNNN/Pn` row per Property of a live ADR; `[auto]` marks a rule no operator was asked about. Exit 1 = none |
 | An ADR that breaks the format | `wm-constraints.py <notes>/adr --check` | exit 3 and one line per problem: a `status` key, a `## Question` section, an unknown kind, no Property, more than 6 Properties, a `todo:` key; a Property with no `[keep]`/`[new]` mark, a `[keep]` after a `[new]`, over 25 words, evidence words, an empty `If broken`, or a `Recovers by` outside `retry`, `restart`, `a human`, `itself`; no gate file in `adr/gates/`, a Property with no gate row, an empty gate cell, a Theorem with no `∀`/`∃` and `→`, a Verdict other than `Pass`, a gate row with no Property |
-| Whether each Property says what its theorem says | `adr-property-checker` agent (haiku), `adrs:` the ADR paths only | PASS or FAIL, one finding per `ADR-NNNN/Pn` and slug: a dropped condition, a wider scope, an internal observable, an undefined symbol, a circular assumption, a counterexample that misses, a named mechanism |
+| Whether each Property says what its theorem says | {light} `adr-property-checker` agent, `adrs:` the ADR paths only | PASS or FAIL, one finding per `ADR-NNNN/Pn` and slug: a dropped condition, a wider scope, an internal observable, an undefined symbol, a circular assumption, a counterexample that misses, a named mechanism |
 
 ## Match spec names to code
 
@@ -59,6 +60,7 @@ ADRs that bear on the task (`arch:ref-adr-format.md`).
 | Need | Invocation | Returns |
 |---|---|---|
 | Replace one whole section | `md-replace-section.py <file> "<exact heading line>" [<repl-file> \| --delete]` | `replaced lines <a>-<b>`. Fence-aware; exit 1 unless the heading matches exactly once |
+| Validate moved-file content inside a guard | `python3 bin/file_edit.py` with hook JSON on stdin | proposed file text; reads the source only after a content guard selects the destination |
 | One exact multi-line edit | `md-replace.py <file> <old-file> <new-file>` | `ok <target>`; fails loudly unless the old text appears exactly once |
 | Reshape a pre-split TODO | `wm-todo-split-agent.py <todos/TODO-N.md>... [--dry-run]` | the pair, agent half left failing `budget-check` until a human hoists each increment's surface |
 
@@ -96,5 +98,5 @@ ADRs that bear on the task (`arch:ref-adr-format.md`).
 | One concept spelled two ways | `bin/term-variants.py <notes>/todos/*.md <notes>/spec.md` | exit 1 and each variant group |
 | Whether the spec may advance | `wm-open-questions.sh <notes> [--count\|--slugs]` | the open questions in `QUESTIONS.md`; exit 1 when any is open |
 | Archive a superseded or deprecated ADR | `bin/adr-archive.sh` — PostToolUse hook on `Edit\|Write\|Bash`, reads the hook JSON on stdin | moves each live ADR whose last changelog line starts with `Superseded by [ADR-NNNN]` or `Deprecated:` to `adr/archived/`, and prints the live files that still link to it |
-| Drop a tactical ADR at session end | `bin/adr-tactical-check.sh` — SessionEnd hook, reads the hook JSON on stdin | finds the ADR files the session wrote or edited (from `transcript_path`), and starts a detached `claude -p --model sonnet` that archives each ADR failing the global tests of the `adr` skill with a `Deprecated: tactical, not global` changelog line; log in `~/.claude/logs/adr-tactical-check/` |
+| Drop a tactical ADR at session end | `bin/adr-tactical-check.sh` — SessionEnd hook, reads the hook JSON on stdin | finds the ADR files the session wrote or edited (from `transcript_path`), and starts a detached {medium} agent that archives each ADR failing the global tests of the `adr` skill with a `Deprecated: tactical, not global` changelog line; log in `~/.claude/logs/adr-tactical-check/` |
 | Where a slow verify spent its time | `wm-verify-profile.py <transcript.jsonl>` | per-phase and per-agent wall clock, turns, tools, tokens |

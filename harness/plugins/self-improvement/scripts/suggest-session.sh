@@ -5,7 +5,7 @@
 # The second half of a scan: scoring says *whether* a session holds a lesson,
 # this says *what to do about it* — extend which skill, or none, because
 # something already covers it. Runs only for a session that scored at or above
-# the keep threshold, on the stronger model, and writes exactly one file:
+# the keep threshold and writes exactly one file:
 # suggestions/<session-id>.md. Nothing in this plugin edits a skill or a doc.
 #
 # The pass is given three things and nothing else: the prompts the person typed,
@@ -100,8 +100,11 @@ dest=$(suggestion_path "$id")
 # Read/Grep/Glob and nothing else: the pass may open the one or two candidate
 # skills it names, and has no tool that could write to the harness even if it
 # decided to.
-if ! printf '%s' "$request" | claude -p \
-  --model "$suggest_model" \
+command=(python3 "$HOME/.claude/harness/effort.py" claude medium -- claude -p)
+if [ -n "${SELF_IMPROVE_SUGGEST_MODEL:-}" ]; then
+  command+=(--model "$SELF_IMPROVE_SUGGEST_MODEL")
+fi
+if ! printf '%s' "$request" | "${command[@]}" \
   --allowedTools Read Grep Glob \
   --disallowedTools Edit Write MultiEdit Bash Task WebFetch WebSearch \
   > "$dest.tmp.$$" 2>/dev/null; then

@@ -48,13 +48,9 @@ candidate_max=${SELF_IMPROVE_CANDIDATE_MAX:-40}
 # a harness suggestion is written.
 keep_score=${SELF_IMPROVE_KEEP_SCORE:-6}
 # Suggestion passes per scan. Its own budget, well under the scoring one: a
-# suggestion reads the whole harness inventory and runs on the stronger model, so
+# suggestion reads the whole harness inventory, so
 # it costs several scoring passes and only ever applies to a kept session.
 suggest_max=${SELF_IMPROVE_SUGGEST_MAX:-2}
-# The suggestion pass judges a lesson against 90+ existing triggers and drafts the
-# change. Scoring is high-volume and mechanical; this is low-volume and the part
-# whose quality the user actually reads.
-suggest_model=${SELF_IMPROVE_SUGGEST_MODEL:-sonnet}
 # Sessions per scan that get the cause trace, the strict judge, and the replay.
 # Each costs about 3 min and $2 (measured over 18 sessions, 2026-10-26..30).
 judge_max=${SELF_IMPROVE_JUDGE_MAX:-2}

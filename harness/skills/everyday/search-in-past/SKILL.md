@@ -22,11 +22,11 @@ The user uses the matches to locate or resume a past conversation.
 
 ## Cause
 
-Session history can span many files. One Haiku subagent can search it with lower model cost.
+Session history can span many files. One subagent keeps the search outside the main context.
 
 ## Steps
 
-1. Start one subagent with the cheapest available model, normally Haiku.
+1. Resolve {light} through the active harness effort ledger and start one generated `effort-light` subagent.
 2. Give it the search terms, the likely date range, and the session locations under `~/.claude/projects/`.
 3. Ask it to search current and previous sessions as requested. It must return matching transcript paths, timestamps, and evidence excerpts.
 4. Report the matches and state the scope searched. Do not claim an exhaustive search if files were inaccessible or omitted.

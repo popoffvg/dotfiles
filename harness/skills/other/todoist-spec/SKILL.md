@@ -27,7 +27,7 @@ Todoist has no Git sync. A task MUST change section or close only by a `td` comm
 
 A spec run through the wm `/code` flow (`new`, `todo`, `impl`, `auto`) MUST move its tasks as `references/codeflow.md` says.
 
-A repo whose `CLAUDE.md` names another tracker (Linear, GitHub Issues) MUST NOT get a Todoist project until the operator says which tracker wins.
+A repo whose `AGENTS.md` names another tracker (Linear, GitHub Issues) MUST NOT get a Todoist project until the operator says which tracker wins.
 
 ## 1. Find the home
 

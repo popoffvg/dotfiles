@@ -35,7 +35,7 @@ increment text.
 **No TODO copies an ADR rule, and none carries an origin.** A strategic decision lives once, as its
 ADR, and the rule set is generated from the ADR Properties on demand —
 `~/.claude/scripts/wm-constraints.py <notes-dir>/adr` (`ref-todo-sections.md` § Constraints).
-No pair file carries a rule or the command; `todos/CLAUDE.md` § Read order names the command once. The *why* behind a rule is not stored in
+The [TODO read order](../examples/todos-agents.md#read-order) puts the command in `todos/AGENTS.md`. The *why* behind a rule is not stored in
 `todos/` either: the `trace` skill walks to it on demand.
 
 **The human half is written for an ADHD reader.** Every prose line of `TODO-N.md` obeys the
@@ -197,7 +197,7 @@ half yourself. Show the human the problem and go back to Step 5 for that row.
 **Done when** every approved row has all three files, every increment has at least one `## Files`
 line, and the row passes the pre-save checklist.
 
-## Audience — a context-free Sonnet implementer
+## Audience — a context-free {medium} implementer
 
 No project context, no judgment, no permission to improvise. If the implementer must *infer*
 anything — a path, a name, a test command, a decision — the TODO is broken. Rewrite it.
@@ -217,7 +217,7 @@ The human half is ≤ 200 lines, not counting `## New terms`, `## Components`, a
 agent half and the test file have no line budget.
 
 `TODO-N.md` at 200 lines is a ceiling, not a nudge. Hitting it means the row does two things:
-split the ledger row. Tighten a wordy Outcome with *Not over-stated* in the pre-save checklist, not
+split the ledger row, except for the human-approved required-flow exception in [Every new algorithm is drawn for the human](#every-new-algorithm-is-drawn-for-the-human). Tighten a wordy Outcome with *Not over-stated* in the pre-save checklist, not
 with the budget.
 
 **`## New terms` and `## Components` are unlimited, and `budget-check.py` counts neither.** Both are
@@ -254,7 +254,7 @@ rather than a row of its own — is `ref-write.md` § Merges that fall out of th
 > counts every budget on this page — the human half's lines, its increments and diff lines, and
 > `spec.md`'s lines — each time one of a row's two files or `spec.md` is written, and **warns** with
 > the count and the split to make. It also names a section written into the wrong file. Raising a
-> budget is never the fix: the number is the size at which the second deliverable becomes visible.
+> budget is never the fix, except for the human-approved required-flow exception in [Every new algorithm is drawn for the human](#every-new-algorithm-is-drawn-for-the-human).
 >
 > The count that **fails** is `code:sub-verify.md` Phase 0, over the finished corpus. Run that one by
 > hand: `<plugin>/bin/budget-sweep.sh <notes-dir>` (exit 1 = over budget), or one file with
@@ -266,16 +266,16 @@ rather than a row of its own — is `ref-write.md` § Merges that fall out of th
 2. **Strong verbs.** *rename X to Y, add field Z to type T, delete function F* — never *improve, handle, refactor stuff, clean up*.
 3. **Every section is a checklist to tick off.** Prose → bullets, a table, or a code block.
 4. **One TODO = one deliverable = one or more commits.** One outcome a user can observe; group the edits that deliver it, nothing else. Each commit has a clear border: it builds, its tests pass, and its message states one cause. An `L` row — over 8 files or over 6 increments — is asked about before it is written.
-5. **The surface ships as a diff; the logic ships as a sketch.** Every changed type, field, signature, and setting is a unified diff in the increment that lands it, never prose the implementer translates. Every body — the code behind those signatures — is pseudocode (the `flow-sketch` skill) the implementer writes from. Neither substitutes for the other, and a body pasted as a diff is the one shape both rules reject (`ref-todo-sections.md` § A diff carries the surface, not a body).
-6. **No outward links** — reference other TODOs only via `Depends on`.
+5. **The surface ships as a diff; the logic ships as a sketch.** Each independently decided change to a type, field, signature, or setting is a unified diff in the increment that lands it. Forced consequences stay in increment summaries and the agent half's `## Files`, without another diff. Every body — the code behind those signatures — is pseudocode under `show-me` and `show-code`, with domain words under `change-review`. Neither substitutes for the other, and a body pasted as a diff is the one shape both rules reject ([ref-todo-sections.md: A diff carries the surface, not a body](../references/ref-todo-sections.md#a-diff-carries-the-surface-not-a-body)).
+6. **No outward links in the human and agent halves** — reference other TODOs only via `Depends on`. The separate `TODO-N.test.md` may name another TODO for coverage. A coverage reference does not declare a dependency; actual prerequisites still go in `depends_on`.
 7. **Pre-reads are mandatory** — every file to understand before editing.
 8. **New terms are defined, not assumed** — a domain term missing from `GLOSSARY.md` gets a `## New terms` row (`change-review` § New terms, `examples/todo.md` § New terms).
 9. **Components come before changes** — name the `package.Class` set and mark the one holding the main part, then split the work into ordered increments over those components (`change-review` § Components, § Increments).
 
 ## File location
 
-`<notes-dir>/todos/CLAUDE.md` — the pair guide the folder already carries — is written by `new` Step 0
-and is never rewritten here. Missing → copy [`examples/todos-claude.md`](../examples/todos-claude.md)
+`<notes-dir>/todos/AGENTS.md` — the pair guide the folder already carries — is written by `new` Step 0
+and is never rewritten here. Missing → copy [`examples/todos-agents.md`](../examples/todos-agents.md)
 verbatim without its `>` block, as the caller, before the fan-out.
 
 `<notes-dir>/todos/TODO-N.md` and `<notes-dir>/todos/TODO-N.agent.md`, `N` 1-indexed and contiguous,
@@ -289,8 +289,6 @@ Exact keys and headings, this order, in the file named. The rule for each one is
 what goes inside them.
 
 ### `TODO-N.md` — the human half
-
-A `---` frontmatter block carries the technicals; the body carries prose only.
 
 | Key | Required |
 |-----|----------|

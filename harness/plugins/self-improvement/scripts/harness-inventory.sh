@@ -12,7 +12,7 @@
 # Rows come from the three places capture-lesson is allowed to write:
 #   global   ~/.claude/skills/<slug>/SKILL.md
 #   project  <repo>/.claude/skills/<slug>/SKILL.md, for each repo passed in
-#   doc      the CLAUDE.md files that exist, global and per repo
+#   doc      the AGENTS.md files that exist, global and per repo
 #
 # A skill stamped `origin: self-improvement` is marked `[auto]`. That mark is the
 # point of the column: this harness has 90+ skills and almost all the autocreated
@@ -63,11 +63,11 @@ for repo in "$@"; do
   for skill in "$repo"/.claude/skills/*/SKILL.md; do
     [ -f "$skill" ] && emit_skill project "$skill"
   done
-  [ -f "$repo/CLAUDE.md" ] && printf 'doc\t%s\t%s\t%s\n' \
-    "$repo/CLAUDE.md" "$(basename "$repo") CLAUDE.md" "project-wide rules for this repo"
+  [ -f "$repo/AGENTS.md" ] && printf 'doc\t%s\t%s\t%s\n' \
+    "$repo/AGENTS.md" "$(basename "$repo") AGENTS.md" "project-wide rules for this repo"
 done
 
-for doc in "$HOME/.claude/CLAUDE.md" "$HOME/.claude/CODE_STYLE.md"; do
+for doc in "$HOME/.claude/AGENTS.md" "$HOME/.claude/CODE_STYLE.md"; do
   [ -f "$doc" ] && printf 'doc\t%s\t%s\t%s\n' \
     "$doc" "$(basename "$doc")" "rules loaded into every session"
 done

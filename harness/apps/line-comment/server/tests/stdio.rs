@@ -147,6 +147,44 @@ impl Drop for Server {
     }
 }
 
+#[test]
+fn inline_comment_replies_update_the_selected_lines() {
+    let root = std::env::temp_dir().join(format!("inline-comment-{}", std::process::id()));
+    std::fs::create_dir_all(&root).unwrap();
+    let path = root.join("target.md");
+    let source = "first\nsecond\n";
+    std::fs::write(&path, source).unwrap();
+    let uri = line_comment::path_to_uri(&path);
+    let mut server = Server::start();
+    server.send(json!({"jsonrpc":"2.0","id":20,"method":"initialize","params":{
+        "rootUri":line_comment::path_to_uri(&root),"capabilities":{"experimental":{"zedInlineInput":true}}
+    }}));
+    server.response(20);
+    server.send(json!({"jsonrpc":"2.0","method":"initialized","params":{}}));
+    for (previous, reply) in [
+        ("", Some("review")),
+        ("review", None),
+        ("review", Some("edited")),
+        ("edited", None),
+    ] {
+        server.send(
+            json!({"jsonrpc":"2.0","id":21,"method":"workspace/executeCommand","params":{
+                "command":"line-comment.add","arguments":[uri,1,2]
+            }}),
+        );
+        server.response(21);
+        let prompt = server.receive();
+        assert_eq!(prompt["method"], "zed/inlineInput");
+        assert_eq!(prompt["params"]["uri"], uri);
+        assert_eq!(prompt["params"]["line"], 0);
+        assert_eq!(prompt["params"]["value"], previous);
+        server.send(json!({"jsonrpc":"2.0","id":prompt["id"],"result":reply}));
+    }
+    assert_eq!(std::fs::read_to_string(path).unwrap(), source);
+    drop(server);
+    std::fs::remove_dir_all(root).unwrap();
+}
+
 /// The one input file the server minted under `.tmp/`, once it lands on disk.
 fn wait_for_input(tmp: &Path) -> PathBuf {
     for _ in 0..200 {

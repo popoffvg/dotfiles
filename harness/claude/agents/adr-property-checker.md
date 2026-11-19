@@ -2,7 +2,7 @@
 name: adr-property-checker
 description: Blind check of the Properties of one or more ADRs against their Property gate rows in `adr/gates/`. Judges what `wm-constraints.py --check` cannot - whether each plain Property sentence keeps the scope and the conditions of its theorem, whether the observables sit at the system boundary, whether the counterexample fits the assumptions and breaks the conclusion, whether an assumption restates the conclusion, and whether the Property names a mechanism. Gets only the ADR paths, never the author's reasoning. Returns PASS or FAIL with one finding per `ADR-NNNN/Pn` and slug. Read-only. Start it after `wm-constraints.py --check` passes and before the draft goes to the operator.
 tools: Read, Grep, Glob
-model: haiku
+harness-effort: "{light}"
 ---
 
 # adr-property-checker

@@ -72,12 +72,7 @@ is distinguishable from a ranking that never ran. Every failing path — a git r
 rejects, an agent that exits non-zero or times out, a reply with no usable array — prints its
 reason and exits non-zero; none of them opens an empty pane silently.
 
-The agent is `claude -p --model haiku`, or whatever `REVIEW_FOCUS_AGENT` and
-`REVIEW_FOCUS_AGENT_MODEL` name. Haiku is the default because ranking is triage, not review:
-it names the files and one line each, and the slower tiers spent minutes on that while the
-reviewer waited on a blank terminal. It is read from the
-environment and never from `hunk.config`, because extension config is layered user-then-repo:
-a repository under review must not be able to name what gets executed.
+The agent uses the configured light tier through `~/.claude/harness/effort.py`. The tier selects both the model and the reasoning effort. `REVIEW_FOCUS_AGENT` selects the executable; `REVIEW_FOCUS_AGENT_MODEL` supplies an explicit model override. Both values come from the environment, not `hunk.config`: a repository under review must not select what executes.
 
 Marks are per repository root, stored outside the repo in
 `${XDG_STATE_HOME:-~/.local/state}/review-focus/marks.json`, so a throwaway worktree

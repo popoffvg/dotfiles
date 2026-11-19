@@ -1,6 +1,6 @@
 ---
 name: prune-text
-description: Rewrite a skill, an AGENTS.md/CLAUDE.md, or a doc corpus into the agent-writing house style — cut duplication across files, cut dead weight inside each file, then reshape into steps plus disclosed reference. Use when the user asks to prune, dedup, compress, or restyle docs or skills, or says files repeat the same information.
+description: Rewrite a skill, an AGENTS.md, or a doc corpus into the agent-writing house style — cut duplication across files, cut dead weight inside each file, then reshape into steps plus disclosed reference. Use when the user asks to prune, dedup, compress, or restyle docs or skills, or says files repeat the same information.
 user-invocable: true
 ---
 
@@ -20,7 +20,7 @@ Mapping is reading; cutting is judgment. Split the run on that line and fan out 
 |---|---|---|
 | Phase 1 map | `prune-mapper`, one per batch of files, always | Bounded read-and-report: named inputs, fixed table, no judgment. |
 | Phase 2 split | `prune-mapper`, one per file, all in parallel | The same work per file. The main model then reads only the property columns and never loads the prose. |
-| Both tests, and every edit | **The main model** | The no-op test asks whether *the model that will run this file* already behaves that way. A cheaper agent answers about its own defaults, which is the wrong reader. Judge at the tier that will run the pruned file. |
+| Both tests, and every edit | **The calling session at the reader's tier** | The no-op test asks about the reader's defaults. Resolve that tier through the active harness effort ledger before judgment; delegate only mapping and blind reading. |
 | After the cuts | `prune-blind-reader`, one per pruned file | It runs the pruned file cold, seeing no original and no cut list, and reports where it had to guess. Each guess is an over-cut. This is the only check that reads the file as a file instead of as a diff — and the only one your own memory of the original cannot bias. |
 | Verify | `~/.claude/scripts/prune-verify.sh` | Pointer resolution and line counts are deterministic. A model there pays for what `grep` settles. |
 
@@ -48,7 +48,7 @@ Re-check any count a mapper reports before relaying it; one `grep -c` per headli
 | **Restated rule** | The same rule ("commit after tests", "read-only") re-stated across sibling files | **Collapse** into one reference each file cites once. |
 | **Re-derivation** | One file owns the spec; another re-teaches it inline | **Point.** Delete the copy, cite the owner. |
 
-Check the repo for the signal before deciding: a pre-commit sync hook, a CLAUDE.md note that a copy is deliberate, a `*-help` command holding the second table. Those are required copies.
+Check the repo for the signal before deciding: a pre-commit sync hook, an AGENTS.md note that a copy is deliberate, a `*-help` command holding the second table. Those are required copies.
 
 **Rewire.** Collapse → one shared `references/ref-<topic>.md`, each sibling left with `See ref-<topic>.md.` Point → delete the copy, cite the owner by relative slug. Where a file restates a rule **and** adds something unique, cut only the restatement and keep the delta. A pointer that re-summarizes its target is duplication with extra steps.
 

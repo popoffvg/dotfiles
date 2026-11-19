@@ -402,7 +402,7 @@ def generate_with_claude(conversation_log: str, model: str) -> str:
     command = [
         "claude",
         "-p",
-        # --safe-mode で CLAUDE.md / skills / plugins / hooks / MCP を読み込ませない。
+        # --safe-mode で AGENTS.md / skills / plugins / hooks / MCP を読み込ませない。
         # 起動が速くなるうえ、この呼び出しが herdr integration hook を再入させない。
         "--safe-mode",
         "--model",

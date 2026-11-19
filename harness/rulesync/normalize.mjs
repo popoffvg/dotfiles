@@ -5,6 +5,7 @@ import { join, basename } from 'node:path';
 const require = createRequire(process.argv[2] + '/package.json');
 const YAML = require('js-yaml');
 const root = process.argv[3];
+const effortRoutes = [];
 for (const dir of ['skills', 'agents']) {
   let names;
   try { names = readdirSync(join(root, dir)); } catch { continue; }
@@ -22,7 +23,10 @@ for (const dir of ['skills', 'agents']) {
     const fm = YAML.load(match[1]);
     if (!fm.name) {
       fm.name = dir === 'skills' ? name : basename(name, '.md');
-      writeFileSync(file, '---\n' + YAML.dump(fm) + '---\n' + text.slice(match[0].length));
+      text = '---\n' + YAML.dump(fm) + '---\n' + text.slice(match[0].length);
+      writeFileSync(file, text);
     }
+    if (fm['harness-effort']) effortRoutes.push({ kind: dir, name, text });
   }
 }
+process.stdout.write(JSON.stringify(effortRoutes));

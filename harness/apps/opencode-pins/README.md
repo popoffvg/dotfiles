@@ -4,10 +4,11 @@ This native OpenCode plugin adds pins, side chat, and a rewind dialog. The serve
 
 ## Install
 
-1. Run `mise run harness:opencode:deps` from the dotfiles checkout.
-2. Run `mise run harness:sync`.
-3. Run `opencode auth login openai` if OpenAI is not connected.
-4. Start `opencode` in the project.
+1. Run `mise run harness:opencode:install` from the dotfiles checkout.
+2. Run `opencode auth login openai` if OpenAI is not connected.
+3. Start `opencode` in the project.
+
+The [installer](../../claude/scripts/install-opencode-extensions.sh) installs locked dependencies, runs checks and tests, deploys the harness, reloads OpenCode, and verifies active extensions. It stops on failure and preserves unmanaged configuration.
 
 The managed configuration selects GPT-6.1 Sol with medium reasoning effort and enables snapshots. [Configuration](../../opencode/opencode.json).
 

@@ -43,6 +43,11 @@ const AGENT_MARK: &str = "🤖 ";
 /// Work for the caller to perform after a request is answered.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Effect {
+    InlineComment {
+        uri: String,
+        target: Target,
+        value: String,
+    },
     PersistStore,
     WriteExport,
     ShowMessage {
@@ -77,6 +82,7 @@ pub enum Effect {
 }
 
 pub struct Session {
+    pub inline_input: bool,
     root: PathBuf,
     store: Store,
     /// Set when the root is inside a `zed-diff.sh` work dir; the root is then the root
@@ -118,6 +124,7 @@ impl Session {
             ),
         };
         let mut session = Session {
+            inline_input: false,
             root,
             diff_view,
             store,
@@ -339,6 +346,26 @@ impl Session {
         if !stored {
             return Vec::new();
         }
+        vec![
+            Effect::PersistStore,
+            Effect::RefreshCodeLenses,
+            Effect::PublishDiagnostics,
+        ]
+    }
+
+    pub fn submit_inline_comment(&mut self, target: Target, body: &str) -> Vec<Effect> {
+        let body = body.trim();
+        if body.is_empty() {
+            return Vec::new();
+        }
+        let comment = self.comment_for(
+            &target.file,
+            target.line,
+            target.end_line,
+            with_revision(body.to_string(), target.commit.as_deref()),
+            Author::Human,
+        );
+        self.upsert_comment_from(&comment, &target.file, "inline comment");
         vec![
             Effect::PersistStore,
             Effect::RefreshCodeLenses,
@@ -728,6 +755,26 @@ impl Session {
         note: &[String],
         commit: Option<&str>,
     ) -> Option<String> {
+        let (target, body) = self.comment_input(uri, line, end_line, commit)?;
+        let document = self
+            .documents
+            .get(uri)
+            .cloned()
+            .unwrap_or_else(|| self.text_of(&target.file));
+        let lines = anchor::lines(&document);
+        let quoted = lines
+            .get(target.line - 1..target.end_line.min(lines.len()))
+            .unwrap_or_default();
+        Some(input::render(&target, &body, quoted, note))
+    }
+
+    fn comment_input(
+        &self,
+        uri: &str,
+        line: usize,
+        end_line: usize,
+        commit: Option<&str>,
+    ) -> Option<(Target, String)> {
         let key = self.key(uri)?;
         let line = line.max(1);
         let end_line = end_line.max(line);
@@ -738,26 +785,14 @@ impl Session {
             .find(|comment| comment.line == line)
             .map(|comment| comment.text.clone())
             .unwrap_or_default();
-        // The quote is what the operator sees, so a diff-tree copy quotes its own text.
-        let document = self
-            .documents
-            .get(uri)
-            .cloned()
-            .unwrap_or_else(|| self.text_of(&key));
-        let lines = anchor::lines(&document);
-        let quoted = lines
-            .get(line - 1..end_line.min(lines.len()))
-            .unwrap_or_default();
-        Some(input::render(
-            &Target {
+        Some((
+            Target {
                 file: key,
                 line,
                 end_line,
                 commit: commit.map(str::to_string),
             },
-            &body,
-            quoted,
-            note,
+            body,
         ))
     }
 
@@ -954,13 +989,21 @@ impl Session {
                     .get(2)
                     .and_then(Value::as_u64)
                     .map_or(line, |end| end as usize);
-                let Some(contents) = self.input_for(
-                    uri,
-                    line,
-                    end_line,
-                    &[],
-                    self.snapshot_revision(uri).as_deref(),
-                ) else {
+                let commit = self.snapshot_revision(uri);
+                if self.inline_input {
+                    let Some((target, value)) =
+                        self.comment_input(uri, line, end_line, commit.as_deref())
+                    else {
+                        return Vec::new();
+                    };
+                    return vec![Effect::InlineComment {
+                        uri: uri.to_string(),
+                        target,
+                        value,
+                    }];
+                }
+                let Some(contents) = self.input_for(uri, line, end_line, &[], commit.as_deref())
+                else {
                     return Vec::new();
                 };
                 let path = self.take_input_path();

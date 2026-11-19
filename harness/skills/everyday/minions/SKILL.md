@@ -1,12 +1,9 @@
 ---
 name: minions
-description: Delegate bounded read-and-report tasks or independent work units while keeping the main context for conclusions. Load it before any Agent call that picks a model or a fork — a fork always runs on the parent model and cannot start agents, so a loop that starts sonnet or haiku agents stays in this session.
+description: Route delegated work through the symbolic effort ledger while keeping the main context for conclusions. Load before delegating work, selecting an effort tier, or choosing between a fresh agent and a context fork.
 argument-hint: [the task to farm out]
 ---
 
-# Minions — Claude
+# Minions
 
-Invoke as `/minions <task>`. Apply the injected Claude routing ledger, then follow
-[the shared workflow](references/workflow.md).
-
-!`cat "$HOME/.claude/skills/minions/ledger.md"`
+Read [the routing ledger](ledger.md), then follow [the shared workflow](references/workflow.md). Use the active harness's tools.

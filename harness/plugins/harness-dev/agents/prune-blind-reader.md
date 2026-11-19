@@ -6,7 +6,7 @@ description: >
   no original, no cut list, no diff. Its guesses are the caller's over-cuts. Read-only on the
   corpus. Spawned once per pruned file, after the cutting stops.
 tools: Read, Glob, Grep, Bash
-model: sonnet
+harness-effort: "{medium}"
 color: yellow
 ---
 

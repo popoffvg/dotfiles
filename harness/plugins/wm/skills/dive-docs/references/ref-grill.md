@@ -8,7 +8,7 @@ reviewer and produces the questions the explorer must answer.
 one real entry point, with the rules for each of the seven required sections as the `>` block under
 it. The CLI call below points the grilling process at that file rather than restating the sections.
 
-For each entry point, spawn one CLI call (these can run in parallel via shell `&`):
+Resolve {light} through the active harness effort ledger. For each entry point, start one CLI call with the generated `effort-light` agent:
 
 ```bash
 EP="<entry-point>"
@@ -16,7 +16,7 @@ EP_SLUG="<ep-slug>"
 QFILE="$RESEARCH_DIR/$EP_SLUG.questions.md"
 EXAMPLE="$CLAUDE_PLUGIN_ROOT/skills/dive-docs/examples/questions.md"
 
-cat <<PROMPT | claude --model haiku --print --output-format text > "$QFILE"
+cat <<PROMPT | claude --agent effort-light --print --output-format text > "$QFILE"
 /grilling
 
 You are NOT interviewing a human. You are grilling the codebase entry point below to generate a research agenda for another agent (the "explorer") that will read the code and answer your questions.

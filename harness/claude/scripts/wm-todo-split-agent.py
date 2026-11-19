@@ -15,7 +15,7 @@ performs that cut on a body written before the split:
                                                    twice disagrees with itself
 
   dropped                 Constraints,             the rules command lives in
-                          Definition of done       todos/CLAUDE.md; every other check has
+                          Definition of done       todos/AGENTS.md; every other check has
                                                    its own owner
 
 Why a script and not a one-off edit: the cut is mechanical, it is the same cut for every

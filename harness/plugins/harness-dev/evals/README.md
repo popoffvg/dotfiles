@@ -21,7 +21,7 @@ TIER=sonnet ./run-golden-words.sh  # override every case's reader tier
 JUDGE=sonnet ./run-golden-words.sh # judge model (default opus)
 ```
 
-Needs `claude` and `jq`, and `opencode` for a `provider/model` tier. Every reader and judge run uses `--safe-mode --strict-mcp-config --tools ""` from an empty directory, so `~/.claude/CLAUDE.md` and the memory store stay out. Exit 0 = every word passes; exit 3 = a model run failed or printed nothing, so the case was not graded — fix the cause (tier, key, CLI) and run again.
+Needs `claude` and `jq`, and `opencode` for a `provider/model` tier. Every reader and judge run uses `--safe-mode --strict-mcp-config --tools ""` from an empty directory, so `~/.claude/AGENTS.md` and the memory store stay out. Exit 0 = every word passes; exit 3 = a model run failed or printed nothing, so the case was not graded — fix the cause (tier, key, CLI) and run again.
 
 Re-run when a model alias moves; update the `Model id` and `Checked` columns of the word's `GLOSSARY.md` row from the result.
 

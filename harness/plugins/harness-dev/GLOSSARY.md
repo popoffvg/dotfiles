@@ -6,5 +6,5 @@ A golden word stands for the public form of a rule block; the house rules beside
 
 | Word | Stands for | Used by | Tier | Model id | Checked |
 |---|---|---|---|---|---|
-| ASD-STE100 | the Simplified Technical English writing rules in `~/.claude/CLAUDE.md` | `~/.claude/CLAUDE.md` (writer text; no judge rule file names it) | sonnet, opus (haiku: not passed there) | claude-sonnet-5-5; opus id not recorded | 2026-10-02 — word arm = word + rules arm, both beat no-word control; haiku broke a recited rule in 2 of 10 runs |
-| RFC 2119 | the obligation keywords MUST / SHOULD / MAY in `~/.claude/CLAUDE.md` | every skill | all | — | not run; carried as the existing house pattern |
+| ASD-STE100 | the Simplified Technical English writing rules in `~/.claude/AGENTS.md` | `~/.claude/AGENTS.md` (writer text; no judge rule file names it) | sonnet, opus (haiku: not passed there) | claude-sonnet-5-5; opus id not recorded | 2026-10-02 — word arm = word + rules arm, both beat no-word control; haiku broke a recited rule in 2 of 10 runs |
+| RFC 2119 | the obligation keywords MUST / SHOULD / MAY in `~/.claude/AGENTS.md` | every skill | all | — | not run; carried as the existing house pattern |

@@ -57,6 +57,6 @@ for d in "$ROOT"/*/; do
   printf '%s\t' "$(find "$d/.github/workflows" -name '*.y*ml' 2>/dev/null | wc -l | tr -d ' ')"
   printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(has "$d/README.md")" "$(has "$d/CHANGELOG.md")" \
     "$([ -e "$d/LICENSE" ] || [ -e "$d/LICENSE.md" ] && echo 1 || echo 0)" \
-    "$(has "$d/logos")" "$(has "$d/docs")" "$(has "$d/CLAUDE.md")"
+    "$(has "$d/logos")" "$(has "$d/docs")" "$(has "$d/AGENTS.md")"
 done
 } > "$OUT"

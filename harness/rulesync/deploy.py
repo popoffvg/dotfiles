@@ -9,11 +9,15 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
+import shlex
 import subprocess
 import sys
 import tempfile
+import effort
+from wm_hooks import hook_budget
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = ROOT / 'harness/rulesync'
@@ -21,7 +25,10 @@ CACHE = Path(os.environ.get('XDG_CACHE_HOME', str(Path.home() / '.cache'))) / 'd
 CONFIG = json.loads((HERE / 'config.json').read_text())
 if CONFIG['sourceFormat'] != 'claude-native':
     raise RuntimeError('Unknown Rulesync source format')
-TARGETS = {'claude': '.claude', 'codex': '.codex', 'pi': '.pi/agent', 'opencode': '.config/opencode'}
+EFFORT_LEDGER = effort.load_effort_ledger()
+TARGETS = {name: EFFORT_LEDGER['runtimes'][name]['directory'] for name in CONFIG['targets']}
+MANIFEST_DIRS = tuple(row['directory'] for row in EFFORT_LEDGER['runtimes'].values())
+SKILL_OVERLAYS = tuple(ROOT / CONFIG[key] for key in ('projectSkills', 'skills'))
 SKILL_OUTPUTS = {'claude': '.claude/skills', 'codex': '.agents/skills', 'pi': '.pi/skills', 'opencode': '.opencode/skills'}
 RULESYNC_TARGETS = {'claude': 'claudecode-plugin', 'codex': 'codexcli', 'pi': 'pi', 'opencode': 'opencode'}
 ALIAS_OUTPUTS = {'claude': 'commands/{name}.md', 'codex': 'skills/{name}/SKILL.md',
@@ -50,7 +57,7 @@ def merge_settings(existing, managed):
     for key, value in managed.items():
         if isinstance(value, dict) and isinstance(result.get(key), dict):
             result[key] = merge_settings(result[key], value)
-        elif isinstance(value, list) and isinstance(result.get(key), list):
+        elif isinstance(value, list) and value and isinstance(result.get(key), list):
             result[key] = result[key] + [item for item in value if item not in result[key]]
         else:
             result[key] = value
@@ -84,7 +91,9 @@ def loose_skill_dirs(root=ROOT / CONFIG['looseSkills']):
 
 
 def normalize(path):
-    subprocess.run(['node', str(HERE / 'normalize.mjs'), str(CACHE), str(path)], check=True)
+    result = subprocess.run(['node', str(HERE / 'normalize.mjs'), str(CACHE), str(path)],
+                            check=True, text=True, capture_output=True)
+    return json.loads(result.stdout)
 
 
 def prepare_skills(source, canonical, public=()):
@@ -132,6 +141,75 @@ def internal_workflows(source):
     return {'wm-code-auto.js': automatic, 'wm-code-impl.js': implementation}
 
 
+def install_effort_routes(install, home, routes):
+    ledger = EFFORT_LEDGER
+    source = HERE / 'effort-ledger.json'
+    for runtime, row in ledger['runtimes'].items():
+        directory = Path(row['directory'])
+        install.add(directory / 'harness/effort-ledger.json', source.read_bytes(), source)
+        install.add(directory / 'harness/effort.py', (HERE / 'effort.py').read_bytes(), HERE / 'effort.py')
+        for tier in ledger['tiers']:
+            name = 'effort-' + tier
+            description = f'Execute a {tier}-effort task with the supplied scope and acceptance checks.'
+            if row['agent_format'] == 'toml':
+                text = f'name = "{name}"\ndescription = "{description}"\ndeveloper_instructions = "Follow the supplied task and preserve its constraints."\n'
+                extension = '.toml'
+            else:
+                text = f'---\nname: {name}\ndescription: {description}\nmode: subagent\n---\n\nFollow the supplied task and preserve its constraints.\n'
+                extension = '.md'
+            profile = effort.resolve_effort_profile(ledger, runtime, tier)
+            data = effort.render_effort_agent(text, runtime, profile, ledger).encode()
+            install.add(directory / 'agents' / (name + extension), data, source)
+
+    for path, (data, mode) in list(install.files.items()):
+        origin = Path(install.sources[path])
+        route = routes.get(origin)
+        if route is None:
+            continue
+        tier = route['tier']
+        runtime = next((key for key, row in ledger['runtimes'].items()
+                        if path.is_relative_to(home / row['directory'])), None)
+        if runtime is None:
+            continue
+        row = ledger['runtimes'][runtime]
+        native_root = home / row['directory'] / 'agents'
+        native_agent = path.parent == native_root or (
+            row['plugin_agents'] and path.parent.name == 'agents' and '/harness/plugins/' in str(path))
+        if row['skill_agent'] and path.name == 'SKILL.md':
+            text = re.sub(r'^agent:.*$', 'agent: effort-' + tier, data.decode(), count=1, flags=re.M)
+            install.files[path] = (text.encode(), mode)
+            continue
+        if not native_agent:
+            continue
+        install_effort_agent(install, path, data, origin, route, runtime, ledger, mode)
+    for runtime, row in ledger['runtimes'].items():
+        if not row['source_agents']:
+            continue
+        for origin, route in routes.items():
+            if route['kind'] != 'agents':
+                continue
+            prefix = origin.parent.parent.name + '-' if origin.is_relative_to(ROOT / CONFIG['plugins']) else ''
+            name = prefix + origin.stem
+            text = effort.adapt_source_agent(route['text'], name, row)
+            resource_root = home / row.get('resource_directory', row['directory']) / 'harness/plugins' / origin.parent.parent.name
+            text = text.replace('${CLAUDE_PLUGIN_ROOT}', str(resource_root))
+            relative = Path(row['directory']) / 'agents' / (name + '.md')
+            install.add(relative, text.encode(), origin)
+            install_effort_agent(install, home / relative, text.encode(), origin, route, runtime, ledger)
+
+
+def install_effort_agent(install, path, data, origin, route, runtime, ledger, mode=0o644):
+    tier = route['tier']
+    profile = effort.resolve_effort_profile(ledger, runtime, tier)
+    install.files[path] = (effort.render_effort_agent(data.decode(), runtime, profile, ledger).encode(), mode)
+    for variant in route['variants']:
+        profile = effort.resolve_effort_profile(ledger, runtime, variant)
+        clone = effort.rename_effort_agent(data.decode(), path.stem, variant)
+        clone = effort.render_effort_agent(clone, runtime, profile, ledger)
+        install.add(path.with_name(path.stem + '-' + variant + path.suffix).relative_to(install.home),
+                    clone.encode(), origin, mode)
+
+
 def install_aliases(install, home):
     loose = loose_skill_dirs()
     for target, directory in TARGETS.items():
@@ -164,7 +242,7 @@ class Installation:
         self.sources = {}
         self.previous = {}
         self.shared = set()
-        for directory in TARGETS.values():
+        for directory in MANIFEST_DIRS:
             manifest = home / directory / 'harness/installed.json'
             if manifest.is_file():
                 self.previous.update(json.loads(manifest.read_text()).get('files', {}))
@@ -285,7 +363,7 @@ class Installation:
             if not unchanged:
                 raise RuntimeError(f'Retired installed file was edited; preserve and reconcile it: {path}')
             path.unlink()
-        for directory in TARGETS.values():
+        for directory in MANIFEST_DIRS:
             base = self.home / directory
             manifest = base / 'harness/installed.json'
             manifest.parent.mkdir(parents=True, exist_ok=True)
@@ -342,14 +420,22 @@ def retire_legacy_links(home):
 
 def build(home, stage):
     install = Installation(home)
+    effort_routes = {}
     raw = stage / 'loose'
     copy_tree(ROOT / CONFIG['loose'], raw / '.claude')
     loose = loose_skill_dirs()
     for name, skill in loose.items():
         copy_tree(skill, raw / '.claude/skills' / name)
-    copy_tree(ROOT / CONFIG['projectSkills'], raw / '.claude/skills')
-    copy_tree(ROOT / CONFIG['skills'], raw / '.claude/skills')
-    normalize(raw / '.claude')
+    for overlay in SKILL_OVERLAYS:
+        copy_tree(overlay, raw / '.claude/skills')
+    for route in normalize(raw / '.claude'):
+        source = ROOT / CONFIG['loose'] / route['kind'] / route['name']
+        if route['kind'] == 'skills':
+            candidates = [loose.get(route['name'], source) / 'SKILL.md',
+                          *(overlay / route['name'] / 'SKILL.md' for overlay in SKILL_OVERLAYS)]
+            source = next((candidate for candidate in reversed(candidates) if candidate.is_file()), source)
+        effort_routes[source] = dict(route, tier=effort.source_effort_tier(route['text']),
+                                     variants=effort.source_effort_variants(route['text']))
     run_rulesync(['import', '--targets', 'claudecode', '--features', 'skills,commands,subagents',
                   '--output-root', str(raw)], raw)
     loose_catalog = prepare_skills(raw / '.claude/skills', raw / '.rulesync/skills', CONFIG['publicAliases'])
@@ -365,7 +451,7 @@ def build(home, stage):
     for target, directory in TARGETS.items():
         base = worker_base(directory, target)
         for skill in sorted((generated / SKILL_OUTPUTS[target]).iterdir()):
-            install.tree(skill, base / skill.name, loose.get(skill.name, ROOT / CONFIG['looseSkills'] / skill.name))
+            install.tree(skill, base / skill.name, loose.get(skill.name, ROOT / CONFIG['loose'] / 'skills' / skill.name))
         catalogs[target].extend((entry, home / base / entry['directory'] / 'SKILL.md') for entry in loose_catalog)
         if target == 'claude':
             catalogs[target].extend(({'name': 'command:' + path.stem, 'description': 'Legacy command reference; read when requested or named by a route.', 'automatic': False},
@@ -376,7 +462,7 @@ def build(home, stage):
             skill_base = home / base
             if dest.is_relative_to(skill_base):
                 relative = dest.relative_to(skill_base)
-                for overlay in (ROOT / CONFIG['projectSkills'], ROOT / CONFIG['skills']):
+                for overlay in SKILL_OVERLAYS:
                     if (overlay / relative).is_file():
                         install.sources[dest] = str(overlay / relative)
         install.add(Path(directory) / 'harness/guard.py', (HERE / 'guard.py').read_bytes(), HERE / 'guard.py', 0o755)
@@ -403,7 +489,12 @@ def build(home, stage):
         work = stage / ('plugin-' + plugin.name)
         native = work / 'native'
         copy_tree(plugin, native)
-        normalize(native)
+        for route in normalize(native):
+            source = plugin / route['kind'] / route['name']
+            if route['kind'] == 'skills':
+                source = source / 'SKILL.md'
+            effort_routes[source] = dict(route, tier=effort.source_effort_tier(route['text']),
+                                         variants=effort.source_effort_variants(route['text']))
         features = [feature for feature, path in [('skills', 'skills'), ('subagents', 'agents'), ('commands', 'commands'), ('hooks', 'hooks/hooks.json'), ('mcp', '.mcp.json')] if (native / path).exists()]
         if features:
             run_rulesync(['import', '--targets', 'claudecode-plugin', '--features', ','.join(features), '--output-root', str(native)], work)
@@ -445,6 +536,10 @@ def build(home, stage):
                         entry.write_text(re.sub(r'^name:.*$', 'name: ' + name, entry.read_text(), count=1, flags=re.M))
             runtime = Path(directory) / 'harness/plugins' / plugin.name
             install.tree(output, runtime, plugin)
+            if target == 'claude':
+                for instruction in output.rglob('AGENTS.md'):
+                    install.add(runtime / instruction.relative_to(output).with_name('CLAUDE.md'), b'@AGENTS.md\n',
+                                plugin / instruction.relative_to(output))
             for destination in list(install.sources):
                 agent_roots = (home / runtime / '.codex/agents', home / runtime / '.opencode/agents')
                 if any(destination.is_relative_to(prefix) for prefix in agent_roots):
@@ -472,8 +567,6 @@ def build(home, stage):
     run_rulesync(['generate', '--targets', 'claudecode', '--features', 'hooks', '--input-roots', str(native_settings / '.rulesync'), '--output-roots', str(generated)], native_settings)
     install.add(Path('.claude/settings.json'), (generated / '.claude/settings.json').read_bytes(), ROOT / 'harness/claude/settings.json')
 
-    # Only the new maintenance guard is portable. Existing WM lifecycle scripts
-    # retain their native registration and Codex's explicit runtime contract.
     hooks = stage / 'maintenance'
     hooks.mkdir()
     command = f'python3 "{home}/.codex/harness/guard.py" --home "{home}" --protocol codex'
@@ -558,13 +651,18 @@ def build(home, stage):
             rows.append(f"| {entry['name']} | {'automatic' if entry['automatic'] else 'explicit'} | {description} — [{entry['name']}]({path}) |")
         install.add(Path(directory) / 'harness/skill-index.md', ('\n'.join(rows) + '\n').encode(), HERE / 'config.json')
         discovery = (f'Internal skills: read {index} to select relevant workers for each task, then read their files. '
-                     'Workers outside native skill discovery rely on this index for model selection. '
+                     'Workers outside native skill discovery rely on this index for skill selection. '
                      if target != 'claude' else
                      f'Internal skill and legacy command references can be read from {index}; load their files when a route names them. '
                      f'Resolve legacy .claude/workflows/wm-code-*.js references through {home / directory / "harness/workflows/README.md"}. ')
         instruction = ('\n<!-- dotfiles-harness:start -->\n' + discovery +
-                       f'Before changing a personal skill, plugin, hook, or harness configuration, read {home / base / "harness-maintain/SKILL.md"}.\n'
-                       '<!-- dotfiles-harness:end -->\n')
+                       f'Resolve task effort through {home / directory / "harness/effort-ledger.json"}; apply both model and reasoning settings. ' +
+                       f'Before changing a personal skill, plugin, hook, or harness configuration, read {home / base / "harness-maintain/SKILL.md"}.\n')
+        source = ROOT / 'harness/claude/AGENTS.md'
+        if target == 'codex':
+            source = HERE / 'codex/AGENTS.md'
+            instruction += '\n' + source.read_text().rstrip() + '\n'
+        instruction += '<!-- dotfiles-harness:end -->\n'
         relative = Path(directory) / 'AGENTS.md'
         destination = home / relative
         if target == 'claude':
@@ -580,9 +678,66 @@ def build(home, stage):
                        '\n<!-- dotfiles-shared:end -->\n\n' + content.strip())
         # These are scoped instructions, not a replacement for existing personal rules.
         install.files.pop(destination, None)
-        install.add(relative, (content.rstrip() + '\n' + instruction).encode(), ROOT / 'harness/claude/AGENTS.md')
+        install.add(relative, (content.rstrip() + '\n' + instruction).encode(), source)
     install_aliases(install, home)
+    install.add(Path('.claude/CLAUDE.md'), b'@AGENTS.md\n', ROOT / 'harness/claude/AGENTS.md')
+    install_effort_routes(install, home, effort_routes)
+    install_wm_hooks(install, home)
+    merge_rtk_hook(install, home)
     return install
+
+
+def merge_rtk_hook(install, home):
+    source = HERE / 'codex/rtk-hook.json'
+    relative = Path('.codex/hooks.json')
+    destination = home / relative
+    data = json.loads(install.files[destination][0])
+    for event, groups in json.loads(source.read_text()).items():
+        rows = data.setdefault('hooks', {}).setdefault(event, [])
+        rows[:] = [row for row in rows if row not in groups] + groups
+    install.files.pop(destination)
+    install.add(relative, (json.dumps(data, indent=2) + '\n').encode(), source)
+
+
+def install_wm_hooks(install, home):
+    manifest_source = ROOT / 'harness/plugins/wm/hooks/hooks.json'
+    manifest = json.loads(manifest_source.read_text())
+    for runtime, row in EFFORT_LEDGER['runtimes'].items():
+        if runtime == 'claude':
+            continue
+        directory = Path(row['directory'])
+        root = home / row.get('resource_directory', row['directory']) / 'harness/plugins/wm'
+        runner = home / directory / 'harness/wm_hooks.py'
+        install.add(directory / 'harness/wm_hooks.py', (HERE / 'wm_hooks.py').read_bytes(), HERE / 'wm_hooks.py')
+        install.add(directory / 'harness/wm-hooks.json', manifest_source.read_bytes(), manifest_source)
+        if runtime not in ('codex', 'cursor'):
+            continue
+        relative = directory / 'hooks.json'
+        destination = home / relative
+        data = json.loads(install.files[destination][0]) if destination in install.files else (
+            json.loads(destination.read_text()) if destination.is_file() else {})
+        events = {event: event for event in manifest['hooks']}
+        if runtime == 'cursor':
+            data['version'] = 1
+            events = {
+                'SessionStart': 'sessionStart', 'SessionEnd': 'sessionEnd',
+                'UserPromptSubmit': 'beforeSubmitPrompt', 'PreCompact': 'preCompact',
+                'PreToolUse': 'preToolUse', 'PostToolUse': 'postToolUse', 'Stop': 'stop',
+            }
+        for event, native in events.items():
+            command = shlex.join(['python3', str(runner), '--runtime', runtime, '--root', str(root), '--event', event])
+            budget = hook_budget(manifest, event) + 1
+            handler = {'command': command, 'timeout': min(3, budget) if runtime == 'codex' and event == 'SessionEnd' else budget}
+            if runtime == 'codex':
+                handler = {'hooks': [{'type': 'command', **handler}]}
+            rows = data.setdefault('hooks', {}).setdefault(native, [])
+            rows[:] = [item for item in rows if not any(str(runner) in hook.get('command', '') for hook in item.get('hooks', [item]))]
+            rows.append(handler)
+        install.files.pop(destination, None)
+        install.add(relative, (json.dumps(data, indent=2) + '\n').encode(), HERE / 'wm_hooks.py')
+        install.shared.add(destination)
+    source = HERE / 'pi-wm-hooks.ts'
+    install.add(Path('.pi/agent/extensions/wm-hooks.ts'), source.read_bytes().replace(b'__HOME__', str(home).encode()), source)
 
 
 def main():
@@ -612,6 +767,6 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except (RuntimeError, OSError, subprocess.CalledProcessError) as exc:
+    except (RuntimeError, ValueError, KeyError, OSError, subprocess.CalledProcessError) as exc:
         print(str(exc), file=sys.stderr)
         sys.exit(1)

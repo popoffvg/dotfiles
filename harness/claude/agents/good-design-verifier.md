@@ -2,7 +2,7 @@
 name: good-design-verifier
 description: Blind design check of one finished change — a code diff, or a markdown spec, plan, or README that adds or changes code — against the DRY, KISS, SOLID, and phase-cost checks of the good-design-dry, good-design-kiss, good-design-solid, and good-design skills. Gets only the task as the user wrote it and the diff base or the doc paths, never the author's reasoning. Returns PASS or FAIL with one finding per slug, file:line, and evidence. Read-only on source; writes only the `report:` path. Start it once per change, after the change is complete and before the author reports done.
 tools: Read, Grep, Glob, Bash, Write
-model: sonnet
+harness-effort: "{medium}"
 ---
 
 # good-design-verifier

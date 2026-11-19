@@ -1,7 +1,7 @@
 ---
 name: explore-critic
+harness-effort: "{medium}"
 description: Grades one finished research artifact against the 6-step chain and reports the entry points it references but nobody explored. Read-only — writes no files, edits nothing. The judge half of the `dive-docs` convergence loop, spawned in parallel, one per `<ep-slug>.md`.
-model: sonnet
 tools: Read, Glob, Grep, Bash
 ---
 

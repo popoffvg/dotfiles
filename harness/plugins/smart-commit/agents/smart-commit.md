@@ -1,7 +1,7 @@
 ---
 name: smart-commit
+harness-effort: "{medium}"
 description: Splits the uncommitted work of every nearby git repo into logical commits at hunk granularity. Runs in one of two phases named in the prompt — propose writes an editable proposal file and touches no git state, apply reads the answered proposal and builds the commits in a throwaway worktree before cherry-picking them back. Spawned by the /smart-commit command; not for ad-hoc use.
-model: sonnet
 color: green
 ---
 

@@ -22,7 +22,7 @@ Of the 22 `not-covered` rejects, 11 were fixed in the same session, and 11 were 
 
 ## Positive control
 
-Session `a221503e` (TODO-10) has four causes that the operator traced by hand in `29624ea2`. The trace found the class (five causes whose input is the TODO), but it did not link "why do we need 2 mutex?" to `TODO-10.agent.md` line 34 ("under one mutex"). The judge accepted nothing from `a221503e`, and it rejected the prompts-only suggestion (a KISS section in `CLAUDE.md`) on `checkable`.
+Session `a221503e` (TODO-10) has four causes that the operator traced by hand in `29624ea2`. The trace found the class (five causes whose input is the TODO), but it did not link "why do we need 2 mutex?" to `TODO-10.agent.md` line 34 ("under one mutex"). The judge accepted nothing from `a221503e`, and it rejected the prompts-only suggestion (a KISS section in `AGENTS.md`) on `checkable`.
 
 ## Limits
 

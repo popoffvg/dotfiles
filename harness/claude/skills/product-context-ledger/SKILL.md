@@ -43,7 +43,7 @@ Use existing equivalents first. These are candidate paths to create, not depende
 | Open decisions | `.notes/QUESTIONS.md` | Question slug, options, evidence, affected work, resolution when known |
 | Review constraints | Existing rule directory or `.notes/rules/` | Scoped rules derived from decisions, with verification methods |
 | Workflow choices | `.notes/RULES.md` | Confirmed planning, testing, approval, and commit preferences |
-| Reading order | Existing `AGENTS.md` or `CLAUDE.md` | Entry points and conditions for loading specialized context |
+| Reading order | Existing `AGENTS.md` | Entry points and conditions for loading specialized context |
 
 ## Boundaries that preserve meaning
 

@@ -4,7 +4,7 @@ Prove that a command, a skill, an agent, a hook, or an MCP server of
 `harness/plugins/<name>/` really fires — reading the working tree, not the plugin cache. Every
 plugin dir **is** its own plugin root: `.claude-plugin/plugin.json` sits inside it, and it holds
 markdown, JSON config, and shell scripts only. Compiled code lives in `harness/apps/<name>/` and
-reaches the plugin as a binary name in `.mcp.json` (root `CLAUDE.md` § Plugins, § Dev Conventions).
+reaches the plugin as a binary name in `.mcp.json`.
 
 Two scripts carry the work. Run them in that order — the static check costs nothing and catches
 most of what a live run would only hint at.
@@ -39,8 +39,7 @@ agents it registered, every hook that fired with its exit code, and the model's 
 `--plugin-dir` **overrides** an installed copy of the same plugin, so the probe reads the working
 tree with no sync and no reinstall.
 
-Run it in the background (`Bash` with `run_in_background: true`) — a session takes tens of seconds,
-and the `bg-build-and-test` skill governs every run of this length.
+Run the session in the background with `run_in_background: true`.
 
 Done when the last line reads `PASS <name>`.
 
@@ -111,7 +110,7 @@ bump writes it, so a manual sync only matters before a commit.
 ## What a probe run does and does not isolate
 
 **Isolated:** where the plugin under test comes from. `--plugin-dir` beats the cache copy of the
-same name, and the probe runs in a fresh temp cwd so no project settings and no project `CLAUDE.md`
+same name, and the probe runs in a fresh temp cwd so no project settings and no project `AGENTS.md`
 answer for the plugin.
 
 **Not isolated:** everything else in the session. Every other installed plugin loads, the user's

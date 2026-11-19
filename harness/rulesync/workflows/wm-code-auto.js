@@ -3,15 +3,15 @@ export const meta = {
   description: 'Drive the whole wm ledger unattended: every open TODO through implementation and the reviewrules review, then optional deploy, then the E2E verification',
   whenToUse: 'Running /code auto deterministically: read the ledger, run wm-code-impl per open TODO in wave order, carry LESSONS.md between rounds, block a stuck TODO and drop its dependents, then deploy (optional) and verify end-to-end. The review replaces the human — nothing pauses for approval.',
   phases: [
-    { title: 'Ledger', detail: 'read spec.md + every todos/TODO-N.md → the work list', model: 'haiku' },
+    { title: 'Ledger', detail: 'read spec.md + every todos/TODO-N.md → the work list' },
     { title: 'Squash', detail: "fold the round's fixups into the TODO's one commit, distilling them into GOTCHAS.md" },
-    { title: 'Lessons', detail: 'append what the round taught to LESSONS.md', model: 'haiku' },
+    { title: 'Lessons', detail: 'append what the round taught to LESSONS.md' },
     { title: 'Capture', detail: 'capture-gotcha on the traps the round met outside the fixups' },
-    { title: 'Status', detail: 'verify→done | blocked, ledger row, jj commit the notes-dir', model: 'haiku' },
-    { title: 'Deploy', detail: 'the project deploy task — skipped when absent or turned off', model: 'haiku' },
-    { title: 'Verify', detail: "the last ledger TODO's E2E command", model: 'haiku' },
-    { title: 'Fix', detail: 'sub-fix.md on a red deploy or a red E2E', model: 'sonnet' },
-    { title: 'Reconcile', detail: 'read every TODO status back off disk so the report matches the notes', model: 'haiku' },
+    { title: 'Status', detail: 'verify→done | blocked, ledger row, jj commit the notes-dir' },
+    { title: 'Deploy', detail: 'the project deploy task — skipped when absent or turned off' },
+    { title: 'Verify', detail: "the last ledger TODO's E2E command" },
+    { title: 'Fix', detail: 'sub-fix.md on a red deploy or a red E2E' },
+    { title: 'Reconcile', detail: 'read every TODO status back off disk so the report matches the notes' },
   ],
 }
 
@@ -150,7 +150,7 @@ const ledger = await agent(
     `and, inside a wave, by ascending layer — the order ${PLUGIN}/skills/arch/references/ref-write.md § TODO ordering and waves defines. ` +
     `Carry each one's depends_on as the bare TODO numbers, and its risk value.\n` +
     `3. Return e2eCommand: the E2E command from the ## Autotest of the LAST TODO in the ledger (the literal string "none" if that level is written none), and e2eTodo.\n` +
-    `4. Return deployTask: the project's deploy command if one is configured (read ${notesDir}/CLAUDE.md, then mise tasks / Makefile / package.json scripts — do not invent one), else null.\n` +
+    `4. Return deployTask: the project's deploy command if one is configured (read ${notesDir}/AGENTS.md, then mise tasks / Makefile / package.json scripts — do not invent one), else null.\n` +
     `5. Create ${lessonsFile} if it is missing and set lessonsCreated. Do NOT leave it empty — the first TODO ` +
     `runs against whatever this file says, so an empty file guarantees the first round learns the environment the ` +
     `hard way. Seed it with an "## Environment" section stating how this repo must be built and tested, read off ` +
@@ -158,7 +158,7 @@ const ledger = await agent(
     `runner that supplies it (e.g. "run node through 'mise exec --' — the system node is a different version"), ` +
     `and the exact lint and test commands the CI workflow runs. Mark that section "applies to every TODO". ` +
     `State only what the pin files and CI config actually say — do not guess.`,
-  { agentType: 'general-purpose', model: 'haiku', phase: 'Ledger', schema: LEDGER, label: 'ledger' },
+  { agentType: 'effort-light', phase: 'Ledger', schema: LEDGER, label: 'ledger' },
 )
 if (!ledger) return { result: 'ERROR', stage: 'ledger' }
 
@@ -226,7 +226,7 @@ for (const item of workList) {
         : '') +
       `Gate history (JSON): ${JSON.stringify(round && round.history ? round.history : [])}\n` +
       `Return the lines you appended, verbatim.`,
-    { agentType: 'general-purpose', model: 'haiku', phase: 'Lessons', schema: SCRIBE, label: `lessons:TODO-${item.todo}` },
+    { agentType: 'effort-light', phase: 'Lessons', schema: SCRIBE, label: `lessons:TODO-${item.todo}` },
   )
   // A scribe can die (a classifier refusal killed the one for a blocked TODO in the motivating run).
   // Say so — a lost lesson that nobody hears about is how the next round repeats this round's mistake.
@@ -242,7 +242,7 @@ for (const item of workList) {
       `Follow the skill's own bar: a one-off, a status, or a fact the code already shows is skipped, not filed.\n` +
       `Gate history (JSON): ${JSON.stringify(round && round.history ? round.history : [])}\n` +
       `Lines just appended to ${lessonsFile}: ${JSON.stringify(scribe ? scribe.appended || [] : [])}`,
-    { agentType: 'general-purpose', phase: 'Capture', label: `capture:TODO-${item.todo}` },
+    { agentType: 'effort-medium', phase: 'Capture', label: `capture:TODO-${item.todo}` },
   )
 
   // 2.7 — settle the status, then commit the notes.
@@ -257,7 +257,7 @@ for (const item of workList) {
           `a reader who never opens the diff gets (${PLUGIN}/skills/impl/commands/sub-impl.md step 9).\n`
         : `The ${round ? round.stage : 'child workflow'} gate did not clear: set the frontmatter status to "blocked" and leave the ledger row's Commit as it is.\n`) +
       `Then commit the notes-dir as ${PLUGIN}/skills/code/references/ref-jj-notes.md says. Return the status you wrote and the sha (empty when blocked).`,
-    { agentType: 'general-purpose', model: 'haiku', phase: 'Status', schema: STATUS, label: `status:TODO-${item.todo}` },
+    { agentType: 'effort-light', phase: 'Status', schema: STATUS, label: `status:TODO-${item.todo}` },
   )
 
   if (outcome === 'done') {
@@ -320,7 +320,7 @@ while (true) {
     deployRan = false
   } else {
     phase('Deploy')
-    const run = await agent(runPrompt(deploy.cmd, 'deploy'), { agentType: 'general-purpose', model: 'haiku', phase: 'Deploy', schema: RUN, label: `deploy:r${tailRound}` })
+    const run = await agent(runPrompt(deploy.cmd, 'deploy'), { agentType: 'effort-light', phase: 'Deploy', schema: RUN, label: `deploy:r${tailRound}` })
     deployRan = true
     tail.deploy = run || { result: 'red', ran: deploy.cmd, output: 'deploy agent died' }
     if (tail.deploy.result !== 'green') {
@@ -337,7 +337,7 @@ while (true) {
   }
 
   phase('Verify')
-  const run = await agent(runPrompt(e2e, 'end-to-end verification'), { agentType: 'general-purpose', model: 'haiku', phase: 'Verify', schema: RUN, label: `e2e:r${tailRound}` })
+  const run = await agent(runPrompt(e2e, 'end-to-end verification'), { agentType: 'effort-light', phase: 'Verify', schema: RUN, label: `e2e:r${tailRound}` })
   tail.verify = run || { result: 'red', ran: e2e, output: 'verify agent died' }
   if (tail.verify.result !== 'green') {
     // Deploy ran → the fix must be re-deployed, so the tail restarts at the deploy.
@@ -360,7 +360,7 @@ const truth = await agent(
   `Report the frontmatter status of each of these TODO files, nothing else. Change no files, run no tests.\n` +
     workList.map((t) => `- ${notesDir}/todos/TODO-${t.todo}.md`).join('\n') +
     `\nFor each, return its bare TODO number and the status string exactly as its frontmatter says.`,
-  { agentType: 'general-purpose', model: 'haiku', phase: 'Reconcile', schema: TRUTH, label: 'reconcile' },
+  { agentType: 'effort-light', phase: 'Reconcile', schema: TRUTH, label: 'reconcile' },
 )
 
 const corrections = []

@@ -855,7 +855,7 @@ def check_agent(n, path, lines, f, checks):
 
     row = checks["B8"]
     if "Constraints" in found:
-        f.fail(row, where, "`## Constraints` in the agent half", "delete it — `todos/CLAUDE.md` names wm-constraints.py once")
+        f.fail(row, where, "`## Constraints` in the agent half", "delete it — `todos/AGENTS.md` names wm-constraints.py once")
 
     row = checks["B10"]
     for line in section(lines, "Files"):
@@ -903,7 +903,7 @@ def run(notes, as_json=False, quiet=False):
         "B13": f.check("B13", "test file — no frontmatter, link back, holds ## Autotest"),
         "E1": f.check("E1", "Autotest — Unit and E2E, command + cases or a real reason"),
         "B7": f.check("B7", "agent half sections — present, ordered, no frontmatter, link back, no increments, no diff"),
-        "B8": f.check("B8", "no `## Constraints` in the agent half — the rules command lives in todos/CLAUDE.md"),
+        "B8": f.check("B8", "no `## Constraints` in the agent half — the rules command lives in todos/AGENTS.md"),
         "B9": f.check("B9", "increments in `## Increments` — ≤10 per commit (numbering and commit sections: A1), a summary of ≤3 sentences and five keys each, ≤7 Surprises, no Files, valid Landed + Change, no signature in the summary"),
         "B10": f.check("B10", "Files are concrete paths, each mapped to an existing increment"),
         "E2": f.check("E2", "Manual test filled, or skipped with a concrete reason"),

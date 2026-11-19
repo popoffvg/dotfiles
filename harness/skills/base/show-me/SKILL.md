@@ -20,7 +20,7 @@ Show every running path with [Flows](#flows), whether its steps changed or not. 
 | The content is | Show it as | Done when |
 | --- | --- | --- |
 | a rule, a branch, an algorithm in code that exists | **pseudocode**, one step per line → `show-code` | the reader can restate the rule without the source; every step that exists carries a clickable trailing `# path:line` |
-| a rule before any code exists | **pseudocode** → `show-code`, then `flow-sketch` | every branch, failure cause, and open decision is nameable without the source |
+| a rule before any code exists | **pseudocode** → `show-code` | every branch, failure cause, and open decision is nameable without the source |
 | a running path, with or without changes | **run-order pseudocode** → `show-code`; use [Flows](#flows) | the reader can follow each step from entry to result; changed steps also show their former behavior |
 | which function calls which, and in what order | **call tree**, `tree` glyphs → `show-code` | every name is grep-able; path sits as a trailing `# path:line` comment, never on its own line |
 | a code path across files that someone will revisit | a **Codemap** → `show-code`, `codelens:codemap` | one question has a pinned, re-anchorable trace |

@@ -1,11 +1,11 @@
 ---
 name: tester
+harness-effort: "{medium}"
 description: >
   Autonomous tester — runs the `test-suite` skill over a diff, PR, TODO, or
   feature description, executes what it can, and writes the report to the path
   the caller names. The skill owns every method; this agent owns the run.
 tools: Read, Glob, Grep, Bash, Write, AskUserQuestion, WebFetch
-model: sonnet
 color: cyan
 ---
 

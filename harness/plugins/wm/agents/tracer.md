@@ -1,7 +1,7 @@
 ---
 name: tracer
+harness-effort: "{light}"
 description: Answers one "why is it this way?" question against the ADRs of a wm notes dir. Searches `<notes-dir>/adr/` from the `wm-adr-index.py` index down, reads only the ADRs that bear on the anchor, walks their markdown links and changelogs, with their `Superseded by` lines, and returns a decision trace of at most 8 rows plus a verdict. Read-only — writes no file, edits nothing. Spawned one per question by the `trace` skill.
-model: haiku
 tools: Read, Glob, Grep, Bash
 ---
 

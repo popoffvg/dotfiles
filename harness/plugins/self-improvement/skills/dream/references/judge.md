@@ -30,7 +30,7 @@ Stop at the first gate that fails, and set the verdict to REJECT.
    - **new approach**: a method that overrides the default, which the person accepted after it worked in the session. Quote the acceptance.
    A design choice for one component (a timeout value, a retry policy of one store, a name) fails. It belongs in that project's ADR or spec.
 4. **`checkable`** — a reviewer can say pass or fail on a concrete artifact (a diff, a TODO, a command, a reply) with no taste. The rule has no adjective as its test: "simpler", "cleaner", "careful", "better", "minimal" fail.
-5. **`not-covered`** — no existing rule says it. Search the stores you were given for the key terms. Run the same search for a term you know exists (`Co-Authored-By` in the global CLAUDE.md) as a positive control, and report both. If an existing rule says it, REJECT and fill `existing_rule` with its file, line, and a verbatim quote of 15 or more characters. The script dates the quote in git: a rule older than the first correction is a trigger defect, and a newer one was written after the session.
+5. **`not-covered`** — no existing rule says it. Search the stores you were given for the key terms. Run the same search for a term you know exists (`Co-Authored-By` in the global AGENTS.md) as a positive control, and report both. If an existing rule says it, REJECT and fill `existing_rule` with its file, line, and a verbatim quote of 15 or more characters. The script dates the quote in git: a rule older than the first correction is a trigger defect, and a newer one was written after the session.
 6. **`neighbour-case`** — write one case that looks the same, where the rule must not fire. If you cannot name one, the rule is too wide: REJECT.
 
 ## The container, on ACCEPT
@@ -40,7 +40,7 @@ Stop at the first gate that fails, and set the verdict to REJECT.
 | a rule a reviewer checks on code or a diff, true in every repo | `global-rule` | `~/.notes/rules/<topic>.md`, one `# H1` per rule |
 | a method that one project's code must use for a recurring need | `project-pattern` | that project's `PATTERNS.md`, a `Need → Use` row |
 | the input was wrong, and a skill or agent of the harness wrote it | `producer-fix` | the producer's file in `~/git/dotfiles/harness/` |
-| a rule about how the agent works with the person, with no artifact to check | `agent-rule` | `~/.claude/CLAUDE.md` or the skill whose trigger fits |
+| a rule about how the agent works with the person, with no artifact to check | `agent-rule` | `~/.claude/AGENTS.md` or the skill whose trigger fits |
 
 Prefer `producer-fix` when the trace names a harness producer: fixing the producer removes the defect for every consumer.
 

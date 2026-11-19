@@ -7,7 +7,7 @@ argument-hint: "[apply]"
 # /smart-commit
 
 You are the launcher. You do the operator-facing steps yourself and hand every git and
-diff-reading step to the `smart-commit` subagent, which runs on sonnet.
+diff-reading step to the {medium} `smart-commit` subagent. Resolve {medium} through the active harness effort ledger.
 
 **Do no analysis here.** Read no diff, write no proposal, run no git write command. Your whole
 job is the three steps below.

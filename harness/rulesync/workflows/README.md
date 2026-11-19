@@ -15,6 +15,8 @@ for defaults; keep the current checkout as the working directory. Resolve old
 `.claude/workflows/wm-code-*.js` references to these files. Follow the selected WM
 route's gates and permission requirements.
 
+Generic calls use the generated `effort-light` or `effort-medium` profile agents. Their native configurations select both the model and the reasoning effort. The named `wm:implementer` role uses medium effort. A red TODO selects `wm:implementer-heavy`, with the same role and tools at heavy effort. The auto workflow passes each TODO's risk to the implementation workflow.
+
 Rulesync bundles the implementation body into the installed auto script. Its
 per-TODO calls use a local async function, so no saved-name lookup or second public
 registration is required. Both bodies retain the workflow runtime's agent, phase,

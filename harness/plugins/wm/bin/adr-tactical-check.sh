@@ -11,17 +11,22 @@ INPUT=$(cat)
 TRANSCRIPT=$(jq -r '.transcript_path // ""' <<<"$INPUT" 2>/dev/null) || exit 0
 CWD=$(jq -r '.cwd // ""' <<<"$INPUT" 2>/dev/null) || exit 0
 SESSION=$(jq -r '.session_id // "unknown"' <<<"$INPUT" 2>/dev/null) || exit 0
-[[ -f "$TRANSCRIPT" && -d "$CWD" ]] || exit 0
+[[ -d "$CWD" ]] || exit 0
 
 ADR_PATH_RE='[^ "'"'"'`]*/adr/[0-9]{4}-[^ "'"'"'`/]*\.md'
 
-paths=$(
-  jq -r 'select(.type=="assistant") | .message.content[]? | select(.type=="tool_use")
-         | if (.name=="Write" or .name=="Edit" or .name=="MultiEdit") then .input.file_path // empty
-           elif .name=="Bash" then .input.command // empty
-           else empty end' "$TRANSCRIPT" 2>/dev/null \
-    | grep -oE "$ADR_PATH_RE" | sort -u
-) || exit 0
+if jq -e 'has("adr_paths")' <<<"$INPUT" >/dev/null; then
+  paths=$(jq -r '.adr_paths[]' <<<"$INPUT") || exit 0
+else
+  [[ -f "$TRANSCRIPT" ]] || exit 0
+  paths=$(
+    jq -r 'select(.type=="assistant") | .message.content[]? | select(.type=="tool_use")
+           | if (.name=="Write" or .name=="Edit" or .name=="MultiEdit") then .input.file_path // empty
+             elif .name=="Bash" then .input.command // empty
+             else empty end' "$TRANSCRIPT" 2>/dev/null \
+      | grep -oE "$ADR_PATH_RE" | sort -u
+  ) || exit 0
+fi
 
 adrs=()
 while IFS= read -r p; do
@@ -74,8 +79,7 @@ LOG="$LOG_DIR/$(date +%Y%m%d-%H%M%S)-${SESSION}.log"
 
 (
   cd "$CWD" &&
-    WM_ADR_TACTICAL_CHECK=1 nohup claude -p "$PROMPT" \
-      --model sonnet \
+    WM_ADR_TACTICAL_CHECK=1 nohup python3 "$HOME/.claude/harness/effort.py" claude medium -- claude -p "$PROMPT" \
       --permission-mode acceptEdits \
       --allowedTools Read Edit 'Bash(mv:*)' 'Bash(mkdir:*)' 'Bash(ls:*)' \
       "${add_dirs[@]}" \

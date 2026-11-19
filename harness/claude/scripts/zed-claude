@@ -44,7 +44,7 @@ link_session() {
 if [[ ${1:-} == --print ]]; then
   shift
   link_session "$@"
-  printf '%s\n' "${extra[@]}"
+  printf '%s\n' ${extra[@]+"${extra[@]}"}
   exit 0
 fi
 
@@ -79,4 +79,4 @@ start_title_watcher() {
 link_session "$@"
 apply_zed_theme
 start_title_watcher
-exec command claude "${extra[@]}" "${args[@]}"
+exec command claude ${extra[@]+"${extra[@]}"} ${args[@]+"${args[@]}"}

@@ -34,3 +34,6 @@ key = "prefix+shift+o"
 type = "plugin_action"
 command = "annotate.last"
 description = "review the agent's last reply"
+
+[ui]
+agent_panel_sort = "spaces"

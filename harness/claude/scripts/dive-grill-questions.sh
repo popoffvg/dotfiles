@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Generate per-entry-point research question lists for the `/dive docs` route.
 #
-# For each `slug=entry-point-description` argument, runs `claude --model haiku
-# --print` with the grill-me agenda prompt and writes
+# For each `slug=entry-point-description` argument, runs `claude --print`
+# with the grill-me agenda prompt and writes
 # $RESEARCH_DIR/<slug>.questions.md. Runs all entry points in parallel.
 #
 # Usage:
@@ -12,13 +12,16 @@
 # Env:
 #   RESEARCH_DIR   required, absolute output dir (created if missing)
 #   TASK_CONTEXT   required, one-line task description passed to every prompt
-#   MODEL          optional, default haiku
+#   MODEL          optional, explicit model override
 #   FORCE          optional, 1 = regenerate files that already exist
 set -euo pipefail
 
 : "${RESEARCH_DIR:?RESEARCH_DIR is required}"
 : "${TASK_CONTEXT:?TASK_CONTEXT is required}"
-MODEL="${MODEL:-haiku}"
+command=(python3 "$HOME/.claude/harness/effort.py" claude light -- claude --print --output-format text)
+if [ -n "${MODEL:-}" ]; then
+  command+=(--model "$MODEL")
+fi
 FORCE="${FORCE:-0}"
 MIN_BYTES="${MIN_BYTES:-800}"
 REQUIRED_MARKER="${REQUIRED_MARKER:-## Intent}"
@@ -92,7 +95,7 @@ for arg in "$@"; do
   fi
 
   (
-    if ! build_prompt "$ep" | claude --model "$MODEL" --print --output-format text >"$out.part" 2>"$out.err"; then
+    if ! build_prompt "$ep" | "${command[@]}" >"$out.part" 2>"$out.err"; then
       echo "FAILED $out (claude exited non-zero; see $out.err)" >&2
       exit 1
     fi

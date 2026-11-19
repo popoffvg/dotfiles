@@ -1,6 +1,6 @@
 # Notes corpus
 
-> Copy to `<notes-dir>/CLAUDE.md` verbatim, replacing `<notes-dir>` with the real path. Written once
+> Copy to `<notes-dir>/AGENTS.md` verbatim, replacing `<notes-dir>` with the real path. Written once
 > by `/code new` Step 0, next to `spec.md`; no later subcommand rewrites it. Delete this block on
 > copy; it is the only `>` block here, because a file copied verbatim needs no per-section rules —
 > its own prose is the contract the notes corpus obeys.
@@ -8,6 +8,12 @@
 
 This folder is the spec corpus for one piece of work. It is its own jj repo, git-ignored in the
 parent project. `jj -R . log` is the history.
+
+## Main workflow
+
+Research with `/dive docs` when the code evidence is missing. Use `/code new` to settle the spec and decisions. Wait until the human accepts the spec and approves every live ADR. Use `/code todo` to write the TODO bodies.
+
+Require `/code verify` to pass before `/code impl TODO-N` or `/code auto`. Each TODO passes its tests and review checks before it becomes done. Integrate with `/code squash` only at the human's request.
 
 ## Map
 
@@ -21,7 +27,7 @@ parent project. `jj -R . log` is the history.
 | `adr/` | `NNNN-slug.md` — one ADR per topic; a file here is live, and `status: approved` is set by the operator alone | every phase, with the `adr` skill |
 | `QUESTIONS.md` | One `## <slug>` section per open question; the spec is not ready while it has one | every phase; an answer deletes its section |
 | `adr/archived/` | Deprecated and superseded ADRs — kept for the trail | a hook, on any ADR that stops being live |
-| `todos/` | `CLAUDE.md` (the pair convention) + `TODO-N.md` + `TODO-N.agent.md` + `TODO-N.test.md` — one self-contained row per ledger row: the human half (Outcome, Delivers, New terms, Components, Surface, Flow changes, Increments, Commit), the test file (Autotest), and the agent half (Files, Pre-reads, Manual test) | `/code new` (the folder + `CLAUDE.md`), `/code todo` (the pairs) |
+| `todos/` | `AGENTS.md` (the pair convention) + `TODO-N.md` + `TODO-N.agent.md` + `TODO-N.test.md` — one self-contained row per ledger row: the human half (Outcome, Delivers, New terms, Components, Surface, Flow changes, Increments, Commit), the test file (Autotest), and the agent half (Files, Pre-reads, Manual test) | `/code new` (the folder + `AGENTS.md`), `/code todo` (the pairs) |
 | `research/` | Explore-phase artifacts — every fact with its source; ADRs cite them | `/dive docs` |
 
 ## Read order
@@ -47,20 +53,18 @@ Ignore `adr/archived/` unless you are auditing history. Those ADRs were deprecat
   `jj -R <notes-dir> commit -m "<phase>: <main ideas>"` — a TODO, an ADR, `spec.md`, or
   `GLOSSARY.md` edit is not done until it is committed. The message says why, not which files.
   A Stop hook blocks the turn while changes are uncommitted.
-- **One ADR per topic: a component, a contract, or a process.** A decision, a review fix, or an
-  edge case on a topic that a live ADR covers becomes the next Property of that ADR. Write a new ADR
+- **One ADR per strategic topic: a component, a contract, or a process.** Only a strategic decision that passes the `adr` skill's Property gate becomes a Property. Write a new ADR
   with the `adr` skill only when no live ADR covers the topic, after the human approves it. Merge
   the ADRs before a phase passes 15 live ADRs. A new ADR is `proposed`; only the human sets `status: approved`, and no TODO is implemented before every
-  live ADR has it. An open question is a section of `QUESTIONS.md`, never an ADR; the answer becomes
-  an ADR and deletes the section. Never ask the same question in two sections.
+  live ADR has it. An open question is a section of `QUESTIONS.md`, never an ADR. Record a strategic answer in an ADR; record a tactical answer in `spec.md`, the TODO, or `PATTERNS.md`. Delete the answered section. Never ask the same question in two sections.
 - **Refine in place, reverse by supersede.** A new or reworded Property edits the ADR: bump
   `updated`, append a changelog line. A reversal is a new ADR that names the old one; the old one
   gets the changelog line `Superseded by [ADR-NNNN](../NNNN-slug.md)`, and a hook moves it to
   `adr/archived/`. Never renumber or reuse a
   Property number; delete a dropped row and name its number in the changelog line.
+- **Reapprove changed ADRs.** Ask the human to set an approved ADR to `proposed` before editing it. Wait for renewed approval before implementation.
 - **A fact lives in `research/`** with its source. An ADR that rests on it links that file.
-- **Decisions are not spec sections.** `spec.md` has no `Design Decisions` and no
-  `Open Questions` — both live in `adr/`.
+- **Decisions are not spec sections.** Put decisions in `adr/` and open questions in `QUESTIONS.md`. Keep both out of `spec.md`.
 - **Patterns are not spec sections.** `spec.md` mentions `@PATTERNS.md`; the patterns and the
   reference files live there. A pattern with no example in the repo is a decision — `adr/`.
 - **The ledger holds outcomes, not bodies.** No file paths, no checkboxes in `spec.md`.

@@ -130,7 +130,7 @@ def main():
                 continue
             p = Path(dp) / f
             # vault infrastructure docs at root are not notes
-            if p.parent == ROOT and f in ("CLAUDE.md", "README.md"):
+            if p.parent == ROOT and f in ("AGENTS.md", "README.md"):
                 continue
             try:
                 t = p.read_text(encoding="utf-8", errors="ignore")

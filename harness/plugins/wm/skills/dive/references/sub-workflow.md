@@ -64,7 +64,7 @@ machine-readable, navigable spec. They must agree on the cited locations.
 1. **Resolve `<notes-dir>`, `$RESEARCH_DIR` and `$WORKFLOWS_DIR`** (router "Output location"). Require existing `<ep-slug>.md` artifacts in `$RESEARCH_DIR` — if missing, run `docs` first.
 2. **Create the layout:** `mkdir -p "$WORKFLOWS_DIR/components"`.
 3. **Pick entry points.** Default: every `<ep-slug>.md` in `$RESEARCH_DIR` with no `$WORKFLOWS_DIR/<ep-slug>/` folder. User may name a subset.
-4. **For each entry point, spawn a writer subagent in parallel** — all `Agent` calls in one message, `subagent_type: "general-purpose"`, `model: "sonnet"`. Not `Explore`: it has no Write tool, so its code comes back as chat text and no file lands. Brief each with:
+4. **For each entry point, spawn a {medium} writer subagent in parallel.** Resolve {medium} through the active harness effort ledger. Put all `Agent` calls in one message and use generated `effort-medium` agents with write access. Brief each with:
    - The `<ep-slug>.md` (the cited locations to mirror) and the absolute `$WORKFLOWS_DIR`
    - **The absolute path of `examples/workflows/`**, plus "read every file in it first: it is the shape of every file you must write, filled for a different flow."
    - "Verify every `@source` and every `bindings.json` `source` by reading the file — do not guess. Prefer absolute paths."

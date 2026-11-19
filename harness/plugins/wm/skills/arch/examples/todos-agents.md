@@ -1,6 +1,6 @@
 # TODO pairs
 
-> Copy to `<notes-dir>/todos/CLAUDE.md` verbatim. Written once by `/code new` Step 0, which scaffolds the
+> Copy to `<notes-dir>/todos/AGENTS.md` verbatim. Written once by `/code new` Step 0, which scaffolds the
 > folder; no later subcommand rewrites it. Delete this block on copy; it is the only `>`
 > block here, because a file copied verbatim needs no per-section rules.
 > The prose follows `harness-dev:text-style`.

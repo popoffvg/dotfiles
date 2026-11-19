@@ -5,7 +5,7 @@ export PATH="/opt/nanobrew/prefix/bin:$PATH"
 eval "$(lig init zsh pre)"
 # <<< lig pre <<<
 # Package manager prefix (nanobrew or homebrew)
-if [[ -x /opt/nanobrew/prefix/bin/nb ]]; then
+if [[ -d /opt/nanobrew/prefix/bin ]]; then
   export BREW_PREFIX=/opt/nanobrew/prefix
   export PATH="$BREW_PREFIX/bin:$PATH"
 elif [[ -x /opt/homebrew/bin/brew ]]; then
@@ -53,7 +53,6 @@ zinit snippet OMZP::eza                      # eza aliases + completions
 # dropped: OMZL::async_prompt (starship owns the prompt), OMZP::direnv (hooked in .zshrc_aliases)
 
 eval "$(mise activate)"
-# Lig owns history search (Ctrl+R); do not load Atuin or Deja's hooks.
 eval "$(sg completions zsh)"
 
 # Use Apple clang for CGO (nanobrew LLVM lacks macOS SDK sysroot)
@@ -168,3 +167,23 @@ fi
 # >>> lig post >>>
 eval "$(lig init zsh post)"
 # <<< lig post <<<
+
+# Load Deja once, after Lig, to prevent a cycle between their line-init hooks.
+export DEJA_CYCLE_KEY=
+if (( ! ${+functions[_deja_line_init]} )); then
+  if [[ -r "$HOME/.local/share/deja/init.zsh" ]]; then
+    source "$HOME/.local/share/deja/init.zsh"
+  else
+    eval "$(deja init zsh)"
+  fi
+fi
+
+# Leave completion and yazi widgets unwrapped, including on later precmds.
+for _dj_w in fzf-tab-complete fzf-tab-dummy fzf-tab-debug yazi-jump down-complete-or-yazi; do
+  DEJA_IGNORE_WIDGETS+=("$_dj_w")
+  _dj_orig="${DEJA_ORIGINAL_WIDGET_PREFIX}${_DEJA_BIND_COUNTS[$_dj_w]}-${_dj_w}"
+  if (( ${+widgets[$_dj_orig]} )); then
+    zle -A "$_dj_orig" "$_dj_w"
+  fi
+done
+unset _dj_w _dj_orig

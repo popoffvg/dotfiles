@@ -33,7 +33,7 @@ notes=$(resolve_notes "$CWD") || exit 0
 line="wm: no git repo — code mode ENABLED (branch gating unavailable). notes at $notes."
 line="$line Read $CLAUDE_PLUGIN_ROOT/skills/code/SKILL.md and follow its pipeline before implementing."
 # Name the corpus files only once they exist — `/code new` Step 0 writes them.
-[[ -f "$notes/CLAUDE.md" ]] && line="$line Corpus rules: $notes/CLAUDE.md."
+[[ -f "$notes/AGENTS.md" ]] && line="$line Corpus rules: $notes/AGENTS.md."
 [[ -f "$notes/RULES.md" ]] && line="$line What to ask directly: $notes/RULES.md."
 echo "$line"
 exit 0

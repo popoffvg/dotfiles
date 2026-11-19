@@ -59,15 +59,14 @@ fi
 # TODO ledger: count each lifecycle state and remember the first file per state.
 # One ledger row is two files — TODO-N.md carries the status; TODO-N.agent.md carries the
 # increments and has no frontmatter. Count the human halves only, or every row counts twice.
-declare -A count=() first=()
+entries=()
 total=0
 if [[ -d "$notes/todos" ]]; then
   while IFS= read -r f; do
     st=$(fm_status "$f") || true
     st=${st:-unknown}
     total=$((total + 1))
-    count[$st]=$((${count[$st]:-0} + 1))
-    [[ -n "${first[$st]:-}" ]] || first[$st]="$f"
+    entries+=("$st"$'\t'"$f")
   done < <(find "$notes/todos" -maxdepth 1 -name 'TODO-*.md' ! -name '*.agent.md' -type f | sort -V)
 fi
 
@@ -75,11 +74,13 @@ fi
 cur=""
 cur_state=""
 for st in blocked impl verify todo; do
-  if [[ -n "${first[$st]:-}" ]]; then
-    cur="${first[$st]}"
-    cur_state="$st"
-    break
-  fi
+  for entry in "${entries[@]-}"; do
+    if [[ "${entry%%$'\t'*}" == "$st" ]]; then
+      cur="${entry#*$'\t'}"
+      cur_state="$st"
+      break 2
+    fi
+  done
 done
 
 # NEXT: one step, derived from the spec phase and the ledger.
@@ -114,7 +115,11 @@ esac
 # Ledger one-liner, only the states actually present.
 ledger=""
 for st in done verify impl todo blocked unknown; do
-  [[ -n "${count[$st]:-}" ]] && ledger="$ledger ${st}=${count[$st]}"
+  count=0
+  for entry in "${entries[@]-}"; do
+    [[ "${entry%%$'\t'*}" != "$st" ]] || count=$((count + 1))
+  done
+  ((count == 0)) || ledger="$ledger ${st}=$count"
 done
 
 echo "wm SPEC-WORK FOCUS — re-anchor on this before any tool call."

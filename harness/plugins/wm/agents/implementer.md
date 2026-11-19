@@ -1,9 +1,10 @@
 ---
 name: implementer
+harness-effort: "{medium}"
+harness-variants: "{heavy}"
 description: >
   Implementation agent. Implements medium and complex tasks. Ends every run with a markdown diff
   report at `<notes-dir>/diff-TODO-N.md` and returns its path.
-model: sonnet
 color: red
 background: true
 ---
@@ -12,7 +13,7 @@ background: true
 
 ## DO NOT DO
 - run more than one TODO per invocation.
-- write a comment that repeats the code, carries a banned fact, or states a fact the code contradicts — `~/.claude/CLAUDE.md` § comment rules.
+- write a comment that repeats the code, carries a banned fact, or states a fact the code contradicts — `~/.claude/AGENTS.md` § comment rules.
 
 ## Working directory
 

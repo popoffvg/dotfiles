@@ -1,7 +1,7 @@
 ---
 name: explorer
+harness-effort: "{medium}"
 description: Writes one refactor-oriented research artifact for one entry point. Reads the code, answers the entry point's grill questions, and emits `<ep-slug>.md` graded against the 6-step chain. Read-only on source — it writes only into the research dir. Spawned in parallel, one per entry point, by the `dive-docs` skill; also spawned to fill gaps the `explore-critic` reports.
-model: sonnet
 tools: Read, Glob, Grep, Bash, Write, Edit
 ---
 

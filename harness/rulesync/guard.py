@@ -7,6 +7,10 @@ from pathlib import Path
 import re
 import shlex
 import sys
+import effort
+
+
+RUNTIME_DIRS = tuple(row['directory'] for row in effort.load_effort_ledger()['runtimes'].values())
 
 
 def normalized(path, cwd):
@@ -15,7 +19,8 @@ def normalized(path, cwd):
 
 def protected_paths(home):
     paths = []
-    for root in (home / '.claude', home / '.codex', home / '.pi/agent', home / '.config/opencode'):
+    for directory in RUNTIME_DIRS:
+        root = home / directory
         manifest = root / 'harness/installed.json'
         paths.append(str(manifest))
         if manifest.is_file():

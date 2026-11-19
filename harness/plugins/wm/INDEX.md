@@ -34,7 +34,7 @@ Four files at the plugin root, shared by all five skills.
 | `wm:INDEX.md` | This map. |
 | `wm:GLOSSARY.md` | **The leading words** — one word, one meaning, used verbatim by all five skills: the gate, ADR, open question, target picture, wave, constraints, outcome, components, brick, increment, approve, blast radius, ledger, status, grill, trace, layer, verification chain, audit, drift, deviation, notes-dir, mutant, fixup. A word used in two skills is defined here once; a word private to one skill is defined there. |
 | `wm:TOOLS.md` | **Situation → tool** — every script, agent, and skill the five skills reach for, grouped by the need it serves, with the invocation and what it returns. A procedure cites a row here instead of describing the step by hand. |
-| `wm:CLAUDE.md` | How to work on this plugin — the rules a change to any skill obeys. |
+| `wm:AGENTS.md` | How to work on this plugin — the rules a change to any skill obeys. |
 
 ## The file map
 
@@ -61,8 +61,9 @@ Four files at the plugin root, shared by all five skills.
 | `references/ref-write.md` | **The spec contract** — artifacts, notes-dir layout, the `status` metadata (spec phase + TODO lifecycle), the `approve` metadata (how much of `impl` the human reviews, at spec level and per TODO), the `where` metadata (which checkout `impl` writes into, same two levels), the gate, TODO ordering and **waves**, the Spec-Readiness Checklist. The single source; no other file restates it. |
 | `references/ref-todo-sections.md` | What cuts across the pair's sections — the `i-have-adhd` rule every prose line of the human half obeys, where the generated rules come from (each ADR Property *is* a rule), the two doctrines that bound every diff (a diff carries the change and not what the change forces; a diff carries the surface and not a body), and how the increments reach the commit. What goes inside one heading is the `>` block under that heading in `examples/todo.md`, `examples/todo-agent.md`, and `examples/todo-test.md`. |
 | `references/ref-adr-format.md` | What a wm corpus adds to the `adr` skill's ADR: the `adr/` location and the automatic move to `adr/archived/`, the `kind` key (`architecture` or `feature`; a `todo:` key fails `--check`), Properties as the rules, the open question as a section of `QUESTIONS.md`, refine in place and reverse by supersede, and how a reader finds the ADRs for a task. |
-| `examples/notes-claude.md` | The notes-dir `CLAUDE.md`. |
-| `examples/todos-claude.md` | The `todos/CLAUDE.md` — the pair convention any agent entering the folder reads: two files per ledger row, which half holds what, the read order, the write rules. |
+| `examples/notes-agents.md` | The notes-dir `AGENTS.md`. |
+| `examples/project-agents.md` | Project workflow guidance installed by `bin/wm-agents.py`. |
+| `examples/todos-agents.md` | The `todos/AGENTS.md` — the pair convention any agent entering the folder reads: two files per ledger row, which half holds what, the read order, the write rules. |
 | `examples/rules.md` | The notes-dir `RULES.md` and its three init knobs — approval depth is not one of them; it is the `approve` key on `spec.md` and on each TODO. |
 | `examples/glossary.md` | Redirect to the common `terms` skill, which owns glossary work and `CONTEXT-FORMAT.md`. |
 | `examples/patterns.md` | The notes-dir `PATTERNS.md` — the implementation patterns and reference files the increments follow, out of `spec.md` so the spec stays human-only. |
@@ -85,7 +86,7 @@ content, delete the `>` lines.
 |---|---|
 | `commands/sub-impl.md` | `impl` — execute one TODO, increment by increment; and the fork a user correction that contradicts the pair takes — `revise` or a recorded **deviation**. |
 | `rulesets/approve-<value>.md`, `rulesets/risk-<color>.md` | **The impl ruleset** — what one `approve` value or one `risk` color adds to `sub-impl.md`: which , which review, what is shown, what the tests cover. `bin/impl-ruleset.py` resolves the keys and prints the two files. |
-| `CLAUDE.md` | How to change the rulesets. |
+| `AGENTS.md` | How to change the rulesets. |
 | `references/ref-change-types.md` | **The change-type roster** — the nine kinds a change can be (`new behavior`, `signature change`, `wiring`, `call-site migration`, `rename`, `move`, `deletion`, `test`, `generated`), the boundary a subagent walks to assign one, the typed list shown per increment under `approve: increment`, and the start point + main changes shown once under `approve: todo` and reported under `approve: none`. |
 | `commands/sub-auto.md` | `auto` — the whole ledger unattended, the review replacing the human. |
 | `commands/sub-fix.md` | `fix` — close a gap by fixing the ADR, then the code. |
@@ -125,7 +126,7 @@ Independent of the `/code` flow, each with its own entry point.
 | `test-suite` | `/test-suite <subcommand>` | All testing work — strategy, scenario design, coverage audit, BDD, TDD. |
 | `trace` | no | **Why an artifact is the way it is.** Spawns one `tracer` subagent that searches `adr/` from the artifact's own words and returns at most 8 chain rows plus a verdict — `live`, `superseded`, `unrecorded`. It replaces stored origin links: no file under `todos/` carries one. Loaded by `impl:sub-fix.md` and `arch:sub-revise.md`. |
 | `commit-message` | no | **The commit message contract** — the subject line and the three body parts: cause, goal, decision. Loaded by name before every commit written by `impl`, `auto`, `fix`, or `squash`. |
-| `searchable-names` | no | **Choosing the name while the code is written** — one term per concept, the 2–4 word public name, one concept per file, the domain concept in a type, the whole string literal. Naming and module home for every piece; `arch:ref-bricks.md` adds only the metric and the structure. Loaded from `~/.claude/CLAUDE.md`, which keeps the comment prose. |
+| `searchable-names` | no | **Choosing the name while the code is written** — one term per concept, the 2–4 word public name, one concept per file, the domain concept in a type, the whole string literal. Naming and module home for every piece; `arch:ref-bricks.md` adds only the metric and the structure. Loaded from `~/.claude/AGENTS.md`, which keeps the comment prose. |
 | `pedant` | no | **Attacking the names a finished diff already declares** — rejects the ones that read unclearly. The contract the `name-critic` agent reads when `/code verify` judges the names a spec mints. |
 | `mutation` | no | **Finding the unit and table tests a diff can delete** — one behavior-changing edit at a time to the code they call; a candidate that kills no mutant, or only what E2E or a kept test kills, is marked for deletion. E2E tests are the reference, never judged. At most two `mutation-tester` agents; every mutant lands in a sandbox copy. Runs on request; it is not part of `/review`. |
 | `red-green-refactor` | no | The failing-test-first cycle a bug fix follows. Loaded by `impl:sub-impl.md`. |
@@ -166,6 +167,6 @@ the existing suite rather than nesting an `evals/` inside a skill. A change to a
 
 | Owner | Holds |
 |---|---|
-| `flow-sketch` skill | The TS-pseudocode notation a flow sketch follows, and the variant table that picks its shape from the change kind and the `main` component's brick. The ordered parts of each brick are `arch:ref-bricks.md`. |
+| `show-me` / `show-code` skills | Python flow notation. `change-review` owns domain words in review flows; `arch:ref-bricks.md` owns the ordered parts of each brick. |
 | `lessons` skill | Lesson **content** — dependency order, the concept-per-step rule, alternatives and asymmetries. `teach` owns the workspace, not the pedagogy. |
 | `adr` skill | The ADR authoring procedure — collect, classify, merge, interview, draft, ask. `arch:ref-adr-format.md` gives what this corpus adds. |

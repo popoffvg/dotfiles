@@ -3,7 +3,7 @@ name: capture-lesson
 disable-model-invocation: true
 description: >
   Route a captured lesson to the cheapest container that enforces it — a hook,
-  a lefthook job, a CLAUDE.md line, engram, or a skill when the lesson is about
+  a lefthook job, a AGENTS.md line, engram, or a skill when the lesson is about
   how a request is read. Use after a user correction, after the user states how
   they want a task done or how work is done in this repo, or after you learn
   something non-obvious from docs during the task.
@@ -70,13 +70,13 @@ The teachability test: **would you teach this rule to a student or a new colleag
 
 Skip is a real outcome: a rule captured from a situation that never returns costs context on every future session and sharpens nothing.
 
-When the session was archived by a scan (`references/score.md`), the archive's `global/` or `project/` subdir is one haiku pass's guess from the user's wording alone, and the record's `score` is how strongly it guessed. Judge scope here on the table above and overrule the subdir when it disagrees — the subdir routes the transcript, it does not decide the skill.
+When the session was archived by a scan (`references/score.md`), the archive's `global/` or `project/` subdir is one {light} scoring pass's guess from the user's wording alone, and the record's `score` is how strongly it guessed. Judge scope here on the table above and overrule the subdir when it disagrees — the subdir routes the transcript, it does not decide the skill.
 
 That session may also already have a suggestion at `~/.claude/self-improvement/suggestions/<session-id>.md` (`references/suggest.md`): a verdict, a target, and the alternative it rejected, all decided against the harness inventory. Read it before searching for a target yourself — it did that search once already. Then re-judge it: it saw the user's prompts and the skill triggers, never the surrounding context, so it cannot know what the assistant actually did.
 
 A lesson can be teachable *and* anchored to this machine — a vault path, an MCP server, a CLI on `PATH`. That is still global; name the anchor in the body and say what to do when it is absent, so the skill degrades instead of hard-failing.
 
-A global skill is written to `harness/skills/<group>/<slug>/` (see `harness/skills/CLAUDE.md` for the groups) in the dotfiles repo, then made live with `mise run harness:sync`. A directory written under `~/.claude/skills` is a stray outside git. Project root is `git rev-parse --show-toplevel`; if the cwd is not a git repo, the scope is global.
+A global skill is written to `harness/skills/<group>/<slug>/` (see `harness/skills/AGENTS.md` for the groups) in the dotfiles repo, then made live with `mise run harness:sync`. A directory written under `~/.claude/skills` is a stray outside git. Project root is `git rev-parse --show-toplevel`; if the cwd is not a git repo, the scope is global.
 
 For a global skill, phrase the lesson generally and strip this project's names and paths. For a project skill, keep the real paths and commands — concreteness helps at project scope.
 
@@ -93,7 +93,7 @@ resident context.
 | A command's aftermath | `PostToolUse` hook — put the real evidence into context | same |
 | Touching certain files | a skill with `paths:` frontmatter, so it loads only on those edits | the skill itself |
 | The shape of a committed file | a `pre-commit` job | `lefthook.yml` |
-| Always true, no trigger | the output style or `CLAUDE.md` | `harness/claude/` |
+| Always true, no trigger | the output style or `AGENTS.md` | `harness/claude/` |
 | One project's fact, no rule attached | `mem_save` | engram |
 | How a *request* should be read | a skill | Step 2 |
 

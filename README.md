@@ -6,7 +6,7 @@ Personal dotfiles. Managed with **GNU Stow**, **mise**, and **Rulesync**. Stow l
 
 ```
 .
-├── .config/             # XDG configs: nvim, helix, fish, git, zellij, ghostty, atuin, direnv, nix, sketchybar, worktrunk
+├── .config/             # XDG configs: nvim, helix, fish, git, zellij, ghostty, direnv, nix, sketchybar, worktrunk
 ├── .claude/             # Claude Code project-local overrides (settings.local.json)
 ├── .zshrc, .zshrc_*     # Modular zsh config (aliases, git, go, mise, fish, ...)
 ├── .tmux.conf
@@ -36,6 +36,7 @@ Personal dotfiles. Managed with **GNU Stow**, **mise**, and **Rulesync**. Stow l
 | Source | Target | Contents |
 |---|---|---|
 | repo root | `~` | shell, .config/*, .tmux.conf, etc. (gated by `.stow-local-ignore`) |
+| `harness/codex-settings/` | `~/.codex` | Local `config.toml` when present. Git ignores the file. |
 | `harness/` through Rulesync | `~/.claude`, `~/.codex`, `~/.pi/agent` | Generated harness files; no Stow links into source |
 
 ## Install

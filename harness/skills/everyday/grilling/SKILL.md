@@ -17,7 +17,7 @@ Distilled from **grill-me**: https://github.com/mattpocock/skills
 1. **List the open points.** Number each one as a candidate, `P1`, `P2`, …, before you ask anything.
 2. **Settle each candidate from a source.** Read the source before you call it silent. The sources, in order:
    - the user's own words in this task: the comment, the first message, earlier answers in this grill, earlier grill files, and the decision notes in `.notes/`;
-   - the repo rules: `CLAUDE.md` files, `GLOSSARY.md`, `PATTERNS.md`, and the skills they name;
+   - the repo rules: `AGENTS.md` files, `GLOSSARY.md`, `PATTERNS.md`, and the skills they name;
    - the code: an existing type, package, state, or convention that already does the job.
 
    A source settles a candidate in one of three ways. Each candidate ends this step with its source written beside it, or marked open.

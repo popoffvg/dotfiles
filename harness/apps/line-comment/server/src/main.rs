@@ -137,11 +137,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     trace.write(&format!("start root={}", root.display()));
 
-    let (session, effects) = Session::new(root);
+    let (mut session, effects) = Session::new(root);
+    session.inline_input = params
+        .pointer("/capabilities/experimental/zedInlineInput")
+        .and_then(Value::as_bool)
+        == Some(true);
     let mut server = Server {
         connection,
         session,
         next_id: 1,
+        inline_comments: Default::default(),
         trace,
     };
     server.perform(effects);
@@ -235,6 +240,7 @@ fn workspace_folder(params: &Value) -> PathBuf {
 }
 
 struct Server {
+    inline_comments: std::collections::HashMap<RequestId, line_comment::input::Target>,
     connection: Connection,
     session: Session,
     next_id: i32,
@@ -267,6 +273,18 @@ impl Server {
                 false
             }
             Message::Response(response) => {
+                if let Some(target) = self.inline_comments.remove(&response.id) {
+                    if let Some(error) = response.error {
+                        self.show(
+                            true,
+                            format!("Cannot open inline comment: {}", error.message),
+                        );
+                    } else if let Some(body) = response.result.as_ref().and_then(Value::as_str) {
+                        let effects = self.session.submit_inline_comment(target, body);
+                        self.perform(effects);
+                    }
+                    return false;
+                }
                 let answer = response
                     .result
                     .map(|value| value.to_string())
@@ -400,6 +418,16 @@ impl Server {
                 }
                 Effect::ShowMessage { error, text } => self.show(error, text),
                 Effect::AskResetConfirmation { prompt } => self.ask_reset(prompt),
+                Effect::InlineComment { uri, target, value } => {
+                    let id = self.request_id();
+                    let line = target.line.saturating_sub(1);
+                    self.inline_comments.insert(id.clone(), target);
+                    self.send(Message::Request(Request {
+                        id,
+                        method: "zed/inlineInput".to_string(),
+                        params: json!({ "uri": uri, "line": line, "placeholder": "Comment…", "value": value }),
+                    }));
+                }
                 Effect::OpenInput { path, contents } => self.open_input(path, contents),
                 Effect::WatchFiles => self.watch_files(),
                 Effect::PublishDiagnostics => self.publish_diagnostics(),

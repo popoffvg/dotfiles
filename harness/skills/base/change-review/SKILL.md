@@ -60,7 +60,7 @@ A component tree (`show-me`), one tree per package:
 
 One H3 per running path that the change touches, drawn in the form of `show-me` § Flows: the heading names the entry point in domain words, the line under it is the `package.Class.method` that runs it in italic code, and the `python` block marks each changed step. When the path is a step of the main user flow of the project, add `— main flow step <n>`.
 
-- Write a step in domain words. A symbol keeps its exact name only when it is a `## Components` row or an error the caller matches on. No types, error plumbing, or imports.
+- Write a review step in domain words, before or after the code lands. A symbol keeps its exact name only when it is a `## Components` row or an error the caller matches on. Existing-code traces outside a change review use exact code names under `show-code`. No types, error plumbing, or imports.
 - Every marked `if`, `elif`, `else`, or `raise` has a test case. A new path with no case is a path nobody tests.
 - A change with no running path to show writes `none — <reason>`, for example a rename.
 

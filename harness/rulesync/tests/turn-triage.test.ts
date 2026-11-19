@@ -52,7 +52,8 @@ afterEach(() => {
   delete process.env.ZED_TERM;
 });
 
-test("inject the same triage instruction as Claude", async () => {
+test("inject the triage instruction inside a Zed terminal", async () => {
+  process.env.ZED_TERM = "true";
   const { default: plugin } = await import("../../opencode/plugins/turn-triage/index");
   let hook: (event: { system: unknown[] }) => void = () => {};
   await plugin.setup({
@@ -64,6 +65,13 @@ test("inject the same triage instruction as Claude", async () => {
   const event = { system: [] };
   hook(event);
   expect(event.system).toEqual([{ type: "text", text: triage.rule }]);
+});
+
+test.each([undefined, "", "false"])("skip triage instructions outside Zed with ZED_TERM=%s", async value => {
+  if (value === undefined) delete process.env.ZED_TERM;
+  else process.env.ZED_TERM = value;
+  const { default: plugin } = await import("../../opencode/plugins/turn-triage/index");
+  await expect(plugin.setup({} as never)).resolves.toBeUndefined();
 });
 
 test("update only the visible Zed session title and stop the timer on cleanup", async () => {

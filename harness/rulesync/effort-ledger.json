@@ -1,0 +1,87 @@
+{
+  "tiers": {
+    "light": {"next": "medium"},
+    "medium": {"next": "heavy"},
+    "heavy": {"next": null}
+  },
+  "runtimes": {
+    "claude": {
+      "directory": ".claude",
+      "agent_format": "markdown",
+      "source_agents": false,
+      "plugin_agents": true,
+      "skill_agent": true,
+      "fields": {"model": "{model}", "effort": "{reasoning}"},
+      "selector": "{model}",
+      "cli": ["--model", "{model}", "--effort", "{reasoning}"],
+      "profiles": {
+        "light": {"model": "haiku", "reasoning": "low"},
+        "medium": {"model": "sonnet", "reasoning": "medium"},
+        "heavy": {"model": "opus", "reasoning": "high"}
+      }
+    },
+    "codex": {
+      "directory": ".codex",
+      "agent_format": "toml",
+      "source_agents": false,
+      "plugin_agents": false,
+      "skill_agent": false,
+      "fields": {"model": "{model}", "model_reasoning_effort": "{reasoning}"},
+      "selector": "{model}",
+      "cli": ["--model", "{model}", "-c", "model_reasoning_effort=\"{reasoning}\""],
+      "profiles": {
+        "light": {"model": "gpt-6-luna", "reasoning": "low"},
+        "medium": {"model": "gpt-6.1-sol", "reasoning": "medium"},
+        "heavy": {"model": "gpt-6.1-terra", "reasoning": "high"}
+      }
+    },
+    "opencode": {
+      "directory": ".config/opencode",
+      "agent_format": "markdown",
+      "source_agents": false,
+      "plugin_agents": false,
+      "skill_agent": false,
+      "fields": {"model": "{model}#{reasoning}"},
+      "selector": "{model}#{reasoning}",
+      "cli": ["--model", "{model}#{reasoning}"],
+      "profiles": {
+        "light": {"model": "openai/gpt-6-luna", "reasoning": "low"},
+        "medium": {"model": "openai/gpt-6.1-sol", "reasoning": "medium"},
+        "heavy": {"model": "openai/gpt-6.1-terra", "reasoning": "high"}
+      }
+    },
+    "pi": {
+      "directory": ".pi/agent",
+      "agent_format": "markdown",
+      "source_agents": true,
+      "plugin_agents": false,
+      "skill_agent": false,
+      "tool_aliases": {"Read": "read", "Write": "write", "Edit": "edit", "Bash": "bash", "Grep": "grep", "Glob": "find", "Agent": "subagent", "Task": "subagent"},
+      "fields": {"model": "{model}", "thinking": "{reasoning}"},
+      "selector": "{model}:{reasoning}",
+      "cli": ["--model", "{model}", "--thinking", "{reasoning}"],
+      "profiles": {
+        "light": {"model": "cursor/gpt-5.6-luna", "reasoning": "low"},
+        "medium": {"model": "cursor/gpt-5.6-sol", "reasoning": "medium"},
+        "heavy": {"model": "cursor/gpt-5.6-terra", "reasoning": "high"}
+      }
+    },
+    "cursor": {
+      "directory": ".cursor",
+      "agent_format": "markdown",
+      "source_agents": true,
+      "plugin_agents": false,
+      "skill_agent": false,
+      "resource_directory": ".claude",
+      "readonly_from_tools": true,
+      "fields": {"model": "{model}[reasoning={reasoning}]"},
+      "selector": "{model}[reasoning={reasoning}]",
+      "cli": ["--model", "{model}[reasoning={reasoning}]"],
+      "profiles": {
+        "light": {"model": "gpt-5.6-luna", "reasoning": "low"},
+        "medium": {"model": "gpt-5.6-sol", "reasoning": "medium"},
+        "heavy": {"model": "gpt-5.6-terra", "reasoning": "high"}
+      }
+    }
+  }
+}

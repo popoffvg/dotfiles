@@ -15,7 +15,7 @@ Print the following table verbatim. No preamble, no commentary, no tool calls â€
 
 ## What one review runs
 
-One `reviewrules` run in the background. It reads the diff once in a parent session, then forks it once per rule whose scope matches a changed file, with the model, effort, and steps of the rule's profile (`light`, `medium`, `heavy`). A generator fork writes correctness hypotheses, and a checker fork answers them.
+One `reviewrules` run in the background. It reads the diff once in a parent session, then forks it once per rule whose scope matches a changed file, with the model, reasoning effort, and steps of the rule's profile (`light`, `medium`, `heavy`). A generator fork writes correctness hypotheses, and a checker fork answers them.
 
 Exit 0 is green, 1 is a FAIL or a confirmed hypothesis, and 2 is a run that did not finish. The summary goes to `<notes-dir>/review/<target>/report.md`, and the full JSON report goes to `reviewrules.json` beside it. `<target>` is `TODO-N`, or the slug of the range in `diff` mode.
 

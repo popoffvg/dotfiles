@@ -1,5 +1,6 @@
 ---
 name: mutation-tester
+harness-effort: "{medium}"
 description: >
   Mutation check for one batch of candidate tests — the unit tests and table rows a diff adds or
   changes. Applies one behavior-changing edit at a time to the code they call, records which tests
@@ -9,7 +10,6 @@ description: >
   mutant lands in a sandbox copy that `go-test-worth.py` makes, so it never edits the checkout and
   never commits. At most two run at once, started by the `mutation` skill.
 tools: Read, Glob, Grep, Bash, Write
-model: sonnet
 color: red
 ---
 

@@ -22,7 +22,7 @@ VERDICTS = pathlib.Path(os.environ.get("SELF_IMPROVE_VERDICTS_DIR", SI_ROOT / "v
 CALL_TIMEOUT = 1800
 
 RULE_STORES = [
-    "~/.claude/CLAUDE.md",
+    "~/.claude/AGENTS.md",
     "~/git/dotfiles/harness/claude/rules/",
     "~/git/dotfiles/harness/skills/",
     "~/git/dotfiles/harness/plugins/*/skills/",
@@ -97,10 +97,10 @@ IMPACT_SCHEMA = {
 }
 
 
-def claude(prompt, model, schema, tools, budget, log_path):
+def claude(prompt, tier, schema, tools, budget, log_path):
     """One `claude -p` call with hooks off and no saved session. Returns (structured_output or None, metrics)."""
     cmd = [
-        "claude", "-p", "--model", model,
+        "python3", str(HOME / ".claude/harness/effort.py"), "claude", tier, "--", "claude", "-p",
         "--output-format", "json", "--json-schema", json.dumps(schema),
         "--no-session-persistence", "--max-budget-usd", str(budget),
         "--settings", json.dumps({"disableAllHooks": True}),
@@ -127,7 +127,7 @@ def claude(prompt, model, schema, tools, budget, log_path):
     except json.JSONDecodeError:
         pass
     metrics = {
-        "model": model, "wall_s": round(wall, 1), "exit": code,
+        "model": next(iter(data.get("modelUsage", {})), None), "wall_s": round(wall, 1), "exit": code,
         "turns": data.get("num_turns"), "cost_usd": data.get("total_cost_usd"),
         "at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
@@ -230,7 +230,7 @@ The prompts the person typed, with line numbers and timestamps:
 
 {human_turns(transcript)[-60000:]}
 """
-    out, m = claude(prompt, "sonnet", TRACE_SCHEMA,
+    out, m = claude(prompt, "medium", TRACE_SCHEMA,
                     ["Read", "Grep", "Glob", "Bash(jq:*)", "Bash(git show:*)", "Bash(git log:*)"],
                     6, out_dir / "logs/trace.log")
     result = {"session": sid, "transcript": str(transcript), "session_end": session_end(transcript),
@@ -257,7 +257,7 @@ The traced cause:
 {json.dumps(cause, indent=1)}
 ```
 """
-    out, m = claude(prompt, "opus", JUDGE_SCHEMA, ["Read", "Grep", "Glob"], 4, out_dir / f"logs/judge-{key}.log")
+    out, m = claude(prompt, "heavy", JUDGE_SCHEMA, ["Read", "Grep", "Glob"], 4, out_dir / f"logs/judge-{key}.log")
     result = {"key": key, "cause": cause, "judge": out, "metrics": m, "ok": out is not None}
     save(dest, result)
     return result
@@ -282,7 +282,7 @@ def replay(key, j, out_dir):
             res["arms"][arm] = {"verdict": "N/A", "expected": expect[arm], "skipped": True}
             continue
         prompt = (PROMPTS / "replay.md").read_text() + f"\n\n---\n\nRule:\n\n{rule}\n\nArtifact:\n\n```\n{text}\n```\n"
-        out, m = claude(prompt, "haiku", REPLAY_SCHEMA, None, 0.5, out_dir / f"logs/replay-{key}-{arm}.log")
+        out, m = claude(prompt, "light", REPLAY_SCHEMA, None, 0.5, out_dir / f"logs/replay-{key}-{arm}.log")
         res["arms"][arm] = {**(out or {"verdict": "ERROR"}), "expected": expect[arm]}
         res["metrics"].append(m)
     res["defect_caught"] = res["arms"]["defect"]["verdict"] == "FAIL"
@@ -366,7 +366,7 @@ def impact(notes, causes, out_dir):
             for c in causes)
         pair_txt = "\n".join(p["pair"] for p in pairs)
         prompt = (PROMPTS / "impact.md").read_text() + f"\n\n---\n\n# Notes\n\n{notes_txt}\n\n# Causes\n\n{causes_txt}\n\n# Pairs (note|cause)\n\n{pair_txt}\n"
-        out, m = claude(prompt, "sonnet", IMPACT_SCHEMA, None, 4, out_dir / "logs/impact.log")
+        out, m = claude(prompt, "medium", IMPACT_SCHEMA, None, 4, out_dir / "logs/impact.log")
         result.update(rows=(out or {}).get("rows", []), metrics=m)
     save(dest, result)
     return result

@@ -1,8 +1,12 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "experimental": {
+    "artifacts": true
+  },
   "model": "openai/gpt-6.1-sol",
   "snapshots": true,
   "plugin": ["{{ROOT}}/harness/apps/opencode-pins"],
+  "plugins": [],
   "provider": {
     "openai": {
       "models": {

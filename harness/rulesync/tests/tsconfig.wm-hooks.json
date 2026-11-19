@@ -1,0 +1,12 @@
+{
+  "extends": "../../apps/opencode-pins/tsconfig.json",
+  "compilerOptions": {
+    "typeRoots": ["../../apps/opencode-pins/node_modules/@types"],
+    "types": ["node"],
+    "paths": {
+      "@opencode/plugin": ["../../apps/opencode-pins/node_modules/@opencode/plugin/dist/promise/index.d.ts"],
+      "@opencode/plugin/*": ["../../apps/opencode-pins/node_modules/@opencode/plugin/dist/*"]
+    }
+  },
+  "include": ["../../opencode/plugins/wm-hooks/index.ts"]
+}

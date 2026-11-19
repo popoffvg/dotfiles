@@ -1,5 +1,7 @@
 # Rules
 
+All code is yours.
+
 @rules/language.md
 @rules/evidence.md
 @rules/code.md

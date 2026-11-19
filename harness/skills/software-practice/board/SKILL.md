@@ -13,7 +13,7 @@ description: Draw a component or dataflow diagram on a live board the human hand
 | --- | --- |
 | Write the seed | you write `<topic>.seed.json` — § The seed |
 | Emulate the board in ASCII | `~/.claude/scripts/tldraw-live/seed-ascii.py <topic>.seed.json > <topic>.sketch.txt` |
-| Check the ASCII | one sonnet subagent — § Check the sketch |
+| Check the ASCII | one {medium} subagent — § Check the sketch |
 | Prove the board is the sketch | `seed-ascii.py <topic>.seed.json --match <topic>.json` |
 | Open the editor | `~/.claude/scripts/tldraw-live/serve.py <topic>.json` |
 | See the board | `Read <topic>.png` |
@@ -105,7 +105,7 @@ The output has three parts:
 
 ## Check the sketch
 
-**Spawn one sonnet `general-purpose` subagent, read-only, with `<topic>.sketch.txt`, `<topic>.seed.json` and this section only** — not the conversation and not the reason for the design, so it reads the sketch cold. Prompt:
+**Resolve {medium} through the active harness effort ledger.** Spawn one generated `effort-medium` subagent, read-only, with `<topic>.sketch.txt`, `<topic>.seed.json` and this section only. Exclude the conversation and the reason for the design, so it reads the sketch cold. Prompt:
 
 > Read `<topic>.sketch.txt` and `<topic>.seed.json`. Check each rule against the picture below and return PASS or FAIL per rule, with the box ids and the arrow for each FAIL, then one overall verdict PASS | FAIL. Edit nothing.
 > R1 the picture shows every box and every arrow in the listing; the status line reads `built from seed — clean`; no `#` is in the picture.

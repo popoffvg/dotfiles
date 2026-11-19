@@ -14,7 +14,7 @@ docs are in `~/git/reviewrules`.
 | `notes` | `<repo>/.notes/.reviewrules/config.json`: one `ADR-NNNN/Pn` rule per Property of a live ADR | `rule_dirs.notes` |
 
 Each rule has a `profile`: `light`, `medium`, or `heavy`. The `profiles` table of the user config
-sets the model, the effort, and the steps of each profile. A rule id from a rule dir reads
+sets the model, reasoning effort, and steps of each profile. A rule id from a rule dir reads
 `<dir name>/<rule id>`, for example `notes/ADR-0003/P2`.
 
 ## Run it

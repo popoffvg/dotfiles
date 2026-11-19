@@ -18,7 +18,7 @@ Four files at this root are shared by all five skills. Nothing else at this leve
 | `INDEX.md` | The map: which skill owns which file, and what that file owns. |
 | `GLOSSARY.md` | **The leading words** — one word, one meaning, used verbatim by all five skills. A word used in two skills is defined here; a word private to one is defined there. |
 | `TOOLS.md` | **Situation → tool** — which script, agent, or skill answers a need, and how to invoke it. |
-| `CLAUDE.md` | This file: how to work on the plugin. |
+| `AGENTS.md` | This file: how to work on the plugin. |
 
 ## Rule: the router holds routing and the shared taxonomy, nothing else
 
@@ -75,4 +75,4 @@ usage block, never paraphrased — a wrong flag in the index costs more than a m
 and `commands/review:help.md` print the mode table the same way. Any roster change — adding,
 removing, renaming a subcommand or mode, or editing a one-line description — lands in both the
 `SKILL.md` and its `commands/<skill>-help.md` in the same commit. The repo-wide statement of this rule
-is in the root `CLAUDE.md` § Subcommand rosters.
+is in [Subcommand rosters](../AGENTS.md#subcommand-rosters).

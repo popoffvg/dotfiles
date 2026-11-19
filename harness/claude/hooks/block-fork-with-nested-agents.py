@@ -9,7 +9,6 @@ import re
 import sys
 
 NESTED_AGENT_SIGNS = [
-    (r"\b(sonnet|haiku)\b", "names a cheaper model"),
     (r"\bsub-?agents?\b|\bspawn", "asks for subagents"),
     (r"@[a-z][a-z-]+\b|\bwm:[a-z-]+(er|critic|checker|tester)\b", "names an agent type"),
     (r"/code (impl|auto)\b", "runs a loop that starts agents"),
@@ -22,6 +21,8 @@ if tool_input.get("subagent_type") != "fork":
 
 prompt = tool_input.get("prompt", "")
 hits = [why for pattern, why in NESTED_AGENT_SIGNS if re.search(pattern, prompt, re.IGNORECASE)]
+if tool_input.get("model"):
+    hits.append("sets a model override")
 if not hits:
     sys.exit(0)
 
@@ -32,7 +33,7 @@ reason = (
     "If it needs 70% or more: fork again, and give the fork only work it does itself, "
     "with no nested agents and no model name. Run each nested agent from this session. "
     "If it needs less than 70%: start a new named agent (`general-purpose`, `wm:implementer`, ...) "
-    "with `model`. It starts with an empty context, so list in the prompt the files it must read "
+    "with the task's configured effort profile. It starts with an empty context, so list in the prompt the files it must read "
     "first, as absolute paths, each with one line that says why. "
     "Add the facts from this session that no file holds."
 )

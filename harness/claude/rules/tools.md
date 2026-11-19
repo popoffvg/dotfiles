@@ -1,5 +1,15 @@
 # Tools
 
+## Effort selection
+
+- Skills, agents, and workflows MUST select `{light}`, `{medium}`, or `{heavy}` effort.
+- Resolve both the model and reasoning setting through the active harness's `harness/effort-ledger.json`.
+- Keep concrete model names in the effort ledger, not in shared instructions.
+- Preserve each task's effort requirement, agent role, permissions, and checks.
+- Escalate deficient reasoning from `{light}` to `{medium}`, then to `{heavy}`. Escalate only the failed unit.
+- Authentication, quota, and transport failures are blockers, not reasons to select another effort tier.
+- Honor an explicit user override. Report unsupported settings or unavailable models instead of silently using defaults.
+
 ## File edits
 
 - Use the Edit tool for a change in one file. Use the Write tool to replace a whole file.

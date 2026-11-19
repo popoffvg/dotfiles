@@ -1,11 +1,11 @@
 export const meta = {
   name: 'wm-code-impl',
   description: 'Run the reviewrules review until it is green — over one wm TODO it implements first, or over a diff no TODO pair covers',
-  whenToUse: "Driving /code impl deterministically, or a fixup loop over a diff no TODO pair covers. In todo mode sonnet implements + commits first; in diff mode the code already exists and the run starts at the review. Each round refreshes the ADR rules and runs reviewrules once over the diff (review:references/ref-reviewrules.md); exit 0 is green, exit 1 routes every FAIL to one wm:implementer fixup and runs the review again, exit 2 stops the run. wm-code-auto calls this once per TODO.",
+  whenToUse: "Driving /code impl deterministically, or a fixup loop over a diff no TODO pair covers. In todo mode the implementer implements + commits first; in diff mode the code already exists and the run starts at the review. Each round refreshes the ADR rules and runs reviewrules once over the diff (review:references/ref-reviewrules.md); exit 0 is green, exit 1 routes every FAIL to one wm:implementer fixup and runs the review again, exit 2 stops the run. wm-code-auto calls this once per TODO.",
   phases: [
-    { title: 'Intent', detail: 'diff mode only — resolve the base and derive the intent sentence', model: 'haiku' },
-    { title: 'Implement', detail: 'wm:implementer (sonnet, opus for a red TODO) writes + commits, and fixes every FAIL of the review', model: 'sonnet' },
-    { title: 'Review', detail: 'wm-constraints.py --reviewrules, then one reviewrules run; the exit code decides', model: 'haiku' },
+    { title: 'Intent', detail: 'diff mode only — resolve the base and derive the intent sentence' },
+    { title: 'Implement', detail: 'medium tier, heavy for a red TODO: implement, commit, and fix every review FAIL' },
+    { title: 'Review', detail: 'wm-constraints.py --reviewrules, then one reviewrules run; the exit code decides' },
   ],
 }
 
@@ -72,7 +72,7 @@ const lessonsFile = parsed.lessonsFile || null
 // passes 3 — the third red review run → status: blocked.
 const maxGateFails = parsed.maxGateFails || null
 
-const implementerModel = parsed.risk === 'red' ? 'opus' : 'sonnet'
+const implementerAgent = parsed.risk === 'red' ? 'wm:implementer-heavy' : 'wm:implementer'
 
 // Backstop only, for the unbounded case: real termination is the review budget or the
 // implementer's own hard-stop returning status:"blocked". Logged if ever hit
@@ -219,7 +219,7 @@ async function runReview() {
       ` --json-out ${reportDir}/reviewrules.json > ${reportDir}/report.md 2> ${reportDir}/reviewrules.log\n` +
       `4. Read ${reportDir}/report.md. Return the exit code, the --base value you passed, every FAIL line ` +
       `(the rule id, the severity, and each finding under it, verbatim), every CONFIRMED hypothesis line as rule hypothesis/<id> with severity high and the lines under it as findings, and on exit 2 the last 20 lines of ${reportDir}/reviewrules.log.`,
-    { agentType: 'general-purpose', model: 'haiku', phase: 'Review', schema: REVIEW, label: `review:r${round}` },
+    { agentType: 'effort-light', phase: 'Review', schema: REVIEW, label: `review:r${round}` },
   )
   if (out && base === null) base = out.base
   return out
@@ -307,8 +307,7 @@ if (mode === 'todo') {
     `Run exactly: ~/.claude/scripts/wm-constraints.py ${notesDir}/adr --unapproved\n` +
       `Return its exit code and its whole stdout. Change no file, commit nothing, never edit an ADR.`,
     {
-      agentType: 'general-purpose',
-      model: 'haiku',
+      agentType: 'effort-light',
       phase: 'Implement',
       label: `adr-approval:TODO-${todo}`,
       schema: {
@@ -325,7 +324,7 @@ if (mode === 'todo') {
       blocker: `Every live ADR needs status: approved, set by the operator, before TODO-${todo} is implemented.\n${approval.stdout.trim()}`,
     })
   }
-  impl = await agent(implPrompt(), { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `impl:TODO-${todo}` })
+  impl = await agent(implPrompt(), { agentType: implementerAgent, phase: 'Implement', schema: IMPL, label: `impl:TODO-${todo}` })
   if (!impl || impl.status === 'blocked') return blockedAfterReview('initial', impl)
 } else {
   // review:sub-diff.md step 1 — resolve the target into a base and a head, and derive the intent,
@@ -342,7 +341,7 @@ if (mode === 'todo') {
       (intent
         ? `3. The intent is already given — return it verbatim: ${intent}\n`
         : `3. Derive the intent: one sentence saying what this change is for, from the commit messages in the range.\n`),
-    { agentType: 'general-purpose', model: 'haiku', phase: 'Intent', schema: INTENT, label: 'intent' },
+    { agentType: 'effort-light', phase: 'Intent', schema: INTENT, label: 'intent' },
   )
   if (!resolved) return { result: 'ERROR', mode, stage: 'intent', round, history }
   if (resolved.empty) {
@@ -420,7 +419,7 @@ while (round < MAX_ROUNDS) {
   }
 
   phase('Implement')
-  impl = await agent(implPrompt(failures.length > 0 ? failures : [`read ${report} and close every FAIL in it`]), { agentType: 'wm:implementer', model: implementerModel, phase: 'Implement', schema: IMPL, label: `fixup:r${round}` })
+  impl = await agent(implPrompt(failures.length > 0 ? failures : [`read ${report} and close every FAIL in it`]), { agentType: implementerAgent, phase: 'Implement', schema: IMPL, label: `fixup:r${round}` })
   if (!impl || impl.status === 'blocked') return blockedAfterReview('review-fixup', impl)
 }
 

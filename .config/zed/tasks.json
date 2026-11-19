@@ -357,4 +357,13 @@
     "show_summary": false,
     "show_command": false,
   },
+  {
+    "allow_concurrent_runs": true,
+    "args": ["start", "--anchor", "$ZED_WORKTREE_ROOT"],
+    "command": "'/opt/nanobrew/prefix/bin/zerdr'",
+    "hide": "never",
+    "label": "zerdr: Herdr",
+    "reveal": "always",
+    "use_new_terminal": true,
+  },
 ]

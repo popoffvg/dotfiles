@@ -26,8 +26,7 @@ read by an implementer and is not bound by it.
 ## Constraints — rules come from ADR Properties
 
 The rules every increment obeys are **generated** from the Properties of the ADRs in `<notes-dir>/adr/`, never written by
-hand. No pair file copies an ADR rule or the command; `todos/CLAUDE.md` § Read order names the command
-once (`examples/todos-claude.md`). Run
+hand. The [TODO read order](../examples/todos-agents.md#read-order) puts the command in `todos/AGENTS.md`. Run
 `~/.claude/scripts/wm-constraints.py <notes-dir>/adr` to see the set every TODO is bounded by; no
 file in the corpus holds it.
 

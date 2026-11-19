@@ -4,7 +4,7 @@ description: >
   Shape agent-facing markdown into the house style — steps plus disclosed reference, a checkable
   completion criterion per step, leading words instead of restatements, positive targets instead of
   bans, and a description that fires as a context pointer. Load it when writing or rewriting a
-  SKILL.md, an agent file, a command file, a `references/` doc, or an AGENTS.md/CLAUDE.md, when the
+  SKILL.md, an agent file, a command file, a `references/` doc, or an AGENTS.md, when the
   `prune-text` skill reaches its reshape phase, and when judging whether a file reads as the shape
   its reader needs.
 ---

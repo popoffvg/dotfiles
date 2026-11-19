@@ -1,7 +1,7 @@
 # Minions workflow
 
 Keep the main context for conclusions; place heavy reading in bounded agents.
-Apply the active harness's ledger for model selection, tool calls, and collection.
+Apply the active harness's ledger for delegation, tool calls, and collection.
 
 1. **Define units.** A unit is one deliverable: auditing twelve independent files can
    be twelve units; reading a config and patching it is one. Name its deliverable,
@@ -9,13 +9,13 @@ Apply the active harness's ledger for model selection, tool calls, and collectio
    delegation; hand the agent a finished file and its verified record count. Done
    when every unit has those three fields and bounded input.
 
-2. **Route units.** Apply the ledger's first matching row and preserve named-agent
-   defaults as it directs. Give parallel writers disjoint paths or isolated checkouts.
-   For six or more units, or any writing unit, show the plan — unit, shape, model,
+2. **Route units.** Apply the ledger's first matching row and resolve its effort tier to both model and reasoning settings.
+   Give parallel writers disjoint paths or isolated checkouts.
+    For six or more units, or any writing unit, show the plan — unit, shape, effort,
    deliverable — before launching, honoring user corrections as they arrive. Keep
    units that need a user decision pending; existing authorization permits independent
    units to proceed. Done when every unit has a
-   shape, model, and write scope.
+    shape, effort, and write scope.
 
 3. **Prompt blind.** Put the deliverable first, then absolute input paths, facts the
    agent cannot see, the return shape, and limits such as read-only or bounded files.
@@ -28,7 +28,7 @@ Apply the active harness's ledger for model selection, tool calls, and collectio
 4. **Collect and verify.** Wait for every unit, inspect failure states, and read the
    requested result or report. Re-check reported counts and spot-check evidence;
    a missing required field or contradicted spot-check makes a unit deficient.
-   Rerun only that unit under the ledger's escalation rule. After writers,
+   Rerun only that unit under the ledger's escalation rule. Keep launch failures separate from deficient results. After writers,
    compare changed paths against the initial working-tree state and assigned write
    scopes, preserving edits that predated the run. Units awaiting a user decision
    stay pending; report their blocker and keep the task open for the answer. Done

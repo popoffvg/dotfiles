@@ -1,5 +1,6 @@
 ---
 name: name-critic
+harness-effort: "{light}"
 description: >
   Naming gate for the names a spec corpus mints — runs the `pedant` smell table over the `## New
   terms` rows, the created `## Components` symbols, and the symbols the `## Increments` diffs add,
@@ -8,7 +9,6 @@ description: >
   caller names. Spawned by `/code verify` (`code:sub-verify.md`). Names in a code diff are the job of
   the `review` skill.
 tools: Read, Glob, Grep, Bash, Write
-model: haiku
 color: green
 ---
 

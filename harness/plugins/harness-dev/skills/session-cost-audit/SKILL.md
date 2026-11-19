@@ -16,7 +16,7 @@ Two words carry the audit:
 
 1. **Run the auditor.** `~/.claude/scripts/doctor-session-cost.py <transcript.jsonl|project-name>` (`--latest` picks the newest session) prints one self-describing JSON report. Record `wc -l` on the transcript — a live session appends while the audit runs. Related attribution scripts: `doctor-skill-listing-cost.py`, `doctor-user-skill-usage.py`.
 
-2. **Label the segments.** For every segment above the median `reqs`: label it work or **rework**. A rework segment corrects naming, removes something, or repeats an instruction. For each rework segment, grep the harness rule files (`~/.claude/CLAUDE.md`, loose skills, plugin skills) and cite the `file:line` that already stated the rule — or reclassify it as genuine new intent.
+2. **Label the segments.** For every segment above the median `reqs`: label it work or **rework**. A rework segment corrects naming, removes something, or repeats an instruction. For each rework segment, grep the harness rule files (`~/.claude/AGENTS.md`, loose skills, plugin skills) and cite the `file:line` that already stated the rule — or reclassify it as genuine new intent.
 
 3. **Quantify the waste fields.** Walk the rest of the report — static floor share of `cache_read`, repeated blocking hooks, largest tool results, reread/rewritten files, subagents, compactions, wall clock span versus active. Each field becomes a finding with a number, or is noted clean.
 

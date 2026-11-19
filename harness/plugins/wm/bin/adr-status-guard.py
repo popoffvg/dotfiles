@@ -16,6 +16,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from file_edit import moved_file_content
 
 ADR_FILE = re.compile(r"(^|/)adr/(archived/)?\d{4}-[^/]*\.md$")
 STATUS_LINE = re.compile(r"^status:\s*([^\s#]*)", re.MULTILINE)
@@ -57,7 +58,10 @@ def guard_file(name: str, tool: dict) -> None:
     old_status = status_of(before) if before else "proposed"
     if old_status == "approved":
         block(f"{path.name} is approved, so the agent does not edit it. {HOW}")
-    after = tool.get("content", "") if name == "Write" else after_edit(before, tool)
+    if "move_from" in tool:
+        after = moved_file_content(tool)
+    else:
+        after = tool.get("content", "") if name == "Write" else after_edit(before, tool)
     new_status = status_of(after)
     if new_status != old_status:
         block(f"This edit changes the status of {path.name} from {old_status} to {new_status}. {HOW}")

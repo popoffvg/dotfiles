@@ -1,6 +1,6 @@
-# The repo CLAUDE.md
+# The repo AGENTS.md
 
-`CLAUDE.md` is loaded into every session in this repo. It holds the **maintenance contract**: the rules an agent cannot derive from the code. It does not repeat the README, and it does not restate what the deploy and adr skills already say.
+`AGENTS.md` is loaded into every session in this repo. It holds the **maintenance contract**: the rules an agent cannot derive from the code. It does not repeat the README, and it does not restate what the deploy and adr skills already say.
 
 ## Required sections
 
@@ -46,7 +46,7 @@ Only the rules the code does not state: the ubiquitous language of this domain, 
 
 ## Rules
 
-- **One source of truth per fact.** The deploy procedure lives in the deploy skill; the ADR format lives in the adr skill; `CLAUDE.md` names *when* each fires. Restating either creates drift.
+- **One source of truth per fact.** The deploy procedure lives in the deploy skill; the ADR format lives in the adr skill; `AGENTS.md` names *when* each fires. Restating either creates drift.
 - **Point with resolvable relative paths.** `.claude/skills/deploy/SKILL.md`, `docs/adr/`.
 - **Rules are positive.** State the target behaviour, so the unwanted one is never named.
-- **Keep it under one screen.** `CLAUDE.md` costs context in every session in the repo. Detail moves to a skill or a `docs/` page behind a pointer.
+- **Keep it under one screen.** `AGENTS.md` costs context in every session in the repo. Detail moves to a skill or a `docs/` page behind a pointer.

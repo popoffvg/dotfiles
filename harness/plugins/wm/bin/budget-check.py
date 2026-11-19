@@ -38,7 +38,7 @@ Checked, by file kind:
                           no frontmatter (status lives in the human half alone)
                           no human-half section present (Outcome, New terms,
                           Components, Increments, Autotest, Commit)
-                          no ## Constraints - todos/CLAUDE.md names wm-constraints.py
+                          no ## Constraints - todos/AGENTS.md names wm-constraints.py
 
   todos/TODO-N.test.md    test file - ## Autotest alone, NO line budget, by design
                           no frontmatter
@@ -389,7 +389,7 @@ def check_todo_agent(lines, violations, path):
     )
     if "Constraints" in found:
         violations.append(
-            "the agent half carries `## Constraints`. Delete it: `todos/CLAUDE.md` names "
+            "the agent half carries `## Constraints`. Delete it: `todos/AGENTS.md` names "
             "`~/.claude/scripts/wm-constraints.py` once, so no TODO file repeats the command."
         )
 

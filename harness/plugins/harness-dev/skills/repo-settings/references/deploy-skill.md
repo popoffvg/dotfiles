@@ -31,4 +31,4 @@ Ordered steps, each ending on a checkable condition. Derive every step from a fi
 
 ## Keeping it current
 
-The deploy skill is generated from the CI workflows and release scripts. When those change, the skill is stale until it is regenerated. `CLAUDE.md` carries that rule — see `references/claude-md.md`.
+The deploy skill is generated from the CI workflows and release scripts. When those change, the skill is stale until it is regenerated. `AGENTS.md` carries that rule — see `references/agents-md.md`.

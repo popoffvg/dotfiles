@@ -68,9 +68,10 @@
     "show_count_badge": false,
   },
   "theme": {
-    "mode": "system",
+    "mode": "dark",
     "light": "Catppuccin Latte - No Italics",
     "dark": "Catppuccin Frappé"
+
   },
   // line-comment publishes each line comment as a Hint diagnostic, so inline
   // diagnostics are what put the comment text at the end of its line.
@@ -117,12 +118,17 @@
     "enabled": true,
   },
   "ui_font_fallbacks": ["FiraCode Nerd Font Mono"],
-  "icon_theme": "Material Icon Theme",
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Material Icon Theme",
+    "dark": "Material Icon Theme"
+  },
   "title_bar": {
     "show_branch_status_icon": true,
   },
   "semantic_tokens": "combined",
   "edit_predictions": {
+    "allow_data_collection": "no",
     "open_ai_compatible_api": {
       "max_output_tokens": 128
     },
@@ -213,8 +219,9 @@
     },
   },
   "agent": {
-    "show_turn_stats": true,
-    "thinking_display": "always_collapsed",
+    "threads_sidebar": {
+      "herdr_sessions": true
+    },
     "expand_edit_card": false,
     "play_sound_when_agent_done": "when_hidden",
     "notify_when_agent_waiting": "all_screens",

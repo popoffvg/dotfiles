@@ -1,5 +1,6 @@
 ---
 name: verifier
+harness-effort: "{medium}"
 description: >
   Adversarial spec-verification agent — checks an implemented TODO against its spec
   independently of the implementer. Reads the `.notes/todos/TODO-N.md` +
@@ -7,7 +8,6 @@ description: >
   `.notes/verify-TODO-N.md` verdict (PASS | DEVIATES). Read-only on source. Judges against
   the TODO elements defined in `arch:sub-todo.md`. The terms they use are defined in `<notes-dir>/GLOSSARY.md`; a symbol the diff names with a Forbidden or retired name deviates.
 color: green
-model: sonnet
 tools: Read, Glob, Grep, Bash, Write
 ---
 

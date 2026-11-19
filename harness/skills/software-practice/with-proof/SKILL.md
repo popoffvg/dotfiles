@@ -28,10 +28,10 @@ The situation arrives in four disguises, and naming yours picks the instrument i
    | 3 | A standalone probe script in `~/.claude/scripts/` + its MANIFEST row | — |
    | 4 | Source-read, when nothing executable exists | verdict is labelled **source-read**, never proved |
 3. **Build the input with the project's own producer.** A hand-written literal proves your idea of the input; the builder, fixture factory, or real command proves the input.
-4. **Run it and capture the raw record** — the exact command, the exit code, the output lines you will quote. Long runs go to a background task (`bg-build-and-test`). Paraphrase from memory is not a record.
+4. **Run the command.** Record the exact command, its exit code, and the output lines you will quote.
 5. **Add both controls.** This is where a probe earns the word proof.
    - **Negative control** — break the exact thing the claim says was checked, re-run, and see it fail. Absent this, a PASS may only mean the instrument ran.
-   - **Positive control** — every nothing-found result (no process, no grep hit, empty query, "no precedent") runs the same query against a neighbour known to exist, and finds it. This is the positive control `CLAUDE.md` requires.
+   - **Positive control** — every nothing-found result (no process, no grep hit, empty query, "no precedent") runs the same query against a neighbour known to exist, and finds it. This is the positive control `AGENTS.md` requires.
 6. **Rule with one of three verdicts.**
    - **PROVED** — outcome observed, negative control failed as designed.
    - **DISPROVED** — the kill criterion was observed.

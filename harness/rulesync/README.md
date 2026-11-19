@@ -13,6 +13,16 @@ The sources intentionally retain native Claude frontmatter. Rulesync imports the
 into disposable source trees on each deployment, then generates target components.
 The import adds implicit agent names in staging; it never rewrites source metadata.
 
+## Effort selection
+
+Shared instructions select `{light}`, `{medium}`, or `{heavy}` effort. [`effort-ledger.json`](effort-ledger.json) maps each symbol to both a model and a reasoning setting for each harness. Change the mapping there, not in skills.
+
+Source agents declare a symbol such as `harness-effort: "{medium}"`; optional `harness-variants` lists additional tier variants. Deployment compiles native settings without changing the agent's role. Generic `effort-light`, `effort-medium`, and `effort-heavy` agents serve unnamed work. CLI helpers use [`effort.py`](effort.py) to apply the same mapping.
+
+Escalate deficient reasoning from light to medium, then to heavy. Authentication, quota, and transport failures remain blockers. Explicit user overrides win. Keep requested settings distinct from model metadata.
+
+OpenCode and Codex model/effort pairs match their local catalogs. Cursor and Pi profiles use the installed Cursor SDK catalog. Live Cursor availability requires `agent login`; generation and mocked tests do not prove provider access.
+
 ## Public aliases and internal workers
 
 `config.json` exposes `wm`, `code`, `review`, `dive`, and the five
@@ -48,18 +58,21 @@ registration is retired during sync because Codex discovers a plugin's default
 Pi's Claude marketplace bridge does not re-export the
 owned plugins already deployed privately by Rulesync.
 
-Only the maintenance guard is added to Codex and Pi. Existing Claude plugin hooks
-stay with Claude; WM's Codex runtime documents explicit lifecycle checks. Importing
-an event does not translate its payload or make its script portable. The Pi guard
-uses its native `tool_call` payload, which Rulesync's command-hook adapter does not
-pass to the command. Guards cover direct edit/write/patch tools; they are workflow
-checks, not an operating-system sandbox for arbitrary shell code.
+Claude retains its native WM hooks. Codex, Pi, OpenCode, and Cursor use native adapters backed by [wm_hooks.py](wm_hooks.py). The adapters read the [WM hook manifest](../plugins/wm/hooks/hooks.json), normalize tool inputs, and translate context and block decisions. Patch calls check every affected file before execution. Hook failures block pre-tool checks. Other hook failures remain visible.
+
+Codex hooks require review and trust through `/hooks`. Pi uses an extension. OpenCode uses its native server plugin. Cursor uses user-level command hooks. Cursor cannot inject prompt or compaction hook output as model context; its session hook supplies the initial context. OpenCode maps successful execution completion to Stop and archive or deletion to SessionEnd. Neither mapping is an operating-system sandbox.
+
+`AGENTS.md` is canonical in the source harness. Deployment generates Claude compatibility imports. `/code new` creates the project workflow entry and notes guides through [wm-agents.py](../plugins/wm/bin/wm-agents.py). Existing instructions remain intact.
 
 Line-comment uses `$line-comment-<operation>` in Codex and
 `/line-comment-<operation>` in Claude and Pi. These aliases read the original
 command procedures; they do not migrate Claude hooks or run the commands during sync.
 
 ## Ownership and verification
+
+Run `mise run harness:codex:rtk` to deploy the Codex RTK hook and enable SQLite recall in the RTK user configuration. Use RTK 1.2.0 or later. Restart Codex and trust `rtk hook codex` in `/hooks`. [RTK hook](https://github.com/rtk-ai/rtk/blob/v1.2.0/hooks/codex/README.md) · [Codex hook trust](https://learn.chatgpt.com/docs/hooks#review-and-trust-hooks)
+
+If Codex cannot write the SQLite databases, add the RTK data directory to the existing workspace-write roots in your local Codex settings. [RTK sandbox configuration](https://github.com/rtk-ai/rtk/blob/v1.2.0/hooks/codex/README.md#history-in-workspace-write-sandboxes)
 
 `harness/installed.json` under each runtime maps installed files to repository
 sources and hashes. Deployment replaces known Stow links by replacing the link
