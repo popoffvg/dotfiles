@@ -233,15 +233,6 @@
         ]
       },
       {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/scripts/read-claude-local-subrepos.sh"
-          }
-        ]
-      },
-      {
         "matcher": "*",
         "hooks": [
           {

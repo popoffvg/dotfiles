@@ -2,7 +2,9 @@
 export PATH="/opt/nanobrew/prefix/bin:$PATH"
 
 # >>> lig pre >>>
-eval "$(lig init zsh pre)"
+if [[ -z ${ZSH_EXECUTION_STRING:-} ]]; then
+  eval "$(lig init zsh pre)"
+fi
 # <<< lig pre <<<
 # Package manager prefix (nanobrew or homebrew)
 if [[ -d /opt/nanobrew/prefix/bin ]]; then
@@ -66,7 +68,6 @@ export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$PATH:"$(go env GOPATH)/bin"
 export PATH=$PATH:~/local/bin
-export CLAUDE_CODE_EXPERIMENTAL_CODE_MODE=1
 
 
 if [[ $ZED_TERM == true ]]; then

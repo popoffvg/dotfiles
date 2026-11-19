@@ -20,10 +20,9 @@ keybind = cmd+shift+3=goto_tab:3
 keybind = cmd+shift+4=goto_tab:4
 keybind = cmd+shift+5=goto_tab:5
 
-theme = Monokai Pro
+theme = light:Monokai Pro Light,dark:Monokai Pro
 macos-titlebar-style = tabs
 
-cursor-color = #ffffff
 cursor-style = bar
 cursor-style-blink = true
 cursor-invert-fg-bg = true

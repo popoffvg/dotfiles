@@ -8,16 +8,11 @@
 	driver = mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P -l %L
 [push]
     autoSetupRemote = true # create remote branch auto
-[url "git@github.com:"]
-	insteadOf = https://github.com/
+[url "https://github.com/"]
+	insteadOf = git@github.com:
+	insteadOf = ssh://git@github.com/
 [url "git@gitlab.com:"]
 	insteadOf = https://gitlab.com/
-[includeIf "gitdir:~/Documents/git/inDrive/"]
-  path = ~/Documents/git/inDrive/.gitconfig
-[includeIf "gitdir:~/Documents/git/emcd/"]
-  path = ~/Documents/git/emcd/.gitconfig
-[includeIf "gitdir:~/Documents/git/mil/"]
-  path = ~/Documents/git/mil/.gitconfig
 [user]
 	email = popoffvg@gmail.com
 	name = Vitalii Popov
@@ -49,16 +44,26 @@
 [core]
 	pager = hunk pager
 	excludesfile = ~/.gitignore
+# The token of the gh account named in username; a folder include changes the username.
 [credential "https://github.com"]
-	helper = 
-	helper = !/opt/nanobrew/prefix/bin/gh auth git-credential
+	username = popoffvg
+	helper =
+	helper = "!f() { [ \"$1\" = get ] || exit 0; u=$(sed -n 's/^username=//p'); [ -n \"$u\" ] || exit 0; t=$(/opt/nanobrew/prefix/bin/gh auth token --user \"$u\") || exit 0; printf 'username=%s\\npassword=%s\\n' \"$u\" \"$t\"; }; f"
 [credential "https://gist.github.com"]
-	helper = 
-	helper = !/opt/nanobrew/prefix/bin/gh auth git-credential
+	username = popoffvg
+	helper =
+	helper = "!f() { [ \"$1\" = get ] || exit 0; u=$(sed -n 's/^username=//p'); [ -n \"$u\" ] || exit 0; t=$(/opt/nanobrew/prefix/bin/gh auth token --user \"$u\") || exit 0; printf 'username=%s\\npassword=%s\\n' \"$u\" \"$t\"; }; f"
 [safe]
 	directory = *
 [pager]
 	log = less -FRX
+# Folder includes stay last: a later value overrides [user] and [core] above.
+[includeIf "gitdir:~/Documents/git/inDrive/"]
+  path = ~/Documents/git/inDrive/.gitconfig
+[includeIf "gitdir:~/Documents/git/emcd/"]
+  path = ~/Documents/git/emcd/.gitconfig
+[includeIf "gitdir:~/Documents/git/mil/"]
+  path = ~/Documents/git/mil/.gitconfig
 [includeIf "gitdir:~/git/mil/"]
   path = ~/Documents/git/mil/.gitconfig
 [includeIf "gitdir:~/git/mil/"]

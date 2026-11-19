@@ -44,9 +44,25 @@ for bin in gh git; do
   }
 done
 
-cd "$repo_dir"
-repo_root="$(git rev-parse --show-toplevel)"
+for dir in "$repo_dir" "$(dirname "${ZED_FILE:-/}")"; do
+  if repo_root="$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null)"; then
+    break
+  fi
+done
+[ -n "${repo_root:-}" ] || {
+  echo "zed-pr-worktree: no git repo at $repo_dir or at the open file; open a file of the repo and run again" >&2
+  exit 1
+}
 cd "$repo_root"
+
+gh_user="$(git config credential.https://github.com.username || true)"
+if [ -n "$gh_user" ] && [ -z "${GH_TOKEN:-}" ]; then
+  GH_TOKEN="$(gh auth token --user "$gh_user")" || {
+    echo "zed-pr-worktree: gh has no login for $gh_user; run: gh auth login" >&2
+    exit 1
+  }
+  export GH_TOKEN
+fi
 
 if [ -z "$pr" ]; then
   command -v fzf >/dev/null 2>&1 || {
@@ -141,7 +157,8 @@ default_branch="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/d
 default_branch="${default_branch#origin/}"
 
 settings="$worktree_path/.zed/settings.json"
-if [ ! -e "$settings" ]; then
+settings_changed=1
+if ! grep -q '[^[:space:]]' "$settings" 2>/dev/null; then
   mkdir -p "$worktree_path/.zed"
   cat >"$settings" <<'EOF'
 {
@@ -167,8 +184,12 @@ else:
     text = text[: brace + 1] + '\n' + block.rstrip('\n') + text[brace + 1 :]
 open(path, 'w').write(text)
 PY
-  git -C "$worktree_path" ls-files --error-unmatch .zed/settings.json >/dev/null 2>&1 &&
-    git -C "$worktree_path" update-index --skip-worktree .zed/settings.json
+else
+  settings_changed=0
+fi
+if [ "$settings_changed" -eq 1 ] &&
+  git -C "$worktree_path" ls-files --error-unmatch .zed/settings.json >/dev/null 2>&1; then
+  git -C "$worktree_path" update-index --skip-worktree .zed/settings.json
 fi
 
 if [ -n "$default_branch" ] && [ "$default_branch" != "$base_ref" ]; then

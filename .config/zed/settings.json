@@ -87,8 +87,8 @@
   "code_lens": "on",
   "proxy": "",
   "telemetry": {
-    "diagnostics": true,
-    "metrics": true,
+    "diagnostics": false,
+    "metrics": false,
   },
   "restore_on_startup": "none",
   "when_closing_with_no_tabs": "keep_window_open",
