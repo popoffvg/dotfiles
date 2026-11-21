@@ -558,5 +558,10 @@
     "unbind": {
       "cmd-w": "workspace::CloseWindow"
     }
+  },
+  {
+    "bindings": {
+      "cmd-k c": "line_comments::AddLineComment"
+    }
   }
 ]

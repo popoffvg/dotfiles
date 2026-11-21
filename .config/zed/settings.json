@@ -13,6 +13,7 @@
   },
   "soft_wrap": "editor_width",
   "markdown_preview": {
+    "open_markdown_files_in_preview": true,
     "code_font_family": ".ZedMono",
     "font_family": ".SystemUIFont",
     "limit_content_width": false,
@@ -28,6 +29,8 @@
     "background_coloring": "disabled",
   },
   "preview_tabs": {
+    "enable_preview_from_project_panel": false,
+    "enabled": true,
     "enable_keep_preview_on_code_navigation": true,
   },
   "language_models": {
@@ -232,7 +235,14 @@
       "allow_unsandboxed": false
     },
     "expand_terminal_card": false,
-    "terminal_init_command": "claudex",
+    // miZed only. MIZED=1 tells an agent that it runs in miZed and can reach the mized MCP server.
+    "terminal_init_command": "MIZED=1 claudex",
+    "terminal_agent_commands": {
+      "claude": "MIZED=1 claude",
+      "codex": "MIZED=1 codex --no-daemon",
+      "pi": "MIZED=1 pi",
+      "opencode": "MIZED=1 opencode",
+    },
     "commit_message_model": {
       "provider": "zed.dev",
       "model": "gemini-3.5-flash",

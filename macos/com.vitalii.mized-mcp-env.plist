@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.vitalii.mized-mcp-env</string>
+  <!-- miZed starts its MCP server only when MIZED_MCP_ADDRESS_FILE is in its start environment. It reads the variable before the login shell environment loads. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string>
+    <string>-c</string>
+    <string>launchctl setenv MIZED_MCP_ADDRESS_FILE "$HOME/.mized-mcp-address"</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+</dict>
+</plist>

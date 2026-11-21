@@ -381,9 +381,24 @@
     "side-chat@side-chat": true,
     "pins@pins": true,
     "compact-ask@compact-ask": true,
-    "dollar-skills@local-plugins": true
+    "dollar-skills@local-plugins": true,
+    "modern-web-guidance@googlechrome": true,
+    "pm-discover@pm-skills": true,
+    "pm-develop@pm-skills": true
   },
   "extraKnownMarketplaces": {
+    "googlechrome": {
+      "source": {
+        "source": "github",
+        "repo": "GoogleChrome/modern-web-guidance"
+      }
+    },
+    "pm-skills": {
+      "source": {
+        "source": "github",
+        "repo": "deanpeters/Product-Manager-Skills"
+      }
+    },
     "engram": {
       "source": {
         "source": "github",
