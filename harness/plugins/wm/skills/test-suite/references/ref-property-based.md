@@ -160,5 +160,4 @@ itself`, never `## Property 3`. The generator, the pinned examples, and the shru
 live in the test source; the saved document carries the sentence and the technique that produced
 it, in the shape [`ref-readable-output.md`](ref-readable-output.md) defines.
 
-In a wm TODO's `## Autotest`, a property backs one bold claim group in place of its example
-bullets, with the Outcome as the claim source — shape owned by `arch:examples/todo-test.md` § Autotest.
+In a wm TODO's `## Autotest`, a property is one **Added cases** row whose `Input` names its domain and pinned edges, with the Outcome as the claim source — shape owned by `arch:examples/todo-test.md` § Autotest.

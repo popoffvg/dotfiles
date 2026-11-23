@@ -52,7 +52,7 @@ Each prompt carries the file path, every comment on that file (`<lines> — <tex
 - Act on each comment as a task on that file and those lines. Edit that file only.
 - Ask nothing and start no grilling. A comment you cannot act on comes back unresolved.
 - `(orphaned)` means the anchored line moved or was rewritten. Locate the text the comment was written on before acting; `${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py --store <SESSION>/line-comment.json <ROOT>` prints which line still matches each stored anchor. Pass `<ROOT>` explicitly — the script otherwise resolves paths against the store's grandparent, which is the session folder rather than the project.
-- Return one line per comment and nothing else: `<file>:<line> — <what changed, or "unresolved: <why>">`.
+- Return one line per comment and nothing else: `<file>:<line> — done: <what changed>` or `<file>:<line> — unresolved: <why>`.
 
 ## Triage pattern candidates
 
@@ -90,36 +90,41 @@ A comment that renames a domain term changes more than its file. When the projec
 - Rename every other use of the old name in the notes dir: `spec.md`, the TODO halves, the live ADRs in `adr/`.
 - Return one line per pair: `<old> → <new> — <entry changed>, <N> uses renamed`.
 
-Each pair is one more block in `processed.md`.
+Each pair is one more row under `## Renamed terms` in `processed.md`.
 
 ## Record the session as processed
 
-Write `<SESSION>/processed.md` — one block per comment, acted on and unresolved alike:
+Write `<SESSION>/processed.md` — one item per comment, acted on and unresolved alike, grouped by file:
 
 ```
-# act session <id> — processed
+# act session <id>
 
-<file>:<line> — <comment text>
-  → <what changed, or "unresolved: <why>">
+| Done | Unresolved | Pattern candidates |
+|---|---|---|
+| <D> | <U> | <N> saved to <notes-dir>/patterns/ |
 
-pattern candidates: <N> saved to <notes-dir>/patterns/
+## `<file>`
+
+- **:<line>** — <comment text>
+  - done: <what changed>
+- **:<lines>** — <comment text> (orphaned)
+  - unresolved: <why>
+
+## Renamed terms
+
+- <old> → <new> — <entry changed>, <N> uses renamed
+
+Session: <SESSION>
 ```
 
-The last line is the line the `pattern-triage` agent returned.
+- One `##` section per file, in store order. Inside a file, items go in ascending line order.
+- The result bullet is the fork's own line for that comment, after the `<file>:<line> — ` prefix. Do not rewrite it.
+- The Pattern candidates cell is the line the `pattern-triage` agent returned, after `pattern candidates: `.
+- Leave out `## Renamed terms` when no `fix-glossary` fork ran.
+- Put a `(from Claude)` comment in its file section with the result bullet `skipped: from Claude`. It counts in neither Done nor Unresolved.
 
 **No comment is dropped, because none is left to drop.** The batch left the store when the file moved, so `line-comment-lsp drop` has nothing to do here and is not called. The session folder holds the whole record: `line-comment.json` is the batch exactly as the operator wrote it, `processed.md` is what became of each comment.
 
 **An unresolved comment stays in the session folder.** It is not written back to the live store and its Zed hint does not come back, so `processed.md` is where a leftover is read. Say so in the report when a run leaves any.
 
-Then print the same blocks to the operator and **nothing else**:
-
-```
-<file>:<line> — <comment text>
-  → <what changed, or "unresolved: <why>">
-
-pattern candidates: <N> saved to <notes-dir>/patterns/
-```
-
-Close with the session path on its own line, so the record is reachable.
-
-The `→` line is the fork's own line for that comment, not a rewrite of it. This block replaces the grilling session's own output contract (summary, decision log, unknowns, next actions).
+Then print the content of `processed.md` to the operator and **nothing else**. The `Session:` line keeps the record reachable. This report replaces the grilling session's own output contract (summary, decision log, unknowns, next actions).

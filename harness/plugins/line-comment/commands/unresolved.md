@@ -19,7 +19,7 @@ ROOT=$(dirname "$(dirname "$STORE")")
 ls -d "$ROOT"/.tmp/act-session/* | tail -1
 ```
 
-Read that session's `processed.md` and take the blocks whose result line starts with `unresolved:`.
+Read that session's `processed.md` and take the items whose result bullet starts with `unresolved:`.
 
 Both places empty means nothing is open — say so in one line and stop.
 
@@ -34,7 +34,7 @@ Edit no file, drop no comment, act on nothing. This command reports; `/line-comm
 Rules:
 
 - Keep each source's order. Group by file, and keep each file's lines in ascending order.
-- Print an unresolved leftover with a trailing ` (unresolved: <why>)`, taken from its `processed.md` block.
+- Print an unresolved leftover with a trailing ` (unresolved: <why>)`, taken from its `processed.md` item.
 - A heading marked `(from Claude)` is a comment you placed yourself. Print it with a
   trailing ` (from Claude)` so the operator can tell it from their own.
 - `(orphaned)` means the anchored line moved or was rewritten. Print the stored line number

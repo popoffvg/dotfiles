@@ -10,8 +10,7 @@ contract this subcommand fills. The two worked examples are the pair this subcom
 
 ## How the two artifacts divide
 
-**The `.md` is the map, and every case appears on it.** The function block, the big cases, and
-one line per variant — nothing is invisible to a reader of the `.md` alone.
+**The `.md` is the map, and every case appears on it.** The function block, the unit tables, and the big cases with their numbered scenarios — nothing is invisible to a reader of the `.md` alone.
 
 **The `.feature` files hold the body of behavioural scenarios only.** A variant that crosses
 components, runs a lifecycle, waits on async work, or exercises capacity gets its Given/When/Then

@@ -1,10 +1,8 @@
-# Create — size the test set with pairwise, ship it as big cases
+# Create — size the test set with pairwise, ship unit tables and numbered scenarios
 
 Produce one artifact: a **test set** for a TODO or a task, with every case placed in the cheapest tier that can prove it.
 
-**Open [`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md) first** — it is the artifact this subcommand produces. Note what is *not* in it: no matrix, no tier-named sections.
-
-Pairwise is how you *derive* the set. It is not how you *present* it. The matrix stays in your scratch work; the document you save follows [`ref-readable-output.md`](ref-readable-output.md) — the contract this subcommand fills.
+**Open [`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md) first** — it is the artifact this subcommand produces. The unit tier ships as its pairwise table. The integration and manual tiers ship as numbered scenarios under big cases. The document you save follows [`ref-readable-output.md`](ref-readable-output.md) — the contract this subcommand fills.
 
 ## The three tiers
 
@@ -14,7 +12,7 @@ Pairwise is how you *derive* the set. It is not how you *present* it. The matrix
 
 Each tier gets its own derivation sized to its cost. Never reuse one matrix across tiers — a unit matrix pushed into integration produces cases that pay setup cost to prove logic that a mock already proved.
 
-Tier is a property of a **variant**, not a section of the document. Variants of all three tiers live together under the big case whose behaviour they prove.
+Unit cases live in the unit tables. Integration and manual cases live as scenarios under the big case whose behaviour they prove.
 
 ## Where the output lives
 
@@ -59,9 +57,11 @@ Factor categories that recur:
 
 Some combinations cannot occur or cannot be reached. Write each one down with the reason; the generator must skip them and the reasons become the **Not covered** section of the saved document.
 
-### 4. Generate the matrix — in scratch, per tier
+### 4. Generate the matrix — per tier
 
-1. List that tier's factors and values.
+The unit matrix ships as the Factors and Pairwise cases tables of the document. The integration matrix stays in scratch; its rows become scenarios in step 8.
+
+1. List that tier's factors and values. Name each factor after an input of the function block, and each value in words.
 2. Run a pairwise generator (PICT, allpairs, or by hand under three factors of three values).
 3. Check the property: every pair of values across two factors appears in at least one row.
 
@@ -96,11 +96,13 @@ Every case ends in an observable assertion — the literal shape, value, or even
 - integration — HTTP status N with body shape B, DB row in state S, message published on topic T.
 - manual — the user-visible state, with its timing: "the spinner disappears within 2s and the success toast stays up for at least 1s".
 
-### 8. Group the rows into big cases
+### 8. Shape each tier
 
-Read the rows and find the **behaviours** they cluster around — not the factors they vary. Each cluster becomes one big case with a sentence heading and a paragraph; each row becomes one named variant under it — **one variant, one case**, so a failure names the behaviour that broke instead of failing opaquely inside a test carrying a dozen assertions.
+**Unit** — write the Factors table, then one Pairwise cases row per matrix row, then the step 5 cases as Added cases rows. Give each row a name that says what it asserts. One row is one test, so a failure names the case that broke.
 
-Rows that resist grouping are the interesting ones. A row that belongs to no behaviour usually means the behaviour was never named in the spec, so name it and check it is intended.
+**Integration and manual** — write each case as a numbered `Scenario:` block: one action per step, in run order, and a colon with the observable result on each checked step. Then read the scenarios and find the **behaviours** they cluster around — not the factors they vary. Each cluster becomes one big case with a sentence heading and a paragraph.
+
+A scenario that belongs to no behaviour usually means the spec never named that behaviour. Name it and check that it is intended.
 
 ### 9. Emit the document
 
@@ -121,7 +123,7 @@ Never drop a value silently. Every drop lands in **Not covered** with the intera
 
 Run the checklist in `ref-readable-output.md` § Checklist before saving first, then:
 
-- [ ] The pairwise property held in scratch for every tier that used it
+- [ ] The pairwise property holds for every tier that used it, and the unit table states it under the rows
 - [ ] Smoke, boundary, and regression-shape cases appended on top of the matrix rows
 - [ ] For a fixed-bug shape: grepped for siblings, one case per untouched site
 - [ ] Every case sits in the cheapest tier that proves its oracle, and each tier is inside its budget

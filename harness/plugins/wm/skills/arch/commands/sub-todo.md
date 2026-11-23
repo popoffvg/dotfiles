@@ -271,6 +271,7 @@ rather than a row of its own — is `ref-write.md` § Merges that fall out of th
 7. **Pre-reads are mandatory** — every file to understand before editing.
 8. **New terms are defined, not assumed** — a domain term missing from `GLOSSARY.md` gets a `## New terms` row (`change-review` § New terms, `examples/todo.md` § New terms).
 9. **Components come before changes** — name the `package.Class` set and mark the one holding the main part, then split the work into ordered increments over those components (`change-review` § Components, § Increments).
+10. **`refactor-before-behavior`: a move or a rename is its own commit, before the behavior change.** When the TODO moves, renames, or extracts code and also changes what code does, the first `### Commit` holds only the move, the rename, or the extraction, and changes no behavior: its existing tests pass unchanged. The behavior change starts in the next commit, so the reviewer reads only the logic there.
 
 ## File location
 
@@ -485,9 +486,9 @@ own file against a rule already counted.
 - [ ] Every new `if`, `elif`, `else`, and `raise` line (`# +`) in `TODO-N.md` `## Flow changes` has a case that takes it, and every other `# +` and `# ~` line has a case
 - [ ] **Autotest** has both a `Unit` and an `E2E` sub-block, each with **Under test** + Target files + Cases + one runnable Command — or `none — <concrete reason>`
 - [ ] **Under test** opens each level, above **Target files**, naming the symbols and the one behaviour the whole block proves
-- [ ] Every Autotest case sits in the fenced block under `**Happy path**` or `**Error cases**` — no flat case — as `Case <what it proves>:` with its steps indented under it
-- [ ] A multi-step case writes **one line per step**, in run order, then `Then` and `And` outcome lines — never a chain joined by `;` or `→`
-- [ ] Every Autotest case is a sentence — no assertion source, no fixture, no shell, no table of literal expected values
+- [ ] `Unit` cases are rows of the **Factors**, **Pairwise cases**, and **Added cases** tables: factor names from the symbol under test, values and `Expected` in words, every row sets every factor, and the line under the table states the excluded pairs
+- [ ] Every `E2E` case is a bold case name and a numbered `Scenario:` block of three to seven steps, one action per step, each checked step ending with a colon and the observable result — never a chain joined by `;` or `→`
+- [ ] Every Autotest case is words — no assertion source, no fixture, no shell, no code literal
 - [ ] An `E2E: none` that defers names a TODO that **exists in the ledger** and whose own `E2E` carries a case asserting this path; a deferral to a `Manual test` does not count
 
 ### `TODO-N.agent.md` — the agent half

@@ -5,6 +5,90 @@
       "rule": "When the diff adds an acquire (open, register, lock, lease, in-flight mark, floor) whose release runs in a hook, callback, or deferred call that another layer invokes, find every caller of that layer up to the entry point. Quote each early return between the acquire and the call that runs the release. FAIL when one exit skips the release and nothing later releases it. First search the repo for a sibling mechanism of the same shape (an in-flight set, a finalize, a release in a defer) and compare where it releases; name it in the finding.",
       "severity": "high",
       "profile": "heavy"
+    },
+    {
+      "id": "top-down-file-order",
+      "rule": "In each changed file, the main type and the public entry point come before the helpers, and a new helper comes below its first caller in the same file. FAIL when the diff puts a new helper above the function that first calls it, or puts a new public entry point below the private helpers. Quote both lines.",
+      "scope": ["**/*.go", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.py", "**/*.rs", "**/*.sh", "**/*.java", "**/*.kt"],
+      "severity": "low",
+      "profile": "light"
+    },
+    {
+      "id": "happy-path-left",
+      "rule": "A new or changed function handles each error and edge case first and returns, and the main path ends the function at the outer indentation level. FAIL when the main path sits inside an else branch or inside the if of a success check (if err == nil, if ok, if result) while the failure case is the short branch.",
+      "scope": ["**/*.go", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.py", "**/*.rs", "**/*.sh", "**/*.java", "**/*.kt"],
+      "severity": "medium",
+      "profile": "light"
+    },
+    {
+      "id": "one-abstraction-level",
+      "rule": "A new or changed function calls steps of one level of abstraction. FAIL when one body mixes calls to named domain operations with low-level detail that has a domain meaning of its own (a byte or index loop, string slicing, manual map building) that is not extracted into a named function. Name the lines to extract and a name for the new function.",
+      "scope": ["**/*.go", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.py", "**/*.rs", "**/*.java", "**/*.kt"],
+      "severity": "low",
+      "profile": "medium"
+    },
+    {
+      "id": "no-clever-expressions",
+      "rule": "Each step with a domain meaning has its own named variable. FAIL on a new nested ternary, a side effect inside a condition, or a chain of more than three calls whose intermediate result has a domain meaning and no name.",
+      "scope": ["**/*.go", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.py", "**/*.rs", "**/*.sh", "**/*.java", "**/*.kt"],
+      "severity": "medium",
+      "profile": "light"
+    },
+    {
+      "id": "declare-near-use",
+      "rule": "A new variable is declared just before its first use, in the smallest block that uses it. FAIL when a new variable is declared more than about ten lines before its first read with unrelated statements between, or outside the only block that reads it.",
+      "scope": ["**/*.go", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.py", "**/*.rs", "**/*.sh", "**/*.java", "**/*.kt"],
+      "severity": "low",
+      "profile": "light"
+    },
+    {
+      "id": "no-bool-params",
+      "rule": "A new or changed public function does not take a bare boolean parameter that selects what the function does. FAIL on such a parameter, or on a new call site that passes a bare true or false literal to it, unless the language has named arguments and the call site uses the name. Propose a named type, an enum, or two functions.",
+      "scope": ["**/*.go", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.py", "**/*.rs", "**/*.java", "**/*.kt"],
+      "severity": "medium",
+      "profile": "light"
+    },
+    {
+      "id": "positive-predicates",
+      "rule": "A new boolean variable, field, parameter, or function that returns a boolean is named as a positive fact. FAIL on a name with a negation (not, no, non, skip, disable combined with a negation) that makes a reader resolve a double negative at a call site, for example notDisabled or !isNotReady. Propose the positive name.",
+      "scope": ["**/*.go", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.py", "**/*.rs", "**/*.java", "**/*.kt"],
+      "severity": "medium",
+      "profile": "light"
+    },
+    {
+      "id": "types-at-boundaries",
+      "rule": "Every new or changed exported function, method, and exported value declares its parameter and return types, also where the language can infer them. FAIL on an exported TypeScript function with no return type, an exported const with an inferred object type that callers depend on, or a public Python function with no type annotations.",
+      "scope": ["**/*.ts", "**/*.tsx", "**/*.py"],
+      "severity": "medium",
+      "profile": "light"
+    },
+    {
+      "id": "no-action-at-distance",
+      "rule": "A new or changed function does not change its arguments or package-level state as a hidden effect. FAIL when a function mutates a slice, map, object, or struct it received (not through a receiver it owns) or a global variable, and the change is not visible in its name or its return value. Name the caller that reads the changed value.",
+      "scope": ["**/*.go", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.py", "**/*.rs", "**/*.java", "**/*.kt"],
+      "severity": "medium",
+      "profile": "medium"
+    },
+    {
+      "id": "error-says-operation",
+      "rule": "Each new returned or raised error that crosses a function boundary carries the operation that failed and its key input, for example 'load snapshot <id>: <cause>'. FAIL on a bare return of a callee error across a package or module boundary, or on a wrap text with no operation or no input (failed, error occurred, something went wrong).",
+      "scope": ["**/*.go", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.py", "**/*.rs", "**/*.java", "**/*.kt"],
+      "severity": "medium",
+      "profile": "light"
+    },
+    {
+      "id": "test-name-is-sentence",
+      "rule": "A new test or test-table case has a name that states the behavior it proves. FAIL on a name with a number suffix, a bare method name, or a word such as ok, works, basic, or case1 that does not say the input and the expected result.",
+      "scope": ["**/*_test.*", "**/*.test.*", "**/*.spec.*", "**/test_*.py", "**/test/**", "**/tests/**"],
+      "severity": "low",
+      "profile": "light"
+    },
+    {
+      "id": "test-reads-given-when-then",
+      "rule": "A new test body has three blocks in order: setup, one action under test, checks. FAIL when one test runs two actions under test with checks between them, or when the action under test is hidden inside a setup helper. Propose the split into separate tests or table rows.",
+      "scope": ["**/*_test.*", "**/*.test.*", "**/*.spec.*", "**/test_*.py", "**/test/**", "**/tests/**"],
+      "severity": "low",
+      "profile": "light"
     }
   ]
 }

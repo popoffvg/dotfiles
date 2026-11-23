@@ -71,8 +71,8 @@
     "show_count_badge": false,
   },
   "theme": {
-    "mode": "dark",
-    "light": "Catppuccin Latte - No Italics",
+    "mode": "light",
+    "light": "Catppuccin Latte",
     "dark": "Catppuccin Frappé"
 
   },
@@ -137,7 +137,7 @@
     },
     "provider": "zed",
   },
-  "diff_view_style": "unified",
+  "diff_view_style": "split",
   "cli_default_open_behavior": "existing_window",
   "project_panel": {
     "sticky_scroll": false,

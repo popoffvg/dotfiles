@@ -72,9 +72,7 @@ line as a readability defect. Each one costs points out of the 15.
 
 Two of those lines carry most of the weight and deserve a written finding rather than a tick.
 **A slug identifier is a defect on its own**, because it forces the reader to look a case up
-before they can think about it. **A matrix left in the document is a defect**, because it hands
-the reader the derivation instead of the result — a Mermaid state diagram is welcome, its
-transition matrix is not.
+before they can think about it. **A decision table or a transition matrix left in the document is a defect**, because it hands the reader the derivation instead of the result — a Mermaid state diagram is welcome, its transition matrix is not. The unit pairwise table is the one matrix that ships; it is a defect when its headers or cells are ids (`F1`, `U3-SMOKE`) instead of the words of the Factors table. **An integration or E2E case that is not a numbered `Scenario:` block is a defect**, because the reader cannot see the order of the steps.
 
 ## Missed-case checks
 

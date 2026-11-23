@@ -143,7 +143,7 @@ Independent of the `/code` flow, each with its own entry point.
 
 | File | Owns |
 |---|---|
-| `examples/strategy-auth-refresh.md` | The `.md` test set filled — the function block, the big cases with their variant lines, How it runs, Coverage, Not covered, Open questions — each piece carrying its own rules. The five cross-cutting rules and the pre-save checklist are `references/ref-readable-output.md`. |
+| `examples/strategy-auth-refresh.md` | The `.md` test set filled — the function block, the unit Factors, Pairwise cases, and Added cases tables, the big cases with their numbered scenarios, How it runs, Coverage, Not covered, Open questions — each piece carrying its own rules. The cross-cutting rules and the pre-save checklist are `references/ref-readable-output.md`. |
 | `examples/auth-refresh.feature` | The `.feature` file filled — the Feature header, `Background`, one `Rule` per big case with the hardest happy path first, an `Example` per integration or manual variant, the variant-name and tier tags, the `"""sh` operator doc string — each piece carrying its own rules as a `#` block. The procedure, the BRIEF checks, and the step-definition rules are `references/sub-bdd.md`. |
 
 The two examples are one corpus: the same `POST /auth/refresh` handler, mapped in the `.md` and

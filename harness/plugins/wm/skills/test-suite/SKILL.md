@@ -27,7 +27,7 @@ document this skill writes must take, and every subcommand below fills it. Load 
 
 | `/test-suite …` | You need to… | Reference |
 |---|---|---|
-| [`create`](references/sub-create.md) *(default)* | Size a test set for a TODO/task with pairwise across unit / integration / manual tiers, and ship it as big cases. | [`references/sub-create.md`](references/sub-create.md) |
+| [`create`](references/sub-create.md) *(default)* | Size a test set for a TODO/task with pairwise across unit / integration / manual tiers; ship the unit pairwise table and numbered E2E scenarios. | [`references/sub-create.md`](references/sub-create.md) |
 | [`write`](references/sub-write.md) | Enumerate the scenarios before implementation — a readable `.md` test set plus Gherkin feature files. | [`references/sub-write.md`](references/sub-write.md) |
 | [`verify`](references/sub-verify.md) | Audit an existing test set for missed cases and readability — Ready / Not Ready verdict. | [`references/sub-verify.md`](references/sub-verify.md) |
 | [`case-design`](references/sub-case-design.md) | Derive cases systematically — equivalence partitioning, boundary values, decision tables, state transition, state-combination, property-based. | [`references/sub-case-design.md`](references/sub-case-design.md) |
@@ -54,7 +54,7 @@ Typical chain for a TODO: [`case-design`](references/sub-case-design.md) (derive
 
 `examples/` holds one file per artifact this skill writes, over the same `POST /auth/refresh`
 handler: [`examples/strategy-auth-refresh.md`](examples/strategy-auth-refresh.md) is the `.md`
-test set — the function block, five big cases, coverage, and the prunes — and
+test set — the function block, the unit pairwise tables, three big cases of numbered scenarios, coverage, and the prunes — and
 [`examples/auth-refresh.feature`](examples/auth-refresh.feature) is its Gherkin body.
 
 Each example is the finished artifact filled with real content, and every piece of it carries its

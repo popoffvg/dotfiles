@@ -9,12 +9,7 @@ every row of § Choosing a technique that matches your subject has been run, and
 produced is either in the set or written into **Not covered** with the reason. A technique skipped
 silently reads as a technique that found nothing.
 
-**Every table on this page is scratch work.** You build it to find the cases; you do not save it.
-What you save is the set of big cases the table produced, in the shape
-[`ref-readable-output.md`](ref-readable-output.md) defines. A saved document that shows a decision
-table or a transition matrix has shipped the tool instead of the result. Two things survive the
-derivation, both in words: the **technique** that produced each big case, and the combinations you
-pruned, under **Not covered**.
+**Every table on this page is scratch work, except the unit pairwise table.** You build it to find the cases; you do not save it. What you save is the set of cases the table produced, in the shape [`ref-readable-output.md`](ref-readable-output.md) defines: unit rows in the readable pairwise table, other cases as numbered scenarios under big cases. A saved document that shows a decision table or a transition matrix has shipped the tool instead of the result. Two more things survive the derivation, both in words: the **technique** that produced the cases, and the combinations you pruned, under **Not covered**.
 
 The collapse is the work. Boundary analysis of a closed range 18–65 yields seven rows — below,
 at, and above each edge, plus one normal value — and those seven rows are **one** behaviour:
@@ -250,4 +245,4 @@ first generator.
 ## Where the output goes
 
 Cases derived here feed `sub-create.md`, which tiers them, and `sub-write.md`, which writes the
-document and the feature files. Both save the big cases and drop the tables.
+document and the feature files. Both save the unit pairwise table and the scenarios, and drop the other tables.

@@ -9,7 +9,7 @@ Print the following table verbatim. No preamble, no commentary, no tool calls �
 
 | Subcommand | Does |
 |---|---|
-| `create` *(default)* | Size a test set for a TODO/task with pairwise across unit / integration / manual tiers, and ship it as big cases. |
+| `create` *(default)* | Size a test set for a TODO/task with pairwise across unit / integration / manual tiers; ship the unit pairwise table and numbered E2E scenarios. |
 | `write` | Enumerate the scenarios before implementation — a readable `.md` test set plus Gherkin feature files. |
 | `verify` | Audit an existing test set for missed cases and readability — Ready / Not Ready verdict. |
 | `case-design` | Derive cases systematically — equivalence partitioning, boundary values, decision tables, state transition, state-combination, property-based. |

@@ -12,6 +12,11 @@ All code is yours.
 @rules/open-file.md
 @rules/quint.md
 
+# Readable code
+
+- Before you write or change code, load the `readable-code` skill. It holds the rules for file order, control flow, signatures, error text, and test shape.
+- The personal `reviewrules` set checks the same rules under the same slugs.
+
 # Push
 
 - Before every push, run `~/.claude/scripts/pre-push-check.sh --base <PR base>` in the background. It runs the repo linter and `reviewrules` over the diff from the PR base to HEAD. The linter is the version the repo pins (for example `go tool golangci-lint`, `npx`, `mise run lint`), not a global binary. The `pre-push-gate.sh` hook blocks `git push` and `gs ... submit` until this check passes for the HEAD you push. This applies to subagents too.
