@@ -37,9 +37,9 @@ git rev-parse --verify --quiet "$base" >/dev/null || { echo "pre-push-check: bas
 
 # Each row: the file that marks the linter, the test that the repo really defines it, the command. {base} is the diff base.
 LINTERS=(
-  "mise.toml|mise tasks ls 2>/dev/null | grep -qw '^lint'|mise run lint"
-  ".mise.toml|mise tasks ls 2>/dev/null | grep -qw '^lint'|mise run lint"
-  "Taskfile.yml|task --list-all 2>/dev/null | grep -qE '^\\* lint:'|task lint"
+  "mise.toml|grep -qw '^lint' <(mise tasks ls 2>/dev/null)|mise run lint"
+  ".mise.toml|grep -qw '^lint' <(mise tasks ls 2>/dev/null)|mise run lint"
+  "Taskfile.yml|grep -qE '^\\* lint:' <(task --list-all 2>/dev/null)|task lint"
   "Makefile|grep -qE '^lint:' Makefile|make lint"
   ".pre-commit-config.yaml|true|pre-commit run --from-ref {base} --to-ref HEAD"
   ".golangci.yml|go tool golangci-lint version >/dev/null 2>&1|go tool golangci-lint run --new-from-rev={base} ./..."
