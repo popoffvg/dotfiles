@@ -3,7 +3,7 @@
 set -euo pipefail
 
 usage() {
-  echo "usage: pre-push-check.sh [--repo DIR] [--base REF] [--lint CMD] [--skip-review REASON] | --print-stamp" >&2
+  echo "usage: pre-push-check.sh [--repo DIR] [--base REF] [--lint CMD] [--skip-review REASON] [--context NOTE]... | --print-stamp" >&2
   exit 2
 }
 
@@ -11,6 +11,7 @@ repo=.
 base=
 lint_cmd=
 skip_review=
+context_args=()
 print_stamp=
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -18,6 +19,7 @@ while [ $# -gt 0 ]; do
     --base) base=$2; shift 2 ;;
     --lint) lint_cmd=$2; shift 2 ;;
     --skip-review) skip_review=$2; shift 2 ;;
+    --context) context_args+=(--context "$2"); shift 2 ;;
     --print-stamp) print_stamp=1; shift ;;
     *) usage ;;
   esac
@@ -70,7 +72,7 @@ if [ -z "$skip_review" ]; then
     LITELLM_API_KEY=$(. "$HOME/.config/litellm/.env"; printf '%s' "$LITELLM_MASTER_KEY")
     export LITELLM_API_KEY
   fi
-  reviewrules --repo "$root" --base "$base" --json-out "$out/reviewrules.json" \
+  reviewrules --repo "$root" --base "$base" --json-out "$out/reviewrules.json" ${context_args[@]+"${context_args[@]}"} \
     >"$out/report.md" 2>"$out/reviewrules.log" || rc=$?
   cat "$out/report.md"
   [ "$rc" -eq 0 ] || { echo "pre-push-check: reviewrules exit $rc (1 = a rule FAIL, 2 = the run did not finish); fix the cause (see $out/report.md, $out/reviewrules.log) and run again" >&2; exit 1; }
