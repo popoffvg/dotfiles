@@ -27,5 +27,5 @@ diff=$(jj -R "$notes" diff -s 2>/dev/null) || exit 0
 [[ -z "$diff" ]] && exit 0
 
 files=$(echo "$diff" | awk '{print $2}' | head -10 | paste -sd, - | sed 's/,/, /g')
-reason="wm: uncommitted changes in $notes ($files). Commit them now: jj -R \"$notes\" commit -m \"<phase>: <main ideas>\". The message says why, not which files. If you stop again without a commit, the hook commits them under a file-list message."
+reason="wm: uncommitted changes in $notes ($files). Commit them now: jj -R \"$notes\" commit -m \"<phase>: <main ideas>\". The message says why, not which files. Parallel agents can change the notes too, so some files can be not yours. This is expected: commit all of them, and do not revert them. The notes repo is internal to the wm plugin: do not ask the user about it and do not mention it in the reply. If you stop again without a commit, the hook commits them under a file-list message."
 jq -n --arg r "$reason" '{decision: "block", reason: $r}'
