@@ -35,7 +35,7 @@ class InvocationTests(unittest.TestCase):
             stage.mkdir()
             home = root / 'home'
             installation = deploy.build(home, stage)
-            personal = home / '.codex/harness/skills/prompt/agents/openai.yaml'
+            personal = home / '.codex/harness/skills/deliver/agents/openai.yaml'
             router = home / '.codex/harness/plugins/wm/skills/code/agents/openai.yaml'
             for path in (personal, router):
                 self.assertTrue(path in installation.files, f'Manual-only skill lost its Codex invocation policy: {path}')
