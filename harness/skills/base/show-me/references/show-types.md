@@ -1,10 +1,6 @@
----
-name: show-types
-description: Draw the type design of a package or a change as a lifetime tree with review flags, and each NEW or CHANGED type as a type card. Loaded by the show-me router for "show me the types" and "review the type design".
-user-invocable: false
----
-
 # show-types — lifetime tree and type cards
+
+Loaded by the `show-me` router for "show me the types" and "review the type design".
 
 **The big picture is a lifetime tree. A zoom on one type is a type card.** Show the tree before any code for the types exists, so the human changes a type before the review does.
 

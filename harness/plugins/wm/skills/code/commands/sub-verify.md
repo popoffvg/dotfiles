@@ -146,7 +146,7 @@ Find what breaks the spec before code does. **Contradictions come first:** the c
 
 ### 2. Missing parts
 
-**The public surface.** For each package the spec changes, list every public symbol its TODOs create and the caller each one names (`change-review` § Components, "Every public member names its caller"). A public symbol with no `called by` or `implements`, a planned caller with no link to the design step that calls it, a caller that is only a test, or a caller that calls several public members in a fixed order to keep one invariant, is a finding: the edit makes it private or folds the sequence into one operation.
+**The public surface.** For each package the spec changes, list every public symbol its TODOs create and the caller each one names (the Component tree section of `show-me` `references/show-code.md`, "Every public member names its caller"). A public symbol with no `called by` or `implements`, a planned caller with no link to the design step that calls it, a caller that is only a test, or a caller that calls several public members in a fixed order to keep one invariant, is a finding: the edit makes it private or folds the sequence into one operation.
 
 Work the Goal implies but no TODO covers: error paths, teardown for every setup, a caller left unmigrated after a signature change, auth/validation on a new boundary, a persistence write with no read, config referenced but never defined.
 
@@ -192,9 +192,9 @@ naming the symbol. Judge `## Autotest` by the rule *Cases, never the test* in `a
 rule set open — that is what the implementer sees. A term or a test expectation knowable only from
 the closed files is a missing restatement, named as the finding.
 
-**Readable at one pass — the human half only.** `TODO-N.md` is written under the `i-have-adhd` skill
-(`arch:ref-todo-sections.md` § Every prose line). Read its rules —
-`~/.claude/skills/i-have-adhd/SKILL.md` — then judge every prose line against them: Outcome,
+**Readable at one pass — the human half only.** `TODO-N.md` is written under the ASD-STE100 rules (`~/.claude/rules/language.md`)
+(`arch:ref-todo-sections.md` § Every prose line). Read them —
+`~/.claude/rules/language.md` — then judge every prose line against them: Outcome,
 `New terms` **Meaning**, `Components` **Role** and **Change**, `Autotest` cases, each `### Commit` **Body**. Apply its own test:
 read the first sentence of each section, then the bold phrases, and rule whether that skim carries
 the approval decision. Two ideas in one sentence, a stacked clause chain, a metaphor standing in for

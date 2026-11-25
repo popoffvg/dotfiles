@@ -1,9 +1,15 @@
 ---
-allowed-tools: Bash(line-comment-lsp:*), Bash(ls:*), Bash(dirname:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py:*)
+allowed-tools: Read, Skill, Bash(line-comment-lsp:*), Bash(~/.claude/scripts/mized-mcp.sh:*), Bash(ls:*), Bash(dirname:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py:*)
 description: Show the line comments nobody has acted on — the live store, plus the leftovers of the newest act session
 ---
 
-Read both places a comment can still be open.
+Load the `agent-to-user` skill and select the host.
+
+## miZed
+
+Use the Live comments instructions to list the store. Report open comments.
+
+## Other hosts
 
 **The live store** holds every comment written since the last `/line-comment:act` run:
 
@@ -21,7 +27,9 @@ ls -d "$ROOT"/.tmp/act-session/* | tail -1
 
 Read that session's `processed.md` and take the items whose result bullet starts with `unresolved:`.
 
-Both places empty means nothing is open — say so in one line and stop.
+## Report
+
+If there are no open comments, say so in one line and stop.
 
 Print one line per comment and **nothing else**:
 
@@ -33,12 +41,7 @@ Edit no file, drop no comment, act on nothing. This command reports; `/line-comm
 
 Rules:
 
-- Keep each source's order. Group by file, and keep each file's lines in ascending order.
+- Print live comments first, then any archived comments. In each group, sort by file and then by ascending line number.
 - Print an unresolved leftover with a trailing ` (unresolved: <why>)`, taken from its `processed.md` item.
-- A heading marked `(from Claude)` is a comment you placed yourself. Print it with a
-  trailing ` (from Claude)` so the operator can tell it from their own.
-- `(orphaned)` means the anchored line moved or was rewritten. Print the stored line number
-  and append ` (orphaned)`. `${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py --store "$STORE" "$ROOT"`
-  prints which line still matches each stored anchor — run it only if the operator asks where an
-  orphan went. Pass `<ROOT>` explicitly; the script otherwise resolves paths against the store's
-  grandparent.
+- Append ` (from Claude)` to agent comments.
+- For an orphaned comment, print the stored line number and append ` (orphaned)`. If the operator asks where a legacy anchor moved, run `${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py --store "$STORE" "$ROOT"`.

@@ -13,7 +13,7 @@ drives: A stolen refresh token stops working the moment the real client refreshe
 > TODO ordering and waves, the readiness checklist — is `arch:ref-write.md`.
 > The line budget and the over-budget rule are in the `spec.md` row of the readiness checklist in `arch:ref-write.md` § Spec-Readiness Checklist.
 > The prose follows `harness-dev:text-style`, and — because a human reads this file to make a
-> decision — the `i-have-adhd` rules for that human half.
+> decision — the ASD-STE100 rules for that human half.
 
 ## Description
 

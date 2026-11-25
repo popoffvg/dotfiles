@@ -1,6 +1,6 @@
 ---
 name: test-suite:write
-description: "Enumerate the scenarios before implementation — a readable `.md` test set plus Gherkin feature files."
+description: "Enumerate the scenarios before implementation — a readable `.md` test set of Gherkin scenarios plus runnable feature files."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

@@ -26,7 +26,6 @@
     "huh",
     "minions",
     "show-me",
-    "tour",
     "tour-v2",
     "zed-diff",
     "annotate",
@@ -42,7 +41,7 @@
     "critic",
     "to-user",
     "skill-builder",
-    "wait-merge"
+    "deliver"
   ],
   "workflows": "harness/rulesync/workflows"
 }

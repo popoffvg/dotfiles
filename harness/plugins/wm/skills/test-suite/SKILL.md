@@ -27,8 +27,8 @@ document this skill writes must take, and every subcommand below fills it. Load 
 
 | `/test-suite …` | You need to… | Reference |
 |---|---|---|
-| [`create`](references/sub-create.md) *(default)* | Size a test set for a TODO/task with pairwise across unit / integration / manual tiers; ship the unit pairwise table and numbered E2E scenarios. | [`references/sub-create.md`](references/sub-create.md) |
-| [`write`](references/sub-write.md) | Enumerate the scenarios before implementation — a readable `.md` test set plus Gherkin feature files. | [`references/sub-write.md`](references/sub-write.md) |
+| [`create`](references/sub-create.md) *(default)* | Size a test set for a TODO/task with pairwise across unit / integration / manual tiers; ship every case as a Gherkin scenario: a unit pairwise outline and E2E scenarios. | [`references/sub-create.md`](references/sub-create.md) |
+| [`write`](references/sub-write.md) | Enumerate the scenarios before implementation — a readable `.md` test set of Gherkin scenarios plus runnable feature files. | [`references/sub-write.md`](references/sub-write.md) |
 | [`verify`](references/sub-verify.md) | Audit an existing test set for missed cases and readability — Ready / Not Ready verdict. | [`references/sub-verify.md`](references/sub-verify.md) |
 | [`case-design`](references/sub-case-design.md) | Derive cases systematically — equivalence partitioning, boundary values, decision tables, state transition, state-combination, property-based. | [`references/sub-case-design.md`](references/sub-case-design.md) |
 | [`bdd`](references/sub-bdd.md) | Shape integration/e2e cases as Cucumber Given/When/Then. | [`references/sub-bdd.md`](references/sub-bdd.md) |
@@ -43,7 +43,7 @@ property-based technique in full, backing the `property-based` row of [`case-des
 ## How they combine
 
 - **[case-design](references/sub-case-design.md)** is the technique toolbox — it fills the scratch matrices that feed **[create](references/sub-create.md)** and **[write](references/sub-write.md)**.
-- **[create](references/sub-create.md)** sizes the set across cost tiers with pairwise, then groups the rows into big cases; **[write](references/sub-write.md)** turns them into the `.md` map and the Gherkin bodies.
+- **[create](references/sub-create.md)** sizes the set across cost tiers with pairwise, then groups the rows into big cases; **[write](references/sub-write.md)** turns them into the `.md` scenarios and their runnable `.feature` copy.
 - **[bdd](references/sub-bdd.md)** / **[tdd](references/sub-tdd.md)** govern *how* behavioural cases read and how implementation is driven from them.
 - **[verify](references/sub-verify.md)** audits the finished set on both axes — coverage and readability — and returns Ready / Not Ready.
 - **[harness](references/sub-harness.md)** and **[review](references/sub-review.md)** are standalone — execution (plugin smoke tests) and review (user sign-off), not case design.
@@ -54,8 +54,8 @@ Typical chain for a TODO: [`case-design`](references/sub-case-design.md) (derive
 
 `examples/` holds one file per artifact this skill writes, over the same `POST /auth/refresh`
 handler: [`examples/strategy-auth-refresh.md`](examples/strategy-auth-refresh.md) is the `.md`
-test set — the function block, the unit pairwise tables, three big cases of numbered scenarios, coverage, and the prunes — and
-[`examples/auth-refresh.feature`](examples/auth-refresh.feature) is its Gherkin body.
+test set — the function block, the Factors table and the unit pairwise outline, three big cases of Gherkin scenarios, coverage, and the prunes — and
+[`examples/auth-refresh.feature`](examples/auth-refresh.feature) is its runnable copy.
 
 Each example is the finished artifact filled with real content, and every piece of it carries its
 own rules as a `>` block underneath in the `.md` and a `#` block above in the `.feature`: what that piece must do, what it must contain, when it is

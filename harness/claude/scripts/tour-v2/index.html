@@ -44,6 +44,8 @@
   #todo td code { word-break:break-all; }
   #todo td, #todo th { padding:8px 10px; border-bottom:1px solid var(--crust); vertical-align:top; }
   #todo tr:last-child td { border-bottom:none; }
+  #todo li:has(> a.current) { background:var(--range); border-radius:6px; }
+  #todo li a[href^="#stop-"] { padding:0 8px; border-radius:12px; background:var(--crust); text-decoration:none; font-weight:600; white-space:nowrap; }
   #todo td a { display:inline-grid; place-items:center; min-width:24px; height:24px; border-radius:12px; background:var(--crust); text-decoration:none; font-weight:600; }
   #todo a.current { background:var(--accent); color:var(--base); }
   #todo svg a.current :is(rect, circle, polygon, path) { stroke:var(--accent) !important; stroke-width:3px !important; }
@@ -66,6 +68,7 @@
   .btn:hover { border-color:var(--accent); }
   .btn.primary { background:var(--accent); border-color:var(--accent); color:var(--base); font-weight:600; }
   #stops { display:flex; flex-wrap:wrap; gap:6px; padding:10px 20px; border-bottom:1px solid var(--crust); }
+  #stops .flow { flex-basis:100%; margin-top:2px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--subtext); }
   #stops a { position:relative; display:grid; place-items:center; min-width:30px; height:30px; padding:0 8px; border-radius:8px; background:var(--mantle); color:var(--subtext); text-decoration:none; font-size:12.5px; font-weight:600; transition:all .15s; }
   #stops a:hover { color:var(--text); background:var(--crust); }
   #stops a.crit::after { content:""; position:absolute; top:4px; right:4px; width:6px; height:6px; border-radius:3px; background:var(--red); }
@@ -138,7 +141,8 @@ function cardElement(stop, number) {
   const card = document.createElement("div");
   card.className = "card" + (stop.critical ? " crit" : "");
   card.id = "card";
-  card.innerHTML = '<div class="head"><span class="node">' + escapeHtml(stop.node) + '</span>' + (stop.critical ? '<span class="tag crit">critical</span>' : "") + '</div>' +
+  const flow = stop.flow ? '<span class="node">flow: ' + escapeHtml(stop.flow) + '</span>' : "";
+  card.innerHTML = '<div class="head">' + flow + '<span class="node">' + escapeHtml(stop.node) + '</span>' + (stop.critical ? '<span class="tag crit">critical</span>' : "") + '</div>' +
     '<h3>' + number + '. ' + escapeHtml(stop.title) + '</h3>' + markdown(stop.body) +
     '<div class="actions"><button class="btn" data-go="-1">← Previous</button><button class="btn" data-go="1">Next →</button><button class="btn primary" data-open="1">Open in Zed</button></div>';
   return card;
@@ -179,6 +183,7 @@ async function show(index) {
     a.classList.toggle("seen", state.seen.has(i));
   });
   document.querySelectorAll("#todo a").forEach((a) => a.classList.toggle("current", (a.getAttribute("href") || a.getAttribute("xlink:href")) === "#stop-" + number));
+  document.querySelector("#todo li > a.current")?.scrollIntoView({ block: "nearest" });
 
   let file;
   try {
@@ -326,7 +331,10 @@ async function start() {
   await document.fonts.ready;
   mountDiagrams();
   setupOverlay();
-  $("stops").innerHTML = tour.stops.map((s, i) => '<a href="#stop-' + (i + 1) + '" class="' + (s.critical ? "crit" : "") + '" title="' + escapeHtml(s.title) + '">' + (i + 1) + '</a>').join("");
+  $("stops").innerHTML = tour.stops.map((s, i) => {
+    const flowLabel = s.flow && s.flow !== tour.stops[i - 1]?.flow ? '<span class="flow">' + escapeHtml(s.flow) + '</span>' : "";
+    return flowLabel + '<a href="#stop-' + (i + 1) + '" class="' + (s.critical ? "crit" : "") + '" title="' + escapeHtml(s.title) + '">' + (i + 1) + '</a>';
+  }).join("");
   $("prev").onclick = () => show(state.current - 1);
   $("next").onclick = () => show(state.current + 1);
   $("open").onclick = () => openInZed();

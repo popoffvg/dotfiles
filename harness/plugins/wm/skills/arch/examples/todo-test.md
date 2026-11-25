@@ -8,7 +8,7 @@
 >
 > **No frontmatter.** `status` has one home, the human half.
 >
-> **Read by the human at the gate, beside `TODO-N.md`.** What the change proves is a design question, so the prose follows the `i-have-adhd` rules, the same as the human half.
+> **Read by the human at the gate, beside `TODO-N.md`.** What the change proves is a design question, so the prose follows the ASD-STE100 rules, the same as the human half.
 >
 > `**Design:**` is the first line: it is the one link back to the human half.
 
@@ -26,28 +26,47 @@
 | Factor | Values | Why these values |
 |---|---|---|
 | `token` | live, expired, reused | the three branches of `Refresh` on the token state: rotate, 401, 409 |
-| distance to expiry | far, one second | the expiry check is where an off-by-one sits: one second before expiry for a live token, one second after for an expired one |
-| store write | ok, fails | the only write of the call: a failure must not leave half a rotation |
+| `distance` | far, one second | the expiry check is where an off-by-one sits: one second before expiry for a live token, one second after for an expired one |
+| `write` | succeeds, fails | the only write of the call: a failure must not leave half a rotation |
 
 **Pairwise cases**
 
-| Case | `token` | distance to expiry | store write | Expected |
-|---|---|---|---|---|
-| live-token-rotates-to-a-new-pair | live | far | ok | new pair P; P.Refresh differs from the token; the store holds P.Refresh and not the token |
-| failed-write-keeps-the-old-token | live | one second | fails | the refresh fails with the store error; the store still holds the token |
-| expired-token-is-refused | expired | far | fails | 401; no write is attempted |
-| token-one-second-past-expiry-is-refused | expired | one second | ok | 401; the store is unchanged |
-| reused-token-is-refused | reused | far | ok | 409; the store holds the pair of the first refresh only |
-| reused-token-attempts-no-write | reused | one second | fails | 409; no write is attempted |
+```gherkin
+@unit
+Scenario Outline: refresh-by-token-state
+  Given a <token> refresh token <distance> from its expiry
+  And the store write <write>
+  When the handler refreshes with the token
+  Then <expected>
+
+  Examples:
+    | case                                    | token   | distance   | write    | expected                                                                     |
+    | live-token-rotates-to-a-new-pair        | live    | far        | succeeds | it returns a new pair "P", and the store holds the refresh token of "P" only |
+    | failed-write-keeps-the-old-token        | live    | one second | fails    | the refresh fails with the store error, and the store still holds the token  |
+    | expired-token-is-refused                | expired | far        | fails    | the refresh answers 401, and no write is attempted                           |
+    | token-one-second-past-expiry-is-refused | expired | one second | succeeds | the refresh answers 401, and the store is unchanged                          |
+    | reused-token-is-refused                 | reused  | far        | succeeds | the refresh answers 409, and the store holds the pair of the first refresh   |
+    | reused-token-attempts-no-write          | reused  | one second | fails    | the refresh answers 409, and no write is attempted                           |
+```
 
 Every pair of values appears in at least one row. Excluded pairs: none.
 
 **Added cases**
 
-| Case | Input | Why added | Expected |
-|---|---|---|---|
-| unknown-token-is-refused | a token the store never held | a fourth token state; it never reaches the write, so one row is enough | 401; the store is unchanged |
-| rotation-keeps-the-user | any live token (property; pinned: a token one second before expiry) | the Outcome promises the same user for every live token | P.Access names the user the token named |
+```gherkin
+@unit
+Scenario: unknown-token-is-refused
+  Given a refresh token that the store never held
+  When the handler refreshes with the token
+  Then the refresh answers 401
+  And the store is unchanged
+
+@unit
+Scenario: rotation-keeps-the-user
+  Given any live refresh token of the user "u1", pinned at one second before its expiry
+  When the handler refreshes with the token
+  Then the access token of the new pair names the user "u1"
+```
 
 - **Command:** `go test ./pkg/auth/...`
 
@@ -59,33 +78,28 @@ Every pair of values appears in at least one row. Excluded pairs: none.
 - **Target files:** `test/e2e/auth_refresh_test.go` (create)
 - **Entry point:** `POST /auth/refresh` on the running server, same as a real SDK client
 
-**refreshed-session-keeps-working**
+```gherkin
+@e2e
+Scenario: refreshed-session-keeps-working
+  Given "u1" logged in and the server returned the pair "P0"
+  When the client refreshes with the refresh token of "P0"
+  Then the server returns the pair "P1"
+  And GET /me with the access token of "P1" answers 200
 
-```text
-Scenario:
-  1. Log in as "u1": the server returns pair P0.
-  2. Refresh with P0.Refresh: the server returns pair P1.
-  3. Call GET /me with P1.Access: the call answers 200.
-```
+@e2e
+Scenario: replayed-token-fails-and-live-pair-works
+  Given "u1" refreshed the pair "P0" and the server returned the pair "P1"
+  When the client refreshes with the refresh token of "P0" again
+  Then the refresh answers 409
+  And GET /me with the access token of "P1" still answers 200
 
-**replayed-token-fails-and-live-pair-works**
-
-```text
-Scenario:
-  1. Log in as "u1": the server returns pair P0.
-  2. Refresh with P0.Refresh: the server returns pair P1.
-  3. Refresh with P0.Refresh again: the refresh answers 409.
-  4. Call GET /me with P1.Access: the call still answers 200.
-```
-
-**expiry-ends-access-on-both-tokens**
-
-```text
-Scenario:
-  1. Log in as "u1": the server returns pair P0.
-  2. Wait past the 15-minute TTL.
-  3. Refresh with P0.Refresh: the refresh answers 401.
-  4. Call GET /me with P0.Access: the call answers 401.
+@e2e
+Scenario: expiry-ends-access-on-both-tokens
+  Given "u1" logged in and the server returned the pair "P0"
+  And the 15-minute TTL has passed
+  When the client refreshes with the refresh token of "P0"
+  Then the refresh answers 401
+  And GET /me with the access token of "P0" answers 401
 ```
 
 - **Command:** `go test -tags e2e ./test/e2e/ -run TestAuthRefresh`
@@ -102,12 +116,14 @@ Scenario:
 > - **Under test** — opens the level, above **Target files**: the symbol or symbols the level exercises, then one clause naming the behaviour the whole block proves.
 > - **Target files** — the test file path, `create` if new.
 > - **Entry point** — `E2E` only: where the request or command enters, named as a caller enters it (`POST /auth/refresh` on the running server), so each case asserts the Outcome as an observer sees it rather than as the implementation sees it.
-> - **Cases** — `Unit`: the **Factors**, **Pairwise cases**, and **Added cases** tables. `E2E`: one bold case name per case, each followed by its fenced `Scenario:` block.
+> - **Cases** — `Unit`: the **Factors** table, the **Pairwise cases** `Scenario Outline`, and the **Added cases** scenarios. `E2E`: one `gherkin` block of scenarios, one per case.
 > - **Command** — one runnable shell command, closing the level. Never "run the relevant tests".
 >
-> **Unit cases are the rows of a readable pairwise table.** The factor is an input of the symbol under test; the values are words; every row sets every factor; the line under the table states the pairwise property and the excluded pairs. **Added cases** holds what pairwise cannot find: boundary values outside the factor values, the shape of a fixed bug, a property. A property row names its domain in `Input`: `any <domain> (property; pinned: <known edges>)`. The table rules are `test-suite:ref-readable-output.md` § The unit tier ships its pairwise table.
+> **Every case is a Gherkin scenario in the form of `show-me` (`references/show-cases.md`)**: a slug name, the tier tag, `Given` / `When` / `Then` in business words, five steps or fewer, and a `Then` that a test can check. The test function copies the scenario verbatim as its doc comment.
 >
-> **E2E cases are numbered scenarios.** One step is one action of one actor, in run order. A checked step ends with a colon and the observable result; a setup step has no colon; the last step checks the outcome the case exists for. Three to seven steps. The test function copies the block verbatim as its doc comment. The scenario rules are `test-suite:ref-readable-output.md` § Integration and E2E cases are numbered scenarios.
+> **Unit cases are the rows of a pairwise `Scenario Outline`.** The **Factors** table comes first: a factor is an input of the symbol under test, and its values are words. The outline has one `Examples` row per case, a `case` column with the slug, one column per factor, and an `expected` column. Every row sets every factor; the line under the block states the pairwise property and the excluded pairs. **Added cases** holds what pairwise cannot find: boundary values outside the factor values, the shape of a fixed bug, a property. A property scenario names its domain in its `Given`: `any <domain>, pinned at <known edges>`. The rules are `test-suite:ref-readable-output.md` § The unit tier ships its pairwise outline.
+>
+> **E2E cases start where a real caller starts.** The `Given` is the state a user or a client builds through the entry point, the `When` is one call of the entry point, and the `Then` is what that caller sees. The rules are `test-suite:ref-readable-output.md` § Integration and E2E cases are scenarios.
 >
 > Every case traces to the Outcome or to a generated rule this TODO can violate, both directions — an Outcome promise with no case is a coverage gap, a case the Outcome never made is scope creep.
 >

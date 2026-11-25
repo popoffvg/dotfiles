@@ -12,13 +12,14 @@ pre-save checklist. Which half each heading lives in: `sub-todo.md` § Required 
 | Section | Half | Its rules |
 |---|---|---|
 | frontmatter (`status`, `type`, `depends_on`, `risk`, `size`, `approve`, `increment`) | `TODO-N.md` | `examples/todo.md` |
-| Outcome, New terms, Components, Flow changes, Increments with their `### Commit` sections, Deviations | `TODO-N.md` | `change-review` skill, plus `examples/todo.md` |
+| Outcome, New terms, Components, Flow changes, Increments | `TODO-N.md` | `change-review` skill, plus `examples/todo.md` |
+| `### Commit` sections, Deviations | `TODO-N.md` | `examples/todo.md` |
 | Autotest | `TODO-N.test.md` | `examples/todo-test.md` |
 | Files, Pre-reads, Manual test, Gotchas | `TODO-N.agent.md` | `examples/todo-agent.md` |
 
 ## Every prose line
 
-**Every prose line of `TODO-N.md` and `TODO-N.test.md` obeys the `i-have-adhd` skill.** The human half is read once, by a
+**Every prose line of `TODO-N.md` and `TODO-N.test.md` obeys the ASD-STE100 rules (`~/.claude/rules/language.md`).** The human half is read once, by a
 person deciding whether to approve it — Outcome, New terms **Meaning**, Components **Role** and **Change**, each increment's summary and **Surprises**, flow steps,
 Autotest cases, each commit **Body**, and any sentence beside a table. Load that skill and write under its rules. The agent half is
 read by an implementer and is not bound by it.

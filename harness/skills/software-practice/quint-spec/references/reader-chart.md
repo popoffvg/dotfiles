@@ -45,7 +45,7 @@ Give the reader, for each chart:
 
 - the chart as a `mermaid` block;
 - one line per bug: the rule, the reader's sentence for it, and the path as `report.md` numbers it;
-- the scope: the sample budget, "a state that no sampled run reached is not drawn", and what the model leaves out;
+- the scope: the sample budget, "a state that no sampled run reached is not drawn", and the `Not covered` and `Next step` lists of the head comment;
 - the command that draws the chart again.
 
 A pass is "no violation in N samples", never "proved".

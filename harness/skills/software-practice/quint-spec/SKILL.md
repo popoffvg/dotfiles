@@ -4,7 +4,8 @@ description: >
   Quint specification language reference for writing formal specs in plans.
   Use when a TODO needs a behavioral specification: state transitions, invariants,
   concurrency constraints. Write Quint modules to describe WHAT the system must do,
-  not HOW to implement it.
+  not HOW to implement it. Start from the smallest module, and state what each model
+  covers, what it does not cover, and what the next step adds.
 ---
 
 # quint-spec
@@ -196,14 +197,35 @@ r.with("name", "bob")   // update field
 When writing a Quint spec inside a TODO, keep it focused:
 
 0. **Name the one question** the model answers. A task with several questions gets several small models, one file each (`rules/quint.md`: Keep each model small).
-1. **Define types** for the domain (records, sum types, aliases)
-2. **Declare state** (var) and constants (const)
-3. **Write actions** for each state transition the TODO implements
-4. **Write invariants** the implementation must preserve
-5. **Write 2–3 runs** as concrete test scenarios (happy path + edge cases)
+1. **Design the smallest module** that can answer the question, then grow it one case at a time (see [Grow the model from the smallest module](#grow-the-model-from-the-smallest-module)).
+2. **Define types** for the domain (records, sum types, aliases)
+3. **Declare state** (var) and constants (const)
+4. **Write actions** for each state transition the TODO implements
+5. **Write invariants** the implementation must preserve
+6. **Write 2–3 runs** as concrete test scenarios (happy path + edge cases)
+7. **End with the coverage**: the `Covers`, `Not covered`, and `Next step` lists of the head comment.
 
 The spec is a contract: the implementer must satisfy the invariants and
 the runs must pass against the implementation logic.
+
+## Grow the model from the smallest module
+
+A big first model hides its gaps, and its rare races need a large sample budget. Start with the smallest module that can answer the question. Add one case per step, and run the model after each step.
+
+1. **Write the smallest module.** Use the fewest actors the question needs, usually two. Use at most two `var`s, one action per actor, and one invariant. Make each action atomic. Leave out crashes, retries, clock skew, and a third actor.
+2. **Make it fail once.** Turn off the fix that the question is about, and see the invariant fail. A model that cannot fail answers nothing (`rules/quint.md`: Check that the model can fail).
+3. **Write the coverage in the head comment.** Every model MUST have the three lists below. Each `Not covered` item names the case and the risk to the answer.
+4. **Grow by one case.** Take one `Not covered` item, add it to the model, and move it to `Covers`. Examples of one case: split a fused action into a check and a write, add a crash between two writes, add a second taker, add clock skew. Run every instance again after the step.
+5. **Stop** when the result answers the question, or when every `Not covered` item is out of scope for the question. Say which of the two.
+
+```quint
+// Question: can a second taker write while the first holder still writes?
+// Covers: one holder, one taker; a take and a release; a lease that expires.
+// Not covered: a crash of the holder (a lost release can leave the lease taken); clock skew (a slow clock can extend a lease); a third taker (adds no new order of steps, out of scope).
+// Next step: add clock skew between the holder and the taker.
+```
+
+Every hand-off of a model result MUST repeat `Not covered` and `Next step` from the head comment. The reader must know which cases the result does not prove, and what the next step can check.
 
 ## Model design rules
 
@@ -238,7 +260,7 @@ all {
 
 ## Simplify a model
 
-A smaller model reaches its rare races in fewer samples. Cut in this order, and write each cut in the `Abstractions` list of the head comment, with the reason it is safe for the question:
+Use this section for a model that is already too big. A smaller model reaches its rare races in fewer samples. Cut in this order, and write each cut in the `Abstractions` list of the head comment, with the reason it is safe for the question:
 
 1. **Use the fewest actors the race needs.** A mutual-exclusion race needs one holder and one taker. A third writer only adds another taker and multiplies the state space.
 2. **Reuse a counter as an identity.** A token that is new on each take can be the version the take wrote. Delete the separate token record and its counter.

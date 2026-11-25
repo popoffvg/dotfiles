@@ -89,9 +89,6 @@ harness/apps/review-mark/extension.wasm
 .tmp/
 .config/herdr/sessions/
 
-# Machine-local Codex skill links generated from repository and installed sources.
-harness/codex/
-
 # Generated agent setup and machine-local runtime state; project skill sources stay tracked.
 /.claude/*
 !/.claude/skills/

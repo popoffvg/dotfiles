@@ -59,7 +59,7 @@ Four files at the plugin root, shared by all five skills.
 | `commands/sub-prototype.md` | `prototype` — settle an open decision with the smallest visible code diff. |
 | `references/ref-bricks.md` | The **brick** roster — the closed set of component types, what each owns, its metric, its common structure. Typed on every `## Components` component and in every `GLOSSARY.md` `Kind`. |
 | `references/ref-write.md` | **The spec contract** — artifacts, notes-dir layout, the `status` metadata (spec phase + TODO lifecycle), the `approve` metadata (how much of `impl` the human reviews, at spec level and per TODO), the `where` metadata (which checkout `impl` writes into, same two levels), the gate, TODO ordering and **waves**, the Spec-Readiness Checklist. The single source; no other file restates it. |
-| `references/ref-todo-sections.md` | What cuts across the pair's sections — the `i-have-adhd` rule every prose line of the human half obeys, where the generated rules come from (each ADR Property *is* a rule), the two doctrines that bound every diff (a diff carries the change and not what the change forces; a diff carries the surface and not a body), and how the increments reach the commit. What goes inside one heading is the `>` block under that heading in `examples/todo.md`, `examples/todo-agent.md`, and `examples/todo-test.md`. |
+| `references/ref-todo-sections.md` | What cuts across the pair's sections — the ASD-STE100 rule every prose line of the human half obeys, where the generated rules come from (each ADR Property *is* a rule), the two doctrines that bound every diff (a diff carries the change and not what the change forces; a diff carries the surface and not a body), and how the increments reach the commit. What goes inside one heading is the `>` block under that heading in `examples/todo.md`, `examples/todo-agent.md`, and `examples/todo-test.md`. |
 | `references/ref-adr-format.md` | What a wm corpus adds to the `adr` skill's ADR: the `adr/` location and the automatic move to `adr/archived/`, the `kind` key (`architecture` or `feature`; a `todo:` key fails `--check`), Properties as the rules, the open question as a section of `QUESTIONS.md`, refine in place and reverse by supersede, and how a reader finds the ADRs for a task. |
 | `examples/notes-agents.md` | The notes-dir `AGENTS.md`. |
 | `examples/project-agents.md` | Project workflow guidance installed by `bin/wm-agents.py`. |
@@ -73,7 +73,7 @@ Four files at the plugin root, shared by all five skills.
 | `examples/questions.md` | One filled `QUESTIONS.md`: two open questions, one of them a decision that waits for its reason. |
 | `examples/todo.md` | The TODO **human half** (`TODO-N.md`): the frontmatter and what the wm flow adds to the `change-review` skill — Outcome, New terms, Components, **Flow changes** (each running path as a step tree, with the changed steps marked), **Increments** (each step self-contained for review and in one component: a summary paragraph, Surprises, and its own Surface diff, no file path), Commit, **Deviations** (written by `impl`, never by `todo`) — and the worked example of it, including the `Surface` contract block and Surprises an increment carries when the deliverable is a whole body. |
 | `examples/todo-agent.md` | The TODO **agent half** (`TODO-N.agent.md`) — Files (each path keyed to the increments that touch it), Pre-reads, Manual test, Gotchas (the traps `impl` appends so they survive a compact or a handoff) — and the worked example of it. |
-| `examples/todo-test.md` | The TODO **test file** (`TODO-N.test.md`) — `## Autotest` alone, Unit and E2E, with no line budget — and the worked example of it. |
+| `examples/todo-test.md` | The TODO **test file** (`TODO-N.test.md`) — `## Autotest` alone, Unit and E2E, every case a Gherkin scenario in the form of `show-me` (`references/show-cases.md`), with no line budget — and the worked example of it. |
 
 `references/` holds the rules that apply across artifacts; `examples/` holds one file per artifact.
 Every file in `examples/` is the finished artifact filled with real content, and it carries its own
@@ -143,11 +143,11 @@ Independent of the `/code` flow, each with its own entry point.
 
 | File | Owns |
 |---|---|
-| `examples/strategy-auth-refresh.md` | The `.md` test set filled — the function block, the unit Factors, Pairwise cases, and Added cases tables, the big cases with their numbered scenarios, How it runs, Coverage, Not covered, Open questions — each piece carrying its own rules. The cross-cutting rules and the pre-save checklist are `references/ref-readable-output.md`. |
-| `examples/auth-refresh.feature` | The `.feature` file filled — the Feature header, `Background`, one `Rule` per big case with the hardest happy path first, an `Example` per integration or manual variant, the variant-name and tier tags, the `"""sh` operator doc string — each piece carrying its own rules as a `#` block. The procedure, the BRIEF checks, and the step-definition rules are `references/sub-bdd.md`. |
+| `examples/strategy-auth-refresh.md` | The `.md` test set filled — the function block, the unit Factors table, the Pairwise cases outline, and the Added cases scenarios, the big cases with their Gherkin scenarios, How it runs, Coverage, Not covered, Open questions — each piece carrying its own rules. The cross-cutting rules and the pre-save checklist are `references/ref-readable-output.md`. |
+| `examples/auth-refresh.feature` | The `.feature` file filled — the runnable copy of the integration and manual scenarios of the `.md`: the Feature header, one `Rule` per big case with the hardest happy path first, each scenario copied verbatim with its tier tag, the `"""sh` operator doc string — each piece carrying its own rules as a `#` block. The procedure, the BRIEF checks, and the step-definition rules are `references/sub-bdd.md`. |
 
-The two examples are one corpus: the same `POST /auth/refresh` handler, mapped in the `.md` and
-bodied in the `.feature`, joined by the variant names.
+The two examples are one corpus: the same `POST /auth/refresh` handler, written as scenarios in the `.md` and
+copied into the `.feature`, joined by the scenario names.
 
 ## Graded from outside — `evals/`
 
@@ -167,6 +167,6 @@ the existing suite rather than nesting an `evals/` inside a skill. A change to a
 
 | Owner | Holds |
 |---|---|
-| `show-me` / `show-code` skills | Python flow notation. `change-review` owns domain words in review flows; `arch:ref-bricks.md` owns the ordered parts of each brick. |
+| `show-me` skill (`references/show-code.md`) | Python flow notation. `change-review` owns domain words in review flows; `arch:ref-bricks.md` owns the ordered parts of each brick. |
 | `lessons` skill | Lesson **content** — dependency order, the concept-per-step rule, alternatives and asymmetries. `teach` owns the workspace, not the pedagogy. |
 | `adr` skill | The ADR authoring procedure — collect, classify, merge, interview, draft, ask. `arch:ref-adr-format.md` gives what this corpus adds. |

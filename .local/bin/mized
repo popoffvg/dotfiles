@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /Applications/miZed.app/Contents/MacOS/cli "$@"

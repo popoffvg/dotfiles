@@ -38,8 +38,7 @@ ADR, and the rule set is generated from the ADR Properties on demand —
 The [TODO read order](../examples/todos-agents.md#read-order) puts the command in `todos/AGENTS.md`. The *why* behind a rule is not stored in
 `todos/` either: the `trace` skill walks to it on demand.
 
-**The human half is written for an ADHD reader.** Every prose line of `TODO-N.md` obeys the
-`i-have-adhd` skill — load it before writing the half, not after. The agent half is not bound by it.
+**The human half is written for an ADHD reader.** Every prose line of `TODO-N.md` obeys the ASD-STE100 rules (`~/.claude/rules/language.md`) — read them before writing the half, not after. The agent half is not bound by them.
 
 **Each pair field has one home.** The title, `status`, Outcome, and increments live in `TODO-N.md`;
 paths and pre-reads live in `TODO-N.agent.md`. The ledger outcome is the sole derived copy:
@@ -266,7 +265,7 @@ rather than a row of its own — is `ref-write.md` § Merges that fall out of th
 2. **Strong verbs.** *rename X to Y, add field Z to type T, delete function F* — never *improve, handle, refactor stuff, clean up*.
 3. **Every section is a checklist to tick off.** Prose → bullets, a table, or a code block.
 4. **One TODO = one deliverable = one or more commits.** One outcome a user can observe; group the edits that deliver it, nothing else. Each commit has a clear border: it builds, its tests pass, and its message states one cause. An `L` row — over 8 files or over 6 increments — is asked about before it is written.
-5. **The surface ships as a diff; the logic ships as a sketch.** Each independently decided change to a type, field, signature, or setting is a unified diff in the increment that lands it. Forced consequences stay in increment summaries and the agent half's `## Files`, without another diff. Every body — the code behind those signatures — is pseudocode under `show-me` and `show-code`, with domain words under `change-review`. Neither substitutes for the other, and a body pasted as a diff is the one shape both rules reject ([ref-todo-sections.md: A diff carries the surface, not a body](../references/ref-todo-sections.md#a-diff-carries-the-surface-not-a-body)).
+5. **The surface ships as a diff; the logic ships as a sketch.** Each independently decided change to a type, field, signature, or setting is a unified diff in the increment that lands it. Forced consequences stay in increment summaries and the agent half's `## Files`, without another diff. Every body — the code behind those signatures — is pseudocode under `show-me` (`references/show-code.md`), with domain words under `change-review`. Neither substitutes for the other, and a body pasted as a diff is the one shape both rules reject ([ref-todo-sections.md: A diff carries the surface, not a body](../references/ref-todo-sections.md#a-diff-carries-the-surface-not-a-body)).
 6. **No outward links in the human and agent halves** — reference other TODOs only via `Depends on`. The separate `TODO-N.test.md` may name another TODO for coverage. A coverage reference does not declare a dependency; actual prerequisites still go in `depends_on`.
 7. **Pre-reads are mandatory** — every file to understand before editing.
 8. **New terms are defined, not assumed** — a domain term missing from `GLOSSARY.md` gets a `## New terms` row (`change-review` § New terms, `examples/todo.md` § New terms).
@@ -457,7 +456,7 @@ own file against a rule already counted.
 - [ ] **`where` is `inherit`** unless this TODO needs a checkout of its own — same rule: any other value carries the reason as a trailing comment
 - [ ] **Not over-stated**: no spec Description/Goal/target-picture prose was copied in, and the Outcome is this TODO's slice rather than the spec Goal
 - [ ] **Outcome** is 2–7 bullets, each a capability in GLOSSARY.md terms followed by what lands (plain-words kind on a symbol) — no paths, routes, libraries
-- [ ] **Every prose line passes `i-have-adhd`** — Outcome, `Meaning`, `Role`, flow steps, Autotest cases, each commit **Body**: one idea per sentence, short sentences, literal words, no restatement, and each section decided by its first sentence alone
+- [ ] **Every prose line passes the ASD-STE100 rules** — Outcome, `Meaning`, `Role`, flow steps, Autotest cases, each commit **Body**: one idea per sentence, short sentences, literal words, no restatement, and each section decided by its first sentence alone
 - [ ] `## Components` draws one tree per package — each root a package path carrying `# OWNS`, each component a bare symbol with the `+` / `~` / `-` mark of `## Flow changes` in the first column and the comment `<brick> · <part> — <role>`, and exactly one `main`
 - [ ] **Each increment is self-contained for review**: its block alone says what changes, what will surprise the reader, and the exact new shape — no "as above", no "see increment <c>.<i>", and every symbol its summary names as new or changed is in its own diff
 - [ ] **No file path in any increment** (`arch:examples/todo.md` rule *Symbols, not paths*)
@@ -486,9 +485,10 @@ own file against a rule already counted.
 - [ ] Every new `if`, `elif`, `else`, and `raise` line (`# +`) in `TODO-N.md` `## Flow changes` has a case that takes it, and every other `# +` and `# ~` line has a case
 - [ ] **Autotest** has both a `Unit` and an `E2E` sub-block, each with **Under test** + Target files + Cases + one runnable Command — or `none — <concrete reason>`
 - [ ] **Under test** opens each level, above **Target files**, naming the symbols and the one behaviour the whole block proves
-- [ ] `Unit` cases are rows of the **Factors**, **Pairwise cases**, and **Added cases** tables: factor names from the symbol under test, values and `Expected` in words, every row sets every factor, and the line under the table states the excluded pairs
-- [ ] Every `E2E` case is a bold case name and a numbered `Scenario:` block of three to seven steps, one action per step, each checked step ending with a colon and the observable result — never a chain joined by `;` or `→`
-- [ ] Every Autotest case is words — no assertion source, no fixture, no shell, no code literal
+- [ ] Every Autotest case is a `gherkin` scenario in the form of `show-me` (`references/show-cases.md`): a slug name, the tier tag, `Given` / `When` / `Then` in business words, five steps or fewer, and a `Then` that a test can check
+- [ ] `Unit` cases are the **Factors** table, then one pairwise `Scenario Outline` with a `case` column, one column per factor, and an `expected` column, then the **Added cases** scenarios: factor names from the symbol under test, values and `expected` in words, every row sets every factor, and the line under the outline states the excluded pairs
+- [ ] Every `E2E` scenario starts where a real caller starts: the `When` is one call of the entry point, and the `Then` is what the caller sees
+- [ ] Every Autotest case is words — no assertion source, no fixture, no shell, no code literal; a status code, an event name, or a reason string is allowed
 - [ ] An `E2E: none` that defers names a TODO that **exists in the ledger** and whose own `E2E` carries a case asserting this path; a deferral to a `Manual test` does not count
 
 ### `TODO-N.agent.md` — the agent half

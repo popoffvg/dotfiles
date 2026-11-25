@@ -1,11 +1,11 @@
 ---
-name: wait-merge
+name: deliver
 description: Drive one PR to merge. Check that it can merge, ask the operator about each blocker, then fix red CI without questions until the PR merges.
 argument-hint: "[<pr-number> | <pr-url>]"
 disable-model-invocation: true
 ---
 
-# Wait for the merge
+# Deliver
 
 A **merge blocker** is a state that only a person can clear: a merge conflict, a draft, requested changes, a missing approval, an open review thread, or a branch protection rule. Red CI is not a merge blocker. This skill fixes red CI.
 

@@ -13,7 +13,7 @@
   },
   "soft_wrap": "editor_width",
   "markdown_preview": {
-    "open_markdown_files_in_preview": true,
+    "open_markdown_files_in_preview": false,
     "code_font_family": ".ZedMono",
     "font_family": ".SystemUIFont",
     "limit_content_width": false,
@@ -29,8 +29,10 @@
     "background_coloring": "disabled",
   },
   "preview_tabs": {
+    "enable_preview_from_multibuffer": false,
+    "enable_preview_file_from_code_navigation": false,
     "enable_preview_from_project_panel": false,
-    "enabled": true,
+    "enabled": false,
     "enable_keep_preview_on_code_navigation": true,
   },
   "language_models": {
@@ -137,7 +139,7 @@
     },
     "provider": "zed",
   },
-  "diff_view_style": "split",
+  "diff_view_style": "unified",
   "cli_default_open_behavior": "existing_window",
   "project_panel": {
     "sticky_scroll": false,

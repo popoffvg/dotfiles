@@ -1,26 +1,19 @@
 ---
-allowed-tools: Read, Glob, Grep, Bash(line-comment-lsp:*), Bash(ls:*)
+allowed-tools: Read, Glob, Grep, Skill, Bash(line-comment-lsp:*), Bash(~/.claude/scripts/mized-mcp.sh:*), Bash(ls:*)
 description: Leave review comments on lines in Zed instead of writing them in chat
 ---
 
-Place each remark on the line it is about, with `line-comment-lsp comment <file>:<lines> <text>`,
-where `<lines>` is `12` for one line or `12-18` for a block. The comment shows in Zed at the
-end of the first line and underlines every line it covers in the diagnostics panel. Nothing
-is written into the file.
+Load the `agent-to-user` skill and select the host. For `MIZED=1`, add each remark through its Live comments instructions. On other hosts, use `line-comment-lsp comment <file>:<lines> <text>`. The range is `12` for one line or `12-18` for a block.
 
 $ARGUMENTS names what to comment on. With no argument, comment on the working-tree diff.
 
 Rules:
 
-- One comment per starting line. A second comment starting on the same line replaces the first.
+- Use one comment per starting line. In miZed, list comments on the file before you add one. Update an existing comment only if it has `author: agent` and the same range. Otherwise preserve the comment and skip that target.
 - Aim at the line the remark is about, not the top of the function. Use a span only when the
   remark is about a block as a whole, and address it by its first line afterwards.
 - Say what is wrong and what to do. A remark that needs no action does not earn a comment.
-- Keep the text to one or two sentences. The line shows the first 40 characters; the rest
-  is in the tooltip and the export.
-- `line-comment-lsp drop <file>:<line>` removes one, `line-comment-lsp list` prints them all.
-- A comment on a file the operator has open appears within a second. On a closed file it
-  appears when the file is opened.
+- Keep the text to one or two sentences.
 
 Then print one line per comment placed, and nothing else:
 

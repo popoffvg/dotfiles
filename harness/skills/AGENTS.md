@@ -6,16 +6,17 @@ One directory per skill, at `<group>/<name>/`. Each directory has a `SKILL.md` w
 
 | Group | What goes in it | Examples |
 |---|---|---|
-| `base` | Skills that the global rules require in every session, with their workers | `show-me`, `show-code`, `show-types`, `show-cases` |
-| `everyday` | Skills the operator uses in daily work: reports, handoffs, reviews, prompts, explanations | `daily`, `handoff`, `to-user`, `tour`, `prdash` |
-| `software-practice` | Rules and methods for design, code, specs, and proofs | `good-design-dry`, `golang`, `adr`, `with-proof`, `git-spice` |
-| `other` | Tool integrations, skill authoring, and the rest | `todoist-cli`, `firecrawl`, `skill-builder`, `drunk-claude` |
+| `base` | Skills that the global rules require in every session, with their workers | `show-me`, `change-review` |
+| `everyday` | Skills the operator uses in daily work: reports, handoffs, reviews, prompts, explanations | `daily`, `handoff`, `to-user`, `tour-v2` |
+| `software-practice` | Rules and methods for design, code, specs, and proofs | `good-design-dry`, `golang`, `adr`, `with-proof` |
+| `tool` | How to work with one CLI utility or MCP server: commands, setup, repair | `prdash`, `bg-cli`, `git-spice`, `todoist-cli`, `firecrawl` |
+| `other` | Skill authoring, eval prompts, and the rest | `skill-builder`, `skill-blank`, `drunk-claude` |
 
 The group is only a source folder. The installed tree is flat: `deploy.py` (`loose_skill_dirs`) copies each `<group>/<name>/` to `<name>/` before Rulesync imports it. So:
 
 - A skill name MUST be unique across all groups. The deploy stops on a duplicate name.
 - Every skill MUST be in a group. The deploy stops on a `SKILL.md` directly under `harness/skills/<name>/`.
-- A link from one skill to another works only in the installed tree, unless both skills are in the same group. Keep skills that link to each other in one group, for example `show-me` and its workers, or the three `todoist-*` skills.
+- A link from one skill to another works only in the installed tree, unless both skills are in the same group. Keep skills that link to each other in one group, for example `show-me` and `change-review`, or the three `todoist-*` skills.
 - A link that leaves `harness/skills/` (to `harness/plugins/` or `harness/claude/`) starts with `../../../`.
 - A move to another group changes no installed path, `/name` command, or `publicAliases` entry. After a move, fix the relative links of the moved skill, then run the sync in [Make a skill public](#make-a-skill-public) step 4.
 
@@ -28,9 +29,9 @@ Two independent switches decide it:
 
 | Kind | In `publicAliases` | `disable-model-invocation` | Claude | Codex and Pi | Examples |
 |---|---|---|---|---|---|
-| Public, automatic | yes | absent | `/name` in the menu; the model can also load it | `$name` or `/name` alias, explicit only; the skill is `automatic` in `harness/skill-index.md` | `show-me`, `tour`, `to-user`, `daily` |
+| Public, automatic | yes | absent | `/name` in the menu; the model can also load it | `$name` or `/name` alias, explicit only; the skill is `automatic` in `harness/skill-index.md` | `show-me`, `tour-v2`, `to-user`, `daily` |
 | Public, manual-only | yes | `true` | `/name` in the menu; the model cannot load it | alias; the skill is `explicit` in the index | `huh`, `hunch`, `prompt`, `drunk-claude` |
-| Worker | no | absent | not in the menu; the model loads it by description, or a router names it | `automatic` in the index | `golang`, `good-design-dry`, `show-code` |
+| Worker | no | absent | not in the menu; the model loads it by description, or a router names it | `automatic` in the index | `golang`, `good-design-dry`, `readable-code` |
 | Manual worker | no | `true` | nobody can start it with the Skill tool | `explicit` in the index | none; do not make one |
 
 The `description` has a different job in each kind:
@@ -40,7 +41,7 @@ The `description` has a different job in each kind:
 
 ## Router and workers
 
-A public skill with many kinds of work splits into one router and several workers. The router is public and holds the table that picks a worker. Each worker is not in `publicAliases`, and holds the procedure for one kind of work. Example: `show-me` routes to `show-code`, `show-types`, and `show-cases`.
+A public skill with many kinds of work splits into one router and several workers. The router is public and holds the table that picks a worker. Each worker is not in `publicAliases`, and holds the procedure for one kind of work. A router whose forms no other skill loads keeps each form as a `references/` file instead of a worker. Example: `show-me` routes to `references/show-code.md`, `references/show-types.md`, and `references/show-cases.md`.
 
 ## Make a skill public
 

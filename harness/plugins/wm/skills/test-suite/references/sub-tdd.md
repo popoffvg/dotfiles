@@ -24,7 +24,7 @@ half-finished big case is worse than an untouched one: the heading claims a beha
 while its edge variants are still missing.
 
 **Name the test function after the variant.** `Test_expired_token_is_rejected`, not `TestRefresh2`
-and not `TestUPair1`. The name in the code, the bold name in the `.md`, and the Gherkin tag are
+and not `TestUPair1`. The name in the code and the scenario name in the `.md` and the `.feature` are
 the same string, so a red test in CI names the behaviour that broke without anyone opening the
 test set.
 

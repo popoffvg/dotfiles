@@ -11,7 +11,7 @@ description: >
 
 The scan archives a transcript for every session it scores at or above the keep threshold. This skill reports that archive and writes nothing to it — capturing is `capture-lesson`, harvesting is `dream`.
 
-**Report the pile by its shape, never row by row.** The backlog runs to dozens of lessons, most of them duplicates of each other or pointers at files that no longer exist. A row dump hides both. Rules for the prose: `i-have-adhd`.
+**Report the pile by its shape, never row by row.** The backlog runs to dozens of lessons, most of them duplicates of each other or pointers at files that no longer exist. A row dump hides both. Rules for the prose: the ASD-STE100 rules.
 
 # Step 1 — Count the archive
 

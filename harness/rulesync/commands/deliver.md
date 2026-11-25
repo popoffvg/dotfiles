@@ -1,10 +1,10 @@
 ---
-name: wait-merge
+name: deliver
 description: Drive one PR to merge: triage the merge blockers, then fix red CI until it merges.
 disable-model-invocation: true
 ---
 
-Read `{{SKILL_ROOT}}/wait-merge/SKILL.md` and follow its workflow for the request below.
+Read `{{SKILL_ROOT}}/deliver/SKILL.md` and follow its workflow for the request below.
 Resolve resources relative to that internal skill directory. Load other named
 skills through the harness skill index. Translate tool names to the current
 harness while preserving the workflow's permissions and completion conditions.

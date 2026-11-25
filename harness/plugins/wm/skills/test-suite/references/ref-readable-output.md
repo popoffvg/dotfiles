@@ -4,10 +4,10 @@ Every artifact this skill writes obeys the contract below: `create`, `write`, `c
 
 **The document itself is [`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md)** — a filled `POST /auth/refresh` test set whose every piece carries its own rules underneath as a `>` block. Copy that file and replace its content. The sections here are the rules that cut across all of it, plus the checklist to run before saving.
 
-The document has two shapes of case, one per kind of test:
+**Every case is a Gherkin scenario** in the form of `show-me` (`references/show-cases.md`): a slug name, the tier tag, `Given` / `When` / `Then` in business words, and a `Then` that a test can check. The form has two shapes, one per kind of test:
 
-- **Unit cases are rows of a pairwise table.** A unit test varies inputs, so a table with one column per input shows what each test varies.
-- **Integration, E2E, and manual cases are numbered scenarios.** These tests run a sequence, so a numbered list of steps shows the order and the result of each step.
+- **Unit cases are the rows of a pairwise `Scenario Outline`.** A unit test varies inputs, so an `Examples` table with one column per input shows what each test varies.
+- **Integration, E2E, and manual cases are scenarios under big cases.** These tests run a sequence, so `Given` / `When` / `Then` shows the state, the one action, and the result.
 
 ## Distill the system to a function
 
@@ -15,65 +15,58 @@ The document has two shapes of case, one per kind of test:
 
 Write the signature, then name each part in one line of plain language, under the four labels `in`, `reads`, `returns`, and `writes`. The filled block is § The function of the example.
 
-The function is the vocabulary of the whole document. Name the inputs here and use those exact names as the factor names of the unit table and in every scenario step. If the system under test needs two functions to describe, it is two test sets — or the task is too big and belongs in two TODOs.
+The function is the vocabulary of the whole document. Name the inputs here and use those exact names as the factor names, the outline columns, and in every scenario step. If the system under test needs two functions to describe, it is two test sets — or the task is too big and belongs in two TODOs.
 
-## The unit tier ships its pairwise table
+## The unit tier ships its pairwise outline
 
-**The unit section is three tables: Factors, Pairwise cases, and Added cases.** A reader sees what varies, which combinations run, and which cases came from outside the matrix. The filled tables are § Unit cases of the example.
+**The unit section is the Factors table, the Pairwise cases outline, and the Added cases scenarios.** A reader sees what varies, which combinations run, and which cases came from outside the matrix. The filled blocks are § Unit cases of the example.
 
 **Factors** — one row per input that varies. Columns: `Factor | Values | Why these values`.
 
-- The factor is an input name from the function block, or a plain noun phrase for a condition (`token length`).
+- The factor is an input name from the function block, or a plain noun phrase for a condition (`length`). It is also the outline column and the `<placeholder>`, so keep it to one or two words.
 - Two to four values per factor, each a short word or phrase (`live`, `expired`, `at max length`). Never a code literal, never a value id.
 - `Why these values` names the branch, limit, or rule that each value reaches.
 
-**Pairwise cases** — one row per unit test that the pairwise generator produced. Columns: `Case`, then one column per factor in the order of the Factors table, then `Expected`.
+**Pairwise cases** — one `Scenario Outline` with one `Examples` row per unit test that the pairwise generator produced. The rules of the outline are `show-me` (`references/show-cases.md`) § Pairwise cases. On top of them:
 
-- The column header is the factor name. The cell is one value from the Factors row, in the same words.
-- Every row sets every factor. A value that cannot reach the code is still set, and `Expected` says why it does not matter ("store not read").
-- `Expected` is the oracle in words: a value, a state, or an event. Never "works" or "ok".
-- Under the table, one line states the property and the exclusions: `Every pair of values appears in at least one row. Excluded pairs: <pair> — <reason>.` Write `Excluded pairs: none.` when none.
+- The columns are `case`, then one column per factor in the order of the Factors table, then `expected`. The cell is one value from the Factors row, in the same words.
+- Under the block, one line states the property and the exclusions: `Every pair of values appears in at least one row. Excluded pairs: <pair> — <reason>.` Write `Excluded pairs: none.` when none.
 
-**Added cases** — the rows that pairwise cannot find: boundary values, the shape of a fixed bug, a suspected three-way interaction, a property. Columns: `Case | Input | Why added | Expected`. The `Input` cell names only what differs from the smoke row.
+**Added cases** — one `@unit` scenario per case that pairwise cannot find: boundary values, the shape of a fixed bug, a suspected three-way interaction, a property. The `Given` names only what differs from the smoke row. A property scenario names its domain in its `Given`: `any <domain>, pinned at <known edges>`.
 
 Every other matrix stays in scratch: the decision table, the state-transition matrix, and the internal × external grid. The document carries the cases they produced. The one diagram that ships is a Mermaid `stateDiagram-v2` when the system has a lifecycle.
 
-## Integration and E2E cases are numbered scenarios
+## Integration and E2E cases are scenarios
 
-**A scenario is a numbered list of steps, in run order, under the line `Scenario:`.** The test function copies the block verbatim as its doc comment, so the document and the test read the same steps:
+**A scenario is the `show-me` (`references/show-cases.md`) § Test cases form**, tagged `@integration`, `@e2e`, or `@manual`. The test function copies it verbatim as its doc comment, so the document and the test read the same steps:
 
-```text
-Scenario:
-  1. Commit a value that a root field points to.
-  2. Open a reader transaction that reads the value.
-  3. Reset the root field and sync: the retire step retires the value.
-  4. The reader sets a second root field to the value: its commit conflicts.
-  5. On retry the read is refused: the value no longer exists.
+```gherkin
+@integration
+Scenario: retired-value-refuses-a-late-reader
+  Given a committed value "V" that a root field points to
+  And a reader transaction that read "V"
+  And the root field was reset and synced, so the retire step retired "V"
+  When the reader sets a second root field to "V"
+  Then its commit conflicts, and on retry the read of "V" is refused
 ```
 
-- **One step is one action of one actor.** Write it in the imperative ("Commit a value"), or name the actor in the simple present ("The reader sets …").
-- **A step that the test checks ends with a colon and the observable result.** `Reset the root field and sync: the retire step retires the value.` A setup step has no colon.
-- **The last step checks the outcome the case exists for.**
-- **Name a value the first time a step makes it**, and use that name in later steps: `Sign in as Alice: the server returns refresh token R.`
-- **Three to seven steps.** A scenario that needs more holds two behaviours: split it.
-- **Business words only.** A status code, an event name, a command, or a reason string is allowed. A variable, a helper name, or an assertion call is not.
-
-A manual case uses the same form. The actor is the reviewer, and the result after the colon is what the reviewer sees.
+- **The `Given` is the state a caller builds** through the entry point, the `When` is one call of the entry point, and the `Then` is what that caller sees.
+- **A manual case uses the same form.** The actor is the reviewer, and the `Then` is what the reviewer sees.
 
 ## Group the scenarios into big cases
 
-**A big case is one behaviour of the function, and it gets a heading and a paragraph.** Aim for three to seven per document. Fewer than three means the behaviours are not separated; more than seven means the function branches too much to test as one unit, so split the TODO. Unit cases do not sit under big cases; they sit in the unit tables.
+**A big case is one behaviour of the function, and it gets a heading and a paragraph.** Aim for three to seven per document. Fewer than three means the behaviours are not separated; more than seven means the function branches too much to test as one unit, so split the TODO. Unit cases do not sit under big cases; they sit in the unit outline and the Added cases.
 
 The heading is a full sentence in the present tense, and it names the observable result:
 
 - Good — `## Rotation replaces the pair and forgets the old token`
 - Bad — `## Integration cases`, `## Negative`, `## F1 = malformed` — these name the tool, not the behaviour
 
-Under the heading, one paragraph says what happens, which inputs drive it, and why the behaviour matters. Then each scenario of that behaviour follows as its name in bold, its tier in italics, and its fenced `Scenario:` block. A big case with more than about four scenarios is two behaviours under one heading.
+Under the heading, one paragraph says what happens, which inputs drive it, and why the behaviour matters. Then the scenarios of that behaviour follow in one `gherkin` block. A big case with more than about four scenarios is two behaviours under one heading.
 
 ## Names, never slugs
 
-**Every case name says what the case asserts, in kebab-case.** `expired-token-is-rejected`, not `U-PAIR-1`, `TS-STATE-013`, `F1`, or `M-2`. The name is the identifier everywhere it is needed: in the `Case` column, in the coverage list, in a Gherkin `@tag`, in the test function name, and in a review comment.
+**Every case name says what the case asserts, in kebab-case.** `expired-token-is-rejected`, not `U-PAIR-1`, `TS-STATE-013`, `F1`, or `M-2`. The name is the identifier everywhere it is needed: in the scenario name or the `case` cell, in the coverage list, in the test function name, and in a review comment.
 
 A serial id forces the reader to look the case up before they can think about it. A name carries its own description, so a coverage list or a failure report reads on its own. The same rule applies to factors: a column header is `token`, never `F1`.
 
@@ -85,11 +78,11 @@ A serial id forces the reader to look the case up before they can think about it
 ## Checklist before saving
 
 - [ ] The function block is first, and every factor and scenario uses its input names
-- [ ] The unit section has the Factors, Pairwise cases, and Added cases tables, in this order
-- [ ] Every factor column header and every cell uses the words of the Factors table — no `F1`, no code literal
-- [ ] Every pairwise row sets every factor, and the line under the table states the excluded pairs
-- [ ] Every integration, E2E, and manual case is a numbered `Scenario:` block of three to seven steps
-- [ ] Every checked step ends with a colon and an observable result, and the last step checks the outcome
+- [ ] Every case is a `gherkin` scenario with a slug name and a tier tag
+- [ ] The unit section has the Factors table, the Pairwise cases outline, and the Added cases scenarios, in this order
+- [ ] Every outline column header and every cell uses the words of the Factors table — no `F1`, no code literal
+- [ ] Every outline row sets every factor, and the line under the outline states the excluded pairs
+- [ ] Every scenario has one `When`, five steps or fewer, and a `Then` that a test can check
 - [ ] Three to seven big cases, each a present-tense sentence with a paragraph
 - [ ] Every name says what it asserts; no `U-PAIR-1`, no `TS-*`, no `M-2`
 - [ ] Every oracle is a value, a state, or an event

@@ -1,21 +1,26 @@
 ---
 name: to-user
-description: Hand work to the operator as a self-contained file they read cold and edit in their own editor, not in chat. Use for a batch of items that each need a verdict or reply ("list the PR comments with recommended answers", "give me a file to decide on each"), a findings or status handoff ("write up what you found", "explain it to me in a file"), a draft they rewrite in their own words ("draft it and I'll edit it"), and the open choices of an artifact, page, deck, or design before you build it — palette, typefaces, navigation, theme, fidelity to a source file. A file the operator only reads to catch up on the current decision is `snapshot`.
-allowed-tools: Bash(~/.claude/scripts/open-file.sh:*)
-version: 0.5.0
+description: Hand work to the operator as a self-contained file they read cold and answer outside the chat — a markdown file in the editor, or an interactive HTML page in the Claude Desktop panel. Routes the channel to `agent-to-user` and each figure to `show-me`. Use for a batch of items that each need a verdict or reply ("list the PR comments with recommended answers", "give me a file to decide on each"), a findings or status handoff ("write up what you found", "explain it to me in a file"), a draft they rewrite in their own words ("draft it and I'll edit it"), and the open choices of an artifact, page, deck, or design before you build it — palette, typefaces, navigation, theme, fidelity to a source file. A file the operator only reads to catch up on the current decision is `snapshot`.
+allowed-tools: Skill
+version: 0.6.0
 ---
 
 # to-user
 
-Host: !`~/.claude/scripts/open-file.sh --host`
+**to-user is a router.** It owns the content of a handoff: the file shape, the item kinds, and the block. It takes the rest from two skills:
 
-**The operator reads the file cold.** They did not see the code, the chat, or the research. The file carries that context in words and in `show-me` figures before it asks anything, and each block stands alone. Apply `i-have-adhd` to every field.
+| Question | Skill that answers it |
+| --- | --- |
+| Which medium and channel does this environment use, and how does the answer come back? | `agent-to-user` |
+| Which form does each figure take? | `show-me`, in the figure forms of the environment |
+
+**The operator reads the handoff cold.** They did not see the code, the chat, or the research. The handoff carries that context in words and in figures before it asks anything, and each block stands alone. Apply the ASD-STE100 rules to every field.
 
 ## Steps
 
-1. **Write the file** to the repo, or to the scratchpad when no repo owns it. Name it for the task: `pr-answers.md`, `decisions.md`, `findings.md`. Use **File shape** for a batch, **Prose** for a draft. Fill each field from a source you read — the thread, the diff, the code. A fact you could not read goes under Not checked, never into a field. Done when every item has a block, and a reader who sees only one `[decide]` block can say why it exists and what each option changes.
-2. **Open it.** When Host is `zed`, run `~/.claude/scripts/zed-edit-return.sh <file>` with Bash `run_in_background: true` and `dangerouslyDisableSandbox: true`. When the operator closes the tab, focus goes back to the chat and the task exit starts your next turn: run `check-answers` then. In any other host, run `~/.claude/scripts/open-file.sh <file>`. Tell the operator the path, how many items need an answer, and how to answer: the option letter or the reply on the `Answer:` line.
-3. **When Host is not `zed`, arm the watch in the same turn**: `Monitor` with `command: ~/.claude/scripts/watch-answers.sh <file>`, `persistent: true`, and a description that names the file. Keep working; `check-answers` owns each report. A file with only `[info]` items gets no watch. When the next step cannot start until the operator finishes, use `open-file.sh --wait` instead.
+1. **Load `agent-to-user` and read the environment.** Its row gives the medium and the figure forms. Done when the medium is known.
+2. **Write the handoff** in that medium. Name it for the task: `pr-answers`, `decisions`, `findings`. Put a file in the repo, or in the scratchpad when no repo owns it. Use [File shape](#file-shape) for a batch and [Prose](#prose) for a draft. An HTML page keeps the same sections, the same item tags, and the same slots as answer fields. Fill each field from a source you read — the thread, the diff, the code. A fact you could not read goes under Not checked, never into a field. Done when every item has a block, and a reader who sees only one `[decide]` block can say why it exists and what each option changes.
+3. **Hand it over and read the answers back through `agent-to-user`**, in the row "Draft or decision file the operator edits" of the environment. Tell the operator where the handoff is, how many items need an answer, and how to answer: the option letter, or the reply in the answer slot. Run `check-answers` on each answer. Done when the operator has the handoff on screen.
 
 Open design choices before a build go through these steps too, including a design-plan step inside another skill. Build from the answers.
 
@@ -97,7 +102,7 @@ Open design choices before a build go through these steps too, including a desig
 
 ## Figures
 
-**Pick every figure with `show-me`**, with two changes for a file read as text in an editor: flows, sequences, and states are ASCII in a fenced block; options are a comparison table with lettered rows the operator answers by. Context gets one figure of the whole, always. A block gets one whenever writing each option as one sentence would lose something the operator decides on — which is most blocks with more than two options, or any option that touches more than one file.
+**Pick every figure with `show-me`, in the figure forms that the environment row of `agent-to-user` gives.** Context gets one figure of the whole, always. A block gets one whenever writing each option as one sentence would lose something the operator decides on — which is most blocks with more than two options, or any option that touches more than one file.
 
 ## Prose
 

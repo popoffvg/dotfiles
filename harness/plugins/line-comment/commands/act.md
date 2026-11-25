@@ -1,9 +1,19 @@
 ---
-allowed-tools: Agent, Read, Edit, Write, Skill, AskUserQuestion, Bash(line-comment-lsp:*), Bash(ls:*), Bash(mkdir:*), Bash(mv:*), Bash(date:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py:*)
+allowed-tools: Agent, Read, Edit, Write, Skill, AskUserQuestion, Bash(line-comment-lsp:*), Bash(~/.claude/scripts/mized-mcp.sh:*), Bash(ls:*), Bash(mkdir:*), Bash(mv:*), Bash(date:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py:*)
 description: Move the line comments into an act session folder, act on them in fork agents, then record the session as processed
 ---
 
 ## Claim the batch
+
+Load the `agent-to-user` skill and select the host.
+
+### miZed
+
+Use the Live comments instructions to list the store. Select open comments. If the list has no open comments, report that and stop.
+
+Use `list_workspaces` to find the deepest workspace root that contains the current directory. Set `ROOT` to that path. Stop if no root matches. Create `$ROOT/.tmp/act-session/<timestamp>/` as `SESSION`. Save the open comments as `$SESSION/line-comment.json`. Use this snapshot for all work in the session.
+
+### Other hosts
 
 Read the comments the store holds right now, rather than whatever Zed's `copy comments` last left in the export:
 
@@ -28,7 +38,7 @@ mkdir -p "$SESSION" && mv "$STORE" "$SESSION/line-comment.json"
 
 ## Act
 
-A heading marked `(from Claude)` carries a comment you placed yourself. Report it, act on none of it — it is not a task the operator gave you.
+Report agent comments as skipped. In miZed, act only on comments with `author: human`. The legacy listing marks agent comments `(from Claude)`.
 
 A heading reading `lines <a>-<b>` is one comment about that whole block.
 
@@ -51,7 +61,7 @@ Each prompt carries the file path, every comment on that file (`<lines> — <tex
 
 - Act on each comment as a task on that file and those lines. Edit that file only.
 - Ask nothing and start no grilling. A comment you cannot act on comes back unresolved.
-- `(orphaned)` means the anchored line moved or was rewritten. Locate the text the comment was written on before acting; `${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py --store <SESSION>/line-comment.json <ROOT>` prints which line still matches each stored anchor. Pass `<ROOT>` explicitly — the script otherwise resolves paths against the store's grandparent, which is the session folder rather than the project.
+- For an orphaned comment, locate the original text before you edit. In miZed, use the comment and available source context. Leave the comment unresolved if you cannot locate the text. For a legacy session, run `${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py --store <SESSION>/line-comment.json <ROOT>`. Pass `<ROOT>` explicitly.
 - Return one line per comment and nothing else: `<file>:<line> — done: <what changed>` or `<file>:<line> — unresolved: <why>`.
 
 ## Triage pattern candidates
@@ -94,6 +104,8 @@ Each pair is one more row under `## Renamed terms` in `processed.md`.
 
 ## Record the session as processed
 
+In miZed, read each operator comment whose fork reported `done`. Compare the path, range, author, text, and open status with the snapshot. Mark the comment done through `edit_comment` only if they match. Record any missing or changed comment or failed status update under `## Comment status updates` with the path, line, and reason.
+
 Write `<SESSION>/processed.md` — one item per comment, acted on and unresolved alike, grouped by file:
 
 ```
@@ -121,10 +133,8 @@ Session: <SESSION>
 - The result bullet is the fork's own line for that comment, after the `<file>:<line> — ` prefix. Do not rewrite it.
 - The Pattern candidates cell is the line the `pattern-triage` agent returned, after `pattern candidates: `.
 - Leave out `## Renamed terms` when no `fix-glossary` fork ran.
-- Put a `(from Claude)` comment in its file section with the result bullet `skipped: from Claude`. It counts in neither Done nor Unresolved.
+- Put each agent comment in its file section with the result bullet `skipped: from Claude`. Exclude it from both counts.
 
-**No comment is dropped, because none is left to drop.** The batch left the store when the file moved, so `line-comment-lsp drop` has nothing to do here and is not called. The session folder holds the whole record: `line-comment.json` is the batch exactly as the operator wrote it, `processed.md` is what became of each comment.
-
-**An unresolved comment stays in the session folder.** It is not written back to the live store and its Zed hint does not come back, so `processed.md` is where a leftover is read. Say so in the report when a run leaves any.
+On other hosts, leave the archived batch in the session folder. Report that any unresolved comments remain in `processed.md`.
 
 Then print the content of `processed.md` to the operator and **nothing else**. The `Session:` line keeps the record reachable. This report replaces the grilling session's own output contract (summary, decision log, unknowns, next actions).

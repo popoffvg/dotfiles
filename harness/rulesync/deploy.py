@@ -403,22 +403,6 @@ def retire_native_wm(home):
         print('Retired native WM plugin registration; the public aliases use the private WM library.')
 
 
-def retire_legacy_links(home):
-    """Remove only old Codex links whose source was migrated from this checkout."""
-    manifest = ROOT / 'harness/codex/.skill-links.json'
-    if not manifest.exists():
-        return
-    removed = 0
-    for name, source in json.loads(manifest.read_text()).items():
-        source = Path(source)
-        installed = home / '.agents/skills' / name
-        if source.is_relative_to(ROOT) and installed.is_symlink() and installed.resolve() == source.resolve():
-            installed.unlink()
-            removed += 1
-    if removed:
-        print(f'Retired {removed} legacy repository skill links from ~/.agents; external skills preserved.')
-
-
 def build(home, stage):
     install = Installation(home)
     effort_routes = {}
@@ -762,7 +746,6 @@ def main():
             print(f'Preflight passed: {len(install.files)} files, {len(install.links)} links; no runtime changes.')
         else:
             install.publish()
-            retire_legacy_links(home)
             retire_native_wm(home)
 
 

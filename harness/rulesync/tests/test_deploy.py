@@ -51,7 +51,7 @@ class InvocationTests(unittest.TestCase):
                 self.assertIn(str(home / '.codex/harness/plugins/line-comment/internal-commands' / (operation + '.md')).encode(),
                               installation.files[alias / 'SKILL.md'][0])
                 self.assertIn(b'allow_implicit_invocation: false', installation.files[alias / 'agents/openai.yaml'][0])
-            for name in ['huh', 'minions', 'show-me', 'tour',
+            for name in ['huh', 'minions', 'show-me', 'tour-v2',
                          'zed-diff', 'with-proof', 'prompt', 'lessons', 'hunch', 'handoff',
                          'gist', 'drunk-claude', 'daily', 'and-what', 'critic']:
                 alias = home / '.codex/skills' / name

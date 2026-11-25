@@ -70,11 +70,11 @@ export PATH=$PATH:"$(go env GOPATH)/bin"
 export PATH=$PATH:~/local/bin
 
 
-if [[ $ZED_TERM == true ]]; then
-  export EDITOR=~/.claude/scripts/zed-edit-return.sh
-else
-  export EDITOR=hx
-fi
+case ${MIZED:-}:${ZED_TERM:-} in
+  1:*) export EDITOR="${EDITOR:-mized -e}" ;;
+  *:true) export EDITOR=~/.claude/scripts/zed-edit-return.sh ;;
+  *) export EDITOR=hx ;;
+esac
 autoload -z edit-command-line
 function edit-command-line-trim() {
   edit-command-line

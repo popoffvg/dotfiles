@@ -49,7 +49,7 @@ or subscriptions. A scheduler returns its schedule. Wiring returns the running p
 
 **The TS examples below illustrate the ordered parts of each brick, not flow notation.** The unit is a `namespace` and the entry point is `flow(...)`. The order of the parts survives translation into any language; the keywords do not. None of them is a template to copy.
 
-**This file owns the ordered parts of each brick.** `show-me` and `show-code` own Python flow notation; `change-review` owns the domain words in review flows.
+**This file owns the ordered parts of each brick.** `show-me` (`references/show-code.md`) owns Python flow notation; `change-review` owns the domain words in review flows.
 
 ### command
 

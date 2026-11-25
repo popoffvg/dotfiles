@@ -34,7 +34,10 @@ Change generated harness files through their sources. Preserve unmanaged files i
 
 Each skill has a `SKILL.md` with `name` and `description` fields. It can include references and scripts.
 
-If a repository skill references a skill available only under `~/.claude/skills/`, move that skill into `harness/skills/`. Run `mise run harness:sync` to deploy it. Keep the reference relative to the repository source.
+This checkout holds skill sources only. It MUST NOT hold a generated skill: a copy or a link that `mise run harness:sync` writes under `~/.claude`, `~/.codex`, `~/.agents`, or `~/.pi/agent`.
+
+- A skill that `installed.json` lists is a generated copy. Edit its source from the `files` map. Do not copy the installed skill into the checkout.
+- A skill that `installed.json` does not list belongs to its installer. A repository skill refers to it by name. Move it into `harness/skills/<group>/<name>/` only when the operator wrote it and asks for the move.
 
 ## WM workflow
 

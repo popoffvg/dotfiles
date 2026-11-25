@@ -50,4 +50,4 @@ Applies to plans, specs, reports, notes, tables, commit messages, and chat repli
 # Show
 
 - Before you show something to the user, load the `show-me` skill. This applies to a structure, a flow, types, a test case, or a failure, in chat or in an md file.
-- Use the form that `show-me` picks for that content, unless the user names the medium (HTML, page, artifact, mermaid, file). Then use that medium.
+- Use the form that `show-me` picks for that content. The environment picks the medium: load `agent-to-user` when the content leaves the chat.

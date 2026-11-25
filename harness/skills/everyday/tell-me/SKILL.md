@@ -1,12 +1,10 @@
 ---
 name: tell-me
-description: Build a mental model of one thing for an operator who has no context, as a markdown file opened in their editor — where a task or bug stands, how a mechanism works (Terraform state, a cache), where code lives, what happens on one call, why a design is this way, or how it breaks. Use for "tell me where this stands", "how does X work", "explain it to me from zero", "I lost track, catch me up", or `/tell-me <thing>`. A file that asks the operator to decide is `to-user`. A topic too big for 400 words goes to `lessons` when the operator confirms.
-allowed-tools: Bash(~/.claude/scripts/open-file.sh:*), Bash(~/.claude/scripts/zed-edit-return.sh:*)
+description: Build a mental model of one thing for an operator who has no context, as a markdown file in their editor or an HTML page in the Claude Desktop panel, as the environment row of `agent-to-user` says — where a task or bug stands, how a mechanism works (Terraform state, a cache), where code lives, what happens on one call, why a design is this way, or how it breaks. Use for "tell me where this stands", "how does X work", "explain it to me from zero", "I lost track, catch me up", or `/tell-me <thing>`. A file that asks the operator to decide is `to-user`. A topic too big for 400 words goes to `lessons` when the operator confirms.
+allowed-tools: Skill, Bash(~/.claude/scripts/open-file.sh:*), Bash(~/.claude/scripts/zed-edit-return.sh:*)
 ---
 
 # tell-me
-
-Host: !`~/.claude/scripts/open-file.sh --host`
 
 **The reader has no context, and the question they ask picks the model.** "Where does it stand?" needs a gap. "How does it work?" needs a mechanism. One fixed template answers one of these questions and writes empty sections for the rest.
 
@@ -15,8 +13,8 @@ Host: !`~/.claude/scripts/open-file.sh --host`
 1. **Pick the approach.** Match the operator's words to **Reader asks** in **Approaches**. Take one. Take a second only when the operator's words also match its Reader asks, and put the one that explains before the one that judges: "our Terraform state is broken" is Mechanism, then Failure. Done when each approach you took answers a question the operator asked.
 2. **Read before you write.** Open every file the thing owns, its `git log` and `git status`, its notes in `.notes/`, and the chat. A fact you did not read this session goes under Not checked. When the repo has no such thing, say so in chat and write no file. Done when every claim rests on a source you read this session.
 3. **Size the topic.** The file holds at most 400 words of prose; figures and tables do not count. The topic is big when it passes the **Big when** limit of an approach, or needs more than 400 words to answer the exit questions. For a big topic, ask with `AskUserQuestion`: **A — lessons** (recommended), a lesson series from the `lessons` skill, or **B — tell-me**, this file cut to 400 words, with the rest under Not covered. Draft the prose first, then count it; give the count and the word total in the question. On A, hand the work to `lessons` and stop. Done when the topic fits, or the operator chose.
-4. **Write the file** in **Frame**, to the scratchpad unless the operator names a place, as `tell-me-<thing>.md`. Done when the body answers every exit question and the prose is at most 400 words.
-5. **Open it.** When Host is `zed`, run `~/.claude/scripts/zed-edit-return.sh <file>` with Bash `run_in_background: true` and `dangerouslyDisableSandbox: true`. In any other host, run `~/.claude/scripts/open-file.sh <file>`. Do not wait for the tab to close. Done when you told the operator the path and the one-sentence answer. Arm no watch: the file asks nothing.
+4. **Write the file** in **Frame**, in the medium of the environment row of `agent-to-user`: `tell-me-<thing>.md`, or `tell-me-<thing>.html` in Claude Desktop. Write it to the scratchpad unless the operator names a place. Done when the body answers every exit question and the prose is at most 400 words.
+5. **Hand it over through `agent-to-user`**, in the row "A file that exists, such as a report" of the environment. Do not wait for the tab to close. Done when you told the operator the path and the one-sentence answer. Arm no watch: the file asks nothing.
 
 ## Frame
 
@@ -56,9 +54,9 @@ For: <what the reader knows> · not for: <what the file does not teach>
 - **The rule** comes before any detail, because every later section is a case of it. When you cannot write it in 3 nouns and 1 verb, read more before you write.
 - **It is not** lists 1–3 wrong models. Take them from a nearby tool or from what the operator said. Omit the section when no wrong model is likely.
 - Write the exit questions of the approach before the body; they go under Check yourself with the answers folded. A question the body does not answer is a gap: fix the body, or move the question to Not checked.
-- Pick each figure with `show-me`. Use mermaid, because this is a file. Put each label inside its box or on its arrow, never in a list under the figure. A part the rest of the file never names again is cut.
+- Pick each figure with `show-me`, in the figure form of the environment row of `agent-to-user`. Put each label inside its box or on its arrow, never in a list under the figure. A part the rest of the file never names again is cut.
 - Gloss each term once, where the file first uses it: plain words first, the symbol after.
-- Apply `i-have-adhd` to every section.
+- Apply the ASD-STE100 rules to every section.
 
 ## Approaches
 

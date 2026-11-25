@@ -74,8 +74,9 @@ prs: []                     # PR links of this TODO — bin/todo-session.sh appe
 > states only what the wm flow adds to that section; the copy deletes every `>` line except the
 > `> **Check:**` lines. The procedure around the file — the fan-out, the budgets, the verification
 > chain, the pre-save checklist — is `arch:sub-todo.md`, and the element list and order are its
-> § Required elements. `## Deviations` is shown filled, as `impl` leaves it — a file written by
-> `todo` has no such section.
+> § Required elements. The `### Commit` sections and `## Deviations` belong to the wm flow only:
+> `change-review` has neither, so their `>` blocks here hold the full rules. `## Deviations` is
+> shown filled, as `impl` leaves it — a file written by `todo` has no such section.
 >
 > **What the wm flow adds to the shared rules:**
 >
@@ -133,7 +134,7 @@ prs: []                     # PR links of this TODO — bin/todo-session.sh appe
 + └── ReleaseCheck                    #   command · supporting — builds from clean and checks every asset against the manifest
 ```
 
-> Rules: `change-review` § Components. The brick roster, with the metric and common structure of
+> Rules: `change-review` § Components, which draws the tree in the form of the Component tree section of `show-me` `references/show-code.md`. The brick roster, with the metric and common structure of
 > each brick, is `arch:ref-bricks.md`. What the wm flow adds:
 >
 > - **The mark types the symbol, not the file**: a `+` component may land in a file **Files** marks
@@ -187,6 +188,12 @@ def Refresh(body):
 
 > Rules: `change-review` § Increments. What the wm flow adds:
 >
+> - **Increments group into commits.** A commit is the smallest group of increments with one
+>   cause. The heading is `### <c>.<i>. <imperative title>`: `c` is the commit and `i` the
+>   increment in it, both 1-indexed, and `i` starts again at 1 in each commit. A `### Commit <c>`
+>   section closes each group.
+> - **A signature change and the increment that moves its callers land in the same commit.**
+> - **Sizes per commit:** at most 10 increments per commit and 4 commits.
 > - **Landed** — `yes` or `no`, the first bullet: whether this increment is in its commit. `todo`
 >   writes `no`; `impl` flips it after the commit or amend (`arch:ref-write.md` § Progress).
 > - **Change** is one of the nine kinds in `impl:ref-change-types.md`. A `type: new behavior` TODO
@@ -275,8 +282,17 @@ The minter now signs both tokens and returns them as one pair. Login and refresh
 
 **Proves:** Unit — `a mint signs both tokens`
 
-> Rules: `change-review` § Commit. What the wm flow adds:
+> Rules: after the last increment of a commit, write a `---` line and `### Commit <c>` with three
+> fields:
 >
+> - **Title**: the exact line to commit: `<prefix>: <line>`, at most 72 characters, imperative, no
+>   period.
+> - **Body**: the cause, the goal, and the decision when a real alternative lost, one paragraph
+>   each. The reader has only the repo. The `commit-message` skill owns the full contract.
+> - **Proves**: the test cases that pass from this commit on, as `<level> — <case>`. Each case
+>   names the first commit at which it can pass. A commit with no case writes `none — <reason>`.
+> - **The commit titles together state the change that the Outcome promises.** A capability in
+>   one and not in the other means the document is wrong: fix it before any increment lands.
 > - **The ledger entry's `Commit`** is the title of the commit that holds the `main` component's
 >   `new behavior` increment.
 > - **The Body names no `TODO-N`, increment number, ADR number, or ticket.**
@@ -340,7 +356,7 @@ next legitimate refresh.
 A short expiry on the refresh token was the other option. It was rejected because it signs out an
 idle user on a normal day, and the stolen token stays usable until it expires.
 
-**Proves:** Unit — `a rotation mints one new pair`, `the pair carries the same user`, `an expired token`, `a reused token`, `an unknown token`; E2E — `the returned pair authorizes the next call`, `a replayed token fails and the live pair still works`, `expiry ends access on both tokens`
+**Proves:** Unit — `live-token-rotates-to-a-new-pair`, `failed-write-keeps-the-old-token`, `expired-token-is-refused`, `token-one-second-past-expiry-is-refused`, `reused-token-is-refused`, `reused-token-attempts-no-write`, `unknown-token-is-refused`, `rotation-keeps-the-user`; E2E — `refreshed-session-keeps-working`, `replayed-token-fails-and-live-pair-works`, `expiry-ends-access-on-both-tokens`
 
 ### 3.1. Add the release check
 
@@ -385,7 +401,11 @@ A script now builds the release from clean and checks every asset against the ma
 |------|-----------------|-----|
 | `## Increments` 2.1: `Refresh` | takes `ctx context.Context` as its first argument | the store call it now makes must be cancellable |
 
-> Rules: `change-review` § Deviations. **Not yours to write.** `todo` never creates this section;
+> Rules: one row per place where the shipped code differs from an approved section:
+> `| What | Shipped instead | Why |`. **What** names the section and the symbol or case.
+> **Shipped instead** and **Why** are one line each. The approved text above stays as it was.
+>
+> **Not yours to write.** `todo` never creates this section;
 > the pair leaves the gate with the sections above and nothing after them. `impl` appends it, with
 > its `> **Check:**` line, when the user corrects a shown diff into something a section above
 > forbids, and only when the correction stays inside this TODO (`impl:sub-impl.md`, the step that records a

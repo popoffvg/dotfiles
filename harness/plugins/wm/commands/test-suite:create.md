@@ -1,6 +1,6 @@
 ---
 name: test-suite:create
-description: "Size a test set for a TODO/task with pairwise across unit / integration / manual tiers; ship the unit pairwise table and numbered E2E scenarios."
+description: "Size a test set for a TODO/task with pairwise across unit / integration / manual tiers; ship every case as a Gherkin scenario: a unit pairwise outline and E2E scenarios."
 generated-by: harness/scripts/sync-subcommand-commands.py
 ---
 

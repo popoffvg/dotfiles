@@ -13,7 +13,7 @@ An **org** is a folder `~/git/<org>/` — for example `mil` holds every project 
 1. **Get the org.** The org is REQUIRED. Take it from the arguments. When it is missing, ask for it — list the folders in `~/git/` as options — and stop until the operator answers. Never guess the org from the current directory. Done when you have one org name.
 2. **Collect the sessions.** Run `~/.claude/scripts/daily-sessions.py <org> [--date YYYY-MM-DD]` (default date is today). When it exits with "no org folder", show the folder list it prints and ask again. When it prints `sessions=0`, say so and stop. Done when you have the digest.
 3. **Write one line per result.** Read the whole digest. Merge sessions by the `MILAB-N` id first, then by the PR, then by topic; one session can give several results. A review of a PR is a line under the task of that PR; reviews with no task go on one line, "Reviewed N pull requests". `U:` lines say what the operator asked, `X:` lines show commits, PRs, and tickets, `T:` lists the `MILAB-N` ids the session touched, and `A:` is the last state. Apply the line rule below. Done when each result is one line.
-4. **Link each line to its task.** For the org `mil`, follow the `mil-backend-task` skill with all the lines at once, each with the `T:` ids of its sessions. For another org, skip this step. Done when each line has a task or the operator skipped it.
+4. **Link each line to its task.** For the org `mil`, find the Notion task of each line by the `T:` ids of its sessions, with the Notion search tool. For another org, skip this step. Done when each line has a task or the operator skipped it.
 5. **Write the report** in the format below and print it in chat in one code block. Write nothing to disk unless the operator asks.
 
 ## The line rule

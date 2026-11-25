@@ -1,8 +1,8 @@
-# Create — size the test set with pairwise, ship unit tables and numbered scenarios
+# Create — size the test set with pairwise, ship every case as a Gherkin scenario
 
 Produce one artifact: a **test set** for a TODO or a task, with every case placed in the cheapest tier that can prove it.
 
-**Open [`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md) first** — it is the artifact this subcommand produces. The unit tier ships as its pairwise table. The integration and manual tiers ship as numbered scenarios under big cases. The document you save follows [`ref-readable-output.md`](ref-readable-output.md) — the contract this subcommand fills.
+**Open [`examples/strategy-auth-refresh.md`](../examples/strategy-auth-refresh.md) first** — it is the artifact this subcommand produces. The unit tier ships as its Factors table and pairwise `Scenario Outline`. The integration and manual tiers ship as Gherkin scenarios under big cases, in the form of `show-me` (`references/show-cases.md`). The document you save follows [`ref-readable-output.md`](ref-readable-output.md) — the contract this subcommand fills.
 
 ## The three tiers
 
@@ -12,7 +12,7 @@ Produce one artifact: a **test set** for a TODO or a task, with every case place
 
 Each tier gets its own derivation sized to its cost. Never reuse one matrix across tiers — a unit matrix pushed into integration produces cases that pay setup cost to prove logic that a mock already proved.
 
-Unit cases live in the unit tables. Integration and manual cases live as scenarios under the big case whose behaviour they prove.
+Unit cases live in the unit outline and the Added cases. Integration and manual cases live as scenarios under the big case whose behaviour they prove.
 
 ## Where the output lives
 
@@ -59,7 +59,7 @@ Some combinations cannot occur or cannot be reached. Write each one down with th
 
 ### 4. Generate the matrix — per tier
 
-The unit matrix ships as the Factors and Pairwise cases tables of the document. The integration matrix stays in scratch; its rows become scenarios in step 8.
+The unit matrix ships as the Factors table and the Pairwise cases outline of the document. The integration matrix stays in scratch; its rows become scenarios in step 8.
 
 1. List that tier's factors and values. Name each factor after an input of the function block, and each value in words.
 2. Run a pairwise generator (PICT, allpairs, or by hand under three factors of three values).
@@ -98,9 +98,9 @@ Every case ends in an observable assertion — the literal shape, value, or even
 
 ### 8. Shape each tier
 
-**Unit** — write the Factors table, then one Pairwise cases row per matrix row, then the step 5 cases as Added cases rows. Give each row a name that says what it asserts. One row is one test, so a failure names the case that broke.
+**Unit** — write the Factors table, then one `Examples` row of the Pairwise cases outline per matrix row, then the step 5 cases as Added cases scenarios. Give each row a slug in its `case` cell that says what it asserts. One row is one test, so a failure names the case that broke.
 
-**Integration and manual** — write each case as a numbered `Scenario:` block: one action per step, in run order, and a colon with the observable result on each checked step. Then read the scenarios and find the **behaviours** they cluster around — not the factors they vary. Each cluster becomes one big case with a sentence heading and a paragraph.
+**Integration and manual** — write each case as a `Scenario:` with its tier tag: the state in `Given`, one action in `When`, and the observable result in `Then`. Then read the scenarios and find the **behaviours** they cluster around — not the factors they vary. Each cluster becomes one big case with a sentence heading and a paragraph.
 
 A scenario that belongs to no behaviour usually means the spec never named that behaviour. Name it and check that it is intended.
 
@@ -123,7 +123,7 @@ Never drop a value silently. Every drop lands in **Not covered** with the intera
 
 Run the checklist in `ref-readable-output.md` § Checklist before saving first, then:
 
-- [ ] The pairwise property holds for every tier that used it, and the unit table states it under the rows
+- [ ] The pairwise property holds for every tier that used it, and the line under the unit outline states it
 - [ ] Smoke, boundary, and regression-shape cases appended on top of the matrix rows
 - [ ] For a fixed-bug shape: grepped for siblings, one case per untouched site
 - [ ] Every case sits in the cheapest tier that proves its oracle, and each tier is inside its budget

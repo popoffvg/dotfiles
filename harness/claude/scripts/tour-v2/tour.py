@@ -3,6 +3,8 @@
 
 A tour folder holds TODO.md and tour.json. A stop is one comment at one line
 range of the change tip. The order of the stops array is the reading order.
+A flow is one path through the system from its trigger to its outcome. TODO.md
+describes each flow under "### Flow: <name>", and each stop names its flow.
 
 Usage (the tour command runs this file):
   tour open <tour-dir>    add the tour as a tab and open it in the browser
@@ -35,8 +37,11 @@ from urllib.parse import parse_qs, quote, urlparse
 HERE = Path(__file__).resolve().parent
 PAGE = HERE / "index.html"
 WORKTREE_TIP = "worktree"
-TODO_SECTIONS = ["## Problem", "## Domain", "### Map", "### Terms", "## Map of stops", "## Open points"]
-STOP_FIELDS = ["file", "line", "end", "node", "title", "body", "critical"]
+FLOWS_SECTION = "## Flows"
+TODO_SECTIONS = ["## Problem", "## Domain", "### Map", "### Terms", FLOWS_SECTION, "## Open points"]
+STOP_FIELDS = ["file", "line", "end", "flow", "node", "title", "body", "critical"]
+FLOW_HEADING = "### Flow: "
+FLOW_FIELDS = ["**Description:**", "**Trigger:**", "**Before:**", "**Change:**"]
 PORT = 8792
 VIEWER = f"http://127.0.0.1:{PORT}/"
 DAEMON = "com.vitalii.tour-v2"
@@ -78,6 +83,12 @@ def file_at(tour, rev: str, path: str) -> str | None:
     return shown.stdout if shown.returncode == 0 else None
 
 
+def flow_sections(todo: str) -> dict[str, str]:
+    flows = todo.split(FLOWS_SECTION, 1)[-1].split("\n## ", 1)[0]
+    sections = flows.split(FLOW_HEADING)[1:]
+    return {section.split("\n", 1)[0].strip(): section for section in sections}
+
+
 def find_errors(folder: Path) -> list[str]:
     todo_path = folder / "TODO.md"
     if not todo_path.exists():
@@ -85,10 +96,14 @@ def find_errors(folder: Path) -> list[str]:
     todo = todo_path.read_text()
     errors = [f"TODO.md: no section {s!r}" for s in TODO_SECTIONS if s not in todo]
     domain_map = todo.split("### Map", 1)[-1].split("### Terms", 1)[0]
+    flows = flow_sections(todo)
+    for name, section in flows.items():
+        errors += [f"TODO.md flow {name!r}: no {field!r} line" for field in FLOW_FIELDS if field not in section]
     tour = load_tour(folder)
     for key in ["title", "repo", "base", "tip", "stops"]:
         if key not in tour:
             errors.append(f"tour.json: no key {key!r}")
+    mapped_nodes = set()
     for number, stop in enumerate(tour.get("stops", []), start=1):
         where = f"tour.json stop {number}"
         missing = [f for f in STOP_FIELDS if f not in stop]
@@ -102,10 +117,15 @@ def find_errors(folder: Path) -> list[str]:
         line_count = len(text.splitlines())
         if not 1 <= stop["line"] <= stop["end"] <= line_count:
             errors.append(f"{where}: lines {stop['line']}-{stop['end']} outside 1-{line_count} of {stop['file']}")
-        if f"#stop-{number})" not in todo:
-            errors.append(f"TODO.md: no link to (#stop-{number}) for {stop['title']!r}")
-        if f'href "#stop-{number}"' not in domain_map:
-            errors.append(f'TODO.md map: no click href "#stop-{number}" for {stop["title"]!r}')
+        flow = flows.get(stop["flow"])
+        if flow is None:
+            errors.append(f"TODO.md: no section {FLOW_HEADING + stop['flow']!r} for stop {number}")
+        elif f"(#stop-{number})" not in flow:
+            errors.append(f"TODO.md flow {stop['flow']!r}: no step links to (#stop-{number}) for {stop['title']!r}")
+        is_first_stop_of_node = stop["node"] not in mapped_nodes
+        mapped_nodes.add(stop["node"])
+        if is_first_stop_of_node and f'href "#stop-{number}"' not in domain_map:
+            errors.append(f'TODO.md map: no click href "#stop-{number}" for node {stop["node"]!r}')
         if stop["node"] not in domain_map:
             errors.append(f"TODO.md map: no node {stop['node']!r} of stop {number}")
     return errors

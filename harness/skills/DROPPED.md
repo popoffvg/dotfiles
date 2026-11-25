@@ -11,8 +11,8 @@ parent still has the file. The commit message says why the whole group went.
 | `clipboard-sandbox` | Use when copying content to the clipboard for the user (pbcopy / xclip / clip.exe / wl-copy), e.g. handing a c | `b759ad85` | `harness/claude/skills/clipboard-sandbox/SKILL.md` |
 | `cmux-subagent` | This skill should be used when the user asks to "launch a subagent in cmux", "run claude in a new pane", "open | `c05b1fad` | `harness/claude/skills/cmux-subagent/SKILL.md` |
 | `codebase-analyzer` | Router skill for codebase analysis. Launches one implementation analyzer subagent and produces one evidence-ba | `e5feab8e` | `harness/claude/skills/codebase-analyzer/SKILL.md` |
-| `design` | House rules for designing a solution — reuse what exists, keep the smallest shape that works, and name the op | — | `harness/claude/skills/design/SKILL.md` |
 | `debug-oauth-idp-errors` | Debugging an OAuth2/OIDC identity-provider rejection — invalid_scope, invalid_client, invalid_redirect_uri, "r | `0267e653` | `harness/claude/skills/debug-oauth-idp-errors/SKILL.md` |
+| `design` | House rules for designing a solution — reuse what exists, keep the smallest shape that works, and name the op | — | `harness/claude/skills/design/SKILL.md` |
 | `discussion-scheme` | — | `28f9fdd4` | `harness/claude/skills/discussion-scheme/SKILL.md` |
 | `document-the-union-a-value-is-written-under` | Use when writing or reviewing the sentence that tells a reader what a status value means — an enum's doc comme | `52887eb6` | `harness/claude/skills/document-the-union-a-value-is-written-under/SKILL.md` |
 | `enforce-a-broken-ban-mechanically` | Use when about to fix an agent's misbehaviour by adding or sharpening a rule in its prompt, and the prompt ALR | `b759ad85` | `harness/claude/skills/enforce-a-broken-ban-mechanically/SKILL.md` |
@@ -34,15 +34,20 @@ parent still has the file. The commit message says why the whole group went.
 | `go-test-debug` | Debug complex Go test failures — flaky tests, race conditions, deadlocks, panics, timeouts, nil pointer derefe | `bd3360bf` | `harness/claude/skills/go-test-debug/SKILL.md` |
 | `go-understanding` | Comprehensive analysis of unfamiliar Go packages — structure, public API, dependencies, coding patterns. Use w | `bd3360bf` | `harness/claude/skills/go-understanding/SKILL.md` |
 | `herdr` | Drive the herdr terminal workspace from a Claude Code session — open a program in a pane beside the user (heli | `c05b1fad` | `harness/claude/skills/herdr/SKILL.md` |
+| `hunk-review` | Drive a live Hunk diff review session from the terminal — read the file/hunk structure, move the user's view t | — | `harness/skills/everyday/hunk-review/SKILL.md` |
+| `i-have-adhd` | The house rules for prose a reader with ADHD can read once and act on. Load it when writing or rewriting text  | — | `harness/skills/everyday/i-have-adhd/SKILL.md` |
 | `idea` | This skill should be used when the user says "idea", "I have an idea", "what if we", "we could", "it would be  | `d5556398` | `harness/claude/skills/idea/SKILL.md` |
 | `identity-bind-before-mint` | Use when implementing or reviewing "log in as / bind this login to an existing user / map an external id to an | `0267e653` | `harness/claude/skills/identity-bind-before-mint/SKILL.md` |
 | `inline-review-todos` | Place PR/code-review comments as inline TODO markers in the file each comment is on, at its line, not in a cen | `5774c0b9` | `harness/claude/skills/inline-review-todos/SKILL.md` |
+| `mil-backend-task` | Find the operator's Notion task for one piece of work in the current Backend sprint of MiLaboratories, or crea | — | `harness/skills/everyday/mil-backend-task/SKILL.md` |
+| `mil-client-names` | Sync — copy the client names of customer-ssot into ~/git/mil/client-names.txt, the list the mil pre-commit hoo | — | `harness/skills/everyday/mil-client-names/SKILL.md` |
 | `mise` | This skill should be used when the user mentions "mise", "mise run", "mise task", "copy-logs", "dump-db", "rep | `b759ad85` | `harness/claude/skills/mise/SKILL.md` |
 | `native` | Rewrite text so it reads like a native English speaker wrote it, and fix grammar, spelling, articles, preposit | `070d0d82` | `harness/claude/skills/native/SKILL.md` |
 | `no-literal-home-path-in-stowed-files` | — | `20b523fa` | `.claude/skills/no-literal-home-path-in-stowed-files/SKILL.md` |
 | `note` | Capture a human note — a todo, a thought, a reminder, or an open question — as one file per note in `.note/per | `d5556398` | `harness/claude/skills/note/SKILL.md` |
 | `notify-me` | Send a desktop notification to the user when they ask to be notified upon task completion. Use this skill when | `c05b1fad` | `harness/claude/skills/notify-me/SKILL.md` |
 | `oidc-identity-claim-match` | When matching or authorizing users by identity in an OIDC/SSO login flow — admin/allowlists, role assignment,  | `0267e653` | `harness/claude/skills/oidc-identity-claim-match/SKILL.md` |
+| `one-shot` | Run one self-contained prompt in a {light} forked agent and return its answer. Use on `/one-shot <prompt>`, wh | — | `harness/skills/everyday/one-shot/SKILL.md` |
 | `parallel-agent-tree-guard` | Guard against parallel subagents straying outside their assigned files when they share one working tree. Use w | `c05b1fad` | `harness/claude/skills/parallel-agent-tree-guard/SKILL.md` |
 | `plannotator-compound` | > | `c4e229c2` | `harness/claude/skills/plannotator-compound/SKILL.md` |
 | `quiet-teammate-idle-notifications` | Two rules for an idle_notification from a background or named subagent (idleReason "available"). First, keep q | `c05b1fad` | `harness/claude/skills/quiet-teammate-idle-notifications/SKILL.md` |
@@ -56,6 +61,7 @@ parent still has the file. The commit message says why the whole group went.
 | `the-step-that-knows-the-outcome-owns-the-row` | Use when more than one stage of a pipeline appends rows, events, or status records to a shared store keyed the | `52887eb6` | `harness/claude/skills/the-step-that-knows-the-outcome-owns-the-row/SKILL.md` |
 | `tmux-subagent` | This skill should be used when the user asks to "launch a subagent in tmux", "run claude in a new pane", "open | `c05b1fad` | `harness/claude/skills/tmux-subagent/SKILL.md` |
 | `todo-fix` | > | `d5556398` | `harness/claude/skills/todo-fix/SKILL.md` |
+| `tour` | Write a tour of a code change from any source — a PR, a branch, a commit or a range, the uncommitted working t | — | `harness/skills/everyday/tour/SKILL.md` |
 | `typed-edge-ordering` | Use when implementing or reviewing a topological sort, dependency ordering, layering, or DAG traversal over a  | `52887eb6` | `harness/claude/skills/typed-edge-ordering/SKILL.md` |
 | `verify-source-at-pinned-ref` | Debugging or fixing behavior that lives in a dependency, reusable CI action, submodule, or checked-out sibling | `5774c0b9` | `harness/claude/skills/verify-source-at-pinned-ref/SKILL.md` |
 | `working-tree-removal-is-intent` | Use when a test or build breaks because an uncommitted working-tree change removed a guard, condition, branch, | `5774c0b9` | `harness/claude/skills/working-tree-removal-is-intent/SKILL.md` |

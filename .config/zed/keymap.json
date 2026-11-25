@@ -563,5 +563,10 @@
     "bindings": {
       "cmd-k c": "line_comments::AddLineComment"
     }
+  },
+  {
+    "bindings": {
+      "cmd-k e": "markdown::TogglePreviewInPlace"
+    }
   }
 ]
