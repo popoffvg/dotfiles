@@ -60,6 +60,15 @@ Copy every FAIL line of `report.md` with its findings into one fixup brief for `
 (`impl:sub-commit.md` § Fixups), then run the review again. A `low` FAIL is a nit: it does not fail
 the run, and the brief marks it optional.
 
-`auto` passes a budget of three runs. A third red run ends the TODO as `status: blocked`, with the
+### Fix a red run in one round
+
+Each rerun finds what the last fix left open. Close it before the rerun:
+
+1. **`fix-the-class`.** A CONFIRMED hypothesis names one path. Ask its question again of every sibling path in the diff: each handler, each write, each exit. A rule finding names some lines: search the whole diff for the same pattern. Fix every hit in one commit. Done when the search finds no other hit.
+2. **`self-check-fix-hunk`.** Walk the fix hunk through the hunts of the hypothesis generator prompt and through each rule that failed. Done when the fix adds no new error path, read, or state that the walk did not answer.
+3. **`decide-unsure-in-session`.** Decide each `UNSURE` line as step 4 of [Run it](#run-it) says. Pass each REFUTED verdict to the rerun as `--context "<at>: <the deciding quote or test>"`. Never rerun only to get another sample of the same question.
+4. Run the review again once. The rerun reuses the cached questions and asks new ones only about the commits since the last run, so a red rerun points at the fix itself.
+
+`auto` passes a budget of five runs. A fifth red run ends the TODO as `status: blocked`, with the
 last `report.md` recorded. A standalone `/review` runs once and stops, because a human reads the
 report.

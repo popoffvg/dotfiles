@@ -75,7 +75,7 @@ if [ -z "$skip_review" ]; then
   reviewrules --repo "$root" --base "$base" --json-out "$out/reviewrules.json" ${context_args[@]+"${context_args[@]}"} \
     >"$out/report.md" 2>"$out/reviewrules.log" || rc=$?
   cat "$out/report.md"
-  [ "$rc" -eq 0 ] || { echo "pre-push-check: reviewrules exit $rc (1 = a rule FAIL, 2 = the run did not finish); fix the cause (see $out/report.md, $out/reviewrules.log) and run again" >&2; exit 1; }
+  [ "$rc" -eq 0 ] || { echo "pre-push-check: reviewrules exit $rc (1 = a rule FAIL, 2 = the run did not finish); fix the cause (see $out/report.md, $out/reviewrules.log) as \"Fix a red run in one round\" in $HOME/.claude/harness/plugins/wm/skills/review/references/ref-reviewrules.md says, then run again" >&2; exit 1; }
   grep -q 'WARN' "$out/report.md" && echo "pre-push-check: verify every WARN line in $out/report.md before the push" >&2
   review_line="reviewrules: $out/report.md"
 fi
