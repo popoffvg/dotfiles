@@ -15,7 +15,8 @@ usage: zed-diff.sh [-C DIR] [--print] [BASE [HEAD] | BASE..HEAD | COMMIT^!] [-- 
   BASE..HEAD      the same as BASE HEAD
   COMMIT^!        one commit against its parent
   -C DIR          run in the repo at DIR
-  --print         build the trees and print the zed command, open nothing
+  --print         build the trees and print the editor command, open nothing
+The editor is $EDITOR (default zed); it must take --existing and --diff, as zed and mized do.
 The right side is the live working tree when HEAD is omitted, or when HEAD is the
 checked-out commit and the working tree has no change under the paths.
 EOF
@@ -105,8 +106,11 @@ mode=snapshot
 ((right_is_live)) && mode=live
 echo "zed-diff: $file_count files, right side $mode, trees in $work_dir"
 ((copied)) && echo "zed-diff: $copied files copied, not linked: an edit to them does not reach the repo" >&2
+read -ra editor_cmd <<<"${EDITOR:-zed}"
+[[ " ${editor_cmd[*]} " == *' -e '* || " ${editor_cmd[*]} " == *' --existing '* ]] || editor_cmd+=(--existing)
 if ((print_only)); then
-  printf 'zed --existing --diff %q %q\n' "$left_tree" "$right_tree"
+  printf '%q ' "${editor_cmd[@]}" --diff "$left_tree" "$right_tree"
+  printf '\n'
   exit 0
 fi
-zed --existing --diff "$left_tree" "$right_tree"
+"${editor_cmd[@]}" --diff "$left_tree" "$right_tree"

@@ -1,9 +1,9 @@
 ---
-allowed-tools: Read, Glob, Grep, Skill, Bash(line-comment-lsp:*), Bash(~/.claude/scripts/mized-mcp.sh:*), Bash(ls:*)
+allowed-tools: Read, Glob, Grep, Skill, Bash(printenv:*), Bash(line-comment-lsp:*), Bash(~/.claude/scripts/mized-mcp.sh:*), Bash(ls:*)
 description: Leave review comments on lines in Zed instead of writing them in chat
 ---
 
-Load the `agent-to-user` skill and select the host. For `MIZED=1`, add each remark through its Live comments instructions. On other hosts, use `line-comment-lsp comment <file>:<lines> <text>`. The range is `12` for one line or `12-18` for a block.
+Do this step first: run `printenv MIZED`, then load the `agent-to-user` skill. For output `1`, add each remark through its Live comments instructions, and do not run `line-comment-lsp`. For any other result, use `line-comment-lsp comment <file>:<lines> <text>`. The range is `12` for one line or `12-18` for a block.
 
 $ARGUMENTS names what to comment on. With no argument, comment on the working-tree diff.
 

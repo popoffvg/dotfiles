@@ -1,9 +1,9 @@
 ---
-allowed-tools: Skill, Bash(line-comment-lsp:*), Bash(~/.claude/scripts/mized-mcp.sh:*)
+allowed-tools: Skill, Bash(printenv:*), Bash(line-comment-lsp:*), Bash(~/.claude/scripts/mized-mcp.sh:*)
 description: Drop line comments from the store without acting on them
 ---
 
-Load the `agent-to-user` skill and select the host. List comments from the selected store before you delete anything. Apply the same selection on either host.
+Do this step first: run `printenv MIZED`, then load the `agent-to-user` skill. Output `1` selects `## miZed`, and there you MUST NOT run `line-comment-lsp`. Any other result selects `## Other hosts`. List comments from the selected store before you delete anything. Apply the same selection on either host.
 
 $ARGUMENTS names what to drop. With no argument, select every comment.
 

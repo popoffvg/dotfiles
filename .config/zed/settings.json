@@ -139,7 +139,7 @@
     },
     "provider": "zed",
   },
-  "diff_view_style": "unified",
+  "diff_view_style": "split",
   "cli_default_open_behavior": "existing_window",
   "project_panel": {
     "sticky_scroll": false,
@@ -238,7 +238,7 @@
     },
     "expand_terminal_card": false,
     // miZed only. MIZED=1 tells an agent that it runs in miZed and can reach the mized MCP server.
-    "terminal_init_command": "MIZED=1 claudex",
+    "terminal_init_command": "MIZED=1 ~/.claude/scripts/claudex",
     "terminal_agent_commands": {
       "claude": "MIZED=1 claude",
       "codex": "MIZED=1 codex --no-daemon",

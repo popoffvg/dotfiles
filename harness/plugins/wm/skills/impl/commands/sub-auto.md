@@ -43,7 +43,7 @@ For **every** TODO in the work list, in order — not the first, not the easy on
    rule, and pass the lessons entries that touch this TODO's **Files** in the @implementer brief.
 3. **The review** — follow `review:sub-todo.md`: one `reviewrules` run over the TODO's commits. Exit 1 →
    return to 2 as a fixup commit with the FAIL findings quoted, then run the review again. Exit 2 blocks the
-   TODO. `review:ref-reviewrules.md` owns the run and the budget of three runs; this step owns nothing but the call.
+   TODO. `review:ref-reviewrules.md` owns the run and the budget of five runs; this step owns nothing but the call.
 4. **Squash this round's fixups** — follow `sub-squash.md`, scoped to this TODO: fold every `--fixup`
    commit the review produced into the commit it fixes (`git rebase --autosquash`), so the TODO
    leaves one commit per `### Commit` section behind. Its distill step is where a fixup becomes a skill.
@@ -56,7 +56,7 @@ For **every** TODO in the work list, in order — not the first, not the easy on
 7. **Commit the notes-dir** (`code:ref-jj-notes.md`). The `review:sub-todo.md` run already set the
    TODO `status`; this step writes none.
 
-A third red review run (`review:ref-reviewrules.md` § A FAIL goes back to impl) blocks the TODO: record the
+A fifth red review run (`review:ref-reviewrules.md` § A FAIL goes back to impl) blocks the TODO: record the
 blocker in `LESSONS.md` and continue with the next TODO that no blocked TODO blocks. A blocked round
 **skips the squash** — its fixups have nothing green to fold into — and still runs 5 and 6. Never
 abandon the remaining work list because one TODO is stuck.

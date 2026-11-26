@@ -99,6 +99,7 @@ class Declaration:
     path: str
     line: int
     signature: str
+    text: str
 
 
 @dataclass
@@ -165,7 +166,10 @@ def scan(paths, cwd):
             if label == "impl":
                 continue
             declarations.append(
-                Declaration(name, label, scope, path, match["range"]["start"]["line"] + 1, signature_of(match["text"]))
+                Declaration(
+                    name, label, scope, path, match["range"]["start"]["line"] + 1,
+                    signature_of(match["text"]), match["text"],
+                )
             )
     return declarations
 

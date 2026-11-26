@@ -1,0 +1,81 @@
+#!/bin/zsh -f
+# Launch claude with this harness's system prompt and an agent choice.
+# A file, not a shell function: miZed types its terminal_init_command into $SHELL,
+# and a non-zsh shell has no ~/.zshrc_aliases.
+#
+# Usage: claudex [claude-args…]       general claude
+#        claudex pick [claude-args…]  pick the agent with fzf
+
+main() {
+  if [[ "$1" == "pick" ]]; then
+    shift
+    run_agent "$(pick_agent)" "$@"
+    return
+  fi
+  run_agent general "$@"
+}
+
+pick_agent() {
+  command -v fzf >/dev/null 2>&1 || { echo "claudex: pick needs fzf" >&2; exit 1; }
+  local choice
+  choice=$(printf 'general\narchitector\nimplementer\nskills\n' | fzf --prompt 'claude agent> ' --height 40%) || exit 0
+  printf '%s' "${choice:-general}"
+}
+
+# run_agent <agent-choice> [claude-args…] — build claude's arguments and run it.
+# Each agent also picks its output style (~/.claude/output-styles, keyed by the file's
+# frontmatter `name`). claude has no --output-style flag, so it rides in --settings JSON.
+# ~/.claude/SYSTEM_PROMPT.md replaces the default prompt via --system-prompt; its
+# {{model}}, {{modelDescription}}, and {{currentDateTime}} placeholders are filled here.
+run_agent() {
+  local choice=$1; shift
+  local model name description
+  model=$(agent_model "$choice" "$@")
+  case "$model" in
+    sonnet*) name='Claude Sonnet 5'; description='Claude Sonnet 5 is a smart, efficient model for everyday use.' ;;
+    haiku*)  name='Claude Haiku 4.5'; description='Claude Haiku 4.5 is the fastest model, for quick focused tasks.' ;;
+    fable*)  name='Claude Fable 5'; description='Claude Fable 5 is a model for creative and open-ended work.' ;;
+    *)       name='Claude Opus 5.5'; description='Claude Opus 5.5 is a powerful model for complex challenges.' ;;
+  esac
+  local sysprompt_file=~/.claude/SYSTEM_PROMPT.md
+  local -a sysprompt
+  if [[ -r "$sysprompt_file" ]]; then
+    sysprompt=(--system-prompt "$(sed \
+      -e "s|{{model}}|$name|g" \
+      -e "s|{{modelDescription}}|$description|g" \
+      -e "s|{{currentDateTime}}|$(date '+%Y-%m-%d')|g" \
+      "$sysprompt_file")")
+  fi
+  local -a modelflag
+  [[ -n "$model" ]] && modelflag=(--model "$model")
+  local -a args
+  case "$choice" in
+    architector) args=("${sysprompt[@]}" "${modelflag[@]}" --agent wm:architector --settings '{"outputStyle":"ARCHITECT"}' "$@") ;;
+    implementer) args=("${sysprompt[@]}" "${modelflag[@]}" --agent wm:implementer --settings '{"outputStyle":"CODE"}' "$@") ;;
+    skills) args=("${sysprompt[@]}" "${modelflag[@]}" --agent skill-builder) ;;
+    general|"")  args=("${sysprompt[@]}" "${modelflag[@]}" "$@") ;;
+  esac
+  # zed-claude adds --session-id or --resume from ZED_SESSION_ID. Outside an
+  # agent-panel terminal the variable is unset and this is plain claude.
+  exec "$HOME/.claude/scripts/zed-claude" "${args[@]}"
+}
+
+# agent_model <agent-choice> [claude-args…] — echo the model the run will use.
+# An explicit --model beats the agent's default. Prints nothing when neither names one.
+agent_model() {
+  local choice=$1; shift
+  local model
+  case "$choice" in
+    implementer) model=sonnet ;;
+  esac
+  while (( $# )); do
+    case "$1" in
+      --model) model=$2; shift ;;
+      --model=*) model=${1#--model=} ;;
+    esac
+    shift
+  done
+  printf '%s' "$model"
+}
+
+main "$@"

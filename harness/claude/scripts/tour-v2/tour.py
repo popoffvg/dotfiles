@@ -26,6 +26,7 @@ Endpoints, where T is the absolute tour folder:
 """
 
 import argparse
+import importlib.util
 import json
 import socket
 import subprocess
@@ -36,9 +37,13 @@ from urllib.parse import parse_qs, quote, urlparse
 
 HERE = Path(__file__).resolve().parent
 PAGE = HERE / "index.html"
-WORKTREE_TIP = "worktree"
 FLOWS_SECTION = "## Flows"
-TODO_SECTIONS = ["## Problem", "## Domain", "### Map", "### Terms", FLOWS_SECTION, "## Open points"]
+CHANGED_CODE_SECTION = "## Changed existing code"
+TODO_SECTIONS = ["## Problem", "## Domain", "### Map", "### Terms", CHANGED_CODE_SECTION, FLOWS_SECTION, "## Open points"]
+CHANGED_SYMBOLS = HERE.parent / "changed-symbols.py"
+_spec = importlib.util.spec_from_file_location("changed_symbols", CHANGED_SYMBOLS)
+CHANGED_SYMBOLS_MODULE = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(CHANGED_SYMBOLS_MODULE)
 STOP_FIELDS = ["file", "line", "end", "flow", "node", "title", "body", "critical"]
 FLOW_HEADING = "### Flow: "
 FLOW_FIELDS = ["**Description:**", "**Trigger:**", "**Before:**", "**Change:**"]
@@ -75,12 +80,24 @@ def tour_summary(folder: Path):
 
 
 def file_at(tour, rev: str, path: str) -> str | None:
-    repo = Path(tour["repo"])
-    if rev == WORKTREE_TIP:
-        target = repo / path
-        return target.read_text() if target.exists() else None
-    shown = subprocess.run(["git", "-C", str(repo), "show", f"{rev}:{path}"], capture_output=True, text=True)
-    return shown.stdout if shown.returncode == 0 else None
+    return CHANGED_SYMBOLS_MODULE.file_at(Path(tour["repo"]), rev, path)
+
+
+def changed_code_errors(tour, todo: str) -> list[str]:
+    """One error per existing symbol that the change touches and the section does not name."""
+    listed = subprocess.run(
+        [sys.executable, str(CHANGED_SYMBOLS), "--repo", tour["repo"], "--json", tour["base"], tour["tip"]],
+        capture_output=True, text=True,
+    )
+    if listed.returncode != 0:
+        return [f"tour-v2: changed-symbols failed: {listed.stderr.strip()}"]
+    section = todo.split(CHANGED_CODE_SECTION, 1)[-1].split("\n## ", 1)[0]
+    changes = json.loads(listed.stdout)["changes"]
+    return [
+        f"TODO.md {CHANGED_CODE_SECTION!r}: no row for `{c['symbol']}` ({c['change']} {c['kind']}, {c['at']})"
+        for c in changes
+        if f"`{c['symbol']}`" not in section
+    ]
 
 
 def flow_sections(todo: str) -> dict[str, str]:
@@ -128,6 +145,8 @@ def find_errors(folder: Path) -> list[str]:
             errors.append(f'TODO.md map: no click href "#stop-{number}" for node {stop["node"]!r}')
         if stop["node"] not in domain_map:
             errors.append(f"TODO.md map: no node {stop['node']!r} of stop {number}")
+    if CHANGED_CODE_SECTION in todo:
+        errors += changed_code_errors(tour, todo)
     return errors
 
 

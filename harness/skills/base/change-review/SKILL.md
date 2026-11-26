@@ -41,9 +41,11 @@ A change review is one markdown document about one change. A reviewer reads it w
 
 ## Components
 
-> **Check:** this tree is the whole reach of the change. Find the component you know must change and do not see here. Confirm that the `main` component is the one that carries the Outcome.
+> **Check:** this tree is the whole reach of the change. Find the component you know must change and do not see here. Confirm that the `main` component is the one that carries the Outcome. Read each `~` row, and confirm that you asked for what its callers now see.
 
 A component tree in the form of [show-me: Component tree](../show-me/references/show-code.md#component-tree), one tree per package. The `main` component carries the Outcome.
+
+- **A `~` row says what its existing callers see.** Its comment ends with `was: <what callers saw at the base>`, or with `callers see no change`. A new field, a new branch, or a changed default is a change that callers see.
 
 ## Flow changes
 

@@ -1,15 +1,21 @@
 ---
-allowed-tools: Agent, Read, Edit, Write, Skill, AskUserQuestion, Bash(line-comment-lsp:*), Bash(~/.claude/scripts/mized-mcp.sh:*), Bash(ls:*), Bash(mkdir:*), Bash(mv:*), Bash(date:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py:*)
+allowed-tools: Agent, Read, Edit, Write, Skill, AskUserQuestion, Bash(printenv:*), Bash(line-comment-lsp:*), Bash(~/.claude/scripts/mized-mcp.sh:*), Bash(ls:*), Bash(mkdir:*), Bash(mv:*), Bash(date:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py:*)
 description: Move the line comments into an act session folder, act on them in fork agents, then record the session as processed
 ---
 
 ## Claim the batch
 
-Load the `agent-to-user` skill and select the host.
+Do this step first. The hosts keep the comments in different stores, and the wrong store returns an old batch without an error.
+
+1. Run `printenv MIZED`. Output `1` selects `### miZed`. Any other result selects `### Other hosts`.
+2. Load the `agent-to-user` skill.
+3. Follow only the section that step 1 selected.
 
 ### miZed
 
-Use the Live comments instructions to list the store. Select open comments. If the list has no open comments, report that and stop.
+You MUST NOT run `line-comment-lsp` in miZed. Its store is an old export, not the live comments.
+
+Use the Live comments instructions to list the store. Select open comments. If the list has no open comments, report that and stop. If the mized tools fail, report the failure and stop. Do not report "no comments" from any other source.
 
 Use `list_workspaces` to find the deepest workspace root that contains the current directory. Set `ROOT` to that path. Stop if no root matches. Create `$ROOT/.tmp/act-session/<timestamp>/` as `SESSION`. Save the open comments as `$SESSION/line-comment.json`. Use this snapshot for all work in the session.
 

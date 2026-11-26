@@ -123,12 +123,13 @@ prs: []                     # PR links of this TODO — bin/todo-session.sh appe
 ```text
   pkg/auth                            # OWNS the refresh exchange
 ~ ├── Handler                         #   server · main — exchanges a valid refresh token for a new pair
-~ │   └── Refresh()                   #     takes a `RefreshRequest`, returns a `TokenPair`, and invalidates the old refresh token
+~ │   ├── Refresh()                   #     takes a `RefreshRequest`, returns a `TokenPair`, and invalidates the old refresh token; was: returns one access token, the old refresh token stays valid
+~ │   └── Login()                     #     reads the access token from the pair; callers see no change
 ~ └── TokenMinter                     #   command · supporting — mints an access/refresh pair for a user id
-~     └── MintPair()                  #     returns a `TokenPair` instead of one token string
+~     └── MintPair()                  #     returns a `TokenPair`; was: one token string
 
   cmd/api                             # OWNS the HTTP routes
-~ └── Routes                          #   wiring · supporting — maps `POST /auth/refresh` to the handler
+~ └── Routes                          #   wiring · supporting — maps `POST /auth/refresh` to the handler; was: writes back a bare string, now a JSON object
 
   scripts                             # OWNS the release scripts
 + └── ReleaseCheck                    #   command · supporting — builds from clean and checks every asset against the manifest
@@ -407,9 +408,13 @@ A script now builds the release from clean and checks every asset against the ma
 >
 > **Not yours to write.** `todo` never creates this section;
 > the pair leaves the gate with the sections above and nothing after them. `impl` appends it, with
-> its `> **Check:**` line, when the user corrects a shown diff into something a section above
-> forbids, and only when the correction stays inside this TODO (`impl:sub-impl.md`, the step that records a
-> deviation).
+> its `> **Check:**` line, in two cases, and only when the change stays inside this TODO
+> (`impl:sub-impl.md`, the step that records a deviation):
+>
+> - the user corrects a shown diff into something a section above forbids;
+> - the user approves a **Not in the pair** row: an existing field, branch, default, or signature
+>   that the implementer changed and that no section above names. A row nobody approved has no
+>   place here, and the verifier fails it as an unasked change.
 >
 > A deviation is tactical, so it is never an ADR (`arch:sub-todo.md` § Implementation decisions).
 > The fixup commit message carries the same **Why**, so it survives when `revise` folds the row in

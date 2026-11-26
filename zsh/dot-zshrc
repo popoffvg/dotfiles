@@ -71,7 +71,7 @@ export PATH=$PATH:~/local/bin
 
 
 case ${MIZED:-}:${ZED_TERM:-} in
-  1:*) export EDITOR="${EDITOR:-mized -e}" ;;
+  1:*) export EDITOR="${EDITOR:-mized -e --wait}" ;;
   *:true) export EDITOR=~/.claude/scripts/zed-edit-return.sh ;;
   *) export EDITOR=hx ;;
 esac

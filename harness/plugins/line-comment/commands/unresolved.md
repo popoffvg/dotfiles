@@ -1,13 +1,13 @@
 ---
-allowed-tools: Read, Skill, Bash(line-comment-lsp:*), Bash(~/.claude/scripts/mized-mcp.sh:*), Bash(ls:*), Bash(dirname:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py:*)
+allowed-tools: Read, Skill, Bash(printenv:*), Bash(line-comment-lsp:*), Bash(~/.claude/scripts/mized-mcp.sh:*), Bash(ls:*), Bash(dirname:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/find-anchor.py:*)
 description: Show the line comments nobody has acted on — the live store, plus the leftovers of the newest act session
 ---
 
-Load the `agent-to-user` skill and select the host.
+Do this step first. The wrong store returns an old batch without an error. Run `printenv MIZED`: output `1` selects `## miZed`, any other result selects `## Other hosts`. Then load the `agent-to-user` skill.
 
 ## miZed
 
-Use the Live comments instructions to list the store. Report open comments.
+You MUST NOT run `line-comment-lsp` in miZed. Its store is an old export. Use the Live comments instructions to list the store. Report open comments. If the mized tools fail, report the failure and stop.
 
 ## Other hosts
 

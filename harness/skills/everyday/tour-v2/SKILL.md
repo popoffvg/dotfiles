@@ -1,8 +1,8 @@
 ---
 name: tour-v2
-description: Write a tour of a code change as one TODO page (the problem, a domain map that introduces the terms, and each flow that the change touches, with its description, what it did before, what changed, and every step from its trigger to its outcome, with every changed step linked to its stop) and a list of comments anchored to line ranges at the tip, then serve both in a local viewer that shows each comment next to its code and opens the line in Zed. Use on "tour-v2", "tour with comments at the code", "walk me through the diff in the viewer", "which flows does this PR change", or when the operator wants to read a change stop by stop beside the code.
+description: Write a tour of a code change as one TODO page (the problem, a domain map that introduces the terms, a table of every existing symbol the change alters with the ones nobody asked for first, and each flow that the change touches, with its description, what it did before, what changed, and every step from its trigger to its outcome, with every changed step linked to its stop) and a list of comments anchored to line ranges at the tip, then serve both in a local viewer that shows each comment next to its code and opens the line in Zed. Use on "tour-v2", "tour with comments at the code", "walk me through the diff in the viewer", "which flows does this PR change", or when the operator wants to read a change stop by stop beside the code.
 allowed-tools: Bash(tour:*)
-version: 0.6.0
+version: 0.7.0
 ---
 
 # tour-v2
@@ -15,12 +15,13 @@ A **flow** is one path through the system: a trigger starts it, it runs a chain 
 
 1. **Pin the change.** Take the base and the tip from the row of [Sources](#sources). Done when you have the base sha, the tip, and the absolute checkout path.
 2. **Read the change.** Read every changed source file in full at the tip, and the hunks of each file that existed at the base. List every output the change adds or changes at the system edge: data in a store, an API request or response, a CLI output, a file, an event, a log line. Read the reason for the change from its source in [Sources](#sources). Done when you can say in 1 to 3 sentences what goes wrong without the change, with its source, or with "(inferred)" when no source states it.
-3. **Find the flows.** For each changed function, follow its callers up to the entry point: a `main`, a CLI command, an HTTP or RPC handler, a hook, a scheduled job, an event consumer. Each different entry point starts one flow. Also follow each changed function down to the edge output it builds. Name each flow by its trigger, in the words of the reader. A flow that the change adds has only new steps. A flow that the change deletes has only removed steps. Done when every changed hunk is on a step of a flow, or goes to "Not on the tour" with its reason.
-4. **Draw the domain map.** The map introduces a reader who does not know the domain. Write the terms first: each thing the flows read, write, or react to, glossed in one line, with the place it lives. Then draw the map as [Domain map](#domain-map) says. In `TODO.md` the map comes before the terms table. Add a second view from [Views](#views) only when its row matches the change. Draw from the code at the tip, not from the commit messages. Done when every term that a flow step or a stop uses is in the terms table, and every map node names a real thing.
-5. **Write each flow in full, and cut the stops.** Write each flow as [Flows](#flows) says: every step from the trigger to the outcome, the unchanged steps too. Each changed step links to its stop. One stop is one line range that one comment explains, at most about 40 lines. Order the stops flow by flow, in the order of the flows table, and inside a flow in step order. A stop on code that two flows share belongs to the first flow; a step of the later flow links to the same stop. Mark a stop critical when a wrong line in it loses or corrupts data, breaks a contract that a user or an external client reads, races, or opens a security gap. A rename, a move, or a config value is not critical. Done when every changed step of every flow links to a stop.
-6. **Write the folder.** Put it where [Where the folder goes](#where-the-folder-goes) says. Write `tour.json` first, then `TODO.md`, in the [Layout](#layout) below. Apply the ASD-STE100 rules (`~/.claude/rules/language.md`) to `TODO.md` and to each stop body. Done when `tour check <folder>` prints `0 errors`.
-7. **Open it.** Run `tour open <folder>` with the sandbox off: it opens the browser, which the sandbox blocks. It adds the tour as a tab of the running viewer. When it prints "no viewer on port 8792", run the `launchctl kickstart` line it prints. Done when `tour list` shows the folder.
-8. **Hand it over.** Tell the operator the URL, the folder path, the problem in one sentence, and the flows in a table: flow, before, change, stops, critical stops. Done when the operator has the URL.
+3. **List the changed existing code.** Run `~/.claude/scripts/changed-symbols.py --repo <repo> <base> <tip>`. It prints each symbol that exists at the base and changes: removed, a new signature, a new body, or a new field or method on an existing type. Fill the table that [Changed existing code](#changed-existing-code) describes. For each file in its "Unscanned files" line, read the hunks and add a row for each existing function, type, or field that they change. Done when every symbol that the script prints has a row, and every row is `asked` or `unasked`.
+4. **Find the flows.** For each changed function, follow its callers up to the entry point: a `main`, a CLI command, an HTTP or RPC handler, a hook, a scheduled job, an event consumer. Each different entry point starts one flow. Also follow each changed function down to the edge output it builds. Name each flow by its trigger, in the words of the reader. A flow that the change adds has only new steps. A flow that the change deletes has only removed steps. "Not on the tour" takes only a hunk that changes no behavior: formatting, a rename that the compiler checks, generated code. Done when every changed hunk is on a step of a flow, or goes to "Not on the tour" with its reason.
+5. **Draw the domain map.** The map introduces a reader who does not know the domain. Write the terms first: each thing the flows read, write, or react to, glossed in one line, with the place it lives. Then draw the map as [Domain map](#domain-map) says. In `TODO.md` the map comes before the terms table. Add a second view from [Views](#views) only when its row matches the change. Draw from the code at the tip, not from the commit messages. Done when every term that a flow step or a stop uses is in the terms table, and every map node names a real thing.
+6. **Write each flow in full, and cut the stops.** Write each flow as [Flows](#flows) says: every step from the trigger to the outcome, the unchanged steps too. Each changed step links to its stop. One stop is one line range that one comment explains, at most about 40 lines. Order the stops flow by flow, in the order of the flows table, and inside a flow in step order. A stop on code that two flows share belongs to the first flow; a step of the later flow links to the same stop. Mark a stop critical when a wrong line in it loses or corrupts data, breaks a contract that a user or an external client reads, races, or opens a security gap. A rename, a move, or a config value is not critical. A stop on an `unasked` row is always critical, and its body starts with "Not asked:". Done when every changed step of every flow links to a stop, and every row of `## Changed existing code` links to a stop.
+7. **Write the folder.** Put it where [Where the folder goes](#where-the-folder-goes) says. Write `tour.json` first, then `TODO.md`, in the [Layout](#layout) below. Apply the ASD-STE100 rules (`~/.claude/rules/language.md`) to `TODO.md` and to each stop body. Done when `tour check <folder>` prints `0 errors`.
+8. **Open it.** Run `tour open <folder>` with the sandbox off: it opens the browser, which the sandbox blocks. It adds the tour as a tab of the running viewer. When it prints "no viewer on port 8792", run the `launchctl kickstart` line it prints. Done when `tour list` shows the folder.
+9. **Hand it over.** Tell the operator the URL, the folder path, and the problem in one sentence. List the `unasked` rows first, each with its stop, or write "no unasked changes". Then give the flows in a table: flow, before, change, stops, critical stops. Done when the operator has the URL.
 
 ## Sources
 
@@ -53,6 +54,20 @@ A mermaid `flowchart TD`:
 - `classDef new` marks the nodes that the change adds or changes. `classDef ctx` marks the untouched neighbors that the reader needs to see where the change fits. Draw at least one `ctx` node.
 - At most 12 nodes. A change that needs more gets one overview map of the places, and one map per place under it, each with its own `### Map: <place>` heading.
 - `click <node> href "#stop-<n>"` on each node with a stop, to the first stop of that node. The viewer moves to that stop on a click, and marks the node of the current stop.
+
+## Changed existing code
+
+The table lists each symbol that existed at the base and that the change alters. The author picks the flows, so a change that no flow needs is easy to leave out. This table comes from the diff, so it cannot leave one out.
+
+| Column | Content |
+|---|---|
+| Symbol | the symbol in backticks, as `changed-symbols.py` prints it: `Job.Owner`, `Run` |
+| Change | `removed`, `signature`, `body`, or `added`, and the kind: field, method, func |
+| Before → after | what a caller saw at the base → what it sees at the tip, in one line each |
+| Asked | `asked` with the place in the source of [Sources](#sources) that asks for it, or `unasked` |
+| Stop | `[stop <n>](#stop-<n>)` |
+
+A row is `asked` only when the reason for the change names the symbol or the behavior. A new field "for later", an extra branch, or a changed default that no source asks for is `unasked`. Put the `unasked` rows first.
 
 ## Flows
 
@@ -138,6 +153,13 @@ Tip `<sha>` in `<repo>`. Run `tour open <folder>` to open the viewer.
 
 ### <view name>: <why this view>        (optional)
 
+## Changed existing code
+
+| Symbol | Change | Before → after | Asked | Stop |
+|---|---|---|---|---|
+| `Job.Owner` | added field | no owner → each job stores its owner | unasked | [stop 3](#stop-3) |
+| `Run` | body | ran a job once → retries up to three times | asked: PR body | [stop 1](#stop-1) |
+
 ## Flows
 
 | Flow | What it does | Stops |
@@ -165,4 +187,4 @@ Tip `<sha>` in `<repo>`. Run `tour open <folder>` to open the viewer.
 - <slug>: <the question>, or "none"
 ```
 
-`tour check` fails when a section is missing, a stop range is outside its file at the tip, a flow section has no `**Description:**`, `**Trigger:**`, `**Before:**`, or `**Change:**` line, a stop has no `### Flow:` section for its `flow` or that section has no `(#stop-n)` link for it, or the domain map has no `click … href "#stop-n"` or no node text equal to the `node` of a stop.
+`tour check` fails when a section is missing, a stop range is outside its file at the tip, a flow section has no `**Description:**`, `**Trigger:**`, `**Before:**`, or `**Change:**` line, a stop has no `### Flow:` section for its `flow` or that section has no `(#stop-n)` link for it, or the domain map has no `click … href "#stop-n"` or no node text equal to the `node` of a stop. It also fails when `## Changed existing code` has no backticked row for a symbol that `changed-symbols.py` prints for the base and the tip.

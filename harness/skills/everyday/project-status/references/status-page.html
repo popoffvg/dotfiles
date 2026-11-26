@@ -1,0 +1,239 @@
+<title>Snapshots Project Status</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; the timeline breaks out to full width and scrolls on its own. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --fg: #1b2230; --muted: #5d6677; --line: #dfe3ea;
+  --accent: #2f5bd3; --done: #2e8b57; --plan: #2f5bd3; --plan-soft: #a9bdf0; --wait: #d0453b; --wait-soft: #f4c7c3;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11151c; --surface: #181e28; --fg: #e6e9ef; --muted: #9aa3b4; --line: #2a3242;
+  --accent: #7d9cf2; --done: #4fbf83; --plan: #7d9cf2; --plan-soft: #34466f; --wait: #f07167; --wait-soft: #5b2a2a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11151c; --surface: #181e28; --fg: #e6e9ef; --muted: #9aa3b4; --line: #2a3242;
+  --accent: #7d9cf2; --done: #4fbf83; --plan: #7d9cf2; --plan-soft: #34466f; --wait: #f07167; --wait-soft: #5b2a2a; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+.prose { max-width: 68ch; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: 2rem; font-weight: 600; letter-spacing: -0.01em; }
+h2 { font-size: 1.3rem; font-weight: 600; margin-bottom: 12px; }
+h3 { font-size: 1rem; font-weight: 600; }
+p { margin: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+header { display: grid; gap: 12px; }
+.lede { font-size: 1.1rem; color: var(--fg); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 2px; }
+.fact b { font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.fact span { color: var(--muted); font-size: 0.88rem; }
+.fact.warn b { color: var(--wait); }
+.terms { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 24px; }
+.term { display: grid; gap: 4px; min-width: 0; }
+.term p { color: var(--muted); font-size: 0.95rem; }
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; overflow-x: auto; }
+.chart svg { display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 0.85rem; color: var(--muted); margin-top: 12px; }
+.legend i { display: inline-block; width: 22px; height: 10px; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+td.num, th.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.table-box { overflow-x: auto; }
+.pill { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.done { background: color-mix(in srgb, var(--done) 18%, transparent); color: var(--done); }
+.pill.wip { background: color-mix(in srgb, var(--plan) 18%, transparent); color: var(--plan); }
+.pill.plan { background: var(--line); color: var(--muted); }
+.issues { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.issue { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--wait); border-radius: 8px; padding: 16px 18px; display: grid; gap: 10px; min-width: 0; }
+.issue ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 0.95rem; }
+.issue .ask { font-weight: 500; }
+.note { color: var(--muted); font-size: 0.85rem; }
+a { color: var(--accent); }
+code { font-family: var(--font-mono); font-size: 0.88em; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">MILAB-7260 · Status on 26 November 2026</div>
+    <h1>Snapshots: where the project stands</h1>
+    <p class="lede prose">A <strong>snapshot</strong> freezes a Platforma instance inside its own storage bucket. Later we can restore the instance from that bucket alone, and every file the restored database needs is still there. Today the daily database dump does not match the files: cleanup deletes files after the dump, so a restore can point to files that are gone.</p>
+  </header>
+
+  <section class="facts" aria-label="Key numbers">
+    <div class="fact"><b>26</b><span>pull requests merged</span></div>
+    <div class="fact"><b>30</b><span>pull requests planned (estimate), so 46% of 56 are done</span></div>
+    <div class="fact"><b>870 lines</b><span>median size of a merged pull request</span></div>
+    <div class="fact"><b>5 of 11</b><span>project phases with code in main</span></div>
+    <div class="fact"><b>4 Jan – 29 Jan</b><span>all code merged: full focus – with review waits</span></div>  </section>
+
+  <section>
+    <h2>What the project gives, in plain words</h2>
+    <div class="terms">
+      <div class="term"><h3>Snapshot</h3><p>A frozen copy point of one instance: its database and the work files it needs, kept in the bucket. Made before an update, or on a schedule.</p></div>
+      <div class="term"><h3>Restore</h3><p>Brings an instance back from a snapshot, also on new infrastructure. It always gets a new instance id, so nothing mixes with the old one.</p></div>
+      <div class="term"><h3>Generation</h3><p>A folder in the bucket for the files written between two snapshots. A snapshot closes one generation and starts the next, so old files never change.</p></div>
+      <div class="term"><h3>Deletion guardrail</h3><p>While a snapshot is copied, file deletes wait. Nothing the snapshot needs can disappear during the copy.</p></div>
+      <div class="term"><h3>Housekeeper</h3><p>Cleans the bucket: deletes the files that no snapshot and no instance needs. It runs in dry-run mode first.</p></div>
+      <div class="term"><h3>Migration</h3><p>Moves existing customer instances to the new layout at their first start on the new version.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Timeline</h2>
+    <p class="prose note" style="margin-bottom:12px">Done work uses the real dates of the merged pull requests. Planned work has three estimates:</p>
+    <ul class="prose note" style="margin:0 0 12px; padding-left:18px; display:grid; gap:4px">
+      <li><strong>Full focus:</strong> all my time goes to this project. One work item takes 2 working days, and independent work runs in parallel. Nobody works on Saturday and Sunday.</li>
+      <li><strong>Last month's focus:</strong> the project shares my time with other tasks, as in the last month: the storage notification issues and performance bug fixes.</li>
+      <li><strong>With review waits:</strong> last month's focus, plus a review wait of 2 working days for each part, which is about the average wait so far.</li>
+    </ul>
+    <p class="prose note" style="margin-bottom:12px">The dark bar ends at the full-focus date; the light end reaches the date with review waits.</p>
+    <div class="chart" id="chart" role="img" aria-label="Gantt timeline of the snapshots project from October 2026 to January 2027"></div>
+    <div class="legend">
+      <span><i style="background:var(--done)"></i>Merged</span>
+      <span><i style="background:var(--plan)"></i>Planned, no review wait</span>
+      <span><i style="background:var(--plan-soft)"></i>Extra time: last month's focus and review waits</span>
+      <span><i style="background:var(--wait)"></i>Waiting: review or failing CI</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Done and planned</h2>
+    <div class="table-box">
+      <table>
+        <thead><tr><th>Work</th><th>What it gives</th><th>State</th><th class="num">Merged on</th><th class="num">Expected merge,<br>full focus</th><th class="num">Expected merge,<br>last month's focus</th><th class="num">Expected merge,<br>with review waits</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>What slows the project</h2>
+    <div class="issues">
+      <div class="issue">
+        <h3>Waiting for review</h3>
+        <ul>
+          <li>Two finished pull requests (#2506, #2507) waited 8 days for review, from 18 to 26 November.</li>
+          <li>Big pull requests wait longer: 3.8 days for 1,500+ added lines, 0.7 days under 500 lines.</li>
+          <li>7 parts of the remaining work run one after another. Each extra working day of review wait per part moves the end date by about 7 working days.</li>
+        </ul>
+        <p class="ask">Ask: review each snapshots pull request within 1 working day.</p>
+      </div>
+      <div class="issue">
+        <h3>CI failures not caused by this work</h3>
+        <ul>
+          <li>To keep the work moving, the project opened 5 extra CI pull requests: slow-test labels (#2317), turn off the minio tests (#2319), the k8s test timeout (#2443), k8s log rotation (#2354), and a filter for the driver block tests (#2505, still open).</li>
+          <li>The k8s test timeout became its own task, MILAB-7322.</li>
+        </ul>
+        <p class="ask">Ask: an owner for the k8s and quality-gate checks, so a red check does not block a finished pull request.</p>
+      </div>
+      <div class="issue">
+        <h3>Other work in parallel</h3>
+        <ul>
+          <li>63% of my Platforma work time went to this project. The other 37% went to other tasks: storage notification fixes, a before-delete notification fix, CI workflow changes, a <code>get-field</code> performance check, and reviews.</li>
+          <li>The share changed by week: 94%, 74%, 39%, 62%, 46%.</li>
+          <li>On 10, 20, and 24 November other tasks took the whole day.</li>
+        </ul>
+        <p class="ask">The "last month's focus" dates assume the same share as last month.</p>
+      </div>
+    </div>
+  </section>
+
+  <p class="note prose">Sources: GitHub pull requests of <code>milaboratory/pl</code> (dates, sizes, checks) on 26 November 2026; the snapshots spec and its work plan; my work log. The size of the parts with no detailed task yet is an estimate. Dates count working days, Monday to Friday; holidays are not removed.</p>
+</div>
+
+<script>
+// One row per work line. The reader draws rows; it holds no per-row facts.
+const START = "2026-10-26", END = "2027-02-07", TODAY = "2026-11-26";
+const ROWS = [
+  { name: "One storage interface",        gives: "S3, Google Cloud Storage, and local disk work the same way for the backend.", state: "done", from: "2026-10-27", to: "2026-11-06", mergedOn: "6 Nov" },
+  { name: "Instance and snapshot records", gives: "The bucket keeps a record of each instance and each snapshot; a start refuses a database of another generation.", state: "done", from: "2026-10-29", to: "2026-11-09", mergedOn: "9 Nov (last part 26 Nov)" },
+  { name: "Generations in the bucket",    gives: "New files go into the current generation; files of older generations are never deleted.", state: "done", from: "2026-11-09", to: "2026-11-16", mergedOn: "16 Nov" },
+  { name: "Deletion guardrail",           gives: "File deletes wait while a snapshot is copied.", state: "done", from: "2026-11-06", to: "2026-11-18", waitFrom: "2026-11-18", waitTo: "2026-11-26", mergedOn: "26 Nov" },
+  { name: "Snapshot create, first steps", gives: "One create at a time per instance; the database is dumped at the snapshot moment.", state: "done", from: "2026-11-16", to: "2026-11-18", mergedOn: "18 Nov" },
+  { name: "Snapshot create, complete",    gives: "A snapshot copies its work files and becomes Ready; work deletes wait during the copy.", state: "wip", from: "2026-11-18", plan: "2026-12-01", planFocus: "2026-12-02", planReview: "2026-12-08" },
+  { name: "Restore record, snapshot delete", gives: "A restore marks its snapshot as in use, so nobody deletes it during the restore.", state: "plan", from: "2026-11-27", plan: "2026-12-02", planFocus: "2026-12-03", planReview: "2026-12-07" },
+  { name: "Crash recovery at start",      gives: "A start finishes or cleans up a snapshot that a crash cut.", state: "plan", from: "2026-12-02", plan: "2026-12-07", planFocus: "2026-12-08", planReview: "2026-12-16" },
+  { name: "Migration of existing instances", gives: "Existing customer instances move to the new layout at their first start.", state: "plan", from: "2026-12-08", plan: "2026-12-09", planFocus: "2026-12-11", planReview: "2026-12-23" },
+  { name: "Housekeeper",                  gives: "Deletes the bucket files that no snapshot and no instance needs; dry run first.", state: "plan", from: "2026-12-08", plan: "2026-12-17", planFocus: "2026-12-22", planReview: "2027-01-05" },
+  { name: "Rotation and legacy cleanup",  gives: "Automatic snapshots older than 14 days go away; old files from before the migration are cleaned once.", state: "plan", from: "2026-12-18", plan: "2026-12-21", planFocus: "2026-12-24", planReview: "2027-01-11" },
+  { name: "Restore tool",                 gives: "Brings an instance back from a snapshot: database, work files, new instance id.", state: "plan", from: "2026-12-18", plan: "2026-12-29", planFocus: "2027-01-04", planReview: "2027-01-20" },
+  { name: "Clients refresh after restore", gives: "Desktop and SDK clients drop old caches when the instance was restored.", state: "plan", from: "2026-12-30", plan: "2027-01-04", planFocus: "2027-01-11", planReview: "2027-01-29" },
+];
+const STATE_LABEL = { done: "Merged", wip: "In progress", plan: "Planned" };
+const shortDate = s => new Date(day(s) * 86400000).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+
+const day = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 86400000;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function drawChart() {
+  const box = document.getElementById("chart");
+  box.textContent = "";
+  const label = 230, pxDay = 10, rowH = 30, top = 44, d0 = day(START), d1 = day(END);
+  const W = label + (d1 - d0 + 1) * pxDay + 16, H = top + ROWS.length * rowH + 40;
+  const x = s => label + (day(s) - d0) * pxDay;
+  const svg = el("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, "font-family": css("--font-body") });
+  const fg = css("--fg"), muted = css("--muted"), line = css("--line");
+
+  for (let d = d0; d <= d1; d++) {
+    const date = new Date(d * 86400000), dow = date.getUTCDay();
+    if (dow === 0 || dow === 6) svg.append(el("rect", { x: label + (d - d0) * pxDay, y: top - 6, width: pxDay, height: ROWS.length * rowH + 8, fill: line, opacity: 0.35 }));
+    if (dow === 1) {
+      const gx = label + (d - d0) * pxDay;
+      svg.append(el("line", { x1: gx, x2: gx, y1: top - 6, y2: top + ROWS.length * rowH + 2, stroke: line }));
+      svg.append(el("text", { x: gx + 2, y: top - 12, "font-size": 11, fill: muted }, date.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" })));
+    }
+  }
+
+  ROWS.forEach((r, i) => {
+    const y = top + i * rowH, bar = y + 8, h = 14;
+    svg.append(el("text", { x: 0, y: y + 19, "font-size": 13, fill: fg, "font-weight": r.state === "done" ? 400 : 500 }, r.name));
+    if (r.state === "done") {
+      svg.append(el("rect", { x: x(r.from), y: bar, width: x(r.to) - x(r.from) + pxDay, height: h, rx: 3, fill: css("--done") }));
+      if (r.waitFrom) svg.append(el("rect", { x: x(r.waitFrom) + pxDay, y: bar, width: x(r.waitTo) - x(r.waitFrom), height: h, rx: 3, fill: css("--wait") }));
+      return;
+    }
+    if (r.wait) svg.append(el("rect", { x: x(r.from), y: bar, width: x(r.to) - x(r.from), height: h, rx: 3, fill: css("--wait") }));
+    const pStart = r.wait ? r.to : r.from;
+    svg.append(el("rect", { x: x(pStart), y: bar, width: x(r.planReview) - x(pStart) + pxDay, height: h, rx: 3, fill: css("--plan-soft") }));
+    svg.append(el("rect", { x: x(pStart), y: bar, width: x(r.plan) - x(pStart) + pxDay, height: h, rx: 3, fill: css("--plan") }));
+  });
+
+  const tx = x(TODAY) + pxDay / 2;
+  svg.append(el("line", { x1: tx, x2: tx, y1: top - 8, y2: top + ROWS.length * rowH + 6, stroke: css("--accent"), "stroke-width": 2, "stroke-dasharray": "4 3" }));
+  svg.append(el("text", { x: tx, y: top + ROWS.length * rowH + 22, "font-size": 12, fill: css("--accent"), "text-anchor": "middle", "font-weight": 600 }, "Today, 26 Nov"));
+  box.append(svg);
+}
+
+function fillTable() {
+  const body = document.getElementById("rows");
+  body.textContent = "";
+  for (const r of ROWS) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><strong></strong></td><td></td><td><span class="pill ${r.state}"></span></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>`;
+    tr.querySelector("strong").textContent = r.name;
+    tr.children[1].textContent = r.gives;
+    tr.querySelector(".pill").textContent = STATE_LABEL[r.state];
+    tr.children[3].textContent = r.mergedOn || "—";
+    tr.children[4].textContent = r.plan ? shortDate(r.plan) : "—";
+    tr.children[5].textContent = r.planFocus ? shortDate(r.planFocus) : "—";
+    tr.children[6].textContent = r.planReview ? shortDate(r.planReview) : "—";
+    body.append(tr);
+  }
+}
+
+fillTable();
+drawChart();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawChart);
+new MutationObserver(drawChart).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+</script>
