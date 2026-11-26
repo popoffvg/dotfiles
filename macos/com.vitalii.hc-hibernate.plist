@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.vitalii.hc-hibernate</string>
+  <!-- Start Herdr Core at login, then hibernate idle Claude sessions in its terminals. PATH holds hc, claude, and python3. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>export PATH="/opt/nanobrew/prefix/bin:$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"; hc server start &gt;/dev/null; exec python3 -u "$HOME/.claude/scripts/hc-hibernate.py" watch &gt;&gt;"$HOME/Library/Logs/hc-hibernate.log" 2&gt;&amp;1</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+</dict>
+</plist>
